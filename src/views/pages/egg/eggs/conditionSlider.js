@@ -1,8 +1,13 @@
 /* eslint-disable lines-around-comment */
 import { LoadingButton } from '@mui/lab'
+// import DemoContainer from '@mui/x-date-pickers/internals/demo/DemoContainer'
+// import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import {
+  Autocomplete,
+  Avatar,
   Box,
   Card,
+  CardContent,
   Drawer,
   FormControl,
   FormControlLabel,
@@ -20,8 +25,10 @@ import {
   Switch,
   TextField,
   Typography,
+  debounce,
   fabClasses
 } from '@mui/material'
+import CustomInput from 'src/components/PickersCustomInput'
 import { useDropzone } from 'react-dropzone'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
@@ -30,7 +37,7 @@ import Image from 'next/image'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
 import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
@@ -38,6 +45,19 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import Toaster from 'src/components/Toaster'
+import {
+  createAnimal,
+  getAccessionType,
+  getAnimalGetconfigs,
+  getAnimalMaster,
+  getAnimalOwnershipTerms,
+  getMasterInstitutes,
+  getMastersOrganization,
+  getTaxonomyList
+  // getZoosSectionListing
+} from 'src/lib/api/egg/egg/createAnimal'
+import { DatePicker } from '@mui/x-date-pickers'
+import moment from 'moment'
 
 const ConditionSlider = ({
   getActivityLogsFunc,
@@ -51,7 +71,7 @@ const ConditionSlider = ({
   const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState('')
   const [hatched, setHatched] = useState('normal_hatch')
-  console.log('hatched :>> ', hatched)
+  // console.log('hatched :>> ', hatched)
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState([])
 
@@ -63,11 +83,23 @@ const ConditionSlider = ({
   const [isAnimal, setIsAnimal] = useState(false)
   const [loader, setLoader] = useState(false)
 
+  const [defaultSpecies, setDefaultSpecies] = useState(null)
+  const [taxonomyList, setTaxonomyList] = useState([])
+  const [accessionTypeList, setAccessionTypeList] = useState([])
+  const [institutesList, setInstitutesList] = useState([])
+  const [animalOwnershipTermsList, setAnimalOwnershipTermsList] = useState([])
+  const [mastersOrganizationList, setMastersOrganizationList] = useState([])
+  const [localIdentifierTypeList, setLocalIdentifierTypeList] = useState([])
+  const [collectionTypeList, setCollectionTypeList] = useState([])
+  const [sexingTypeList, setSexingTypeList] = useState([])
+  const [lifeStageList, setLifeStageList] = useState([])
+  const [contraceptionTypeList, setContraceptionTypeList] = useState([])
+
   const getEggMasterData = async () => {
     try {
       await GetEggMaster().then(res => {
         if (res.success) {
-          console.log('res?.data? master :>> ', res?.data)
+          // console.log('res?.data? master :>> ', res?.data)
           setEggMaster(res?.data)
         }
       })
@@ -91,23 +123,94 @@ const ConditionSlider = ({
     comment: '',
     shell_thickness: '',
     assisted_by: '',
-    image: []
+    image: [],
+    ////////////////
+    species: '',
+    accessionType: '',
+    animalOwnershipTerms: '',
+    accessionDate: null,
+    collectionType: '',
+    enclosure: '',
+    sextype: '',
+    mastersOrganization: '',
+    institution: '',
+    parentMother: '',
+    parentFather: '',
+    birthDate: null,
+    age: '',
+    type: '',
+    localIdentifierType: '',
+    localIdentifier: '',
+    sexingType: '',
+    lifeStage: '',
+    contraceptionType: ''
   }
 
-  const schema = yup.object().shape({
-    current_state: yup.string().required('State is required'),
+  const schema = yup.object().shape(
+    isAnimal
+      ? {
+          current_state: yup.string().required('State is required'),
 
-    select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
+          select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
 
-    // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
-    // shell_thickness:
-    //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
+          // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
+          // shell_thickness:
+          //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
 
-    assisted_by:
-      hatched === 'assisted_hatch'
-        ? yup.string().trim().required('Assisted By is required')
-        : yup.string().notRequired()
-  })
+          assisted_by:
+            hatched === 'assisted_hatch'
+              ? yup.string().trim().required('Assisted By is required')
+              : yup.string().notRequired(),
+          ////////////////////////////////////////////////////////////////////
+          species: yup.string().required('Species / Taxonomy is required'),
+          accessionType: yup.string().required('Accession Type is required'),
+          institution: yup
+            .string()
+            .test(
+              'is-required-if-accessionType-is-2',
+              'Institution is required when Accession Type is From Institute',
+              function (value) {
+                const { accessionType } = this.parent
+                if (accessionType === '2') {
+                  return !!value // Return true if value is not empty
+                }
+                return true // Otherwise, always pass validation
+              }
+            ),
+          accessionDate: yup.string().required('Accession Date is required'),
+          collectionType: yup.string().required('Collection Type is required'),
+          enclosure: yup.string().required('Enclosure is required'),
+          sextype: yup.string().required('Sex Type is required'),
+          birthDate: yup.string().required('Birth Date is required'),
+          localIdentifier: yup
+            .string()
+            .test(
+              'is-required-if-localIdentifierType-is-not-empty',
+              'Local Identifier is required when Local Identifier Type is selected',
+              function (value) {
+                const { localIdentifierType } = this.parent
+                if (localIdentifierType && localIdentifierType.trim() !== '') {
+                  return !!value // Return true if value is not empty
+                }
+                return true // Otherwise, always pass validation
+              }
+            )
+        }
+      : {
+          current_state: yup.string().required('State is required'),
+
+          select_stage: eggStaged?.length > 0 ? yup.string().required('Stage is required') : yup.string().notRequired(),
+
+          // hatched_method_Btn: statusId === '4' ? yup.string().required('Condition is required') : yup.string().notRequired(),
+          // shell_thickness:
+          //   statusId === '4' ? yup.string().required('Shell thickness is required') : yup.string().notRequired(),
+
+          assisted_by:
+            hatched === 'assisted_hatch'
+              ? yup.string().trim().required('Assisted By is required')
+              : yup.string().notRequired()
+        }
+  )
 
   const {
     control,
@@ -131,10 +234,10 @@ const ConditionSlider = ({
   useEffect(() => {
     if (statusID) {
       setStatusId(statusID)
-      console.log('statusID :>> ', statusID)
+      // console.log('statusID :>> ', statusID)
       const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === statusID)
       setEggStaged(filteredEggStatus)
-      console.log('filteredEggStatus :>> ', filteredEggStatus)
+      // console.log('filteredEggStatus :>> ', filteredEggStatus)
     }
   }, [statusID, eggMaster])
 
@@ -160,6 +263,14 @@ const ConditionSlider = ({
     }
   })
 
+  // if (watch('accessionType') != '2') {
+  //   clearErrors('institution')
+  // }
+
+  const onError = errors => {
+    console.log('Form errros', errors)
+  }
+
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
   }
@@ -167,7 +278,7 @@ const ConditionSlider = ({
   const handleInputImageChange = file => {
     const reader = new FileReader()
     const { files } = file.target
-    console.log('files :>> ', files)
+    // console.log('files :>> ', files)
     if (files && files.length !== 0) {
       reader.onload = () => {
         setImgSrc(pre => [...pre, reader?.result])
@@ -185,46 +296,271 @@ const ConditionSlider = ({
     setValue('image', '')
   }
 
-  const onSubmit = async values => {
+  // const onSubmit = async values => {
+  //   try {
+  //     setLoader(true)
+  //     let payload
+  //     if (Number(getValues('current_state')) === 1) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         comment: getValues('comment'),
+  //         egg_attachment: imgArr
+  //       }
+  //     } else if (Number(getValues('current_state')) === 2) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         egg_state_id: getValues('select_stage'),
+  //         comment: getValues('comment'),
+  //         egg_attachment: imgArr
+  //       }
+  //     } else if (Number(getValues('current_state')) === 3) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         egg_state_id: getValues('select_stage'),
+  //         comment: getValues('comment'),
+  //         egg_attachment: imgArr
+  //       }
+  //     } else if (Number(getValues('current_state')) === 4) {
+  //       payload = {
+  //         egg_id: eggId,
+  //         egg_status_id: getValues('current_state'),
+  //         hatched_method: hatched,
+  //         egg_shell_thickness: getValues('shell_thickness'),
+  //         comment: getValues('comment'),
+  //         egg_assisted_by: getValues('assisted_by'),
+  //         egg_attachment: imgArr
+  //       }
+  //     }
+
+  //     const animalPayload = {
+  //       accession_type: values?.accessionType,
+  //       accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
+  //       taxonomy_id: values?.species,
+  //       enclosure_id: values?.enclosure,
+  //       sex: values?.sextype,
+  //       collection_type: values?.collectionType,
+  //       organization_id: values?.mastersOrganization,
+  //       from_institution: values?.institution,
+  //       birth_date: moment(values?.birthDate).format('YYYY-MM-DD'),
+  //       local_id_type: values?.localIdentifierType,
+  //       local_id: values?.localIdentifier,
+  //       age: values?.age,
+  //       parent_female: values?.parentMother,
+  //       parent_male: values?.parentFather,
+  //       ownership_term: values?.animalOwnershipTerms,
+  //       sexing_type: values?.sexingType,
+  //       life_stage: values?.lifeStage,
+  //       contraception_type: values.contraceptionType,
+  //       description: '',
+  //       form_type: 'single',
+  //       zoo_id: '',
+  //       site_id: eggDetails?.enclosure_data[0]?.site_id,
+  //       section_id: eggDetails?.enclosure_data[0]?.section_id,
+  //       egg_id: eggId
+  //     }
+
+  //     if (isAnimal && statusID === '4') {
+  //       const ress = await AddEggStatusAndCondition(payload)
+  //       if (ress?.success) {
+  //         // setLoader(false)
+  //         Toaster({ type: 'success', message: res.message })
+  //         const res = await createAnimal(animalPayload)
+  //         if (res.success) {
+  //           setLoader(false)
+  //           setDefaultSpecies(null)
+
+  //           reset()
+  //           setImgSrc('')
+  //           if (getDetails) {
+  //             getDetails(eggId)
+  //           }
+  //           if (GetGalleryImgList) {
+  //             GetGalleryImgList()
+  //           }
+  //           if (getActivityLogsFunc) {
+  //             getActivityLogsFunc()
+  //           }
+
+  //           setOpenDrawer(false)
+
+  //           Toaster({ type: 'success', message: res.message })
+  //         } else {
+  //           setLoader(false)
+  //           // setDefaultSpecies(null)
+  //           Toaster({ type: 'error', message: res.message })
+  //         }
+  //       } else {
+  //         setLoader(false)
+  //         // setDefaultSpecies(null)
+  //         Toaster({ type: 'error', message: res.message })
+  //       }
+  //     } else {
+  //       const res = await AddEggStatusAndCondition(payload)
+  //       if (res.success) {
+  //         setLoader(false)
+
+  //         // console.log('res on submit :>> ', res)
+  //         setImgSrc('')
+  //         reset()
+
+  //         if (getDetails) {
+  //           getDetails(eggId)
+  //         }
+  //         if (GetGalleryImgList) {
+  //           GetGalleryImgList()
+  //         }
+  //         if (getActivityLogsFunc) {
+  //           getActivityLogsFunc()
+  //         }
+  //         setOpenDrawer(false)
+  //         Toaster({ type: 'success', message: res.message })
+  //       } else {
+  //         setLoader(false)
+  //         Toaster({ type: 'error', message: res.message })
+  //       }
+  //     }
+
+  //     // Perform any additional operations, e.g., API call
+  //   } catch (error) {
+  //     setLoader(false)
+  //     if (getDetails) {
+  //       getDetails(eggId)
+  //     }
+  //     Toaster({ type: 'error', message: 'An error occurred while creating animal' })
+  //   }
+  // }
+
+  const onSubmit = values => {
     try {
       setLoader(true)
-
-      const payload = {
-        egg_id: eggId,
-        egg_status_id: getValues('current_state'),
-        egg_state_id: getValues('select_stage'),
-        hatched_method: hatched,
-        comment: getValues('comment'),
-        egg_shell_thickness: getValues('shell_thickness'),
-
-        egg_assisted_by: getValues('assisted_by'),
-        egg_attachment: imgArr
+      let payload
+      if (Number(getValues('current_state')) === 1) {
+        payload = {
+          egg_id: eggId,
+          egg_status_id: getValues('current_state'),
+          comment: getValues('comment'),
+          egg_attachment: imgArr
+        }
+      } else if (Number(getValues('current_state')) === 2) {
+        payload = {
+          egg_id: eggId,
+          egg_status_id: getValues('current_state'),
+          egg_state_id: getValues('select_stage'),
+          comment: getValues('comment'),
+          egg_attachment: imgArr
+        }
+      } else if (Number(getValues('current_state')) === 3) {
+        payload = {
+          egg_id: eggId,
+          egg_status_id: getValues('current_state'),
+          egg_state_id: getValues('select_stage'),
+          comment: getValues('comment'),
+          egg_attachment: imgArr
+        }
+      } else if (Number(getValues('current_state')) === 4) {
+        payload = {
+          egg_id: eggId,
+          egg_status_id: getValues('current_state'),
+          hatched_method: hatched,
+          egg_shell_thickness: getValues('shell_thickness'),
+          comment: getValues('comment'),
+          egg_assisted_by: getValues('assisted_by'),
+          egg_attachment: imgArr
+        }
       }
-      // console.log('payload :>> ', payload)
 
-      const res = await AddEggStatusAndCondition(payload)
-      if (res.success) {
-        setLoader(false)
+      const animalPayload = {
+        accession_type: values?.accessionType,
+        accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
+        taxonomy_id: values?.species,
+        enclosure_id: values?.enclosure,
+        sex: values?.sextype,
+        collection_type: values?.collectionType,
+        organization_id: values?.mastersOrganization,
+        from_institution: values?.institution,
+        birth_date: moment(values?.birthDate).format('YYYY-MM-DD'),
+        local_id_type: values?.localIdentifierType,
+        local_id: values?.localIdentifier,
+        age: values?.age,
+        parent_female: values?.parentMother,
+        parent_male: values?.parentFather,
+        ownership_term: values?.animalOwnershipTerms,
+        sexing_type: values?.sexingType,
+        life_stage: values?.lifeStage,
+        contraception_type: values.contraceptionType,
+        description: '',
+        form_type: 'single',
+        zoo_id: '',
+        site_id: eggDetails?.enclosure_data[0]?.site_id,
+        section_id: eggDetails?.enclosure_data[0]?.section_id,
+        egg_id: eggId
+      }
 
-        // console.log('res on submit :>> ', res)
-        setImgSrc('')
-        reset()
+      if (isAnimal && statusID === '4') {
+        AddEggStatusAndCondition(payload).then(ress => {
+          if (ress?.success) {
+            // setLoader(false)
+            Toaster({ type: 'success', message: ress.message })
+            createAnimal(animalPayload).then(res => {
+              if (res.success) {
+                setLoader(false)
+                setDefaultSpecies(null)
 
-        setOpenDrawer(false)
-        Toaster({ type: 'success', message: res.message })
-        if (getDetails) {
-          getDetails(eggId)
-        }
-        if (GetGalleryImgList) {
-          GetGalleryImgList()
-        }
-        if (getActivityLogsFunc) {
-          getActivityLogsFunc()
-        }
+                reset()
+                setImgSrc('')
+                if (getDetails) {
+                  getDetails(eggId)
+                }
+                if (GetGalleryImgList) {
+                  GetGalleryImgList()
+                }
+                if (getActivityLogsFunc) {
+                  getActivityLogsFunc()
+                }
+
+                setOpenDrawer(false)
+
+                Toaster({ type: 'success', message: res.message })
+              } else {
+                setLoader(false)
+                // setDefaultSpecies(null)
+                Toaster({ type: 'error', message: res.message })
+              }
+            })
+          } else {
+            setLoader(false)
+            // setDefaultSpecies(null)
+            Toaster({ type: 'error', message: res.message })
+          }
+        })
       } else {
-        setLoader(false)
-        reset()
-        Toaster({ type: 'error', message: res.message })
+        AddEggStatusAndCondition(payload).then(res => {
+          if (res.success) {
+            setLoader(false)
+
+            // console.log('res on submit :>> ', res)
+            setImgSrc('')
+            reset()
+
+            if (getDetails) {
+              getDetails(eggId)
+            }
+            if (GetGalleryImgList) {
+              GetGalleryImgList()
+            }
+            if (getActivityLogsFunc) {
+              getActivityLogsFunc()
+            }
+            setOpenDrawer(false)
+            Toaster({ type: 'success', message: res.message })
+          } else {
+            setLoader(false)
+            Toaster({ type: 'error', message: res.message })
+          }
+        })
       }
 
       // Perform any additional operations, e.g., API call
@@ -233,9 +569,7 @@ const ConditionSlider = ({
       if (getDetails) {
         getDetails(eggId)
       }
-      reset()
-      console.error('Error while adding room:', error)
-      Toaster({ type: 'error', message: 'An error occurred while adding room' })
+      Toaster({ type: 'error', message: 'An error occurred while creating animal' })
     }
   }
 
@@ -262,6 +596,111 @@ const ConditionSlider = ({
     setValue('select_stage', eggDetails?.egg_state_id)
   }, [eggDetails])
 
+  const getAccessionTypeFunc = () => {
+    try {
+      getAccessionType().then(res => {
+        if (res.is_success) {
+          setAccessionTypeList(res?.data)
+        }
+      })
+    } catch (error) {}
+  }
+
+  const getMasterInstitutesFunc = () => {
+    try {
+      getMasterInstitutes().then(res => {
+        if (res.success) {
+          setInstitutesList(res?.data)
+        }
+      })
+    } catch (error) {}
+  }
+
+  const getMastersOrganizationFunc = () => {
+    try {
+      getMastersOrganization().then(res => {
+        if (res.length) {
+          setMastersOrganizationList(res)
+        }
+      })
+    } catch (error) {}
+  }
+
+  const getAnimalOwnershipTermsFunc = () => {
+    try {
+      getAnimalOwnershipTerms().then(res => {
+        if (res.success) {
+          setAnimalOwnershipTermsList(res?.data)
+        }
+      })
+    } catch (error) {}
+  }
+  const getAnimalGetconfigsFunc = () => {
+    try {
+      getAnimalGetconfigs().then(res => {
+        if (res.success) {
+          setLocalIdentifierTypeList(res?.data?.animal_indetifier)
+          setCollectionTypeList(res?.data?.collection_type)
+        }
+      })
+    } catch (error) {}
+  }
+  const getAnimalMasterFunc = () => {
+    try {
+      getAnimalMaster().then(res => {
+        if (res.success) {
+          setSexingTypeList(res?.data?.sexing_types)
+          setLifeStageList(res?.data?.life_stage)
+          setContraceptionTypeList(res?.data?.contraception_status)
+        }
+      })
+    } catch (error) {}
+  }
+  const getTaxonomyListFunc = q => {
+    try {
+      getTaxonomyList(q).then(res => {
+        if (res.success) {
+          setTaxonomyList(res?.data)
+        }
+      })
+    } catch (error) {}
+  }
+
+  const searchSpecies = useCallback(
+    debounce(async search => {
+      try {
+        await getTaxonomyListFunc({ search })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  useEffect(() => {
+    if (eggDetails) {
+      if (Number(eggDetails?.enclosure_data?.length) === 1) {
+        setValue('enclosure', eggDetails?.enclosure_data[0]?.enclosure_id)
+      }
+      if (Number(eggDetails?.parent_list?.father_list?.length) === 1) {
+        setValue('parentFather', eggDetails?.parent_list?.father_list[0]?._id)
+      }
+      if (Number(eggDetails?.parent_list?.mother_list?.length) === 1) {
+        setValue('parentMother', eggDetails?.parent_list?.mother_list[0]?._id)
+      }
+    }
+    eggDetails?.enclosure_data
+  }, [eggDetails])
+
+  useEffect(() => {
+    getAccessionTypeFunc()
+    getMasterInstitutesFunc()
+    getMastersOrganizationFunc()
+    getAnimalOwnershipTermsFunc()
+    getAnimalGetconfigsFunc()
+    getAnimalMasterFunc()
+    getTaxonomyListFunc()
+  }, [])
+
   return (
     <>
       <Drawer
@@ -284,7 +723,6 @@ const ConditionSlider = ({
               justifyContent: 'space-between',
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
-
               bgcolor: theme.palette.customColors.lightBg
             }}
           >
@@ -304,10 +742,20 @@ const ConditionSlider = ({
           </Box>
 
           <Box>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), overflowY: 'auto' }}>
-                <Card fullWidth>
-                  <FormControl sx={{ width: '95%', ml: 3, mt: 5, mb: 4 }}>
+            <form onSubmit={handleSubmit(onSubmit, onError)}>
+              <Box className='sidebar-body' sx={{ px: '24px', overflowY: 'auto' }}>
+                <Box
+                  sx={{
+                    background: '#fff',
+                    borderRadius: '8px',
+                    border: 1,
+                    borderColor: '#c3cec7',
+                    py: '20px',
+                    px: '16px'
+                  }}
+                  fullWidth
+                >
+                  <FormControl sx={{ width: '100%', mb: 4 }}>
                     <InputLabel id='current_state'>Select State*</InputLabel>
                     <Controller
                       name='current_state'
@@ -336,7 +784,7 @@ const ConditionSlider = ({
                   </FormControl>
 
                   {eggStaged?.length > 0 && (
-                    <FormControl sx={{ width: '95%', ml: 3, mb: 4 }}>
+                    <FormControl sx={{ width: '100%' }}>
                       <InputLabel id='select_stage'>Select Stage*</InputLabel>
                       <Controller
                         name='select_stage'
@@ -368,65 +816,61 @@ const ConditionSlider = ({
                   {statusID === '4' && (
                     <>
                       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-                        <>
-                          <FormControl mb={2}>
-                            <RadioGroup
-                              aria-labelledby='demo-row-radio-buttons-group-label'
-                              name='hatched_method_Btn'
-                              sx={{ display: 'flex', gap: 4, justifyContent: 'center' }}
-                              value={hatched}
-                              onChange={e => setHatched(e.target.value)}
-                            >
-                              <Stack direction='row' spacing={6}>
-                                <Box
-                                  error={Boolean(errors?.hatched_method_Btn)}
-                                  sx={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                    p: 2,
-                                    borderRadius: '10px',
+                        <FormControl>
+                          <RadioGroup
+                            aria-labelledby='demo-row-radio-buttons-group-label'
+                            name='hatched_method_Btn'
+                            sx={{ display: 'flex', justifyContent: 'center' }}
+                            value={hatched}
+                            onChange={e => setHatched(e.target.value)}
+                          >
+                            <Box sx={{ display: 'flex', gap: '24px' }}>
+                              <Box
+                                error={Boolean(errors?.hatched_method_Btn)}
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  // gap: 2,
+                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                  borderRadius: '10px',
 
-                                    // opacity: 0.6,
-                                    width: 230,
-                                    justifyContent: 'space-between'
-                                  }}
-                                >
-                                  <Typography ml={2}>Normal Hatch</Typography>
-                                  <FormControlLabel value='normal_hatch' control={<Radio />} />
-                                </Box>
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                    p: 2,
-                                    borderRadius: '10px',
-
-                                    // opacity: 0.6,
-                                    width: 230,
-                                    justifyContent: 'space-between'
-                                  }}
-                                >
-                                  <Typography ml={2}>Assisted Hatch</Typography>
-                                  <FormControlLabel value='assisted_hatch' control={<Radio />} />
-                                </Box>
-                              </Stack>
-                            </RadioGroup>
-                            {errors?.hatched_method_Btn && (
-                              <FormHelperText sx={{ color: 'error.main' }}>
-                                {errors?.hatched_method_Btn?.message}
-                              </FormHelperText>
-                            )}
-                          </FormControl>
-                        </>
+                                  // opacity: 0.6,
+                                  width: 228,
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <Typography ml={2}>Normal Hatch</Typography>
+                                <FormControlLabel value='normal_hatch' control={<Radio />} />
+                              </Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  // gap: 2,
+                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                  p: 2,
+                                  borderRadius: '10px',
+                                  // opacity: 0.6,
+                                  width: 228,
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <Typography ml={2}>Assisted Hatch</Typography>
+                                <FormControlLabel value='assisted_hatch' control={<Radio />} />
+                              </Box>
+                            </Box>
+                          </RadioGroup>
+                          {errors?.hatched_method_Btn && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors?.hatched_method_Btn?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
                       </Box>
 
-                      <FormControl fullWidth sx={{ px: 3, mb: 3 }}>
+                      <FormControl fullWidth>
                         <Controller
                           name='shell_thickness'
                           control={control}
@@ -446,7 +890,7 @@ const ConditionSlider = ({
                               error={Boolean(errors?.shell_thickness)}
                               value={value}
                               type='number'
-                              label='Enter Shell Thickness*'
+                              label='Enter Shell Thickness'
                               name='shell_thickness'
                               onChange={handleChange}
                               placeholder=''
@@ -481,7 +925,7 @@ const ConditionSlider = ({
                       </FormControl>
 
                       {hatched === 'assisted_hatch' && (
-                        <FormControl fullWidth sx={{ px: 3, mb: 3 }}>
+                        <FormControl fullWidth sx={{ mt: 4 }}>
                           <Controller
                             name='assisted_by'
                             control={control}
@@ -505,9 +949,21 @@ const ConditionSlider = ({
                       )}
                     </>
                   )}
-                </Card>
+                </Box>
 
-                <Card fullWidth sx={{ mt: 6, p: 4, mb: isAnimal ? 3 : 35 }}>
+                <Box
+                  fullWidth
+                  sx={{
+                    mt: 6,
+                    mb: isAnimal ? 3 : 35,
+                    background: '#fff',
+                    borderRadius: '8px',
+                    border: 1,
+                    borderColor: '#c3cec7',
+                    py: '20px',
+                    px: '16px'
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='comment'
@@ -523,7 +979,7 @@ const ConditionSlider = ({
                           placeholder=''
                           multiline
                           rows={3}
-                          sx={{ width: '100%', mt: 2, mr: 12, mb: 3 }} // Adjusted sx prop
+                          sx={{ width: '100%', mr: 12, mb: 3 }} // Adjusted sx prop
                         />
                       )}
                     />
@@ -613,48 +1069,87 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
+                  {statusID === '4' && (
+                    <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
 
-                  {/* <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
+                      <FormControlLabel
+                        control={
+                          <Switch checked={isAnimal} onChange={handleChangeSwitch} name='mySwitch' color='primary' />
+                        }
+                      />
+                    </Box>
+                  )}
+                </Box>
 
-                    <FormControlLabel
-                      control={
-                        <Switch checked={isAnimal} onChange={handleChangeSwitch} name='mySwitch' color='primary' />
-                      }
-
-                      // label={isAnimal ? 'On' : 'Off'}
-                    />
-                  </Box> */}
-                </Card>
-
-                {isAnimal && (
+                {isAnimal && statusID === '4' && (
                   <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
-                    <Card fullWidth sx={{ p: 5 }}>
+                    <Box
+                      fullWidth
+                      sx={{
+                        background: '#fff',
+                        borderRadius: '8px',
+                        border: 1,
+                        borderColor: '#c3cec7',
+                        py: '20px',
+                        px: '16px'
+                      }}
+                    >
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='species'>Add Species</InputLabel>
+                        {/* <InputLabel id='species'>Species / Taxonomy</InputLabel> */}
                         <Controller
                           name='species'
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
-                            <Select
+                            // <Select
+                            //   name='species'
+                            //   value={value}
+                            //   label='Add Species'
+                            //   onChange={onChange}
+                            //   labelId='species'
+                            //   error={Boolean(errors?.species)}
+                            // >
+                            //   {[{ id: 1, name: 'dog' }].map(val => (
+                            //     <MenuItem key={val?.id} value={val?.id}>
+                            //       {val?.name}
+                            //     </MenuItem>
+                            //   ))}
+                            // </Select>
+                            <Autocomplete
                               name='species'
-                              value={value}
-                              label='Add Species'
-                              onChange={onChange}
-                              labelId='species'
-                              error={Boolean(errors?.species)}
-                            >
-                              {/* {eggMaster?.egg_status?.map(status => ( */}
-                              <MenuItem
+                              value={defaultSpecies}
+                              // value={value}
+                              disablePortal
+                              placeholder='Species / Taxonomy'
+                              // disabled={isEdit || isPreFilled}
+                              id='species'
+                              options={taxonomyList?.length > 0 ? taxonomyList : []}
+                              getOptionLabel={option => option.scientific_name}
+                              isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
+                              onChange={(e, val) => {
+                                if (val === null) {
+                                  setDefaultSpecies(null)
 
-                              //  key={status?.id} value={status?.id}
-                              >
-                                Dog
-                              </MenuItem>
-                              {/* ))} */}
-                            </Select>
+                                  return onChange('')
+                                } else {
+                                  setDefaultSpecies(val)
+                                  return onChange(val.tsn)
+                                }
+                              }}
+                              renderInput={params => (
+                                <TextField
+                                  onChange={e => {
+                                    searchSpecies(e.target.value)
+                                  }}
+                                  {...params}
+                                  label='Select Species *'
+                                  placeholder='Search & Select'
+                                  error={Boolean(errors.species)}
+                                />
+                              )}
+                            />
                           )}
                         />
                         {errors?.species && (
@@ -663,115 +1158,740 @@ const ConditionSlider = ({
                       </FormControl>
 
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='species'>Accession Type</InputLabel>
+                        <InputLabel id='accessionType'>Accession Type *</InputLabel>
                         <Controller
-                          name='species'
+                          name='accessionType'
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <Select
-                              name='species'
+                              name='accessionType'
                               value={value}
-                              label='Add Species'
+                              label='Accession Type *'
                               onChange={onChange}
-                              labelId='species'
+                              labelId='accessionType'
                               error={Boolean(errors?.species)}
                             >
-                              {/* {eggMaster?.egg_status?.map(status => ( */}
-                              <MenuItem
-
-                              //  key={status?.id} value={status?.id}
-                              >
-                                Dog
-                              </MenuItem>
-                              {/* ))} */}
+                              {accessionTypeList?.map(val => (
+                                <MenuItem key={val?.accession_id} value={val?.accession_id}>
+                                  {val?.accession_type}
+                                </MenuItem>
+                              ))}
                             </Select>
                           )}
                         />
-                        {errors?.species && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.species?.message}</FormHelperText>
+                        {errors?.accessionType && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionType?.message}</FormHelperText>
                         )}
                       </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='species'>Ownership Term</InputLabel>
+                        <InputLabel id='institution'>
+                          Institution {Number(watch('accessionType')) === 4 && '*'}
+                        </InputLabel>
                         <Controller
-                          name='species'
+                          name='institution'
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <Select
-                              name='species'
+                              name='institution'
                               value={value}
-                              label='Add Species'
+                              label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
                               onChange={onChange}
-                              labelId='species'
-                              error={Boolean(errors?.species)}
+                              labelId='institution'
+                              error={Boolean(errors?.institution)}
                             >
-                              {/* {eggMaster?.egg_status?.map(status => ( */}
-                              <MenuItem
-
-                              //  key={status?.id} value={status?.id}
-                              >
-                                Dog
-                              </MenuItem>
-                              {/* ))} */}
+                              {institutesList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.label}
+                                </MenuItem>
+                              ))}
                             </Select>
                           )}
                         />
-                        {errors?.species && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.species?.message}</FormHelperText>
+                        {errors?.institution && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='animalOwnershipTerms'>Ownership Term</InputLabel>
+                        <Controller
+                          name='animalOwnershipTerms'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='animalOwnershipTerms'
+                              value={value}
+                              label='Animal Ownership Terms'
+                              onChange={onChange}
+                              labelId='animalOwnershipTerms'
+                              error={Boolean(errors?.animalOwnershipTerms)}
+                            >
+                              {animalOwnershipTermsList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.animalOwnershipTerms && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.animalOwnershipTerms?.message}
+                          </FormHelperText>
                         )}
                       </FormControl>
 
-                      <FormControl fullWidth>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
                         <Controller
                           name='accessionDate'
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              {console.log(value, 'vvv')}
-                              <TimePicker
-                                label='Select time - from'
+                              {/* <DemoContainer components={['DatePicker']}> */}
+                              <DatePicker
+                                sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
+                                value={value}
                                 onChange={onChange}
-                                name='accessionDate'
-                                defaultValue={value ? dayjs(value) : null}
-                                sx={{
-                                  '& fieldset': {
-                                    borderColor:
-                                      errors.meal_data &&
-                                      errors.meal_data[index] &&
-                                      errors.meal_data[index]?.meal_from_time
-                                        ? 'red'
-                                        : undefined // Change border color to red if there's an error
-                                  }
-                                }}
-                                renderInput={params => (
-                                  <TextField
-                                    {...params}
-                                    label='Diet Type *'
-                                    placeholder='Search & Select'
-                                    error={Boolean(errors.meal_data[index].meal_from_time?.message)}
-                                    name='accessionDate'
-                                    sx={{
-                                      '& fieldset': {
-                                        borderColor: errors.meal_data?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
-                                      }
-                                    }}
-                                  />
-                                )}
+                                label={'Accession Date *'}
+                                maxDate={dayjs()}
                               />
+                              {/* </DemoContainer> */}
                             </LocalizationProvider>
                           )}
                         />
+                        {errors.accessionDate && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionDate?.message}</FormHelperText>
+                        )}
+                      </FormControl>
 
-                        {errors.meal_data && errors.meal_data[index] && (
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
+                        <Controller
+                          name='enclosure'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='enclosure'
+                              value={value}
+                              label='Select Enclosure *'
+                              onChange={onChange}
+                              labelId='enclosure'
+                              error={Boolean(errors?.enclosure)}
+                            >
+                              {eggDetails?.enclosure_data?.map(val => (
+                                <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
+                                  {/* {val?.user_enclosure_name} */}
+                                  <Box
+                                    sx={{
+                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                      display: 'flex',
+                                      padding: '12px',
+                                      width: '100%',
+                                      alignItems: 'center',
+                                      borderRadius: '8px',
+                                      gap: '12px'
+                                    }}
+                                  >
+                                    <Avatar
+                                      variant='rounded'
+                                      alt='Medicine Image'
+                                      sx={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '50%'
+                                      }}
+                                      src={val?.enclosure_qr_image}
+                                    />
+
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
+                                      </Typography>
+
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '400',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        Sec: {val?.section_name ? val?.section_name : '-'}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '400',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        Site: {val?.site_name ? val?.site_name : '-'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.enclosure && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='enclosure'>Sex Type *</InputLabel>
+                        <Controller
+                          name='sextype'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='sextype'
+                              value={value}
+                              label='Sex Type *'
+                              onChange={onChange}
+                              labelId='sextype'
+                              error={Boolean(errors?.sextype)}
+                            >
+                              {[
+                                { id: 'male', name: 'MALE' },
+                                { id: 'female', name: 'FEMALE' },
+                                { id: 'indeterminate', name: 'INDETERMINATE' },
+                                { id: 'undetermined', name: 'UNDETERMINED' }
+                              ].map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.sextype && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.sextype?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='collectionType'>Collection Type *</InputLabel>
+                        <Controller
+                          name='collectionType'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='collectionType'
+                              value={value}
+                              label='Collection Type *'
+                              onChange={onChange}
+                              labelId='collectionType'
+                              error={Boolean(errors?.collectionType)}
+                            >
+                              {collectionTypeList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.collectionType && (
                           <FormHelperText sx={{ color: 'error.main' }}>
-                            {errors.meal_data[index].meal_from_time?.message}
+                            {errors?.collectionType?.message}
                           </FormHelperText>
                         )}
                       </FormControl>
-                    </Card>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='mastersOrganization'>Select Organization</InputLabel>
+                        <Controller
+                          name='mastersOrganization'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='mastersOrganization'
+                              value={value}
+                              label='Animal Ownership Terms'
+                              onChange={onChange}
+                              labelId='mastersOrganization'
+                              error={Boolean(errors?.mastersOrganization)}
+                            >
+                              {mastersOrganizationList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.organization_name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.mastersOrganization && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.mastersOrganization?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+
+                      <FormControl fullWidth>
+                        <Controller
+                          name='birthDate'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                              {/* <DemoContainer components={['DatePicker']}> */}
+                              <DatePicker
+                                sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
+                                value={value}
+                                onChange={onChange}
+                                label={'Birth Date *'}
+                                maxDate={dayjs()}
+                              />
+                              {/* </DemoContainer> */}
+                            </LocalizationProvider>
+                          )}
+                        />
+                        {errors.birthDate && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.birthDate?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+
+                      <Typography sx={{ textAlign: 'center', fontSize: 20, fontWeight: 500, my: 4 }}>Or</Typography>
+
+                      <Box sx={{ mb: 4, display: 'flex', flex: '1/2', gap: 4 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='age'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                error={Boolean(errors?.comment)}
+                                value={value}
+                                label='Enter Age'
+                                name='age'
+                                type='number'
+                                inputProps={{ min: 1 }}
+                                onChange={onChange}
+                                placeholder=''
+                              />
+                            )}
+                          />
+                          {errors.age && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.age?.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                        <FormControl fullWidth>
+                          <InputLabel id='type'>Type</InputLabel>
+                          <Controller
+                            name='type'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                name='type'
+                                value={value}
+                                label='Animal Ownership Terms'
+                                onChange={onChange}
+                                labelId='type'
+                                error={Boolean(errors?.type)}
+                              >
+                                {[
+                                  { id: 'months', name: 'Months' },
+                                  { id: 'weeks', name: 'Weeks' },
+                                  { id: 'days', name: 'Days' }
+                                ]?.map(val => (
+                                  <MenuItem key={val?.id} value={val?.id}>
+                                    {val?.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            )}
+                          />
+                          {errors?.type && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.type?.message}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Box>
+
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='localIdentifierType'>Local Identifier Type</InputLabel>
+                        <Controller
+                          name='localIdentifierType'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='local IdentifierType'
+                              value={value}
+                              label='Local Identifier Type'
+                              onChange={onChange}
+                              labelId='localIdentifierType'
+                              error={Boolean(errors?.localIdentifierType)}
+                            >
+                              {localIdentifierTypeList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.localIdentifierType && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.localIdentifierType?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl sx={{ mb: 4 }} fullWidth>
+                        <Controller
+                          name='localIdentifier'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              error={Boolean(errors?.comment)}
+                              value={value}
+                              label={`Local Identifier ${watch('localIdentifierType') !== '' ? '*' : ''}`}
+                              name='localIdentifier'
+                              onChange={onChange}
+                              placeholder=''
+                            />
+                          )}
+                        />
+                        {errors.localIdentifier && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.localIdentifier?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='parentMother'>Parent Mother</InputLabel>
+                        <Controller
+                          name='parentMother'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='parentMother'
+                              value={value}
+                              label='Animal Ownership Terms'
+                              onChange={onChange}
+                              labelId='parentMother'
+                              error={Boolean(errors?.parentMother)}
+                            >
+                              {eggDetails?.parent_list?.mother_list?.map(val => (
+                                <MenuItem key={val?._id} value={val?._id}>
+                                  {/* {val?.common_name} */}
+                                  <Box
+                                    sx={{
+                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                      display: 'flex',
+                                      padding: '12px',
+                                      width: '100%',
+                                      borderRadius: '10px',
+                                      gap: '12px'
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        alignItems: 'center',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '10px'
+                                      }}
+                                    >
+                                      <Avatar
+                                        variant='rounded'
+                                        alt='Medicine Image'
+                                        sx={{
+                                          width: '44px',
+                                          height: '44px',
+                                          borderRadius: '50%',
+                                          border: '1px',
+                                          overflow: 'hidden'
+                                        }}
+                                        src={val?.default_icon}
+                                        // src={
+                                        //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
+                                        // }
+                                      />
+                                      <Typography
+                                        sx={{
+                                          height: '22px',
+                                          width: '22px',
+                                          textAlign: 'center',
+                                          backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
+                                        }}
+                                      >
+                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                      </Typography>
+                                    </Box>
+
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        {val?.animal_id ? val?.animal_id : '-'}
+                                      </Typography>
+
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '500',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        {val?.common_name ? val?.common_name : '-'}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '400',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '400',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        {val?.section_name ? val?.section_name : '-'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.parentMother && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.parentMother?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='parentFather'>Parent Father</InputLabel>
+                        <Controller
+                          name='parentFather'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='parentFather'
+                              value={value}
+                              label='Animal Ownership Terms'
+                              onChange={onChange}
+                              labelId='parentFather'
+                              error={Boolean(errors?.parentFather)}
+                            >
+                              {eggDetails?.parent_list?.father_list?.map(val => (
+                                <MenuItem key={val?._id} value={val?._id}>
+                                  {/* {val?.common_name} */}
+                                  <Box
+                                    sx={{
+                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                      display: 'flex',
+                                      padding: '12px',
+                                      width: '100%',
+                                      borderRadius: '10px',
+                                      gap: '12px'
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        alignItems: 'center',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '10px'
+                                      }}
+                                    >
+                                      <Avatar
+                                        variant='rounded'
+                                        alt='Medicine Image'
+                                        sx={{
+                                          width: '44px',
+                                          height: '44px',
+                                          borderRadius: '50%',
+                                          border: '1px',
+                                          overflow: 'hidden'
+                                        }}
+                                        src={val?.default_icon}
+                                        // src={
+                                        //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
+                                        // }
+                                      />
+                                      <Typography
+                                        sx={{
+                                          height: '22px',
+                                          width: '22px',
+                                          textAlign: 'center',
+                                          backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
+                                        }}
+                                      >
+                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                      </Typography>
+                                    </Box>
+
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        {val?.animal_id ? val?.animal_id : '-'}
+                                      </Typography>
+
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '500',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        {val?.common_name ? val?.common_name : '-'}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '400',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
+                                      </Typography>
+                                      <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '14px',
+                                          fontWeight: '400',
+                                          lineHeight: '16.94px'
+                                        }}
+                                      >
+                                        {val?.section_name ? val?.section_name : '-'}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.parentFather && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.parentFather?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='sexingType'>Sexing Type</InputLabel>
+                        <Controller
+                          name='sexingType'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='sexingType'
+                              value={value}
+                              label='Sexing Type'
+                              onChange={onChange}
+                              labelId='sexingType'
+                              error={Boolean(errors?.sexingType)}
+                            >
+                              {sexingTypeList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.sexingType && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.sexingType?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <InputLabel id='lifeStage'>Life Stage</InputLabel>
+                        <Controller
+                          name='lifeStage'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='lifeStage'
+                              value={value}
+                              label='Life Stage'
+                              onChange={onChange}
+                              labelId='lifeStage'
+                              error={Boolean(errors?.lifeStage)}
+                            >
+                              {lifeStageList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.lifeStage && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.lifeStage?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                      <FormControl fullWidth>
+                        <InputLabel id='contraceptionType'>Contraception Type</InputLabel>
+                        <Controller
+                          name='contraceptionType'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <Select
+                              name='contraceptionType'
+                              value={value}
+                              label='Contraception Type'
+                              onChange={onChange}
+                              labelId='contraceptionType'
+                              error={Boolean(errors?.contraceptionType)}
+                            >
+                              {contraceptionTypeList?.map(val => (
+                                <MenuItem key={val?.id} value={val?.id}>
+                                  {val?.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          )}
+                        />
+                        {errors?.contraceptionType && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.contraceptionType?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Box>
                   </Box>
                 )}
               </Box>
@@ -792,7 +1912,7 @@ const ConditionSlider = ({
                   zIndex: 123
                 }}
               >
-                <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancel}>
+                <LoadingButton disabled={loader} fullWidth variant='outlined' size='large' onClick={handleCancel}>
                   CANCEL
                 </LoadingButton>
                 <LoadingButton

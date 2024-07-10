@@ -25,6 +25,12 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
+const schema = yup.object().shape({
+  nursery_name: yup.string().required('Nursery Name is required').trim().strict(true).min(1, 'Add Nursery Name'),
+
+  site_id: yup.string().required('Select Site')
+})
+
 const NurserySlider = ({
   openDrawer,
   setOpenDrawer,
@@ -77,6 +83,7 @@ const NurserySlider = ({
           position: 'fixed',
           bottom: 0,
           px: 4,
+          py: '24px',
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
@@ -84,7 +91,14 @@ const NurserySlider = ({
           zIndex: 1234
         }}
       >
-        <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
+        <LoadingButton
+          sx={{ height: '58px' }}
+          fullWidth
+          variant='contained'
+          type='submit'
+          size='large'
+          loading={loading}
+        >
           {editNurseryId ? 'Update Nursery' : 'Add Nursery'}
         </LoadingButton>
       </Box>
@@ -110,6 +124,7 @@ const NurserySlider = ({
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
           // toast.success('Nursery updated Successfully')
+          Toaster({ type: 'success', message: 'Nursery updated Successfully' })
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -131,6 +146,8 @@ const NurserySlider = ({
         const response = await AddNursery(payload)
 
         if (response.success) {
+          // toast.success('Nursery added Successfully')
+          Toaster({ type: 'success', message: 'Nursery added Successfully' })
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -141,12 +158,14 @@ const NurserySlider = ({
           }
           Toaster({ type: 'success', message: response.message })
         } else {
-          Toaster({ type: 'error', message: response.message })
+          Toaster({ type: 'error', message: 'Unable to add Nursery' })
+          // toast.error('Unable to add Nursery')
         }
       }
     } catch (error) {
       console.error('Error while adding/updating nursery:', error)
       Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
+      // toast.error('An error occurred while adding/updating nursery')
     }
   }
 
@@ -165,7 +184,13 @@ const NurserySlider = ({
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+        <Box
+          sx={{
+            bgcolor: theme.palette.customColors.lightBg,
+            width: '100%',
+            height: '100%'
+          }}
+        >
           <Box
             className='sidebar-header'
             sx={{
@@ -198,21 +223,19 @@ const NurserySlider = ({
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box
               sx={{
-                m: 5,
-
+                m: '20px',
                 px: '16px',
-
-                // py: '20px',
+                py: '24px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                border: 1,
+                borderColor: '#c3cec7'
               }}
             >
-              <FormControl fullWidth sx={{ mt: 6 }}>
+              <FormControl fullWidth>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -300,9 +323,7 @@ const NurserySlider = ({
                 </FormControl>
               )}
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <RenderSidebarFooter />
-              </Box>
+              <RenderSidebarFooter />
             </Box>
           </form>
         </Box>

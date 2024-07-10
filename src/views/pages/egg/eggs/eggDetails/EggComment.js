@@ -85,7 +85,6 @@ const EggComment = ({ eggDetails, eggId }) => {
       })
     } catch (error) {
       setCommentLoader(false)
-      // setCommentLoader(false)
     }
   }
   useEffect(() => {
@@ -113,7 +112,7 @@ const EggComment = ({ eggDetails, eggId }) => {
 
   function formatDate(dateString) {
     const now = moment()
-    const date = moment(dateString)
+    const date = moment(moment.utc(dateString).toDate().toLocaleString())
 
     const diffInSeconds = now.diff(date, 'seconds')
     const diffInMinutes = now.diff(date, 'minutes')

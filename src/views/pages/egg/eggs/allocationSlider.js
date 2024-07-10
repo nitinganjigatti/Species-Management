@@ -77,6 +77,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     getValues,
     setValue,
     watch,
+    formState,
     reset,
     formState: { errors }
   } = useForm({
@@ -223,6 +224,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
       let params = {
         egg_id: allocateEggId,
         incubator_id: values.incubator,
@@ -235,13 +237,16 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         if (callApi) {
           callApi('')
         }
+        setLoader(false)
         setOpenDrawer(false)
       } else {
         Toaster({ type: 'error', message: response.message })
+        setLoader(true)
       }
     } catch (error) {
       console.error('Error while adding', error)
       Toaster({ type: 'error', message: 'An error occurred while adding' })
+      setLoader(true)
     }
   }
 
@@ -290,13 +295,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             assesmentTypes?.data?.length >= 5
               ? {
                   backgroundColor: 'background.default',
-                  height: 'auto',
+                  height: '120%',
                   overflowY: 'scroll',
                   border: '1px solid #ccc'
                 }
               : {
                   backgroundColor: 'background.default',
-                  height: 'auto'
+                  height: '120%'
                 }
           }
         >
@@ -311,7 +316,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   mt: 3,
                   px: 0.5,
                   bgcolor: '#fff',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  padding: '20px, 16px, 20px, 16px',
+                  border: '1px solid #C3CEC7'
                 }}
               >
                 <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
@@ -560,24 +567,33 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CircularProgress />
               </Box>
             ) : (
-              <Card fullWidth sx={{ mt: 3, mx: 4, marginBottom: '122px' }}>
-                <CardContent>
+              <Card
+                fullWidth
+                sx={{ mt: 2, mx: 4, marginBottom: '122px', boxShadow: 'none', border: '1px solid #C3CEC7' }}
+              >
+                <CardContent sx={{ mt: '-1px' }}>
                   {fields.map((measurement, index) => (
                     <Grid container spacing={3} key={index}>
-                      <Grid item xs={6}>
-                        <FormControl fullWidth sx={{ mt: 3 }}>
+                      <Grid item xs={6} sx={{ borderRadius: '5px' }}>
+                        <FormControl fullWidth sx={{ mt: 3, borderRadius: '5px' }}>
                           <Controller
                             name={`measurements[${index}].assessment_value`}
                             control={control}
                             render={({ field: { value, onChange }, fieldState: { error } }) => (
                               <TextField
+                                sx={{ borderRadius: '4px' }}
                                 label={`${
                                   measurement.assessment_type_string_id.charAt(0).toUpperCase() +
                                   measurement.assessment_type_string_id.slice(1)
                                 }*`}
                                 value={value}
-                                onChange={onChange}
-                                focused={value !== ''}
+                                onChange={e => {
+                                  // Prevent entering negative values
+                                  const inputValue = e.target.value
+                                  if (inputValue === '' || parseFloat(inputValue) >= 0) {
+                                    onChange(e)
+                                  }
+                                }}
                                 name={`measurements[${index}].assessment_value`}
                                 inputProps={{ type: 'number', step: 'any' }}
                                 error={!!error}
@@ -585,7 +601,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                 fullWidth
                               />
                             )}
-                            rules={{ required: 'Please Enter Weight' }}
+                            rules={{
+                              required: 'Please enter a value',
+                              validate: {
+                                nonNegative: value => parseFloat(value) >= 0 || 'Negative values are not allowed'
+                              }
+                            }}
                           />
                         </FormControl>
                       </Grid>
@@ -602,6 +623,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             defaultValue={measurement.unit_id}
                             render={({ field: { value, onChange } }) => (
                               <Select
+                                sx={{ borderRadius: '5px' }}
                                 name={`measurements[${index}].measurement_unit_id`}
                                 value={value}
                                 disabled={measurement.default_measurement_unit_string_id && true}
@@ -641,7 +663,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             <Card>
               <Box
                 sx={{
-                  height: '122px',
+                  height: '100px',
                   width: '100%',
                   maxWidth: '562px',
                   position: 'fixed',
@@ -658,7 +680,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   fullWidth
                   variant='contained'
                   type='submit'
-                  disabled={loader && true}
+                  disabled={!formState.isValid || loader}
                   sx={{ height: '50px' }}
                 >
                   Submit
