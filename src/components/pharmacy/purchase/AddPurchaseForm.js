@@ -643,7 +643,7 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
-      debugger
+      // debugger
       if (response.success && response.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
@@ -667,7 +667,7 @@ const AddPurchaseForm = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
-      debugger
+      // debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {
