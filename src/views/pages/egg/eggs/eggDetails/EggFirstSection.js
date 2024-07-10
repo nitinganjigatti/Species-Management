@@ -508,14 +508,15 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       <Avatar
                         src={
                           eggDetails?.egg_status === ('Fresh' || 'Fertile')
-                            ? '/icons/Egg Fertile.png'
+                            ? '/icons/EggFertile.png'
                             : eggDetails?.egg_status === 'Discard'
-                            ? '/icons/Egg Discard.png'
+                            ? '/icons/EggDiscard.png'
                             : eggDetails?.egg_status === 'Hatched'
-                            ? '/icons/Egg Hatched.png'
-                            : '/icons/Egg Fertile.png'
+                            ? '/icons/EggHatched.png'
+                            : '/icons/EggFertile.png'
                         }
                         variant='square'
+                        sx={{ width: '100%', height: '100%' }}
                       ></Avatar>
                     </Box>
 

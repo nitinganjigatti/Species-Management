@@ -25,7 +25,11 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
               <Grid xs={12} sm={6} lg={4} xl={3} item>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Avatar
-                    src={eggDetails?.animal_data?.default_icon}
+                    src={
+                      eggDetails?.animal_data?.default_icon?.endsWith('.svg')
+                        ? '/icons/egg_detail_nursery.png'
+                        : eggDetails?.animal_data?.default_icon
+                    }
                     variant='rounded'
                     alt='Medicine Image'
                     sx={{
@@ -52,7 +56,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                           width: '100%'
                         }}
                       >
-                        {eggDetails?.animal_data?.default_common_name}
+                        {eggDetails?.animal_data?.default_common_name || '-'}
                       </Typography>
                     </Tooltip>
                     <Tooltip title={'-'}>
@@ -68,7 +72,7 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                           width: '100%'
                         }}
                       >
-                        {eggDetails?.animal_data?.scientific_name}
+                        {eggDetails?.animal_data?.scientific_name || '-'}
                       </Typography>
                     </Tooltip>
                   </Box>
@@ -166,9 +170,9 @@ const AnimalDetails = ({ eggDetails, animal_id }) => {
                   {eggDetails?.animal_data?.user_enclosure_name}
                 </Typography>
               </Grid>
-              <Grid xs={12} sm={6} lg={4} xl={1.7} item>
+              {/* <Grid xs={12} sm={6} lg={4} xl={1.7} item>
                 <Button variant='contained'>VIEW DETAILS</Button>
-              </Grid>
+              </Grid> */}
             </Grid>
           </CardContent>
         </Box>

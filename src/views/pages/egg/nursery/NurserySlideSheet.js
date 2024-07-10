@@ -23,6 +23,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
+import Toaster from 'src/components/Toaster'
 
 const schema = yup.object().shape({
   nursery_name: yup.string().required('Nursery Name is required').trim().strict(true).min(1, 'Add Nursery Name'),
@@ -76,13 +77,21 @@ const NurserySlider = ({
           position: 'fixed',
           bottom: 0,
           px: 4,
+          py: '24px',
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
           display: 'flex'
         }}
       >
-        <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
+        <LoadingButton
+          sx={{ height: '58px' }}
+          fullWidth
+          variant='contained'
+          type='submit'
+          size='large'
+          loading={loading}
+        >
           {editNurseryId ? 'Update Nursery' : 'Add Nursery'}
         </LoadingButton>
       </Box>
@@ -107,7 +116,8 @@ const NurserySlider = ({
         }
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
-          toast.success('Nursery updated Successfully')
+          // toast.success('Nursery updated Successfully')
+          Toaster({ type: 'success', message: 'Nursery updated Successfully' })
           setOpenDrawer(false)
           fetchTableData()
           if (callApi) {
@@ -125,19 +135,22 @@ const NurserySlider = ({
         const response = await AddNursery(payload)
 
         if (response.success) {
-          toast.success('Nursery added Successfully')
+          // toast.success('Nursery added Successfully')
+          Toaster({ type: 'success', message: 'Nursery added Successfully' })
           setOpenDrawer(false)
           fetchTableData()
           if (callApi) {
             callApi()
           }
         } else {
-          toast.error('Unable to add Nursery')
+          Toaster({ type: 'error', message: 'Unable to add Nursery' })
+          // toast.error('Unable to add Nursery')
         }
       }
     } catch (error) {
       console.error('Error while adding/updating nursery:', error)
-      toast.error('An error occurred while adding/updating nursery')
+      Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
+      // toast.error('An error occurred while adding/updating nursery')
     }
   }
 
@@ -189,19 +202,19 @@ const NurserySlider = ({
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box
               sx={{
-                m: 5,
-                px: 3,
-                py: 3,
+                m: '20px',
+                px: '16px',
+                py: '24px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4,
+                gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
                 border: 1,
                 borderColor: '#c3cec7'
               }}
             >
-              <FormControl fullWidth sx={{ mt: 4 }}>
+              <FormControl fullWidth>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -224,7 +237,7 @@ const NurserySlider = ({
               </FormControl>
 
               {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                <FormControl fullWidth sx={{ mt: 4 }}>
+                <FormControl fullWidth>
                   {/* <InputLabel error={Boolean(errors?.site_id)} id='site_id'>
                     Site
                   </InputLabel> */}
@@ -291,9 +304,7 @@ const NurserySlider = ({
                 </FormControl>
               )}
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <RenderSidebarFooter />
-              </Box>
+              <RenderSidebarFooter />
             </Box>
           </form>
         </Box>
