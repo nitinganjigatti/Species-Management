@@ -269,24 +269,37 @@ const ReportedBatches = ({ searchParams, type }) => {
     //     </Typography>
     //   )
     // },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   renderCell: params => {
+    //     let status = params.row.status ? params.row.status : '-'
+
+    //     if (status !== '-') {
+    //       status = status
+    //         .split('_')
+    //         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    //         .join(' ')
+    //     }
+
+    //     return (
+    //       <Typography variant='body2' sx={{ color: '#E93353' }}>
+    //         {status}
+    //       </Typography>
+    //     )
+    //   }
+    // },
     {
       flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
       renderCell: params => {
-        let status = params.row.status ? params.row.status : '-'
-
-        if (status !== '-') {
-          status = status
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ')
-        }
-
         return (
           <Typography variant='body2' sx={{ color: '#E93353' }}>
-            {status}
+            {params.row.status ? 'Yet To Submit' : '-'}
           </Typography>
         )
       }
