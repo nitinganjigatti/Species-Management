@@ -98,7 +98,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const directDispatchList = {
-    title: 'Dispatch without request',
+    title: `Dispatch without request`,
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }

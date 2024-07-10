@@ -81,9 +81,13 @@ const ListOfStocksByBatch = () => {
           setStockReport(loadServerRows(paginationModel.page, listWithId))
           setLoading(false)
         } else {
+          setTotal(0)
+          setStockReport([])
           setLoading(false)
         }
       } catch (error) {
+        setTotal(0)
+        setStockReport([])
         console.log('error', error)
         setLoading(false)
       }

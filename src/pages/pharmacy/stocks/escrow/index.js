@@ -6,6 +6,7 @@ import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 function Escrow() {
   const [loader, setLoader] = useState(false)
@@ -20,6 +21,7 @@ function Escrow() {
   function loadServerRows(currentPage, data) {
     return data
   }
+  const { selectedPharmacy } = usePharmacyContext()
 
   const onRowClick = params => {
     var data = params.row
@@ -153,11 +155,18 @@ function Escrow() {
           type
         }
         await getScrewList({ params: params }).then(res => {
-          setTotal(parseInt(res?.count))
-          setRows(loadServerRows(paginationModel.page, res?.data))
+          if (res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel.page, res?.data))
+          } else {
+            setTotal(0)
+            setRows([])
+          }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -167,7 +176,7 @@ function Escrow() {
 
   useEffect(() => {
     fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
-  }, [fetchScrewTableData])
+  }, [fetchScrewTableData, selectedPharmacy.id])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {

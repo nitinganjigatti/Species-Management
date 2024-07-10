@@ -72,18 +72,14 @@ const ExpiringMedicine = () => {
             )
           } else {
             setTotal(0)
-            setRows(
-              loadServerRows(
-                paginationModel.page,
-                // res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
-                []
-              )
-            )
+            setRows([])
           }
         })
         setLoading(false)
       } catch (error) {
         console.log('error', error)
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },

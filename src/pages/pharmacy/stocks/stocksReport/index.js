@@ -141,7 +141,7 @@ const ListOfStocks = () => {
             result = await getStocksReportById(storeId, params)
           }
 
-          if (result.success === true) {
+          if (result.success === true && result.data.length > 0) {
             setTotal(parseInt(result.count))
 
             let listWithId = result.data
@@ -150,9 +150,15 @@ const ListOfStocks = () => {
                 })
               : []
             setStockReport(loadServerRows(paginationModel.page, listWithId))
+            setLoading(false)
+          } else {
+            setTotal(0)
+            setStockReport([])
+            setLoading(false)
           }
-          setLoading(false)
         } catch (error) {
+          setTotal(0)
+          setStockReport([])
           console.log('error', error)
           setLoading(false)
         }
@@ -899,7 +905,7 @@ const ListOfStocks = () => {
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Medicine' />
-              <Tab value='6' label='About Expire Medicine' />
+              <Tab value='6' label='About To Expire Medicine' />
 
               <Tab value='5' label='Escrow' />
             </TabList>
