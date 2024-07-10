@@ -43,6 +43,7 @@ const NurserySlider = ({
   fetchTableData
 }) => {
   const [defaultSite, setDefaultSite] = useState(null)
+  const [loader, setLoader] = useState(null)
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
@@ -94,6 +95,7 @@ const NurserySlider = ({
         <LoadingButton
           sx={{ height: '58px' }}
           fullWidth
+          disabled={loader}
           variant='contained'
           type='submit'
           size='large'
@@ -116,6 +118,7 @@ const NurserySlider = ({
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
       if (editNurseryId) {
         const payload = {
           nursery_name: values?.nursery_name,
@@ -124,7 +127,8 @@ const NurserySlider = ({
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
           // toast.success('Nursery updated Successfully')
-          Toaster({ type: 'success', message: 'Nursery updated Successfully' })
+          setLoader(false)
+          Toaster({ type: 'success', message: response.message || 'Nursery updated Successfully' })
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -135,6 +139,7 @@ const NurserySlider = ({
           }
           Toaster({ type: 'success', message: response.message })
         } else {
+          setLoader(false)
           Toaster({ type: 'error', message: response.message })
         }
       } else {
@@ -147,7 +152,8 @@ const NurserySlider = ({
 
         if (response.success) {
           // toast.success('Nursery added Successfully')
-          Toaster({ type: 'success', message: 'Nursery added Successfully' })
+          setLoader(false)
+          Toaster({ type: 'success', message: response.message || 'Nursery added Successfully' })
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -158,11 +164,13 @@ const NurserySlider = ({
           }
           Toaster({ type: 'success', message: response.message })
         } else {
-          Toaster({ type: 'error', message: 'Unable to add Nursery' })
+          setLoader(false)
+          Toaster({ type: 'error', message: response.message || 'Unable to add Nursery' })
           // toast.error('Unable to add Nursery')
         }
       }
     } catch (error) {
+      setLoader(false)
       console.error('Error while adding/updating nursery:', error)
       Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
       // toast.error('An error occurred while adding/updating nursery')

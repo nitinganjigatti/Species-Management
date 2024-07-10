@@ -404,6 +404,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 position: 'fixed',
                 bottom: 0,
                 px: 4,
+                py: '24px',
                 bgcolor: 'white',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -411,7 +412,14 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 zIndex: 123
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
+              <LoadingButton
+                sx={{ height: '58px' }}
+                fullWidth
+                variant='contained'
+                type='submit'
+                size='large'
+                loading={loader}
+              >
                 {editParams?.nursery_id ? 'Edit Room' : 'Add Room'}
               </LoadingButton>
             </Box>
