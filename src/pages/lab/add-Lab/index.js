@@ -669,7 +669,7 @@ const AddLab = () => {
           <Grid container spacing={6} className='match-height'>
             <Grid item xs={12}>
               <Card>
-                <CardHeader title='Add New Lab' />
+                <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
                 <CardContent>
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <Grid container spacing={5}>
@@ -974,7 +974,7 @@ const AddLab = () => {
                       </Grid>
                       <Grid item xs={12} md={12} sm={12}>
                         <Card>
-                          <CardHeader title='Upload LAB Picture' />
+                          <CardHeader title='Add Lab Picture' />
                           <CardContent>
                             <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
                           </CardContent>

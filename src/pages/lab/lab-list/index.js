@@ -43,7 +43,8 @@ const ListOfLab = () => {
     setShow(true)
   }
 
-  const handleEdit = async params => {
+  const handleEdit = async (e, params) => {
+    e.stopPropagation()
     console.log('params Lab', params.row.id)
     Router.push({
       pathname: '/lab/add-Lab',
@@ -94,18 +95,6 @@ const ListOfLab = () => {
       )
     },
 
-    // {
-    //   flex: 0.4,
-    //   minWidth: 20,
-    //   field: 'package',
-    //   headerName: 'PACKAGE',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-    //       ${params.row.package_uom_label} ${params.row.product_form_label}`}
-    //     </Typography>
-    //   )
-    // },
     {
       flex: 0.4,
       minWidth: 20,
@@ -119,49 +108,16 @@ const ListOfLab = () => {
     },
 
     // {
-    //   flex: 0.3,
+    //   flex: 0.2,
     //   minWidth: 20,
-    //   field: 'created_at',
-    //   headerName: 'Date',
+    //   field: 'active',
+    //   headerName: 'STATUS',
     //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {Utility.formatDate(params.row.created_at)}
+    //     <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+    //       {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
     //     </Typography>
     //   )
     // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'image',
-    //   headerName: 'IMAGE',
-    //   renderCell: params => (
-    //     <Badge
-    //       sx={{ ml: 2, cursor: 'pointer' }}
-    //       anchorOrigin={{
-    //         vertical: 'bottom',
-    //         horizontal: 'right'
-    //       }}
-    //     >
-    //       <Avatar
-    //         variant='square'
-    //         alt='Lab Image'
-    //         sx={{ width: 40, height: 40 }}
-    //         src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-    //       />
-    //     </Badge>
-    //   )
-    // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'active',
-      headerName: 'STATUS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
-        </Typography>
-      )
-    },
     {
       flex: 0.2,
       minWidth: 20,
@@ -170,25 +126,9 @@ const ListOfLab = () => {
 
       renderCell: params => (
         <Box>
-          <IconButton size='small' onClick={() => handleEdit(params)} aria-label='Edit'>
+          <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
             <Icon icon='mdi:pencil-outline' />
           </IconButton>
-          {/* <IconButton
-              size='small'
-              onClick={() => {
-                setConfigureMedId(params.row.id)
-                showDialog()
-              }}
-            >
-              <Icon icon='grommet-icons:configure' />
-            </IconButton> */}
-          {/* <IconButton size='small'>
-              <Icon icon='mdi:eye-outline' />
-            </IconButton>
-
-            <IconButton size='small'>
-              <Icon icon='mdi:file' />
-            </IconButton> */}
         </Box>
       )
     }
