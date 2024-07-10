@@ -633,7 +633,7 @@ const RequestDetails = () => {
                   </Stack>
 
                   <Typography>
-                    Request by - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
+                    Requested By- <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
                   </Typography>
                 </Box>
               </>
