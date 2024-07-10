@@ -16,9 +16,19 @@ const SubmittedBatches = ({ searchParams, type }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState('DESC')
   const [sortColumn, setSortColumn] = useState('batch_code')
   const { selectedParivesh } = usePariveshContext()
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const newSort = newModel[0].sort === 'asc' ? 'ASC' : 'DESC'
+      setSortBy(newSort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async (sort, q, sortColumn) => {
@@ -105,6 +115,8 @@ const SubmittedBatches = ({ searchParams, type }) => {
       Width: 40,
       field: 'id',
       headerName: 'S.No',
+      sortable: false,
+      description: 'This column has a value getter and is not sortable.',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
@@ -117,6 +129,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'batch_code',
       headerName: 'BATCH ID',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_code}
@@ -129,6 +142,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'registration_id',
       headerName: 'REGISTRATION ID',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -145,6 +159,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'no_of_animals',
       headerName: '# OF ANIMALS',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}
@@ -157,6 +172,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'submitted_on',
       headerName: 'SUBMITTED DATE',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -174,6 +190,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'created_by_user',
       headerName: 'CREATED BY',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -215,6 +232,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'status',
       headerName: 'Status',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
@@ -301,6 +319,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       headerAction={headerAction}
       title={'Submitted Batches'}
       searchParams={searchParams}
+      handleSortModel={handleSortModel}
     />
   )
 }

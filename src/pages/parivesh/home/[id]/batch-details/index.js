@@ -240,6 +240,7 @@ const BatchDetails = ({ params, searchParams }) => {
       Width: 40,
       field: 'uid',
       headerName: 'S.NO',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
@@ -252,6 +253,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 30,
       field: 'image_type',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
           <Avatar variant='square' src={params.row.species_image} alt={'species_image'} sx={{ height: 'auto', p: 2 }} />
@@ -272,6 +274,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -287,6 +290,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.scientific_name ? params.row.scientific_name : '-'}
@@ -309,6 +313,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 10,
       field: 'gender_count',
       headerName: 'Gender / Count',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.gender
@@ -337,6 +342,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 30,
       field: 'possession_type',
       headerName: 'Category',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -354,6 +360,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 20,
       field: 'date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
@@ -391,6 +398,9 @@ const BatchDetails = ({ params, searchParams }) => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -414,7 +424,7 @@ const BatchDetails = ({ params, searchParams }) => {
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               slotProps={{

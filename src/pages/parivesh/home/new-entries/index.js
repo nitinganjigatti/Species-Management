@@ -194,10 +194,11 @@ const NewEntry = ({}) => {
   }))
 
   const handleSortModel = newModel => {
+    console.log(newModel, 'newModel')
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
     }
   }
@@ -261,6 +262,7 @@ const NewEntry = ({}) => {
       Width: 40,
       field: 'uid',
       headerName: 'S.NO',
+      sortColumn: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
@@ -531,6 +533,9 @@ const NewEntry = ({}) => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
