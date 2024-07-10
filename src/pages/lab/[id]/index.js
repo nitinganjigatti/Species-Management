@@ -55,6 +55,7 @@ import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import UserSnackbar from 'src/components/utility/snackbar'
+import moment from 'moment'
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -599,7 +600,7 @@ const RequestDetails = () => {
                       </Typography>
                     </Box>
 
-                    <Typography> {Utility.formatDate(item?.created_at)}</Typography>
+                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                   </Box>
                   <Box gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
