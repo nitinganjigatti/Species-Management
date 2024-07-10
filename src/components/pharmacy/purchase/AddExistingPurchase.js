@@ -816,7 +816,7 @@ const AddExistingPurchase = () => {
                     <SingleDatePicker
                       name='Purchase Date*'
                       fullWidth
-                      maxDate={value ? parseFormattedDate(value) : null}
+                      maxDate={new Date()}
                       date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
