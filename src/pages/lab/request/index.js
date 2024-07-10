@@ -88,7 +88,7 @@ const ListOfRequest = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          onClick={() => handleClickRequestId(params)}
+          // onClick={() => handleClickRequestId(params)}
           sx={{ color: 'text.primary', cursor: 'pointer' }}
         >
           {params.row.lab_test_id}
@@ -413,6 +413,14 @@ const ListOfRequest = () => {
   //   }
   // }, [])
 
+  const onCellClick = params => {
+    handleClickRequestId(params)
+
+    // Router.push({
+    //   pathname: `/egg/incubator-rooms/${data?.id}`
+    // })
+  }
+
   return (
     <>
       {loader ? (
@@ -527,6 +535,7 @@ const ListOfRequest = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
+              onCellClick={onCellClick}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'

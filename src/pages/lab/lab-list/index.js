@@ -72,12 +72,10 @@ const ListOfLab = () => {
         <Typography
           variant='body2'
           sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
-          onClick={() =>
-            Router.push({
-              pathname: '/lab/lab-details',
-              query: { id: params.row.id }
-            })
-          }
+
+          // onClick={() =>
+
+          // }
         >
           {params.row.lab_name}
         </Typography>
@@ -292,6 +290,15 @@ const ListOfLab = () => {
     sl_no: getSlNo(index)
   }))
 
+  const onCellClick = params => {
+    const data = params.row
+
+    Router.push({
+      pathname: '/lab/lab-details',
+      query: { id: data?.id }
+    })
+  }
+
   return (
     <>
       {loader ? (
@@ -319,6 +326,7 @@ const ListOfLab = () => {
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
+              onCellClick={onCellClick}
               loading={loading}
               disableColumnMenu
               slotProps={{
