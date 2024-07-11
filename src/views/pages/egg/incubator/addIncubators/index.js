@@ -216,8 +216,8 @@ const AddIncubators = ({
         addIncubator({
           nursery_id: val?.nursery,
           room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs
-          // incubator_name: val?.incubator_name
+          max_eggs: val?.maxNumberOfEggs,
+          incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
             reset()
@@ -354,9 +354,11 @@ const AddIncubators = ({
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
+
                           // console.log('val', val)
                           setValue('room', '')
                           RoomList(val.nursery_id)
+
                           return onChange(val.nursery_id)
                         }
                       }}
@@ -444,6 +446,7 @@ const AddIncubators = ({
                           setDefaultRoom(val)
                           console.log('val', val)
                           setValue('room', '')
+
                           return onChange(val.room_id)
                         }
                       }}

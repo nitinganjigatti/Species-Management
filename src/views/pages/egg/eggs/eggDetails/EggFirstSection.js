@@ -58,6 +58,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
 
   function formatDate(dateString) {
     const now = moment()
+
     // const date = moment(dateString)
     const date = moment(moment.utc(dateString).toDate().toLocaleString())
 
@@ -194,6 +195,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       src={eggDetails?.default_icon}
                       alt='default_icon'
                       loading='lazy'
+
                       // height={'100%'}
                     />
 
@@ -549,7 +551,9 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   <Box>
                     <IconButton
                       disabled={
-                        Number(eggDetails?.action_to_be_taken) === 5 || Number(eggDetails?.action_to_be_taken) === 6
+                        Number(eggDetails?.action_to_be_taken) === 5 ||
+                        Number(eggDetails?.action_to_be_taken) === 6 ||
+                        (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data?.length === 0)
                           ? false
                           : true
                       }
@@ -558,7 +562,9 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       <Icon
                         style={{ cursor: 'pointer' }}
                         color={
-                          Number(eggDetails?.action_to_be_taken) === 5 || Number(eggDetails?.action_to_be_taken) === 6
+                          Number(eggDetails?.action_to_be_taken) === 5 ||
+                          Number(eggDetails?.action_to_be_taken) === 6 ||
+                          (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data?.length === 0)
                             ? '#00AFD6'
                             : '#7A8684'
                         }
