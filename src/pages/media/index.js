@@ -141,6 +141,7 @@ const Media = () => {
       const link = document.createElement('a')
       link.href = selectedId.user_media
       link.download = selectedId.file_original_name
+      link.target = '_blank'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
