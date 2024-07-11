@@ -524,9 +524,10 @@ const RoomDetails = () => {
             <Card>
               <CardHeader title='Rooms Details' action={headerAction} />
 
-              <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
-
-              <Box sx={{}}>
+              <Box sx={{ px: '16px', my: '8px' }}>
+                <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+              </Box>
+              <Box>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {

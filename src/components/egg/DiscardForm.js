@@ -199,6 +199,14 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     }
   }
 
+  const handelClose = () => {
+    setIsOpen(false)
+    setReason('')
+    setImgSrc('')
+    setNecropsy('')
+    reset()
+  }
+
   return (
     <>
       <Drawer
@@ -234,7 +242,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
               <Typography variant='h6'>Select State For Discard</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={() => setIsOpen(false)} sx={{ color: 'text.primary' }}>
+              <IconButton size='small' onClick={() => handelClose()} sx={{ color: 'text.primary' }}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
             </Box>

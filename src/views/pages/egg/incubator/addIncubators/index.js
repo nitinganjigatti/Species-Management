@@ -306,6 +306,7 @@ const AddIncubators = ({
               onClick={() => {
                 handleSidebarClose()
                 reset()
+                setDefaultNursery(null)
               }}
               sx={{ color: 'text.primary' }}
             >
