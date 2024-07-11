@@ -48,6 +48,7 @@ import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
+import moment from 'moment'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -776,6 +777,8 @@ const AddPurchaseForm = () => {
         return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
       })
 
+      let purchaseExpiryDate = getItems[0].purchase_expiry_date ? moment(getItems[0].purchase_expiry_date) : null
+
       setOptionsMedicineList([
         {
           value: getItems[0].purchase_unit_id,
@@ -797,7 +800,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: purchaseExpiryDate,
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -825,6 +828,8 @@ const AddPurchaseForm = () => {
         return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
       })
 
+      let purchaseExpiryDate = getItems[0].purchase_expiry_date ? moment(getItems[0].purchase_expiry_date) : null
+
       setOptionsMedicineList([
         {
           value: getItems[0].purchase_unit_id,
@@ -847,7 +852,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: purchaseExpiryDate,
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
