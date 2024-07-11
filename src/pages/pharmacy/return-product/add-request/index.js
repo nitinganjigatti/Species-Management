@@ -44,8 +44,7 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-
+import { getLocalMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { getAvailableMedicineByMedicineIdToReturn } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import {
@@ -377,15 +376,19 @@ const AddReturnRequest = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        page: 1,
+        column: 'stock_items_name',
+        store_id: selectedPharmacy.id
       }
 
-      const searchResults = await getMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length > 0) {
+      const searchResults = await getLocalMedicineList({ params: params })
+      console.log('searchResults', searchResults)
+      if (searchResults?.data?.length > 0) {
         setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
-            value: item.id,
-            label: item.name,
+          searchResults?.data?.map(item => ({
+            value: item.stock_item_id,
+            label: item.stock_items_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item?.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,

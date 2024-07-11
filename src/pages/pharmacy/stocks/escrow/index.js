@@ -1,6 +1,8 @@
 import { Card, CardHeader, Grid, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
+import { debounce } from 'lodash'
+
 import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
@@ -142,7 +144,6 @@ function Escrow() {
 
   const fetchScrewTableData = useCallback(
     async ({ sort, q, column, type }) => {
-      debugger
       try {
         setLoading(true)
 
@@ -199,15 +200,20 @@ function Escrow() {
       fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type })
     }
   }
-
-  // useEffect(() => {
-  //   console.log('alert')
-  //   fetchScrewTableData({ sort, q: searchValue, column: sortColumn, stockType })
-  // }, [stockType])
-
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchScrewTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
   const handleSearch = async value => {
     setSearchValue(value)
-    await fetchScrewTableData({ sort, q: value, column: sortColumn })
+    await searchTableData({ sort, q: value, column: sortColumn })
   }
 
   return (
@@ -246,6 +252,7 @@ function Escrow() {
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               disableColumnMenu
