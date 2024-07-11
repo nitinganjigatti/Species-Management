@@ -1646,7 +1646,12 @@ const EggList = () => {
                 />
                 <Tab
                   value='eggs_discarded_at_nursery'
-                  label={<TabBadge label='Discarded' totalCount={isDiscarded === 'discarded' ? total : null} />}
+                  label={
+                    <TabBadge
+                      label='Discarded'
+                      totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
+                    />
+                  }
                 />
               </TabList>
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
