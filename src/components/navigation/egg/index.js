@@ -3,6 +3,12 @@ const composeEggNavigation = () => {
     sectionTitle: 'Egg Module'
   }
 
+  const dashboard = {
+    title: 'Dashboard',
+    path: '/egg/dashboard',
+    icon: 'material-symbols:inventory-2-outline'
+  }
+
   const nursery = {
     title: 'Nursery',
     path: '/egg/nursery',
@@ -30,7 +36,7 @@ const composeEggNavigation = () => {
     activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
   }
 
-  const dietNavigation = [title, nursery, incubatorRoom, incubators, eggs]
+  const dietNavigation = [title, dashboard, nursery, incubatorRoom, incubators, eggs]
 
   return dietNavigation
 }
