@@ -177,6 +177,8 @@ const UploadReports = ({
           reset(defaultValues)
           setImgSrc('')
           reset()
+          setImgArr([])
+
           setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
           fetchRequestDetails()
