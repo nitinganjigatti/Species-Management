@@ -56,8 +56,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             .number()
             .typeError('Value must be a number')
             .required('Weight is Required')
-            .positive('Value must be positive')
-            .min(0, 'Value cannot be negative')
+            .positive('Value must be positive') // Ensure positive
+            .min(0, 'Value must be greater than or equal to zero') // Ensure non-negative
         })
       )
       .required('At least one measurement is required')
@@ -78,7 +78,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     setValue,
     watch,
     formState,
+    setError,
     reset,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -580,26 +582,38 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             name={`measurements[${index}].assessment_value`}
                             control={control}
                             render={({ field: { value, onChange }, fieldState: { error } }) => (
-                              <TextField
-                                sx={{ borderRadius: '4px' }}
-                                label={`${
-                                  measurement.assessment_type_string_id.charAt(0).toUpperCase() +
-                                  measurement.assessment_type_string_id.slice(1)
-                                }*`}
-                                value={value}
-                                onChange={e => {
-                                  // Prevent entering negative values
-                                  const inputValue = e.target.value
-                                  if (inputValue === '' || parseFloat(inputValue) >= 0) {
-                                    onChange(e)
-                                  }
-                                }}
-                                name={`measurements[${index}].assessment_value`}
-                                inputProps={{ type: 'number', step: 'any' }}
-                                error={!!error}
-                                helperText={error ? error.message : ''}
-                                fullWidth
-                              />
+                              <div>
+                                <TextField
+                                  sx={{ borderRadius: '4px' }}
+                                  label={`${
+                                    measurement.assessment_type_string_id.charAt(0).toUpperCase() +
+                                    measurement.assessment_type_string_id.slice(1)
+                                  }*`}
+                                  value={value}
+                                  onChange={e => {
+                                    debugger
+                                    const inputValue = e.target.value
+                                    if (inputValue === '' || parseFloat(inputValue) >= 0) {
+                                      onChange(e)
+                                      clearErrors(`measurements[${index}].assessment_value`)
+                                    } else {
+                                      setError(`measurements[${index}].assessment_value`, {
+                                        type: 'custom',
+                                        message: 'Non-negative '
+                                      })
+                                      // Update error state in react-hook-form if negative value
+                                      onChange(e) // Ensures the negative value is not stored in form state
+                                    }
+                                  }}
+                                  name={`measurements[${index}].assessment_value`}
+                                  inputProps={{ type: 'number', step: 'any' }}
+                                  error={!!error}
+                                  fullWidth
+                                />
+                                {error && error.type === 'validate' && (
+                                  <FormHelperText sx={{ color: 'error.main' }}>{error.message}</FormHelperText>
+                                )}
+                              </div>
                             )}
                             rules={{
                               required: 'Please enter a value',
