@@ -109,7 +109,9 @@ const EggDetail = () => {
             getDetails={getDetails}
             eggDetails={eggDetails}
           />
-          {animal_id && <AnimalDetails eggDetails={eggDetails} animal_id={animal_id} />}
+          {eggDetails?.animal_data && (
+            <AnimalDetails eggDetails={eggDetails} animal_id={eggDetails?.animal_data?.animal_id} />
+          )}
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}

@@ -553,7 +553,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       disabled={
                         Number(eggDetails?.action_to_be_taken) === 5 ||
                         Number(eggDetails?.action_to_be_taken) === 6 ||
-                        (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data?.length === 0)
+                        (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
                           ? false
                           : true
                       }
@@ -564,7 +564,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         color={
                           Number(eggDetails?.action_to_be_taken) === 5 ||
                           Number(eggDetails?.action_to_be_taken) === 6 ||
-                          (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data?.length === 0)
+                          (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
                             ? '#00AFD6'
                             : '#7A8684'
                         }
