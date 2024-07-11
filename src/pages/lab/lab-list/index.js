@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getLabList } from 'src/lib/api/lab/addLab'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
@@ -24,11 +24,15 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
 
+import { AuthContext } from 'src/context/AuthContext'
+
 const ListOfLab = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
+  const authData = useContext(AuthContext)
+  console.log('authData :>> ')
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -118,20 +122,22 @@ const ListOfLab = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
 
-      renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-        </Box>
-      )
-    }
+    authData?.userData?.roles?.settings?.add_lab
+      ? {
+          flex: 0.2,
+          minWidth: 20,
+          field: 'Action',
+          headerName: 'Action',
+          renderCell: params => (
+            <Box>
+              <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </Box>
+          )
+        }
+      : null
   ]
 
   /***** Serverside pagination */
@@ -207,7 +213,7 @@ const ListOfLab = () => {
 
   const headerAction = (
     <>
-      {storedData?.roles?.settings?.add_lab === true ? (
+      {authData?.userData?.roles?.settings?.add_lab ? (
         <div>
           <Button
             size='big'

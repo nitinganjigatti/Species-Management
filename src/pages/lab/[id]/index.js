@@ -86,6 +86,7 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
+  console.log('permissions :>> ', permissions)
 
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -120,8 +121,6 @@ const RequestDetails = () => {
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
-  const [userData, setUserData] = useState({})
-  console.log('userData :>> ', userData)
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -191,15 +190,8 @@ const RequestDetails = () => {
         console.log('res?.data.result[0] :>> ', res?.data.result[0])
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
-        setUserData({
-          user_profile: '',
-          user_name: res?.data?.result[0]?.user_first_name,
-          created_at: res?.data?.result[0]?.created_at
-        })
-
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
-
         setRequestId(res?.data?.result[0]?.id)
         setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
         setTotal(parseInt(res?.data?.total_count))
@@ -214,7 +206,7 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = params => {
-    if (permissions?.transfer_tests === true) {
+    if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
@@ -325,7 +317,7 @@ const RequestDetails = () => {
         <>
           {}
           <Box sx={{ minWidth: 120 }}>
-            {permissions?.transfer_tests === true ? (
+            {permissions?.perform_tests === true || permissions?.allow_full_access === true ? (
               <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
                 <InputLabel id='demo-simple-select-label'>Status</InputLabel>
                 <Select
@@ -410,8 +402,13 @@ const RequestDetails = () => {
               horizontal: 'right'
             }}
           >
-            <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
-            <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+            {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+              <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
+            )}
+
+            {(permissions?.perform_tests === true || permissions?.allow_full_access === true) && (
+              <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+            )}
           </Popover>
         </Box>
       )
@@ -698,7 +695,7 @@ const RequestDetails = () => {
                   <Box>
                     <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} userData={userData} />
+                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} />
                       {/* {image?.map(item => (
                         <a
                           key={item.file}
@@ -777,7 +774,7 @@ const RequestDetails = () => {
                   <Box>
                     <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} userData={userData} />
+                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} />
                       {/* {document?.map(item => (
                         <a
                           key={item.file}

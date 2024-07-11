@@ -323,11 +323,15 @@ const AddLab = () => {
 
       const response = await updateLabById(payload, id)
       setSubmitLoader(false)
+      console.log('response  update :>> ', response)
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        await Router.push('/lab/lab-list')
+      } else {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
 
       // reset(defaultValues)
-
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-      await Router.push('/lab/lab-list')
     } else {
       console.log(payload)
 

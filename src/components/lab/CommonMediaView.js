@@ -64,7 +64,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Avatar sx={{ width: '24px', height: '24px' }} />
+                  <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
                   <Typography
                     sx={{
                       fontSize: '16px',
@@ -74,7 +74,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {userData?.user_name}
+                    {item?.user_profile?.name}
                   </Typography>
                 </Box>
                 <Box>{moment(userData?.created_at).format('hh : mm A')}</Box>
@@ -127,7 +127,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Avatar sx={{ width: '24px', height: '24px' }} />
+                  <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
                   <Typography
                     sx={{
                       fontSize: '16px',
@@ -137,7 +137,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
                       textOverflow: 'ellipsis'
                     }}
                   >
-                    {userData?.user_name}
+                    {item?.user_profile?.name}
                   </Typography>
                 </Box>
                 <Box>{moment(userData?.created_at).format('hh : mm A')}</Box>
