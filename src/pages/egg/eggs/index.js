@@ -44,7 +44,6 @@ const EggList = () => {
   const theme = useTheme()
 
   const { selectedEggTab, setSelectedEggTab } = useEggContext()
-  console.log('selectedEggTab :>> ', selectedEggTab)
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -1333,6 +1332,7 @@ const EggList = () => {
             console.log('val :>> ', val)
             if (val === null) {
               setDefaultNursery(null)
+              setFilterByNurseryId('')
 
               // return onChange('')
             } else {
