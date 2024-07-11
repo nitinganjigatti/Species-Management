@@ -484,12 +484,6 @@ const PurchaseItemForm = props => {
     }
   }, [purchaseIgst, setValue])
 
-  useEffect(() => {
-    if (medicineItemId) {
-      reset(nestedRowMedicine)
-    }
-  }, [reset, nestedRowMedicine, medicineItemId])
-
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
