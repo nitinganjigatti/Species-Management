@@ -217,6 +217,7 @@ const AddIncubators = ({
           nursery_id: val?.nursery,
           room_id: val?.room,
           max_eggs: val?.maxNumberOfEggs
+
           // incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
@@ -306,6 +307,7 @@ const AddIncubators = ({
               onClick={() => {
                 handleSidebarClose()
                 reset()
+                setDefaultNursery(null)
               }}
               sx={{ color: 'text.primary' }}
             >
@@ -354,9 +356,11 @@ const AddIncubators = ({
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
+
                           // console.log('val', val)
                           setValue('room', '')
                           RoomList(val.nursery_id)
+
                           return onChange(val.nursery_id)
                         }
                       }}
@@ -444,6 +448,7 @@ const AddIncubators = ({
                           setDefaultRoom(val)
                           console.log('val', val)
                           setValue('room', '')
+
                           return onChange(val.room_id)
                         }
                       }}

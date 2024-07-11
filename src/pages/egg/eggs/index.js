@@ -1244,7 +1244,7 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: filterByNurseryId ? filterByNurseryId : nurseryId ? nurseryId : '',
+          nursery_id: nurseryId ? nurseryId : '',
 
           // nursery_id: 55,
           type:
@@ -1280,7 +1280,7 @@ const EggList = () => {
   useEffect(() => {
     // debugger
     fetchTableData(sort, searchValue, status, isDiscarded, filterByNurseryId)
-  }, [fetchTableData, status, isDiscarded, filterByNurseryId, defaultNursery])
+  }, [fetchTableData, status, isDiscarded, filterByNurseryId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
