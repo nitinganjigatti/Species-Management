@@ -48,6 +48,7 @@ import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
+import moment from 'moment'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -797,7 +798,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -847,7 +848,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -954,6 +955,7 @@ const AddPurchaseForm = () => {
   return (
     <Card>
       <Grid
+        item
         container
         sm={12}
         xs={12}
