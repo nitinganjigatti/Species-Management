@@ -30,6 +30,7 @@ import { useDropzone } from 'react-dropzone'
 import { useAuth } from 'src/hooks/useAuth'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import FallbackSpinner from 'src/@core/components/spinner/index'
 import { deleteMediaFile, getMediaListById, uploadMediaFile } from 'src/lib/api/media'
 import moment from 'moment'
 import Image from 'next/image'
@@ -40,6 +41,7 @@ const Media = () => {
 
   const [filePreviews, setFilePreviews] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
   const [selectedDateFilter, setSelectedDateFilter] = useState('all') // Initialize date filter state
@@ -54,9 +56,11 @@ const Media = () => {
   const getMediaListUserId = useCallback(
     async userId => {
       try {
+        setLoading(true)
         const response = await getMediaListById(userId)
         if (response?.success) {
           setFilePreviews(response?.data?.result)
+          setLoading(false)
         } else {
           // Handle error scenario
         }
@@ -103,9 +107,11 @@ const Media = () => {
           }
         }
         setBtnLoader(false) // Hide loader after processing files
+        setLoading(false)
       } catch (error) {
         console.error('Error uploading files:', error)
         setBtnLoader(false) // Hide loader on error
+        setLoading(false)
       }
     }
   })
@@ -217,243 +223,249 @@ const Media = () => {
 
   return (
     <>
-      <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-        <Box display='flex' flexDirection='column'>
-          <Card sx={{ p: 4, mb: 6 }}>
-            <Grid container spacing={2} alignItems='center'>
-              <Grid item xs={12} md={6}>
-                <Typography
-                  variant='h6'
-                  gutterBottom
-                  alignContent='center'
-                  sx={{ display: 'flex', alignItems: 'center', margin: '10px 0', fontWeight: 'bold' }}
-                >
-                  Media
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <Select value={selectedDateFilter} onChange={handleDateFilterChange} variant='outlined' fullWidth>
-                    <MenuItem value='all'>All Dates</MenuItem>
-                    {/* Add more date filter options as needed */}
-                  </Select>
+      {loading ? (
+        <FallbackSpinner />
+      ) : (
+        <>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box display='flex' flexDirection='column'>
+              <Card sx={{ p: 4, mb: 6 }}>
+                <Grid container spacing={2} alignItems='center'>
+                  <Grid item xs={12} md={6}>
+                    <Typography
+                      variant='h6'
+                      gutterBottom
+                      alignContent='center'
+                      sx={{ display: 'flex', alignItems: 'center', margin: '10px 0', fontWeight: 'bold' }}
+                    >
+                      Media
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                      <Select value={selectedDateFilter} onChange={handleDateFilterChange} variant='outlined' fullWidth>
+                        <MenuItem value='all'>All Dates</MenuItem>
+                        {/* Add more date filter options as needed */}
+                      </Select>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Select
+                        value={selectedFileTypeFilter}
+                        onChange={handleFileTypeFilterChange}
+                        variant='outlined'
+                        fullWidth
+                      >
+                        <MenuItem value='all'>All Types</MenuItem>
+                        {/* Add more file type filter options as needed */}
+                      </Select>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth>
+                        <TextField
+                          label='Search'
+                          value={searchQuery}
+                          onChange={handleSearchInputChange}
+                          placeholder='Search...'
+                          variant='outlined'
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                <SearchIcon />
+                              </InputAdornment>
+                            )
+                          }}
+                        />
+                      </FormControl>
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Select
-                    value={selectedFileTypeFilter}
-                    onChange={handleFileTypeFilterChange}
+                <Grid item xs={12} sm={4} mt={6} sx={{ display: 'flex', justifyContent: 'start' }}>
+                  <Button
+                    size='large'
                     variant='outlined'
-                    fullWidth
+                    sx={{ color: '#7A8684', cursor: 'pointer' }}
+                    {...getRootProps()}
+                    disabled={btnLoader}
                   >
-                    <MenuItem value='all'>All Types</MenuItem>
-                    {/* Add more file type filter options as needed */}
-                  </Select>
+                    {btnLoader ? (
+                      <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                    ) : (
+                      <Icon icon='ic:outline-file-upload' />
+                    )}
+                    &nbsp; Upload File
+                    <input {...getInputProps()} />
+                  </Button>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <FormControl fullWidth>
-                    <TextField
-                      label='Search'
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      placeholder='Search...'
-                      variant='outlined'
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position='end'>
-                            <SearchIcon />
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </Grid>
-            <Grid item xs={12} sm={4} mt={6} sx={{ display: 'flex', justifyContent: 'start' }}>
-              <Button
-                size='large'
-                variant='outlined'
-                sx={{ color: '#7A8684', cursor: 'pointer' }}
-                {...getRootProps()}
-                disabled={btnLoader}
-              >
-                {btnLoader ? (
-                  <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
-                ) : (
-                  <Icon icon='ic:outline-file-upload' />
-                )}
-                &nbsp; Upload File
-                <input {...getInputProps()} />
-              </Button>
-            </Grid>
-          </Card>
+              </Card>
 
-          <Grid container spacing={4}>
-            {filePreviews.map((group, groupIndex) => (
-              <Grid item key={groupIndex} xs={12}>
-                <Typography
-                  variant='subtitle1'
-                  gutterBottom
-                  sx={{ display: 'flex', alignItems: 'center', margin: '16px 0', fontWeight: 'bold' }}
-                >
-                  <Divider sx={{ width: 30, marginRight: '5px' }} orientation='horizontal' />
-                  <EventIcon sx={{ marginRight: '5px' }} />
-                  {renderDateHeader(group.date)}
-                  <Divider sx={{ flexGrow: 1, marginLeft: '5px' }} orientation='horizontal' />
-                </Typography>
+              <Grid container spacing={4}>
+                {filePreviews.map((group, groupIndex) => (
+                  <Grid item key={groupIndex} xs={12}>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      sx={{ display: 'flex', alignItems: 'center', margin: '16px 0', fontWeight: 'bold' }}
+                    >
+                      <Divider sx={{ width: 30, marginRight: '5px' }} orientation='horizontal' />
+                      <EventIcon sx={{ marginRight: '5px' }} />
+                      {renderDateHeader(group.date)}
+                      <Divider sx={{ flexGrow: 1, marginLeft: '5px' }} orientation='horizontal' />
+                    </Typography>
 
-                <Grid container spacing={6}>
-                  {group.media.map((media, mediaIndex) => (
-                    <React.Fragment key={mediaIndex}>
-                      <Grid item xs={12} sm={6} md={4} lg={3}>
-                        <Card sx={{ position: 'relative', height: '100%', bgcolor: '#f2f2f2' }}>
-                          <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
-                            <Tooltip title={media?.file_original_name} arrow>
-                              <Typography
-                                variant='subtitle2'
-                                gutterBottom
-                                sx={{
-                                  ml: 2,
-                                  mb: 0,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  maxWidth: 180 // Adjust this based on your design
-                                }}
-                              >
-                                {media?.file_original_name}
-                              </Typography>
-                            </Tooltip>
-                          </CardContent>
+                    <Grid container spacing={6}>
+                      {group.media.map((media, mediaIndex) => (
+                        <React.Fragment key={mediaIndex}>
+                          <Grid item xs={12} sm={6} md={4} lg={3}>
+                            <Card sx={{ position: 'relative', height: '100%', bgcolor: '#f2f2f2' }}>
+                              <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
+                                <Tooltip title={media?.file_original_name} arrow>
+                                  <Typography
+                                    variant='subtitle2'
+                                    gutterBottom
+                                    sx={{
+                                      ml: 2,
+                                      mb: 0,
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      maxWidth: 180 // Adjust this based on your design
+                                    }}
+                                  >
+                                    {media?.file_original_name}
+                                  </Typography>
+                                </Tooltip>
+                              </CardContent>
 
-                          {media?.user_media && (
-                            <>
-                              {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
-                                <CardMedia
-                                  component='img'
-                                  height='160'
-                                  image={media?.user_media}
-                                  alt={media?.file_original_name}
-                                  sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
-                                />
-                              ) : (
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    height: 120,
-                                    borderRadius: 1,
-                                    bgcolor: getIconByFileType(media?.file_original_name)?.bgColor,
-                                    m: 5
-                                  }}
-                                >
-                                  <Image
-                                    src={getIconByFileType(media?.file_original_name)?.icon}
-                                    alt=''
-                                    width={80}
-                                    height={80}
-                                  />
-                                </Box>
+                              {media?.user_media && (
+                                <>
+                                  {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
+                                    <CardMedia
+                                      component='img'
+                                      height='160'
+                                      image={media?.user_media}
+                                      alt={media?.file_original_name}
+                                      sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
+                                    />
+                                  ) : (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        height: 120,
+                                        borderRadius: 1,
+                                        bgcolor: getIconByFileType(media?.file_original_name)?.bgColor,
+                                        m: 5
+                                      }}
+                                    >
+                                      <Image
+                                        src={getIconByFileType(media?.file_original_name)?.icon}
+                                        alt=''
+                                        width={80}
+                                        height={80}
+                                      />
+                                    </Box>
+                                  )}
+                                </>
                               )}
-                            </>
-                          )}
 
-                          <IconButton
-                            aria-label='more'
-                            aria-controls='long-menu'
-                            aria-haspopup='true'
-                            sx={{
-                              position: 'absolute',
-                              top: 12,
-                              right: 1,
-                              cursor: 'pointer'
-                            }}
-                            onClick={e => handleClick(e, media)}
-                          >
-                            <Icon icon='mdi:dots-vertical' />
-                          </IconButton>
+                              <IconButton
+                                aria-label='more'
+                                aria-controls='long-menu'
+                                aria-haspopup='true'
+                                sx={{
+                                  position: 'absolute',
+                                  top: 12,
+                                  right: 1,
+                                  cursor: 'pointer'
+                                }}
+                                onClick={e => handleClick(e, media)}
+                              >
+                                <Icon icon='mdi:dots-vertical' />
+                              </IconButton>
 
-                          <CardContent
-                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
-                          >
-                            <Box>{moment(media?.file_original_name?.created_at).format('hh:mm A')}</Box>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </React.Fragment>
-                  ))}
-                </Grid>
+                              <CardContent
+                                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
+                              >
+                                <Box>{moment(media?.file_original_name?.created_at).format('hh:mm A')}</Box>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        </React.Fragment>
+                      ))}
+                    </Grid>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </CardContent>
-
-      <Menu keepMounted id='long-menu' anchorEl={anchorEl} onClose={handleClose} open={Boolean(anchorEl)}>
-        <MenuItem>View</MenuItem>
-        <MenuItem onClick={handleDownload}>Download</MenuItem>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu>
-
-      <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpenDelete(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
             </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this media?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                disabled={btnLoader}
+          </CardContent>
+
+          <Menu keepMounted id='long-menu' anchorEl={anchorEl} onClose={handleClose} open={Boolean(anchorEl)}>
+            <MenuItem>View</MenuItem>
+            <MenuItem onClick={handleDownload}>Download</MenuItem>
+            <MenuItem onClick={handleDelete}>Delete</MenuItem>
+          </Menu>
+
+          <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
                 onClick={() => setIsModalOpenDelete(false)}
-                variant='outlined'
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
+              <Box
                 sx={{
-                  color: 'gray',
-                  width: '45%'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+                  alignItems: 'center'
                 }}
               >
-                Cancel
-              </Button>
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this media?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    disabled={btnLoader}
+                    onClick={() => setIsModalOpenDelete(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
 
-              <LoadingButton
-                loading={btnLoader}
-                size='large'
-                variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
-              >
-                Delete
-              </LoadingButton>
-            </Box>
-          </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+                  <LoadingButton
+                    loading={btnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
+              </Box>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      )}
     </>
   )
 }
