@@ -145,14 +145,14 @@ const EggList = () => {
       headerName: 'SPECIES',
 
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
             variant='rounded'
             alt='Medicine Image'
             sx={{
               width: 35,
               height: 35,
-              mr: 4,
+
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -175,8 +175,7 @@ const EggList = () => {
                   lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row.complete_name ? params.row.complete_name : '-'}
@@ -421,7 +420,7 @@ const EggList = () => {
               </div>
             </>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Avatar
                 variant='square'
                 alt='Medicine Image'
@@ -429,7 +428,7 @@ const EggList = () => {
                 sx={{
                   width: 30,
                   height: 30,
-                  mr: 4,
+
                   borderRadius: '50%',
                   background: '#E8F4F2',
                   overflow: 'hidden'
@@ -508,14 +507,14 @@ const EggList = () => {
       headerName: 'SPECIES',
 
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
             variant='rounded'
             alt='Medicine Image'
             sx={{
               width: 35,
               height: 35,
-              mr: 4,
+
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -538,8 +537,7 @@ const EggList = () => {
                   lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row.complete_name ? params.row.complete_name : '-'}
@@ -739,7 +737,7 @@ const EggList = () => {
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Avatar
               variant='square'
               alt='Medicine Image'
@@ -747,7 +745,7 @@ const EggList = () => {
               sx={{
                 width: 30,
                 height: 30,
-                mr: 4,
+
                 borderRadius: '50%',
                 background: '#E8F4F2',
                 overflow: 'hidden'
@@ -825,12 +823,12 @@ const EggList = () => {
       headerName: 'EGG NUMBER',
 
       renderCell: params => (
-        <Stack direction='row' gap={2} alignItems={'center'}>
+        <Stack direction='row' gap={'8px'} alignItems={'center'}>
           <Box sx={{ width: '44px', height: '44px' }}>
             <img src='/icons/Egg_img.png' alt='Egg' style={{ width: '100%', height: '100%' }} />
           </Box>
 
-          <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
             <Typography
               style={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -891,14 +889,14 @@ const EggList = () => {
       headerName: 'SPECIES',
 
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
             variant='rounded'
             alt='Medicine Image'
             sx={{
               width: 35,
               height: 35,
-              mr: 4,
+
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -921,8 +919,7 @@ const EggList = () => {
                   lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row.complete_name ? params.row.complete_name : '-'}
@@ -1125,7 +1122,7 @@ const EggList = () => {
               </div>
             </>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Avatar
                 variant='square'
                 alt='Medicine Image'
@@ -1133,7 +1130,7 @@ const EggList = () => {
                 sx={{
                   width: 30,
                   height: 30,
-                  mr: 4,
+
                   borderRadius: '50%',
                   background: '#E8F4F2',
                   overflow: 'hidden'
@@ -1247,7 +1244,7 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: filterByNurseryId ? filterByNurseryId : nurseryId,
+          nursery_id: filterByNurseryId ? filterByNurseryId : nurseryId ? nurseryId : '',
 
           // nursery_id: 55,
           type:
@@ -1283,7 +1280,7 @@ const EggList = () => {
   useEffect(() => {
     // debugger
     fetchTableData(sort, searchValue, status, isDiscarded, filterByNurseryId)
-  }, [fetchTableData, status, isDiscarded, filterByNurseryId])
+  }, [fetchTableData, status, isDiscarded, filterByNurseryId, defaultNursery])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -1333,6 +1330,7 @@ const EggList = () => {
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
+            console.log('val :>> ', val)
             if (val === null) {
               setDefaultNursery(null)
 
@@ -1592,6 +1590,7 @@ const EggList = () => {
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 columns={incubationColumns}
+                rowHeight={72}
                 sortingMode='server'
                 paginationMode='server'
                 pageSizeOptions={[7, 10, 25, 50]}

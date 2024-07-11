@@ -180,6 +180,10 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const handleClose = () => {
     setIsOpen(false)
+    setDefaultNursery(null)
+    setValue('site_id', '')
+    setValue('nursery', '')
+
     reset()
   }
 
