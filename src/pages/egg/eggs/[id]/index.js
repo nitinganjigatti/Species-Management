@@ -14,7 +14,7 @@ import AnimalDetails from 'src/views/pages/egg/eggs/eggDetails/AnimalDetails'
 
 const EggDetail = () => {
   const router = useRouter()
-  const { id, animal_id } = router.query
+  const { id } = router.query
 
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
@@ -109,7 +109,7 @@ const EggDetail = () => {
             getDetails={getDetails}
             eggDetails={eggDetails}
           />
-          {animal_id && <AnimalDetails eggDetails={eggDetails} animal_id={animal_id} />}
+          {eggDetails?.animal_data?.animal_id && <AnimalDetails eggDetails={eggDetails} />}
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}

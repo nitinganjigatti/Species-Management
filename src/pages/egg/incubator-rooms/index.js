@@ -117,10 +117,8 @@ const RoomsList = () => {
       field: 'room',
       headerName: 'room',
       sortable: false,
-
       renderCell: params => (
         <Typography
-          variant='body2'
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -138,21 +136,17 @@ const RoomsList = () => {
       field: 'nursery_name',
       headerName: 'nursery name',
       sortable: false,
-
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.nursery_name}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.nursery_name}
+        </Typography>
       )
     },
     {
@@ -164,7 +158,6 @@ const RoomsList = () => {
 
       renderCell: params => (
         <Typography
-          variant='body2'
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -182,12 +175,10 @@ const RoomsList = () => {
       minWidth: 10,
       field: 'Incubator',
       sortable: false,
-
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
         <Typography
-          variant='body2'
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -204,7 +195,6 @@ const RoomsList = () => {
       minWidth: 60,
       field: 'user_name',
       sortable: false,
-
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -232,7 +222,6 @@ const RoomsList = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography
               noWrap
-              variant='body2'
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
@@ -242,8 +231,12 @@ const RoomsList = () => {
             >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+            <Typography noWrap sx={{ color: '#44544a9c', fontSize: 12 }}>
+              {params.row.created_at
+                ? 'Created on' +
+                  ' ' +
+                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                : '-'}
             </Typography>
           </Box>
         </Box>

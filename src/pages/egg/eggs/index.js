@@ -44,7 +44,7 @@ const EggList = () => {
   const theme = useTheme()
 
   const { selectedEggTab, setSelectedEggTab } = useEggContext()
-  console.log('selectedEggTab :>> ', selectedEggTab)
+  // console.log('selectedEggTab :>> ', selectedEggTab)
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -631,14 +631,7 @@ const EggList = () => {
       headerName: 'Animal Id',
 
       renderCell: params => (
-        <Box
-          onClick={e => {
-            setEggId(params.row.egg_id)
-            e.stopPropagation()
-            setOpenCreate(true)
-          }}
-          sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}
-        >
+        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -659,6 +652,11 @@ const EggList = () => {
                 fontWeight: '500'
 
                 // lineHeight: '19.36px'
+              }}
+              onClick={e => {
+                setEggId(params.row.egg_id)
+                e.stopPropagation()
+                setOpenCreate(true)
               }}
             >
               Create Animal ID
@@ -1195,9 +1193,7 @@ const EggList = () => {
       const data = params.row
 
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`,
-
-        query: { animal_id: data?.animal_id }
+        pathname: `/egg/eggs/${data?.id}`
       })
     } else {
       return
@@ -1330,7 +1326,7 @@ const EggList = () => {
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
-            console.log('val :>> ', val)
+            // console.log('val :>> ', val)
             if (val === null) {
               setDefaultNursery(null)
 

@@ -688,7 +688,9 @@ const ConditionSlider = ({
         setValue('parentMother', eggDetails?.parent_list?.mother_list[0]?._id)
       }
     }
-    eggDetails?.enclosure_data
+    const currentDate = dayjs()
+    setValue('accessionDate', currentDate)
+    // eggDetails?.enclosure_data
   }, [eggDetails])
 
   useEffect(() => {

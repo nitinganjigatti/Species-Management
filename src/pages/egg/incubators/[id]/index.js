@@ -265,29 +265,7 @@ const IncubatorDetails = () => {
       headerName: 'ADDED BY',
       renderCell: params => (
         <>
-          {/* {status === 'eggs_received' && (
-            <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-              Allocate{' '}
-            </Button>
-          )} */}
-          {/* {status === 'eggs_received' ? (
-            <>
-              <div>
-                <DiscardStatusCell
-                  customButton={status === 'eggs_received' ? 'customButton' : null}
-                  hideField='hideField'
-                  params={params}
-                  setIsOpen={setIsOpen}
-                  handleDiscard={handleDiscard}
-                  setEggId={setEggId}
-                  handleAction={handleAction}
-
-                  // hover={hover} setHover={setHover}
-                />
-              </div>
-            </>
-          ) : ( */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Avatar
               variant='square'
               alt='Medicine Image'
@@ -295,7 +273,6 @@ const IncubatorDetails = () => {
               sx={{
                 width: 30,
                 height: 30,
-                mr: 4,
                 borderRadius: '50%',
                 background: '#E8F4F2',
                 overflow: 'hidden'
@@ -335,11 +312,12 @@ const IncubatorDetails = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                {params.row.created_at
+                  ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                  : '-'}
               </Typography>
             </Box>
           </Box>
-          {/* )} */}
         </>
       )
     }
