@@ -777,8 +777,6 @@ const AddPurchaseForm = () => {
         return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
       })
 
-      let purchaseExpiryDate = getItems[0].purchase_expiry_date ? moment(getItems[0].purchase_expiry_date) : null
-
       setOptionsMedicineList([
         {
           value: getItems[0].purchase_unit_id,
@@ -800,7 +798,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: purchaseExpiryDate,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -828,8 +826,6 @@ const AddPurchaseForm = () => {
         return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
       })
 
-      let purchaseExpiryDate = getItems[0].purchase_expiry_date ? moment(getItems[0].purchase_expiry_date) : null
-
       setOptionsMedicineList([
         {
           value: getItems[0].purchase_unit_id,
@@ -852,7 +848,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: purchaseExpiryDate,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -959,6 +955,7 @@ const AddPurchaseForm = () => {
   return (
     <Card>
       <Grid
+        item
         container
         sm={12}
         xs={12}
