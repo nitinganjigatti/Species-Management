@@ -83,10 +83,10 @@ const Tests = ({ labTest }) => {
   //   }
   // }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
-  }
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, 'request_number', status)
+  // }
 
   function extractTestsData(labTest) {
     const parent = labTest.flatMap(lab =>
@@ -132,17 +132,18 @@ const Tests = ({ labTest }) => {
         slotProps={{
           baseButton: {
             variant: 'outlined'
-          },
-          toolbar: {
-            value: searchValue,
-            clearSearch: () => handleSearch(''),
-
-            onChange: event => {
-              setSearchValue(event.target.value)
-
-              return handleSearch(event.target.value)
-            }
           }
+
+          // toolbar: {
+          //   value: searchValue,
+          //   clearSearch: () => handleSearch(''),
+
+          //   onChange: event => {
+          //     setSearchValue(event.target.value)
+
+          //     return handleSearch(event.target.value)
+          //   }
+          // }
         }}
       />
     </Card>

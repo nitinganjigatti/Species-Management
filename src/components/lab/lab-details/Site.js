@@ -112,22 +112,23 @@ const Site = ({ labId }) => {
           getRowId={getRowId}
           rowCount={total}
           columns={columns}
-          slots={{ toolbar: ServerSideToolbar }}
+          // slots={{ toolbar: ServerSideToolbar }}
           loading={loading}
           slotProps={{
             baseButton: {
               variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-
-              onChange: event => {
-                setSearchValue(event.target.value)
-
-                return handleSearch(event.target.value)
-              }
             }
+
+            // toolbar: {
+            //   value: searchValue,
+            //   clearSearch: () => handleSearch(''),
+
+            //   onChange: event => {
+            //     setSearchValue(event.target.value)
+
+            //     return handleSearch(event.target.value)
+            //   }
+            // }
           }}
         />
       ) : (

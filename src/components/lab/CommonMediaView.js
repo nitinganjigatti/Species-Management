@@ -4,9 +4,8 @@ import Icon from 'src/@core/components/icon'
 import React from 'react'
 import moment from 'moment'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) => {
-  console.log('type :>> ', type)
-  console.log('item :>> ', image)
+const CommonMediaView = ({ type, image, document, handleDeleteImg, userData, fileViews }) => {
+  console.log('fileViews :>> ', fileViews)
 
   return (
     <>
@@ -47,15 +46,19 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
                   alignItems: 'center',
                   width: '239px',
                   height: '133px',
-                  bgcolor: '#dff9f7',
+                  bgcolor: fileViews?.image?.bg_color,
                   mt: -2
                 }}
               >
                 {item.file ? (
-                  <img src={item.file} alt={item.file_original_name} style={{ width: '100%', height: '100%' }} />
+                  <img
+                    src={item.file ? item.file : null}
+                    alt={item.file_original_name}
+                    style={{ width: '100%', height: '100%' }}
+                  />
                 ) : (
                   <img
-                    src='/images/tablet.png'
+                    src={fileViews?.image?.image_path}
                     alt={item.file_original_name}
                     style={{ width: '100%', height: '100%' }}
                   />
@@ -77,7 +80,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
                     {item?.user_profile?.name}
                   </Typography>
                 </Box>
-                <Box>{moment(userData?.created_at).format('hh : mm A')}</Box>
+                <Box>{moment(userData?.created_at).format('hh:MM A')}</Box>
               </Box>
             </Card>
           </a>
@@ -119,11 +122,35 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
                   alignItems: 'center',
                   width: '239px',
                   height: '133px',
-                  bgcolor: '#dff9f7',
+                  bgcolor:
+                    item?.file_type === 'application/pdf'
+                      ? fileViews?.pdf?.bg_color
+                      : item?.file_type == 'text/csv'
+                      ? fileViews?.xls?.bg_color
+                      : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                      ? fileViews?.document?.bg_color
+                      : item?.file_type == 'audio/mpeg'
+                      ? fileViews?.audio?.bg_color
+                      : '#dff9f7',
                   mt: -2
                 }}
               >
-                <img src='/icons/document_icon.png' alt='Icon' style={{ width: '56px', height: '60px' }} />
+                {console.log('item?.file_original_name :>> ', item?.file_type)}
+                <img
+                  src={
+                    item?.file_type === 'application/pdf'
+                      ? fileViews?.pdf?.image_path
+                      : item?.file_type == 'text/csv'
+                      ? fileViews?.xls?.image_path
+                      : item?.file_type == 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                      ? fileViews?.document?.image_path
+                      : item?.file_type == 'audio/mpeg'
+                      ? fileViews?.audio?.image_path
+                      : '/icons/document_icon.png'
+                  }
+                  alt='Icon'
+                  style={{ width: '56px', height: '60px' }}
+                />
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -140,7 +167,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData }) =
                     {item?.user_profile?.name}
                   </Typography>
                 </Box>
-                <Box>{moment(userData?.created_at).format('hh : mm A')}</Box>
+                <Box>{moment(userData?.created_at).format('hh:mm A')}</Box>
               </Box>
             </Card>
           </a>

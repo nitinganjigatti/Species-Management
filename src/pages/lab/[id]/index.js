@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import {
   GetRequestDetails,
@@ -57,9 +57,16 @@ import { useSearchParams } from 'next/navigation'
 import UserSnackbar from 'src/components/utility/snackbar'
 import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
+import { AuthContext } from 'src/context/AuthContext'
 
 const RequestDetails = () => {
   const router = useRouter()
+  const authData = useContext(AuthContext)
+
+  // console.log('authData :>> ', authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
+  const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
+  console.log('fileViews :>> ', fileViews)
+
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
@@ -86,7 +93,6 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
-  console.log('permissions :>> ', permissions)
 
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -132,21 +138,22 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
+
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
   }, [PrvLabId])
 
   const handleChangeStatus = async (event, params) => {
-    // console.log('params status', params)
     setStatus(event.target.value)
-    console.log('event.target.value', event.target.value)
+
     const id = params
 
     const payload = {
       status: event.target.value
     }
-    console.log('payload', payload)
+
+    // console.log('payload', payload)
 
     const response = await UpdateStatus(id, payload)
     if (response?.success) {
@@ -187,7 +194,7 @@ const RequestDetails = () => {
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
-        console.log('res?.data.result[0] :>> ', res?.data.result[0])
+        // console.log('res?.data.result[0] :>> ', res?.data.result[0])
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
@@ -206,7 +213,7 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = params => {
-    if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
+    if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
@@ -246,7 +253,7 @@ const RequestDetails = () => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleOpenPopOver = (event, params) => {
-    console.log('params :>> ', params?.row?.test_id)
+    // console.log('params :>> ', params?.row?.test_id)
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
     setTransferTestId(params?.row?.test_id)
@@ -267,7 +274,8 @@ const RequestDetails = () => {
 
   const handleOpenShowFile = (e, params) => {
     setShowTestFile(true)
-    console.log('params?.row', params?.row?.attachments?.images)
+
+    // console.log('params?.row', params?.row?.attachments?.images)
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
   }
@@ -317,7 +325,7 @@ const RequestDetails = () => {
         <>
           {}
           <Box sx={{ minWidth: 120 }}>
-            {permissions?.perform_tests === true || permissions?.allow_full_access === true ? (
+            {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
               <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
                 <InputLabel id='demo-simple-select-label'>Status</InputLabel>
                 <Select
@@ -402,11 +410,11 @@ const RequestDetails = () => {
               horizontal: 'right'
             }}
           >
-            {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+            {(permissions?.allow_full_access === true || permissions?.transfer_tests === true) && (
               <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
             )}
 
-            {(permissions?.perform_tests === true || permissions?.allow_full_access === true) && (
+            {(permissions?.allow_full_access === true || permissions?.perform_tests === true) && (
               <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
             )}
           </Popover>
@@ -518,7 +526,8 @@ const RequestDetails = () => {
       replaced_lab_id,
       transfer_reason
     }
-    console.log('payload', payload)
+
+    // console.log('payload', payload)
 
     if (transferStatus !== 'completed') {
       const response = await transferLab(id, payload)
@@ -695,7 +704,7 @@ const RequestDetails = () => {
                   <Box>
                     <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} />
+                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
                       {/* {image?.map(item => (
                         <a
                           key={item.file}
@@ -774,7 +783,7 @@ const RequestDetails = () => {
                   <Box>
                     <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} />
+                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
                       {/* {document?.map(item => (
                         <a
                           key={item.file}

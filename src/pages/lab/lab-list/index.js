@@ -271,10 +271,9 @@ const ListOfLab = () => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              onCellClick={onCellClick}
+              // onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
-              disableColumnMenu
+              onCellClick={onCellClick}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -282,11 +281,9 @@ const ListOfLab = () => {
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
-
                   onChange: event => {
                     setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
+                    handleSearch(event.target.value)
                   }
                 }
               }}
