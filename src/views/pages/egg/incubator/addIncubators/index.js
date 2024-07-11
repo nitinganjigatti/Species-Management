@@ -216,9 +216,8 @@ const AddIncubators = ({
         addIncubator({
           nursery_id: val?.nursery,
           room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs
-
-          // incubator_name: val?.incubator_name
+          max_eggs: val?.maxNumberOfEggs,
+          incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
             reset()
