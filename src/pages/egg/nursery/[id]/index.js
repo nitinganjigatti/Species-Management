@@ -49,8 +49,8 @@ const NurseryDetails = () => {
   const router = useRouter()
   const { id } = router.query
 
-  console.log('rows >>', rows)
-  console.log('Paginate>', paginationModel)
+  // console.log('rows >>', rows)
+  // console.log('Paginate>', paginationModel)
 
   const fetchNurseryById = async () => {
     const res = await GetNurseryDetailsById(id)
@@ -80,7 +80,7 @@ const NurseryDetails = () => {
     fetchNurseryById()
   }, [])
 
-  console.log('Id >>', editNurseryId)
+  // console.log('Id >>', editNurseryId)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -115,9 +115,9 @@ const NurseryDetails = () => {
     [paginationModel]
   )
 
-  console.log('Rows >>', rows)
+  // console.log('Rows >>', rows)
 
-  console.log('Nursery Details >>', nurseryData)
+  // console.log('Nursery Details >>', nurseryData)
 
   useEffect(() => {
     fetchTableData(searchValue, sortColumn)
@@ -170,7 +170,7 @@ const NurseryDetails = () => {
       flex: 0.05,
       minWidth: 40,
       field: 'id',
-      headerName: 'SL',
+      headerName: 'NO',
       headerAlign: 'center',
       align: 'center',
 
@@ -184,7 +184,7 @@ const NurseryDetails = () => {
             lineHeight: '14.52px'
           }}
         >
-          {console.log('Params >>12', params.row)}
+          {/* {console.log('Params >>12', params.row)} */}
           {params.row.sl_no}
         </Typography>
       )
@@ -206,7 +206,7 @@ const NurseryDetails = () => {
             lineHeight: '14.52px'
           }}
         >
-          {console.log('Params >>12', params.row)}
+          {/* {console.log('Params >>12', params.row)} */}
           {params.row.room_name}
         </Typography>
       )
@@ -309,10 +309,10 @@ const NurseryDetails = () => {
     sl_no: getSlNo(index)
   }))
 
-  console.log(indexedRows, 'indexedRows')
+  // console.log(indexedRows, 'indexedRows')
 
   const onCellClick = params => {
-    console.log('params  2323>>', params)
+    // console.log('params  2323>>', params)
     router.push(`/egg/incubator-rooms/${params.row.id}`)
   }
 
@@ -351,12 +351,14 @@ const NurseryDetails = () => {
       </Breadcrumbs>
       <Card>
         <CardHeader title={'Nursery Details'} action={headerAction} />
-        <DetailCard
-          title='Nursery Details'
-          ButtonName={'ADD ROOM'}
-          DetailsListData={nurseryData}
-          setOpenDrawer={setOpenDrawer}
-        />{' '}
+        <Box sx={{ px: '16px', my: '12px' }}>
+          <DetailCard
+            title='Nursery Details'
+            ButtonName={'ADD ROOM'}
+            DetailsListData={nurseryData}
+            setOpenDrawer={setOpenDrawer}
+          />{' '}
+        </Box>
         <DataGrid
           sx={{
             '.MuiDataGrid-cell:focus': {

@@ -95,7 +95,7 @@ const RoomsList = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO ',
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -103,6 +103,7 @@ const RoomsList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '12px',
+            fontWeight: 400,
             lineHeight: '14.52px'
           }}
         >
@@ -206,14 +207,13 @@ const RoomsList = () => {
 
       headerName: 'CREATED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'

@@ -26,6 +26,7 @@ import Router from 'next/router'
 import { GetEggList } from 'src/lib/api/egg/egg'
 
 import { styled } from '@mui/material/styles'
+import DetailCard from 'src/components/egg/DetailCard'
 
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
@@ -61,6 +62,7 @@ const IncubatorDetails = () => {
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [incubatorDetail, setIncubatorDetail] = useState(null)
+  const [incubatorDetailList, setIncubatorDetailList] = useState(null)
 
   const handleSidebarClose = () => {
     setDialog(false)
@@ -76,22 +78,17 @@ const IncubatorDetails = () => {
 
   const columns = [
     {
-      flex: 0.02,
+      flex: 0.05,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
-            // fontSize: '12px',
-            // fontWeight: '400',
             textAlign: 'center'
-
-            // lineHeight: '14.52px'
           }}
         >
           {params.row.sl_no}
@@ -802,6 +799,20 @@ const IncubatorDetails = () => {
         getIncubatorDetail(id).then(res => {
           if (res.data) {
             setIncubatorDetail(res?.data?.data)
+            setIncubatorDetailList({
+              list: {
+                'No of Censors': '-',
+                'Slots Filled': `${res?.data?.data?.no_of_eggs} / ${res?.data?.data?.max_eggs}`,
+                Site: res?.data?.data?.site_name,
+                'Room No': res?.data?.data?.room_name,
+                Nursery: res?.data?.data?.nursery_name
+              },
+              AvatarLeft: {
+                profile_Pic: '/icons/Incubator_CON.png',
+                key: 'Incubator ID',
+                value: res?.data?.data?.incubator_code
+              }
+            })
 
             // console.log('res', res)
           }
@@ -1000,188 +1011,8 @@ const IncubatorDetails = () => {
             </Box>
           </Box>
 
-          <Box sx={{ backgroundColor: '#F2FFF8', borderRadius: '8px' }}>
-            <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', gap: '12px' }}>
-                <Box sx={{ height: '64px', width: '64px', borderRadius: '8px', bgcolor: '#FFE86E' }}>
-                  {/* <Avatar
-                    sx={{ height: '100%', width: '100%' }}
-                    variant='rounded'
-                    src='/icon/Incubator_CON.png'
-                    alt='incubator'
-                  /> */}
-
-                  <img src='/icons/Incubator_CON.png' alt='incubator' style={{ height: '100%', width: '100%' }} />
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.neutralSecondary,
-                      fontWeight: 400,
-                      fontSize: '14px',
-                      lineHeight: '16.94px',
-                      mb: '6px'
-                    }}
-                  >
-                    Incubator ID
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      lineHeight: '19.36px'
-                    }}
-                  >
-                    {incubatorDetail?.incubator_code}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '16.94px',
-                    mb: '6px'
-                  }}
-                >
-                  No of Censors
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  -{' '}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '16.94px',
-                    mb: '6px'
-                  }}
-                >
-                  Slots Filled
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {incubatorDetail?.no_of_eggs} / {incubatorDetail?.max_eggs}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '16.94px',
-                    mb: '6px'
-                  }}
-                >
-                  Site
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {incubatorDetail?.site_name}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '16.94px',
-                    mb: '6px'
-                  }}
-                >
-                  Room No
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {incubatorDetail?.room_name}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontWeight: 400,
-                    fontSize: '14px',
-                    lineHeight: '16.94px',
-                    mb: '6px'
-                  }}
-                >
-                  Nursery
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {incubatorDetail?.nursery_name}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Box>
+          <DetailCard radius={'8px'} DetailsListData={incubatorDetailList} />
           <Box>
-            {/* <CardHeader sx={{ pb: 0, px: 5 }} title='Egg - 10' action={headerAction} /> */}
-            <Box sx={{ display: 'flex', gap: '20px' }}>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 500,
-                  fontSize: '20px',
-                  lineHeight: '24.2px',
-                  mb: 4
-                }}
-              >
-                Max Eggs - {incubatorDetail?.max_eggs}
-              </Typography>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 500,
-                  fontSize: '20px',
-                  lineHeight: '24.2px',
-                  mb: 4
-                }}
-              >
-                Eggs - {indexedRows?.length}
-              </Typography>
-            </Box>
-
-            {/* <CardContent > */}
             <CustomDataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -1235,7 +1066,6 @@ const IncubatorDetails = () => {
               activitySidebarOpen={activitySidebarOpen}
               handleSidebarClose={handleActivitySidebarClose}
             />
-            {/* </CardContent> */}
           </Box>
         </CardContent>
       </Card>
