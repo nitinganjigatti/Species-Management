@@ -253,7 +253,7 @@ const IncubatorDetails = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -313,7 +313,7 @@ const IncubatorDetails = () => {
                 }}
               >
                 {params.row.created_at
-                  ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                  ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
                   : '-'}
               </Typography>
             </Box>
@@ -938,7 +938,7 @@ const IncubatorDetails = () => {
                       lineHeight: '14.52px'
                     }}
                   >
-                    Updated on {moment(incubatorDetail?.created_at).format('DD/MM/YYYY')}
+                    Updated on {moment(incubatorDetail?.created_at).format('DD MMM YYYY')}
                   </Typography>
                 </Box>
               </Box>

@@ -361,7 +361,7 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -465,7 +465,7 @@ const EggList = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                  {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
                 </Typography>
               </Box>
             </Box>
@@ -720,7 +720,7 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD MM YYYY') : '-'}
         </Typography>
       )
     },
@@ -780,7 +780,7 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
               </Typography>
             </Box>
           </Box>
@@ -1085,7 +1085,7 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD/MM/YYYY') : '-'}
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -1169,7 +1169,7 @@ const EggList = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                  {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
                 </Typography>
               </Box>
             </Box>

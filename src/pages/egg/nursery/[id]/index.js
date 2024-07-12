@@ -317,7 +317,7 @@ const NurseryDetails = () => {
               {params.row.created_at
                 ? 'Created on' +
                   ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
                 : '-'}
             </Typography>
           </Box>
