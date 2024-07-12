@@ -929,8 +929,7 @@ const EggList = () => {
                   lineHeight: '16.94px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row?.default_common_name ? params.row?.default_common_name : '-'}
@@ -991,16 +990,21 @@ const EggList = () => {
       headerName: 'Stage',
       align: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.stage ? params.row.stage : '-'}
-        </Typography>
+        <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.dark,
+              fontSize: '16px',
+              fontWeight: '500',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.egg_state ? params.row.egg_state : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
