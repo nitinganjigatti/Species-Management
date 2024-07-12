@@ -1228,7 +1228,7 @@ const EggList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, status, isDiscarded, nurseryId) => {
+    async (sort, q, statusRecived, isDiscarded, nurseryId) => {
       try {
         setLoading(true)
 
@@ -1245,11 +1245,11 @@ const EggList = () => {
 
           // nursery_id: 55,
           type:
-            status === undefined
-              ? 'eggs_received'
-              : status === 'eggs_ready_to_be_discarded_at_nursery'
+            statusRecived === undefined
+              ? status
+              : statusRecived === 'eggs_ready_to_be_discarded_at_nursery'
               ? isDiscarded
-              : status
+              : statusRecived
         }
 
         await GetEggList({ params: params }).then(res => {
