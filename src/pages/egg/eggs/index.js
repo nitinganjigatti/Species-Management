@@ -43,7 +43,7 @@ import { useEggContext } from 'src/context/EggContext'
 const EggList = () => {
   const theme = useTheme()
 
-  const { selectedEggTab, setSelectedEggTab } = useEggContext()
+  const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
   // console.log('selectedEggTab :>> ', selectedEggTab)
 
@@ -60,11 +60,7 @@ const EggList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(selectedEggTab ? selectedEggTab : 'eggs_received')
 
-  const [isDiscarded, setIsDiscarded] = useState(
-    status === 'eggs_ready_to_be_discarded_at_nursery'
-      ? selectedEggTab && selectedEggTab
-      : 'eggs_ready_to_be_discarded_at_nursery'
-  )
+  const [isDiscarded, setIsDiscarded] = useState(subTab ? subTab : 'eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -1224,7 +1220,7 @@ const EggList = () => {
     setTotal(0)
 
     setIsDiscarded(newValue)
-    setSelectedEggTab(newValue)
+    setSubTab(newValue)
   }
 
   const fetchTableData = useCallback(
