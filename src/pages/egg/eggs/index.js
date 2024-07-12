@@ -44,6 +44,7 @@ const EggList = () => {
   const theme = useTheme()
 
   const { selectedEggTab, setSelectedEggTab } = useEggContext()
+
   // console.log('selectedEggTab :>> ', selectedEggTab)
 
   const [loader, setLoader] = useState(false)
@@ -1699,6 +1700,7 @@ const EggList = () => {
         openDiscardDialog={openDiscardDialog}
         setOpenDiscardDialog={setOpenDiscardDialog}
         selectionEggModel={selectionEggModel}
+        fetchTableData={fetchTableData}
       />
     </Box>
   )
