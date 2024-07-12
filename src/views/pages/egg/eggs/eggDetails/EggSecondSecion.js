@@ -274,7 +274,8 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('hh : mm A')}
+          {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
+          {moment(moment(moment.utc(params?.row?.created_at).toDate().toLocaleString())).format('hh : mm A')}
         </Typography>
       )
     },
@@ -790,7 +791,8 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('hh : mm A')}
+                            {/* {moment(row?.created_at).format('hh : mm A')} */}
+                            {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')}
                           </TableCell>
                           <TableCell
                             style={{

@@ -62,6 +62,12 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
 
     // const date = moment(dateString)
     const date = moment(moment.utc(dateString).toDate().toLocaleString())
+    // var dates = moment.utc(dateString).format('YYYY-MM-DD HH:mm:ss')
+
+    // // console.log(date); // 2015-09-13 03:39:27
+
+    // var stillUtc = moment.utc(dates).toDate()
+    // var date = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
 
     const diffInSeconds = now.diff(date, 'seconds')
     const diffInMinutes = now.diff(date, 'minutes')
@@ -373,7 +379,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         {' '}
-                        {formatDate(eggDetails?.collection_date)?.count}
+                        {formatDate(eggDetails?.created_at)?.count}
                       </Typography>
                       <Typography
                         sx={{
@@ -385,7 +391,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         {' '}
-                        {formatDate(eggDetails?.collection_date)?.label}
+                        {formatDate(eggDetails?.created_at)?.label}
                       </Typography>
                     </Box>
 

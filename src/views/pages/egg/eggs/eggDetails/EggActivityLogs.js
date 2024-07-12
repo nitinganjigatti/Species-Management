@@ -271,7 +271,8 @@ const EggActivityLogs = ({
                           }}
                           variant='caption'
                         >
-                          {moment(item?.created_at).format('DD MMM YYYY')}
+                          {moment(moment(moment.utc(item?.created_at).toDate().toLocaleString())).format('DD MMM YYYY')}
+                          {/* {moment(item?.created_at).format('DD MMM YYYY')} */}
                         </Typography>
                         <Typography
                           sx={{
@@ -282,7 +283,8 @@ const EggActivityLogs = ({
                           }}
                           variant='caption'
                         >
-                          {moment(item?.created_at).format('h:mm A')}
+                          {/* {moment(item?.created_at).format('h:mm A')} */}
+                          {moment(moment(moment.utc(item?.created_at).toDate().toLocaleString())).format('h:mm A')}
                         </Typography>
                       </Box>
                     </Box>
