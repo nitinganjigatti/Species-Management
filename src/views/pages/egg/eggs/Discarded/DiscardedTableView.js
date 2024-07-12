@@ -108,7 +108,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       flex: 0.02,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (

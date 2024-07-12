@@ -118,7 +118,7 @@ const EggList = () => {
       flex: 0.02,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -480,7 +480,7 @@ const EggList = () => {
       flex: 0.02,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -794,7 +794,7 @@ const EggList = () => {
       flex: 0.02,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -1538,12 +1538,14 @@ const EggList = () => {
             />
             <Tab
               value='eggs_ready_to_be_discarded_at_nursery'
-              label={
-                <TabBadge
-                  label='Discarded'
-                  totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
-                />
-              }
+              label='Discarded'
+
+              // label={
+              //   <TabBadge
+              //     label='Discarded'
+              //     totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+              //   />
+              // }
             />
             <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
           </TabList>
