@@ -92,7 +92,9 @@ const EggSecondSecion = ({
       'Collected on': moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
         'DD MMM YYYY'
       ),
-      'Lay Date': moment(moment(moment.utc(eggDetails?.lay_date).toDate().toLocaleString())).format('DD MMM YYYY')
+      'Lay Date': eggDetails?.lay_date
+        ? moment(moment(moment.utc(eggDetails?.lay_date).toDate().toLocaleString())).format('DD MMM YYYY')
+        : 'NA (Not Applicable)'
 
       // 'Collected By': 'Jordan Steveson'
     }

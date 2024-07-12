@@ -317,7 +317,7 @@ const NurseryDetails = () => {
               {params.row.created_at
                 ? 'Created on' +
                   ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
                 : '-'}
             </Typography>
           </Box>
@@ -341,24 +341,24 @@ const NurseryDetails = () => {
     router.push(`/egg/incubator-rooms/${params.row.id}`)
   }
 
-  const headerAction = (
-    <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-          <Icon
-            icon='mdi:pencil-outline'
-            fontSize={28}
-            color={theme.palette.customColors.OnSurfaceVariant}
-            onClick={() => setOpenDrawer(true)}
-          />
-        </IconButton>
-        <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD ROOM
-        </Button>
-      </Box>
-    </>
-  )
+  // const headerAction = (
+  //   <>
+  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  //       <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+  //         <Icon
+  //           icon='mdi:pencil-outline'
+  //           fontSize={28}
+  //           color={theme.palette.customColors.OnSurfaceVariant}
+  //           onClick={() => setOpenDrawer(true)}
+  //         />
+  //       </IconButton>
+  //       <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+  //         <Icon icon='mdi:add' fontSize={20} />
+  //         &nbsp; ADD ROOM
+  //       </Button>
+  //     </Box>
+  //   </>
+  // )
 
   return (
     <>
@@ -375,7 +375,45 @@ const NurseryDetails = () => {
         </Typography>
       </Breadcrumbs>
       <Card>
-        <CardHeader title={'Nursery Details'} action={headerAction} />
+        {/* <CardHeader title={'Nursery Details'} action={headerAction} /> */}
+        <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <Icon
+              style={{ cursor: 'pointer', fontSize: '24px' }}
+              onClick={() => Router.push('/egg/nursery')}
+              color={theme.palette.customColors.OnSurfaceVariant}
+              icon='material-symbols:arrow-back'
+            />
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontWeight: 500,
+                fontSize: '24px',
+                lineHeight: '29.05px'
+              }}
+            >
+              Nursery Details
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            {' '}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+                <Icon
+                  icon='mdi:pencil-outline'
+                  fontSize={28}
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                  onClick={() => setOpenDrawer(true)}
+                />
+              </IconButton>
+              <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+                <Icon icon='mdi:add' fontSize={20} />
+                &nbsp; ADD ROOM
+              </Button>
+            </Box>
+          </Box>
+        </Box>
         <Box sx={{ px: '16px', my: '12px' }}>
           <DetailCard
             title='Nursery Details'

@@ -89,7 +89,7 @@ const EggImageGallery = ({ galleryList }) => {
                             lineHeight: '14.52px'
                           }}
                         >
-                          {item?.created_at ? 'Created on' + ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'}
+                          {item?.created_at ? ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'}
                         </Typography>
                       </Box>
                     </Box>

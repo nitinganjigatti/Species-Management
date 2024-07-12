@@ -7,6 +7,7 @@ import { useTheme } from '@mui/material/styles'
 
 const DetailCard = ({ radius, DetailsListData }) => {
   const theme = useTheme()
+
   return (
     <>
       <Box>
@@ -113,7 +114,7 @@ const DetailCard = ({ radius, DetailsListData }) => {
                 </Typography>
                 <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
                   {DetailsListData?.Avatar?.create_at
-                    ? 'Created on ' + moment(DetailsListData?.Avatar?.create_at).format('DD/MM/YYYY')
+                    ? 'Created on ' + moment(DetailsListData?.Avatar?.create_at).format('DD MMM YYYY')
                     : '-'}
                 </Typography>
               </Box>

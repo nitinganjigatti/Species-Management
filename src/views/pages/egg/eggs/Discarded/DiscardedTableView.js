@@ -190,7 +190,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
               // lineHeight: '19.36px'
             }}
           >
-            {params.row.requested_on ? moment(params.row.requested_on).format('DD/MM/YYYY') : '-'} |{' '}
+            {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
             {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
           </Typography>{' '}
         </Box>
@@ -293,7 +293,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.requested_on ? moment(params.row.requested_on).format('DD/MM/YYYY') : '-'} |{' '}
+                {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
                 {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
               </Typography>
             </Box>
@@ -377,7 +377,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                       lineHeight: '14.52px'
                     }}
                   >
-                    {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                    {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
                   </Typography>
                 </>
               )}

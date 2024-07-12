@@ -239,9 +239,9 @@ const IncubatorsList = () => {
     // {
     //   flex: 0.3,
     //   minWidth: 10,
-    //   field: 'censors',
+    //   field: 'sensors',
     //   sortable: false,
-    //   headerName: 'CENSORS',
+    //   headerName: 'SENSORS',
     //   renderCell: params => (
     //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
     //       <Typography
@@ -254,19 +254,19 @@ const IncubatorsList = () => {
     //       >
     //         2
     //       </Typography>{' '}
-    //       {params.row.censors === 'Alert' && <div className={Styles.circle}></div>}
-    //       {params.row.censors === 'Good' && (
+    //       {params.row.sensors === 'Alert' && <div className={Styles.circle}></div>}
+    //       {params.row.sensors === 'Good' && (
     //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
     //       )}
     //       <Typography
     //         sx={{
-    //           color: params.row.censors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+    //           color: params.row.sensors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
     //           fontSize: '14px',
     //           fontWeight: '500',
     //           lineHeight: '16.94px'
     //         }}
     //       >
-    //         {params.row.censors ? params.row.censors : '-'}
+    //         {params.row.sensors ? params.row.sensors : '-'}
     //       </Typography>
     //     </Box>
     //   )
@@ -409,7 +409,7 @@ const IncubatorsList = () => {
               {params.row?.created_at
                 ? 'Created on' +
                   ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
                 : '-'}
             </Typography>
           </Box>

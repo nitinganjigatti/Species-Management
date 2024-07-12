@@ -95,7 +95,7 @@ const DiscardStatusCell = ({
                 lineHeight: '14.52px'
               }}
             >
-              {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
             </Typography>
           </Box>
         </Stack>
