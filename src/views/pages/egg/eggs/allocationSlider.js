@@ -57,7 +57,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             .typeError('Value must be a number')
             .required('Weight is Required')
             .positive('Value must be positive') // Ensure positive
-            .min(0, 'Value must be greater than or equal to zero') // Ensure non-negative
+            .min(1, 'Value must be greater than or equal to 1') // Ensure non-negative
         })
       )
       .required('At least one measurement is required')
@@ -593,7 +593,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                   onChange={e => {
                                     debugger
                                     const inputValue = e.target.value
-                                    if (inputValue === '' || parseFloat(inputValue) >= 0) {
+                                    if (inputValue === '' || parseFloat(inputValue) >= 1) {
                                       onChange(e)
                                       clearErrors(`measurements[${index}].assessment_value`)
                                     } else {
@@ -618,7 +618,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             rules={{
                               required: 'Please enter a value',
                               validate: {
-                                nonNegative: value => parseFloat(value) >= 0 || 'Negative values are not allowed'
+                                nonNegative: value => parseFloat(value) >= 1 || 'Negative values are not allowed'
                               }
                             }}
                           />
