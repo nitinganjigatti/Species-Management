@@ -324,13 +324,13 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
             > */}
             {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
               <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', maxWidth: '24px', maxHeight: '24px', objectFit: 'cover' }}
                 src='/icons/pending_security_check_icon.png'
                 alt='Profile'
               />
             ) : (
               <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', maxWidth: '24px', maxHeight: '24px', objectFit: 'cover' }}
                 src='/icons/security_check_icon.png'
                 alt='Profile'
               />
