@@ -116,6 +116,7 @@ const RequestDetails = () => {
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
+  const [labId, setLab_id] = useState('')
 
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
@@ -194,7 +195,8 @@ const RequestDetails = () => {
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
-        // console.log('res?.data.result[0] :>> ', res?.data.result[0])
+        console.log('res?.data.result[0] :>> ', res?.data.result[0])
+        setLab_id(res?.data.result[0]?.lab_id)
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
@@ -213,13 +215,15 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = params => {
+    console.log('params transfer :>> ', params)
     if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
 
       const params = {
-        test_id: transferTestId
+        test_id: transferTestId,
+        lab_id: labId
       }
       GetLabListByTestId({ params: params }).then(res => {
         setLab(res?.data?.result)

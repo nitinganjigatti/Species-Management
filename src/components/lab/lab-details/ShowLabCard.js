@@ -70,7 +70,7 @@ const ShowLabCard = ({ data }) => {
             </Box>
           </Stack>
           <Stack direction='row' spacing={4} sx={{ display: 'flex', alignItems: 'center', py: 2 }}>
-            {/* <Icon icon='mdi:contact' fontSize={25} /> */}
+            <Icon icon='mdi:contact' fontSize={25} />
             <Box>
               <Typography sx={{ textTransform: 'uppercase', display: 'flex', flexDirection: 'column' }}>
                 {data?.incharge_name}
