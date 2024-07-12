@@ -175,7 +175,7 @@ const IncubatorsList = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -363,14 +363,13 @@ const IncubatorsList = () => {
       field: 'added_by',
       headerName: 'ADDED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -407,7 +406,11 @@ const IncubatorsList = () => {
                 lineHeight: '14.52px'
               }}
             >
-              {params.row?.created_at ? 'Created on' + ' ' + moment(params.row?.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row?.created_at
+                ? 'Created on' +
+                  ' ' +
+                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                : '-'}
             </Typography>
           </Box>
         </Box>

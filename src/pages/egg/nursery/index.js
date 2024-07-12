@@ -261,7 +261,11 @@ const NurseryList = () => {
                 lineHeight: '14.52px'
               }}
             >
-              {params.row?.created_at ? 'Created on' + ' ' + moment(params.row?.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row?.created_at
+                ? 'Created on' +
+                  ' ' +
+                  moment(moment.utc(params.row?.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                : '-'}
             </Typography>
           </Box>
         </Box>

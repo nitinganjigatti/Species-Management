@@ -306,7 +306,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
             </Button>
 
             <LoadingButton variant='contained' fullWidth sx={{ p: 4 }} loading={loading} onClick={() => handleDelete()}>
-              DISCARD
+              REMOVE
             </LoadingButton>
           </Box>
         </Card>

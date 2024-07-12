@@ -43,7 +43,9 @@ import { useEggContext } from 'src/context/EggContext'
 const EggList = () => {
   const theme = useTheme()
 
-  const { selectedEggTab, setSelectedEggTab } = useEggContext()
+  const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
+
+  // console.log('selectedEggTab :>> ', selectedEggTab)
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -58,11 +60,7 @@ const EggList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(selectedEggTab ? selectedEggTab : 'eggs_received')
 
-  const [isDiscarded, setIsDiscarded] = useState(
-    status === 'eggs_ready_to_be_discarded_at_nursery'
-      ? selectedEggTab && selectedEggTab
-      : 'eggs_ready_to_be_discarded_at_nursery'
-  )
+  const [isDiscarded, setIsDiscarded] = useState(subTab ? subTab : 'eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -630,14 +628,7 @@ const EggList = () => {
       headerName: 'Animal Id',
 
       renderCell: params => (
-        <Box
-          onClick={e => {
-            setEggId(params.row.egg_id)
-            e.stopPropagation()
-            setOpenCreate(true)
-          }}
-          sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}
-        >
+        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -658,6 +649,11 @@ const EggList = () => {
                 fontWeight: '500'
 
                 // lineHeight: '19.36px'
+              }}
+              onClick={e => {
+                setEggId(params.row.egg_id)
+                e.stopPropagation()
+                setOpenCreate(true)
               }}
             >
               Create Animal ID
@@ -933,8 +929,7 @@ const EggList = () => {
                   lineHeight: '16.94px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {params.row?.default_common_name ? params.row?.default_common_name : '-'}
@@ -995,16 +990,21 @@ const EggList = () => {
       headerName: 'Stage',
       align: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.stage ? params.row.stage : '-'}
-        </Typography>
+        <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.dark,
+              fontSize: '16px',
+              fontWeight: '500',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.egg_state ? params.row.egg_state : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -1194,9 +1194,7 @@ const EggList = () => {
       const data = params.row
 
       Router.push({
-        pathname: `/egg/eggs/${data?.id}`,
-
-        query: { animal_id: data?.animal_id }
+        pathname: `/egg/eggs/${data?.id}`
       })
     } else {
       return
@@ -1226,11 +1224,11 @@ const EggList = () => {
     setTotal(0)
 
     setIsDiscarded(newValue)
-    setSelectedEggTab(newValue)
+    setSubTab(newValue)
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, status, isDiscarded, nurseryId) => {
+    async (sort, q, statusRecived, isDiscarded, nurseryId) => {
       try {
         setLoading(true)
 
@@ -1247,11 +1245,11 @@ const EggList = () => {
 
           // nursery_id: 55,
           type:
-            status === undefined
-              ? 'eggs_received'
-              : status === 'eggs_ready_to_be_discarded_at_nursery'
+            statusRecived === undefined
+              ? status
+              : statusRecived === 'eggs_ready_to_be_discarded_at_nursery'
               ? isDiscarded
-              : status
+              : statusRecived
         }
 
         await GetEggList({ params: params }).then(res => {
@@ -1329,7 +1327,7 @@ const EggList = () => {
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
-            console.log('val :>> ', val)
+            // console.log('val :>> ', val)
             if (val === null) {
               setDefaultNursery(null)
               setFilterByNurseryId('')
@@ -1702,6 +1700,7 @@ const EggList = () => {
         openDiscardDialog={openDiscardDialog}
         setOpenDiscardDialog={setOpenDiscardDialog}
         selectionEggModel={selectionEggModel}
+        fetchTableData={fetchTableData}
       />
     </Box>
   )

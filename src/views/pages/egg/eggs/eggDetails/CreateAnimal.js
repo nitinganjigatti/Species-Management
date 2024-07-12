@@ -320,7 +320,20 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         setValue('parentMother', eggDetails?.parent_list?.mother_list[0]?._id)
       }
     }
-    eggDetails?.enclosure_data
+    const currentDate = dayjs()
+    setValue('accessionDate', currentDate)
+    // if (eggDetails?.hatched_date) {
+    //   setValue('birthDate', eggDetails?.hatched_date)
+    // }
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+      if (
+        eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
+      ) {
+        setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+      }
+    }
+
+    // eggDetails?.enclosure_data
   }, [eggDetails])
 
   useEffect(() => {
@@ -575,16 +588,22 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                   gap: '12px'
                                 }}
                               >
-                                <Avatar
-                                  variant='rounded'
-                                  alt='Medicine Image'
-                                  sx={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '50%'
-                                  }}
-                                  src={val?.enclosure_qr_image}
-                                />
+                                <Box sx={{ height: '44px', width: '44px' }}>
+                                  <Avatar
+                                    variant='rounded'
+                                    alt='Medicine Image'
+                                    sx={{
+                                      height: '100%',
+                                      width: '100%',
+                                      borderRadius: '50%',
+                                      border: '1px',
+                                      '& .css-1pqm26d-MuiAvatar-img': {
+                                        objectFit: 'contain'
+                                      }
+                                    }}
+                                    src={val?.enclosure_qr_image}
+                                  />
+                                </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                   <Typography
@@ -884,21 +903,25 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                     gap: '10px'
                                   }}
                                 >
-                                  <Avatar
-                                    variant='rounded'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      width: '44px',
-                                      height: '44px',
-                                      borderRadius: '50%',
-                                      border: '1px',
-                                      overflow: 'hidden'
-                                    }}
-                                    src={val?.default_icon}
-                                    // src={
-                                    //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                    // }
-                                  />
+                                  <Box sx={{ height: '44px', width: '44px' }}>
+                                    <Avatar
+                                      variant='square'
+                                      alt='parent Image'
+                                      sx={{
+                                        height: '100%',
+                                        width: '100%',
+                                        borderRadius: '50%',
+                                        border: '1px',
+                                        '& .css-1pqm26d-MuiAvatar-img': {
+                                          objectFit: 'contain'
+                                        }
+                                      }}
+                                      src={val?.default_icon}
+                                      // src={
+                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
+                                      // }
+                                    />
+                                  </Box>
                                   <Typography
                                     sx={{
                                       height: '22px',
@@ -1000,21 +1023,25 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                     gap: '10px'
                                   }}
                                 >
-                                  <Avatar
-                                    variant='rounded'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      width: '44px',
-                                      height: '44px',
-                                      borderRadius: '50%',
-                                      border: '1px',
-                                      overflow: 'hidden'
-                                    }}
-                                    src={val?.default_icon}
-                                    // src={
-                                    //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                    // }
-                                  />
+                                  <Box sx={{ height: '44px', width: '44px' }}>
+                                    <Avatar
+                                      variant='square'
+                                      alt='parent Image'
+                                      sx={{
+                                        height: '100%',
+                                        width: '100%',
+                                        borderRadius: '50%',
+                                        border: '1px',
+                                        '& .css-1pqm26d-MuiAvatar-img': {
+                                          objectFit: 'contain'
+                                        }
+                                      }}
+                                      src={val?.default_icon}
+                                      // src={
+                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
+                                      // }
+                                    />
+                                  </Box>
                                   <Typography
                                     sx={{
                                       height: '22px',

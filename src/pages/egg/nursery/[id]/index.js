@@ -173,7 +173,6 @@ const NurseryDetails = () => {
       headerName: 'NO',
       headerAlign: 'center',
       align: 'center',
-
       sortable: false,
       renderCell: params => (
         <Typography
@@ -184,7 +183,6 @@ const NurseryDetails = () => {
             lineHeight: '14.52px'
           }}
         >
-          {/* {console.log('Params >>12', params.row)} */}
           {params.row.sl_no}
         </Typography>
       )
@@ -201,12 +199,11 @@ const NurseryDetails = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-
+            fontSize: '16px',
             fontWeight: '400',
-            lineHeight: '14.52px'
+            lineHeight: '19.36px'
           }}
         >
-          {/* {console.log('Params >>12', params.row)} */}
           {params.row.room_name}
         </Typography>
       )
@@ -221,7 +218,16 @@ const NurseryDetails = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_incubators}</Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.no_of_incubators}
+        </Typography>
       )
     },
 
@@ -233,7 +239,18 @@ const NurseryDetails = () => {
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: params => <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>{params.row.no_of_eggs}</Box>
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.no_of_eggs}
+        </Typography>
+      )
     },
 
     {
@@ -245,9 +262,16 @@ const NurseryDetails = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', fontWeight: '400', lineHeight: '14.52px' }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
           {params.row.site_name}
-        </Box>
+        </Typography>
       )
     },
     {
@@ -257,14 +281,13 @@ const NurseryDetails = () => {
       headerName: 'ADDED BY',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* {renderClient(params)} */}
           <Avatar
             variant='rounded'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -283,17 +306,19 @@ const NurseryDetails = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography
               noWrap
-              variant='body2'
               sx={{ color: 'text.primary', fontSize: 14, fontFamily: 'Inter', fontWeight: 500, lineHeight: '16.94px' }}
             >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
             <Typography
               noWrap
-              variant='body2'
               sx={{ color: '#44544a9c', fontSize: 12, fontFamily: 'Inter', lineHeight: '14.52px', fontWeight: 400 }}
             >
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at
+                ? 'Created on' +
+                  ' ' +
+                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD/MM/YYYY')
+                : '-'}
             </Typography>
           </Box>
         </Box>
