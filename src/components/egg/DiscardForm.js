@@ -274,7 +274,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                       value={reason}
                       onChange={handleChange}
                     >
-                      <FormControlLabel value={item?.id} control={<Radio />} />
+                      <FormControlLabel value={item?.id} control={<Radio />} style={{ mr: '0px', mr: '0px' }} />
                     </RadioGroup>
                   </FormControl>
                 </Box>
@@ -395,7 +395,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                     row
                     aria-labelledby='demo-row-radio-buttons-group-label'
                     name='necropsy_Btn'
-                    sx={{ display: 'flex', gap: 4, justifyContent: 'center' }}
+                    sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
                     value={necropsy}
                     onChange={e => setNecropsy(e.target.value)}
                   >
@@ -404,6 +404,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         display: 'flex',
                         flexDirection: 'row',
                         alignItems: 'center',
+                        flexGrow: 1,
+
                         gap: 2,
                         border: 1,
                         borderColor: '#c5c6cd',
@@ -411,7 +413,6 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         borderRadius: '5px',
 
                         // opacity: 0.6,
-                        width: 230,
                         justifyContent: 'space-between'
                       }}
                     >
@@ -423,6 +424,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         display: 'flex',
                         flexDirection: 'row',
                         alignItems: 'center',
+                        flexGrow: 1,
                         gap: 2,
                         border: 1,
                         borderColor: '#c5c6cd',
@@ -430,7 +432,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         borderRadius: '5px',
 
                         // opacity: 0.6,
-                        width: 230,
+
                         justifyContent: 'space-between'
                       }}
                     >
