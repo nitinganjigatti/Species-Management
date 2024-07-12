@@ -27,6 +27,7 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
+import Router from 'next/router'
 
 const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
@@ -133,7 +134,25 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
   return (
     <>
       <Card>
-        <CardContent>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => Router.push('/egg/eggs')}
+              color={theme.palette.customColors.OnSurfaceVariant}
+              icon='material-symbols:arrow-back'
+            />
+            <Typography
+              sx={{
+                color: theme.palette.secondary.dark,
+                fontWeight: 500,
+                fontSize: '24px',
+                lineHeight: '29.05px'
+              }}
+            >
+              Egg Details
+            </Typography>
+          </Box>
           <Grid container>
             <Grid sx={{ pr: { xl: '24px', lg: '10px', md: '24px' } }} item xs={12} md={6} lg={2.7} xl={3}>
               <Box sx={{ borderRadius: '8px', width: '100%', height: '100%' }}>

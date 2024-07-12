@@ -779,7 +779,7 @@ const IncubatorDetails = () => {
             setIncubatorDetail(res?.data?.data)
             setIncubatorDetailList({
               list: {
-                'No of Censors': '-',
+                'No of Sensors': '-',
                 'Slots Filled': `${res?.data?.data?.no_of_eggs} / ${res?.data?.data?.max_eggs}`,
                 Site: res?.data?.data?.site_name,
                 'Room No': res?.data?.data?.room_name,
@@ -892,16 +892,25 @@ const IncubatorDetails = () => {
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontWeight: 500,
-                fontSize: '24px',
-                lineHeight: '29.05px'
-              }}
-            >
-              Incubator Details
-            </Typography>
+            <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => Router.push('/egg/incubators')}
+                color={theme.palette.customColors.OnSurfaceVariant}
+                icon='material-symbols:arrow-back'
+              />
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontWeight: 500,
+                  fontSize: '24px',
+                  lineHeight: '29.05px'
+                }}
+              >
+                Incubator Details
+              </Typography>
+            </Box>
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Avatar

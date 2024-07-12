@@ -198,9 +198,9 @@ const RoomDetails = () => {
     // {
     //   flex: 0.3,
     //   minWidth: 10,
-    //   field: 'censors',
+    //   field: 'sensors',
     //   sortable: false,
-    //   headerName: 'CENSORS',
+    //   headerName: 'SENSORS',
     //   renderCell: params => (
     //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
     //       <Typography
@@ -213,19 +213,19 @@ const RoomDetails = () => {
     //       >
     //         2
     //       </Typography>{' '}
-    //       {params.row.censors === 'Alert' && <div className={Styles.circle}></div>}
-    //       {params.row.censors === 'Good' && (
+    //       {params.row.sensors === 'Alert' && <div className={Styles.circle}></div>}
+    //       {params.row.sensors === 'Good' && (
     //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
     //       )}
     //       <Typography
     //         sx={{
-    //           color: params.row.censors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+    //           color: params.row.sensors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
     //           fontSize: '14px',
     //           fontWeight: '500',
     //           lineHeight: '16.94px'
     //         }}
     //       >
-    //         {params.row.censors ? params.row.censors : '-'}
+    //         {params.row.sensors ? params.row.sensors : '-'}
     //       </Typography>
     //     </Box>
     //   )
@@ -441,36 +441,36 @@ const RoomDetails = () => {
     setIsOpen(true)
   }
 
-  const headerAction = (
-    <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <IconButton
-          sx={{ mr: 4 }}
-          onClick={event =>
-            handleEdit(
-              event,
-              detailsData.site_id,
-              detailsData.room_name,
-              detailsData.nursery_id,
-              detailsData.room_id,
-              detailsData.nursery_name
-            )
-          }
-        >
-          <Icon
-            icon='material-symbols:edit-outline'
-            fontSize={28}
-            color={theme.palette.customColors.OnSurfaceVariant}
-          />
-        </IconButton>
+  // const headerAction = (
+  //   <>
+  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  //       <IconButton
+  //         sx={{ mr: 4 }}
+  //         onClick={event =>
+  //           handleEdit(
+  //             event,
+  //             detailsData.site_id,
+  //             detailsData.room_name,
+  //             detailsData.nursery_id,
+  //             detailsData.room_id,
+  //             detailsData.nursery_name
+  //           )
+  //         }
+  //       >
+  //         <Icon
+  //           icon='material-symbols:edit-outline'
+  //           fontSize={28}
+  //           color={theme.palette.customColors.OnSurfaceVariant}
+  //         />
+  //       </IconButton>
 
-        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD INCUBATOR
-        </Button>
-      </Box>
-    </>
-  )
+  //       <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+  //         <Icon icon='mdi:add' fontSize={20} />
+  //         &nbsp; ADD INCUBATOR
+  //       </Button>
+  //     </Box>
+  //   </>
+  // )
 
   useEffect(() => {
     fetchDetailsData()
@@ -525,8 +525,57 @@ const RoomDetails = () => {
             </Breadcrumbs>
 
             <Card>
-              <CardHeader title='Rooms Details' action={headerAction} />
+              {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
+              <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <Icon
+                    style={{ cursor: 'pointer', fontSize: '24px' }}
+                    onClick={() => Router.push('/egg/incubator-rooms')}
+                    color={theme.palette.customColors.OnSurfaceVariant}
+                    icon='material-symbols:arrow-back'
+                  />
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontWeight: 500,
+                      fontSize: '24px',
+                      lineHeight: '29.05px'
+                    }}
+                  >
+                    Room Details
+                  </Typography>
+                </Box>
 
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                  {' '}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <IconButton
+                      sx={{ mr: 4 }}
+                      onClick={event =>
+                        handleEdit(
+                          event,
+                          detailsData.site_id,
+                          detailsData.room_name,
+                          detailsData.nursery_id,
+                          detailsData.room_id,
+                          detailsData.nursery_name
+                        )
+                      }
+                    >
+                      <Icon
+                        icon='material-symbols:edit-outline'
+                        fontSize={28}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                      />
+                    </IconButton>
+
+                    <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+                      <Icon icon='mdi:add' fontSize={20} />
+                      &nbsp; ADD INCUBATOR
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
               <Box sx={{ px: '16px', my: '8px' }}>
                 <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
               </Box>
