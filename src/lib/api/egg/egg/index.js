@@ -37,24 +37,26 @@ export async function getActivityLogs(id, params) {
   return response.data
 }
 
-export async function AddToDiscard(payload) {
-  try {
-    const url = `${EGG}/${DISCARD}/${ADD}`
-    var data = payload
-    const response = await axiosFormPost({ url, body: data })
+//Not in use
 
-    return response?.data
-  } catch (error) {
-    if (error.response) {
-      console.info('Request made and server responded')
-      console.error(error.response.data)
-      console.error(error.response.status)
-      console.error(error.response.headers)
-    }
+// export async function AddToDiscard(payload) {
+//   try {
+//     const url = `${EGG}/${DISCARD}/${ADD}`
+//     var data = payload
+//     const response = await axiosFormPost({ url, body: data })
 
-    return error
-  }
-}
+//     return response?.data
+//   } catch (error) {
+//     if (error.response) {
+//       console.info('Request made and server responded')
+//       console.error(error.response.data)
+//       console.error(error.response.status)
+//       console.error(error.response.headers)
+//     }
+
+//     return error
+//   }
+// }
 
 export async function getEggComments(params) {
   const response = await axiosGet({ url: `${EGG}/${COMMENT}-${LIST}`, params })

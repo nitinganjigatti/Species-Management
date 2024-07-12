@@ -25,7 +25,7 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import { GetEggMaster, AddToDiscard } from 'src/lib/api/egg/egg'
+import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
 import { width } from '@mui/system'
 import Toaster from 'src/components/Toaster'
 
@@ -38,6 +38,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   const [necropsy, setNecropsy] = useState('')
   const [imgSrc, setImgSrc] = useState('')
   const [discardReason, setDiscardReason] = useState([])
+  const [eggStateID, setEggStateId] = useState(null)
 
   console.log('discardReason :>> ', discardReason)
 
@@ -52,9 +53,11 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
       // }
       await GetEggMaster().then(res => {
         if (res.success) {
+          debugger
           console.log('res?.data? master :>> ', res?.data)
           const eggState = res?.data?.egg_status?.find(state => state?.egg_status === 'Discard')
           const eggStateId = eggState ? eggState.id : null
+          setEggStateId(eggStateId)
           console.log('eggState :>> ', eggState)
           console.log('eggStateId :>> ', eggStateId)
 
@@ -63,6 +66,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
             setDiscardReason(filteredEggStatus)
             console.log('filteredEggStatus :>> ', filteredEggStatus)
           }
+        } else {
         }
       })
     } catch (e) {
@@ -163,16 +167,17 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     // console.log('values :>> ', values)
     try {
       const payload = {
-        egg_id: JSON.stringify([eggID]),
-        discard_reason_id: reason,
-        necropsy_needed: necropsy,
+        egg_id: eggID,
+        egg_status_id: eggStateID,
+        egg_state_id: reason,
+        necropsy_needed: 1,
         comment: getValues('comment'),
         egg_attachment: [getValues('image')]
       }
 
       console.log('payload :>> ', payload)
 
-      const res = await AddToDiscard(payload)
+      const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
         console.log('res on submit :>> ', res)
         setReason('')
