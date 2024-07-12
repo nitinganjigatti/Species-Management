@@ -359,7 +359,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   <Typography
                     noWrap
                     sx={{
-                      color: theme.primary.main,
+                      color: theme.palette.primary.main,
                       fontSize: '14px',
                       fontWeight: '500',
                       lineHeight: '16.94px'
