@@ -720,7 +720,7 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD MM YYYY') : '-'}
+          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
         </Typography>
       )
     },
