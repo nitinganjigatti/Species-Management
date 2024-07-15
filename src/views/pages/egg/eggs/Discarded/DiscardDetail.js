@@ -373,7 +373,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   }}
                 >
                   <Stack direction='row' gap={2} alignItems={'center'}>
-                    <img src='/icons/pending_security_check_icon.png' alt='Pending' />
+                    <Box sx={{ width: '24px', height: '24px' }}>
+                      <img src='/icons/pending_security_check_icon.png' style={{ width: '100%' }} alt='Pending' />
+                    </Box>
                     <Typography sx={{ textTransform: 'uppercase', fontSize: '15px', fontWeight: 500 }}>
                       Security Check Pending
                     </Typography>
@@ -443,7 +445,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   </Box>
                   <Box>
                     <Stack direction='row' gap={2} alignItems={'center'}>
-                      <img src='/icons/security_check_icon.png' alt='Pending' />
+                      <Box sx={{ width: '24px', height: '24px' }}>
+                        <img
+                          src='/icons/security_check_icon.png'
+                          style={{ width: '100%', height: '100%' }}
+                          alt='Pending'
+                        />
+                      </Box>
                       <Typography
                         sx={{
                           textTransform: 'uppercase',

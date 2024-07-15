@@ -190,8 +190,13 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
               // lineHeight: '19.36px'
             }}
           >
-            {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
-            {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
+            {params.row.requested_on
+              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')
+              : '-'}{' '}
+            |{' '}
+            {params.row.requested_on
+              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('hh:mm A')
+              : '-'}
           </Typography>{' '}
         </Box>
       )

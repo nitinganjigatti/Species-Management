@@ -66,7 +66,7 @@ const EggList = () => {
 
   // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [openNepoFile, setOpenNepoFile] = useState(false)
+  const [openNecropsy, setOpenNecropsy] = useState(false)
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
 
@@ -1789,7 +1789,6 @@ const EggList = () => {
             allocateEggId={eggID}
           />
         )}
-        {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )
   }
@@ -1962,6 +1961,7 @@ const EggList = () => {
                   <TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null} />
                 }
               >
+                <Button onClick={() => setOpenNecropsy(true)}>Attach File</Button>
                 {/* {tableData()} */}
                 <>
                   <DataGrid
@@ -2045,6 +2045,7 @@ const EggList = () => {
         selectionEggModel={selectionEggModel}
         fetchTableData={fetchTableData}
       />
+      <NecropsySlider openNecropsy={openNecropsy} setOpenNecropsy={setOpenNecropsy} />
     </Box>
   )
 }
