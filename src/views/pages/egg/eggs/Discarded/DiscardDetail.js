@@ -22,6 +22,7 @@ import EggDisCarded from '../../../../../components/egg/EggDiscarded'
 import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
 import { position } from 'stylis'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
+import moment from 'moment'
 
 const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTableData }) => {
   const theme = useTheme()
@@ -436,11 +437,26 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       </Avatar>
 
                       <Stack>
-                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>Balwinder Singh</Typography>
-                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>Gate12345</Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>
+                          {summary.discarded_person_name}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '458px'
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{summary?.site_name}</Typography>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+                            {moment(moment.utc(summary?.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')}
+                            <Icon icon='mdi:dot' />
+                            {moment(moment.utc(summary?.requested_on).toDate().toLocaleString()).format('hh:mm A')}
+                          </Typography>
+                        </Box>
                         <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
-                          {' '}
-                          Lorem ipsum dolar sit amet
+                          {summary?.comments}
                         </Typography>
                       </Stack>
                     </Box>
