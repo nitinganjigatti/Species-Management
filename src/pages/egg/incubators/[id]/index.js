@@ -1080,7 +1080,7 @@ const IncubatorDetails = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  -
+                  {incubatorDetail?.no_of_eggs} / {incubatorDetail?.max_eggs}
                 </Typography>
               </Box>
               <Box>
@@ -1200,6 +1200,7 @@ const IncubatorDetails = () => {
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
+              rowHeight={72}
               columns={columns}
               sortingMode='server'
               paginationMode='server'

@@ -2,7 +2,7 @@ import { Box } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import EggFirstSection from 'src/views/pages/egg/eggs/eggDetails/EggFirstSection'
 import EggSecondSecion from 'src/views/pages/egg/eggs/eggDetails/EggSecondSecion'
-import { GetEggDetails, getDefaultEggAssesment } from 'src/lib/api/egg/egg'
+import { GetEggDetails, getActivityLogs, getDefaultEggAssesment } from 'src/lib/api/egg/egg'
 import EggImageGallery from 'src/views/pages/egg/eggs/eggDetails/EggImageGallery'
 import EggComment from 'src/views/pages/egg/eggs/eggDetails/EggComment'
 import Router, { useRouter } from 'next/router'
@@ -10,10 +10,11 @@ import { assessment_type_string_id } from 'src/constants/Constants'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { Breadcrumbs, Typography } from '@mui/material'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
+import AnimalDetails from 'src/views/pages/egg/eggs/eggDetails/AnimalDetails'
 
 const EggDetail = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, animal_id } = router.query
 
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
@@ -108,6 +109,7 @@ const EggDetail = () => {
             getDetails={getDetails}
             eggDetails={eggDetails}
           />
+          {animal_id && <AnimalDetails eggDetails={eggDetails} animal_id={animal_id} />}
           <EggSecondSecion
             getDetails={getDetails}
             eggDetails={eggDetails}
