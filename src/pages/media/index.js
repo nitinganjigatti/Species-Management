@@ -19,7 +19,8 @@ import {
   FormControl,
   InputAdornment,
   Divider,
-  Menu
+  Menu,
+  debounce
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
@@ -53,11 +54,27 @@ const Media = () => {
 
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
 
+  const searchMediaData = useCallback(
+    debounce(async q => {
+      setSearchQuery(q)
+      try {
+        await getMediaListUserId(userId, q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   const getMediaListUserId = useCallback(
-    async userId => {
+    async (userId, q) => {
       try {
         setLoading(true)
-        const response = await getMediaListById(userId)
+        const params = {
+          userId: userId,
+          q
+        }
+        const response = await getMediaListById({ params })
         if (response?.success) {
           setFilePreviews(response?.data?.result)
           setLoading(false)
@@ -186,17 +203,9 @@ const Media = () => {
   }
 
   const handleSearchInputChange = event => {
-    setSearchQuery(event.target.value)
-    // Implement search logic based on input value
-  }
-
-  const handleSearch = () => {
-    // Implement search logic here
-    // Example: Filter filePreviews based on searchQuery
-    const filteredFiles = filePreviews.filter(file =>
-      file.file_original_name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    setFilePreviews(filteredFiles)
+    const value = event.target.value
+    setSearchQuery(value)
+    searchMediaData(value)
   }
 
   const renderDateHeader = date => {
@@ -244,13 +253,20 @@ const Media = () => {
                   </Grid>
                   <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
                     <Grid item xs={12} sm={4}>
-                      <Select value={selectedDateFilter} onChange={handleDateFilterChange} variant='outlined' fullWidth>
+                      <Select
+                        size='small'
+                        value={selectedDateFilter}
+                        onChange={handleDateFilterChange}
+                        variant='outlined'
+                        fullWidth
+                      >
                         <MenuItem value='all'>All Dates</MenuItem>
                         {/* Add more date filter options as needed */}
                       </Select>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Select
+                        size='small'
                         value={selectedFileTypeFilter}
                         onChange={handleFileTypeFilterChange}
                         variant='outlined'
@@ -263,6 +279,7 @@ const Media = () => {
                     <Grid item xs={12} sm={4}>
                       <FormControl fullWidth>
                         <TextField
+                          size='small'
                           label='Search'
                           value={searchQuery}
                           onChange={handleSearchInputChange}
@@ -317,7 +334,7 @@ const Media = () => {
                       {group.media.map((media, mediaIndex) => (
                         <React.Fragment key={mediaIndex}>
                           <Grid item xs={12} sm={6} md={4} lg={3}>
-                            <Card sx={{ position: 'relative', height: '100%', bgcolor: '#f2f2f2' }}>
+                            <Card sx={{ position: 'relative', height: '100%', bgcolor: '#FFFFFF' }}>
                               <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
                                 <Tooltip title={media?.file_original_name} arrow>
                                   <Typography
@@ -388,7 +405,7 @@ const Media = () => {
                               <CardContent
                                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
                               >
-                                <Box>{moment(media?.file_original_name?.created_at).format('hh:mm A')}</Box>
+                                <Box>{moment(media?.created_at).format('hh:mm A')}</Box>
                               </CardContent>
                             </Card>
                           </Grid>
