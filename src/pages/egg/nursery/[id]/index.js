@@ -1,16 +1,5 @@
 import { Icon } from '@iconify/react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Box,
-  Typography,
-  debounce,
-  Avatar,
-  IconButton,
-  Button,
-  Breadcrumbs
-} from '@mui/material'
+import { Card, Box, Typography, debounce, Avatar, IconButton, Button, Breadcrumbs } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -23,8 +12,6 @@ import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 import { useTheme } from '@mui/material/styles'
-import { min } from 'date-fns'
-import { minWidth } from '@mui/system'
 
 const NurseryDetails = () => {
   const theme = useTheme()

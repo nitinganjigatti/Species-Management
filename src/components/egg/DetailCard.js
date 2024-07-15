@@ -114,7 +114,10 @@ const DetailCard = ({ radius, DetailsListData }) => {
                 </Typography>
                 <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
                   {DetailsListData?.Avatar?.create_at
-                    ? 'Created on ' + moment(DetailsListData?.Avatar?.create_at).format('DD MMM YYYY')
+                    ? 'Created on ' +
+                      moment(moment.utc(DetailsListData?.Avatar?.create_at).toDate().toLocaleString()).format(
+                        'DD MMM YYYY'
+                      )
                     : '-'}
                 </Typography>
               </Box>

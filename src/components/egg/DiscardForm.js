@@ -24,23 +24,21 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
-import toast from 'react-hot-toast'
 import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
-import { width } from '@mui/system'
 import Toaster from 'src/components/Toaster'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
-  console.log('eggID :>> ', eggID)
+  // console.log('eggID :>> ', eggID)
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
-  console.log('reason :>> ', reason)
+  // console.log('reason :>> ', reason)
   const [necropsy, setNecropsy] = useState('')
   const [imgSrc, setImgSrc] = useState('')
   const [discardReason, setDiscardReason] = useState([])
   const [eggStateID, setEggStateId] = useState(null)
 
-  console.log('discardReason :>> ', discardReason)
+  // console.log('discardReason :>> ', discardReason)
 
   const [displayFile, setDisplayFile] = useState('')
 
@@ -54,17 +52,17 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
       await GetEggMaster().then(res => {
         if (res.success) {
           debugger
-          console.log('res?.data? master :>> ', res?.data)
+          // console.log('res?.data? master :>> ', res?.data)
           const eggState = res?.data?.egg_status?.find(state => state?.egg_status === 'Discard')
           const eggStateId = eggState ? eggState.id : null
           setEggStateId(eggStateId)
-          console.log('eggState :>> ', eggState)
-          console.log('eggStateId :>> ', eggStateId)
+          // console.log('eggState :>> ', eggState)
+          // console.log('eggStateId :>> ', eggStateId)
 
           if (eggStateId) {
             const filteredEggStatus = res?.data?.egg_state.filter(status => status.egg_status_id === eggStateId)
             setDiscardReason(filteredEggStatus)
-            console.log('filteredEggStatus :>> ', filteredEggStatus)
+            // console.log('filteredEggStatus :>> ', filteredEggStatus)
           }
         } else {
         }
@@ -175,11 +173,11 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         egg_attachment: [getValues('image')]
       }
 
-      console.log('payload :>> ', payload)
+      // console.log('payload :>> ', payload)
 
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
-        console.log('res on submit :>> ', res)
+        // console.log('res on submit :>> ', res)
         setReason('')
         setImgSrc('')
         reset()

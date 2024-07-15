@@ -1,18 +1,13 @@
 /* eslint-disable lines-around-comment */
 import { LoadingButton } from '@mui/lab'
-// import DemoContainer from '@mui/x-date-pickers/internals/demo/DemoContainer'
-// import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import {
   Autocomplete,
   Avatar,
   Box,
-  Card,
-  CardContent,
   Drawer,
   FormControl,
   FormControlLabel,
   FormHelperText,
-  FormLabel,
   Grid,
   IconButton,
   InputAdornment,
@@ -39,7 +34,6 @@ import * as yup from 'yup'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
-import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'

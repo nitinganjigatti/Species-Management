@@ -9,8 +9,6 @@ import {
   CardHeader,
   Chip,
   Divider,
-  Grid,
-  Link,
   Stack,
   Tab,
   TextField,
@@ -31,7 +29,6 @@ import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
 import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
 import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
 import DiscardForm from 'src/components/egg/DiscardForm'
-import { useMemo } from 'react'
 import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
 import DiscardDetail from 'src/views/pages/egg/eggs/Discarded/DiscardDetail'
 import DiscardDialogBox from 'src/views/pages/egg/eggs/Discarded/DiscardDialogBox'
@@ -361,7 +358,9 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
+          {params.row.collection_date
+            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            : '-'}
         </Typography>
       )
     },
@@ -465,7 +464,9 @@ const EggList = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
+                  {params.row.created_at
+                    ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                    : '-'}
                 </Typography>
               </Box>
             </Box>
@@ -720,7 +721,9 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
+          {params.row.collection_date
+            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            : '-'}
         </Typography>
       )
     },
@@ -780,7 +783,9 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
+                {params.row.created_at
+                  ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                  : '-'}
               </Typography>
             </Box>
           </Box>
@@ -1085,7 +1090,9 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
+          {params.row.collection_date
+            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            : '-'}
         </Typography>
       )
     },
@@ -1169,7 +1176,9 @@ const EggList = () => {
                     lineHeight: '14.52px'
                   }}
                 >
-                  {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
+                  {params.row.created_at
+                    ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                    : '-'}
                 </Typography>
               </Box>
             </Box>

@@ -14,14 +14,13 @@ import {
   Card,
   Autocomplete
 } from '@mui/material'
-import { Fragment, useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
-import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
@@ -151,7 +150,6 @@ const NurserySlider = ({
         const response = await AddNursery(payload)
 
         if (response.success) {
-          // toast.success('Nursery added Successfully')
           setLoader(false)
           Toaster({ type: 'success', message: response.message || 'Nursery added Successfully' })
           setOpenDrawer(false)
@@ -166,14 +164,12 @@ const NurserySlider = ({
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response.message || 'Unable to add Nursery' })
-          // toast.error('Unable to add Nursery')
         }
       }
     } catch (error) {
       setLoader(false)
       console.error('Error while adding/updating nursery:', error)
       Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
-      // toast.error('An error occurred while adding/updating nursery')
     }
   }
 
