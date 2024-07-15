@@ -19,10 +19,11 @@
 }
 
 .element {
-  border: 3px solid;
-  border-color: #446f54;
+  border: 2px solid;
+  border-color: #446f5470;
   border-image-slice: 1;
   border-radius: 15px;
+  background-color: rgb(0 109 53 / 11%);
 }
 
 .container {

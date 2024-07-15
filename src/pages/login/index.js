@@ -164,7 +164,7 @@ const LoginPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        backgroundImage: 'url(/images/login_new.svg)',
+        backgroundImage: 'url(/images/frog_img.svg)',
         backgroundSize: 'cover',
         backgroundPosition: 'bottom',
         padding: '1.25rem'
@@ -221,7 +221,7 @@ const LoginPage = () => {
                           onChange={onChange}
                           error={Boolean(errors.email)}
                           InputProps={{
-                            style: { color: 'white', height: '55px' }
+                            style: { color: 'white', height: '50px' }
                           }}
                           InputLabelProps={{
                             style: { color: 'white' }
@@ -304,7 +304,7 @@ const LoginPage = () => {
                             </InputAdornment>
                           }
                           sx={{
-                            height: '55px',
+                            height: '50px',
                             '& .MuiOutlinedInput-root': {
                               '& fieldset': {
                                 borderColor: 'white'
