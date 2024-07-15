@@ -1365,13 +1365,13 @@ const EggList = () => {
       renderCell: params => (
         <Typography
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
+            color: theme.palette.primary.dark,
             fontSize: '16px',
-            fontWeight: '400',
+            fontWeight: '500',
             lineHeight: '19.36px'
           }}
         >
-          {params.row.is_sample_collected ? params.row.is_sample_collected : '-'}
+          {params.row.is_sample_collected === '1' ? 'Taken' : '-'}
         </Typography>
       )
     },
@@ -1390,7 +1390,13 @@ const EggList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.is_necropsy_needed ? params.row.is_necropsy_needed : '-'}
+          {params.row.is_necropsy_needed ? (
+            params.row.is_necropsy_needed
+          ) : (
+            <Button sx={{ color: '#00AFD6' }} onClick={e => handleOpenNecropsy(e, params)}>
+              Attach File
+            </Button>
+          )}
         </Typography>
       )
     },
@@ -1652,6 +1658,12 @@ const EggList = () => {
 
   const handleSelectionModelChange = newSelectionModel => {
     setSelectionEggModel(newSelectionModel)
+  }
+
+  const handleOpenNecropsy = (e, params) => {
+    e.stopPropagation()
+    setEggId(params?.row?.egg_id)
+    setOpenNecropsy(true)
   }
 
   // const selectedRows = indexedRows?.filter(row => selectionModel.includes(row.id))
@@ -1961,7 +1973,6 @@ const EggList = () => {
                   <TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null} />
                 }
               >
-                <Button onClick={() => setOpenNecropsy(true)}>Attach File</Button>
                 {/* {tableData()} */}
                 <>
                   <DataGrid
@@ -2045,7 +2056,12 @@ const EggList = () => {
         selectionEggModel={selectionEggModel}
         fetchTableData={fetchTableData}
       />
-      <NecropsySlider openNecropsy={openNecropsy} setOpenNecropsy={setOpenNecropsy} />
+      <NecropsySlider
+        eggID={eggID}
+        openNecropsy={openNecropsy}
+        setOpenNecropsy={setOpenNecropsy}
+        fetchTableData={fetchTableData}
+      />
     </Box>
   )
 }

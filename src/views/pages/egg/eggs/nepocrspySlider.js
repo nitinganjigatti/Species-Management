@@ -20,6 +20,8 @@ import {
   Typography
 } from '@mui/material'
 import Image from 'next/image'
+import Toaster from 'src/components/Toaster'
+
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
@@ -28,6 +30,7 @@ import { useTheme } from '@emotion/react'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useEffect, useRef, useState } from 'react'
+import { AddEggNecropsy } from 'src/lib/api/egg/egg'
 
 // const schema = yup.object().shape({
 //   necropsy_report: yup.string().required('Please select an option for Necropsy Report'),
@@ -44,11 +47,14 @@ import { useEffect, useRef, useState } from 'react'
 //   })
 // })
 
-const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
+const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState('')
+
+  const [fileSize, setFileSize] = useState('')
   const [displayFile, setDisplayFile] = useState('')
+
   const [isSampleTaken, setIsSampleTaken] = useState(false)
 
   const defaultValues = {
@@ -76,18 +82,26 @@ const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'text/csv': ['.csv']
     },
     onDrop: acceptedFiles => {
       const reader = new FileReader()
       const files = acceptedFiles
       if (files && files.length !== 0) {
+        const file = files[0]
         reader.onload = () => {
-          setImgSrc(reader?.result)
+          setImgSrc(reader.result)
         }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setValue('report_file', files[0])
+        setDisplayFile(file.name)
+
+        reader.readAsDataURL(file)
+        setValue('report_file', file)
 
         clearErrors('report_file')
       }
@@ -106,6 +120,9 @@ const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
         setImgSrc(reader?.result)
       }
       setDisplayFile(files[0]?.name)
+
+      const size = (files[0]?.size / (1024 * 1024)).toFixed(2)
+      setFileSize(size)
       reader?.readAsDataURL(files[0])
       setValue('report_file', files[0])
       clearErrors('report_file')
@@ -121,9 +138,37 @@ const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
     setIsSampleTaken(event.target.checked)
   }
 
-  const onSubmit = values => {
-    debugger
-    console.log('Values >', values)
+  const handleClose = () => {
+    setOpenNecropsy(false)
+    setIsSampleTaken(false)
+    setImgSrc('')
+    setValue('report_file', '')
+  }
+
+  const onSubmit = async values => {
+    const payload = {
+      egg_id: '903',
+      egg_attachment: [getValues('report_file')],
+      is_sample_collected: isSampleTaken === true ? '1' : '0'
+    }
+    console.log('payload :>> ', payload)
+
+    try {
+      const response = await AddEggNecropsy(payload)
+      console.log('response :>> ', response)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response.message })
+        if (fetchTableData) {
+          fetchTableData()
+        }
+        handleClose()
+      } else {
+        Toaster({ type: 'error', message: response.message })
+      }
+    } catch (error) {
+      console.log('error :>> ', error)
+    }
   }
 
   return (
@@ -158,7 +203,7 @@ const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
               <Typography variant='h6'> Egg Necropsy</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={() => setOpenNecropsy(false)} sx={{ color: 'text.primary' }}>
+              <IconButton size='small' onClick={() => handleClose()} sx={{ color: 'text.primary' }}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
             </Box>
@@ -216,13 +261,13 @@ const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
                 {' '}
                 <Grid container sx={{ justifyContent: 'space-between' }}>
                   {imgSrc !== '' ? null : (
-                    <Grid item md={12}>
+                    <Grid item xs={12} sm={12} md={12}>
                       <input
                         type='file'
-                        accept='image/*'
+                        accept='*/*'
                         onChange={e => handleInputImageChange(e)}
                         style={{ display: 'none' }}
-                        name='image'
+                        name='report_file'
                         ref={fileInputRef}
                       />
 
@@ -249,48 +294,67 @@ const NecropsySlider = ({ setOpenNecropsy, openNecropsy }) => {
                   )}
                   <Grid item md={12}>
                     {imgSrc !== '' && (
-                      <Box sx={{ display: 'flex' }}>
-                        <Box
-                          sx={{
-                            position: 'relative',
-                            backgroundColor: theme.palette.customColors.tableHeaderBg,
-                            borderRadius: '10px',
-                            height: 121,
-                            padding: '10.5px',
-                            boxSizing: 'border-box'
-                          }}
-                        >
+                      <Stack direction='row' gap={'24px'}>
+                        <Box sx={{ display: 'flex', width: '48px', height: '48px' }}>
                           <img
                             style={{
                               aspectRatio: 2 / 2,
                               height: '100%',
-                              borderRadius: '5%'
+                              width: '100%',
+                              borderRadius: '8px'
                             }}
                             alt='Uploaded image'
-                            src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                            src='/icons/Upload_doc_icon.png'
                           />
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                           <Box
                             sx={{
-                              cursor: 'pointer',
-                              position: 'absolute',
-                              top: 0,
-                              right: 0,
-                              zIndex: 10,
-                              height: '24px',
-                              borderRadius: 0.4,
-                              backgroundColor: theme.palette.customColors.secondaryBg
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '422px',
+
+                              // gap: 50,
+                              mt: -2
                             }}
                           >
-                            <Icon
-                              icon='material-symbols-light:close'
-                              color='#fff'
-                              onClick={() => removeSelectedImage()}
-                            >
-                              {' '}
-                            </Icon>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography
+                                sx={{
+                                  fontSize: '16px',
+                                  fontWeight: 500,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                Uploaded{' '}
+                              </Typography>
+                              <Typography
+                                style={{
+                                  fontSize: '15px',
+                                  fontWeight: 400,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {fileSize}MB
+                              </Typography>
+                            </Box>
+
+                            <IconButton sx={{ alignItems: 'flex-end' }} onClick={() => removeSelectedImage()}>
+                              <Icon icon='material-symbols-light:close' fontSize={20} />
+                            </IconButton>
                           </Box>
+                          <Typography
+                            sx={{ mt: -1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            File Name : {displayFile}
+                          </Typography>
                         </Box>
-                      </Box>
+                      </Stack>
                     )}
                   </Grid>
                 </Grid>
