@@ -30,17 +30,14 @@ import { width } from '@mui/system'
 import Toaster from 'src/components/Toaster'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
-  console.log('eggID :>> ', eggID)
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
-  console.log('reason :>> ', reason)
+
   const [necropsy, setNecropsy] = useState('')
   const [imgSrc, setImgSrc] = useState('')
   const [discardReason, setDiscardReason] = useState([])
   const [eggStateID, setEggStateId] = useState(null)
-
-  console.log('discardReason :>> ', discardReason)
 
   const [displayFile, setDisplayFile] = useState('')
 
@@ -53,18 +50,13 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
       // }
       await GetEggMaster().then(res => {
         if (res.success) {
-          debugger
-          console.log('res?.data? master :>> ', res?.data)
           const eggState = res?.data?.egg_status?.find(state => state?.egg_status === 'Discard')
           const eggStateId = eggState ? eggState.id : null
           setEggStateId(eggStateId)
-          console.log('eggState :>> ', eggState)
-          console.log('eggStateId :>> ', eggStateId)
 
           if (eggStateId) {
             const filteredEggStatus = res?.data?.egg_state.filter(status => status.egg_status_id === eggStateId)
             setDiscardReason(filteredEggStatus)
-            console.log('filteredEggStatus :>> ', filteredEggStatus)
           }
         } else {
         }
@@ -92,7 +84,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     image: '',
     status_radioBtn: '',
     comment: '',
-    necropsy_Btn: ''
+    necropsy_Btn: 0
   }
 
   const schema = yup.object().shape({
@@ -164,22 +156,18 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   }
 
   const onSubmit = async values => {
-    // console.log('values :>> ', values)
     try {
       const payload = {
         egg_id: eggID,
         egg_status_id: eggStateID,
         egg_state_id: reason,
-        necropsy_needed: 1,
+        necropsy_needed: values?.necropsy_Btn,
         comment: getValues('comment'),
         egg_attachment: [getValues('image')]
       }
 
-      console.log('payload :>> ', payload)
-
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
-        console.log('res on submit :>> ', res)
         setReason('')
         setImgSrc('')
         reset()
@@ -334,7 +322,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                         gap: 7,
                         height: 70,
 
-                        border: `2px solid ${theme.palette.customColors.trackBg}`,
+                        border: `1px dashed #c5c6cd`,
                         borderRadius: 1,
 
                         padding: 3
@@ -363,7 +351,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                           style={{
                             aspectRatio: 2 / 2,
                             height: '100%',
-                            borderRadius: '5%'
+                            borderRadius: '5%',
+                            objectFit: 'cover'
                           }}
                           alt='Uploaded image'
                           src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
@@ -374,7 +363,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                             position: 'absolute',
                             top: 0,
                             right: 0,
-                            zIndex: 10,
+                            zIndex: 1,
                             height: '24px',
                             borderRadius: 0.4,
                             backgroundColor: theme.palette.customColors.secondaryBg
@@ -396,56 +385,62 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
 
               <Stack>
                 <FormControl>
-                  <RadioGroup
-                    row
-                    aria-labelledby='demo-row-radio-buttons-group-label'
+                  <Controller
                     name='necropsy_Btn'
-                    sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
-                    value={necropsy}
-                    onChange={e => setNecropsy(e.target.value)}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        flexGrow: 1,
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <RadioGroup
+                        row
+                        aria-labelledby='demo-row-radio-buttons-group-label'
+                        name='necropsy_Btn'
+                        sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
+                        onChange={onChange}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flexGrow: 1,
 
-                        gap: 2,
-                        border: 1,
-                        borderColor: '#c5c6cd',
-                        p: 2,
-                        borderRadius: '5px',
+                            gap: 2,
+                            border: 1,
+                            borderColor: '#c5c6cd',
+                            p: 2,
+                            borderRadius: '5px',
 
-                        // opacity: 0.6,
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Typography>Yes</Typography>
-                      <FormControlLabel value={true} control={<Radio />} />
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        flexGrow: 1,
-                        gap: 2,
-                        border: 1,
-                        borderColor: '#c5c6cd',
-                        p: 2,
-                        borderRadius: '5px',
+                            // opacity: 0.6,
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <Typography>Yes</Typography>
+                          <FormControlLabel value={1} control={<Radio />} />
+                        </Box>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flexGrow: 1,
+                            gap: 2,
+                            border: 1,
+                            borderColor: '#c5c6cd',
+                            p: 2,
+                            borderRadius: '5px',
 
-                        // opacity: 0.6,
+                            // opacity: 0.6,
 
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <Typography>No</Typography>
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <Typography>No</Typography>
 
-                      <FormControlLabel value={false} control={<Radio />} />
-                    </Box>
-                  </RadioGroup>
+                          <FormControlLabel value={0} control={<Radio />} />
+                        </Box>
+                      </RadioGroup>
+                    )}
+                  ></Controller>
                 </FormControl>
               </Stack>
             </Card>
@@ -460,7 +455,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 bgcolor: 'white',
                 alignItems: 'center',
                 justifyContent: 'center',
-                display: 'flex'
+                display: 'flex',
+                zIndex: 1
               }}
             >
               <LoadingButton fullWidth variant='contained' type='submit' size='large'>
