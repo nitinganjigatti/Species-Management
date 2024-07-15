@@ -62,6 +62,7 @@ const NecropsySlider = ({ setOpenNepoFile }) => {
     formState: { errors }
   } = useForm({
     defaultValues,
+
     // resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
@@ -91,6 +92,7 @@ const NecropsySlider = ({ setOpenNepoFile }) => {
   }
 
   const theme = useTheme()
+
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
@@ -143,6 +145,7 @@ const NecropsySlider = ({ setOpenNepoFile }) => {
     debugger
     console.log('Values >', values)
   }
+
   return (
     <>
       <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 600] } }}>

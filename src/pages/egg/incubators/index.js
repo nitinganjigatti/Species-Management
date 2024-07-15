@@ -14,16 +14,12 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Switch, Divider, Autocomplete, TextField, Breadcrumbs } from '@mui/material'
-import toast from 'react-hot-toast'
-import CustomChip from 'src/@core/components/mui/chip'
+import { Avatar, Button, Tooltip, Box, Breadcrumbs } from '@mui/material'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'

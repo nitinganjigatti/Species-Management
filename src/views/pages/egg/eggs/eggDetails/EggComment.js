@@ -120,7 +120,7 @@ const EggComment = ({ eggDetails, eggId }) => {
 
     if (now.isSame(date, 'day')) {
       if (diffInSeconds < 60) {
-        return `${diffInSeconds} Sec${diffInSeconds !== 1 ? 's' : ''} ago`
+        return `${diffInSeconds} Second${diffInSeconds !== 1 ? 's' : ''} ago`
       } else if (diffInMinutes < 60) {
         return `${diffInMinutes} Min${diffInMinutes !== 1 ? 's' : ''} ago`
       } else {

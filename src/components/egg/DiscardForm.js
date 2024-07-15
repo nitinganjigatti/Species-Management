@@ -24,9 +24,7 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
-import toast from 'react-hot-toast'
 import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
-import { width } from '@mui/system'
 import Toaster from 'src/components/Toaster'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {

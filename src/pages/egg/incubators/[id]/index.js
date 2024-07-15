@@ -1,16 +1,4 @@
-import {
-  Avatar,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  FormControlLabel,
-  Switch,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Avatar, Breadcrumbs, Card, CardContent, Tooltip, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -253,7 +241,9 @@ const IncubatorDetails = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
+          {params.row.collection_date
+            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            : '-'}
         </Typography>
       )
     },
@@ -947,7 +937,8 @@ const IncubatorDetails = () => {
                       lineHeight: '14.52px'
                     }}
                   >
-                    Updated on {moment(incubatorDetail?.created_at).format('DD MMM YYYY')}
+                    Updated on{' '}
+                    {moment(moment.utc(incubatorDetail?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')}
                   </Typography>
                 </Box>
               </Box>

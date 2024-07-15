@@ -12,12 +12,8 @@ import {
   Typography,
   CircularProgress,
   Breadcrumbs,
-  Link,
-  Divider,
   IconButton,
-  CardHeader,
   Button,
-  Stack,
   Avatar,
   Tooltip
 } from '@mui/material'
@@ -38,7 +34,7 @@ const RoomDetails = () => {
   const theme = useTheme()
   const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  console.log('editParams :>> ', editParams)
+  // console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -49,7 +45,7 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
-  console.log('detailsData :>> ', detailsData)
+  // console.log('detailsData :>> ', detailsData)
 
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})

@@ -1,7 +1,7 @@
-import { Avatar, CardContent, Drawer, Grid, Typography, debounce } from '@mui/material'
+import { Avatar, CardContent, Drawer, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 
 // import TimelineDot from '@mui/lab/TimelineDot'
@@ -196,7 +196,7 @@ const ActivityLogs = ({
                               color: theme.palette.primary.dark
                             }}
                           >
-                            {item.date}
+                            {moment(moment.utc(item.date).toDate().toLocaleString()).format('DD MMM YYYY')}
                           </Typography>
                         </Box>
                       </Grid>
@@ -334,7 +334,9 @@ const ActivityLogs = ({
                                   }}
                                   variant='caption'
                                 >
-                                  {item.activity_time}
+                                  {moment(moment.utc(item.activity_time).toDate().toLocaleString()).format(
+                                    'DD MMM YYYY'
+                                  )}
                                 </Typography>
                               </Box>
                             </Box>

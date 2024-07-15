@@ -222,7 +222,7 @@ const EggSecondSecion = ({
       flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO ',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -254,7 +254,7 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('DD MMM YYYY')}
+          {moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')}
         </Typography>
       )
     },
@@ -275,7 +275,7 @@ const EggSecondSecion = ({
           }}
         >
           {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
-          {moment(moment(moment.utc(params?.row?.created_at).toDate().toLocaleString())).format('hh : mm A')}
+          {moment(moment.utc(params?.row?.created_at).toDate().toLocaleString()).format('hh : mm A')}
         </Typography>
       )
     },
@@ -781,7 +781,8 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('DD MMM YYYY')}
+                            {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
+                            {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')}
                           </TableCell>
                           <TableCell
                             style={{
