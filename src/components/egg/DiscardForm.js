@@ -32,6 +32,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
+
   // console.log('reason :>> ', reason)
   const [necropsy, setNecropsy] = useState('')
   const [imgSrc, setImgSrc] = useState('')
@@ -51,17 +52,19 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
       // }
       await GetEggMaster().then(res => {
         if (res.success) {
-          debugger
+          // debugger
           // console.log('res?.data? master :>> ', res?.data)
           const eggState = res?.data?.egg_status?.find(state => state?.egg_status === 'Discard')
           const eggStateId = eggState ? eggState.id : null
           setEggStateId(eggStateId)
+
           // console.log('eggState :>> ', eggState)
           // console.log('eggStateId :>> ', eggStateId)
 
           if (eggStateId) {
             const filteredEggStatus = res?.data?.egg_state.filter(status => status.egg_status_id === eggStateId)
             setDiscardReason(filteredEggStatus)
+
             // console.log('filteredEggStatus :>> ', filteredEggStatus)
           }
         } else {
