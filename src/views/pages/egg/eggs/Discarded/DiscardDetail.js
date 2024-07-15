@@ -357,7 +357,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
               </Typography>
 
               {/* image gallery */}
-              <AddGallery galleryList={galleryList} />
+              <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
+                <AddGallery galleryList={galleryList} />
+              </Box>
 
               {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box
