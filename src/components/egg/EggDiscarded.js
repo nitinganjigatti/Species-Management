@@ -18,6 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { DeleteEggById } from 'src/lib/api/egg/discard'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 
 const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
   const theme = useTheme()
@@ -254,7 +255,8 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
                     }}
                   >
                     {' '}
-                    {item.collection_date ? moment(item.collection_date).format('DD MMM YYYY') : '-'}
+                    {/* {item.collection_date ? moment(item.collection_date).format('DD MMM YYYY') : '-'} */}
+                    {item.collection_date ? Utility.formatDisplayDate(item.collection_date) : '-'}
                   </Typography>
                 </Box>
               </Box>
@@ -306,7 +308,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
             </Button>
 
             <LoadingButton variant='contained' fullWidth sx={{ p: 4 }} loading={loading} onClick={() => handleDelete()}>
-              DISCARD
+              REMOVE
             </LoadingButton>
           </Box>
         </Card>

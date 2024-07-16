@@ -108,7 +108,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       flex: 0.02,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -190,8 +190,13 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
               // lineHeight: '19.36px'
             }}
           >
-            {params.row.requested_on ? moment(params.row.requested_on).format('DD/MM/YYYY') : '-'} |{' '}
-            {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
+            {params.row.requested_on
+              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')
+              : '-'}{' '}
+            |{' '}
+            {params.row.requested_on
+              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('hh:mm A')
+              : '-'}
           </Typography>{' '}
         </Box>
       )
@@ -293,7 +298,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.requested_on ? moment(params.row.requested_on).format('DD/MM/YYYY') : '-'} |{' '}
+                {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
                 {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
               </Typography>
             </Box>
@@ -324,13 +329,19 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
             > */}
             {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
               <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', maxWidth: '24px', maxHeight: '24px', objectFit: 'cover' }}
                 src='/icons/pending_security_check_icon.png'
                 alt='Profile'
               />
             ) : (
               <img
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '30px',
+                  maxHeight: '30px',
+                  objectFit: 'cover'
+                }}
                 src='/icons/security_check_icon.png'
                 alt='Profile'
               />
@@ -359,7 +370,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   <Typography
                     noWrap
                     sx={{
-                      color: theme.primary.main,
+                      color: theme.palette.primary.main,
                       fontSize: '14px',
                       fontWeight: '500',
                       lineHeight: '16.94px'
@@ -377,7 +388,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                       lineHeight: '14.52px'
                     }}
                   >
-                    {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+                    {params.row.discarded_person_name ? params.row.discarded_person_name : '-'}
                   </Typography>
                 </>
               )}

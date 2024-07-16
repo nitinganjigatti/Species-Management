@@ -38,7 +38,11 @@ const AddGallery = ({ galleryList }) => {
             }}
           >
             <Box sx={{ width: '200px', height: '140px', borderRadius: '8px' }}>
-              <img src={imgList?.file_name} alt='Egg Image' style={{ width: '100%', height: '100%' }} />
+              <img
+                src={imgList?.file_name}
+                alt='Egg Image'
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 3 }}>
               <Avatar
@@ -108,8 +112,12 @@ const AddGallery = ({ galleryList }) => {
             borderColor: '#c3cec7'
           }}
         >
-          <Box sx={{ width: '200px', height: '140', borderRadius: '8px' }}>
-            <img src='/images/default_EggImg.png' alt='Egg Image' style={{ width: '100%', height: '100%' }} />
+          <Box sx={{ width: '200px', height: '140px', borderRadius: '8px' }}>
+            <img
+              src='/images/default_EggImg.png'
+              alt='Egg Image'
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
             <Avatar

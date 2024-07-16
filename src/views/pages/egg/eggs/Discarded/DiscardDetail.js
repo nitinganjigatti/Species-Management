@@ -22,6 +22,7 @@ import EggDisCarded from '../../../../../components/egg/EggDiscarded'
 import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
 import { position } from 'stylis'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
+import Utility from 'src/utility'
 
 const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTableData }) => {
   const theme = useTheme()
@@ -357,7 +358,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
               </Typography>
 
               {/* image gallery */}
-              <AddGallery galleryList={galleryList} />
+              <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
+                <AddGallery galleryList={galleryList} />
+              </Box>
 
               {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box
@@ -373,7 +376,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   }}
                 >
                   <Stack direction='row' gap={2} alignItems={'center'}>
-                    <img src='/icons/pending_security_check_icon.png' alt='Pending' />
+                    <Box sx={{ width: '24px', height: '24px' }}>
+                      <img src='/icons/pending_security_check_icon.png' style={{ width: '100%' }} alt='Pending' />
+                    </Box>
                     <Typography sx={{ textTransform: 'uppercase', fontSize: '15px', fontWeight: 500 }}>
                       Security Check Pending
                     </Typography>
@@ -432,18 +437,40 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       </Avatar>
 
                       <Stack>
-                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>Balwinder Singh</Typography>
-                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>Gate12345</Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>
+                          {summary.discarded_person_name}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '458px'
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{summary?.site_name}</Typography>
+                          <Typography sx={{ display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(summary?.requested_on))}
+                            <Icon icon='mdi:dot' />
+
+                            {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(summary?.requested_on))}
+                          </Typography>
+                        </Box>
                         <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
-                          {' '}
-                          Lorem ipsum dolar sit amet
+                          {summary?.comments}
                         </Typography>
                       </Stack>
                     </Box>
                   </Box>
                   <Box>
                     <Stack direction='row' gap={2} alignItems={'center'}>
-                      <img src='/icons/security_check_icon.png' alt='Pending' />
+                      <Box sx={{ width: '24px', height: '24px' }}>
+                        <img
+                          src='/icons/security_check_icon.png'
+                          style={{ width: '100%', height: '100%' }}
+                          alt='Pending'
+                        />
+                      </Box>
                       <Typography
                         sx={{
                           textTransform: 'uppercase',

@@ -1,18 +1,13 @@
 /* eslint-disable lines-around-comment */
 import { LoadingButton } from '@mui/lab'
-// import DemoContainer from '@mui/x-date-pickers/internals/demo/DemoContainer'
-// import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import {
   Autocomplete,
   Avatar,
   Box,
-  Card,
-  CardContent,
   Drawer,
   FormControl,
   FormControlLabel,
   FormHelperText,
-  FormLabel,
   Grid,
   IconButton,
   InputAdornment,
@@ -39,7 +34,6 @@ import * as yup from 'yup'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AddEggStatusAndCondition, GetEggMaster } from 'src/lib/api/egg/egg'
-import toast from 'react-hot-toast'
 import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -143,7 +137,8 @@ const ConditionSlider = ({
     localIdentifier: '',
     sexingType: '',
     lifeStage: '',
-    contraceptionType: ''
+    contraceptionType: '',
+    necropsy_Btn: 0
   }
 
   const schema = yup.object().shape(
@@ -174,6 +169,7 @@ const ConditionSlider = ({
                 if (accessionType === '2') {
                   return !!value // Return true if value is not empty
                 }
+
                 return true // Otherwise, always pass validation
               }
             ),
@@ -192,6 +188,7 @@ const ConditionSlider = ({
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
                   return !!value // Return true if value is not empty
                 }
+
                 return true // Otherwise, always pass validation
               }
             )
@@ -458,8 +455,10 @@ const ConditionSlider = ({
           egg_status_id: getValues('current_state'),
           egg_state_id: getValues('select_stage'),
           comment: getValues('comment'),
-          egg_attachment: imgArr
+          egg_attachment: imgArr,
+          is_necropsy_needed: values?.necropsy_Btn
         }
+        // console.log('payload 3 :>> ', payload)
       } else if (Number(getValues('current_state')) === 4) {
         payload = {
           egg_id: eggId,
@@ -635,6 +634,7 @@ const ConditionSlider = ({
       })
     } catch (error) {}
   }
+
   const getAnimalGetconfigsFunc = () => {
     try {
       getAnimalGetconfigs().then(res => {
@@ -645,6 +645,7 @@ const ConditionSlider = ({
       })
     } catch (error) {}
   }
+
   const getAnimalMasterFunc = () => {
     try {
       getAnimalMaster().then(res => {
@@ -656,6 +657,7 @@ const ConditionSlider = ({
       })
     } catch (error) {}
   }
+
   const getTaxonomyListFunc = q => {
     try {
       getTaxonomyList(q).then(res => {
@@ -688,7 +690,17 @@ const ConditionSlider = ({
         setValue('parentMother', eggDetails?.parent_list?.mother_list[0]?._id)
       }
     }
-    eggDetails?.enclosure_data
+    const currentDate = dayjs()
+    setValue('accessionDate', currentDate)
+    setValue('birthDate', currentDate)
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+      if (
+        eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
+      ) {
+        setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+      }
+    }
+    // eggDetails?.enclosure_data
   }, [eggDetails])
 
   useEffect(() => {
@@ -955,7 +967,7 @@ const ConditionSlider = ({
                   fullWidth
                   sx={{
                     mt: 6,
-                    mb: isAnimal ? 3 : 35,
+                    mb: isAnimal || statusID === '3' ? 3 : 35,
                     background: '#fff',
                     borderRadius: '8px',
                     border: 1,
@@ -1082,6 +1094,88 @@ const ConditionSlider = ({
                   )}
                 </Box>
 
+                {statusID === '3' && (
+                  <Box
+                    sx={{
+                      p: 4,
+                      mt: 6,
+
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                      mb: 35,
+                      bgcolor: '#fff',
+                      borderRadius: '8px',
+                      border: 1,
+                      borderColor: '#c3cec7'
+                    }}
+                  >
+                    <Typography variant='h6'>Necropsy Needed ?</Typography>
+
+                    <Stack>
+                      <FormControl>
+                        <Controller
+                          name='necropsy_Btn'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <RadioGroup
+                              row
+                              aria-labelledby='demo-row-radio-buttons-group-label'
+                              value={value}
+                              name='necropsy_Btn'
+                              sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
+                              onChange={onChange}
+                            >
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  flexGrow: 1,
+
+                                  gap: 2,
+                                  border: 1,
+                                  borderColor: '#c5c6cd',
+                                  p: 2,
+                                  borderRadius: '5px',
+
+                                  // opacity: 0.6,
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <Typography>Yes</Typography>
+                                <FormControlLabel value={1} control={<Radio />} />
+                              </Box>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  flexGrow: 1,
+                                  gap: 2,
+                                  border: 1,
+                                  borderColor: '#c5c6cd',
+                                  p: 2,
+                                  borderRadius: '5px',
+
+                                  // opacity: 0.6,
+
+                                  justifyContent: 'space-between'
+                                }}
+                              >
+                                <Typography>No</Typography>
+
+                                <FormControlLabel value={0} control={<Radio />} />
+                              </Box>
+                            </RadioGroup>
+                          )}
+                        ></Controller>
+                      </FormControl>
+                    </Stack>
+                  </Box>
+                )}
+
                 {isAnimal && statusID === '4' && (
                   <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
@@ -1135,6 +1229,7 @@ const ConditionSlider = ({
                                   return onChange('')
                                 } else {
                                   setDefaultSpecies(val)
+
                                   return onChange(val.tsn)
                                 }
                               }}

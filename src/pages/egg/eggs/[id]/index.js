@@ -1,5 +1,5 @@
 import { Box } from '@mui/system'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import EggFirstSection from 'src/views/pages/egg/eggs/eggDetails/EggFirstSection'
 import EggSecondSecion from 'src/views/pages/egg/eggs/eggDetails/EggSecondSecion'
 import { GetEggDetails, getActivityLogs, getDefaultEggAssesment } from 'src/lib/api/egg/egg'
@@ -12,9 +12,12 @@ import { Breadcrumbs, Typography } from '@mui/material'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
 import AnimalDetails from 'src/views/pages/egg/eggs/eggDetails/AnimalDetails'
 
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
+
 const EggDetail = () => {
   const router = useRouter()
-  const { id, animal_id } = router.query
+  const { id } = router.query
 
   const [eggDetails, setEggDetails] = useState({})
   const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
@@ -24,6 +27,9 @@ const EggDetail = () => {
 
   const [activtyLogData, setActivtyLogData] = useState([])
   const [activtyLogCount, setActivtyLogCount] = useState(0)
+
+  const authData = useContext(AuthContext)
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const GetGalleryImgListFunc = () => {
     try {
@@ -84,45 +90,51 @@ const EggDetail = () => {
   }
 
   useEffect(() => {
-    getDetails(id)
-    getDefaultEggAssesmentFunc()
-    GetGalleryImgListFunc()
-    getActivityLogsFunc()
+    if (egg_collection_permission) {
+      getDetails(id)
+      getDefaultEggAssesmentFunc()
+      GetGalleryImgListFunc()
+      getActivityLogsFunc()
+    }
   }, [])
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {egg_collection_permission ? (
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Breadcrumbs aria-label='breadcrumb'>
+              <Typography color='inherit'>Egg</Typography>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
+                Egg List
+              </Typography>
+              <Typography color='text.primary'>Egg Details</Typography>
+            </Breadcrumbs>
+            <EggFirstSection
+              getActivityLogsFunc={getActivityLogsFunc}
+              GetGalleryImgList={GetGalleryImgListFunc}
+              getDetails={getDetails}
+              eggDetails={eggDetails}
+            />
+            {eggDetails?.animal_data?.animal_id && <AnimalDetails eggDetails={eggDetails} />}
+            <EggSecondSecion
+              getDetails={getDetails}
+              eggDetails={eggDetails}
+              defaultEggAssesment={defaultEggAssesment}
+              egg_id={id}
+              activtyLogData={activtyLogData}
+              setActivtyLogData={setActivtyLogData}
+              activtyLogCount={activtyLogCount}
+              setActivtyLogCount={setActivtyLogCount}
+            />
+            <EggImageGallery galleryList={galleryList} />
+            <EggComment eggDetails={eggDetails} eggId={id} />
+          </Box>
+        )
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <Breadcrumbs aria-label='breadcrumb'>
-            <Typography color='inherit'>Egg</Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
-              Egg List
-            </Typography>
-            <Typography color='text.primary'>Egg Details</Typography>
-          </Breadcrumbs>
-          <EggFirstSection
-            getActivityLogsFunc={getActivityLogsFunc}
-            GetGalleryImgList={GetGalleryImgListFunc}
-            getDetails={getDetails}
-            eggDetails={eggDetails}
-          />
-          {animal_id && <AnimalDetails eggDetails={eggDetails} animal_id={animal_id} />}
-          <EggSecondSecion
-            getDetails={getDetails}
-            eggDetails={eggDetails}
-            defaultEggAssesment={defaultEggAssesment}
-            egg_id={id}
-            activtyLogData={activtyLogData}
-            setActivtyLogData={setActivtyLogData}
-            activtyLogCount={activtyLogCount}
-            setActivtyLogCount={setActivtyLogCount}
-          />
-          <EggImageGallery galleryList={galleryList} />
-          <EggComment eggDetails={eggDetails} eggId={id} />
-        </Box>
+        <ErrorScreen></ErrorScreen>
       )}
     </>
   )

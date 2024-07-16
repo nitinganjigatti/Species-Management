@@ -1,8 +1,6 @@
 import {
   Autocomplete,
   Box,
-  Card,
-  CardContent,
   Drawer,
   FormControl,
   FormHelperText,
@@ -21,10 +19,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { AuthContext } from 'src/context/AuthContext'
 import { LoadingButton } from '@mui/lab'
-import toast from 'react-hot-toast'
 import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
-import { Router } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
@@ -180,6 +176,10 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const handleClose = () => {
     setIsOpen(false)
+    setDefaultNursery(null)
+    setValue('site_id', '')
+    setValue('nursery', '')
+
     reset()
   }
 
@@ -404,6 +404,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 position: 'fixed',
                 bottom: 0,
                 px: 4,
+                py: '24px',
                 bgcolor: 'white',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -411,7 +412,14 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 zIndex: 123
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
+              <LoadingButton
+                sx={{ height: '58px' }}
+                fullWidth
+                variant='contained'
+                type='submit'
+                size='large'
+                loading={loader}
+              >
                 {editParams?.nursery_id ? 'Edit Room' : 'Add Room'}
               </LoadingButton>
             </Box>

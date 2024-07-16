@@ -1,29 +1,18 @@
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  Stack,
-  Tooltip,
-  Typography,
-  Link,
-  Grid,
-  IconButton
-} from '@mui/material'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, Typography, Grid } from '@mui/material'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import CustomChip from 'src/@core/components/mui/chip'
 import { debounce } from 'lodash'
 import Router from 'next/router'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
 
 const RoomsList = () => {
   const theme = useTheme()
@@ -33,13 +22,17 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  console.log('searchValue :>> ', searchValue)
+
+  // console.log('searchValue :>> ', searchValue)
 
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
 
   const headerAction = (
     <>
@@ -95,7 +88,7 @@ const RoomsList = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO ',
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -103,6 +96,7 @@ const RoomsList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '12px',
+            fontWeight: 400,
             lineHeight: '14.52px'
           }}
         >
@@ -116,10 +110,8 @@ const RoomsList = () => {
       field: 'room',
       headerName: 'room',
       sortable: false,
-
       renderCell: params => (
         <Typography
-          variant='body2'
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -137,21 +129,17 @@ const RoomsList = () => {
       field: 'nursery_name',
       headerName: 'nursery name',
       sortable: false,
-
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.nursery_name}
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.nursery_name}
+        </Typography>
       )
     },
     {
@@ -163,7 +151,6 @@ const RoomsList = () => {
 
       renderCell: params => (
         <Typography
-          variant='body2'
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -181,12 +168,10 @@ const RoomsList = () => {
       minWidth: 10,
       field: 'Incubator',
       sortable: false,
-
       align: 'center',
       headerName: 'Incubator',
       renderCell: params => (
         <Typography
-          variant='body2'
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -203,17 +188,15 @@ const RoomsList = () => {
       minWidth: 60,
       field: 'user_name',
       sortable: false,
-
       headerName: 'CREATED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -232,7 +215,6 @@ const RoomsList = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography
               noWrap
-              variant='body2'
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
@@ -242,8 +224,10 @@ const RoomsList = () => {
             >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+            <Typography noWrap sx={{ color: '#44544a9c', fontSize: 12 }}>
+              {params.row.created_at
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -344,30 +328,34 @@ const RoomsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(searchValue)
+    if (egg_nursery_permission) {
+      fetchTableData(searchValue)
+    }
   }, [fetchTableData])
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <Box>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Egg
-            </Typography>
+      {egg_nursery_permission ? (
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Box>
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Egg
+                </Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-              Incubator Room
-            </Typography>
-          </Breadcrumbs>
-          <Grid container spacing={6}>
-            <Grid item xs={12}>
-              <Card>
-                <CardHeader title='Incubator Rooms' action={headerAction} />
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                  Incubator Room
+                </Typography>
+              </Breadcrumbs>
+              <Grid container spacing={6}>
+                <Grid item xs={12}>
+                  <Card>
+                    <CardHeader title='Incubator Rooms' action={headerAction} />
 
-                {/* <Box sx={{ py: 4, px: 4 }}>
+                    {/* <Box sx={{ py: 4, px: 4 }}>
                   <Stack direction='row' gap={3}>
                     <Typography variant='h6'>Legends : </Typography>
                     <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
@@ -403,63 +391,68 @@ const RoomsList = () => {
                   </Stack>
                 </Box> */}
 
-                <Box>
-                  <DataGrid
-                    sx={{
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
+                    <Box>
+                      <DataGrid
+                        sx={{
+                          '.MuiDataGrid-cell:focus': {
+                            outline: 'none'
+                          },
 
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      }
-                    }}
-                    columnVisibilityModel={{
-                      sl_no: false
-                    }}
-                    hideFooterSelectedRowCount
-                    disableColumnSelector={true}
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbarWithFilter }}
-                    onPaginationModelChange={setPaginationModel}
-                    rowHeight={64}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onCellClick={onCellClick}
-                  />
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
+                          '& .MuiDataGrid-row:hover': {
+                            cursor: 'pointer'
+                          }
+                        }}
+                        columnVisibilityModel={{
+                          sl_no: false
+                        }}
+                        hideFooterSelectedRowCount
+                        disableColumnSelector={true}
+                        autoHeight
+                        pagination
+                        rows={indexedRows === undefined ? [] : indexedRows}
+                        rowCount={total}
+                        columns={columns}
+                        sortingMode='server'
+                        paginationMode='server'
+                        pageSizeOptions={[7, 10, 25, 50]}
+                        paginationModel={paginationModel}
+                        onSortModelChange={handleSortModel}
+                        slots={{ toolbar: ServerSideToolbarWithFilter }}
+                        onPaginationModelChange={setPaginationModel}
+                        rowHeight={64}
+                        loading={loading}
+                        slotProps={{
+                          baseButton: {
+                            variant: 'outlined'
+                          },
+                          toolbar: {
+                            value: searchValue,
+                            clearSearch: () => handleSearch(''),
+                            onChange: event => handleSearch(event.target.value)
+                          }
+                        }}
+                        onCellClick={onCellClick}
+                      />
+                    </Box>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Box>
+            <>
+              <AddIncubatorRoom
+                callTableApi={fetchTableData}
+                callApi={fetchTableData}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              />
+            </>
+          </>
+        )
+      ) : (
+        <>
+          <ErrorScreen></ErrorScreen>
+        </>
       )}
-
-      <>
-        <AddIncubatorRoom
-          callTableApi={fetchTableData}
-          callApi={fetchTableData}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-        />
-      </>
     </>
   )
 }

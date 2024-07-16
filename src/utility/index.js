@@ -86,6 +86,18 @@ function daysFromToday(inputDate) {
   }
 }
 
+function convertUTCToLocal(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+  return local
+}
+
+function extractHoursAndMinutes(date) {
+  //9:21 PM
+  return moment(date).format('hh:mm A')
+}
+
 function renderUserAvatar(image) {
   if (image) {
     return <CustomAvatar src={image} sx={{ mr: 3, width: 34, height: 34 }} />
@@ -103,6 +115,8 @@ const Utility = {
   exportToCSV,
   getPreviousDaysDate,
   daysFromToday,
+  convertUTCToLocal,
+  extractHoursAndMinutes,
   renderUserAvatar
 }
 

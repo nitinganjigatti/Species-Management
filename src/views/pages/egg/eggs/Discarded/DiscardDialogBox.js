@@ -6,11 +6,11 @@ import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
 import { AddDiscardEgg } from 'src/lib/api/egg/discard'
 
-const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEggModel }) => {
+const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEggModel, fetchTableData }) => {
   const theme = useTheme()
   const [comments, setComments] = useState('')
   const [loading, setLoading] = useState(false)
-  console.log('comments :>> ', comments)
+  // console.log('comments :>> ', comments)
 
   const handleClose = () => {
     setOpenDiscardDialog(false)
@@ -24,12 +24,20 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
       egg_id: JSON.stringify(selectionEggModel),
       reason: comments
     }
-    console.log('payload :>> ', payload)
+    // console.log('payload :>> ', payload)
 
     try {
       const response = await AddDiscardEgg(payload)
       if (response.success) {
+        setComments('')
         Toaster({ type: 'success', message: response.message })
+        handleClose()
+        if (fetchTableData) {
+          fetchTableData()
+        }
+        setLoading(false)
+      } else {
+        Toaster({ type: 'error', message: response.message })
         handleClose()
         setLoading(false)
       }

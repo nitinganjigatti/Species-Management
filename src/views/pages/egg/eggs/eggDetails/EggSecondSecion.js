@@ -35,6 +35,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
+import Utility from 'src/utility'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -89,10 +90,10 @@ const EggSecondSecion = ({
           ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
           : eggDetails?.parent_list?.father_list[0]?._id,
 
-      'Collected on': moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
-        'DD MMM YYYY'
-      ),
-      'Lay Date': moment(moment(moment.utc(eggDetails?.lay_date).toDate().toLocaleString())).format('DD MMM YYYY')
+      'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
+      'Lay Date': eggDetails?.lay_date
+        ? Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.lay_date))
+        : 'NA (Not Applicable)'
 
       // 'Collected By': 'Jordan Steveson'
     }
@@ -220,7 +221,7 @@ const EggSecondSecion = ({
       flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO ',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -252,7 +253,8 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('DD MMM YYYY')}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
+          {/* {moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
         </Typography>
       )
     },
@@ -272,7 +274,9 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('hh : mm A')}
+          {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(params?.row?.created_at))}
+          {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
+          {/* {moment(moment.utc(params?.row?.created_at).toDate().toLocaleString()).format('hh : mm A')} */}
         </Typography>
       )
     },
@@ -778,7 +782,9 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('DD MMM YYYY')}
+                            {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
+                            {/* {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
                           </TableCell>
                           <TableCell
                             style={{
@@ -788,7 +794,9 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('hh : mm A')}
+                            {/* {moment(row?.created_at).format('hh : mm A')} */}
+                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
+                            {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
                           </TableCell>
                           <TableCell
                             style={{

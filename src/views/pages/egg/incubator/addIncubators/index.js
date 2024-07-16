@@ -1,43 +1,20 @@
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-import React, { useRef } from 'react'
-import { DatePicker, LoadingButton } from '@mui/lab'
+import React from 'react'
+import { LoadingButton } from '@mui/lab'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import TextField from '@mui/material/TextField'
-import InputAdornment from '@mui/material/InputAdornment'
-import {
-  Autocomplete,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Checkbox,
-  Dialog,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  InputLabel,
-  LinearProgress,
-  MenuItem,
-  Radio,
-  RadioGroup,
-  Select,
-  Snackbar,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Autocomplete, FormControl, FormHelperText, Typography, debounce } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { DateField } from '@mui/x-date-pickers'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
-import Popper from '@mui/material/Popper'
 import { styled } from '@mui/material/styles'
 import { addIncubator, updateIncubator } from 'src/lib/api/egg/incubator'
 import { useRouter } from 'next/router'
@@ -216,8 +193,8 @@ const AddIncubators = ({
         addIncubator({
           nursery_id: val?.nursery,
           room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs
-          // incubator_name: val?.incubator_name
+          max_eggs: val?.maxNumberOfEggs,
+          incubator_name: val?.incubator_name
         }).then(res => {
           if (res.success) {
             reset()
@@ -306,6 +283,7 @@ const AddIncubators = ({
               onClick={() => {
                 handleSidebarClose()
                 reset()
+                setDefaultNursery(null)
               }}
               sx={{ color: 'text.primary' }}
             >
@@ -354,9 +332,11 @@ const AddIncubators = ({
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
+
                           // console.log('val', val)
                           setValue('room', '')
                           RoomList(val.nursery_id)
+
                           return onChange(val.nursery_id)
                         }
                       }}
@@ -442,8 +422,9 @@ const AddIncubators = ({
                           return onChange('')
                         } else {
                           setDefaultRoom(val)
-                          console.log('val', val)
+                          // console.log('val', val)
                           setValue('room', '')
+
                           return onChange(val.room_id)
                         }
                       }}
