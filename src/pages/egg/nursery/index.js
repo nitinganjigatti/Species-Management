@@ -1,6 +1,6 @@
 import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
@@ -9,6 +9,8 @@ import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
 import { styled } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
 
 const NurseryList = () => {
   const theme = useTheme()
@@ -21,6 +23,9 @@ const NurseryList = () => {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
 
   function loadServerRows(currentPage, data) {
     return data
@@ -53,7 +58,9 @@ const NurseryList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(searchValue)
+    if (egg_nursery_permission) {
+      fetchTableData(searchValue)
+    }
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
@@ -294,68 +301,74 @@ const NurseryList = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Egg
-        </Typography>
+      {egg_nursery_permission ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Egg
+            </Typography>
 
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Nursery List
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Nursery' action={headerAction} />
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Nursery List
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Nursery' action={headerAction} />
 
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          rowHeight={64}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={handleCellClick}
-        />
-      </Card>
-      {openDrawer && (
-        <NurseryAddComponent
-          openDrawer={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          loading={loading}
-          fetchTableData={fetchTableData}
-        />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              rowHeight={64}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={handleCellClick}
+            />
+          </Card>
+          {openDrawer && (
+            <NurseryAddComponent
+              openDrawer={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              loading={loading}
+              fetchTableData={fetchTableData}
+            />
+          )}
+        </>
+      ) : (
+        <ErrorScreen></ErrorScreen>
       )}
     </>
   )
