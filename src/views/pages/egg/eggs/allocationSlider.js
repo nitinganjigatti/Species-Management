@@ -23,7 +23,12 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
-import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg/allocation'
+import {
+  AddAllocation,
+  GetAssesmentTypes
+
+  // GetMasterList
+} from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
@@ -226,6 +231,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const onSubmit = async values => {
     try {
       setLoader(true)
+
       let params = {
         egg_id: allocateEggId,
         incubator_id: values.incubator,
@@ -600,6 +606,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                         type: 'custom',
                                         message: 'Non-negative '
                                       })
+
                                       // Update error state in react-hook-form if negative value
                                       onChange(e) // Ensures the negative value is not stored in form state
                                     }

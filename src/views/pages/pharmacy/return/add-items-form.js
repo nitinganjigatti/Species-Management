@@ -88,8 +88,7 @@ export const AddItemsForm = ({
   nestedMedicine,
   error,
   totalQuantity,
-  editParams,
-  setBatchList
+  editParams
 }) => {
   const {
     reset,
