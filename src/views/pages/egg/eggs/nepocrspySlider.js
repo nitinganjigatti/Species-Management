@@ -32,21 +32,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useEffect, useRef, useState } from 'react'
 import { AddEggNecropsy } from 'src/lib/api/egg/egg'
 
-// const schema = yup.object().shape({
-//   necropsy_report: yup.string().required('Please select an option for Necropsy Report'),
-//   sample_taken: yup.string().required('Please select an option for Sample Taken'),
-//   report_image: yup.mixed().when('necropsy_report', {
-//     is: 'Necropsy Report',
-//     then: yup
-//       .mixed()
-//       .required('Please upload an image for the necropsy report.')
-//       .test('fileType', 'Unsupported file format', value => {
-//         if (!value) return true // If no file is selected, no validation needed
-//         return ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(value.type)
-//       })
-//   })
-// })
-
 const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
@@ -56,11 +41,19 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
   const [displayFile, setDisplayFile] = useState('')
 
   const [isSampleTaken, setIsSampleTaken] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const defaultValues = {
     sample_taken: '',
     report_file: ''
   }
+
+  const schema = yup.object().shape({
+    report_file: yup.mixed().when('isSampleTaken', {
+      is: false,
+      then: yup.mixed().required('Report file is required')
+    })
+  })
 
   const {
     control,
@@ -72,8 +65,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
     formState: { errors }
   } = useForm({
     defaultValues,
-
-    // resolver: yupResolver(schema),
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -146,6 +138,8 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
   }
 
   const onSubmit = async values => {
+    setLoading(true)
+
     const payload = {
       egg_id: '903',
       egg_attachment: [getValues('report_file')],
@@ -158,15 +152,21 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
       console.log('response :>> ', response)
 
       if (response?.success) {
+        setLoading(false)
+
         Toaster({ type: 'success', message: response.message })
         if (fetchTableData) {
           fetchTableData()
         }
         handleClose()
       } else {
+        setLoading(false)
+
         Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {
+      setLoading(false)
+
       console.log('error :>> ', error)
     }
   }
@@ -174,7 +174,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
   return (
     <>
       <Drawer anchor='right' open={openNecropsy} sx={{ '& .MuiDrawer-paper': { width: ['100%', '562px'] } }}>
-        {/* drower */}
+        {/* drawer */}
 
         <Box
           sx={{
@@ -290,6 +290,9 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
 
                         <Typography>Drop your image here</Typography>
                       </Box>
+                      {errors?.report_file && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.report_file?.message}</FormHelperText>
+                      )}
                     </Grid>
                   )}
                   <Grid item md={12}>
@@ -382,8 +385,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                 variant='contained'
                 type='submit'
                 size='large'
-
-                // loading={loader}
+                loading={loading}
               >
                 submit
               </LoadingButton>
