@@ -22,7 +22,7 @@ import EggDisCarded from '../../../../../components/egg/EggDiscarded'
 import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
 import { position } from 'stylis'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
-import moment from 'moment'
+import Utility from 'src/utility'
 
 const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTableData }) => {
   const theme = useTheme()
@@ -450,9 +450,10 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                         >
                           <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>{summary?.site_name}</Typography>
                           <Typography sx={{ display: 'flex', alignItems: 'center', fontSize: '14px' }}>
-                            {moment(moment.utc(summary?.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')}
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(summary?.requested_on))}
                             <Icon icon='mdi:dot' />
-                            {moment(moment.utc(summary?.requested_on).toDate().toLocaleString()).format('hh:mm A')}
+
+                            {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(summary?.requested_on))}
                           </Typography>
                         </Box>
                         <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
