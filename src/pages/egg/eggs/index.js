@@ -1381,11 +1381,13 @@ const EggList = () => {
       sortable: false,
       field: 'necropsy_report',
       headerName: 'NECROPSY REPORT',
-      align: 'center',
+      align: 'left',
       renderCell: params => (
         <>
-          {params.row.is_sample_collected === '1' ? (
-            <Typography sx={{ fontSize: '16px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 2 }}>
+          {params.row.necropsy_file_uploaded === '1' ? (
+            <Typography
+              sx={{ fontSize: '16px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 2, ml: 3 }}
+            >
               Yes <Icon icon='pepicons-pencil:file' fontSize={'24px'} />
             </Typography>
           ) : (
