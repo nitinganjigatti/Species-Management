@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -27,6 +27,9 @@ import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 import Utility from 'src/utility'
 
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
+
 const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
   const router = useRouter()
@@ -35,6 +38,7 @@ const RoomDetails = () => {
   const theme = useTheme()
   const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
   // console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -46,12 +50,16 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
+
   // console.log('detailsData :>> ', detailsData)
 
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
   const [isPreFilled, setIsPreFilled] = useState({})
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
 
   const fetchTableData = useCallback(async () => {
     try {
@@ -86,10 +94,9 @@ const RoomDetails = () => {
   }, [paginationModel])
 
   useEffect(() => {
-    // if (eggModule) {
-    fetchTableData()
-
-    // }
+    if (egg_nursery_permission) {
+      fetchTableData()
+    }
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -468,7 +475,9 @@ const RoomDetails = () => {
   // )
 
   useEffect(() => {
-    fetchDetailsData()
+    if (egg_nursery_permission) {
+      fetchDetailsData()
+    }
   }, [fetchDetailsData])
 
   // const onCellClick = params => {
@@ -493,150 +502,157 @@ const RoomDetails = () => {
 
   return (
     <>
-      {loader ? (
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
-      ) : (
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-              <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-                Egg
-              </Typography>
+      {egg_nursery_permission ? (
+        loader ? (
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+              <CircularProgress />
+            </Box>
+          </CardContent>
+        ) : (
+          <>
+            <Grid container spacing={6}>
+              <Grid item xs={12}>
+                <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                  <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                    Egg
+                  </Typography>
 
-              <Typography
-                sx={{ cursor: 'pointer' }}
-                color='inherit '
-                onClick={() => Router.push('/egg/incubator-rooms/')}
-              >
-                Incubator Room
-              </Typography>
-              <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
-                Room Details
-              </Typography>
-            </Breadcrumbs>
-
-            <Card>
-              {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
-              <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                  <Icon
-                    style={{ cursor: 'pointer', fontSize: '24px' }}
-                    onClick={() => Router.push('/egg/incubator-rooms')}
-                    color={theme.palette.customColors.OnSurfaceVariant}
-                    icon='material-symbols:arrow-back'
-                  />
                   <Typography
-                    sx={{
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontWeight: 500,
-                      fontSize: '24px',
-                      lineHeight: '29.05px'
-                    }}
+                    sx={{ cursor: 'pointer' }}
+                    color='inherit '
+                    onClick={() => Router.push('/egg/incubator-rooms/')}
                   >
+                    Incubator Room
+                  </Typography>
+                  <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
                     Room Details
                   </Typography>
-                </Box>
+                </Breadcrumbs>
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                  {' '}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <IconButton
-                      sx={{ mr: 4 }}
-                      onClick={event =>
-                        handleEdit(
-                          event,
-                          detailsData.site_id,
-                          detailsData.room_name,
-                          detailsData.nursery_id,
-                          detailsData.room_id,
-                          detailsData.nursery_name
-                        )
-                      }
-                    >
+                <Card>
+                  {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
+                  <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                       <Icon
-                        icon='material-symbols:edit-outline'
-                        fontSize={28}
+                        style={{ cursor: 'pointer', fontSize: '24px' }}
+                        onClick={() => Router.push('/egg/incubator-rooms')}
                         color={theme.palette.customColors.OnSurfaceVariant}
+                        icon='material-symbols:arrow-back'
                       />
-                    </IconButton>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '24px',
+                          lineHeight: '29.05px'
+                        }}
+                      >
+                        Room Details
+                      </Typography>
+                    </Box>
 
-                    <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-                      <Icon icon='mdi:add' fontSize={20} />
-                      &nbsp; ADD INCUBATOR
-                    </Button>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                      {' '}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <IconButton
+                          sx={{ mr: 4 }}
+                          onClick={event =>
+                            handleEdit(
+                              event,
+                              detailsData.site_id,
+                              detailsData.room_name,
+                              detailsData.nursery_id,
+                              detailsData.room_id,
+                              detailsData.nursery_name
+                            )
+                          }
+                        >
+                          <Icon
+                            icon='material-symbols:edit-outline'
+                            fontSize={28}
+                            color={theme.palette.customColors.OnSurfaceVariant}
+                          />
+                        </IconButton>
+
+                        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+                          <Icon icon='mdi:add' fontSize={20} />
+                          &nbsp; ADD INCUBATOR
+                        </Button>
+                      </Box>
+                    </Box>
                   </Box>
-                </Box>
-              </Box>
-              <Box sx={{ px: '16px', my: '8px' }}>
-                <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
-              </Box>
-              <Box>
-                <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
+                  <Box sx={{ px: '16px', my: '8px' }}>
+                    <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+                  </Box>
+                  <Box>
+                    <DataGrid
+                      sx={{
+                        '.MuiDataGrid-cell:focus': {
+                          outline: 'none'
+                        },
 
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  rowHeight={64}
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilter }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                  onCellClick={onCellClick}
-                />
-              </Box>
-            </Card>
-          </Grid>
-        </Grid>
+                        '& .MuiDataGrid-row:hover': {
+                          cursor: 'pointer'
+                        }
+                      }}
+                      columnVisibilityModel={{
+                        sl_no: false
+                      }}
+                      disableColumnSelector={true}
+                      autoHeight
+                      pagination
+                      rows={indexedRows === undefined ? [] : indexedRows}
+                      rowCount={total}
+                      columns={columns}
+                      sortingMode='server'
+                      paginationMode='server'
+                      rowHeight={64}
+                      pageSizeOptions={[7, 10, 25, 50]}
+                      paginationModel={paginationModel}
+                      onSortModelChange={handleSortModel}
+                      slots={{ toolbar: ServerSideToolbarWithFilter }}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={loading}
+                      slotProps={{
+                        baseButton: {
+                          variant: 'outlined'
+                        },
+                        toolbar: {
+                          value: searchValue,
+                          clearSearch: () => handleSearch(''),
+                          onChange: event => handleSearch(event.target.value)
+                        }
+                      }}
+                      onCellClick={onCellClick}
+                    />
+                  </Box>
+                </Card>
+              </Grid>
+            </Grid>
+            <>
+              <AddIncubatorRoom
+                callApi={fetchDetailsData}
+                callTableApi={fetchTableData}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                editParams={editParams}
+              />
+              <AddIncubators
+                actionApi={fetchTableData}
+                detailsApi={fetchDetailsData}
+                sidebarOpen={dialog}
+                handleSidebarClose={handleSidebarClose}
+                isPreFilled={isPreFilled}
+              />
+            </>
+          </>
+        )
+      ) : (
+        <>
+          <ErrorScreen></ErrorScreen>
+        </>
       )}
-
-      <>
-        <AddIncubatorRoom
-          callApi={fetchDetailsData}
-          callTableApi={fetchTableData}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          editParams={editParams}
-        />
-        <AddIncubators
-          actionApi={fetchTableData}
-          detailsApi={fetchDetailsData}
-          sidebarOpen={dialog}
-          handleSidebarClose={handleSidebarClose}
-          isPreFilled={isPreFilled}
-        />
-      </>
     </>
   )
 }

@@ -39,6 +39,7 @@ import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
 import Styles from './dot.module.css'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import Utility from 'src/utility'
+import ErrorScreen from 'src/pages/Error'
 
 const IncubatorsList = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -57,6 +58,8 @@ const IncubatorsList = () => {
   const authData = useContext(AuthContext)
   const eggModule = authData?.userData?.roles?.settings?.egg_module
   const eggModuleAccess = authData?.userData?.roles?.settings?.egg_module_access
+
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
 
   function loadServerRows(currentPage, data) {
     return data
@@ -110,9 +113,9 @@ const IncubatorsList = () => {
   )
 
   useEffect(() => {
-    // if (eggModule) {
-    fetchTableData(searchValue)
-    // }
+    if (egg_nursery_permission) {
+      fetchTableData(searchValue)
+    }
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -442,21 +445,22 @@ const IncubatorsList = () => {
   // })
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>Egg</Typography>
+      {egg_nursery_permission ? (
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+              <Typography color='inherit'>Egg</Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-              Incubator List
-            </Typography>
-          </Breadcrumbs>
-          <Card>
-            <CardHeader title='Incubator List' action={headerAction} />
+              <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                Incubator List
+              </Typography>
+            </Breadcrumbs>
+            <Card>
+              <CardHeader title='Incubator List' action={headerAction} />
 
-            {/* <Grid sx={{ pl: 2, mb: 2 }} container>
+              {/* <Grid sx={{ pl: 2, mb: 2 }} container>
             <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
               <Autocomplete
                 value={defaultUom}
@@ -603,50 +607,55 @@ const IncubatorsList = () => {
               />
             </Grid>
           </Grid> */}
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
+              <DataGrid
+                sx={{
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              // sortModel={}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              rowHeight={64}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
-            />
-            <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
-          </Card>
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl_no: false
+                }}
+                // sortModel={}
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                rowHeight={64}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbarWithFilter }}
+                onPaginationModelChange={setPaginationModel}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onCellClick={onCellClick}
+              />
+              <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+            </Card>
+          </>
+        )
+      ) : (
+        <>
+          <ErrorScreen></ErrorScreen>
         </>
       )}
     </>

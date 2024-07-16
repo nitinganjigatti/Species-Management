@@ -1,6 +1,6 @@
 import { Avatar, Breadcrumbs, Card, CardContent, Tooltip, Typography, debounce } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
@@ -15,6 +15,8 @@ import { GetEggList } from 'src/lib/api/egg/egg'
 import { styled } from '@mui/material/styles'
 import DetailCard from 'src/components/egg/DetailCard'
 import Utility from 'src/utility'
+import ErrorScreen from 'src/pages/Error'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
@@ -51,6 +53,9 @@ const IncubatorDetails = () => {
   const [isEdit, setIsEdit] = useState(false)
   const [incubatorDetail, setIncubatorDetail] = useState(null)
   const [incubatorDetailList, setIncubatorDetailList] = useState(null)
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
 
   const handleSidebarClose = () => {
     setDialog(false)
@@ -755,10 +760,9 @@ const IncubatorDetails = () => {
   )
 
   useEffect(() => {
-    // if (eggModule) {
-    fetchTableData(sort, searchValue, status)
-
-    // }
+    if (egg_nursery_permission) {
+      fetchTableData(sort, searchValue, status)
+    }
   }, [fetchTableData, status])
 
   const getIncubatorDetailFunc = () => {
@@ -792,7 +796,9 @@ const IncubatorDetails = () => {
   }
 
   useEffect(() => {
-    getIncubatorDetailFunc()
+    if (egg_nursery_permission) {
+      getIncubatorDetailFunc()
+    }
   }, [id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -862,86 +868,88 @@ const IncubatorDetails = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Egg</Typography>
+      {egg_nursery_permission ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography color='inherit'>Egg</Typography>
 
-        <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
-          Incubator List
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Incubator Details
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardContent
-          style={{ paddingBottom: 0 }}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px'
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <Icon
-                style={{ cursor: 'pointer' }}
-                onClick={() => Router.push('/egg/incubators')}
-                color={theme.palette.customColors.OnSurfaceVariant}
-                icon='material-symbols:arrow-back'
-              />
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: 500,
-                  fontSize: '24px',
-                  lineHeight: '29.05px'
-                }}
-              >
-                Incubator Details
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Avatar
-                  variant='square'
-                  alt='Image'
-                  src={incubatorDetail?.user_profile_pic || ''}
-                  sx={{
-                    width: 30,
-                    height: 30,
-                    mr: 4,
-                    borderRadius: '50%',
-                    background: '#E8F4F2',
-                    overflow: 'hidden'
-                  }}
-                ></Avatar>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
+              Incubator List
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Incubator Details
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardContent
+              style={{ paddingBottom: 0 }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px'
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <Icon
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => Router.push('/egg/incubators')}
+                    color={theme.palette.customColors.OnSurfaceVariant}
+                    icon='material-symbols:arrow-back'
+                  />
                   <Typography
-                    noWrap
                     sx={{
                       color: theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      lineHeight: '16.94px'
+                      fontWeight: 500,
+                      fontSize: '24px',
+                      lineHeight: '29.05px'
                     }}
                   >
-                    {incubatorDetail?.user_full_name}
-                  </Typography>
-                  <Typography
-                    noWrap
-                    sx={{
-                      color: theme.palette.customColors.neutralSecondary,
-                      fontSize: '12px',
-                      fontWeight: '400',
-                      lineHeight: '14.52px'
-                    }}
-                  >
-                    Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(incubatorDetail?.created_at))}
+                    Incubator Details
                   </Typography>
                 </Box>
-              </Box>
-              {/* <Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar
+                      variant='square'
+                      alt='Image'
+                      src={incubatorDetail?.user_profile_pic || ''}
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        mr: 4,
+                        borderRadius: '50%',
+                        background: '#E8F4F2',
+                        overflow: 'hidden'
+                      }}
+                    ></Avatar>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <Typography
+                        noWrap
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          lineHeight: '16.94px'
+                        }}
+                      >
+                        {incubatorDetail?.user_full_name}
+                      </Typography>
+                      <Typography
+                        noWrap
+                        sx={{
+                          color: theme.palette.customColors.neutralSecondary,
+                          fontSize: '12px',
+                          fontWeight: '400',
+                          lineHeight: '14.52px'
+                        }}
+                      >
+                        Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(incubatorDetail?.created_at))}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {/* <Box>
               <FormControlLabel
                 control={
                   <Switch
@@ -966,17 +974,17 @@ const IncubatorDetails = () => {
                 // }
               />
             </Box> */}
-              <Box>
-                <Icon
-                  icon='bx:pencil'
-                  style={{ fontSize: 24, cursor: 'pointer' }}
-                  onClick={() => {
-                    setIsEdit(true)
-                    setDialog(true)
-                  }}
-                />
-              </Box>
-              {/* <Box>
+                  <Box>
+                    <Icon
+                      icon='bx:pencil'
+                      style={{ fontSize: 24, cursor: 'pointer' }}
+                      onClick={() => {
+                        setIsEdit(true)
+                        setDialog(true)
+                      }}
+                    />
+                  </Box>
+                  {/* <Box>
               <Icon
                 // onClick={() => {
                 //   handlelOpenDelete()
@@ -985,67 +993,73 @@ const IncubatorDetails = () => {
                 style={{ fontSize: 24, cursor: 'pointer' }}
               />
             </Box> */}
-            </Box>
-          </Box>
+                </Box>
+              </Box>
 
-          <DetailCard radius={'8px'} DetailsListData={incubatorDetailList} />
-          <Box>
-            <CustomDataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              rowHeight={72}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[5, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
-            />
-            <AddIncubators
-              isEdit={isEdit}
-              actionApi={getIncubatorDetailFunc}
-              incubatorDetail={incubatorDetail}
-              drawerWidth={400}
-              sidebarOpen={dialog}
-              handleSidebarClose={handleSidebarClose}
-            />
-            <ActivityLogs
-              activity_type={'sa'}
-              activitySidebarOpen={activitySidebarOpen}
-              handleSidebarClose={handleActivitySidebarClose}
-            />
-          </Box>
-        </CardContent>
-      </Card>
+              <DetailCard radius={'8px'} DetailsListData={incubatorDetailList} />
+              <Box>
+                <CustomDataGrid
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  rowHeight={72}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[5, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                  onCellClick={onCellClick}
+                />
+                <AddIncubators
+                  isEdit={isEdit}
+                  actionApi={getIncubatorDetailFunc}
+                  incubatorDetail={incubatorDetail}
+                  drawerWidth={400}
+                  sidebarOpen={dialog}
+                  handleSidebarClose={handleSidebarClose}
+                />
+                <ActivityLogs
+                  activity_type={'sa'}
+                  activitySidebarOpen={activitySidebarOpen}
+                  handleSidebarClose={handleActivitySidebarClose}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <>
+          <ErrorScreen></ErrorScreen>
+        </>
+      )}
     </>
   )
 }
