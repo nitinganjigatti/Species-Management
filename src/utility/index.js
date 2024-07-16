@@ -85,6 +85,18 @@ function daysFromToday(inputDate) {
   }
 }
 
+function convertUTCToLocal(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+  return local
+}
+
+function extractHoursAndMinutes(date) {
+  //9:21 PM
+  return moment(date).format('h:mm A')
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -93,7 +105,9 @@ const Utility = {
   errorMessageExtractorFromObject,
   exportToCSV,
   getPreviousDaysDate,
-  daysFromToday
+  daysFromToday,
+  convertUTCToLocal,
+  extractHoursAndMinutes
 }
 
 export default Utility

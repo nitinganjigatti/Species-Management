@@ -159,7 +159,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         egg_id: eggID,
         egg_status_id: eggStateID,
         egg_state_id: reason,
-        necropsy_needed: values?.necropsy_Btn,
+        is_necropsy_needed: values?.necropsy_Btn,
         comment: getValues('comment'),
         egg_attachment: [getValues('image')]
       }

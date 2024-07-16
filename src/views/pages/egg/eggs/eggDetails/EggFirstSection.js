@@ -28,6 +28,7 @@ import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 import Router from 'next/router'
+import Utility from 'src/utility'
 
 const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
@@ -61,7 +62,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
     const now = moment()
 
     // const date = moment(dateString)
-    const date = moment(moment.utc(dateString).toDate().toLocaleString())
+    const date = Utility.formatDisplayDate(dateString)
+
+    // moment(moment.utc(dateString).toDate().toLocaleString())
+
     // var dates = moment.utc(dateString).format('YYYY-MM-DD HH:mm:ss')
 
     // // console.log(date); // 2015-09-13 03:39:27
@@ -299,10 +303,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on{' '}
-                        {moment(moment(moment.utc(eggDetails?.modified_at).toDate().toLocaleString())).format(
+                        Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
+                        {/* {moment(moment(moment.utc(eggDetails?.modified_at).toDate().toLocaleString())).format(
                           'DD MMM YYYY'
-                        )}
+                        )} */}
                       </Typography>
                     </Box>
                     {/* <Box>
@@ -405,9 +409,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date))}
+                        {/* {moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
                           'DD MMM YYYY'
-                        )}
+                        )} */}
                       </Typography>
 
                       <Typography
@@ -577,7 +582,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     <IconButton
                       disabled={
                         Number(eggDetails?.action_to_be_taken) === 5 ||
-                        Number(eggDetails?.action_to_be_taken) === 6 ||
+                        (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
                         (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
                           ? false
                           : true
@@ -588,7 +593,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         style={{ cursor: 'pointer' }}
                         color={
                           Number(eggDetails?.action_to_be_taken) === 5 ||
-                          Number(eggDetails?.action_to_be_taken) === 6 ||
+                          (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
                           (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
                             ? '#00AFD6'
                             : '#7A8684'
