@@ -1,108 +1,56 @@
-import { Avatar, Grid, Typography } from '@mui/material'
+import { Autocomplete, Avatar, FormControl, Grid, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
+import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
-import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
-
-const series = [
-  {
-    name: '',
-    data: [48, 99, 82, 33]
-  }
-]
+import { AuthContext } from 'src/context/AuthContext'
+import { DataGrid } from '@mui/x-data-grid'
+import { getAllStats } from 'src/lib/api/egg/dashboard'
+import moment from 'moment'
+import Toaster from 'src/components/Toaster'
+import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
+import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
+import Species from 'src/views/pages/egg/eggDashboard/species'
 
 const Dashboard = () => {
+  const authData = useContext(AuthContext)
   const theme = useTheme()
 
-  const options = {
-    chart: {
-      parentHeightOffset: 0,
-      toolbar: { show: false }
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        barHeight: '50%',
-        horizontal: true,
-        distributed: true,
-        startingShape: 'rounded'
-      }
-    },
-    dataLabels: {
-      enabled: false,
-      offsetY: 8,
-      style: {
-        fontWeight: 500,
-        fontSize: '0.875rem'
-      }
-    },
-    grid: {
-      strokeDashArray: 8,
-      borderColor: theme.palette.divider,
-      xaxis: {
-        lines: { show: false }
-      },
-      yaxis: {
-        lines: { show: false }
-      },
-      padding: {
-        top: -18,
-        left: -20,
-        right: 0,
-        bottom: 0
-      }
-    },
-    colors: ['#00AFD6B2', '#37BD69B2', '#00D6C9', '#FA614099'],
-    legend: { show: false },
-    states: {
-      hover: {
-        filter: { type: 'none' }
-      },
-      active: {
-        filter: { type: 'none' }
-      }
-    },
-    xaxis: {
-      axisTicks: { show: false },
-      axisBorder: { show: false },
-      categories: ['In Nest', 'In Nursery', 'Good Condition', 'Discarded'],
-      labels: {
-        formatter: val => `${Number(val)}`,
-        style: {
-          fontSize: '0.875rem',
-          colors: theme.palette.text.disabled
+  const [allStats, setAllStats] = useState(null)
+
+  const getAllStatsFunc = param => {
+    try {
+      getAllStats(param).then(res => {
+        if (res?.data.success) {
+          setAllStats(res?.data?.data)
+        } else {
+          Toaster({ type: 'error', message: res?.data?.message })
         }
-      }
-    },
-    yaxis: {
-      labels: {
-        show: false,
-        align: theme.direction === 'rtl' ? 'right' : 'left',
-        style: {
-          fontWeight: 600,
-          fontSize: '0.875rem',
-          colors: theme.palette.text.primary
-        }
-      }
+      })
+    } catch (error) {
+      Toaster({ type: 'error', message: error })
     }
   }
+
+  const currentDate = moment()
+  const formattedDate = currentDate.format('YYYY-MM-DD')
+  useEffect(() => {
+    getAllStatsFunc({ from_date: formattedDate, till_date: '2024-07-04' })
+  }, [])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Grid container sx={{ justifyContent: 'space-between' }} columns={5}>
-          <Grid item xs={2}>
+        <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
+          <Grid item sm={5} md={2} xl={2}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -114,7 +62,7 @@ const Dashboard = () => {
               Current Stats
             </Typography>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item sm={5} md={3} xl={2}>
             <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
@@ -122,9 +70,12 @@ const Dashboard = () => {
                     backgroundColor: '#fff',
                     borderRadius: '8px',
                     width: '100%',
-                    '& .MuiIconButton-edgeEnd': { display: 'block' },
-                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-5px' },
-                    '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': { height: '40px' }
+                    '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                   }}
                   // value={value}
                   // onChange={onChange}
@@ -148,9 +99,12 @@ const Dashboard = () => {
                     backgroundColor: '#fff',
                     borderRadius: '8px',
                     width: '100%',
-                    '& .MuiIconButton-edgeEnd': { display: 'block' },
-                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-5px' },
-                    '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': { height: '40px' }
+                    '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                   }}
                   // value={value}
                   // onChange={onChange}
@@ -162,7 +116,7 @@ const Dashboard = () => {
           </Grid>
         </Grid>
         <Grid container spacing={3} columns={5}>
-          <Grid item xs={1}>
+          <Grid item xs={5} sm={2.5} xl={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -187,7 +141,7 @@ const Dashboard = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  3768
+                  {allStats?.total_eggs}
                 </Typography>
                 <Typography
                   sx={{
@@ -202,7 +156,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={5} sm={2.5} xl={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -227,7 +181,7 @@ const Dashboard = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  198
+                  {allStats?.total_species}
                 </Typography>
                 <Typography
                   sx={{
@@ -242,7 +196,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={5} sm={2.5} xl={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -267,7 +221,7 @@ const Dashboard = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  842
+                  {allStats?.total_egg_in_nest}
                 </Typography>
                 <Typography
                   sx={{
@@ -282,7 +236,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={5} sm={2.5} xl={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -301,13 +255,13 @@ const Dashboard = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <Typography
                   sx={{
-                    color: theme.palette.background.paper,
+                    color: theme.palette.primary.light,
                     fontSize: '16px',
                     fontWeight: '600',
                     lineHeight: '19.36px'
                   }}
                 >
-                  2926
+                  {allStats?.total_eggs_in_nursery}
                 </Typography>
                 <Typography
                   sx={{
@@ -322,7 +276,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={5} sm={2.5} xl={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -347,7 +301,7 @@ const Dashboard = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  354
+                  {allStats?.total_eggs_in_incubators}
                 </Typography>
                 <Typography
                   sx={{
@@ -364,128 +318,9 @@ const Dashboard = () => {
           </Grid>
         </Grid>
       </Box>
-      <Grid container columns={5}>
-        <Grid
-          sx={{
-            boxShadow: ' 0px 2px 10px 0px #4C4E6438',
-            backgroundColor: '#fff',
-            borderRadius: '10px',
-            padding: '24px'
-          }}
-          item
-          xs={3}
-        >
-          <Box sx={{ display: 'flex' }}>
-            <Typography
-              sx={{
-                fontWeight: 500,
-                fontSize: '24px',
-                lineHeight: '29.05px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              Todays Collection -
-            </Typography>
-            <Typography
-              sx={{ fontWeight: 500, fontSize: '24px', lineHeight: '29.05px', color: theme.palette.primary.dark }}
-            >
-              262 Eggs
-            </Typography>
-          </Box>
-          <Grid container spacing={17} columns={2}>
-            <Grid item xs={1}>
-              <ReactApexcharts type='bar' height={164} series={series} options={options} />
-            </Grid>
-            <Grid item xs={1}>
-              <Grid spacing={6} container columns={2}>
-                <Grid sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }} item xs={1}>
-                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Box sx={{ backgroundColor: '#4DC7E2', borderRadius: '30px', height: '10px', width: '10px' }}></Box>
-                    <Typography
-                      sx={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.secondaryBg
-                      }}
-                    >
-                      In Nest
-                    </Typography>
-                  </Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#00AFD6' }}>
-                    48
-                  </Typography>
-                </Grid>
-                <Grid sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }} item xs={1}>
-                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Box sx={{ backgroundColor: '#73D196', borderRadius: '30px', height: '10px', width: '10px' }}></Box>
-                    <Typography
-                      sx={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.secondaryBg
-                      }}
-                    >
-                      In Nursery
-                    </Typography>
-                  </Box>
-                  <Typography
-                    sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: theme.palette.primary.main }}
-                  >
-                    99
-                  </Typography>
-                </Grid>
-                <Grid sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }} item xs={1}>
-                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Box sx={{ backgroundColor: '#00D6C9', borderRadius: '30px', height: '10px', width: '10px' }}></Box>
-                    <Typography
-                      sx={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.secondaryBg
-                      }}
-                    >
-                      Good Condition
-                    </Typography>
-                  </Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#00D6C9' }}>
-                    82
-                  </Typography>
-                </Grid>
-                <Grid sx={{ py: '12px', px: '5px', display: 'flex', flexDirection: 'column', gap: '4px' }} item xs={1}>
-                  <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <Box sx={{ backgroundColor: '#FCA08C', borderRadius: '30px', height: '10px', width: '10px' }}></Box>
-                    <Typography
-                      sx={{
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.secondaryBg
-                      }}
-                    >
-                      Discarded
-                    </Typography>
-                  </Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '20px',
-                      lineHeight: '24.2px',
-                      color: theme.palette.formContent.tertiary
-                    }}
-                  >
-                    33
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Box sx={{ backgroundColor: 'green' }}></Box>
-      <Box sx={{ backgroundColor: 'purple' }}></Box>
+      <TodaysCollection />
+      <TransferDetails />
+      <Species />
     </Box>
   )
 }
