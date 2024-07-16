@@ -94,7 +94,7 @@ function convertUTCToLocal(date) {
 
 function extractHoursAndMinutes(date) {
   //9:21 PM
-  return moment(date).format('h:mm A')
+  return moment(date).format('hh:mm A')
 }
 
 const Utility = {

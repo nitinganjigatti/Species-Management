@@ -1,9 +1,9 @@
 import { Avatar, Typography } from '@mui/material'
 import { Box, Stack } from '@mui/system'
-import moment from 'moment'
 import React from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
 const DetailCard = ({ radius, DetailsListData }) => {
   const theme = useTheme()
@@ -115,9 +115,7 @@ const DetailCard = ({ radius, DetailsListData }) => {
                 <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
                   {DetailsListData?.Avatar?.create_at
                     ? 'Created on ' +
-                      moment(moment.utc(DetailsListData?.Avatar?.create_at).toDate().toLocaleString()).format(
-                        'DD MMM YYYY'
-                      )
+                      Utility.formatDisplayDate(Utility.convertUTCToLocal(DetailsListData?.Avatar?.create_at))
                     : '-'}
                 </Typography>
               </Box>

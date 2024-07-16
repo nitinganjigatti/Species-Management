@@ -274,7 +274,7 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(Utility.convertUTCToLocal(params?.row?.created_at)).format('hh : mm A')}
+          {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(params?.row?.created_at))}
           {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
           {/* {moment(moment.utc(params?.row?.created_at).toDate().toLocaleString()).format('hh : mm A')} */}
         </Typography>
@@ -795,7 +795,7 @@ const EggSecondSecion = ({
                             }}
                           >
                             {/* {moment(row?.created_at).format('hh : mm A')} */}
-                            {moment(Utility.convertUTCToLocal(row?.created_at)).format('hh : mm A')}
+                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
                             {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
                           </TableCell>
                           <TableCell

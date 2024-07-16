@@ -6,7 +6,6 @@ import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import AddIncubators from '../../../../views/pages/egg/incubator/addIncubators'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import moment from 'moment'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
 import { useRouter } from 'next/router'
@@ -15,6 +14,7 @@ import { GetEggList } from 'src/lib/api/egg/egg'
 
 import { styled } from '@mui/material/styles'
 import DetailCard from 'src/components/egg/DetailCard'
+import Utility from 'src/utility'
 
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
@@ -242,7 +242,7 @@ const IncubatorDetails = () => {
           }}
         >
           {params.row.collection_date
-            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.collection_date))
             : '-'}
         </Typography>
       )
@@ -303,7 +303,7 @@ const IncubatorDetails = () => {
                 }}
               >
                 {params.row.created_at
-                  ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
                   : '-'}
               </Typography>
             </Box>
@@ -937,8 +937,7 @@ const IncubatorDetails = () => {
                       lineHeight: '14.52px'
                     }}
                   >
-                    Updated on{' '}
-                    {moment(moment.utc(incubatorDetail?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')}
+                    Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(incubatorDetail?.created_at))}
                   </Typography>
                 </Box>
               </Box>

@@ -458,7 +458,7 @@ const ConditionSlider = ({
           egg_attachment: imgArr,
           is_necropsy_needed: values?.necropsy_Btn
         }
-        console.log('payload 3 :>> ', payload)
+        // console.log('payload 3 :>> ', payload)
       } else if (Number(getValues('current_state')) === 4) {
         payload = {
           egg_id: eggId,

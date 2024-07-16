@@ -15,6 +15,7 @@ import { styled } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { getDietActivityLogs } from 'src/lib/api/diet/getIngredients'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 
@@ -196,7 +197,7 @@ const ActivityLogs = ({
                               color: theme.palette.primary.dark
                             }}
                           >
-                            {moment(moment.utc(item.date).toDate().toLocaleString()).format('DD MMM YYYY')}
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(item.date))}
                           </Typography>
                         </Box>
                       </Grid>

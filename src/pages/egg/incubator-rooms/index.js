@@ -10,6 +10,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+import Utility from 'src/utility'
 
 const RoomsList = () => {
   const theme = useTheme()
@@ -219,9 +220,7 @@ const RoomsList = () => {
             </Typography>
             <Typography noWrap sx={{ color: '#44544a9c', fontSize: 12 }}>
               {params.row.created_at
-                ? 'Created on' +
-                  ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                 : '-'}
             </Typography>
           </Box>

@@ -12,6 +12,7 @@ import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -302,10 +303,9 @@ const NurseryDetails = () => {
               sx={{ color: '#44544a9c', fontSize: 12, fontFamily: 'Inter', lineHeight: '14.52px', fontWeight: 400 }}
             >
               {params.row.created_at
-                ? 'Created on' +
-                  ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-                : '-'}
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
+                : // moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                  '-'}
             </Typography>
           </Box>
         </Box>

@@ -25,6 +25,7 @@ import DetailCard from 'src/components/egg/DetailCard'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
+import Utility from 'src/utility'
 
 const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -382,9 +383,7 @@ const RoomDetails = () => {
               }}
             >
               {params.row?.created_at
-                ? 'Created on' +
-                  ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                 : '-'}
             </Typography>
           </Box>
@@ -643,8 +642,3 @@ const RoomDetails = () => {
 }
 
 export default RoomDetails
-
-const data = [
-  { id: '1', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' },
-  { id: '2', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' }
-]
