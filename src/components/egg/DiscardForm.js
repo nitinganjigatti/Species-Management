@@ -427,7 +427,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                     render={({ field: { value, onChange } }) => (
                       <RadioGroup
                         row
-                        aria-labelledby='demo-row-radio-buttons-group-label'
+                        // aria-labelledby='demo-row-radio-buttons-group-label'
+                        value={value}
                         name='necropsy_Btn'
                         sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
                         onChange={onChange}
