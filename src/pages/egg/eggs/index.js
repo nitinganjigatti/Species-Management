@@ -18,7 +18,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { Box } from '@mui/system'
@@ -36,6 +36,8 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import DiscardedTableView from 'src/views/pages/egg/eggs/Discarded/DiscardedTableView'
 import CreateAnimalSlider from 'src/views/pages/egg/eggs/eggDetails/CreateAnimal'
 import { useEggContext } from 'src/context/EggContext'
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
 
 const EggList = () => {
   const theme = useTheme()
@@ -74,6 +76,9 @@ const EggList = () => {
   const [nurseryList, setNurseryList] = useState([])
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
 
+  const authData = useContext(AuthContext)
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()
     setIsOpen(true)
@@ -97,7 +102,9 @@ const EggList = () => {
   }
 
   useEffect(() => {
-    NurseryList()
+    if (egg_collection_permission) {
+      NurseryList()
+    }
   }, [])
 
   const searchNursery = useCallback(
@@ -1592,7 +1599,9 @@ const EggList = () => {
 
   useEffect(() => {
     // debugger
-    fetchTableData(sort, searchValue, status, isDiscarded, filterByNurseryId)
+    if (egg_collection_permission) {
+      fetchTableData(sort, searchValue, status, isDiscarded, filterByNurseryId)
+    }
   }, [fetchTableData, status, isDiscarded, filterByNurseryId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -1828,173 +1837,57 @@ const EggList = () => {
   }
 
   return (
-    <Box>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }}>
-          Egg
-        </Typography>
+    <>
+      {egg_collection_permission ? (
+        <Box>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography color='inherit' sx={{ cursor: 'pointer' }}>
+              Egg
+            </Typography>
 
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Egg List
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Egg List' action={headerAction} />
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Egg List
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Egg List' action={headerAction} />
 
-        {/* <CardContent> */}
-        <TabContext value={status}>
-          <TabList onChange={handleChange} sx={{ px: 2 }}>
-            <Tab
-              value='eggs_received'
-              label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
-            />
-            <Tab
-              value='eggs_incubation'
-              label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
-            />
-            <Tab
-              value='eggs_hatched'
-              label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
-            />
-            <Tab
-              value='eggs_ready_to_be_discarded_at_nursery'
-              label='Discarded'
-
-              // label={
-              //   <TabBadge
-              //     label='Discarded'
-              //     totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
-              //   />
-              // }
-            />
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
-          </TabList>
-          <TabPanel value='eggs_received' sx={{ p: 0 }}>
-            {' '}
-            <Divider />
-            {tableData()}
-          </TabPanel>
-          <TabPanel value='eggs_incubation' sx={{ p: 0 }}>
-            {' '}
-            <Divider />
-            {/* {tableData()} */}
-            <>
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  },
-                  '& .MuiDataGrid-row:hover .customButton': {
-                    display: 'block'
-                  },
-                  '& .MuiDataGrid-row:hover .hideField': {
-                    display: 'none'
-                  },
-                  '& .MuiDataGrid-row .customButton': {
-                    display: 'none'
-                  },
-                  '& .MuiDataGrid-row .hideField': {
-                    display: 'block'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={incubationColumns}
-                rowHeight={72}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onCellClick={onCellClick}
-
-                // onCellClick={handleCellClick}
-                // checkboxSelection
-              />
-            </>
-          </TabPanel>
-          <TabPanel value='eggs_hatched' sx={{ p: 0 }}>
-            {' '}
-            <Divider />
-            {tableData()}
-          </TabPanel>
-          <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
-            <Divider sx={{ mb: 3 }} />
-
-            {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}> */}
-
-            {/* </Box> */}
-            <TabContext value={isDiscarded}>
-              <TabList onChange={handleTabs} sx={{ px: 2 }}>
+            {/* <CardContent> */}
+            <TabContext value={status}>
+              <TabList onChange={handleChange} sx={{ px: 2 }}>
+                <Tab
+                  value='eggs_received'
+                  label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
+                />
+                <Tab
+                  value='eggs_incubation'
+                  label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
+                />
+                <Tab
+                  value='eggs_hatched'
+                  label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
+                />
                 <Tab
                   value='eggs_ready_to_be_discarded_at_nursery'
-                  label={
-                    <TabBadge
-                      label='Ready to Discarded'
-                      totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
-                    />
-                  }
-                ></Tab>
-                <Tab
-                  value='eggs_discarded'
-                  label={
-                    <TabBadge label='Discarded Batch' totalCount={isDiscarded === 'eggs_discarded' ? total : null} />
-                  }
+                  label='Discarded'
+
+                  // label={
+                  //   <TabBadge
+                  //     label='Discarded'
+                  //     totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                  //   />
+                  // }
                 />
-                <Tab
-                  value='eggs_discarded_at_nursery'
-                  label={
-                    <TabBadge
-                      label='Discarded'
-                      totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
-                    />
-                  }
-                />
+                <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
               </TabList>
-              <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
-                {selectionEggModel?.length > 0 && (
-                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2 }}>
-                    <Button sx={{ p: 5 }} size='medium' variant='contained' onClick={() => setOpenDiscardDialog(true)}>
-                      &nbsp;{selectionEggModel?.length}&nbsp;Discard
-                    </Button>
-                  </Box>
-                )}
+              <TabPanel value='eggs_received' sx={{ p: 0 }}>
+                {' '}
+                <Divider />
                 {tableData()}
               </TabPanel>
-              <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
+              <TabPanel value='eggs_incubation' sx={{ p: 0 }}>
                 {' '}
-                <DiscardedTableView filterByNurseryId={filterByNurseryId} setTotal={setTotal} />
-              </TabPanel>
-              <TabPanel
-                sx={{ p: 0 }}
-                value='eggs_discarded_at_nursery'
-                label={
-                  <TabBadge label='Discarded' totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null} />
-                }
-              >
+                <Divider />
                 {/* {tableData()} */}
                 <>
                   <DataGrid
@@ -2027,7 +1920,8 @@ const EggList = () => {
                     pagination
                     rows={indexedRows === undefined ? [] : indexedRows}
                     rowCount={total}
-                    columns={discarded_Egg_Columns}
+                    columns={incubationColumns}
+                    rowHeight={72}
                     sortingMode='server'
                     paginationMode='server'
                     pageSizeOptions={[7, 10, 25, 50]}
@@ -2036,7 +1930,6 @@ const EggList = () => {
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
-                    rowHeight={72}
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'
@@ -2048,43 +1941,176 @@ const EggList = () => {
                       }
                     }}
                     onCellClick={onCellClick}
+
+                    // onCellClick={handleCellClick}
+                    // checkboxSelection
                   />
                 </>
               </TabPanel>
+              <TabPanel value='eggs_hatched' sx={{ p: 0 }}>
+                {' '}
+                <Divider />
+                {tableData()}
+              </TabPanel>
+              <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+                <Divider sx={{ mb: 3 }} />
+
+                {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}> */}
+
+                {/* </Box> */}
+                <TabContext value={isDiscarded}>
+                  <TabList onChange={handleTabs} sx={{ px: 2 }}>
+                    <Tab
+                      value='eggs_ready_to_be_discarded_at_nursery'
+                      label={
+                        <TabBadge
+                          label='Ready to Discarded'
+                          totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                        />
+                      }
+                    ></Tab>
+                    <Tab
+                      value='eggs_discarded'
+                      label={
+                        <TabBadge
+                          label='Discarded Batch'
+                          totalCount={isDiscarded === 'eggs_discarded' ? total : null}
+                        />
+                      }
+                    />
+                    <Tab
+                      value='eggs_discarded_at_nursery'
+                      label={
+                        <TabBadge
+                          label='Discarded'
+                          totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
+                        />
+                      }
+                    />
+                  </TabList>
+                  <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+                    {selectionEggModel?.length > 0 && (
+                      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2 }}>
+                        <Button
+                          sx={{ p: 5 }}
+                          size='medium'
+                          variant='contained'
+                          onClick={() => setOpenDiscardDialog(true)}
+                        >
+                          &nbsp;{selectionEggModel?.length}&nbsp;Discard
+                        </Button>
+                      </Box>
+                    )}
+                    {tableData()}
+                  </TabPanel>
+                  <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
+                    {' '}
+                    <DiscardedTableView filterByNurseryId={filterByNurseryId} setTotal={setTotal} />
+                  </TabPanel>
+                  <TabPanel
+                    sx={{ p: 0 }}
+                    value='eggs_discarded_at_nursery'
+                    label={
+                      <TabBadge
+                        label='Discarded'
+                        totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
+                      />
+                    }
+                  >
+                    {/* {tableData()} */}
+                    <>
+                      <DataGrid
+                        sx={{
+                          '.MuiDataGrid-cell:focus': {
+                            outline: 'none'
+                          },
+                          '& .MuiDataGrid-row:hover': {
+                            cursor: 'pointer'
+                          },
+                          '& .MuiDataGrid-row:hover .customButton': {
+                            display: 'block'
+                          },
+                          '& .MuiDataGrid-row:hover .hideField': {
+                            display: 'none'
+                          },
+                          '& .MuiDataGrid-row .customButton': {
+                            display: 'none'
+                          },
+                          '& .MuiDataGrid-row .hideField': {
+                            display: 'block'
+                          }
+                        }}
+                        columnVisibilityModel={{
+                          sl_no: false
+                        }}
+                        hideFooterSelectedRowCount
+                        disableColumnSelector={true}
+                        autoHeight
+                        pagination
+                        rows={indexedRows === undefined ? [] : indexedRows}
+                        rowCount={total}
+                        columns={discarded_Egg_Columns}
+                        sortingMode='server'
+                        paginationMode='server'
+                        pageSizeOptions={[7, 10, 25, 50]}
+                        paginationModel={paginationModel}
+                        onSortModelChange={handleSortModel}
+                        slots={{ toolbar: ServerSideToolbarWithFilter }}
+                        onPaginationModelChange={setPaginationModel}
+                        loading={loading}
+                        rowHeight={72}
+                        slotProps={{
+                          baseButton: {
+                            variant: 'outlined'
+                          },
+                          toolbar: {
+                            value: searchValue,
+                            clearSearch: () => handleSearch(''),
+                            onChange: event => handleSearch(event.target.value)
+                          }
+                        }}
+                        onCellClick={onCellClick}
+                      />
+                    </>
+                  </TabPanel>
+                </TabContext>
+              </TabPanel>
+              <TabPanel value='all' sx={{ p: 0 }}>
+                {' '}
+                <Divider />
+                {tableData()}
+              </TabPanel>
             </TabContext>
-          </TabPanel>
-          <TabPanel value='all' sx={{ p: 0 }}>
-            {' '}
-            <Divider />
-            {tableData()}
-          </TabPanel>
-        </TabContext>
-        {/* </CardContent> */}
-      </Card>
+            {/* </CardContent> */}
+          </Card>
 
-      {openCreate && (
-        <CreateAnimalSlider
-          openDrawer={openCreate}
-          fetchTableData={fetchTableData}
-          setOpenDrawer={setOpenCreate}
-          eggId={eggID}
-        />
+          {openCreate && (
+            <CreateAnimalSlider
+              openDrawer={openCreate}
+              fetchTableData={fetchTableData}
+              setOpenDrawer={setOpenCreate}
+              eggId={eggID}
+            />
+          )}
+
+          <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
+          <DiscardDialogBox
+            openDiscardDialog={openDiscardDialog}
+            setOpenDiscardDialog={setOpenDiscardDialog}
+            selectionEggModel={selectionEggModel}
+            fetchTableData={fetchTableData}
+          />
+          <NecropsySlider
+            eggID={eggID}
+            openNecropsy={openNecropsy}
+            setOpenNecropsy={setOpenNecropsy}
+            fetchTableData={fetchTableData}
+          />
+        </Box>
+      ) : (
+        <ErrorScreen></ErrorScreen>
       )}
-
-      <DiscardForm callApi={fetchTableData} isOpen={isOpen} setIsOpen={setIsOpen} eggID={eggID} />
-      <DiscardDialogBox
-        openDiscardDialog={openDiscardDialog}
-        setOpenDiscardDialog={setOpenDiscardDialog}
-        selectionEggModel={selectionEggModel}
-        fetchTableData={fetchTableData}
-      />
-      <NecropsySlider
-        eggID={eggID}
-        openNecropsy={openNecropsy}
-        setOpenNecropsy={setOpenNecropsy}
-        fetchTableData={fetchTableData}
-      />
-    </Box>
+    </>
   )
 }
 
