@@ -41,10 +41,17 @@ const schema = yup.object().shape({
     })
     .required('Species is Required'),
   // animal_count: yup.string().required('Total Count is Required'),
+  // animal_count: yup
+  //   .number()
+  //   .typeError('Total Count must be a number')
+  //   .positive('Total Count must be greater than zero')
+  //   .required('Total Count is Required'),
   animal_count: yup
     .number()
     .typeError('Total Count must be a number')
     .positive('Total Count must be greater than zero')
+    .integer('Total Count must be a whole number')
+    .min(1, 'Total Count must be at least 1')
     .required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
@@ -360,7 +367,7 @@ const AddNewEntry = () => {
                           onInputChange={(event, newInputValue) => {
                             handleSearch(newInputValue) // Fetch species based on user input
                           }}
-                          renderInput={params => <TextField {...params} label='Select the Species' />}
+                          renderInput={params => <TextField {...params} label='Search & Select…' />}
                         />
                       )}
                     />

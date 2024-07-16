@@ -391,6 +391,7 @@ const AddSpeciesNewEntry = props => {
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
                   onChangeHandler={onChange}
+                  maxDate={new Date()}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />
               )}

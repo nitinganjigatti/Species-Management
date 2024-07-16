@@ -237,7 +237,10 @@ const AddSpecies = props => {
   }, [fetchSpeciesMasterList])
 
   const handleScientificNameChange = async (event, newValue) => {
-    console.log('Selected Scientific Name:', newValue)
+    // console.log('Selected Scientific Name:', newValue)
+    clearErrors('species')
+    // setValue('scientificName', newValue ? newValue.value || newValue : '')
+
     setValue('scientificName', newValue ? newValue.value || newValue : '')
     // Enable or disable the scientificName field based on the selected value
     if (newValue && newValue.value === 'Others') {

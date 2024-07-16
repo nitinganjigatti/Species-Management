@@ -43,9 +43,20 @@ import { deleteAttachmentForBatch, uploadAttachmentForBatch } from 'src/lib/api/
 import pdfIcon from 'public/icons/pdf_icon.svg'
 import xlsIcon from 'public/icons/xls_icon.svg'
 import docIcon from 'public/icons/doc_icon.svg'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
+})
+
+const schema = yup.object().shape({
+  registrationId: yup
+    .string()
+    .required('Registration ID is required')
+    .matches(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)?$/, {
+      message: 'Invalid Registration ID format.'
+    })
 })
 
 const BatchDetails = ({ params, searchParams }) => {
@@ -55,12 +66,14 @@ const BatchDetails = ({ params, searchParams }) => {
   const fileInputRef = useRef(null)
 
   const {
-    register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors }
-  } = useForm()
+    formState: { errors },
+    reset
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange'
+  })
 
   const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
@@ -519,10 +532,14 @@ const BatchDetails = ({ params, searchParams }) => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     onDrop: async acceptedFiles => {
-      if (acceptedFiles?.length + filePreviews?.length > 3) {
+      console.log(acceptedFiles, 'acceptedFiles')
+
+      const totalFiles = acceptedFiles?.length + filePreviews?.length
+      if (totalFiles > 3) {
         Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
         return
       }
+
       try {
         setAttachmentLoader(true) // Show loader
         for (const file of acceptedFiles) {

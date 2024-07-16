@@ -173,7 +173,7 @@ const SpeciesList = () => {
       {
         flex: 0.2,
         Width: 40,
-        field: 'id',
+        field: 'sl_no',
         headerName: 'S.NO',
         renderCell: params => (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -182,7 +182,7 @@ const SpeciesList = () => {
         )
       },
       {
-        flex: 0.2,
+        flex: 0.3,
         minWidth: 30,
         field: 'species_image',
         headerName: 'IMAGE',
@@ -192,30 +192,60 @@ const SpeciesList = () => {
           </>
         )
       },
+      // {
+      //   flex: 0.5,
+      //   minWidth: 30,
+      //   field: 'common_name',
+      //   headerName: 'COMMON NAME',
+      //   renderCell: params => (
+      //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+      //           {params.row.common_name ? params.row.common_name : '-'}
+      //         </Typography>
+      //       </Box>
+      //     </Box>
+      //   )
+      // },
+      // {
+      //   flex: 0.5,
+      //   minWidth: 30,
+      //   field: 'scientific_name',
+      //   headerName: 'SCIENTIFIC NAME',
+      //   renderCell: params => (
+      //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+      //       {params.row.scientific_name ? params.row.scientific_name : '-'}
+      //     </Typography>
+      //   )
+      // }
       {
-        flex: 0.5,
+        flex: 0.4,
         minWidth: 30,
         field: 'common_name',
         headerName: 'COMMON NAME',
         renderCell: params => (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-                {params.row.common_name ? params.row.common_name : '-'}
-              </Typography>
+              <Tooltip title={params.row.common_name || '-'}>
+                <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+                  {params.row.common_name ? params.row.common_name : '-'}
+                </Typography>
+              </Tooltip>
             </Box>
           </Box>
         )
       },
       {
-        flex: 0.5,
-        minWidth: 30,
+        flex: 0.4,
+        minWidth: 10,
         field: 'scientific_name',
         headerName: 'SCIENTIFIC NAME',
         renderCell: params => (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.scientific_name ? params.row.scientific_name : '-'}
-          </Typography>
+          <Tooltip title={params.row.scientific_name || '-'}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.scientific_name ? params.row.scientific_name : '-'}
+            </Typography>
+          </Tooltip>
         )
       }
     ]

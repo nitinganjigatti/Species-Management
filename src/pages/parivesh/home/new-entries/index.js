@@ -260,7 +260,7 @@ const NewEntry = ({}) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
       sortColumn: false,
       renderCell: params => (
@@ -308,9 +308,11 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
+            <Tooltip title={params.row.common_name || '-'}>
+              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+                {params.row.common_name ? params.row.common_name : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
@@ -321,9 +323,11 @@ const NewEntry = ({}) => {
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.scientific_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     // {
@@ -411,7 +415,7 @@ const NewEntry = ({}) => {
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('D MMMM YYYY') : '-'}
         </Typography>
       )
     },

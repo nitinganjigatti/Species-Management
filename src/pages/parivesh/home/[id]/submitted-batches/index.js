@@ -113,7 +113,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.No',
       sortable: false,
       description: 'This column has a value getter and is not sortable.',
@@ -176,7 +176,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+            {params.row.submitted_on ? moment(params.row.submitted_on).format('D MMMM YYYY') : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#00AFD6', fontSize: '12px' }}>
             {params.row.submitted_on ? moment(params.row.submitted_on).format('hh:mm A') : '-'}
@@ -184,12 +184,12 @@ const SubmittedBatches = ({ searchParams, type }) => {
         </Box>
       )
     },
+
     {
       flex: 0.5,
       minWidth: 60,
-      field: 'created_by_user',
-      headerName: 'CREATED BY',
-      alignItems: 'left',
+      field: 'submitted_by_user',
+      headerName: 'SUBMITTED BY',
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -205,10 +205,10 @@ const SubmittedBatches = ({ searchParams, type }) => {
               overflow: 'hidden'
             }}
           >
-            {params.row.created_by_user?.profile_pic ? (
+            {params.row.submitted_by_user?.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
+                src={params.row.submitted_by_user?.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -217,15 +217,58 @@ const SubmittedBatches = ({ searchParams, type }) => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+              {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
       )
     },
+    // {
+    //   flex: 0.5,
+    //   minWidth: 60,
+    //   field: 'created_by_user',
+    //   headerName: 'CREATED BY',
+    //   alignItems: 'left',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Avatar
+    //         variant='square'
+    //         alt='Medicine Image'
+    //         sx={{
+    //           width: 30,
+    //           height: 30,
+    //           mr: 4,
+    //           borderRadius: '50%',
+    //           background: '#E8F4F2',
+    //           overflow: 'hidden'
+    //         }}
+    //       >
+    //         {params.row.created_by_user?.profile_pic ? (
+    //           <img
+    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    //             src={params.row.created_by_user?.profile_pic}
+    //             alt='Profile'
+    //           />
+    //         ) : (
+    //           <Icon icon='mdi:user' />
+    //         )}
+    //       </Avatar>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+    //           {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+    //         </Typography>
+    //         <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+    //           {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
+
     {
       flex: 0.3,
       minWidth: 20,

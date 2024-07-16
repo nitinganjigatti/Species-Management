@@ -132,7 +132,7 @@ const Organization = () => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -184,7 +184,7 @@ const Organization = () => {
       headerName: 'Approved DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.accepted_on ? moment(params.row.accepted_on).format('DD/MM/YYYY') : '-'}
+          {params.row.accepted_on ? moment(params.row.accepted_on).format('D MMMM YYYY') : '-'}
         </Typography>
       )
     },
