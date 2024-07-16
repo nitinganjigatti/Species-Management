@@ -60,6 +60,7 @@ const RoomDetails = () => {
 
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const fetchTableData = useCallback(async () => {
     try {
@@ -94,7 +95,7 @@ const RoomDetails = () => {
   }, [paginationModel])
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData()
     }
   }, [fetchTableData])
@@ -475,7 +476,7 @@ const RoomDetails = () => {
   // )
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchDetailsData()
     }
   }, [fetchDetailsData])
@@ -502,7 +503,7 @@ const RoomDetails = () => {
 
   return (
     <>
-      {egg_nursery_permission ? (
+      {egg_nursery_permission || egg_collection_permission ? (
         loader ? (
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
@@ -552,35 +553,37 @@ const RoomDetails = () => {
                       </Typography>
                     </Box>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                      {' '}
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <IconButton
-                          sx={{ mr: 4 }}
-                          onClick={event =>
-                            handleEdit(
-                              event,
-                              detailsData.site_id,
-                              detailsData.room_name,
-                              detailsData.nursery_id,
-                              detailsData.room_id,
-                              detailsData.nursery_name
-                            )
-                          }
-                        >
-                          <Icon
-                            icon='material-symbols:edit-outline'
-                            fontSize={28}
-                            color={theme.palette.customColors.OnSurfaceVariant}
-                          />
-                        </IconButton>
+                    {egg_nursery_permission && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        {' '}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <IconButton
+                            sx={{ mr: 4 }}
+                            onClick={event =>
+                              handleEdit(
+                                event,
+                                detailsData.site_id,
+                                detailsData.room_name,
+                                detailsData.nursery_id,
+                                detailsData.room_id,
+                                detailsData.nursery_name
+                              )
+                            }
+                          >
+                            <Icon
+                              icon='material-symbols:edit-outline'
+                              fontSize={28}
+                              color={theme.palette.customColors.OnSurfaceVariant}
+                            />
+                          </IconButton>
 
-                        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-                          <Icon icon='mdi:add' fontSize={20} />
-                          &nbsp; ADD INCUBATOR
-                        </Button>
+                          <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+                            <Icon icon='mdi:add' fontSize={20} />
+                            &nbsp; ADD INCUBATOR
+                          </Button>
+                        </Box>
                       </Box>
-                    </Box>
+                    )}
                   </Box>
                   <Box sx={{ px: '16px', my: '8px' }}>
                     <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />

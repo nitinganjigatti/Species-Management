@@ -27,6 +27,7 @@ const NurseryList = () => {
 
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   function loadServerRows(currentPage, data) {
     return data
@@ -59,7 +60,7 @@ const NurseryList = () => {
   )
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(searchValue)
     }
   }, [fetchTableData])
@@ -282,12 +283,16 @@ const NurseryList = () => {
   }
 
   const headerAction = (
-    <div>
-      <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-    </div>
+    <>
+      {egg_nursery_permission && (
+        <div>
+          <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; Add New
+          </Button>
+        </div>
+      )}
+    </>
   )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -300,7 +305,7 @@ const NurseryList = () => {
 
   return (
     <>
-      {egg_nursery_permission ? (
+      {egg_nursery_permission || egg_collection_permission ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>

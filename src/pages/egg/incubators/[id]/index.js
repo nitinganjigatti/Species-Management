@@ -761,7 +761,7 @@ const IncubatorDetails = () => {
   )
 
   useEffect(() => {
-    if (egg_collection_permission) {
+    if (egg_collection_permission || egg_collection_permission) {
       fetchTableData(sort, searchValue, status)
     }
   }, [fetchTableData, status])
@@ -797,7 +797,7 @@ const IncubatorDetails = () => {
   }
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       getIncubatorDetailFunc()
     }
   }, [id])
@@ -869,7 +869,7 @@ const IncubatorDetails = () => {
 
   return (
     <>
-      {egg_nursery_permission ? (
+      {egg_nursery_permission || egg_collection_permission ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit'>Egg</Typography>
@@ -975,16 +975,18 @@ const IncubatorDetails = () => {
                 // }
               />
             </Box> */}
-                  <Box>
-                    <Icon
-                      icon='bx:pencil'
-                      style={{ fontSize: 24, cursor: 'pointer' }}
-                      onClick={() => {
-                        setIsEdit(true)
-                        setDialog(true)
-                      }}
-                    />
-                  </Box>
+                  {egg_nursery_permission && (
+                    <Box>
+                      <Icon
+                        icon='bx:pencil'
+                        style={{ fontSize: 24, cursor: 'pointer' }}
+                        onClick={() => {
+                          setIsEdit(true)
+                          setDialog(true)
+                        }}
+                      />
+                    </Box>
+                  )}
                   {/* <Box>
               <Icon
                 // onClick={() => {

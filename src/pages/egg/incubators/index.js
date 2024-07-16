@@ -60,6 +60,7 @@ const IncubatorsList = () => {
   const eggModuleAccess = authData?.userData?.roles?.settings?.egg_module_access
 
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   function loadServerRows(currentPage, data) {
     return data
@@ -113,7 +114,7 @@ const IncubatorsList = () => {
   )
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(searchValue)
     }
   }, [fetchTableData])
@@ -157,10 +158,17 @@ const IncubatorsList = () => {
   const headerAction = (
     <>
       {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
-      <Button sx={{ height: '40px', width: '126px' }} size='small' variant='contained' onClick={() => setDialog(true)}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
+      {egg_nursery_permission && (
+        <Button
+          sx={{ height: '40px', width: '126px' }}
+          size='small'
+          variant='contained'
+          onClick={() => setDialog(true)}
+        >
+          <Icon icon='mdi:add' fontSize={20} />
+          &nbsp; Add New
+        </Button>
+      )}
       {/* )} */}
     </>
   )
@@ -445,7 +453,7 @@ const IncubatorsList = () => {
   // })
   return (
     <>
-      {egg_nursery_permission ? (
+      {egg_nursery_permission || egg_collection_permission ? (
         loader ? (
           <FallbackSpinner />
         ) : (

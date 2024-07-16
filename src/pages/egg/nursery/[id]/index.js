@@ -41,6 +41,7 @@ const NurseryDetails = () => {
 
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   // console.log('rows >>', rows)
   // console.log('Paginate>', paginationModel)
@@ -70,7 +71,7 @@ const NurseryDetails = () => {
   }
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchNurseryById()
     }
   }, [])
@@ -115,7 +116,7 @@ const NurseryDetails = () => {
   // console.log('Nursery Details >>', nurseryData)
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(searchValue, sortColumn)
     }
   }, [fetchTableData])
@@ -358,7 +359,7 @@ const NurseryDetails = () => {
 
   return (
     <>
-      {egg_nursery_permission ? (
+      {egg_nursery_permission || egg_collection_permission ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
@@ -396,20 +397,22 @@ const NurseryDetails = () => {
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                 {' '}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-                    <Icon
-                      icon='mdi:pencil-outline'
-                      fontSize={28}
-                      color={theme.palette.customColors.OnSurfaceVariant}
-                      onClick={() => setOpenDrawer(true)}
-                    />
-                  </IconButton>
-                  <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-                    <Icon icon='mdi:add' fontSize={20} />
-                    &nbsp; ADD ROOM
-                  </Button>
-                </Box>
+                {egg_nursery_permission && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+                      <Icon
+                        icon='mdi:pencil-outline'
+                        fontSize={28}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                        onClick={() => setOpenDrawer(true)}
+                      />
+                    </IconButton>
+                    <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+                      <Icon icon='mdi:add' fontSize={20} />
+                      &nbsp; ADD ROOM
+                    </Button>
+                  </Box>
+                )}
               </Box>
             </Box>
             <Box sx={{ px: '16px', my: '12px' }}>
