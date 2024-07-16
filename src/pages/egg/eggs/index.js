@@ -66,7 +66,7 @@ const EggList = () => {
 
   // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [openNepoFile, setOpenNepoFile] = useState(false)
+  const [openNecropsy, setOpenNecropsy] = useState(false)
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
 
@@ -1365,13 +1365,13 @@ const EggList = () => {
       renderCell: params => (
         <Typography
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
+            color: theme.palette.primary.dark,
             fontSize: '16px',
-            fontWeight: '400',
+            fontWeight: '500',
             lineHeight: '19.36px'
           }}
         >
-          {params.row.is_sample_collected ? params.row.is_sample_collected : '-'}
+          {params.row.is_sample_collected === '1' ? 'Taken' : 'NA'}
         </Typography>
       )
     },
@@ -1381,17 +1381,32 @@ const EggList = () => {
       sortable: false,
       field: 'necropsy_report',
       headerName: 'NECROPSY REPORT',
+      align: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.is_necropsy_needed ? params.row.is_necropsy_needed : '-'}
-        </Typography>
+        <>
+          {params.row.is_sample_collected === '1' ? (
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 2 }}>
+              Yes <Icon icon='pepicons-pencil:file' fontSize={'24px'} />
+            </Typography>
+          ) : (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.is_necropsy_needed ? (
+                params.row.is_necropsy_needed
+              ) : (
+                <Button sx={{ color: '#00AFD6' }} onClick={e => handleOpenNecropsy(e, params)}>
+                  Attach File
+                </Button>
+              )}
+            </Typography>
+          )}
+        </>
       )
     },
 
@@ -1654,6 +1669,12 @@ const EggList = () => {
     setSelectionEggModel(newSelectionModel)
   }
 
+  const handleOpenNecropsy = (e, params) => {
+    e.stopPropagation()
+    setEggId(params?.row?.egg_id)
+    setOpenNecropsy(true)
+  }
+
   // const selectedRows = indexedRows?.filter(row => selectionModel.includes(row.id))
 
   const tableData = () => {
@@ -1789,7 +1810,6 @@ const EggList = () => {
             allocateEggId={eggID}
           />
         )}
-        {openNepoFile && <NecropsySlider setOpenNepoFile={setOpenNepoFile} />}
       </>
     )
   }
@@ -2043,6 +2063,12 @@ const EggList = () => {
         openDiscardDialog={openDiscardDialog}
         setOpenDiscardDialog={setOpenDiscardDialog}
         selectionEggModel={selectionEggModel}
+        fetchTableData={fetchTableData}
+      />
+      <NecropsySlider
+        eggID={eggID}
+        openNecropsy={openNecropsy}
+        setOpenNecropsy={setOpenNecropsy}
         fetchTableData={fetchTableData}
       />
     </Box>
