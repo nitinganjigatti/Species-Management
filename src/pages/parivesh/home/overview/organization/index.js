@@ -132,7 +132,7 @@ const Organization = () => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -146,13 +146,9 @@ const Organization = () => {
       field: 'registration_id',
       headerName: 'REGISTRATION ID',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+          {params.row.registration_id ? params.row.registration_id : '-'}
+        </Typography>
       )
     },
     {
@@ -184,7 +180,7 @@ const Organization = () => {
       headerName: 'Approved DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.accepted_on ? moment(params.row.accepted_on).format('DD/MM/YYYY') : '-'}
+          {params.row.accepted_on ? moment(params.row.accepted_on).format('D MMMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -222,7 +218,8 @@ const Organization = () => {
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {console.log(params.row, 'params.row')}
+              {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
@@ -276,6 +273,9 @@ const Organization = () => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'

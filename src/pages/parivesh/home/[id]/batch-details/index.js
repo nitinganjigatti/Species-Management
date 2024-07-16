@@ -43,9 +43,20 @@ import { deleteAttachmentForBatch, uploadAttachmentForBatch } from 'src/lib/api/
 import pdfIcon from 'public/icons/pdf_icon.svg'
 import xlsIcon from 'public/icons/xls_icon.svg'
 import docIcon from 'public/icons/doc_icon.svg'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
+})
+
+const schema = yup.object().shape({
+  registrationId: yup
+    .string()
+    .required('Registration ID is required')
+    .matches(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)?$/, {
+      message: 'Invalid Registration ID format.'
+    })
 })
 
 const BatchDetails = ({ params, searchParams }) => {
@@ -55,12 +66,14 @@ const BatchDetails = ({ params, searchParams }) => {
   const fileInputRef = useRef(null)
 
   const {
-    register,
     handleSubmit,
     control,
-    reset,
-    formState: { errors }
-  } = useForm()
+    formState: { errors },
+    reset
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange'
+  })
 
   const [searchValue, setSearchValue] = useState('')
   const [total, setTotal] = useState(0)
@@ -76,6 +89,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const [batchDetails, setBatchDetails] = useState()
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
+  const [attachmentLoader, setAttachmentLoader] = useState(false)
   const [regId, setRegId] = useState('')
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
@@ -240,6 +254,7 @@ const BatchDetails = ({ params, searchParams }) => {
       Width: 40,
       field: 'uid',
       headerName: 'S.NO',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
@@ -252,6 +267,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 30,
       field: 'image_type',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
           <Avatar variant='square' src={params.row.species_image} alt={'species_image'} sx={{ height: 'auto', p: 2 }} />
@@ -272,6 +288,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -287,6 +304,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.scientific_name ? params.row.scientific_name : '-'}
@@ -309,6 +327,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 10,
       field: 'gender_count',
       headerName: 'Gender / Count',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.gender
@@ -337,6 +356,7 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 30,
       field: 'possession_type',
       headerName: 'Category',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -354,9 +374,10 @@ const BatchDetails = ({ params, searchParams }) => {
       minWidth: 20,
       field: 'date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
         </Typography>
       )
     }
@@ -391,6 +412,9 @@ const BatchDetails = ({ params, searchParams }) => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -414,7 +438,7 @@ const BatchDetails = ({ params, searchParams }) => {
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               slotProps={{
@@ -508,12 +532,16 @@ const BatchDetails = ({ params, searchParams }) => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     onDrop: async acceptedFiles => {
-      if (acceptedFiles?.length + filePreviews?.length > 3) {
+      console.log(acceptedFiles, 'acceptedFiles')
+
+      const totalFiles = acceptedFiles?.length + filePreviews?.length
+      if (totalFiles > 3) {
         Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
         return
       }
+
       try {
-        setBtnLoader(true) // Show loader
+        setAttachmentLoader(true) // Show loader
         for (const file of acceptedFiles) {
           const payload = {
             batch_id: batchDetails?.batch_id,
@@ -533,10 +561,10 @@ const BatchDetails = ({ params, searchParams }) => {
             Toaster({ type: 'error', message: res?.message })
           }
         }
-        setBtnLoader(false) // Hide loader after processing files
+        setAttachmentLoader(false) // Hide loader after processing files
       } catch (error) {
         console.error('Error uploading files:', error)
-        setBtnLoader(false) // Hide loader on error
+        setAttachmentLoader(false) // Hide loader on error
       }
     }
   })
@@ -727,9 +755,9 @@ const BatchDetails = ({ params, searchParams }) => {
                   variant='outlined'
                   sx={{ color: '#7A8684', mr: 3 }}
                   {...getRootProps()}
-                  disabled={btnLoader}
+                  disabled={attachmentLoader}
                 >
-                  {btnLoader ? (
+                  {attachmentLoader ? (
                     <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
                   ) : (
                     <Icon icon='mdi:attachment-plus' size={1} />

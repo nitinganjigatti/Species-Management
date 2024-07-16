@@ -48,7 +48,15 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
-  species: yup.object().nullable().required('Species is Required')
+  // species: yup.object().nullable().required('Species is Required')
+  species: yup
+    .mixed() // Allow any type
+    .test('is-object', 'Please Select a Valid Species', value => {
+      // Validate that the selected value is an object or null
+      return typeof value === 'object' || value === null
+    })
+    .nullable()
+    .required('Species is Required')
 })
 
 const defaultValues = {
@@ -237,7 +245,10 @@ const AddSpecies = props => {
   }, [fetchSpeciesMasterList])
 
   const handleScientificNameChange = async (event, newValue) => {
-    console.log('Selected Scientific Name:', newValue)
+    // console.log('Selected Scientific Name:', newValue)
+    clearErrors('species')
+    // setValue('scientificName', newValue ? newValue.value || newValue : '')
+
     setValue('scientificName', newValue ? newValue.value || newValue : '')
     // Enable or disable the scientificName field based on the selected value
     if (newValue && newValue.value === 'Others') {
@@ -305,6 +316,7 @@ const AddSpecies = props => {
                   getOptionLabel={option => option.value || option}
                   value={value}
                   onChange={(event, newValue) => {
+                    clearErrors('species')
                     onChange(newValue)
                     handleScientificNameChange(event, newValue)
                   }}
