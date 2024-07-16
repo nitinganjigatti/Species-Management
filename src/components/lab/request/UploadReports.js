@@ -169,30 +169,30 @@ const UploadReports = ({
 
       console.log('payload', payload)
 
-      try {
-        const response = await UploadLabReports(payload)
-        if (response?.success) {
-          handleCloseUploader(false)
-          handleClosePopover()
-          reset(defaultValues)
-          setImgSrc('')
-          reset()
-          setImgArr([])
+      // try {
+      //   const response = await UploadLabReports(payload)
+      //   if (response?.success) {
+      //     handleCloseUploader(false)
+      //     handleClosePopover()
+      //     reset(defaultValues)
+      //     setImgSrc('')
+      //     reset()
+      //     setImgArr([])
 
-          setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+      //     setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
-          fetchRequestDetails()
-          setKey(key + 1)
-        } else {
-          reset(defaultValues)
-          setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-        }
-        // Reset the form after successful submission
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setSubmitting(false)
-      }
+      //     fetchRequestDetails()
+      //     setKey(key + 1)
+      //   } else {
+      //     reset(defaultValues)
+      //     setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      //   }
+      //   // Reset the form after successful submission
+      // } catch (error) {
+      //   console.error(error)
+      // } finally {
+      //   setSubmitting(false)
+      // }
     }
   }
 
@@ -223,7 +223,7 @@ const UploadReports = ({
                   <Grid item md={12} sm={12} xs={12}>
                     <input
                       type='file'
-                      accept='image/*'
+                      accept='*/*'
                       onChange={e => handleInputImageChange(e)}
                       style={{ display: 'none' }}
                       name='image'
