@@ -144,15 +144,11 @@ const SpeciesDetails = () => {
       field: 'common_name',
       headerName: 'COMMON NAME',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Tooltip title={params.row.common_name || '-'}>
-              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-                {params.row.common_name ? params.row.common_name : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
+        <Tooltip title={params.row.common_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+            {params.row.common_name ? params.row.common_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {

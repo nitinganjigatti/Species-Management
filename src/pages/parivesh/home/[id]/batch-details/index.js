@@ -377,7 +377,7 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
         </Typography>
       )
     }

@@ -146,13 +146,9 @@ const Organization = () => {
       field: 'registration_id',
       headerName: 'REGISTRATION ID',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+          {params.row.registration_id ? params.row.registration_id : '-'}
+        </Typography>
       )
     },
     {
