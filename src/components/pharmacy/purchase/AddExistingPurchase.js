@@ -387,7 +387,6 @@ const AddExistingPurchase = () => {
       Router.push('/pharmacy/purchase/purchase-list/')
     } else {
       setSubmitLoader(false)
-      console.log('response catch purchase', response)
       if (response.data?.po_no) {
         toast.error('Purchase number already exist ')
       }
@@ -702,7 +701,6 @@ const AddExistingPurchase = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -818,7 +816,7 @@ const AddExistingPurchase = () => {
                     <SingleDatePicker
                       name='Purchase Date*'
                       fullWidth
-                      maxDate={value ? parseFormattedDate(value) : null}
+                      maxDate={new Date()}
                       date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
@@ -1121,8 +1119,6 @@ const AddExistingPurchase = () => {
             {id ? null : (
               <Button
                 onClick={() => {
-                  console.log('editParamsInitialState', editParamsInitialState)
-                  debugger
                   reset(editParamsInitialState)
                   setEditParams(editParamsInitialState)
                 }}

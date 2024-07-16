@@ -34,6 +34,7 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
+
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -69,6 +70,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { borderBottom } from '@mui/system'
+import Alert from '@mui/material/Alert'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -96,7 +98,8 @@ const initialNestedRowMedicine = {
   package: '',
   manufacture: '',
   unit_price: '',
-  genericName: ''
+  genericName: '',
+  notes: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -182,7 +185,8 @@ const AddRequestForm = () => {
       manufacture: nestedRowMedicine.manufacture,
       request_item_leaf_id: '',
       unit_price: nestedRowMedicine?.unit_price,
-      genericName: nestedRowMedicine.genericName
+      genericName: nestedRowMedicine.genericName,
+      notes: nestedRowMedicine?.notes
     }
 
     const updatedNestedRows = [...editParams.request_item_details, newData]
@@ -246,7 +250,6 @@ const AddRequestForm = () => {
     }
     // itemErrors.control_substance = 'This field is required'
     // }
-    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -463,8 +466,6 @@ const AddRequestForm = () => {
 
       const searchResults = await getGenericMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
-        console.log('genrics', searchResults.data?.list_items)
-
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
@@ -504,7 +505,6 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    // console.log('result', result)
 
     if (result?.success === true && result?.data?.request_item_details?.length > 0) {
       const lineItems = result?.data?.request_item_details.map(el => {
@@ -524,7 +524,8 @@ const AddRequestForm = () => {
           package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
           manufacture: el?.manufacturer,
           unit_price: el?.unit_price,
-          genericName: el?.generic_name
+          genericName: el?.generic_name,
+          notes: el?.description
         }
       })
 
@@ -564,7 +565,8 @@ const AddRequestForm = () => {
         package: getItems[0].package,
         manufacture: getItems[0].manufacture,
         unit_price: getItems[0]?.unit_price,
-        genericName: getItems[0].genericName
+        genericName: getItems[0].genericName,
+        notes: getItems[0].notes
       })
     } else {
       const getItems = editParams.request_item_details.filter(el => {
@@ -588,7 +590,8 @@ const AddRequestForm = () => {
         package: getItems[0].package,
         manufacture: getItems[0].manufacture,
         unit_price: getItems[0]?.unit_price,
-        genericName: getItems[0].genericName
+        genericName: getItems[0].genericName,
+        notes: getItems[0].notes
       })
     }
   }
@@ -667,7 +670,6 @@ const AddRequestForm = () => {
     if (id) {
       try {
         const result = await cancelRequestItems(id)
-        // console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)
@@ -865,7 +867,7 @@ const AddRequestForm = () => {
                 //   </Box>
                 // )}
               />
-              {/* {nestedRowMedicine.medicine_name && (
+              {nestedRowMedicine.medicine_name && (
                 <Grid container item sx={{ my: 2 }}>
                   <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
                     <Tooltip title={nestedRowMedicine.package}>
@@ -890,7 +892,7 @@ const AddRequestForm = () => {
                     </Tooltip>
                   </Grid>
                 </Grid>
-              )} */}
+              )}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                   This field is required
@@ -922,6 +924,7 @@ const AddRequestForm = () => {
                   {itemErrors?.request_item_qty}
                 </FormHelperText>
               )}
+
               {nestedRowMedicine.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
@@ -944,6 +947,27 @@ const AddRequestForm = () => {
           </Grid>
           <Grid item xs={12} sm={1}></Grid>
           <Grid item xs={12} sm={11 / 2}>
+            <FormControl fullWidth>
+              <TextField
+                type='text'
+                value={nestedRowMedicine.notes}
+                error={Boolean(itemErrors.notes)}
+                label='Notes'
+                onChange={event => {
+                  setNestedRowMedicine({ ...nestedRowMedicine, notes: event.target.value })
+                  setItemErrors({})
+                }}
+              />
+              {itemErrors?.notes && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {/* This field is required */}
+                  {itemErrors?.notes}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={11 / 2}>
             <Typography>Priority</Typography>
             <RadioGroup
               row
@@ -960,6 +984,8 @@ const AddRequestForm = () => {
           </Grid>
 
           {/* // file uploader */}
+          <Grid item xs={12} sm={1}></Grid>
+
           {nestedRowMedicine.control_substance === true ? (
             nestedRowMedicine.control_substance_file ? (
               <Grid item xs={12} sm={11 / 2}>
@@ -1390,6 +1416,7 @@ const AddRequestForm = () => {
               <TableCell>Unit price</TableCell>
               <TableCell>Total QTY price</TableCell>
               <TableCell>Action</TableCell>
+              <TableCell>Notes</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1466,6 +1493,18 @@ const AddRequestForm = () => {
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
                         ) : null} */}
+                      </TableCell>
+                      <TableCell align='left'>
+                        {el?.notes ? (
+                          <Tooltip title={el?.notes}>
+                            {/* <Alert severity='info' /> */}
+                            <IconButton>
+                              <Icon icon='icomoon-free:info' />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          'NA'
+                        )}
                       </TableCell>
                     </TableRow>
                   )

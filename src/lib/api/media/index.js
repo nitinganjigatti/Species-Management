@@ -1,9 +1,9 @@
 import { GET_MEDIA } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
-export async function getMediaListById(userId) {
-  const url = `user/${userId}/media`
-  const response = await axiosGet({ url: url })
+export async function getMediaListById({ params }) {
+  const url = `user/${params?.userId}/media`
+  const response = await axiosGet({ url: url, params })
 
   return response.data
 }

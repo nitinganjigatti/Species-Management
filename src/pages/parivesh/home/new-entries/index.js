@@ -194,10 +194,11 @@ const NewEntry = ({}) => {
   }))
 
   const handleSortModel = newModel => {
+    console.log(newModel, 'newModel')
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
     }
   }
@@ -259,8 +260,9 @@ const NewEntry = ({}) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
+      sortColumn: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
@@ -304,13 +306,11 @@ const NewEntry = ({}) => {
       field: 'common_name',
       headerName: 'COMMON NAME',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <Tooltip title={params.row.common_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+            {params.row.common_name ? params.row.common_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -319,9 +319,11 @@ const NewEntry = ({}) => {
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.scientific_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     // {
@@ -409,7 +411,7 @@ const NewEntry = ({}) => {
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
+          {params.row.transaction_date ? moment(params.row.transaction_date).format('D MMMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -531,6 +533,9 @@ const NewEntry = ({}) => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -886,116 +891,78 @@ const NewEntry = ({}) => {
 
       <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
         <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsEditModal(false)}
-            sx={{ top: 10, right: 0, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Grid sx={{ display: 'flex', mt: 3 }}>
-            <Grid>
-              <Avatar variant='square' />
-            </Grid>
-            <Grid>
-              <Typography sx={{ ml: 2, mt: 2 }}>Created By: {''}</Typography>
-            </Grid>
-          </Grid>
-          <Box
-            sx={{
-              display: 'flex',
-              height: '80px',
-              mr: 10,
-              mt: 2
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                display: 'flex',
-                alignItems: 'center'
-              }}
+          <Grid container direction='column'>
+            {/* Close button */}
+            <IconButton
+              aria-label='close'
+              onClick={() => setIsEditModal(false)}
+              sx={{ top: 10, right: 0, position: 'absolute', color: 'grey.500' }}
             >
-              {/* <Icon width='60px' height='40px' color={'#ff3838'} icon={'mdi:delete'} /> */}
+              <Icon icon='mdi:close' />
+            </IconButton>
 
-              <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
+            {/* Header with Avatar and details */}
+            <Grid item container alignItems='center' mt={3}>
+              <Avatar variant='square' />
+              <Typography sx={{ ml: 2 }}>Created By: {''}</Typography>
+            </Grid>
+
+            {/* Media details */}
+            <Box sx={{ display: 'flex', mt: 2, alignItems: 'center', mb: 2 }}>
+              <Box
+                sx={{
+                  padding: '16px',
+                  borderRadius: '12px',
+                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
+              </Box>
+              <Box sx={{ ml: 2 }}>
+                <Typography variant='h6' sx={{ color: '#00afd6' }}>
+                  {detailData?.scientific_name}
+                </Typography>
+                <Typography variant='h6'>({detailData?.common_name})</Typography>
+              </Box>
             </Box>
-            <Box>
-              <Typography variant='h6' sx={{ ml: 4, mt: 2, color: '#00afd6' }}>
-                {detailData?.scientific_name}
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 4 }}>
-                ({detailData?.common_name})
-              </Typography>
-            </Box>
-            {/* <div style='border-bottom: 1px solid black;'></div> */}
-          </Box>
-          <Box sx={{ borderBottom: '1px solid #839D8D', opacity: '30%', mt: 5 }}></Box>
-          <Grid sx={{ display: 'flex', mt: 2 }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
+
+            {/* Divider */}
+            <Divider />
+
+            {/* Details */}
+            <Grid item container mt={2} alignItems='center'>
               <Typography variant='h6' color={'#7A8684'}>
                 Gender
               </Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
               <Typography variant='h6' sx={{ ml: 58 }} color={'#1F515B'}>
                 {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
               </Typography>
             </Grid>
-          </Grid>
-          {/* <Grid sx={{ display: 'flex' }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6'>Age</Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6' sx={{ ml: 66 }}>
-                {detailData?.age.charAt(0).toUpperCase() + detailData?.age.slice(1)}
-              </Typography>
-            </Grid>
-          </Grid> */}
-          <Grid sx={{ display: 'flex' }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
+
+            <Grid item container mt={2} alignItems='center'>
               <Typography variant='h6' color={'#7A8684'}>
                 Reason for Entry
               </Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
               <Typography variant='h6' sx={{ ml: 36 }} color={'#1F515B'}>
                 {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
               </Typography>
             </Grid>
-          </Grid>
-          <Grid sx={{ display: 'flex', mt: 2 }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
+
+            <Grid item container mt={2} alignItems='center'>
               <Typography variant='h6' color={'#7A8684'}>
                 Total Count
               </Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.animal_count}
               </Typography>
             </Grid>
-          </Grid>
-          <Grid sx={{ display: 'flex', mt: 2 }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
+
+            <Grid item container mt={2} alignItems='center'>
               <Typography variant='h6' color={'#7A8684'}>
                 Entry Date
               </Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
                   ? moment(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')

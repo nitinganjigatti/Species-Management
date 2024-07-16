@@ -136,20 +136,17 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    console.log('updatedData', updatedData)
+    // console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
   }
 
   const clearStatus = (itemId, event) => {
-    console.log('event', event)
-
     const updatedData = {
       ...disputeItemDetails,
       item_details: disputeItemDetails.item_details.map(item =>
         item.id === itemId ? { ...item, status: '', wrong_count_type: '', wrong_count_number: '' } : item
       )
     }
-    console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
   }
 
@@ -158,7 +155,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const getStatusList = async () => {
     try {
       const status = await getShipmentStatusList()
-      // console.log('status', status)
       if (status?.success) {
         setStatusOptions(status?.data)
       }
@@ -170,8 +166,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const getOrderDetails = async orderId => {
     try {
       const response = await getShipmentOrderDetails(orderId)
-
-      console.log('getOrderDetails', response)
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
@@ -216,8 +210,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           item_details: disputeLineItems,
           phone_number: response?.data?.phone_number
         })
-        console.log('orderData', orderData)
-        console.log('dispute items response', response)
 
         const disputesData = {
           shipment_id: orderId,
@@ -235,8 +227,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       } else {
       }
     } catch (error) {
-      console.log(disputeItemDetails)
-
       console.log('error', error)
     }
   }
@@ -291,13 +281,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     const items = disputeItemDetails
     items['item_details'] = updatedItemDetails
     setDisputeItemDetails({ ...disputeItemDetails, items })
-    console.log('after update', disputeItemDetails)
     updateStatus()
   }
 
   const resolveItems = async payload => {
     var itemsToResolve
-    console.log('line data', payload)
     if (payload?.status === 'Missing') {
       itemsToResolve = {
         from_store: payload.from_store,
@@ -344,7 +332,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       }
     }
 
-    console.log('payload', itemsToResolve)
     try {
       setResolveLoader(true)
       const resolved = await resolveDisputeItems(itemsToResolve)
@@ -355,8 +342,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       } else {
         setResolveLoader(false)
       }
-
-      console.log('resolve response ', resolved)
     } catch (error) {
       setResolveLoader(false)
 
@@ -365,7 +350,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const rejectItems = async payload => {
-    console.log('row datta', payload)
     if (payload?.status === 'Missing') {
       setRejectItemsPayload({
         ...rejectItemsPayload,
@@ -418,7 +402,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       })
     }
 
-    console.log('params', payload)
     openDisputeDialog()
   }
 
@@ -433,7 +416,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     try {
       setResolveLoader(true)
       const resolved = await resolveDisputeItems(rejectItemsPayload)
-      console.log('rejected response', resolved)
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
@@ -442,8 +424,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       } else {
         setResolveLoader(false)
       }
-
-      console.log('resolve response ', resolved)
     } catch (error) {
       setResolveLoader(false)
 
@@ -459,7 +439,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         setListComments(comments)
         openCommentDialog()
       }
-      console.log('comments', comments)
     } catch (error) {
       console.log('comments error', error)
     }
@@ -469,7 +448,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     const verified = disputeItemDetails?.item_details?.find(el => el.id === id)
     const verifyInTempData = tempDisputeItemDetails?.item_details?.find(el => el.id === verified?.id)
     const result = verified?.status === verifyInTempData?.status
-    console.log('verifyStatusInTemp', result)
 
     return result
   }
@@ -738,8 +716,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                   variant='contained'
                                   color='primary'
                                   onClick={() => {
-                                    // action()
-                                    console.log('rejectItemsPayload', rejectItemsPayload)
                                     submitRejectItems()
                                   }}
                                 >
@@ -773,7 +749,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               </>
             ) : (
               <>
-                {console.log('params.row.', params.row)}
                 {params.row.status === 'Wrong Count' &&
                 (params.row.status === 'Wrong Count - Deny Closed' ||
                   params?.row?.dispute_status === '' ||
@@ -1123,9 +1098,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
     const receivedItems = disputeItemDetails?.item_details
 
-    console.log('receivedItems: ', receivedItems)
-    console.log('disputeItemDetails3: ', disputeItemDetails)
-
     if (receivedItems.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
         return {
@@ -1154,7 +1126,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         return true
       })
-      console.log('final payload', finalReceivedItems)
       if (verifyCount) {
         setSubmitLoader(true)
 
@@ -1270,8 +1241,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     }}
                   />
                 )}
-                {console.log('disputeItemDetails?.delivery_status', disputeItemDetails?.delivery_status)}
-                {console.log('selectedPhh', selectedPharmacy.permission.key)}
 
                 {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
                   <>
@@ -1289,7 +1258,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     >
                       Save
                     </LoadingButton>
-                    {console.log('disputeItemDetails', disputeItemDetails)}
                     {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
                       <LoadingButton
                         sx={{ float: 'right', my: 4, mx: 6 }}

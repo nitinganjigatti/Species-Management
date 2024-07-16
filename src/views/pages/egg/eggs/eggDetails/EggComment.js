@@ -8,6 +8,7 @@ import { addEggComment, deleteEggComments, getEggComments } from 'src/lib/api/eg
 import moment from 'moment'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import Utility from 'src/utility'
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
@@ -85,7 +86,6 @@ const EggComment = ({ eggDetails, eggId }) => {
       })
     } catch (error) {
       setCommentLoader(false)
-      // setCommentLoader(false)
     }
   }
   useEffect(() => {
@@ -113,7 +113,9 @@ const EggComment = ({ eggDetails, eggId }) => {
 
   function formatDate(dateString) {
     const now = moment()
-    const date = moment(dateString)
+
+    // const date = moment(moment.utc(dateString).toDate().toLocaleString())
+    const date = Utility.convertUTCToLocal(dateString)
 
     const diffInSeconds = now.diff(date, 'seconds')
     const diffInMinutes = now.diff(date, 'minutes')
@@ -121,7 +123,7 @@ const EggComment = ({ eggDetails, eggId }) => {
 
     if (now.isSame(date, 'day')) {
       if (diffInSeconds < 60) {
-        return `${diffInSeconds} Sec${diffInSeconds !== 1 ? 's' : ''} ago`
+        return `${diffInSeconds} Second${diffInSeconds !== 1 ? 's' : ''} ago`
       } else if (diffInMinutes < 60) {
         return `${diffInMinutes} Min${diffInMinutes !== 1 ? 's' : ''} ago`
       } else {

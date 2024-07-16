@@ -37,10 +37,22 @@ const schema = yup.object().shape({
   specie: yup
     .object()
     .shape({
-      name: yup.string().required('Specie is Required')
+      name: yup.string().required('Species is Required')
     })
-    .required('Specie is Required'),
-  animal_count: yup.string().required('Total Count is Required'),
+    .required('Species is Required'),
+  // animal_count: yup.string().required('Total Count is Required'),
+  // animal_count: yup
+  //   .number()
+  //   .typeError('Total Count must be a number')
+  //   .positive('Total Count must be greater than zero')
+  //   .required('Total Count is Required'),
+  animal_count: yup
+    .number()
+    .typeError('Total Count must be a number')
+    .positive('Total Count must be greater than zero')
+    .integer('Total Count must be a whole number')
+    .min(1, 'Total Count must be at least 1')
+    .required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
@@ -322,16 +334,16 @@ const AddNewEntry = () => {
               {selectedParivesh?.organization_name}
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              {isEditMode ? 'Edit Entries' : 'New Entries'}
+              {isEditMode ? 'New Entries' : 'New Entries'}
             </Typography>
-            <Typography color='text.primary'>{isEditMode ? 'Edit Report' : 'New Report'}</Typography>
+            <Typography color='text.primary'>{isEditMode ? 'Edit New Entry' : 'Add New Entry'}</Typography>
           </Breadcrumbs>
         </Box>
 
         <Box sx={{ mt: 5, background: '#FFFFFF', borderRadius: '10px' }}>
           <CardContent>
             <Typography sx={{ mb: '20px' }} variant='h6'>
-              {isEditMode ? 'Edit Report' : 'New Report'}
+              {isEditMode ? 'Edit New Entry' : 'Add New Entry'}
             </Typography>
 
             <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -355,7 +367,7 @@ const AddNewEntry = () => {
                           onInputChange={(event, newInputValue) => {
                             handleSearch(newInputValue) // Fetch species based on user input
                           }}
-                          renderInput={params => <TextField {...params} label='Select the Species' />}
+                          renderInput={params => <TextField {...params} label='Search & Select…' />}
                         />
                       )}
                     />

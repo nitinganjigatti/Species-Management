@@ -143,12 +143,9 @@ const AddStockAdjustment = () => {
       try {
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
-        console.log('searchResults', searchResults)
         setLoader(true)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
-            console.log('data of batch', searchResults?.data?.items)
-
             const data = searchResults?.data?.items?.map(item => ({
               batchNumber: item?.batch_no,
               stockItemId: item?.stock_item_id,
@@ -201,8 +198,6 @@ const AddStockAdjustment = () => {
 
       const searchResults = await getMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
-        console.log('searchResults', searchResults?.data?.list_items)
-
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
@@ -233,7 +228,6 @@ const AddStockAdjustment = () => {
   const getReasonsLists = async () => {
     try {
       const results = await getReasonsList()
-      console.log('results reason', results)
       if (results?.success === true && results?.data?.length > 0) {
         setReasons(results?.data)
       }
@@ -248,8 +242,6 @@ const AddStockAdjustment = () => {
 
   //  ****** debounce
   const onSubmit = async params => {
-    console.log('onSubmit', params)
-
     const { batch_no, stock_id, adjustment_quantity, reason, comments, expiry_date } = {
       ...params
     }
@@ -280,9 +272,7 @@ const AddStockAdjustment = () => {
     try {
       setSubmitLoader(true)
       const results = await addStocksAdjust(tempItems)
-      console.log('results reason', results)
       if (results?.success === true) {
-        console.log('results', results)
         toast.success(results?.msg)
         reset(defaultValues)
         setSubmitLoader(false)
@@ -584,7 +574,6 @@ const AddStockAdjustment = () => {
                 <TableCell>Adjust</TableCell>
               </TableRow>
             </TableHead>
-            {console.log('products', optionsBatchList)}
             <TableBody>
               {optionsBatchList
                 ? optionsBatchList?.map((el, index) => {
@@ -607,7 +596,6 @@ const AddStockAdjustment = () => {
                           <Button
                             variant='contained'
                             onClick={() => {
-                              console.log('ellipsis', el)
                               reset({
                                 batch_no: el?.batchNumber,
                                 stock_id: el?.stockItemId,
@@ -620,23 +608,6 @@ const AddStockAdjustment = () => {
                           >
                             Adjust
                           </Button>
-                          {/* <Fab
-                            onClick={() => {
-                              console.log('ellipsis', el)
-                              reset({
-                                batch_no: el?.batchNumber,
-                                stock_id: el?.stockItemId,
-                                availableQty: el?.availableQty,
-                                expiry_date: el?.expiryDate
-                              })
-                              openStockDialog()
-                            }}
-                            color='primary'
-                            aria-label='add'
-                            size='small'
-                          >
-                            <Icon icon='mdi:plus' />
-                          </Fab> */}
                         </TableCell>
                       </TableRow>
                     )

@@ -29,7 +29,8 @@ const CustomTable = ({
   setCheck,
   headerAction,
   searchParams,
-  title
+  title,
+  handleSortModel
 }) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
@@ -65,6 +66,9 @@ const CustomTable = ({
             confirmAction={onClose}
           />
           <DataGrid
+            disableColumnMenu
+            disableColumnFilter
+            // disableColumnSorting
             sx={{
               '.MuiDataGrid-cell:focus': {
                 outline: 'none'
@@ -87,6 +91,7 @@ const CustomTable = ({
             paginationMode='server'
             pageSizeOptions={[7, 10, 25, 50]}
             paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
             slots={{ toolbar: ServerSideToolbarWithFilter }}
             onPaginationModelChange={setPaginationModel}
             slotProps={{

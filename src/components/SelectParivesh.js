@@ -12,6 +12,7 @@ import { usePariveshContext } from 'src/context/PariveshContext'
 import { write } from 'src/lib/windows/utils' // Assuming write function is defined for localStorage operations
 import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies' // Importing API function
 import { useRouter } from 'next/router'
+import { Tooltip } from '@mui/material'
 
 function SelectParivesh() {
   const router = useRouter()
@@ -60,7 +61,7 @@ function SelectParivesh() {
 
   return (
     <Fragment>
-      <ButtonGroup variant='outlined' ref={anchorRef} aria-label='split button'>
+      <ButtonGroup variant='outlined' ref={anchorRef} aria-label='split button' sx={{ width: '17vw' }}>
         <Button>{selectedParivesh?.organization_name}</Button>
         <Button
           sx={{ px: '0' }}
@@ -87,7 +88,13 @@ function SelectParivesh() {
                       selected={selectedParivesh?.id === option.id}
                       onClick={() => handleMenuItemClick(option.id)}
                     >
-                      {option?.organization_name}
+                      {option.organization_name.length > 24 ? (
+                        <Tooltip title={option.organization_name} arrow>
+                          <span>{`${option.organization_name.substring(0, 24)}...`}</span>
+                        </Tooltip>
+                      ) : (
+                        option.organization_name
+                      )}
                     </MenuItem>
                   ))}
                 </MenuList>

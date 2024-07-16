@@ -48,6 +48,7 @@ import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
+import moment from 'moment'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -530,7 +531,6 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -644,12 +644,19 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+      // debugger
       if (response.success && response.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
           purchase_expiry_date: response.data.expiry_date
         }))
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: ''
+        }))
+        setProductExpiryDate('')
       }
     } catch (error) {
       console.log('supplier error', error)
@@ -661,7 +668,7 @@ const AddPurchaseForm = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
-      debugger
+      // debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {
@@ -791,7 +798,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -841,7 +848,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -883,7 +890,6 @@ const AddPurchaseForm = () => {
     //     return
     //   }
     // }
-    console.log('eddddddd', editParams)
     setSubmitLoader(true)
 
     const postData = editParams
@@ -911,7 +917,6 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -950,6 +955,7 @@ const AddPurchaseForm = () => {
   return (
     <Card>
       <Grid
+        item
         container
         sm={12}
         xs={12}
@@ -1027,7 +1033,7 @@ const AddPurchaseForm = () => {
                     <SingleDatePicker
                       name='Purchase Date*'
                       fullWidth
-                      maxDate={value ? parseFormattedDate(value) : null}
+                      maxDate={new Date()}
                       date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
