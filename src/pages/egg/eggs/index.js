@@ -38,6 +38,7 @@ import CreateAnimalSlider from 'src/views/pages/egg/eggs/eggDetails/CreateAnimal
 import { useEggContext } from 'src/context/EggContext'
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
+import Utility from 'src/utility'
 
 const EggList = () => {
   const theme = useTheme()
@@ -367,7 +368,7 @@ const EggList = () => {
           }}
         >
           {params.row.collection_date
-            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.collection_date))
             : '-'}
         </Typography>
       )
@@ -473,7 +474,7 @@ const EggList = () => {
                   }}
                 >
                   {params.row.created_at
-                    ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                     : '-'}
                 </Typography>
               </Box>
@@ -730,7 +731,7 @@ const EggList = () => {
           }}
         >
           {params.row.collection_date
-            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.collection_date))
             : '-'}
         </Typography>
       )
@@ -792,7 +793,7 @@ const EggList = () => {
                 }}
               >
                 {params.row.created_at
-                  ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                   : '-'}
               </Typography>
             </Box>
@@ -1099,7 +1100,7 @@ const EggList = () => {
           }}
         >
           {params.row.collection_date
-            ? moment(moment.utc(params.row.collection_date).toDate().toLocaleString()).format('DD MMM YYYY')
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.collection_date))
             : '-'}
         </Typography>
       )
@@ -1185,7 +1186,7 @@ const EggList = () => {
                   }}
                 >
                   {params.row.created_at
-                    ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                     : '-'}
                 </Typography>
               </Box>
@@ -1358,7 +1359,7 @@ const EggList = () => {
             ml: 2
           }}
         >
-          {params.row.collection_date ? moment(params.row.collection_date).format('DD MMM YYYY') : '-'}
+          {params.row.collection_date ? Utility.formatDisplayDate(params.row.collection_date) : '-'}
         </Typography>
       )
     },
@@ -1486,7 +1487,7 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
+                {params.row.created_at ? Utility.formatDisplayDate(params.row.created_at) : '-'}
               </Typography>
             </Box>
           </Box>
