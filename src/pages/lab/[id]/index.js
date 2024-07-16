@@ -88,7 +88,7 @@ const RequestDetails = () => {
   const [request, setRequest] = useState([])
 
   const [openTransfer, setOpenTransfer] = useState(false)
-  const [openUploader, setOpenUploader] = useState(false)
+  const [openUploader, setOpenUploader] = useState(true)
   const [open, setOpen] = React.useState(false)
   const [requestById, setRequestById] = useState()
 
@@ -1049,7 +1049,7 @@ const RequestDetails = () => {
       </>
       <>
         <Dialog open={openUploader} onClose={() => setOpenUploader(false)}>
-          <Card>
+          <Card sx={{ width: 600, height: 'auto' }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <IconButton onClick={() => setOpenUploader(false)}>
                 <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
