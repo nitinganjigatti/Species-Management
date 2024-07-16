@@ -240,7 +240,19 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
           </Box>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Card sx={{ p: 4, m: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box
+              sx={{
+                p: 4,
+                m: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                border: 1,
+                borderColor: '#c3cec7'
+              }}
+            >
               {discardReason?.map(item => (
                 <Box
                   key={item?.id}
@@ -270,14 +282,26 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                   </FormControl>
                 </Box>
               ))}
-            </Card>
+            </Box>
             {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is Required</FormHelperText>}
 
             <Typography variant='h6' sx={{ m: 5 }}>
               Add Reason For Discard
             </Typography>
 
-            <Card sx={{ p: 4, m: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box
+              sx={{
+                p: 4,
+                m: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                border: 1,
+                borderColor: '#c3cec7'
+              }}
+            >
               <FormControl fullWidth>
                 <Controller
                   name='comment'
@@ -376,9 +400,22 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                   )}
                 </Grid>
               </Grid>
-            </Card>
+            </Box>
 
-            <Card sx={{ p: 4, m: 4, display: 'flex', flexDirection: 'column', gap: 3, mb: 35 }}>
+            <Box
+              sx={{
+                p: 4,
+                m: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                mb: 35,
+                bgcolor: '#fff',
+                borderRadius: '8px',
+                border: 1,
+                borderColor: '#c3cec7'
+              }}
+            >
               <Typography variant='h6'>Necropsy Needed ?</Typography>
 
               <Stack>
@@ -390,7 +427,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                     render={({ field: { value, onChange } }) => (
                       <RadioGroup
                         row
-                        aria-labelledby='demo-row-radio-buttons-group-label'
+                        // aria-labelledby='demo-row-radio-buttons-group-label'
+                        value={value}
                         name='necropsy_Btn'
                         sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
                         onChange={onChange}
@@ -441,7 +479,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                   ></Controller>
                 </FormControl>
               </Stack>
-            </Card>
+            </Box>
             <Box
               sx={{
                 height: '122px',

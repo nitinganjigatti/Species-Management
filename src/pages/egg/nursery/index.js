@@ -9,6 +9,7 @@ import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
 import { styled } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
 
@@ -267,9 +268,7 @@ const NurseryList = () => {
               }}
             >
               {params.row?.created_at
-                ? 'Created on' +
-                  ' ' +
-                  moment(moment.utc(params.row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
                 : '-'}
             </Typography>
           </Box>

@@ -4,6 +4,7 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import Utility from 'src/utility'
 
 const EggImageGallery = ({ galleryList }) => {
   const theme = useTheme()
@@ -90,9 +91,10 @@ const EggImageGallery = ({ galleryList }) => {
                           }}
                         >
                           {/* {item?.created_at ? ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'} */}
-                          {item?.created_at
+                          {/* {item?.created_at
                             ? ' ' + moment(moment.utc(item?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-                            : '-'}
+                            : '-'} */}
+                          {Utility?.formatDisplayDate(Utility.convertUTCToLocal(item?.created_at))}
                         </Typography>
                       </Box>
                     </Box>

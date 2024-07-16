@@ -141,15 +141,17 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
     setLoading(true)
 
     const payload = {
-      egg_id: '903',
+      egg_id: eggID,
       egg_attachment: [getValues('report_file')],
       is_sample_collected: isSampleTaken === true ? '1' : '0'
     }
-    console.log('payload :>> ', payload)
+
+    //  console.log('payload :>> ', payload)
 
     try {
       const response = await AddEggNecropsy(payload)
-      console.log('response :>> ', response)
+
+      // console.log('response :>> ', response)
 
       if (response?.success) {
         setLoading(false)

@@ -38,6 +38,7 @@ import { getUnitsForIngredient } from 'src/lib/api/diet/getFeedDetails'
 import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
 import Styles from './dot.module.css'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
+import Utility from 'src/utility'
 
 const IncubatorsList = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -403,9 +404,7 @@ const IncubatorsList = () => {
               }}
             >
               {params.row?.created_at
-                ? 'Created on' +
-                  ' ' +
-                  moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
                 : '-'}
             </Typography>
           </Box>
