@@ -28,8 +28,6 @@ const StoreWisePendingRequestsChart = () => {
     try {
       const result = await getStoreWisePendingList()
 
-      console.log('getStoreWisePendingList', result)
-
       if (result?.success === true && result?.data) {
         setPendingList(result?.data)
       }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getExpiredMedicine } from 'src/lib/api/pharmacy/getStocksReportById'
+import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import CardHeader from '@mui/material/CardHeader'
@@ -13,8 +13,10 @@ import Utility from 'src/utility'
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { Tooltip } from '@mui/material'
+import Grid from '@mui/material/Grid'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
-const ExpiredMedicine = () => {
+const ExpiringMedicine = () => {
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -26,6 +28,11 @@ const ExpiredMedicine = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [filterDates, setFilterDates] = useState({
+    startDate: '',
+    endDate: ''
+  })
+  const [selectDays, setSelectDays] = useState('all')
 
   const [excelLoader, setExcelLoader] = useState(false)
 
@@ -36,7 +43,7 @@ const ExpiredMedicine = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, startDate, endDate) => {
       try {
         setLoading(true)
 
@@ -45,16 +52,22 @@ const ExpiredMedicine = () => {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          pending_days_start: startDate ? startDate : filterDates.startDate,
+          pending_days_end: endDate ? endDate : filterDates.endDate
         }
 
-        await getExpiredMedicine({ params: params }).then(res => {
-          if (res?.list_items?.length > 0) {
-            setTotal(parseInt(res?.total_count))
+        await getStocksReportById(selectedPharmacy?.id, params).then(res => {
+          console.log('ress', res)
+
+          if (res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            console.log('ress', res)
             setRows(
               loadServerRows(
                 paginationModel.page,
-                res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
+                // res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
+                res?.data
               )
             )
           } else {
@@ -65,17 +78,17 @@ const ExpiredMedicine = () => {
         setLoading(false)
       } catch (error) {
         console.log('error', error)
-        setLoading(false)
         setTotal(0)
         setRows([])
+        setLoading(false)
       }
     },
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn, filterDates.startDate, filterDates.endDate)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+  }, [fetchTableData, selectedPharmacy.id, filterDates])
 
   // useEffect(() => {
   //   fetchTableData(sort, searchValue, sortColumn)
@@ -93,7 +106,7 @@ const ExpiredMedicine = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, filterDates.startDate, filterDates.endDate)
     } else {
     }
   }
@@ -102,7 +115,7 @@ const ExpiredMedicine = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, filterDates.startDate, filterDates.endDate)
       } catch (error) {
         console.error(error)
       }
@@ -113,6 +126,46 @@ const ExpiredMedicine = () => {
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
+  }
+  const filterByDays = days => {
+    if (days !== 'all') {
+      const currentDate = new Date()
+      const selectedDays = parseInt(days)
+      let startDate
+      let endDate
+
+      switch (selectedDays) {
+        case 7:
+          startDate = Utility.formattedPresentDate()
+          endDate = Utility.getFeaturesDates(currentDate, 7)
+          setFilterDates({ startDate, endDate })
+          break
+        case 15:
+          startDate = Utility.getFeaturesDates(currentDate, 7)
+          endDate = Utility.getFeaturesDates(currentDate, 15)
+          setFilterDates({ startDate, endDate })
+
+          break
+        case 30:
+          startDate = Utility.getFeaturesDates(currentDate, 15)
+          endDate = Utility.getFeaturesDates(currentDate, 30)
+          setFilterDates({ startDate, endDate })
+          break
+        case 60:
+          startDate = Utility.getFeaturesDates(currentDate, 30)
+          endDate = Utility.getFeaturesDates(currentDate, 60)
+          setFilterDates({ startDate, endDate })
+          break
+        default:
+          startDate = Utility.getFeaturesDates(currentDate, selectedDays)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+      }
+    } else {
+      setFilterDates({ startDate: '', endDate: '' })
+      fetchTableData(sort, searchValue, sortColumn)
+    }
   }
 
   const columns = [
@@ -129,14 +182,14 @@ const ExpiredMedicine = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_item_name} placement='top'>
+        <Tooltip title={params.row.stock_items_name} placement='top'>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.stock_item_name}
+            {params.row.stock_items_name}
           </Typography>
         </Tooltip>
       )
@@ -246,7 +299,28 @@ const ExpiredMedicine = () => {
                 </Box>
               }
             />
-
+            <Grid container sx={{ display: 'flex' }}>
+              <Grid item xs={12} sm={3} md={3} sx={{ ml: 4 }}>
+                <FormControl fullWidth size='small'>
+                  <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
+                  <Select
+                    size='small'
+                    value={selectDays}
+                    label='Filter by days'
+                    onChange={e => {
+                      filterByDays(e.target.value)
+                      setSelectDays(e.target.value)
+                    }}
+                  >
+                    <MenuItem value='all'>All</MenuItem>
+                    <MenuItem value='7'>7 Days</MenuItem>
+                    <MenuItem value='15'>7 to 15 Days </MenuItem>
+                    <MenuItem value='30'>15 to 30 Days</MenuItem>
+                    <MenuItem value='60'>30 to 60 Days</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
@@ -297,4 +371,4 @@ const ExpiredMedicine = () => {
   )
 }
 
-export default ExpiredMedicine
+export default ExpiringMedicine

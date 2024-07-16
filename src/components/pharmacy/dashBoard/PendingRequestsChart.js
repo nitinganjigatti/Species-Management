@@ -22,8 +22,6 @@ const PendingRequestsChart = props => {
     try {
       const result = await getPendingList()
 
-      console.log('pending', result)
-
       if (result?.success === true && result?.data) {
         setPendingList(result?.data)
       }

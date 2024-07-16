@@ -29,8 +29,6 @@ const RequestCompletedChart = props => {
     try {
       const result = await getCompletedRequestsList()
 
-      console.log('getCompletedRequestsList', result)
-
       if (result?.success === true && result?.data) {
         setCompletedRequest(result?.data)
       }

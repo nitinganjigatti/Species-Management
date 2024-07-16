@@ -77,7 +77,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       })
     )
   })
-  console.log('fulfillMedicine in comp', fulfillMedicine)
 
   const {
     reset,
@@ -98,7 +97,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     reValidateMode: 'onChange'
   })
 
-  console.log('fulfillMedicine in dialog', fulfillMedicine)
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
   const [totalProductCount, setTotalProductCount] = useState(0)
@@ -183,9 +181,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
     setRowErrors(tempRowErrors)
 
-    console.log('tempRowErrors', tempRowErrors)
-
-    console.log('rowErrors', rowErrors)
     onQuantityChange(row, enteredQuantity)
   }
 
@@ -226,9 +221,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       } else {
         if (isNaN(parseInt(qty)) || parseInt(qty) <= 0) {
           const index = tempFulfilStockItems.findIndex(item => {
-            console.log('item.batch_no', item.batch_no)
-            console.log('row.batch_no', row.batch_no)
-
             return item.request_item_batch_no === row.batch_no
           })
           if (index !== -1) {
@@ -236,10 +228,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           }
         }
       }
-
-      console.log('tempFulfilStockItems', tempFulfilStockItems)
-
-      // }
 
       setFulfilStockItems(tempFulfilStockItems)
       setTotalMedicine(getMedicineTotal(tempFulfilStockItems))
@@ -263,7 +251,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setTotalMedicine(getMedicineTotal([medicineRow]))
       }
     }
-    console.log('fulfilStockItems', fulfilStockItems)
   }
 
   const getMedicineTotal = data => {
@@ -291,9 +278,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     const response = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
 
     if (response.success) {
-      console.log('batch details response', response)
-
-      //
       const data = response?.data?.items
 
       const updatedItems = data.map(el => ({
@@ -332,8 +316,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       request_number: storeDetails.id
     }
 
-    console.log('payload', JSON.stringify(payload))
-
     try {
       setErrors(false)
       setSubmitLoader(true)
@@ -356,12 +338,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   useEffect(() => {
     if (fulfillMedicine?.stock_item_id !== undefined && fulfillMedicine?.stock_item_id !== null) {
-      console.log(fulfillMedicine)
-      console.log(storeDetails)
-
       getMedicineByMedicineId(fulfillMedicine?.stock_item_id, fulfillMedicine?.stock_type)
-
-      // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
     }
   }, [fulfillMedicine, storeDetails])
 
@@ -514,14 +491,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onSubmit = async params => {
-    console.log('pay load params', params)
-
     // setDispatchItems(params)
     var invalidQtyItems = []
 
     if (params?.product_batches?.length > 0) {
       invalidQtyItems = params?.product_batches?.filter(item => item.qty > item.quantityAvailable)
-      console.log('itemsWithMoreQty', invalidQtyItems)
     }
     if (invalidQtyItems?.length > 0) {
       // setInvalidQty(invalidQtyItems)
@@ -530,8 +504,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     } else {
       dispatchingItems(params)
     }
-
-    console.log('in outide block itemsWithMoreQty', invalidQtyItems)
   }
 
   const dispatchingItems = async params => {
@@ -567,8 +539,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         dispatch_items: payload_list,
         request_number: storeDetails.id
       }
-
-      console.log(payload)
 
       try {
         setErrors(false)
@@ -840,7 +810,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>The selected quantity is greater than the quantity requested</StyledErrorText>
                   </div>
                 ) : null}
-                {console.log('totalProductCount', totalProductCount)}
+
                 {totalProductCount < checkNumber(fulfilledQuantity) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
                     <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>

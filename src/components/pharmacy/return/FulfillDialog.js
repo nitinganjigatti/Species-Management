@@ -160,9 +160,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
     setRowErrors(tempRowErrors)
 
-    console.log('tempRowErrors', tempRowErrors)
-
-    console.log('rowErrors', rowErrors)
     onQuantityChange(row, enteredQuantity)
   }
 
@@ -206,9 +203,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       } else {
         if (isNaN(parseInt(qty)) || parseInt(qty) <= 0) {
           const index = tempFulfilStockItems.findIndex(item => {
-            console.log('item.batch_no', item.batch_no)
-            console.log('row.batch_no', row.batch_no)
-
             return item.request_item_batch_no === row.batch_no
           })
           if (index !== -1) {
@@ -216,8 +210,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           }
         }
       }
-
-      console.log('tempFulfilStockItems', tempFulfilStockItems)
 
       // }
 
@@ -243,7 +235,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setTotalMedicine(getMedicineTotal([medicineRow]))
       }
     }
-    console.log('fulfilStockItems', fulfilStockItems)
   }
 
   const getMedicineTotal = data => {
@@ -260,8 +251,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       })
     }
 
-    console.log(total)
-
     return total
   }
 
@@ -272,7 +261,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     debugger
     if (response.success) {
       setBatchItems(response.data)
-      console.log(response.data)
       setLoader(false)
     } else {
       setLoader(false)
@@ -299,8 +287,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       dispatch_items: fulfilStockItems,
       request_number: storeDetails.id
     }
-    debugger
-    console.log('payload', JSON.stringify(payload))
 
     try {
       setErrors(false)
@@ -324,9 +310,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   useEffect(() => {
     if (fulfillMedicine?.stock_item_id !== undefined && fulfillMedicine?.stock_item_id !== null) {
-      console.log(fulfillMedicine)
-      console.log(storeDetails)
-
       getMedicineByMedicineId(fulfillMedicine?.stock_item_id)
 
       // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
@@ -477,8 +460,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onSubmit = async params => {
-    console.log(params)
-
     const totalQuantity = getTotalMedicineQuantity(params)
 
     if (checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0) {
@@ -503,11 +484,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       dispatch_items: payload_list,
       request_number: storeDetails.id
     }
-
-    console.log(payload)
-
-    // debugger
-    // console.log('payload', JSON.stringify(payload))
 
     try {
       setErrors(false)

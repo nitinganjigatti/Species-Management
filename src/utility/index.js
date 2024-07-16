@@ -74,6 +74,13 @@ function getPreviousDaysDate(todayDate, days) {
 
   return previousDate
 }
+function getFeaturesDates(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() + days)
+  const featureDate = moment(date).format('YYYY-MM-DD')
+
+  return featureDate
+}
 function daysFromToday(inputDate) {
   const today = moment()
   const targetDate = moment(inputDate, 'YYYY-MM-DD')
@@ -81,6 +88,8 @@ function daysFromToday(inputDate) {
   const differenceInDays = targetDate.diff(today, 'days')
   if (Math.abs(differenceInDays) === 0) {
     return 'Today'
+  } else if (Math.abs(differenceInDays) === 1) {
+    return `${Math.abs(differenceInDays)} Day`
   } else {
     return `${Math.abs(differenceInDays)} Days`
   }
@@ -113,6 +122,7 @@ const Utility = {
   formatDisplayDate,
   errorMessageExtractorFromObject,
   exportToCSV,
+  getFeaturesDates,
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
