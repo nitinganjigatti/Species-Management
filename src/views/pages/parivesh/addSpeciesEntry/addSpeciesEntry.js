@@ -47,7 +47,7 @@ const schema = yup.object().shape({
     .positive('Total Count must be greater than zero')
     .integer('Total Count must be an integer')
     .required('Total Count is Required')
-    .min(0, 'Total Count must be greater than or equal to zero'),
+    .min(1, 'Total Count must be at least 1'),
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
