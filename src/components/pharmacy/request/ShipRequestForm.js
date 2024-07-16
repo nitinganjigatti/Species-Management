@@ -385,6 +385,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       width={'100%'}
                       date={date}
                       value={date}
+                      maxDate={new Date()}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
                       placeholderText={'Shipment Date*'}
