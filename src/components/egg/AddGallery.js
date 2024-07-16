@@ -112,7 +112,7 @@ const AddGallery = ({ galleryList }) => {
             borderColor: '#c3cec7'
           }}
         >
-          <Box sx={{ width: '200px', height: '140', borderRadius: '8px' }}>
+          <Box sx={{ width: '200px', height: '140px', borderRadius: '8px' }}>
             <img
               src='/images/default_EggImg.png'
               alt='Egg Image'
