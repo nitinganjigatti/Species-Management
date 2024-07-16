@@ -33,13 +33,16 @@ const RoomsList = () => {
 
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const headerAction = (
     <>
-      <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; ADD New
-      </Button>
+      {egg_nursery_permission && (
+        <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+          <Icon icon='mdi:add' fontSize={20} />
+          &nbsp; ADD New
+        </Button>
+      )}
     </>
   )
 
@@ -328,14 +331,14 @@ const RoomsList = () => {
   )
 
   useEffect(() => {
-    if (egg_nursery_permission) {
+    if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(searchValue)
     }
   }, [fetchTableData])
 
   return (
     <>
-      {egg_nursery_permission ? (
+      {egg_nursery_permission || egg_collection_permission ? (
         loader ? (
           <FallbackSpinner />
         ) : (

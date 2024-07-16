@@ -36,12 +36,12 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     eggNavigation.push(title)
   }
 
-  if (egg_nursery) {
+  if (egg_nursery && !egg_collection) {
     eggNavigation.push(nursery, incubatorRoom, incubators)
   }
 
   if (egg_collection) {
-    eggNavigation.push(eggs)
+    eggNavigation.push(nursery, incubatorRoom, incubators, eggs)
   }
 
   return eggNavigation
