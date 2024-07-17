@@ -453,8 +453,65 @@ const AddLab = () => {
 
   // Add Test
 
+  // const handleCheckBox = (sample, parent, child, isChecked) => {
+  //   // console.log('sample', sample)
+  //   setTestData(prevData => {
+  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+  //     if (sampleIndex === -1) {
+  //       // If the sample is not in TestData, add it with the parent and child
+  //       return [
+  //         ...prevData,
+  //         {
+  //           sample_id: sample.sample_id,
+  //           sample_name: sample.sample_name,
+  //           value: false,
+  //           tests: [
+  //             {
+  //               test_id: parent.test_id,
+  //               test_name: parent.test_name,
+  //               full_test: false,
+  //               child_tests: [
+  //                 {
+  //                   test_id: child.test_id,
+  //                   test_name: child.test_name,
+  //                   value: isChecked,
+  //                   input_type: child.input_type
+  //                 }
+  //               ]
+  //             }
+  //           ]
+  //         }
+  //       ]
+  //     } else {
+  //       // If the sample is in TestData, update the child_tests array
+  //       return prevData.map(data =>
+  //         data.sample_id === sample.sample_id
+  //           ? {
+  //               ...data,
+  //               tests: data.tests.map(test =>
+  //                 test.test_id === parent.test_id
+  //                   ? {
+  //                       ...test,
+  //                       child_tests: test.child_tests.map(ct =>
+  //                         ct.test_id === child.test_id
+  //                           ? {
+  //                               ...ct,
+  //                               value: isChecked
+  //                             }
+  //                           : ct
+  //                       )
+  //                     }
+  //                   : test
+  //               )
+  //             }
+  //           : data
+  //       )
+  //     }
+  //   })
+  // }
+
   const handleCheckBox = (sample, parent, child, isChecked) => {
-    // console.log('sample', sample)
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
@@ -484,34 +541,94 @@ const AddLab = () => {
           }
         ]
       } else {
-        // If the sample is in TestData, update the child_tests array
-        return prevData.map(data =>
-          data.sample_id === sample.sample_id
-            ? {
-                ...data,
-                tests: data.tests.map(test =>
-                  test.test_id === parent.test_id
-                    ? {
-                        ...test,
-                        child_tests: test.child_tests.map(ct =>
-                          ct.test_id === child.test_id
-                            ? {
-                                ...ct,
-                                value: isChecked
-                              }
-                            : ct
-                        )
-                      }
-                    : test
+        return prevData.map(data => {
+          if (data.sample_id === sample.sample_id) {
+            const updatedTests = data.tests.map(test => {
+              if (test.test_id === parent.test_id) {
+                const updatedChildTests = test.child_tests.map(ct =>
+                  ct.test_id === child.test_id ? { ...ct, value: isChecked } : ct
                 )
+
+                // Unselect parent test if any child test is unchecked
+                const anyChildUnchecked = updatedChildTests.some(ct => !ct.value)
+
+                return { ...test, full_test: !anyChildUnchecked, child_tests: updatedChildTests }
+              } else {
+                return test
               }
-            : data
-        )
+            })
+
+            // Unselect sample if any parent test or child test is unchecked
+            const anyParentUnchecked = updatedTests.some(test => !test.full_test)
+
+            return { ...data, value: !anyParentUnchecked, tests: updatedTests }
+          } else {
+            return data
+          }
+        })
       }
     })
   }
 
   // Select All
+  // const handleParentSwitch = (sample, parent, isChecked) => {
+  //   setTestData(prevData => {
+  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+  //     if (sampleIndex === -1) {
+  //       // If the sample is not in TestData, add it with the parent and child
+  //       if (isChecked) {
+  //         return [
+  //           ...prevData,
+  //           {
+  //             sample_id: sample.sample_id,
+  //             sample_name: sample.sample_name,
+  //             tests: [
+  //               {
+  //                 test_id: parent.test_id,
+  //                 test_name: parent.test_name,
+  //                 full_test: isChecked,
+  //                 child_tests: parent.child_tests.map(childTest => ({
+  //                   ...childTest,
+  //                   value: isChecked
+  //                 }))
+  //               }
+  //             ]
+  //           }
+  //         ]
+  //       }
+
+  //       // Handle the case when the sample is not found and isChecked is false
+  //       return prevData
+  //     }
+
+  //     return prevData.map(data =>
+  //       data.sample_id === sample.sample_id
+  //         ? {
+  //             ...data,
+  //             tests: data.tests.map(test =>
+  //               test.test_id === parent.test_id
+  //                 ? {
+  //                     ...test,
+  //                     full_test: isChecked,
+  //                     child_tests: isChecked
+  //                       ? test.child_tests.map(childTest => ({
+  //                           ...childTest,
+  //                           value: isChecked
+  //                         }))
+  //                       : test.child_tests.map(childTest => ({
+  //                           ...childTest,
+  //                           value: false
+  //                         }))
+  //                   }
+  //                 : test
+  //             )
+  //           }
+  //         : data
+  //     )
+  //   })
+  // }
+
   const handleParentSwitch = (sample, parent, isChecked) => {
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
@@ -543,32 +660,83 @@ const AddLab = () => {
         return prevData
       }
 
-      return prevData.map(data =>
-        data.sample_id === sample.sample_id
-          ? {
-              ...data,
-              tests: data.tests.map(test =>
-                test.test_id === parent.test_id
-                  ? {
-                      ...test,
-                      full_test: isChecked,
-                      child_tests: isChecked
-                        ? test.child_tests.map(childTest => ({
-                            ...childTest,
-                            value: isChecked
-                          }))
-                        : test.child_tests.map(childTest => ({
-                            ...childTest,
-                            value: false
-                          }))
-                    }
-                  : test
-              )
-            }
-          : data
-      )
+      return prevData.map(data => {
+        if (data.sample_id === sample.sample_id) {
+          const updatedTests = data.tests.map(test =>
+            test.test_id === parent.test_id
+              ? {
+                  ...test,
+                  full_test: isChecked,
+                  child_tests: isChecked
+                    ? test.child_tests.map(childTest => ({
+                        ...childTest,
+                        value: isChecked
+                      }))
+                    : test.child_tests.map(childTest => ({
+                        ...childTest,
+                        value: false
+                      }))
+                }
+              : test
+          )
+
+          // Unselect sample if any parent test or child test is unchecked
+          const anyParentUnchecked = updatedTests.some(test => !test.full_test)
+
+          return { ...data, value: !anyParentUnchecked, tests: updatedTests }
+        } else {
+          return data
+        }
+      })
     })
   }
+
+  // const handleTestFullTestSwitch = (sample, parent, isChecked) => {
+  //   setTestData(prevData => {
+  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+  //     if (sampleIndex === -1) {
+  //       // If the sample is not in TestData, add it with the parent and child
+  //       if (isChecked) {
+  //         return [
+  //           ...prevData,
+  //           {
+  //             sample_id: sample.sample_id,
+  //             sample_name: sample.sample_name,
+  //             tests: [
+  //               {
+  //                 test_id: parent.test_id,
+  //                 test_name: parent.test_name,
+  //                 full_test: isChecked,
+  //                 child_tests: parent.child_tests
+  //               }
+  //             ]
+  //           }
+  //         ]
+  //       }
+
+  //       // Handle the case when the sample is not found and isChecked is false
+  //       return prevData
+  //     }
+
+  //     return prevData.map(data =>
+  //       data.sample_id === sample.sample_id
+  //         ? {
+  //             ...data,
+  //             tests: data.tests.map(test =>
+  //               test.test_id === parent.test_id
+  //                 ? {
+  //                     ...test,
+  //                     full_test: isChecked,
+  //                     child_tests: parent.child_tests
+  //                   }
+  //                 : test
+  //             )
+  //           }
+  //         : data
+  //     )
+  //   })
+  // }
 
   const handleTestFullTestSwitch = (sample, parent, isChecked) => {
     setTestData(prevData => {
@@ -582,6 +750,7 @@ const AddLab = () => {
             {
               sample_id: sample.sample_id,
               sample_name: sample.sample_name,
+              value: true,
               tests: [
                 {
                   test_id: parent.test_id,
@@ -598,22 +767,31 @@ const AddLab = () => {
         return prevData
       }
 
-      return prevData.map(data =>
-        data.sample_id === sample.sample_id
-          ? {
-              ...data,
-              tests: data.tests.map(test =>
-                test.test_id === parent.test_id
-                  ? {
-                      ...test,
-                      full_test: isChecked,
-                      child_tests: parent.child_tests
-                    }
-                  : test
-              )
+      return prevData.map(data => {
+        if (data.sample_id === sample.sample_id) {
+          const updatedTests = data.tests.map(test => {
+            if (test.test_id === parent.test_id) {
+              return {
+                ...test,
+                full_test: isChecked,
+                child_tests: test.child_tests.map(childTest => ({
+                  ...childTest,
+                  value: isChecked
+                }))
+              }
+            } else {
+              return test
             }
-          : data
-      )
+          })
+
+          // Unselect sample if any parent test or child test is unchecked
+          const anyParentUnchecked = updatedTests.some(test => !test.full_test)
+
+          return { ...data, value: !anyParentUnchecked, tests: updatedTests }
+        } else {
+          return data
+        }
+      })
     })
   }
 
@@ -1245,7 +1423,7 @@ const AddLab = () => {
             </Box>
           </Box>
 
-          {/* drower */}
+          {/* drawer */}
           <Stack sx={{ p: 5 }} spacing={3}>
             {TestData?.map((sample, index) => (
               <>
