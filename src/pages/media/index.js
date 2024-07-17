@@ -107,21 +107,28 @@ const Media = () => {
     onDrop: async acceptedFiles => {
       try {
         setBtnLoader(true) // Show loader
+        let successCount = 0 // Track successful uploads count
+        let message = ''
+
         for (const file of acceptedFiles) {
           const payload = {
             user_id: userId,
             user_attachment: [file]
           }
-
           // Call your upload API function with formData
           const res = await uploadMediaFile(payload)
           if (res?.success) {
-            Toaster({ type: 'success', message: res?.message })
-
-            await getMediaListUserId(userId)
+            successCount++ // Increment successful uploads count
+            message = res?.message
+            // Toaster({ type: 'success', message: res?.message })
+            // await getMediaListUserId(userId)
           } else {
             Toaster({ type: 'error', message: res?.message })
           }
+        }
+        if (successCount === acceptedFiles.length) {
+          Toaster({ type: 'success', message: message })
+          await getMediaListUserId(userId)
         }
         setBtnLoader(false) // Hide loader after processing files
         setLoading(false)
