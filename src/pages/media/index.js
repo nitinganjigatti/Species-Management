@@ -224,7 +224,7 @@ const Media = () => {
     } else if (moment(date).isSame(yesterday, 'day')) {
       return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
     } else {
-      return moment(date).format('DD MMMM YYYY')
+      return moment.utc(date).format('DD MMMM YYYY')
     }
   }
 

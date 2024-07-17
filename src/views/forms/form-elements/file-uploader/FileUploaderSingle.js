@@ -101,7 +101,7 @@ const FileUploaderSingle = props => {
                 <Link href='/' onClick={e => e.preventDefault()}>
                   browse
                 </Link>{' '}
-                thorough your machine
+                through your machine
               </Typography>
             </div>
           </Box>
