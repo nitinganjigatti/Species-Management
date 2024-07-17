@@ -26,8 +26,7 @@ const ComposeNavigation = () => {
 
   const navigationArray = []
   const dashboardNav = dashboardNavigation()
-
-  // navigationArray.push(...dashboardNav)
+  navigationArray.push(...dashboardNav)
 
   if (pharmacyList?.length > 0 || pharmacyRole) {
     const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
@@ -44,7 +43,6 @@ const ComposeNavigation = () => {
     navigationArray.push(...dietNav)
   }
   if (egg_nursery || egg_collection) {
-    debugger
     const eggNav = eggNavigation({ egg_nursery, egg_collection })
     navigationArray.push(...eggNav)
   }
