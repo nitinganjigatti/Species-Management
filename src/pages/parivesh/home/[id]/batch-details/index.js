@@ -49,12 +49,12 @@ import { yupResolver } from '@hookform/resolvers/yup'
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
 })
-
+// /^[a-zA-Z0-9]+(?:-[/][a-zA-Z0-9]+)?$/
 const schema = yup.object().shape({
   registrationId: yup
     .string()
     .required('Registration ID is required')
-    .matches(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)?$/, {
+    .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
       message: 'Invalid Registration ID format.'
     })
 })
