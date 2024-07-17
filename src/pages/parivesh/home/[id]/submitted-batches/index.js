@@ -178,7 +178,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('D MMMM YYYY') : '-'}
           </Typography>
-          <Typography variant='body2' sx={{ color: '#00AFD6', fontSize: '12px' }}>
+          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
             {params.row.submitted_on ? moment.utc(params.row.submitted_on).local().format('hh:mm A') : '-'}
           </Typography>
         </Box>

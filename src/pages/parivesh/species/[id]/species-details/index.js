@@ -77,7 +77,7 @@ const SpeciesDetails = () => {
     {
       flex: 0.2,
       minWidth: 30,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>

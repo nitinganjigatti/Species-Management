@@ -179,9 +179,14 @@ const Organization = () => {
       field: 'accepted_on',
       headerName: 'Approved DATE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.accepted_on ? moment.utc(params.row.accepted_on).format('D MMMM YYYY') : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.accepted_on ? moment.utc(params.row.accepted_on).format('D MMMM YYYY') : '-'}
+          </Typography>
+          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {params.row.accepted_on ? moment.utc(params.row.accepted_on).local().format('hh:mm A') : '-'}
+          </Typography>
+        </Box>
       )
     },
     {

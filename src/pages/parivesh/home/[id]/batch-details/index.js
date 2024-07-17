@@ -252,7 +252,7 @@ const BatchDetails = ({ params, searchParams }) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
       sortable: false,
       renderCell: params => (
