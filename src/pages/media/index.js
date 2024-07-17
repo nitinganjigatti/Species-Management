@@ -424,7 +424,7 @@ const Media = () => {
                               <CardContent
                                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
                               >
-                                <Box>{moment(media?.created_at).format('hh:mm A')}</Box>
+                                <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box>
                               </CardContent>
                             </Card>
                           </Grid>
