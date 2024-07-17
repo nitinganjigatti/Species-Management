@@ -473,50 +473,39 @@ const BatchDetails = ({ params, searchParams }) => {
   //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
   //   },
   //   onDrop: async acceptedFiles => {
-  //     // acceptedFiles.forEach(file => {
-  //     //   const reader = new FileReader()
-  //     //   reader.onload = () => {
-  //     //     setFilePreviews(prev => [
-  //     //       ...prev,
-  //     //       {
-  //     //         file,
-  //     //         preview: file.type.startsWith('image') ? reader.result : null
-  //     //       }
-  //     //     ])
-  //     //   }
-  //     //   reader.readAsDataURL(file)
-  //     // })
+  //     console.log(acceptedFiles, 'acceptedFiles')
 
-  //     console.log(reader.result, 'reader.result')
+  //     const totalFiles = acceptedFiles?.length + filePreviews?.length
+  //     if (totalFiles > 3) {
+  //       Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
+  //       return
+  //     }
+
   //     try {
-  //       setBtnLoader(true) // Show loader
-
-  //       // Process each dropped file
+  //       setAttachmentLoader(true) // Show loader
   //       for (const file of acceptedFiles) {
   //         const payload = {
   //           batch_id: batchDetails?.batch_id,
   //           status: batchDetails?.status,
-  //           batch_attachment: file
+  //           batch_attachment: [file]
   //         }
 
   //         // Call your upload API function with formData
   //         const res = await uploadAttachmentForBatch(payload)
-
-  //         console.log(res?.data, 'uploadFile')
-
+  //         console.log(res, 'uploadFile')
   //         // Handle API response
-  //         if (res?.success) {
-  //           const msg = res?.data.length > 0 ? res?.data : res?.message
-  //           Toaster({ type: 'success', message: msg })
+  //         if (res?.success && res?.data?.length > 0) {
+  //           Toaster({ type: 'success', message: res?.message })
+  //           // After successful upload, fetch updated batch details
+  //           await getBatchListById(batchDetails?.batch_id)
   //         } else {
   //           Toaster({ type: 'error', message: res?.message })
   //         }
   //       }
-
-  //       setBtnLoader(false) // Hide loader after processing files
+  //       setAttachmentLoader(false) // Hide loader after processing files
   //     } catch (error) {
   //       console.error('Error uploading files:', error)
-  //       setBtnLoader(false) // Hide loader on error
+  //       setAttachmentLoader(false) // Hide loader on error
   //     }
   //   }
   // })
@@ -542,6 +531,9 @@ const BatchDetails = ({ params, searchParams }) => {
 
       try {
         setAttachmentLoader(true) // Show loader
+        let successCount = 0 // Track successful uploads count
+        let message = ''
+
         for (const file of acceptedFiles) {
           const payload = {
             batch_id: batchDetails?.batch_id,
@@ -552,15 +544,22 @@ const BatchDetails = ({ params, searchParams }) => {
           // Call your upload API function with formData
           const res = await uploadAttachmentForBatch(payload)
           console.log(res, 'uploadFile')
+
           // Handle API response
           if (res?.success && res?.data?.length > 0) {
-            Toaster({ type: 'success', message: res?.message })
-            // After successful upload, fetch updated batch details
+            successCount++ // Increment successful uploads count
+            message = res?.message
+
             await getBatchListById(batchDetails?.batch_id)
           } else {
             Toaster({ type: 'error', message: res?.message })
           }
         }
+
+        if (successCount === acceptedFiles.length) {
+          Toaster({ type: 'success', message: message })
+        }
+
         setAttachmentLoader(false) // Hide loader after processing files
       } catch (error) {
         console.error('Error uploading files:', error)

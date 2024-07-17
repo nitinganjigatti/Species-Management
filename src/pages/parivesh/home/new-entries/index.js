@@ -965,7 +965,7 @@ const NewEntry = ({}) => {
               </Typography>
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment.utc(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')
+                  ? moment.utc(detailData?.transaction_date.split(' ')[0]).format('DD MMMM YYYY')
                   : ''}
               </Typography>
             </Grid>

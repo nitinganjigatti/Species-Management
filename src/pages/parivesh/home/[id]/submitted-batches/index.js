@@ -220,7 +220,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
               {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
@@ -299,7 +299,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
               : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: '#E93353' }}>

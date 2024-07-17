@@ -219,7 +219,7 @@ const Organization = () => {
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
               {console.log(params.row, 'params.row')}
-              {params.row.created_on ? moment.utc(params.row.created_on).format('DD/MM/YYYY') : '-'}
+              {params.row.created_on ? moment.utc(params.row.created_on).format('DD MMMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
