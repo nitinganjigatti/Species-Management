@@ -130,7 +130,7 @@ const EggComment = ({ eggDetails, eggId }) => {
         return `${diffInHours} Hour${diffInHours !== 1 ? 's' : ''} ago`
       }
     } else {
-      return date.format('DD MMM YYYY ')
+      return Utility?.formatDisplayDate(date)
     }
   }
 
