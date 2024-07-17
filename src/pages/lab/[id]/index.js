@@ -88,7 +88,7 @@ const RequestDetails = () => {
   const [request, setRequest] = useState([])
 
   const [openTransfer, setOpenTransfer] = useState(false)
-  const [openUploader, setOpenUploader] = useState(true)
+  const [openUploader, setOpenUploader] = useState(false)
   const [open, setOpen] = React.useState(false)
   const [requestById, setRequestById] = useState()
 

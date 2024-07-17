@@ -38,13 +38,19 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 import UserSnackbar from 'src/components/utility/snackbar'
+import Image from 'next/image'
+
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
 
 // ** Source code imports
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/lab/addLab'
+import { useDropzone } from 'react-dropzone'
+import { useTheme } from '@mui/material/styles'
 
 const AddLab = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [longitude, setLongitude] = useState('')
@@ -57,10 +63,10 @@ const AddLab = () => {
   const [prevTests, setPrevTests] = useState([])
 
   const [dataToUpdate, setDataToUpdate] = useState([])
-  console.log('dataToUpdate', dataToUpdate)
+  // console.log('dataToUpdate', dataToUpdate)
 
   const [showLabTests, setShowLabTests] = useState()
-  console.log('showLabTests', showLabTests)
+  // console.log('showLabTests', showLabTests)
 
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   //image upload
@@ -79,8 +85,12 @@ const AddLab = () => {
   const router = useRouter()
   const { id, action } = router.query
   const [isDefault, setIsDefault] = useState(0)
-  console.log('isDefault :>> ', isDefault)
+  // console.log('isDefault :>> ', isDefault)
   // console.log('isDefault', isDefault)
+  const fileInputRef = useRef(null)
+  const [imgSrc, setImgSrc] = useState([])
+  const [displayFile, setDisplayFile] = useState('')
+  const [imgArr, setImgArr] = useState([])
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -258,7 +268,8 @@ const AddLab = () => {
     formState: { errors },
     trigger,
     setValue,
-    getValues
+    getValues,
+    clearErrors
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -290,6 +301,81 @@ const AddLab = () => {
     // handleSubmit(onSubmit)()
   }
 
+  // image
+
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: true,
+    accept: {
+      '*/*': []
+    },
+    onDrop: acceptedFiles => {
+      const reader = new FileReader()
+      const files = acceptedFiles
+      if (files && files.length !== 0) {
+        reader.onload = () => {
+          setImgSrc(pre => [...pre, reader?.result])
+        }
+        setDisplayFile(files[0]?.name)
+        reader?.readAsDataURL(files[0])
+        setImgArr(pre => [...pre, files[0]])
+        setValue('image', files)
+
+        clearErrors('image')
+      }
+    }
+  })
+
+  const handleAddImageClick = () => {
+    fileInputRef?.current?.click()
+  }
+
+  const handleInputImageChange = file => {
+    const reader = new FileReader()
+    const { files } = file.target
+    console.log('files :>> ', files)
+    if (files && files.length !== 0) {
+      reader.onload = () => {
+        setImgSrc(pre => [...pre, reader?.result])
+      }
+      setDisplayFile(files[0]?.name)
+      reader?.readAsDataURL(files[0])
+      setImgArr(pre => [...pre, files[0]])
+      setValue('image', files)
+      clearErrors('image')
+    }
+  }
+
+  // const removeSelectedImage = index => {
+  //   setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
+  //   setValue('image', '')
+  // }
+
+  const removeSelectedImage = index => {
+    setImgSrc(prevImages => {
+      const updatedImages = prevImages.filter((_, i) => i !== index)
+      if (updatedImages.length === 0) {
+        setValue('image', '')
+      } else {
+        setValue('image', updatedImages)
+      }
+
+      return updatedImages
+    })
+
+    setImgArr(prevFiles => {
+      const updatedFiles = prevFiles.filter((_, i) => i !== index)
+      if (updatedFiles.length === 0) {
+        setValue('image', '')
+      } else {
+        setValue('image', updatedFiles)
+      }
+
+      return updatedFiles
+    })
+  }
+
+  // ---------------
+
   const onSubmit = async params => {
     setSubmitLoader(true)
 
@@ -308,14 +394,15 @@ const AddLab = () => {
       longitudes: longitude,
       // lab: JSON.stringify(dataToUpdate),
       lab: JSON.stringify(showLabTests),
-      is_default: isDefault
+      is_default: isDefault,
+      image: imgArr
       // user_id: '58'
     }
 
-    if (files.length > 0) {
-      payload.image = files[0]
-    } else {
-    }
+    // if (files.length > 0) {
+    //   payload.image = files[0]
+    // } else {
+    // }
     // console.log('payload', payload)
 
     if (id !== undefined && action === 'edit') {
@@ -976,7 +1063,139 @@ const AddLab = () => {
                         <Card>
                           <CardHeader title='Upload LAB Picture' />
                           <CardContent>
-                            <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
+                            {/* <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} /> */}
+                            <Grid container>
+                              {/* {imgSrc !== '' ? null : ( */}
+                              <Grid item md={12} sm={12} xs={12}>
+                                <input
+                                  type='file'
+                                  accept='*/*'
+                                  onChange={e => handleInputImageChange(e)}
+                                  style={{ display: 'none' }}
+                                  name='image'
+                                  ref={fileInputRef}
+                                />
+
+                                <Box
+                                  {...getRootProps({ className: 'dropzone' })}
+                                  onClick={handleAddImageClick}
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 7,
+                                    height: 100,
+
+                                    border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                    borderRadius: 1,
+                                    padding: 3
+                                  }}
+                                >
+                                  <Image alt={'filename'} src={imageUploader} width={50} height={50} />
+
+                                  <Typography>Drop your image here</Typography>
+                                </Box>
+                              </Grid>
+                              {/* )} */}
+                              <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                                  {uploadedImage && (
+                                    <Box sx={{ display: 'flex', mt: 3 }}>
+                                      <Box
+                                        sx={{
+                                          position: 'relative',
+                                          backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                          borderRadius: '10px',
+                                          height: 130,
+                                          padding: '10.5px',
+                                          boxSizing: 'border-box'
+                                        }}
+                                      >
+                                        <img
+                                          style={{
+                                            // aspectRatio: 2 / 2,
+                                            height: '100%',
+                                            borderRadius: '5%'
+                                          }}
+                                          alt='image'
+                                          src={
+                                            uploadedImage ==
+                                            'https://api.dev.antzsystems.com/api/image/download/uploaded/file?path=uploads/'
+                                              ? '/icons/document_icon.png'
+                                              : uploadedImage
+                                          }
+                                        />
+                                        <Box
+                                          sx={{
+                                            cursor: 'pointer',
+                                            position: 'absolute',
+                                            top: 0,
+                                            right: 0,
+                                            zIndex: 10,
+                                            height: '24px',
+                                            borderRadius: 0.4,
+                                            backgroundColor: theme.palette.customColors.secondaryBg
+                                          }}
+                                        >
+                                          {/* <Icon
+                                            icon='material-symbols-light:close'
+                                            color='#fff'
+                                            // onClick={() => removeSelectedImage(index)}
+                                          ></Icon> */}
+                                        </Box>
+                                      </Box>
+                                    </Box>
+                                  )}
+
+                                  <>
+                                    {imgSrc?.length > 0 &&
+                                      imgSrc?.map((img, index) => (
+                                        <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                                          <Box
+                                            sx={{
+                                              position: 'relative',
+                                              backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                              borderRadius: '10px',
+                                              height: 121,
+                                              padding: '10.5px',
+                                              boxSizing: 'border-box'
+                                            }}
+                                          >
+                                            <img
+                                              style={{
+                                                aspectRatio: 2 / 2,
+                                                height: '100%',
+                                                borderRadius: '5%'
+                                              }}
+                                              alt='image'
+                                              src={img.startsWith('data:image/') ? img : '/icons/document_icon.png'}
+                                            />
+                                            <Box
+                                              sx={{
+                                                cursor: 'pointer',
+                                                position: 'absolute',
+                                                top: 0,
+                                                right: 0,
+                                                zIndex: 10,
+                                                height: '24px',
+                                                borderRadius: 0.4,
+                                                backgroundColor: theme.palette.customColors.secondaryBg
+                                              }}
+                                            >
+                                              <Icon
+                                                icon='material-symbols-light:close'
+                                                color='#fff'
+                                                onClick={() => removeSelectedImage(index)}
+                                              >
+                                                {' '}
+                                              </Icon>
+                                            </Box>
+                                          </Box>
+                                        </Box>
+                                      ))}
+                                  </>
+                                </Stack>
+                              </Grid>
+                            </Grid>
                           </CardContent>
                         </Card>
                       </Grid>
