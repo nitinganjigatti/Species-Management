@@ -3,16 +3,18 @@ import { Card, Box, Typography, debounce, Avatar, IconButton, Button, Breadcrumb
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import Router from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import ErrorScreen from 'src/pages/Error'
 
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -36,6 +38,10 @@ const NurseryDetails = () => {
 
   const router = useRouter()
   const { id } = router.query
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   // console.log('rows >>', rows)
   // console.log('Paginate>', paginationModel)
@@ -65,7 +71,9 @@ const NurseryDetails = () => {
   }
 
   useEffect(() => {
-    fetchNurseryById()
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchNurseryById()
+    }
   }, [])
 
   // console.log('Id >>', editNurseryId)
@@ -108,7 +116,9 @@ const NurseryDetails = () => {
   // console.log('Nursery Details >>', nurseryData)
 
   useEffect(() => {
-    fetchTableData(searchValue, sortColumn)
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchTableData(searchValue, sortColumn)
+    }
   }, [fetchTableData])
 
   const searchTableData = useCallback(
@@ -349,128 +359,138 @@ const NurseryDetails = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Egg
-        </Typography>
+      {egg_nursery_permission || egg_collection_permission ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Egg
+            </Typography>
 
-        <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
-          Nursery List
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Nursery Details
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        {/* <CardHeader title={'Nursery Details'} action={headerAction} /> */}
-        <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <Icon
-              style={{ cursor: 'pointer', fontSize: '24px' }}
-              onClick={() => Router.push('/egg/nursery')}
-              color={theme.palette.customColors.OnSurfaceVariant}
-              icon='material-symbols:arrow-back'
-            />
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontWeight: 500,
-                fontSize: '24px',
-                lineHeight: '29.05px'
-              }}
-            >
+            <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
+              Nursery List
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
               Nursery Details
             </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            {' '}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+          </Breadcrumbs>
+          <Card>
+            {/* <CardHeader title={'Nursery Details'} action={headerAction} /> */}
+            <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <Icon
-                  icon='mdi:pencil-outline'
-                  fontSize={28}
+                  style={{ cursor: 'pointer', fontSize: '24px' }}
+                  onClick={() => Router.push('/egg/nursery')}
                   color={theme.palette.customColors.OnSurfaceVariant}
-                  onClick={() => setOpenDrawer(true)}
+                  icon='material-symbols:arrow-back'
                 />
-              </IconButton>
-              <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-                <Icon icon='mdi:add' fontSize={20} />
-                &nbsp; ADD ROOM
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-        <Box sx={{ px: '16px', my: '12px' }}>
-          <DetailCard
-            title='Nursery Details'
-            ButtonName={'ADD ROOM'}
-            DetailsListData={nurseryData}
-            setOpenDrawer={setOpenDrawer}
-          />{' '}
-        </Box>
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontWeight: 500,
+                    fontSize: '24px',
+                    lineHeight: '29.05px'
+                  }}
+                >
+                  Nursery Details
+                </Typography>
+              </Box>
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          disableMultipleColumnsSorting={true}
-          columns={columns}
-          sortingMode='server'
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          onPaginationModelChange={setPaginationModel}
-          rowHeight={64}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={onCellClick}
-        />
-        {openDrawer && (
-          <NurserySlider
-            openDrawer={openDrawer}
-            setOpenDrawer={setOpenDrawer}
-            editName={editName}
-            fetchTableData={fetchTableData}
-            callApi={fetchNurseryById}
-            editSite={editSite}
-            editSiteName={editSiteName}
-            editNurseryId={editNurseryId}
-          />
-        )}
-        <AddIncubatorRoom
-          callTableApi={fetchTableData}
-          callApi={fetchNurseryById}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          isPreFilled={isPreFilled}
-        />
-      </Card>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                {' '}
+                {egg_nursery_permission && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
+                      <Icon
+                        icon='mdi:pencil-outline'
+                        fontSize={28}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                        onClick={() => setOpenDrawer(true)}
+                      />
+                    </IconButton>
+                    <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+                      <Icon icon='mdi:add' fontSize={20} />
+                      &nbsp; ADD ROOM
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+            <Box sx={{ px: '16px', my: '12px' }}>
+              <DetailCard
+                title='Nursery Details'
+                ButtonName={'ADD ROOM'}
+                DetailsListData={nurseryData}
+                setOpenDrawer={setOpenDrawer}
+              />{' '}
+            </Box>
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              disableMultipleColumnsSorting={true}
+              columns={columns}
+              sortingMode='server'
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              onPaginationModelChange={setPaginationModel}
+              rowHeight={64}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+            {openDrawer && (
+              <NurserySlider
+                openDrawer={openDrawer}
+                setOpenDrawer={setOpenDrawer}
+                editName={editName}
+                fetchTableData={fetchTableData}
+                callApi={fetchNurseryById}
+                editSite={editSite}
+                editSiteName={editSiteName}
+                editNurseryId={editNurseryId}
+              />
+            )}
+            <AddIncubatorRoom
+              callTableApi={fetchTableData}
+              callApi={fetchNurseryById}
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              isPreFilled={isPreFilled}
+            />
+          </Card>
+        </>
+      ) : (
+        <>
+          <ErrorScreen></ErrorScreen>
+        </>
+      )}
     </>
   )
 }

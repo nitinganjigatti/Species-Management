@@ -264,6 +264,7 @@ const AddIncubators = ({
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
+              alignItems: 'center',
               px: '20px',
               bgcolor: 'background.default',
               height: '80px',
@@ -422,6 +423,7 @@ const AddIncubators = ({
                           return onChange('')
                         } else {
                           setDefaultRoom(val)
+
                           // console.log('val', val)
                           setValue('room', '')
 
