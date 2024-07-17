@@ -235,7 +235,7 @@ const BatchDetails = ({ params, searchParams }) => {
   useEffect(() => {
     if (type === 'reportedBatch') {
       setDropdownOptions([
-        { value: 'yet_to_submitted', label: 'Yet to Submitted' },
+        { value: 'yet_to_submitted', label: 'Yet to Submit' },
         { value: 'submitted', label: 'Submitted' }
       ])
     } else {
