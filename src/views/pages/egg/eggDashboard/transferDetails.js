@@ -200,7 +200,7 @@ const TransferDetails = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '90%'
+                  width: '80%'
                 }}
               >
                 {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
@@ -220,7 +220,7 @@ const TransferDetails = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '90%'
+                  width: '80%'
                 }}
               >
                 {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
@@ -247,7 +247,7 @@ const TransferDetails = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '90%'
+              width: '80%'
             }}
           >
             {params.row.from_site_name ? params.row.from_site_name : '-'}
@@ -295,7 +295,7 @@ const TransferDetails = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '90%'
+              width: '80%'
             }}
           >
             {params.row.to_site_name ? params.row.to_site_name : '-'}
@@ -344,7 +344,7 @@ const TransferDetails = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '90%'
+              width: '80%'
             }}
           >
             {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}
@@ -683,6 +683,10 @@ const TransferDetails = () => {
           },
           '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeaderCheckbox)': {
             paddingLeft: 2.5
+          },
+          '& .css-1fdlktf-MuiDataGrid-columnHeaders': {
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0
           }
         }}
         columnVisibilityModel={{
@@ -694,6 +698,7 @@ const TransferDetails = () => {
         pagination
         rows={indexedRows === undefined ? [] : indexedRows}
         rowCount={total}
+        rowHeight={72}
         columns={columns}
         sortingMode='server'
         paginationMode='server'

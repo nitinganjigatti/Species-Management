@@ -53,55 +53,7 @@ const Species = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.16,
-      Width: 40,
-      field: 'assigned_status',
-      headerName: 'STATUS',
-      sortable: false,
-      renderCell: params => (
-        <Tooltip title={params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}>
-          <Typography
-            sx={{
-              lineHeight: '16.94px',
-              letterSpacing: '0.1px',
-              color:
-                params.row.assigned_status === 'COMPLETED'
-                  ? theme.palette.primary.main
-                  : params.row.assigned_status === 'CANCELLED'
-                  ? '#fa6140'
-                  : params.row.assigned_status === 'IN_PROGRESS'
-                  ? '#00AFD6'
-                  : //   : params.row.assigned_status === 'Broken'
-                    //   ? '#fa6140'
-                    null,
-              fontSize: '14px',
-              fontWeight: '500',
-              p: '4px 8px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              width: '90%',
-              backgroundColor:
-                params.row.assigned_status === 'COMPLETED'
-                  ? '#E1F9ED'
-                  : params.row.assigned_status === 'CANCELLED'
-                  ? '#FFD3D3'
-                  : params.row.assigned_status === 'IN_PROGRESS'
-                  ? '#AFEFEB80'
-                  : //   : params.row.assigned_status === 'Thin-Shelled'
-                    //   ? '#FFD3D3'
-                    '#E1F9ED',
 
-              textAlign: 'center',
-              borderRadius: '4px'
-            }}
-          >
-            {params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}
-          </Typography>
-        </Tooltip>
-      )
-    },
     {
       flex: 0.24,
       minWidth: 60,
@@ -129,18 +81,19 @@ const Species = () => {
             )}
           </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  lineHeight: '16.94px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '90%'
+                  width: '110px',
+                  boxSizing: 'border-box'
                 }}
               >
                 {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
@@ -160,7 +113,7 @@ const Species = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '90%'
+                  width: '110px'
                 }}
               >
                 {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
@@ -173,74 +126,96 @@ const Species = () => {
     {
       flex: 0.2,
       minWidth: 10,
-      field: 'from_site_name',
+      field: 'total_eggs',
       sortable: false,
-      headerName: 'TRANSFORMED FROM',
-      renderCell: params => (
-        <Tooltip title={params.row.from_site_name ? params.row.from_site_name : '-'}>
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              width: '90%'
-            }}
-          >
-            {params.row.from_site_name ? params.row.from_site_name : '-'}
-          </Typography>
-        </Tooltip>
-      )
-    },
-
-    {
-      flex: 0.15,
-      minWidth: 10,
-      sortable: false,
-      field: 'transfered_on',
-      headerName: 'DATE',
+      headerName: 'TOTAL EGGS',
       renderCell: params => (
         <Typography
-          sx={{
+          style={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '400',
             lineHeight: '19.36px'
           }}
         >
-          {params.row.transfered_on
-            ? moment(moment.utc(params.row.transfered_on).toDate().toLocaleString()).format('DD MMM YYYY')
-            : '-'}
+          {params.row.total_eggs ? params.row.total_eggs : '-'}
         </Typography>
       )
     },
-
     {
-      flex: 0.16,
-      minWidth: 20,
+      flex: 0.2,
+      minWidth: 10,
+      field: 'total_egg_in_nest',
       sortable: false,
-      field: 'to_site_name',
-      headerName: 'RECEIVING AT',
+      headerName: 'IN NEST',
       renderCell: params => (
-        <Tooltip title={params.row.to_site_name ? params.row.to_site_name : '-'}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              width: '90%'
-            }}
-          >
-            {params.row.to_site_name ? params.row.to_site_name : '-'}
-          </Typography>
-        </Tooltip>
+        <Typography
+          style={{
+            color: '#000',
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 10,
+      field: 'total_eggs_in_nursery',
+      sortable: false,
+      headerName: 'IN NURSERY',
+      renderCell: params => (
+        <Typography
+          style={{
+            color: '#00AFD6',
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.total_eggs_in_nursery ? params.row.total_eggs_in_nursery : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 10,
+      field: 'total_hatched_eggs',
+      sortable: false,
+      headerName: 'GOOD CONDITION',
+      renderCell: params => (
+        <Typography
+          style={{
+            color: theme.palette.primary.main,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.total_hatched_eggs ? params.row.total_hatched_eggs : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 10,
+      field: 'total_discarded_eggs',
+      sortable: false,
+      headerName: 'DISCARDED',
+      renderCell: params => (
+        <Typography
+          style={{
+            color: theme.palette.formContent.tertiary,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.total_discarded_eggs ? params.row.total_discarded_eggs : '-'}
+        </Typography>
       )
     },
 
@@ -261,35 +236,8 @@ const Species = () => {
         >
           {params.row.created_at
             ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-            : '-'}
+            : '10 Apr 2024'}
         </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      sortable: false,
-      field: 'nursery_name',
-      headerName: 'NURSERY',
-      renderCell: params => (
-        <Tooltip title={params.row?.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
-          <Typography
-            noWrap
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: '500',
-              lineHeight: '16.94px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              width: '90%'
-            }}
-          >
-            {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}
-          </Typography>
-        </Tooltip>
       )
     }
   ]
@@ -622,6 +570,10 @@ const Species = () => {
           },
           '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeaderCheckbox)': {
             paddingLeft: 2.5
+          },
+          '& .css-1fdlktf-MuiDataGrid-columnHeaders': {
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0
           }
         }}
         columnVisibilityModel={{
@@ -633,6 +585,7 @@ const Species = () => {
         pagination
         rows={indexedRows === undefined ? [] : indexedRows}
         rowCount={total}
+        rowHeight={68}
         columns={columns}
         sortingMode='server'
         paginationMode='server'
