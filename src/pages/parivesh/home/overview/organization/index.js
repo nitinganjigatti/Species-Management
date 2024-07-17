@@ -193,7 +193,7 @@ const Organization = () => {
       flex: 0.6,
       minWidth: 60,
       field: 'user_name',
-      headerName: 'CREATED BY',
+      headerName: 'submitted by',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -208,10 +208,10 @@ const Organization = () => {
               overflow: 'hidden'
             }}
           >
-            {params.row.created_by_user?.profile_pic ? (
+            {params.row.submitted_by_user?.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
+                src={params.row.submitted_by_user?.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -220,11 +220,11 @@ const Organization = () => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
               {console.log(params.row, 'params.row')}
-              {params.row.created_on ? moment.utc(params.row.created_on).format('DD MMMM YYYY') : '-'}
+              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import moment from 'moment'
 import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, Typography, debounce } from '@mui/material'
+import { Avatar, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/system'
 import Router, { useRouter } from 'next/router'
@@ -146,9 +146,11 @@ const SubmittedBatches = ({ searchParams, type }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : '-'}
-            </Typography>
+            <Tooltip title={params.row.registration_id || '-'}>
+              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+                {params.row.registration_id ? params.row.registration_id : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
@@ -284,9 +286,9 @@ const SubmittedBatches = ({ searchParams, type }) => {
             sx={{
               color:
                 params.row.status === 'submitted'
-                  ? '#37BD69'
-                  : params.row.status === 'accepted'
                   ? '#00AFD6'
+                  : params.row.status === 'accepted'
+                  ? '#37BD69'
                   : '#E93353',
               fontSize: 14
             }}
