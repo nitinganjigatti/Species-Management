@@ -411,7 +411,7 @@ const NewEntry = ({}) => {
       headerName: 'DATE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('D MMMM YYYY') : '-'}
+          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
         </Typography>
       )
     },
@@ -965,7 +965,7 @@ const NewEntry = ({}) => {
               </Typography>
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')
+                  ? moment.utc(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')
                   : ''}
               </Typography>
             </Grid>

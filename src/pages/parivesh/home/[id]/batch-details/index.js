@@ -377,7 +377,7 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
         </Typography>
       )
     }
@@ -653,7 +653,11 @@ const BatchDetails = ({ params, searchParams }) => {
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
                   Date of Submitted:{' '}
-                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.submitted_on).format('DD/MM/YYYY')}</span>
+                  <span style={{ color: '#37BD69' }}>
+                    {batchDetails?.submitted_on !== null
+                      ? moment.utc(batchDetails?.submitted_on).format('DD MMMM YYYY')
+                      : 'NA'}
+                  </span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -666,7 +670,9 @@ const BatchDetails = ({ params, searchParams }) => {
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
                   Batch Created:{' '}
-                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.created_on).format('DD/MM/YYYY')}</span>
+                  <span style={{ color: '#37BD69' }}>
+                    {moment.utc(batchDetails?.created_on).format('DD MMMM YYYY')}
+                  </span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -679,7 +685,12 @@ const BatchDetails = ({ params, searchParams }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
+                  {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+                  <span style={{ color: '#37BD69' }}>
+                    {type === 'reportedBatch'
+                      ? batchDetails?.created_by_user?.user_name
+                      : batchDetails?.submitted_by_user?.user_name}
+                  </span>
                 </Typography>
               </Grid>
               {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (

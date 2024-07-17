@@ -176,10 +176,10 @@ const SubmittedBatches = ({ searchParams, type }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('D MMMM YYYY') : '-'}
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('D MMMM YYYY') : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#00AFD6', fontSize: '12px' }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('hh:mm A') : '-'}
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).local().format('hh:mm A') : '-'}
           </Typography>
         </Box>
       )
@@ -220,7 +220,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
               {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
@@ -299,7 +299,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
               : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
