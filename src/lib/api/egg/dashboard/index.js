@@ -19,6 +19,13 @@ export async function getTransferList(params) {
     params: params
   })
 }
+
+export async function getSpeciesList(params) {
+  return await axiosGet({
+    url: `${EGG}/get-species-list`,
+    params: params
+  })
+}
 // export async function addIncubator(payload) {
 //   try {
 //     const response = await axiosPost({ url: `${EGG}/${NURSERY}/${INCUBATOR}/${ADD}`, body: payload })

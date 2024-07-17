@@ -1,4 +1,4 @@
-import { Autocomplete, Avatar, FormControl, Grid, TextField, Typography } from '@mui/material'
+import { Autocomplete, Avatar, Breadcrumbs, FormControl, Grid, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -48,6 +48,33 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <Breadcrumbs aria-label='breadcrumb' sx={{}}>
+        <Typography
+          sx={{
+            // cursor: 'pointer',
+            fontWeight: 400,
+            fontSize: '16px',
+            lineHeight: '24px',
+            letterSpacing: '0.15px',
+            color: '#44544A61'
+          }}
+        >
+          Egg
+        </Typography>
+
+        <Typography
+          sx={{
+            cursor: 'pointer',
+            fontWeight: 400,
+            fontSize: '16px',
+            lineHeight: '24px',
+            letterSpacing: '0.15px',
+            color: '#44544ADE'
+          }}
+        >
+          Dashboard
+        </Typography>
+      </Breadcrumbs>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
           <Grid item sm={5} md={2} xl={2}>

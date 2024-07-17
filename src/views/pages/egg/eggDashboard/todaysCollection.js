@@ -140,7 +140,7 @@ const TodaysCollection = () => {
             item
             xl={2.985}
           >
-            <Box sx={{ display: 'flex' }}>
+            <Box sx={{ display: 'flex', gap: '5px' }}>
               <Typography
                 sx={{
                   fontWeight: 500,

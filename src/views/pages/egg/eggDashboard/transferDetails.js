@@ -17,12 +17,13 @@ import { getTransferList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import Utility from 'src/utility'
 
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
   const [defaultSite, setDefaultSite] = useState(null)
-  const [transfertList, setTransfertList] = useState([])
+  const [transferList, setTransferList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [searchValue, setSearchValue] = useState('')
@@ -30,16 +31,6 @@ const TransferDetails = () => {
 
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
-
-  function toPascalCase(str) {
-    return str
-      .replace(/[-_]+/g, ' ') // Replace hyphens and underscores with spaces
-      .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-      .trim() // Trim leading and trailing spaces
-      .split(' ') // Split the string into words
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-      .join(' ') // Join the words with a space
-  } // Another Example String
 
   const columns = [
     {
@@ -63,13 +54,73 @@ const TransferDetails = () => {
       )
     },
     {
+      flex: 0.15,
+      minWidth: 10,
+      field: 'egg_number',
+      sortable: false,
+      headerName: 'EGG NUMBER',
+      align: 'center',
+      renderCell: params => (
+        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '500'
+
+              // lineHeight: '19.36px'
+            }}
+          >
+            {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>{' '}
+          <Typography
+            sx={{
+              color:
+                params.row.egg_condition === 'Intact'
+                  ? theme.palette.primary.main
+                  : params.row.egg_condition === 'Rotten'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#fa6140'
+                  : params.row.egg_condition === 'Hatched'
+                  ? '#32bfdd'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#fa6140'
+                  : null,
+              fontSize: '14px',
+              fontWeight: '500',
+              px: 3,
+
+              backgroundColor:
+                params.row.egg_condition === 'Rotten'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#FFD3D3'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#FFD3D3'
+                  : '#E1F9ED',
+
+              textAlign: 'center',
+              borderRadius: '4px'
+            }}
+          >
+            {params.row.egg_condition ? params.row.egg_condition : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
       flex: 0.16,
       Width: 40,
       field: 'assigned_status',
       headerName: 'STATUS',
       sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.assigned_status ? toPascalCase(params.row.assigned_status) : '-'}>
+        <Tooltip title={params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}>
           <Typography
             sx={{
               lineHeight: '16.94px',
@@ -106,7 +157,7 @@ const TransferDetails = () => {
               borderRadius: '4px'
             }}
           >
-            {params.row.assigned_status ? toPascalCase(params.row.assigned_status) : '-'}
+            {params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}
           </Typography>
         </Tooltip>
       )
@@ -139,7 +190,7 @@ const TransferDetails = () => {
           </Avatar>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+            <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
@@ -152,10 +203,14 @@ const TransferDetails = () => {
                   width: '90%'
                 }}
               >
-                {params.row.complete_name ? params.row.complete_name : '-'}
+                {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
               </Typography>
             </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
+            <Tooltip
+              title={
+                params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
+              }
+            >
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
@@ -168,7 +223,7 @@ const TransferDetails = () => {
                   width: '90%'
                 }}
               >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
+                {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
               </Typography>
             </Tooltip>
           </Box>
@@ -202,7 +257,7 @@ const TransferDetails = () => {
     },
 
     {
-      flex: 0.15,
+      flex: 0.14,
       minWidth: 10,
       sortable: false,
       field: 'transfered_on',
@@ -250,7 +305,7 @@ const TransferDetails = () => {
     },
 
     {
-      flex: 0.16,
+      flex: 0.14,
       minWidth: 10,
       sortable: false,
       field: 'created_at',
@@ -278,7 +333,7 @@ const TransferDetails = () => {
       field: 'nursery_name',
       headerName: 'NURSERY',
       renderCell: params => (
-        <Tooltip title={params.row?.nursery_name ? params.row?.nursery_name : '-'}>
+        <Tooltip title={params.row?.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
           <Typography
             noWrap
             sx={{
@@ -292,7 +347,7 @@ const TransferDetails = () => {
               width: '90%'
             }}
           >
-            {params.row.nursery_name ? params.row.nursery_name : '-'}
+            {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}
           </Typography>
         </Tooltip>
       )
@@ -337,11 +392,11 @@ const TransferDetails = () => {
               return { ...el, id: i + 1 }
             })
             setTotal(parseInt(res?.data?.data?.total_count))
-            setTransfertList(loadServerRows(paginationModel.page, listWithId))
+            setTransferList(loadServerRows(paginationModel.page, listWithId))
             setLoading(false)
           } else {
             setLoading(false)
-            setTransfertList([])
+            setTransferList([])
           }
         })
         setLoading(false)
@@ -375,14 +430,14 @@ const TransferDetails = () => {
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = transfertList?.map((row, index) => ({
+  const indexedRows = transferList?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
   const handleSortModel = newModel => {}
   useEffect(() => {
-    console.log('newDate', tillDate)
+    // console.log('newDate', tillDate)
   }, [tillDate])
 
   return (
@@ -390,6 +445,7 @@ const TransferDetails = () => {
       sx={{
         backgroundColor: '#fff',
         padding: '24px',
+        paddingBottom: '0px',
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
