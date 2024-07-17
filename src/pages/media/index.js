@@ -217,7 +217,7 @@ const Media = () => {
     } else if (moment(date).isSame(yesterday, 'day')) {
       return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
     } else {
-      return moment(date).format('DD MMMM YYYY')
+      return moment.utc(date).format('DD MMMM YYYY')
     }
   }
 
@@ -251,7 +251,27 @@ const Media = () => {
                       Media
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
+                  <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end'>
+                    <Grid item>
+                      <Button
+                        size='large'
+                        variant='outlined'
+                        sx={{ color: '#7A8684', cursor: 'pointer' }}
+                        {...getRootProps()}
+                        disabled={btnLoader}
+                      >
+                        {btnLoader ? (
+                          <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                        ) : (
+                          <Icon icon='ic:outline-file-upload' />
+                        )}
+                        &nbsp; Upload File
+                        <input {...getInputProps()} />
+                      </Button>
+                    </Grid>
+                  </Grid>
+
+                  {/* <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
                     <Grid item xs={12} sm={4}>
                       <Select
                         size='small'
@@ -261,7 +281,7 @@ const Media = () => {
                         fullWidth
                       >
                         <MenuItem value='all'>All Dates</MenuItem>
-                        {/* Add more date filter options as needed */}
+                       
                       </Select>
                     </Grid>
                     <Grid item xs={12} sm={4}>
@@ -273,7 +293,6 @@ const Media = () => {
                         fullWidth
                       >
                         <MenuItem value='all'>All Types</MenuItem>
-                        {/* Add more file type filter options as needed */}
                       </Select>
                     </Grid>
                     <Grid item xs={12} sm={4}>
@@ -295,9 +314,9 @@ const Media = () => {
                         />
                       </FormControl>
                     </Grid>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
-                <Grid item xs={12} sm={4} mt={6} sx={{ display: 'flex', justifyContent: 'start' }}>
+                {/* <Grid item xs={12} sm={4} mt={6} sx={{ display: 'flex', justifyContent: 'start' }}>
                   <Button
                     size='large'
                     variant='outlined'
@@ -313,7 +332,7 @@ const Media = () => {
                     &nbsp; Upload File
                     <input {...getInputProps()} />
                   </Button>
-                </Grid>
+                </Grid> */}
               </Card>
 
               <Grid container spacing={4}>
@@ -405,7 +424,7 @@ const Media = () => {
                               <CardContent
                                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
                               >
-                                <Box>{moment(media?.created_at).format('hh:mm A')}</Box>
+                                <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box>
                               </CardContent>
                             </Card>
                           </Grid>
