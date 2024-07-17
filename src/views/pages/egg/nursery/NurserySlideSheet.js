@@ -25,9 +25,9 @@ import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
 const schema = yup.object().shape({
-  nursery_name: yup.string().required('Nursery Name is required').trim().strict(true).min(1, 'Add Nursery Name'),
+  nursery_name: yup.string().required('Nursery name is required').trim().strict(true).min(1, 'Add nursery name'),
 
-  site_id: yup.string().required('Select Site')
+  site_id: yup.string().required('Select site')
 })
 
 const NurserySlider = ({
@@ -52,7 +52,7 @@ const NurserySlider = ({
   }
 
   const schema = yup.object().shape({
-    nursery_name: yup.string().trim().required('Nursery Name is required'),
+    nursery_name: yup.string().trim().required('Nursery name is required'),
 
     site_id: yup.string().required('Site is required')
   })
