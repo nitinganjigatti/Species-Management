@@ -294,7 +294,7 @@ const ReportedBatches = ({ searchParams, type }) => {
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+              {params.row.created_on ? moment.utc(params.row.created_on).format('DD MMMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>

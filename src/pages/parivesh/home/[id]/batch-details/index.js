@@ -235,7 +235,7 @@ const BatchDetails = ({ params, searchParams }) => {
   useEffect(() => {
     if (type === 'reportedBatch') {
       setDropdownOptions([
-        { value: 'yet_to_submitted', label: 'Yet to Submitted' },
+        { value: 'yet_to_submitted', label: 'Yet to Submit' },
         { value: 'submitted', label: 'Submitted' }
       ])
     } else {
@@ -377,7 +377,7 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
         </Typography>
       )
     }
@@ -473,50 +473,39 @@ const BatchDetails = ({ params, searchParams }) => {
   //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
   //   },
   //   onDrop: async acceptedFiles => {
-  //     // acceptedFiles.forEach(file => {
-  //     //   const reader = new FileReader()
-  //     //   reader.onload = () => {
-  //     //     setFilePreviews(prev => [
-  //     //       ...prev,
-  //     //       {
-  //     //         file,
-  //     //         preview: file.type.startsWith('image') ? reader.result : null
-  //     //       }
-  //     //     ])
-  //     //   }
-  //     //   reader.readAsDataURL(file)
-  //     // })
+  //     console.log(acceptedFiles, 'acceptedFiles')
 
-  //     console.log(reader.result, 'reader.result')
+  //     const totalFiles = acceptedFiles?.length + filePreviews?.length
+  //     if (totalFiles > 3) {
+  //       Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
+  //       return
+  //     }
+
   //     try {
-  //       setBtnLoader(true) // Show loader
-
-  //       // Process each dropped file
+  //       setAttachmentLoader(true) // Show loader
   //       for (const file of acceptedFiles) {
   //         const payload = {
   //           batch_id: batchDetails?.batch_id,
   //           status: batchDetails?.status,
-  //           batch_attachment: file
+  //           batch_attachment: [file]
   //         }
 
   //         // Call your upload API function with formData
   //         const res = await uploadAttachmentForBatch(payload)
-
-  //         console.log(res?.data, 'uploadFile')
-
+  //         console.log(res, 'uploadFile')
   //         // Handle API response
-  //         if (res?.success) {
-  //           const msg = res?.data.length > 0 ? res?.data : res?.message
-  //           Toaster({ type: 'success', message: msg })
+  //         if (res?.success && res?.data?.length > 0) {
+  //           Toaster({ type: 'success', message: res?.message })
+  //           // After successful upload, fetch updated batch details
+  //           await getBatchListById(batchDetails?.batch_id)
   //         } else {
   //           Toaster({ type: 'error', message: res?.message })
   //         }
   //       }
-
-  //       setBtnLoader(false) // Hide loader after processing files
+  //       setAttachmentLoader(false) // Hide loader after processing files
   //     } catch (error) {
   //       console.error('Error uploading files:', error)
-  //       setBtnLoader(false) // Hide loader on error
+  //       setAttachmentLoader(false) // Hide loader on error
   //     }
   //   }
   // })
@@ -542,6 +531,9 @@ const BatchDetails = ({ params, searchParams }) => {
 
       try {
         setAttachmentLoader(true) // Show loader
+        let successCount = 0 // Track successful uploads count
+        let message = ''
+
         for (const file of acceptedFiles) {
           const payload = {
             batch_id: batchDetails?.batch_id,
@@ -552,15 +544,22 @@ const BatchDetails = ({ params, searchParams }) => {
           // Call your upload API function with formData
           const res = await uploadAttachmentForBatch(payload)
           console.log(res, 'uploadFile')
+
           // Handle API response
           if (res?.success && res?.data?.length > 0) {
-            Toaster({ type: 'success', message: res?.message })
-            // After successful upload, fetch updated batch details
+            successCount++ // Increment successful uploads count
+            message = res?.message
+
             await getBatchListById(batchDetails?.batch_id)
           } else {
             Toaster({ type: 'error', message: res?.message })
           }
         }
+
+        if (successCount === acceptedFiles.length) {
+          Toaster({ type: 'success', message: message })
+        }
+
         setAttachmentLoader(false) // Hide loader after processing files
       } catch (error) {
         console.error('Error uploading files:', error)
@@ -653,7 +652,11 @@ const BatchDetails = ({ params, searchParams }) => {
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
                   Date of Submitted:{' '}
-                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.submitted_on).format('DD/MM/YYYY')}</span>
+                  <span style={{ color: '#37BD69' }}>
+                    {batchDetails?.submitted_on !== null
+                      ? moment.utc(batchDetails?.submitted_on).format('DD MMMM YYYY')
+                      : 'NA'}
+                  </span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -666,7 +669,9 @@ const BatchDetails = ({ params, searchParams }) => {
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
                   Batch Created:{' '}
-                  <span style={{ color: '#37BD69' }}>{moment(batchDetails?.created_on).format('DD/MM/YYYY')}</span>
+                  <span style={{ color: '#37BD69' }}>
+                    {moment.utc(batchDetails?.created_on).format('DD MMMM YYYY')}
+                  </span>
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
@@ -679,7 +684,12 @@ const BatchDetails = ({ params, searchParams }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Submitted By: <span style={{ color: '#37BD69' }}>{batchDetails?.submitted_by_user?.user_name}</span>
+                  {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+                  <span style={{ color: '#37BD69' }}>
+                    {type === 'reportedBatch'
+                      ? batchDetails?.created_by_user?.user_name
+                      : batchDetails?.submitted_by_user?.user_name}
+                  </span>
                 </Typography>
               </Grid>
               {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
