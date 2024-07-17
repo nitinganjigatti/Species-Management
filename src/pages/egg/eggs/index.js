@@ -1381,7 +1381,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.is_sample_collected ? 'Not Yet' : 'NA'}
+              {params.row.is_necropsy_needed === '1' ? 'Not Yet' : 'NA'}
             </Typography>
           ) : (
             <Typography
