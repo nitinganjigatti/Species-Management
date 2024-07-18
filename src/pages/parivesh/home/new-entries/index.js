@@ -247,7 +247,7 @@ const NewEntry = ({}) => {
       setIsModalOpen(false)
       const response = await deleteSpeciesToOrganization(selectedId, payload)
       if (response.success === true) {
-        Toaster({ type: 'success', message: `Species ${selectedId} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Species has been successfully deleted` })
         // Reload the table data
         fetchTableData(sort, searchValue, sortColumn)
       } else {

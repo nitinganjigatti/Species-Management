@@ -141,7 +141,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       setIsModalOpen(false)
       const response = await deleteBatchToOrg(payload, selectedId)
       if (response.success === true) {
-        Toaster({ type: 'success', message: `Batch ${selectedId} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Batch has been successfully deleted` })
         // Reload the table data
         fetchTableData(sortBy, searchValue, sortColumn)
       } else {
