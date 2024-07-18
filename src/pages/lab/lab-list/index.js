@@ -272,7 +272,7 @@ const ListOfLab = () => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              // onPaginationModelChange={handlePaginationModelChange}
+              onPaginationModelChange={setPaginationModel}
               loading={loading}
               onCellClick={onCellClick}
               slotProps={{
