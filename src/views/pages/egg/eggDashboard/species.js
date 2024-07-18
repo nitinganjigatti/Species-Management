@@ -38,6 +38,7 @@ const Species = () => {
       Width: 40,
       field: 'uid',
       headerName: 'NO',
+      disableColumnMenu: true,
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -58,6 +59,7 @@ const Species = () => {
       flex: 0.24,
       minWidth: 60,
       sortable: false,
+      disableColumnMenu: true,
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
@@ -128,6 +130,7 @@ const Species = () => {
       minWidth: 10,
       field: 'total_eggs',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
         <Typography
@@ -147,6 +150,7 @@ const Species = () => {
       minWidth: 10,
       field: 'total_egg_in_nest',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'IN NEST',
       renderCell: params => (
         <Typography
@@ -166,6 +170,7 @@ const Species = () => {
       minWidth: 10,
       field: 'total_eggs_in_nursery',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'IN NURSERY',
       renderCell: params => (
         <Typography
@@ -185,6 +190,7 @@ const Species = () => {
       minWidth: 10,
       field: 'total_hatched_eggs',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'GOOD CONDITION',
       renderCell: params => (
         <Typography
@@ -204,6 +210,7 @@ const Species = () => {
       minWidth: 10,
       field: 'total_discarded_eggs',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'DISCARDED',
       renderCell: params => (
         <Typography
@@ -223,6 +230,7 @@ const Species = () => {
       flex: 0.16,
       minWidth: 10,
       sortable: false,
+      disableColumnMenu: true,
       field: 'created_at',
       headerName: 'DATE',
       renderCell: params => (
@@ -397,8 +405,8 @@ const Species = () => {
                   '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
-                // value={value}
-                // onChange={onChange}
+                value={fromDate}
+                onChange={newDate => setFromDate(newDate)}
                 label={'From Date'}
                 maxDate={dayjs()}
               />
@@ -424,8 +432,8 @@ const Species = () => {
                   '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
-                // value={value}
-                // onChange={onChange}
+                value={tillDate}
+                onChange={newDate => setTilDate(newDate)}
                 label={'Till Date'}
                 maxDate={dayjs()}
               />

@@ -34,11 +34,12 @@ const TransferDetails = () => {
 
   const columns = [
     {
-      flex: 0.02,
+      flex: 0.07,
       Width: 40,
       field: 'uid',
       headerName: 'NO',
       sortable: false,
+      disableColumnMenu: true,
       align: 'center',
       renderCell: params => (
         <Typography
@@ -58,6 +59,7 @@ const TransferDetails = () => {
       minWidth: 10,
       field: 'egg_number',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'EGG NUMBER',
       align: 'center',
       renderCell: params => (
@@ -118,6 +120,7 @@ const TransferDetails = () => {
       Width: 40,
       field: 'assigned_status',
       headerName: 'STATUS',
+      disableColumnMenu: true,
       sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}>
@@ -166,6 +169,7 @@ const TransferDetails = () => {
       flex: 0.24,
       minWidth: 60,
       sortable: false,
+      disableColumnMenu: true,
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
@@ -235,6 +239,7 @@ const TransferDetails = () => {
       minWidth: 10,
       field: 'from_site_name',
       sortable: false,
+      disableColumnMenu: true,
       headerName: 'TRANSFORMED FROM',
       renderCell: params => (
         <Tooltip title={params.row.from_site_name ? params.row.from_site_name : '-'}>
@@ -260,6 +265,7 @@ const TransferDetails = () => {
       flex: 0.14,
       minWidth: 10,
       sortable: false,
+      disableColumnMenu: true,
       field: 'transfered_on',
       headerName: 'DATE',
       renderCell: params => (
@@ -282,6 +288,7 @@ const TransferDetails = () => {
       flex: 0.16,
       minWidth: 20,
       sortable: false,
+      disableColumnMenu: true,
       field: 'to_site_name',
       headerName: 'RECEIVING AT',
       renderCell: params => (
@@ -308,6 +315,7 @@ const TransferDetails = () => {
       flex: 0.14,
       minWidth: 10,
       sortable: false,
+      disableColumnMenu: true,
       field: 'created_at',
       headerName: 'DATE',
       renderCell: params => (
@@ -330,6 +338,7 @@ const TransferDetails = () => {
       flex: 0.2,
       minWidth: 20,
       sortable: false,
+      disableColumnMenu: true,
       field: 'nursery_name',
       headerName: 'NURSERY',
       renderCell: params => (
