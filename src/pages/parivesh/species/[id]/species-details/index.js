@@ -91,6 +91,7 @@ const SpeciesDetails = () => {
       minWidth: 30,
       field: 'image_type',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
           <Avatar
@@ -143,6 +144,7 @@ const SpeciesDetails = () => {
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.common_name || '-'}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
@@ -156,6 +158,7 @@ const SpeciesDetails = () => {
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.scientific_name || '-'}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -169,6 +172,7 @@ const SpeciesDetails = () => {
       minWidth: 10,
       field: 'gender_count',
       headerName: 'Gender / Count',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.gender
@@ -208,6 +212,7 @@ const SpeciesDetails = () => {
       minWidth: 30,
       field: 'transaction_date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>

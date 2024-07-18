@@ -145,6 +145,7 @@ const Organization = () => {
       minWidth: 30,
       field: 'registration_id',
       headerName: 'REGISTRATION ID',
+      sortable: false,
       renderCell: params => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
           {params.row.registration_id ? params.row.registration_id : '-'}
@@ -156,6 +157,7 @@ const Organization = () => {
       minWidth: 10,
       field: 'species_count',
       headerName: 'No. OF SPECIES',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.species_count ? params.row.species_count : '-'}
@@ -167,6 +169,7 @@ const Organization = () => {
       minWidth: 10,
       field: 'no_of_animals',
       headerName: 'NO. OF ANIMALS',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}
@@ -178,6 +181,7 @@ const Organization = () => {
       minWidth: 20,
       field: 'accepted_on',
       headerName: 'Approved DATE',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -194,6 +198,7 @@ const Organization = () => {
       minWidth: 60,
       field: 'user_name',
       headerName: 'submitted by',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -280,7 +285,7 @@ const Organization = () => {
             <DataGrid
               disableColumnMenu
               disableColumnFilter
-              // disableColumnSorting
+              disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'

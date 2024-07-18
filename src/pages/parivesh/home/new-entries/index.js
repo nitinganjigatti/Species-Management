@@ -275,6 +275,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'species_image',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
           {/* <Box className='relative h-20'>
@@ -305,6 +306,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.common_name || '-'}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
@@ -318,6 +320,7 @@ const NewEntry = ({}) => {
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.scientific_name || '-'}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -357,6 +360,7 @@ const NewEntry = ({}) => {
       minWidth: 10,
       field: 'gender',
       headerName: 'GENDER / COUNT',
+      sortable: false,
       renderCell: params => {
         let gender = params.row.gender ? params.row.gender : '-'
 
@@ -392,6 +396,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'possession_type',
       headerName: 'Category',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -409,6 +414,7 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'transaction_date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -425,6 +431,7 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
@@ -442,6 +449,7 @@ const NewEntry = ({}) => {
       flex: 0.4,
       minWidth: 20,
       field: 'checkbox',
+      sortable: false,
       headerName: (
         <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
       ),
