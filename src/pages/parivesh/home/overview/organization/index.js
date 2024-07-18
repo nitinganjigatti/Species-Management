@@ -155,7 +155,7 @@ const Organization = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'species_count',
-      headerName: '# OF SPECIES',
+      headerName: 'No. OF SPECIES',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.species_count ? params.row.species_count : '-'}
@@ -166,7 +166,7 @@ const Organization = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# OF ANIMALS',
+      headerName: 'NO. OF ANIMALS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}

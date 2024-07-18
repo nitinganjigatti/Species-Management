@@ -209,9 +209,17 @@ const SpeciesDetails = () => {
       field: 'transaction_date',
       headerName: 'DATE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
+          </Typography>
+          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+          </Typography>
+        </Box>
+        // <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        //   {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+        // </Typography>
       )
     }
   ]

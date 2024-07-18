@@ -159,7 +159,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# OF ANIMALS',
+      headerName: 'NO. OF ANIMALS',
       alignItems: 'left',
       sortable: false,
       renderCell: params => (

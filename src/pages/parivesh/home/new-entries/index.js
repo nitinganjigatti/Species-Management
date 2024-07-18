@@ -412,7 +412,7 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
             {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
@@ -901,15 +901,15 @@ const NewEntry = ({}) => {
             <IconButton
               aria-label='close'
               onClick={() => setIsEditModal(false)}
-              sx={{ top: 10, right: 0, position: 'absolute', color: 'grey.500' }}
+              sx={{ top: 10, right: 6, position: 'absolute', color: 'grey.500' }}
             >
               <Icon icon='mdi:close' />
             </IconButton>
 
             {/* Header with Avatar and details */}
-            <Grid item container alignItems='center' mt={3}>
-              <Avatar variant='square' />
-              <Typography sx={{ ml: 2 }}>Created By: {''}</Typography>
+            <Grid item container alignItems='center' mt={6}>
+              <Avatar variant='circular' src={detailData?.created_by_user?.profile_pic} />
+              <Typography sx={{ ml: 2 }}>Created By: {detailData?.created_by_user?.user_name}</Typography>
             </Grid>
 
             {/* Media details */}
@@ -970,7 +970,7 @@ const NewEntry = ({}) => {
               </Typography>
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment.utc(detailData?.transaction_date.split(' ')[0]).format('DD MMMM YYYY')
+                  ? moment.utc(detailData?.transaction_date).local().format('DD MMMM YYYY hh:mm A')
                   : ''}
               </Typography>
             </Grid>
