@@ -485,7 +485,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             // console.log('val', val)
                             setValue('incubator', '')
 
-                            return onChange(val.room_id)
+                            return onChange(val.incubator_id)
                           }
                         }}
                         renderInput={params => (
@@ -596,7 +596,6 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                   }*`}
                                   value={value}
                                   onChange={e => {
-                                    debugger
                                     const inputValue = e.target.value
                                     if (inputValue === '' || parseFloat(inputValue) >= 1) {
                                       onChange(e)
