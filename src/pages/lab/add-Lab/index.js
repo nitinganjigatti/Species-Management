@@ -1239,7 +1239,7 @@ const AddLab = () => {
                       </Grid>
                       <Grid item xs={12} md={12} sm={12}>
                         <Card>
-                          <CardHeader title='Upload LAB Picture' />
+                          <CardHeader title='Add Lab Picture' />
                           <CardContent>
                             {/* <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} /> */}
                             <Grid container>
@@ -1270,7 +1270,7 @@ const AddLab = () => {
                                 >
                                   <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
-                                  <Typography>Drop your image here</Typography>
+                                  <Typography>Drop your files here</Typography>
                                 </Box>
                               </Grid>
                               {/* )} */}

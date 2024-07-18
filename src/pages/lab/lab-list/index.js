@@ -32,7 +32,8 @@ const ListOfLab = () => {
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
   const authData = useContext(AuthContext)
-  console.log('authData :>> ')
+
+  // console.log('authData :>> ', authData?.userData?.roles?.settings?.add_lab)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -213,7 +214,7 @@ const ListOfLab = () => {
 
   const headerAction = (
     <>
-      {authData?.userData?.roles?.settings?.add_lab ? (
+      {authData?.userData?.roles?.settings?.add_lab === true ? (
         <div>
           <Button
             size='big'
