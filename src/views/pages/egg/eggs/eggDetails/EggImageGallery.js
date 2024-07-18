@@ -3,7 +3,6 @@ import { Box } from '@mui/system'
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import moment from 'moment'
 import Utility from 'src/utility'
 
 const EggImageGallery = ({ galleryList }) => {

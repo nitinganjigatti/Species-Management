@@ -45,8 +45,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const [nurseryId, setNurseryId] = useState([])
 
   const schema = yup.object().shape({
-    room: yup.string().required('Room is Required'),
-    incubator: yup.string().required('Incubator Name is Required'),
+    room: yup.string().required('Room is required'),
+    incubator: yup.string().required('Incubator name is required'),
     measurements: yup
       .array()
       .of(
@@ -54,7 +54,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
           assessment_value: yup
             .number()
             .typeError('Value must be a number')
-            .required('Weight is Required')
+            .required('Weight is required')
             .positive('Value must be positive') // Ensure positive
             .min(1, 'Value must be greater than or equal to 1') // Ensure non-negative
         })
@@ -226,6 +226,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const onSubmit = async values => {
     try {
       setLoader(true)
+
       let params = {
         egg_id: allocateEggId,
         incubator_id: values.incubator,
@@ -479,7 +480,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             // console.log('val', val)
                             setValue('incubator', '')
 
-                            return onChange(val.room_id)
+                            return onChange(val.incubator_id)
                           }
                         }}
                         renderInput={params => (
@@ -490,13 +491,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             {...params}
                             label='Select Incubator *'
                             placeholder='Search & Select'
-                            error={Boolean(errors.room)}
+                            error={Boolean(errors.incubator)}
                           />
                         )}
                       />
                     )}
                   />
-                  {errors?.room && (
+                  {errors?.incubator && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>
                   )}
                 </FormControl>
@@ -600,6 +601,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                         type: 'custom',
                                         message: 'Non-negative '
                                       })
+
                                       // Update error state in react-hook-form if negative value
                                       onChange(e) // Ensures the negative value is not stored in form state
                                     }
