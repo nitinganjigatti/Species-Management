@@ -169,7 +169,7 @@ const EggList = () => {
           </Avatar>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
@@ -181,10 +181,10 @@ const EggList = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                {params.row.complete_name ? params.row.complete_name : '-'}
+                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
               </Typography>
             </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
+            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
@@ -197,7 +197,7 @@ const EggList = () => {
                   width: '100%'
                 }}
               >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
+                {params.row.complete_name ? params.row.complete_name : '-'}
               </Typography>
             </Tooltip>
           </Box>
