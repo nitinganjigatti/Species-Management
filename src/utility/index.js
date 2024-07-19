@@ -97,6 +97,16 @@ function extractHoursAndMinutes(date) {
   return moment(date).format('hh:mm A')
 }
 
+function toPascalSentenceCase(str) {
+  return str
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
+    .join(' ')
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -107,7 +117,8 @@ const Utility = {
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
-  extractHoursAndMinutes
+  extractHoursAndMinutes,
+  toPascalSentenceCase
 }
 
 export default Utility

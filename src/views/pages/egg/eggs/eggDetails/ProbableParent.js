@@ -3,6 +3,7 @@ import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
 const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, parent, parentList }) => {
   const theme = useTheme()
@@ -104,7 +105,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {item?.common_name}
+                    {Utility?.toPascalSentenceCase(item?.common_name)}
                   </Typography>
                   <Typography
                     sx={{
@@ -115,7 +116,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                     }}
                   >
                     {' '}
-                    {item?.scientific_name}
+                    {Utility?.toPascalSentenceCase(item?.scientific_name)}
                   </Typography>
                   <Typography
                     sx={{
@@ -125,7 +126,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {item?.site_name}
+                    {Utility?.toPascalSentenceCase(item?.site_name)}
                   </Typography>
                   <Typography
                     sx={{
@@ -135,7 +136,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {item?.user_enclosure_name}
+                    {Utility?.toPascalSentenceCase(item?.user_enclosure_name)}
                   </Typography>
                   <Typography
                     sx={{
@@ -145,7 +146,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {item?.section_name}
+                    {Utility?.toPascalSentenceCase(item?.section_name)}
                   </Typography>
                 </Box>
               </Box>
