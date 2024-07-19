@@ -1542,11 +1542,12 @@ const EggList = () => {
     setTotal(0)
     setStatus(newValue)
     setSelectedEggTab(newValue)
+    setSearchValue('')
   }
 
   const handleTabs = (event, newValue) => {
     setTotal(0)
-
+    setSearchValue('')
     setIsDiscarded(newValue)
     setSubTab(newValue)
   }

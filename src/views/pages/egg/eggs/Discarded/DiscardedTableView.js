@@ -166,7 +166,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 width: '100%'
               }}
             >
-              {params.row?.egg_count ? params.row?.egg_count : '-'} Eggs
+              {params.row?.egg_count ? params.row?.egg_count : '-'} Egg
             </Typography>
           </Box>
         </Box>

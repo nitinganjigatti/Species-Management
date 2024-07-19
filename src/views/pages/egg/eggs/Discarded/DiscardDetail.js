@@ -93,9 +93,12 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
       if (status === 'Overview') {
         getSummary(eggDiscardedId)
         GetGalleryImgListFunc(eggDiscardedId)
-      } else {
         getEggListSummary(eggDiscardedId)
       }
+
+      //  else {
+
+      // }
     }
   }, [detailDrawer, status])
 
