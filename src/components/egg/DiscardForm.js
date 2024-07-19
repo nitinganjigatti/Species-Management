@@ -87,7 +87,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
 
   const schema = yup.object().shape({
     // status_radioBtn
-    // status_radioBtn: yup.string().required('State Is Required'),
+    // status_radioBtn: yup.string().required('State is required'),
     // comment: yup.string().required('Comments is required'),
     // reason: yup.string().required('Reason is required'),
     // necropsy: yup.string().required('Necropsy decision is required')

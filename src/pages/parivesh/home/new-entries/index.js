@@ -247,7 +247,7 @@ const NewEntry = ({}) => {
       setIsModalOpen(false)
       const response = await deleteSpeciesToOrganization(selectedId, payload)
       if (response.success === true) {
-        Toaster({ type: 'success', message: `Species ${selectedId} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Species has been successfully deleted` })
         // Reload the table data
         fetchTableData(sort, searchValue, sortColumn)
       } else {
@@ -275,6 +275,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'species_image',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
           {/* <Box className='relative h-20'>
@@ -305,6 +306,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.common_name || '-'}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
@@ -318,6 +320,7 @@ const NewEntry = ({}) => {
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.scientific_name || '-'}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -357,6 +360,7 @@ const NewEntry = ({}) => {
       minWidth: 10,
       field: 'gender',
       headerName: 'GENDER / COUNT',
+      sortable: false,
       renderCell: params => {
         let gender = params.row.gender ? params.row.gender : '-'
 
@@ -392,6 +396,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'possession_type',
       headerName: 'Category',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -409,10 +414,16 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'transaction_date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+          </Typography>
+          <Typography noWrap variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -420,6 +431,7 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
@@ -437,6 +449,7 @@ const NewEntry = ({}) => {
       flex: 0.4,
       minWidth: 20,
       field: 'checkbox',
+      sortable: false,
       headerName: (
         <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
       ),
@@ -896,15 +909,15 @@ const NewEntry = ({}) => {
             <IconButton
               aria-label='close'
               onClick={() => setIsEditModal(false)}
-              sx={{ top: 10, right: 0, position: 'absolute', color: 'grey.500' }}
+              sx={{ top: 10, right: 6, position: 'absolute', color: 'grey.500' }}
             >
               <Icon icon='mdi:close' />
             </IconButton>
 
             {/* Header with Avatar and details */}
-            <Grid item container alignItems='center' mt={3}>
-              <Avatar variant='square' />
-              <Typography sx={{ ml: 2 }}>Created By: {''}</Typography>
+            <Grid item container alignItems='center' mt={6}>
+              <Avatar variant='circular' src={detailData?.created_by_user?.profile_pic} />
+              <Typography sx={{ ml: 2 }}>Created By: {detailData?.created_by_user?.user_name}</Typography>
             </Grid>
 
             {/* Media details */}
@@ -965,7 +978,7 @@ const NewEntry = ({}) => {
               </Typography>
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment.utc(detailData?.transaction_date.split(' ')[0]).format('DD MMMM YYYY')
+                  ? moment.utc(detailData?.transaction_date).local().format('DD MMMM YYYY hh:mm A')
                   : ''}
               </Typography>
             </Grid>

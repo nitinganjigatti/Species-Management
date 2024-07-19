@@ -156,7 +156,7 @@ const AddNewEntry = () => {
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD')
+      transaction_date: moment.utc(transaction_date).format('YYYY-MM-DD HH:mm:ss')
       // age: age,
       // ...(possession_type === 'death' && {
       //   alloted_register_no: alloted_register_no,
@@ -164,6 +164,8 @@ const AddNewEntry = () => {
       //   where_disposed: where_disposed
       // })
     }
+
+    console.log(payload, 'payload')
 
     try {
       setBtnLoader(true)

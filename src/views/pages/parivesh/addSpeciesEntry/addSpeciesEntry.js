@@ -77,7 +77,7 @@ const defaultValues = {
   possession_type: '',
   animal_count: '',
   gender: '',
-  transaction_date: null
+  transaction_date: new Date()
 }
 
 const AddSpeciesNewEntry = props => {
@@ -134,7 +134,7 @@ const AddSpeciesNewEntry = props => {
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD')
+      transaction_date: moment.utc(transaction_date).format('YYYY-MM-DD HH:mm:ss')
       // age: age,
       // ...(possession_type === 'death' && {
       //   alloted_register_no: alloted_register_no,

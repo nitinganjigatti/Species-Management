@@ -142,7 +142,7 @@ const EggSecondSecion = ({
   }
 
   const schema = yup.object().shape({
-    assessment_value: yup.number().required('Assessment value is Required')
+    assessment_value: yup.number().required('Assessment value is required')
   })
 
   const {

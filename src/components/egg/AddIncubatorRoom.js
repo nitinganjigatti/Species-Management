@@ -42,8 +42,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   }
 
   const schema = yup.object().shape({
-    room_name: yup.string().trim().required('Room Name is required'),
-    site_id: yup.string().required('Select Site'),
+    room_name: yup.string().trim().required('Room name is required'),
+    site_id: yup.string().required('Select site'),
     nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is required')
   })
 

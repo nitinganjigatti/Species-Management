@@ -73,9 +73,12 @@ const EggComment = ({ eggDetails, eggId }) => {
         if (res.success) {
           setCommentLoader(false)
           if (res?.data?.result?.length > 0) {
-            // setCommentList(res.data)
             setCommentList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
+          } else {
+            // setShouldCallList(false)
+            // setReachedEnd(false)
+            // setCommentLoader(false)  // we can open this comment if we face loader and should call issue
           }
         } else {
           setCommentList(prevArray => [...prevArray])
@@ -97,7 +100,7 @@ const EggComment = ({ eggDetails, eggId }) => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop + 1) === container.clientHeight && shouldCallList) {
+    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight && shouldCallList) {
       // User has reached the bottom, perform your action here
       setCommentsPage(++commentsPage)
       setReachedEnd(true)
@@ -130,7 +133,7 @@ const EggComment = ({ eggDetails, eggId }) => {
         return `${diffInHours} Hour${diffInHours !== 1 ? 's' : ''} ago`
       }
     } else {
-      return date.format('DD MMM YYYY ')
+      return Utility?.formatDisplayDate(date)
     }
   }
 

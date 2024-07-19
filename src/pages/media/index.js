@@ -102,7 +102,10 @@ const Media = () => {
       'application/msword': ['.doc'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'video/*': ['.mp4'],
+      'audio/mpeg': ['.mp3'],
+      'video/quicktime': ['.mov']
     },
     onDrop: async acceptedFiles => {
       try {
@@ -159,25 +162,61 @@ const Media = () => {
       console.error('Error uploading files:', error)
     }
   }
-  const handleDownload = async id => {
-    console.log('filePreviews', filePreviews)
-    if (selectedId) {
-      const link = document.createElement('a')
-      link.href = selectedId.user_media
-      link.download = selectedId.file_original_name
-      link.target = '_blank'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      Toaster({ type: 'success', message: 'File downloaded successfully!' })
-      setAnchorEl(null)
+
+  // const handleDownload = async () => {
+  //   if (selectedId && selectedId.user_media) {
+  //     console.log('Downloading file:', selectedId)
+  //     const link = document.createElement('a')
+  //     link.href = selectedId.user_media
+  //     link.download = encodeURIComponent(selectedId.file_original_name)
+  //     link.target = '_blank'
+  //     document.body.appendChild(link)
+  //     link.click()
+  //     document.body.removeChild(link)
+  //     Toaster({ type: 'success', message: 'File downloaded successfully!' })
+  //     setAnchorEl(null)
+  //   } else {
+  //     Toaster({ type: 'error', message: 'No file selected for download.' })
+  //     setAnchorEl(null)
+  //   }
+  // }
+
+  const handleDownload = async () => {
+    if (selectedId && selectedId.user_media) {
+      try {
+        const response = await fetch(selectedId.user_media)
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = encodeURIComponent(selectedId.file_original_name)
+        link.target = '_blank' // Open the download link in a new tab
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        setAnchorEl(null)
+        const fileExtension = selectedId.file_original_name.split('.').pop().toLowerCase()
+        const isImage = ['jpeg', 'jpg', 'gif', 'png', 'svg'].includes(fileExtension)
+        setTimeout(() => {
+          if (isImage) {
+            Toaster({ type: 'success', message: 'Image downloaded successfully!' })
+          } else {
+            Toaster({ type: 'success', message: 'File downloaded successfully!' })
+          }
+        }, 500)
+      } catch (error) {
+        console.error('Error downloading file:', error)
+        Toaster({ type: 'error', message: 'Failed to download file.' })
+        setAnchorEl(null)
+      }
     } else {
       Toaster({ type: 'error', message: 'No file selected for download.' })
       setAnchorEl(null)
     }
   }
 
-  console.log(imgPath, 'auth')
+  const handleView = media => {}
 
   const getIconByFileType = fileName => {
     const extension = fileName.split('.').pop().toLowerCase()
@@ -380,6 +419,38 @@ const Media = () => {
                                 </Tooltip>
                               </CardContent>
 
+                              {/* {media?.user_media && (
+                                <>
+                                  {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
+                                    <CardMedia
+                                      component='img'
+                                      height='160'
+                                      image={media?.user_media}
+                                      alt={media?.file_original_name}
+                                      sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
+                                    />
+                                  ) : (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        height: 120,
+                                        borderRadius: 1,
+                                        bgcolor: getIconByFileType(media?.file_original_name)?.bgColor,
+                                        m: 5
+                                      }}
+                                    >
+                                      <Image
+                                        src={getIconByFileType(media?.file_original_name)?.icon}
+                                        alt=''
+                                        width={80}
+                                        height={80}
+                                      />
+                                    </Box>
+                                  )}
+                                </>
+                              )} */}
                               {media?.user_media && (
                                 <>
                                   {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
@@ -387,6 +458,15 @@ const Media = () => {
                                       component='img'
                                       height='160'
                                       image={media?.user_media}
+                                      alt={media?.file_original_name}
+                                      sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
+                                    />
+                                  ) : media?.user_media.match(/\.(mp4|mov)$/) != null ? (
+                                    <CardMedia
+                                      component='video'
+                                      controls
+                                      height='160'
+                                      src={media?.user_media}
                                       alt={media?.file_original_name}
                                       sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
                                     />
@@ -445,7 +525,7 @@ const Media = () => {
           </CardContent>
 
           <Menu keepMounted id='long-menu' anchorEl={anchorEl} onClose={handleClose} open={Boolean(anchorEl)}>
-            <MenuItem>View</MenuItem>
+            {/* <MenuItem onClick={handleView}>View</MenuItem> */}
             <MenuItem onClick={handleDownload}>Download</MenuItem>
             <MenuItem onClick={handleDelete}>Delete</MenuItem>
           </Menu>

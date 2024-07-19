@@ -154,16 +154,16 @@ const ConditionSlider = ({
 
           assisted_by:
             hatched === 'assisted_hatch'
-              ? yup.string().trim().required('Assisted By is required')
+              ? yup.string().trim().required('Assisted by is required')
               : yup.string().notRequired(),
           ////////////////////////////////////////////////////////////////////
           species: yup.string().required('Species / Taxonomy is required'),
-          accessionType: yup.string().required('Accession Type is required'),
+          accessionType: yup.string().required('Accession type is required'),
           institution: yup
             .string()
             .test(
               'is-required-if-accessionType-is-2',
-              'Institution is required when Accession Type is From Institute',
+              'Institution is required when accession type is from institute',
               function (value) {
                 const { accessionType } = this.parent
                 if (accessionType === '2') {
@@ -173,16 +173,16 @@ const ConditionSlider = ({
                 return true // Otherwise, always pass validation
               }
             ),
-          accessionDate: yup.string().required('Accession Date is required'),
-          collectionType: yup.string().required('Collection Type is required'),
+          accessionDate: yup.string().required('Accession date is required'),
+          collectionType: yup.string().required('Collection type is required'),
           enclosure: yup.string().required('Enclosure is required'),
-          sextype: yup.string().required('Sex Type is required'),
-          birthDate: yup.string().required('Birth Date is required'),
+          sextype: yup.string().required('Sex type is required'),
+          birthDate: yup.string().required('Birth date is required'),
           localIdentifier: yup
             .string()
             .test(
               'is-required-if-localIdentifierType-is-not-empty',
-              'Local Identifier is required when Local Identifier Type is selected',
+              'Local identifier is required when local identifier type is selected',
               function (value) {
                 const { localIdentifierType } = this.parent
                 if (localIdentifierType && localIdentifierType.trim() !== '') {
@@ -204,7 +204,7 @@ const ConditionSlider = ({
 
           assisted_by:
             hatched === 'assisted_hatch'
-              ? yup.string().trim().required('Assisted By is required')
+              ? yup.string().trim().required('Assisted by is required')
               : yup.string().notRequired()
         }
   )

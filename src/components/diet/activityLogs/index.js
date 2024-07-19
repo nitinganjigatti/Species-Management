@@ -69,6 +69,7 @@ const ActivityLogs = ({
     } catch (error) {
       console.log('error', error)
       Toaster({ type: 'error', message: JSON.stringify(error) })
+
       // Toaster({ type: 'error', message: JSON.stringify(error) })
 
       // setOpenSnackbar({
@@ -197,7 +198,7 @@ const ActivityLogs = ({
                               color: theme.palette.primary.dark
                             }}
                           >
-                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(item.date))}
+                            {item.date}
                           </Typography>
                         </Box>
                       </Grid>
@@ -334,9 +335,7 @@ const ActivityLogs = ({
                                   }}
                                   variant='caption'
                                 >
-                                  {moment(moment.utc(item.activity_time).toDate().toLocaleString()).format(
-                                    'DD MMM YYYY'
-                                  )}
+                                  {item.activity_time}
                                 </Typography>
                               </Box>
                             </Box>
