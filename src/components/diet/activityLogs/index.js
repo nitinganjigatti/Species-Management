@@ -198,8 +198,7 @@ const ActivityLogs = ({
                               color: theme.palette.primary.dark
                             }}
                           >
-                            {/* {item.date} */}
-                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(item.date))}
+                            {item.date}
                           </Typography>
                         </Box>
                       </Grid>
@@ -336,10 +335,7 @@ const ActivityLogs = ({
                                   }}
                                   variant='caption'
                                 >
-                                  {/* {moment(moment.utc(item.activity_time).toDate().toLocaleString()).format(
-                                    'DD MMM YYYY'
-                                  )} */}
-                                  {Utility.formatDisplayDate(Utility.convertUTCToLocal())}
+                                  {item.activity_time}
                                 </Typography>
                               </Box>
                             </Box>
