@@ -1584,7 +1584,9 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at ? Utility.formatDisplayDate(params.row.created_at) : '-'}
+                {params.row.created_at
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                  : '-'}
               </Typography>
             </Box>
           </Box>

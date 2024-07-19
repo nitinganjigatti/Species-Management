@@ -36,6 +36,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
 import Utility from 'src/utility'
+import ProbableParent from './ProbableParent'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -125,6 +126,9 @@ const EggSecondSecion = ({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
+  const [probableParentSideBar, setProbableParentSideBar] = useState(false)
+  const [parent, setParent] = useState('')
+  const [parentList, setParentList] = useState([])
 
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
@@ -437,7 +441,18 @@ const EggSecondSecion = ({
                       </Grid>
                       <Grid item xs={6}>
                         <Typography
+                          onClick={() => {
+                            value.startsWith('Probable') && setProbableParentSideBar(true)
+                            value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                            value.startsWith('Probable') &&
+                              setParentList(
+                                key === 'Mother id'
+                                  ? eggDetails?.parent_list?.mother_list
+                                  : eggDetails?.parent_list?.father_list
+                              )
+                          }}
                           sx={{
+                            cursor: value.startsWith('Probable') && 'pointer',
                             textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
                             fontWeight: key === 'Mother id' || key === 'Father id' ? 600 : 400,
                             fontSize: '14px',
@@ -924,7 +939,14 @@ const EggSecondSecion = ({
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} onClick={() => setaddWeightSidebar(false)} />
+                <Icon
+                  icon='mdi:close'
+                  fontSize={20}
+                  onClick={() => {
+                    setaddWeightSidebar(false)
+                    reset()
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -946,9 +968,17 @@ const EggSecondSecion = ({
                             <TextField
                               label='Weight in Grams'
                               value={value}
-                              type='number'
+                              autoFocus
+                              // type='number'
                               inputProps={{ min: 1 }}
-                              onChange={onChange}
+                              // onChange={onChange}
+                              onChange={event => {
+                                const newValue = event.target.value
+                                // Validate the input to ensure it contains only numbers
+                                if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
+                                  onChange(event)
+                                }
+                              }}
                               placeholder='Enter Number'
                               error={Boolean(errors.assessment_value)}
                               name='assessment_value'
@@ -1002,6 +1032,12 @@ const EggSecondSecion = ({
         setActivtyLogData={setActivtyLogData}
         activtyLogCount={activtyLogCount}
         setActivtyLogCount={setActivtyLogCount}
+      />
+      <ProbableParent
+        probableParentSideBar={probableParentSideBar}
+        setProbableParentSideBar={setProbableParentSideBar}
+        parent={parent}
+        parentList={parentList}
       />
     </Grid>
   )

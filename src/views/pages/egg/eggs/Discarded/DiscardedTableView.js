@@ -8,6 +8,7 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import DiscardDetail from './DiscardDetail'
+import Utility from 'src/utility'
 
 const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   const theme = useTheme()
@@ -191,11 +192,11 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
             }}
           >
             {params.row.requested_on
-              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.requested_on))
               : '-'}{' '}
             |{' '}
             {params.row.requested_on
-              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('hh:mm A')
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.requested_on))
               : '-'}
           </Typography>{' '}
         </Box>
@@ -298,8 +299,13 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
-                {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
+                {params.row.requested_on
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.requested_on))
+                  : '-'}{' '}
+                |{' '}
+                {params.row.requested_on
+                  ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.requested_on))
+                  : '-'}
               </Typography>
             </Box>
           </Box>
