@@ -13,7 +13,7 @@ import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
 import { DataGrid } from '@mui/x-data-grid'
-import { getTransferList } from 'src/lib/api/egg/dashboard'
+import { getSiteList, getTransferList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
@@ -23,7 +23,6 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
-  const [defaultSite, setDefaultSite] = useState(null)
   const [transferList, setTransferList] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -35,7 +34,8 @@ const TransferDetails = () => {
 
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
-  const [nursery, setNursery] = useState('')
+  const [siteList, setSiteList] = useState([])
+  const [defaultSite, setDefaultSite] = useState(null)
 
   const NurseryList = async q => {
     try {
@@ -51,9 +51,24 @@ const TransferDetails = () => {
       console.log(e)
     }
   }
+  const SiteList = async q => {
+    try {
+      const params = {
+        type: 'site',
+        page_no: 1
+      }
+      await getSiteList(params).then(res => {
+        // console.log('res', res?.data?.data)
+        setSiteList(res?.data?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   useEffect(() => {
     NurseryList()
+    SiteList()
   }, [])
 
   const searchNursery = useCallback(
@@ -408,7 +423,7 @@ const TransferDetails = () => {
   }
 
   const getTransferListFunc = useCallback(
-    async (q, nId) => {
+    async (q, nId, siteId) => {
       try {
         setLoading(true)
         // console.log(defaultNursery?.nursery_id)
@@ -606,20 +621,14 @@ const TransferDetails = () => {
                   },
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
-                options={authData?.userData?.user?.zoos[0].sites}
+                options={siteList}
                 getOptionLabel={option => option.site_name}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
                 onChange={(e, val) => {
                   if (val === null) {
                     setDefaultSite(null)
-
-                    // return onChange('')
                   } else {
                     setDefaultSite(val)
-
-                    // console.log('val', val)
-
-                    // return onChange(val.site_id)
                   }
                 }}
                 renderInput={params => (
@@ -667,12 +676,10 @@ const TransferDetails = () => {
               onChange={(e, val) => {
                 if (val === null) {
                   setDefaultNursery(null)
-                  // setNursery('')
                   getTransferListFunc(searchValue, '')
                 } else {
                   setDefaultNursery(val)
                   getTransferListFunc(searchValue, val?.nursery_id)
-                  // setNursery(val?.nursery_id)
                 }
               }}
               renderInput={params => (
