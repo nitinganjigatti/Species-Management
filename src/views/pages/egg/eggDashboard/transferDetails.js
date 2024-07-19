@@ -408,11 +408,11 @@ const TransferDetails = () => {
   }
 
   const getTransferListFunc = useCallback(
-    async (q, ni) => {
+    async (q, nId) => {
       try {
         setLoading(true)
         // console.log(defaultNursery?.nursery_id)
-        console.log(nursery)
+        // console.log(nursery)
 
         const params = {
           q,
@@ -421,7 +421,7 @@ const TransferDetails = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           // egg_code: '',
-          nursery_id: ni || nursery
+          nursery_id: nId || defaultNursery?.nursery_id
           // from_site_id: '',
           // to_site_id: ''
         }
@@ -479,12 +479,6 @@ const TransferDetails = () => {
   }))
 
   const handleSortModel = newModel => {}
-
-  // useEffect(() => {
-  //   if (nursery) {
-  //     getTransferListFunc(searchValue)
-  //   }
-  // }, [nursery])
 
   return (
     <Box
@@ -559,7 +553,7 @@ const TransferDetails = () => {
                 value={fromDate}
                 onChange={newDate => {
                   setFromDate(newDate)
-                  getTransferListFunc(searchValue, nursery)
+                  getTransferListFunc(searchValue, defaultNursery?.nursery_id)
                 }}
                 label={'From Date'}
                 maxDate={dayjs()}
@@ -589,7 +583,7 @@ const TransferDetails = () => {
                 value={tillDate}
                 onChange={newDate => {
                   setTilDate(newDate)
-                  getTransferListFunc(searchValue, nursery)
+                  getTransferListFunc(searchValue, defaultNursery?.nursery_id)
                 }}
                 label={'Till Date'}
                 maxDate={dayjs()}
@@ -673,12 +667,12 @@ const TransferDetails = () => {
               onChange={(e, val) => {
                 if (val === null) {
                   setDefaultNursery(null)
-                  setNursery('')
+                  // setNursery('')
                   getTransferListFunc(searchValue, '')
                 } else {
                   setDefaultNursery(val)
                   getTransferListFunc(searchValue, val?.nursery_id)
-                  setNursery(val?.nursery_id)
+                  // setNursery(val?.nursery_id)
                 }
               }}
               renderInput={params => (

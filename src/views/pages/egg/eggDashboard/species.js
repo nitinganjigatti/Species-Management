@@ -284,7 +284,7 @@ const Species = () => {
   }
 
   const getspeciesFunc = useCallback(
-    async q => {
+    async (q, nId) => {
       try {
         setLoading(true)
 
@@ -296,7 +296,7 @@ const Species = () => {
           limit: paginationModel.pageSize,
           // taxonomy_id: '',
           // site_id: '',
-          nursery_id: defaultNursery?.nursery_id
+          nursery_id: nId || defaultNursery?.nursery_id
         }
         // console.log('params', params)
         await getSpeciesList(params).then(res => {
@@ -429,7 +429,7 @@ const Species = () => {
                 value={fromDate}
                 onChange={newDate => {
                   setFromDate(newDate)
-                  getspeciesFunc(searchValue)
+                  getspeciesFunc(searchValue, defaultNursery?.nursery_id)
                 }}
                 label={'From Date'}
                 maxDate={dayjs()}
@@ -459,7 +459,7 @@ const Species = () => {
                 value={tillDate}
                 onChange={newDate => {
                   setTilDate(newDate)
-                  getspeciesFunc(searchValue)
+                  getspeciesFunc(searchValue, defaultNursery?.nursery_id)
                 }}
                 label={'Till Date'}
                 maxDate={dayjs()}
@@ -544,13 +544,11 @@ const Species = () => {
                 onChange={(e, val) => {
                   if (val === null) {
                     setDefaultNursery(null)
-                    getspeciesFunc(searchValue)
-                    setNursery('')
-                    getTransferListFunc(searchValue, '')
+                    getspeciesFunc(searchValue, '')
                   } else {
                     setDefaultNursery(val)
-                    getTransferListFunc(searchValue, val?.nursery_id)
-                    setNursery(val?.nursery_id)
+                    // setNursery(val?.nursery_id)
+                    getspeciesFunc(searchValue, val?.nursery_id)
                   }
                 }}
                 renderInput={params => (
