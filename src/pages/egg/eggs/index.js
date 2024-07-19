@@ -203,7 +203,7 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.15,
+      flex: 0.22,
       minWidth: 10,
       field: 'egg_number',
       sortable: false,
