@@ -42,7 +42,7 @@ const ComposeNavigation = () => {
     navigationArray.push(...dietNav)
   }
   if (egg_nursery || egg_collection) {
-    debugger
+    // debugger
     const eggNav = eggNavigation({ egg_nursery, egg_collection })
     navigationArray.push(...eggNav)
   }
