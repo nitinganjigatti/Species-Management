@@ -178,7 +178,7 @@ const BatchDetails = ({ params, searchParams }) => {
   }
 
   const onClickStatus = async event => {
-    if (event.target.dataset.value === 'submitted' && type === 'reportedBatch') {
+    if (event.target.dataset.value === 'submitted' && type === 'toBeSubmitBatch') {
       setIsModalOpen(prevState => !prevState)
     } else {
       setIsModalOpen(false) // Close modal for other selections
@@ -233,7 +233,7 @@ const BatchDetails = ({ params, searchParams }) => {
   }))
 
   useEffect(() => {
-    if (type === 'reportedBatch') {
+    if (type === 'toBeSubmitBatch') {
       setDropdownOptions([
         { value: 'yet_to_submitted', label: 'Yet to Submit' },
         { value: 'submitted', label: 'Submitted' }
@@ -809,9 +809,9 @@ const BatchDetails = ({ params, searchParams }) => {
             </Typography>
 
             <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-              {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+              {type === 'toBeSubmitBatch' ? 'Created By' : 'Submitted By'}:{' '}
               <span style={{ color: '#44544A', fontWeight: '600' }}>
-                {type === 'reportedBatch'
+                {type === 'toBeSubmitBatch'
                   ? batchDetails?.created_by_user?.user_name
                   : batchDetails?.submitted_by_user?.user_name}
               </span>

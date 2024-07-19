@@ -46,7 +46,7 @@ function SelectParivesh() {
 
     write('selectedParivesh', selected) // Update localStorage with selected organization
     setOpen(false)
-    if (type === 'reportedBatch' || type === 'submittedBatch') {
+    if (type === 'toBeSubmitBatch' || type === 'submittedBatch') {
       router.back()
     }
   }

@@ -289,6 +289,8 @@ const SubmittedBatches = ({ searchParams, type }) => {
                   ? '#00AFD6'
                   : params.row.status === 'accepted'
                   ? '#37BD69'
+                  : params.row.status === 'withdrawn'
+                  ? '#FA6140'
                   : '#E93353',
               fontSize: 14
             }}

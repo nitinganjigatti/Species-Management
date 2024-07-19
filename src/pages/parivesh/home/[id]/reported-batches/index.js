@@ -188,22 +188,22 @@ const ReportedBatches = ({ searchParams, type }) => {
         </Typography>
       )
     },
-    {
-      flex: 0.4,
-      minWidth: 30,
-      field: 'registration_id',
-      headerName: 'REGISTRATION ID',
-      sortable: false,
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : 'NA'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 30,
+    //   field: 'registration_id',
+    //   headerName: 'REGISTRATION ID',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.registration_id ? params.row.registration_id : 'NA'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 10,
@@ -416,7 +416,7 @@ const ReportedBatches = ({ searchParams, type }) => {
         check={check}
         setCheck={setCheck}
         headerAction={headerAction}
-        title={'Reported Batches'}
+        title={'To Be Submit'}
         searchParams={searchParams}
         handleSortModel={handleSortModel}
       />
