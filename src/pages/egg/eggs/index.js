@@ -168,38 +168,62 @@ const EggList = () => {
             )}
           </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
+              gap: '4px'
+            }}
+          >
+            {params.row?.default_common_name && params.row?.complete_name ? (
+              <>
+                <Tooltip title={params.row.default_common_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {params.row.default_common_name}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={params.row.complete_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {params.row.complete_name}
+                  </Typography>
+                </Tooltip>
+              </>
+            ) : (
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
                   fontSize: '16px',
                   fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  lineHeight: '19.36px'
                 }}
               >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
+                {params.row?.default_common_name || params.row?.complete_name
+                  ? params.row?.default_common_name || params.row?.complete_name
+                  : '-'}
               </Typography>
-            </Tooltip>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
-                }}
-              >
-                {params.row.complete_name ? params.row.complete_name : '-'}
-              </Typography>
-            </Tooltip>
+            )}
           </Box>
         </Box>
       )
@@ -534,38 +558,62 @@ const EggList = () => {
             )}
           </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
+              gap: '4px'
+            }}
+          >
+            {params.row?.default_common_name && params.row?.complete_name ? (
+              <>
+                <Tooltip title={params.row.default_common_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {params.row.default_common_name}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={params.row.complete_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {params.row.complete_name}
+                  </Typography>
+                </Tooltip>
+              </>
+            ) : (
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
                   fontSize: '16px',
                   fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  lineHeight: '19.36px'
                 }}
               >
-                {params.row.complete_name ? params.row.complete_name : '-'}
+                {params.row?.default_common_name || params.row?.complete_name
+                  ? params.row?.default_common_name || params.row?.complete_name
+                  : '-'}
               </Typography>
-            </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
-                }}
-              >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
-              </Typography>
-            </Tooltip>
+            )}
           </Box>
         </Box>
       )
@@ -918,37 +966,62 @@ const EggList = () => {
             )}
           </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
+              gap: '4px'
+            }}
+          >
+            {params.row?.default_common_name && params.row?.complete_name ? (
+              <>
+                <Tooltip title={params.row.default_common_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {params.row.default_common_name}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={params.row.complete_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {params.row.complete_name}
+                  </Typography>
+                </Tooltip>
+              </>
+            ) : (
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
                   fontSize: '16px',
                   fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  lineHeight: '19.36px'
                 }}
               >
-                {params.row.complete_name ? params.row.complete_name : '-'}
+                {params.row?.default_common_name || params.row?.complete_name
+                  ? params.row?.default_common_name || params.row?.complete_name
+                  : '-'}
               </Typography>
-            </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
-              </Typography>
-            </Tooltip>
+            )}
           </Box>
         </Box>
       )
@@ -1246,38 +1319,62 @@ const EggList = () => {
             )}
           </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
+              gap: '4px'
+            }}
+          >
+            {params.row?.default_common_name && params.row?.complete_name ? (
+              <>
+                <Tooltip title={params.row.default_common_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {params.row.default_common_name}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={params.row.complete_name}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '100%'
+                    }}
+                  >
+                    {params.row.complete_name}
+                  </Typography>
+                </Tooltip>
+              </>
+            ) : (
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
                   fontSize: '16px',
                   fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  lineHeight: '19.36px'
                 }}
               >
-                {params.row.complete_name ? params.row.complete_name : '-'}
+                {params.row?.default_common_name || params.row?.complete_name
+                  ? params.row?.default_common_name || params.row?.complete_name
+                  : '-'}
               </Typography>
-            </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
-                }}
-              >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
-              </Typography>
-            </Tooltip>
+            )}
           </Box>
         </Box>
       )
