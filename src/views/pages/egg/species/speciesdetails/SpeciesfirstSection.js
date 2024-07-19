@@ -3,7 +3,7 @@ import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Typography, Card, CardContent } from '@mui/material'
 
-const SpeciesfirstSection = () => {
+const SpeciesfirstSection = ({ eggDetails }) => {
   const theme = useTheme()
   return (
     <>
@@ -53,7 +53,7 @@ const SpeciesfirstSection = () => {
                       lineHeight: '19.36px'
                     }}
                   >
-                    Rainbow
+                    {eggDetails.complete_name}
                   </Typography>
                 </Box>
               </Box>
@@ -77,7 +77,7 @@ const SpeciesfirstSection = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  200
+                  {eggDetails.total_egg}
                 </Typography>
               </Box>
               <Box>
@@ -100,7 +100,7 @@ const SpeciesfirstSection = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  33
+                  {eggDetails.egg_in_nest}
                 </Typography>
               </Box>
               <Box>
@@ -123,7 +123,7 @@ const SpeciesfirstSection = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  23
+                  {eggDetails.egg_in_incubation}
                 </Typography>
               </Box>
               <Box>
@@ -146,7 +146,7 @@ const SpeciesfirstSection = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  222
+                  {eggDetails.egg_in_hatched}
                 </Typography>
               </Box>
               <Box>
@@ -169,7 +169,7 @@ const SpeciesfirstSection = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  10
+                  {eggDetails.egg_in_alive}
                 </Typography>
               </Box>
               <Box>
@@ -192,7 +192,7 @@ const SpeciesfirstSection = () => {
                     lineHeight: '19.36px'
                   }}
                 >
-                  20
+                  {eggDetails.egg_in_mortality}
                 </Typography>
               </Box>
             </CardContent>

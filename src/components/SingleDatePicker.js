@@ -16,6 +16,7 @@ const SingleDatePicker = ({ popperPlacement, date, onChangeHandler, name, disabl
     <DatePickerWrapper>
       <DatePicker
         disabled={disabled ? disabled : null}
+        isClearable
         showIcon
         selected={date}
         id='form-layouts-separator-date'
