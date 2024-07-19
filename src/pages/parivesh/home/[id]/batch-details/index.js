@@ -178,7 +178,7 @@ const BatchDetails = ({ params, searchParams }) => {
   }
 
   const onClickStatus = async event => {
-    if (event.target.dataset.value === 'submitted' && type === 'toBeSubmitBatch') {
+    if (event.target.dataset.value === 'submitted' && type === 'toBeSubmittedBatch') {
       setIsModalOpen(prevState => !prevState)
     } else {
       setIsModalOpen(false) // Close modal for other selections
@@ -233,7 +233,7 @@ const BatchDetails = ({ params, searchParams }) => {
   }))
 
   useEffect(() => {
-    if (type === 'toBeSubmitBatch') {
+    if (type === 'toBeSubmittedBatch') {
       setDropdownOptions([
         { value: 'yet_to_submitted', label: 'Yet to Submit' },
         { value: 'submitted', label: 'Submitted' }
@@ -743,7 +743,7 @@ const BatchDetails = ({ params, searchParams }) => {
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+                  {type === '' ? 'Created By' : 'Submitted By'}:{' '}
                   <span style={{ color: '#44544A', fontWeight: 'bold' }}>
                     {type === 'reportedBatch'
                       ? batchDetails?.created_by_user?.user_name
@@ -809,9 +809,9 @@ const BatchDetails = ({ params, searchParams }) => {
             </Typography>
 
             <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-              {type === 'toBeSubmitBatch' ? 'Created By' : 'Submitted By'}:{' '}
+              {type === 'toBeSubmittedBatch' ? 'Created By' : 'Submitted By'}:{' '}
               <span style={{ color: '#44544A', fontWeight: '600' }}>
-                {type === 'toBeSubmitBatch'
+                {type === 'toBeSubmittedBatch'
                   ? batchDetails?.created_by_user?.user_name
                   : batchDetails?.submitted_by_user?.user_name}
               </span>
