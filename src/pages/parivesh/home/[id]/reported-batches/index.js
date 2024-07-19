@@ -416,7 +416,7 @@ const ReportedBatches = ({ searchParams, type }) => {
         check={check}
         setCheck={setCheck}
         headerAction={headerAction}
-        title={'To Be Submit'}
+        title={'To be Submitted'}
         searchParams={searchParams}
         handleSortModel={handleSortModel}
       />
