@@ -13,22 +13,22 @@ import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
 import { DataGrid } from '@mui/x-data-grid'
-import { getAllStats, getCurrentDateStats } from 'src/lib/api/egg/dashboard'
+import { getTodaysCollection } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 
 const TodaysCollection = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
-  const [currentDateStats, setCurrentDateAllStats] = useState(null)
+  const [todaysCollection, setTodaysCollection] = useState(null)
   const series = [
     {
       // name: '',
       data: [
-        currentDateStats?.total_eggs_in_nest,
-        currentDateStats?.total_eggs_in_nursery,
-        currentDateStats?.total_hatched,
-        currentDateStats?.total_discarded
+        todaysCollection?.total_eggs_in_nest,
+        todaysCollection?.total_eggs_in_nursery,
+        todaysCollection?.total_hatched,
+        todaysCollection?.total_discarded
       ]
     }
   ]
@@ -83,7 +83,7 @@ const TodaysCollection = () => {
     xaxis: {
       axisTicks: { show: false },
       axisBorder: { show: false },
-      categories: ['In Nest', 'In Nursery', 'Good Condition', 'Discarded'],
+      categories: ['In Nest', 'In Nursery', 'Hatched', 'Discarded'],
       labels: {
         formatter: val => `${Number(val)}`,
         style: {
@@ -105,11 +105,11 @@ const TodaysCollection = () => {
     }
   }
 
-  const getCurrentDateStatsFunc = () => {
+  const getTodaysCollectionFunc = () => {
     try {
-      getCurrentDateStats().then(res => {
+      getTodaysCollection().then(res => {
         if (res?.data?.success) {
-          setCurrentDateAllStats(res?.data?.data)
+          setTodaysCollection(res?.data?.data)
         } else {
           Toaster({ type: 'error', message: res?.data?.message })
         }
@@ -120,12 +120,12 @@ const TodaysCollection = () => {
   }
 
   useEffect(() => {
-    getCurrentDateStatsFunc()
+    getTodaysCollectionFunc()
   }, [])
 
   return (
     <>
-      {currentDateStats != null && (
+      {todaysCollection != null && (
         <Grid container columns={5}>
           <Grid
             sx={{
@@ -154,7 +154,7 @@ const TodaysCollection = () => {
               <Typography
                 sx={{ fontWeight: 500, fontSize: '24px', lineHeight: '29.05px', color: theme.palette.primary.dark }}
               >
-                {currentDateStats?.total_eggs} Eggs
+                {todaysCollection?.total_eggs} Eggs
               </Typography>
             </Box>
             <Grid container spacing={17} columns={2}>
@@ -184,7 +184,7 @@ const TodaysCollection = () => {
                       </Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#00AFD6' }}>
-                      {currentDateStats?.total_eggs_in_nest}
+                      {todaysCollection?.total_eggs_in_nest}
                     </Typography>
                   </Grid>
                   <Grid
@@ -215,7 +215,7 @@ const TodaysCollection = () => {
                         color: theme.palette.primary.main
                       }}
                     >
-                      {currentDateStats?.total_eggs_in_nursery}
+                      {todaysCollection?.total_eggs_in_nursery}
                     </Typography>
                   </Grid>
                   <Grid
@@ -235,11 +235,11 @@ const TodaysCollection = () => {
                           color: theme.palette.customColors.secondaryBg
                         }}
                       >
-                        Good Condition
+                        Hatched
                       </Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#00D6C9' }}>
-                      {currentDateStats?.total_hatched}
+                      {todaysCollection?.total_hatched}
                     </Typography>
                   </Grid>
                   <Grid
@@ -270,7 +270,7 @@ const TodaysCollection = () => {
                         color: theme.palette.formContent.tertiary
                       }}
                     >
-                      {currentDateStats?.total_discarded}
+                      {todaysCollection?.total_discarded}
                     </Typography>
                   </Grid>
                 </Grid>

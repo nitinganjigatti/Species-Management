@@ -18,6 +18,7 @@ import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import Utility from 'src/utility'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
@@ -31,6 +32,40 @@ const TransferDetails = () => {
 
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
+
+  const [nurseryList, setNurseryList] = useState([])
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nursery, setNursery] = useState('')
+
+  const NurseryList = async q => {
+    try {
+      const params = {
+        search: q,
+        page: 1,
+        limit: 50
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const columns = [
     {
@@ -372,24 +407,23 @@ const TransferDetails = () => {
     // setStatus(newValue)
   }
 
-  const cuurent_date = moment().format('YYYY-MM-DD')
-  //   console.log('paginationModel', paginationModel)
   const getTransferListFunc = useCallback(
-    async q => {
+    async (q, ni) => {
       try {
-        // console.log('til_date', cuurent_date)
         setLoading(true)
+        // console.log(defaultNursery?.nursery_id)
+        console.log(nursery)
 
         const params = {
           q,
-          from_date: '2024-05-29',
-          til_date: cuurent_date,
+          from_date: fromDate && moment(fromDate).format('YYYY-MM-DD'),
+          til_date: tillDate && moment(tillDate).format('YYYY-MM-DD'),
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          egg_code: '',
-          nursery_id: '',
-          from_site_id: '',
-          to_site_id: ''
+          // egg_code: '',
+          nursery_id: ni || nursery
+          // from_site_id: '',
+          // to_site_id: ''
         }
         // console.log('params', params)
         await getTransferList(params).then(res => {
@@ -445,9 +479,12 @@ const TransferDetails = () => {
   }))
 
   const handleSortModel = newModel => {}
-  useEffect(() => {
-    // console.log('newDate', tillDate)
-  }, [tillDate])
+
+  // useEffect(() => {
+  //   if (nursery) {
+  //     getTransferListFunc(searchValue)
+  //   }
+  // }, [nursery])
 
   return (
     <Box
@@ -520,7 +557,10 @@ const TransferDetails = () => {
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
                 value={fromDate}
-                onChange={newDate => setFromDate(newDate)}
+                onChange={newDate => {
+                  setFromDate(newDate)
+                  getTransferListFunc(searchValue, nursery)
+                }}
                 label={'From Date'}
                 maxDate={dayjs()}
               />
@@ -547,7 +587,10 @@ const TransferDetails = () => {
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
                 value={tillDate}
-                onChange={newDate => setTilDate(newDate)}
+                onChange={newDate => {
+                  setTilDate(newDate)
+                  getTransferListFunc(searchValue, nursery)
+                }}
                 label={'Till Date'}
                 maxDate={dayjs()}
               />
@@ -618,56 +661,52 @@ const TransferDetails = () => {
           )}
         </Grid>
         <Grid item xs={3}>
-          {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-            <FormControl fullWidth>
-              <Autocomplete
-                name='site_id'
-                value={defaultSite}
-                disablePortal
-                id='site_id'
-                options={authData?.userData?.user?.zoos[0].sites}
-                getOptionLabel={option => option.site_name}
-                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultSite(null)
-
-                    // return onChange('')
-                  } else {
-                    setDefaultSite(val)
-
-                    // console.log('val', val)
-
-                    // return onChange(val.site_id)
-                  }
-                }}
-                renderInput={params => (
-                  <TextField
-                    // onChange={e => {
-                    //   searchRoom(defaultNursery.nursery_id, e.target.value)
-                    // }}
-                    sx={{
-                      backgroundColor: '#fff',
-                      borderRadius: '8px',
-                      width: '100%',
-                      '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                        height: '40px',
-                        borderRadius: '4px'
-                      },
-                      '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                      '& input': {
-                        position: 'relative',
-                        top: -7
-                      }
-                    }}
-                    {...params}
-                    label='Receiving Site'
-                    placeholder='Search & Select'
-                  />
-                )}
-              />
-            </FormControl>
-          )}
+          <FormControl fullWidth>
+            <Autocomplete
+              name='nursery'
+              value={defaultNursery}
+              disablePortal
+              id='nursery'
+              options={nurseryList?.length > 0 ? nurseryList : []}
+              getOptionLabel={option => option.nursery_name}
+              isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+              onChange={(e, val) => {
+                if (val === null) {
+                  setDefaultNursery(null)
+                  setNursery('')
+                  getTransferListFunc(searchValue, '')
+                } else {
+                  setDefaultNursery(val)
+                  getTransferListFunc(searchValue, val?.nursery_id)
+                  setNursery(val?.nursery_id)
+                }
+              }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    width: '100%',
+                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& input': {
+                      position: 'relative',
+                      top: -7
+                    }
+                  }}
+                  onChange={e => {
+                    searchNursery(e.target.value)
+                  }}
+                  {...params}
+                  label='Receiving Site'
+                  placeholder='Search & Select'
+                />
+              )}
+            />
+          </FormControl>
         </Grid>
       </Grid>
       <DataGrid

@@ -24,6 +24,9 @@ const Dashboard = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
+  const [fromDate, setFromDate] = useState(null)
+  const [tillDate, setTilDate] = useState(null)
+
   const [allStats, setAllStats] = useState(null)
 
   const getAllStatsFunc = param => {
@@ -40,10 +43,11 @@ const Dashboard = () => {
     }
   }
 
-  const currentDate = moment()
-  const formattedDate = currentDate.format('YYYY-MM-DD')
   useEffect(() => {
-    getAllStatsFunc({ from_date: formattedDate, till_date: '2024-07-04' })
+    getAllStatsFunc({
+      from_date: fromDate && moment(fromDate).format('YYYY-MM-DD'),
+      till_date: tillDate && moment(tillDate).format('YYYY-MM-DD')
+    })
   }, [])
 
   return (
@@ -89,7 +93,7 @@ const Dashboard = () => {
               Current Stats
             </Typography>
           </Grid>
-          <Grid item sm={5} md={3} xl={2}>
+          {/* <Grid item sm={5} md={3} xl={2}>
             <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
@@ -104,8 +108,8 @@ const Dashboard = () => {
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                     '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                   }}
-                  // value={value}
-                  // onChange={onChange}
+                  value={fromDate}
+                  onChange={newDate => setFromDate(newDate)}
                   label={'From Date'}
                   maxDate={dayjs()}
                 />
@@ -133,14 +137,14 @@ const Dashboard = () => {
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                     '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                   }}
-                  // value={value}
-                  // onChange={onChange}
+                  value={tillDate}
+                  onChange={newDate => setTilDate(newDate)}
                   label={'Till Date'}
                   maxDate={dayjs()}
                 />
               </LocalizationProvider>
             </Box>
-          </Grid>
+          </Grid> */}
         </Grid>
         <Grid container spacing={3} columns={5}>
           <Grid item xs={5} sm={2.5} xl={1}>

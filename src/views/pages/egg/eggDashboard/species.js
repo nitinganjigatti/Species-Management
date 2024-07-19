@@ -17,6 +17,7 @@ import { getAllStats, getSpeciesList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const Species = () => {
   const authData = useContext(AuthContext)
@@ -31,6 +32,29 @@ const Species = () => {
 
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
+
+  const [nurseryList, setNurseryList] = useState([])
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nursery, setNursery] = useState('')
+
+  const NurseryList = async q => {
+    try {
+      const params = {
+        search: q,
+        page: 1,
+        limit: 50
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    NurseryList()
+  }, [])
 
   const columns = [
     {
@@ -191,7 +215,7 @@ const Species = () => {
       field: 'total_hatched_eggs',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'GOOD CONDITION',
+      headerName: 'HATCHED',
       renderCell: params => (
         <Typography
           style={{
@@ -224,30 +248,30 @@ const Species = () => {
           {params.row.total_discarded_eggs ? params.row.total_discarded_eggs : '-'}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.16,
-      minWidth: 10,
-      sortable: false,
-      disableColumnMenu: true,
-      field: 'created_at',
-      headerName: 'DATE',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.created_at
-            ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-            : '10 Apr 2024'}
-        </Typography>
-      )
     }
+
+    // {
+    //   flex: 0.16,
+    //   minWidth: 10,
+    //   sortable: false,
+    //   disableColumnMenu: true,
+    //   field: 'created_at',
+    //   headerName: 'TILL DATE',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.created_at
+    //         ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
+    //         : '10 Apr 2024'}
+    //     </Typography>
+    //   )
+    // }
   ]
 
   function loadServerRows(currentPage, data) {
@@ -259,23 +283,20 @@ const Species = () => {
     // setStatus(newValue)
   }
 
-  const cuurent_date = moment().format('YYYY-MM-DD')
-  //   console.log('paginationModel', paginationModel)
   const getspeciesFunc = useCallback(
     async q => {
       try {
-        // console.log('til_date', cuurent_date)
         setLoading(true)
 
         const params = {
           q,
-          from_date: '2024-05-29',
-          til_date: cuurent_date,
+          from_date: fromDate && moment(fromDate).format('YYYY-MM-DD'),
+          til_date: tillDate && moment(tillDate).format('YYYY-MM-DD'),
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          taxonomy_id: '',
-          site_id: '',
-          nursery_id: ''
+          // taxonomy_id: '',
+          // site_id: '',
+          nursery_id: defaultNursery?.nursery_id
         }
         // console.log('params', params)
         await getSpeciesList(params).then(res => {
@@ -406,7 +427,10 @@ const Species = () => {
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
                 value={fromDate}
-                onChange={newDate => setFromDate(newDate)}
+                onChange={newDate => {
+                  setFromDate(newDate)
+                  getspeciesFunc(searchValue)
+                }}
                 label={'From Date'}
                 maxDate={dayjs()}
               />
@@ -433,7 +457,10 @@ const Species = () => {
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
                 value={tillDate}
-                onChange={newDate => setTilDate(newDate)}
+                onChange={newDate => {
+                  setTilDate(newDate)
+                  getspeciesFunc(searchValue)
+                }}
                 label={'Till Date'}
                 maxDate={dayjs()}
               />
@@ -507,6 +534,51 @@ const Species = () => {
           {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
             <FormControl fullWidth>
               <Autocomplete
+                name='nursery'
+                value={defaultNursery}
+                disablePortal
+                id='nursery'
+                options={nurseryList?.length > 0 ? nurseryList : []}
+                getOptionLabel={option => option.nursery_name}
+                isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                onChange={(e, val) => {
+                  if (val === null) {
+                    setDefaultNursery(null)
+                    getspeciesFunc(searchValue)
+                    setNursery('')
+                    getTransferListFunc(searchValue, '')
+                  } else {
+                    setDefaultNursery(val)
+                    getTransferListFunc(searchValue, val?.nursery_id)
+                    setNursery(val?.nursery_id)
+                  }
+                }}
+                renderInput={params => (
+                  <TextField
+                    sx={{
+                      backgroundColor: '#fff',
+                      borderRadius: '8px',
+                      width: '100%',
+                      '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                        height: '40px',
+                        borderRadius: '4px'
+                      },
+                      '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                      '& input': {
+                        position: 'relative',
+                        top: -7
+                      }
+                    }}
+                    onChange={e => {
+                      searchNursery(e.target.value)
+                    }}
+                    {...params}
+                    label='Receiving Site'
+                    placeholder='Search & Select'
+                  />
+                )}
+              />
+              {/* <Autocomplete
                 name='site_id'
                 value={defaultSite}
                 disablePortal
@@ -551,7 +623,7 @@ const Species = () => {
                     placeholder='Search & Select'
                   />
                 )}
-              />
+              /> */}
             </FormControl>
           )}
         </Grid>
