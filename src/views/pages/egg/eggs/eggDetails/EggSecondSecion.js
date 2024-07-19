@@ -83,13 +83,13 @@ const EggSecondSecion = ({
           ? 'not available'
           : eggDetails?.parent_list?.mother_list?.length > 1
           ? `Probable (${eggDetails?.parent_list?.mother_list?.length})`
-          : eggDetails?.parent_list?.mother_list[0]?._id,
+          : eggDetails?.parent_list?.mother_list[0]?.animal_id,
       'Father id':
         eggDetails?.parent_list?.father_list?.length === 0
           ? 'not available'
           : eggDetails?.parent_list?.father_list?.length > 1
           ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
-          : eggDetails?.parent_list?.father_list[0]?._id,
+          : eggDetails?.parent_list?.father_list[0]?.animal_id,
 
       'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
       'Lay Date': eggDetails?.lay_date
