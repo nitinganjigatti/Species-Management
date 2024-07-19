@@ -56,6 +56,7 @@ const SpeciesDetail = () => {
   const [filterByEnclosureId, setFilterByEnclosureId] = useState('')
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTillDate] = useState(null)
+  const [totaleggcount, settotalEggcount] = useState('')
 
   const getDetails = id => {
     try {
@@ -63,6 +64,7 @@ const SpeciesDetail = () => {
         if (res.success) {
           setEggDetails(res?.data)
           setLoader(false)
+          settotalEggcount(res.data.total_egg)
         } else {
           setLoader(false)
         }
@@ -563,7 +565,7 @@ const SpeciesDetail = () => {
             <SpeciesfirstSection eggDetails={eggDetails} />
           </Box>
           <Card sx={{ mt: 6 }}>
-            <CardHeader title='Eggs' />
+            <CardHeader title={`Eggs - ${totaleggcount}`} />
             <>
               <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap', pl: 3 }}>
                 <Box>
@@ -752,8 +754,8 @@ const SpeciesDetail = () => {
                 </Box>
               </Box>
             </>
-
-            <div style={rows.length > 0 ? { height: 900, width: '100%' } : { height: 400, width: '100%' }}>
+            {console.log(rows, 'rows')}
+            <div style={rows.length > 1 ? { height: 900, width: '100%' } : { height: 400, width: '100%' }}>
               {console.log(data, 'data')}
               <DataGrid
                 rowHeight={72}

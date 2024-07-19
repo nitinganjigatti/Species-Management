@@ -13,6 +13,7 @@ import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
 import { DataGrid } from '@mui/x-data-grid'
+import Router from 'next/router'
 import { getAllStats, getSpeciesList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
@@ -281,6 +282,21 @@ const Species = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     // setStatus(newValue)
+  }
+
+  const onCellClick = params => {
+    console.log(params, 'params')
+    const clickedColumn = params.field !== 'switch'
+
+    if (clickedColumn) {
+      const data = params.row
+
+      Router.push({
+        pathname: `/egg/species/${data?.taxonomy_id}`
+      })
+    } else {
+      return
+    }
   }
 
   const getspeciesFunc = useCallback(
@@ -683,7 +699,7 @@ const Species = () => {
         //     onChange: event => handleSearch(event.target.value)
         //   }
         // }}
-        //   onCellClick={onCellClick}
+        onCellClick={onCellClick}
       />
     </Box>
   )
