@@ -186,6 +186,7 @@ const SpeciesList = () => {
         minWidth: 30,
         field: 'species_image',
         headerName: 'IMAGE',
+        sortable: false,
         renderCell: params => (
           <>
             <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
@@ -223,6 +224,7 @@ const SpeciesList = () => {
         minWidth: 30,
         field: 'common_name',
         headerName: 'COMMON NAME',
+        sortable: false,
         renderCell: params => (
           <Tooltip title={params.row.common_name || '-'}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
@@ -236,6 +238,7 @@ const SpeciesList = () => {
         minWidth: 30,
         field: 'scientific_name',
         headerName: 'SCIENTIFIC NAME',
+        sortable: false,
         renderCell: params => (
           <Tooltip title={params.row.scientific_name || '-'}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
@@ -255,6 +258,7 @@ const SpeciesList = () => {
       minWidth: 30,
       field: `org_${index}`,
       headerName: orgName,
+      sortable: false,
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
         return (

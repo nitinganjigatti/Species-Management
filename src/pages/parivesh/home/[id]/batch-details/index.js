@@ -49,12 +49,12 @@ import { yupResolver } from '@hookform/resolvers/yup'
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
 })
-
+// /^[a-zA-Z0-9]+(?:-[/][a-zA-Z0-9]+)?$/
 const schema = yup.object().shape({
   registrationId: yup
     .string()
     .required('Registration ID is required')
-    .matches(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)?$/, {
+    .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
       message: 'Invalid Registration ID format.'
     })
 })
@@ -252,7 +252,7 @@ const BatchDetails = ({ params, searchParams }) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
       sortable: false,
       renderCell: params => (
@@ -290,13 +290,11 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'COMMON NAME',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <Tooltip title={params.row.common_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+            {params.row.common_name ? params.row.common_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -306,9 +304,11 @@ const BatchDetails = ({ params, searchParams }) => {
       headerName: 'SCIENTIFIC NAME',
       sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.scientific_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     // {
@@ -521,9 +521,9 @@ const BatchDetails = ({ params, searchParams }) => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     onDrop: async acceptedFiles => {
-      console.log(acceptedFiles, 'acceptedFiles')
+      const filePreviewsLength = filePreviews ? filePreviews.length : 0
+      const totalFiles = acceptedFiles?.length + filePreviewsLength
 
-      const totalFiles = acceptedFiles?.length + filePreviews?.length
       if (totalFiles > 3) {
         Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
         return
@@ -624,126 +624,227 @@ const BatchDetails = ({ params, searchParams }) => {
   return (
     <>
       <Card>
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                router.back()
-              }}
-              icon='ep:back'
-            />
-          }
-          title={`Batch Details`}
-        />
-        <Box sx={{ background: 'rgba(195, 206, 199, 0.3)', borderRadius: '10px', m: 6, p: 6 }}>
-          <Box>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Batch ID: <span style={{ color: '#37BD69' }}>{batchDetails?.batch_code}</span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Organization: <span style={{ color: '#37BD69' }}>{selectedParivesh?.organization_name}</span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Date of Submitted:{' '}
-                  <span style={{ color: '#37BD69' }}>
-                    {batchDetails?.submitted_on !== null
-                      ? moment.utc(batchDetails?.submitted_on).format('DD MMMM YYYY')
-                      : 'NA'}
-                  </span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant='subtitle1'>Status</Typography>
-              </Grid>
+        <Box sx={{ p: 6, pb: 0 }}>
+          <Grid container justifyContent='space-between'>
+            <Grid item xs={12} sm='auto'>
+              <CardHeader
+                sx={{ padding: 0 }}
+                avatar={
+                  <Icon
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      router.back()
+                    }}
+                    icon='ep:back'
+                  />
+                }
+                title='Batch Details'
+              />
             </Grid>
-          </Box>
+            <Grid item xs={12} sm='auto'>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: { sm: 'space-between' },
+                  alignItems: 'center',
+                  gap: 2,
+                  mt: { xs: 2, sm: 0 }
+                }}
+              >
+                <Typography variant='subtitle1'>Status:</Typography>
+                <Typography variant='subtitle1'>
+                  {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
+                    <Select
+                      displayEmpty
+                      sx={{
+                        minWidth: 200,
+                        height: 40,
+                        background: '#00AFD6',
+                        color: '#FFFFFF',
+                        borderColor: '#00AFD6',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#00AFD6'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#00AFD6'
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#00AFD6'
+                        },
+                        '& .MuiSelect-icon': {
+                          color: '#FFFFFF'
+                        }
+                      }}
+                      IconComponent={CustomDropdownIcon}
+                      value={selectedStatus}
+                      onChange={handleStatusChange}
+                      onClick={onClickStatus}
+                    >
+                      {dropdownOptions.map(option => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  ) : (
+                    <Typography
+                      sx={{
+                        color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69'
+                      }}
+                    >
+                      {batchDetails.status === 'accepted'
+                        ? 'Approved'
+                        : batchDetails.status === 'rejected'
+                        ? 'Rejected'
+                        : null}
+                    </Typography>
+                  )}
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* <Box sx={{ background: 'rgba(195, 206, 199, 0.3)', borderRadius: '10px', m: 6, p: 6 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                Batch ID: <span style={{ color: '#44544A', fontWeight: 'bold' }}>{batchDetails?.batch_code}</span>
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                Batch Created:{' '}
+                <span style={{ color: '#44544A', fontWeight: 'bold' }}>
+                  {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY hh:mm A')}
+                </span>
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                Submitted Date:{' '}
+                <span style={{ color: '#44544A', fontWeight: 'bold' }}>
+                  {batchDetails?.submitted_on !== null
+                    ? moment.utc(batchDetails?.submitted_on).local().format('DD MMMM YYYY hh:mm A')
+                    : 'NA'}
+                </span>
+              </Typography>
+            </Grid>
+          </Grid>
+
           <Box sx={{ mt: 6 }}>
             <Grid container spacing={2} sx={{ alignItems: 'baseline' }}>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Batch Created:{' '}
-                  <span style={{ color: '#37BD69' }}>
-                    {moment.utc(batchDetails?.created_on).format('DD MMMM YYYY')}
-                  </span>
+                  Organization:{' '}
+                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>{selectedParivesh?.organization_name}</span>
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Registration ID :{' '}
-                  <span style={{ color: '#37BD69' }}>
-                    {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
-                  </span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant='subtitle1' style={{ color: '#44544A' }}>
                   {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
-                  <span style={{ color: '#37BD69' }}>
+                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>
                     {type === 'reportedBatch'
                       ? batchDetails?.created_by_user?.user_name
                       : batchDetails?.submitted_by_user?.user_name}
                   </span>
                 </Typography>
               </Grid>
-              {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
-                <Grid item xs={12} sm={6} md={3}>
-                  <Select
-                    displayEmpty
-                    sx={{
-                      minWidth: 200,
-                      height: 40,
-                      background: '#00AFD6',
-                      color: '#FFFFFF',
-                      borderColor: '#00AFD6',
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#00AFD6'
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#00AFD6'
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#00AFD6'
-                      },
-                      '& .MuiSelect-icon': {
-                        color: '#FFFFFF'
-                      }
-                    }}
-                    IconComponent={CustomDropdownIcon}
-                    value={selectedStatus}
-                    onChange={handleStatusChange}
-                    onClick={onClickStatus}
-                  >
-                    {dropdownOptions.map(option => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Grid>
-              ) : (
-                <Typography
-                  variant='h6'
-                  sx={{
-                    color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69'
-                  }}
-                >
-                  {batchDetails.status === 'accepted'
-                    ? 'Approved'
-                    : batchDetails.status === 'rejected'
-                    ? 'Rejected'
-                    : null}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+                  Registration ID :{' '}
+                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>
+                    {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
+                  </span>
                 </Typography>
-              )}
+              </Grid>
             </Grid>
           </Box>
+        </Box> */}
+
+        <Box
+          sx={{
+            background: 'rgba(195, 206, 199, 0.3)',
+            borderRadius: '10px',
+            m: 6, // Adjust margin for smaller screens
+            p: 6, // Adjust padding for smaller screens
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack columns on mobile, row on larger screens
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              marginBottom: { xs: 3, sm: 0 }
+            }}
+          >
+            <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
+              Batch ID: <span style={{ fontWeight: '600' }}>{batchDetails?.batch_code}</span>
+            </Typography>
+            <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 1 }}>
+              Organization: <span style={{ fontWeight: '600' }}>{selectedParivesh?.organization_name}</span>
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              marginBottom: { xs: 3, sm: 0 }
+            }}
+          >
+            <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
+              Batch Created:{' '}
+              <span style={{ fontWeight: '600' }}>
+                {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY  hh:mm A')}
+              </span>
+            </Typography>
+
+            <Typography variant='subtitle1' style={{ color: '#44544A' }}>
+              {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+              <span style={{ color: '#44544A', fontWeight: '600' }}>
+                {type === 'reportedBatch'
+                  ? batchDetails?.created_by_user?.user_name
+                  : batchDetails?.submitted_by_user?.user_name}
+              </span>
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              marginBottom: { xs: 3, sm: 0 }
+            }}
+          >
+            <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
+              Submitted Date:{' '}
+              <span style={{ color: '#44544A', fontWeight: '600' }}>
+                {batchDetails?.submitted_on !== null
+                  ? moment.utc(batchDetails?.submitted_on).local().format('DD MMMM YYYY hh:mm A')
+                  : 'NA'}
+              </span>
+            </Typography>
+
+            <Typography variant='subtitle1' sx={{ color: '#44544A' }}>
+              Registration ID:{' '}
+              <span style={{ fontWeight: '600' }}>
+                {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
+              </span>
+            </Typography>
+          </Box>
         </Box>
+
         <Box sx={{ pl: 6, pr: 6, pb: 6 }}>
           <Grid>{tableData()}</Grid>
         </Box>

@@ -141,7 +141,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       setIsModalOpen(false)
       const response = await deleteBatchToOrg(payload, selectedId)
       if (response.success === true) {
-        Toaster({ type: 'success', message: `Batch ${selectedId} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Batch has been successfully deleted` })
         // Reload the table data
         fetchTableData(sortBy, searchValue, sortColumn)
       } else {
@@ -198,7 +198,7 @@ const ReportedBatches = ({ searchParams, type }) => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : '-'}
+              {params.row.registration_id ? params.row.registration_id : 'NA'}
             </Typography>
           </Box>
         </Box>
@@ -208,7 +208,7 @@ const ReportedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# OF ANIMALS',
+      headerName: 'NO. OF ANIMALS',
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
