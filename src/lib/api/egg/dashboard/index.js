@@ -29,7 +29,7 @@ export async function getSpeciesList(params) {
 
 export async function getSiteList(params) {
   return await axiosGet({
-    url: `${EGG}/species-wise-details`,
+    url: `housing-list-for-egg`,
     params: params
   })
 }
