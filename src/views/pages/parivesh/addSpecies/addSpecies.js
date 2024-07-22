@@ -62,7 +62,8 @@ const schema = yup.object().shape({
 const defaultValues = {
   scientificName: '',
   commonName: '',
-  active: '1'
+  active: '1',
+  species: null
 }
 
 const AddSpecies = props => {
@@ -88,6 +89,7 @@ const AddSpecies = props => {
     setValue,
     clearErrors,
     handleSubmit,
+
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -108,28 +110,18 @@ const AddSpecies = props => {
       cover_image: coverImg
     }
     await handleSubmitData(payload)
+    reset(defaultValues)
+    setValue('species', '')
+    setImgSrc('')
+    setCoverImgSrc('')
   }
-
-  const getDrugClass = useCallback(
-    async id => {
-      const response = await getDrugById(id)
-      if (response?.success) {
-        reset({ name: response.data.label, active: response.data.active, id: response.data.id })
-      } else {
-      }
-    },
-    [reset]
-  )
 
   useEffect(() => {
     if (resetForm) {
       reset(defaultValues)
+      setValue('species', '')
     }
-
-    if (editParams?.id !== null) {
-      getDrugClass(editParams?.id)
-    }
-  }, [resetForm, editParams, reset, getDrugClass])
+  }, [resetForm, editParams, reset, setValue])
 
   const RenderSidebarFooter = () => {
     return (
@@ -540,7 +532,7 @@ const AddSpecies = props => {
             </Grid>
           </Grid>
 
-          {editParams?.id !== null ? (
+          {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -570,7 +562,7 @@ const AddSpecies = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>
