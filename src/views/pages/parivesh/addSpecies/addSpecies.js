@@ -210,7 +210,7 @@ const AddSpecies = props => {
     }
   }
 
-  const searchMasterSpeciesLost = useCallback(
+  const searchMasterSpeciesList = useCallback(
     debounce(async q => {
       setSearchValue(q)
       try {
@@ -321,7 +321,7 @@ const AddSpecies = props => {
                     handleScientificNameChange(event, newValue)
                   }}
                   onKeyUp={e => {
-                    searchMasterSpeciesLost(e?.target?.value)
+                    searchMasterSpeciesList(e?.target?.value)
                   }}
                   renderInput={params => (
                     <TextField
