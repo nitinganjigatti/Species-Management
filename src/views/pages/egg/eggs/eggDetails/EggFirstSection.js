@@ -629,7 +629,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
           allocateEggId={eggDetails?.egg_id}
         />
       )}
-      <DiscardForm isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
+      <DiscardForm getDetails={getDetails} isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
     </>
   )
 }
