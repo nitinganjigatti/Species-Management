@@ -8,7 +8,7 @@ import Router, { useRouter } from 'next/router'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
 
-const SubmittedBatches = ({ searchParams, type }) => {
+const SubmittedBatches = ({ type }) => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -365,7 +365,6 @@ const SubmittedBatches = ({ searchParams, type }) => {
       setCheck={setCheck}
       headerAction={headerAction}
       title={'Submitted Batches'}
-      searchParams={searchParams}
       handleSortModel={handleSortModel}
     />
   )

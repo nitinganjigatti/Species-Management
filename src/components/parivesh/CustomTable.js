@@ -28,7 +28,6 @@ const CustomTable = ({
   check,
   setCheck,
   headerAction,
-  searchParams,
   title,
   handleSortModel
 }) => {

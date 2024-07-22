@@ -15,7 +15,7 @@ import { LoadingButton } from '@mui/lab'
 import { deleteBatchToOrg } from 'src/lib/api/parivesh/addBatch'
 import Toaster from 'src/components/Toaster'
 
-const ReportedBatches = ({ searchParams, type }) => {
+const ReportedBatches = ({ type }) => {
   const theme = useTheme()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -417,7 +417,6 @@ const ReportedBatches = ({ searchParams, type }) => {
         setCheck={setCheck}
         headerAction={headerAction}
         title={'To be Submitted'}
-        searchParams={searchParams}
         handleSortModel={handleSortModel}
       />
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
