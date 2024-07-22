@@ -13,7 +13,7 @@ import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
 import { DataGrid } from '@mui/x-data-grid'
-import { getAllStats, getSpeciesList } from 'src/lib/api/egg/dashboard'
+import { getAllStats, getSiteList, getSpeciesList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
@@ -22,9 +22,9 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 const Species = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
-  const [defaultSite, setDefaultSite] = useState(null)
 
   const [speciesList, setSpeciesList] = useState([])
+
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [searchValue, setSearchValue] = useState('')
@@ -33,9 +33,12 @@ const Species = () => {
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
 
+  const [fromSiteList, setFromSiteList] = useState([])
+  const [toSiteList, setToSiteList] = useState([])
+  const [defaultFromSite, setDefaultFromSite] = useState(null)
+  const [defaultToSite, setDefaultToSite] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
-  const [nursery, setNursery] = useState('')
 
   const NurseryList = async q => {
     try {
@@ -52,9 +55,72 @@ const Species = () => {
     }
   }
 
+  const FromSiteList = async q => {
+    try {
+      const params = {
+        type: 'site',
+        page_no: 1,
+        q
+      }
+      await getSiteList(params).then(res => {
+        setFromSiteList(res?.data?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  const ToSiteList = async q => {
+    try {
+      const params = {
+        type: 'site',
+        page_no: 1,
+        q
+      }
+      await getSiteList(params).then(res => {
+        setToSiteList(res?.data?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   useEffect(() => {
     NurseryList()
+    FromSiteList()
+    ToSiteList()
   }, [])
+
+  const searchFromSite = useCallback(
+    debounce(async q => {
+      try {
+        await FromSiteList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  const searchToSite = useCallback(
+    debounce(async q => {
+      try {
+        await ToSiteList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const columns = [
     {
@@ -284,25 +350,22 @@ const Species = () => {
   }
 
   const getspeciesFunc = useCallback(
-    async (q, nId) => {
+    async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
       try {
         setLoading(true)
 
         const params = {
-          q,
-          from_date: fromDate && moment(fromDate).format('YYYY-MM-DD'),
-          til_date: tillDate && moment(tillDate).format('YYYY-MM-DD'),
+          taxonomy: q,
+          from_date: fDate,
+          til_date: tDate,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          // taxonomy_id: '',
-          // site_id: '',
-          nursery_id: nId || defaultNursery?.nursery_id
+          from_site_id: fromSiteId || defaultFromSite?.site_id,
+          to_site_id: toSiteId || defaultToSite?.site_id,
+          nursery_id: nurseryId || defaultNursery?.nursery_id
         }
         // console.log('params', params)
         await getSpeciesList(params).then(res => {
-          // console.log('response', res)
-          //   console.log('paginationModel2', paginationModel?.page)
-
           if (res?.data?.success) {
             let listWithId = res?.data?.data?.result?.map((el, i) => {
               return { ...el, id: i + 1 }
@@ -328,20 +391,30 @@ const Species = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await getspeciesFunc(q)
+        await getspeciesFunc(
+          q,
+          fromDate,
+          tillDate,
+          defaultFromSite?.site_id,
+          defaultToSite?.site_id,
+          defaultNursery?.nursery_id
+        )
       } catch (error) {
         console.error(error)
       }
     }, 1000),
     []
   )
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(value)
-  }
 
   useEffect(() => {
-    getspeciesFunc(searchValue)
+    getspeciesFunc(
+      searchValue,
+      fromDate,
+      tillDate,
+      defaultFromSite?.site_id,
+      defaultToSite?.site_id,
+      defaultNursery?.nursery_id
+    )
   }, [getspeciesFunc])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -352,9 +425,6 @@ const Species = () => {
   }))
 
   const handleSortModel = newModel => {}
-  useEffect(() => {
-    // console.log('newDate', tillDate)
-  }, [tillDate])
 
   return (
     <Box
@@ -398,6 +468,7 @@ const Species = () => {
               InputProps={{
                 disableUnderline: true
               }}
+              onChange={e => searchTableData(e.target.value)}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
@@ -418,7 +489,6 @@ const Species = () => {
                   backgroundColor: '#fff',
                   borderRadius: '8px',
                   width: '100%',
-                  // '& .MuiIconButton-edgeEnd': { display: 'block' },
                   '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
                     height: '40px',
                     borderRadius: '4px'
@@ -428,8 +498,18 @@ const Species = () => {
                 }}
                 value={fromDate}
                 onChange={newDate => {
-                  setFromDate(newDate)
-                  getspeciesFunc(searchValue, defaultNursery?.nursery_id)
+                  if (newDate) {
+                    const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                    setFromDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                    getspeciesFunc(
+                      searchValue,
+                      formattedDate,
+                      tillDate,
+                      defaultFromSite?.site_id,
+                      defaultToSite?.site_id,
+                      defaultNursery?.nursery_id
+                    )
+                  }
                 }}
                 label={'From Date'}
                 maxDate={dayjs()}
@@ -452,14 +532,23 @@ const Species = () => {
                   borderRadius: '8px',
                   width: '100%',
                   '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': { height: '40px', borderRadius: '4px' },
-                  // '& .MuiIconButton-edgeEnd': { display: 'block' },
                   '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
                 value={tillDate}
                 onChange={newDate => {
-                  setTilDate(newDate)
-                  getspeciesFunc(searchValue, defaultNursery?.nursery_id)
+                  if (newDate) {
+                    const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                    setTilDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                    getspeciesFunc(
+                      searchValue,
+                      fromDate,
+                      formattedDate,
+                      defaultFromSite?.site_id,
+                      defaultToSite?.site_id,
+                      defaultNursery?.nursery_id
+                    )
+                  }
                 }}
                 label={'Till Date'}
                 maxDate={dayjs()}
@@ -468,162 +557,184 @@ const Species = () => {
           </Box>
         </Grid>
         <Grid item xs={3}>
-          {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-            <FormControl fullWidth>
-              <Autocomplete
-                name='site_id'
-                value={defaultSite}
-                disablePortal
-                id='site_id'
-                sx={{
-                  '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
-                    height: '40px',
-                    borderRadius: '4px'
-                  },
-                  '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-                }}
-                options={authData?.userData?.user?.zoos[0].sites}
-                getOptionLabel={option => option.site_name}
-                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultSite(null)
-
-                    // return onChange('')
-                  } else {
-                    setDefaultSite(val)
-
-                    // console.log('val', val)
-
-                    // return onChange(val.site_id)
-                  }
-                }}
-                renderInput={params => (
-                  <TextField
-                    // onChange={e => {
-                    //   searchRoom(defaultNursery.nursery_id, e.target.value)
-                    // }}
-                    sx={{
-                      backgroundColor: '#fff',
-                      borderRadius: '8px',
-                      width: '100%',
-                      '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                        height: '40px',
-                        borderRadius: '4px'
-                      },
-                      '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                      '& input': {
-                        position: 'relative',
-                        top: -7
-                      }
-                      // '& ::placeholder': {
-                      //   position: 'relative',
-                      //   top: -0
-                      // }
-                    }}
-                    {...params}
-                    label='From Site'
-                    placeholder='Search'
-                  />
-                )}
-              />
-            </FormControl>
-          )}
+          <FormControl fullWidth>
+            <Autocomplete
+              name='fromSite'
+              value={defaultFromSite}
+              disablePortal
+              id='fromSite'
+              sx={{
+                '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
+                  height: '40px',
+                  borderRadius: '4px'
+                },
+                '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+              }}
+              options={fromSiteList}
+              getOptionLabel={option => option.site_name}
+              isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+              onChange={(e, val) => {
+                if (val === null) {
+                  setDefaultFromSite(null)
+                  getspeciesFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    '',
+                    defaultToSite?.site_id,
+                    defaultNursery?.nursery_id
+                  )
+                } else {
+                  setDefaultFromSite(val)
+                  getspeciesFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    val?.site_id,
+                    defaultToSite?.site_id,
+                    defaultNursery?.nursery_id
+                  )
+                }
+              }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    width: '100%',
+                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& input': {
+                      position: 'relative',
+                      top: -7
+                    }
+                  }}
+                  onChange={e => {
+                    searchFromSite(e.target.value)
+                  }}
+                  {...params}
+                  label='From Site'
+                  placeholder='Search'
+                />
+              )}
+            />
+          </FormControl>
         </Grid>
         <Grid item xs={3}>
-          {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-            <FormControl fullWidth>
-              <Autocomplete
-                name='nursery'
-                value={defaultNursery}
-                disablePortal
-                id='nursery'
-                options={nurseryList?.length > 0 ? nurseryList : []}
-                getOptionLabel={option => option.nursery_name}
-                isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultNursery(null)
-                    getspeciesFunc(searchValue, '')
-                  } else {
-                    setDefaultNursery(val)
-                    // setNursery(val?.nursery_id)
-                    getspeciesFunc(searchValue, val?.nursery_id)
-                  }
-                }}
-                renderInput={params => (
-                  <TextField
-                    sx={{
-                      backgroundColor: '#fff',
-                      borderRadius: '8px',
-                      width: '100%',
-                      '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                        height: '40px',
-                        borderRadius: '4px'
-                      },
-                      '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                      '& input': {
-                        position: 'relative',
-                        top: -7
-                      }
-                    }}
-                    onChange={e => {
-                      searchNursery(e.target.value)
-                    }}
-                    {...params}
-                    label='Receiving Site'
-                    placeholder='Search & Select'
-                  />
-                )}
-              />
-              {/* <Autocomplete
-                name='site_id'
-                value={defaultSite}
-                disablePortal
-                id='site_id'
-                options={authData?.userData?.user?.zoos[0].sites}
-                getOptionLabel={option => option.site_name}
-                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultSite(null)
-
-                    // return onChange('')
-                  } else {
-                    setDefaultSite(val)
-
-                    // console.log('val', val)
-
-                    // return onChange(val.site_id)
-                  }
-                }}
-                renderInput={params => (
-                  <TextField
-                    // onChange={e => {
-                    //   searchRoom(defaultNursery.nursery_id, e.target.value)
-                    // }}
-                    sx={{
-                      backgroundColor: '#fff',
-                      borderRadius: '8px',
-                      width: '100%',
-                      '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                        height: '40px',
-                        borderRadius: '4px'
-                      },
-                      '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                      '& input': {
-                        position: 'relative',
-                        top: -7
-                      }
-                    }}
-                    {...params}
-                    label='Receiving Site'
-                    placeholder='Search & Select'
-                  />
-                )}
-              /> */}
-            </FormControl>
-          )}
+          <FormControl fullWidth>
+            <Autocomplete
+              name='toSite'
+              value={defaultToSite}
+              disablePortal
+              id='toSite'
+              options={toSiteList?.length > 0 ? toSiteList : []}
+              getOptionLabel={option => option.site_name}
+              isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+              onChange={(e, val) => {
+                if (val === null) {
+                  setDefaultToSite(null)
+                  getspeciesFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    defaultFromSite?.site_id,
+                    '',
+                    defaultNursery?.nursery_id
+                  )
+                } else {
+                  setDefaultToSite(val)
+                  getspeciesFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    defaultFromSite?.site_id,
+                    val?.site_id,
+                    defaultNursery?.nursery_id
+                  )
+                }
+              }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    width: '100%',
+                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& input': {
+                      position: 'relative',
+                      top: -7
+                    }
+                  }}
+                  onChange={e => {
+                    searchToSite(e.target.value)
+                  }}
+                  {...params}
+                  label='Receiving Site'
+                  placeholder='Search & Select'
+                />
+              )}
+            />
+          </FormControl>
+        </Grid>
+        <Grid item xs={3}>
+          <FormControl fullWidth>
+            <Autocomplete
+              name='nursery'
+              value={defaultNursery}
+              disablePortal
+              id='nursery'
+              options={nurseryList?.length > 0 ? nurseryList : []}
+              getOptionLabel={option => option.nursery_name}
+              isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+              onChange={(e, val) => {
+                if (val === null) {
+                  setDefaultNursery(null)
+                  getspeciesFunc(searchValue, fromDate, tillDate, defaultFromSite?.site_id, defaultToSite?.site_id, '')
+                } else {
+                  setDefaultNursery(val)
+                  getspeciesFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    defaultFromSite?.site_id,
+                    defaultToSite?.site_id,
+                    val?.nursery_id
+                  )
+                }
+              }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    width: '100%',
+                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& input': {
+                      position: 'relative',
+                      top: -7
+                    }
+                  }}
+                  onChange={e => {
+                    searchNursery(e.target.value)
+                  }}
+                  {...params}
+                  label='Nursery'
+                  placeholder='Search & Select'
+                />
+              )}
+            />
+          </FormControl>
         </Grid>
       </Grid>
       <DataGrid

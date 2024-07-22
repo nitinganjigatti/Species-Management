@@ -23,7 +23,9 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
+
   const [transferList, setTransferList] = useState([])
+
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [searchValue, setSearchValue] = useState('')
@@ -32,10 +34,12 @@ const TransferDetails = () => {
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
 
+  const [fromSiteList, setFromSiteList] = useState([])
+  const [toSiteList, setToSiteList] = useState([])
+  const [defaultFromSite, setDefaultFromSite] = useState(null)
+  const [defaultToSite, setDefaultToSite] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
-  const [siteList, setSiteList] = useState([])
-  const [defaultSite, setDefaultSite] = useState(null)
 
   const NurseryList = async q => {
     try {
@@ -51,15 +55,29 @@ const TransferDetails = () => {
       console.log(e)
     }
   }
-  const SiteList = async q => {
+  const FromSiteList = async q => {
     try {
       const params = {
         type: 'site',
-        page_no: 1
+        page_no: 1,
+        q
       }
       await getSiteList(params).then(res => {
-        // console.log('res', res?.data?.data)
-        setSiteList(res?.data?.data?.result)
+        setFromSiteList(res?.data?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  const ToSiteList = async q => {
+    try {
+      const params = {
+        type: 'site',
+        page_no: 1,
+        q
+      }
+      await getSiteList(params).then(res => {
+        setToSiteList(res?.data?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -68,8 +86,30 @@ const TransferDetails = () => {
 
   useEffect(() => {
     NurseryList()
-    SiteList()
+    FromSiteList()
+    ToSiteList()
   }, [])
+
+  const searchFromSite = useCallback(
+    debounce(async q => {
+      try {
+        await FromSiteList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  const searchToSite = useCallback(
+    debounce(async q => {
+      try {
+        await ToSiteList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const searchNursery = useCallback(
     debounce(async q => {
@@ -128,39 +168,30 @@ const TransferDetails = () => {
           <Typography
             sx={{
               color:
-                params.row.egg_condition === 'Intact'
+                params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
+                  ? theme.palette.primary.dark
+                  : params.row.egg_status === 'Discard'
+                  ? '#fa6140'
+                  : params.row.egg_status === 'Hatched'
                   ? theme.palette.primary.main
-                  : params.row.egg_condition === 'Rotten'
-                  ? '#fa6140'
-                  : params.row.egg_condition === 'Cracked'
-                  ? '#fa6140'
-                  : params.row.egg_condition === 'Broken'
-                  ? '#fa6140'
-                  : params.row.egg_condition === 'Hatched'
-                  ? '#32bfdd'
-                  : params.row.egg_condition === 'Thin-Shelled'
-                  ? '#fa6140'
                   : null,
               fontSize: '14px',
               fontWeight: '500',
               px: 3,
 
               backgroundColor:
-                params.row.egg_condition === 'Rotten'
+                params.row.egg_status === 'Discard'
                   ? '#FFD3D3'
-                  : params.row.egg_condition === 'Cracked'
-                  ? '#FFD3D3'
-                  : params.row.egg_condition === 'Broken'
-                  ? '#FFD3D3'
-                  : params.row.egg_condition === 'Thin-Shelled'
-                  ? '#FFD3D3'
-                  : '#E1F9ED',
-
+                  : params.row.egg_status === 'Fresh' ||
+                    params.row.egg_status === 'Fertile' ||
+                    params.row.egg_status === 'Hatched'
+                  ? '#EFF5F2'
+                  : '#EFF5F2',
               textAlign: 'center',
               borderRadius: '4px'
             }}
           >
-            {params.row.egg_condition ? params.row.egg_condition : '-'}
+            {params.row.egg_status ? params.row.egg_status : '-'}
           </Typography>
         </Box>
       )
@@ -183,11 +214,7 @@ const TransferDetails = () => {
                   ? theme.palette.primary.main
                   : params.row.assigned_status === 'CANCELLED'
                   ? '#fa6140'
-                  : params.row.assigned_status === 'IN_PROGRESS'
-                  ? '#00AFD6'
-                  : //   : params.row.assigned_status === 'Broken'
-                    //   ? '#fa6140'
-                    null,
+                  : '#00AFD6',
               fontSize: '14px',
               fontWeight: '500',
               p: '4px 8px',
@@ -199,13 +226,8 @@ const TransferDetails = () => {
                 params.row.assigned_status === 'COMPLETED'
                   ? '#E1F9ED'
                   : params.row.assigned_status === 'CANCELLED'
-                  ? '#FFD3D3'
-                  : params.row.assigned_status === 'IN_PROGRESS'
-                  ? '#AFEFEB80'
-                  : //   : params.row.assigned_status === 'Thin-Shelled'
-                    //   ? '#FFD3D3'
-                    '#E1F9ED',
-
+                  ? '#FA61401A'
+                  : '#AFEFEB80',
               textAlign: 'center',
               borderRadius: '4px'
             }}
@@ -423,28 +445,22 @@ const TransferDetails = () => {
   }
 
   const getTransferListFunc = useCallback(
-    async (q, nId, siteId) => {
+    async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
       try {
         setLoading(true)
-        // console.log(defaultNursery?.nursery_id)
-        // console.log(nursery)
 
         const params = {
-          q,
-          from_date: fromDate && moment(fromDate).format('YYYY-MM-DD'),
-          til_date: tillDate && moment(tillDate).format('YYYY-MM-DD'),
+          egg_code: q,
+          from_date: fDate,
+          til_date: tDate,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          // egg_code: '',
-          nursery_id: nId || defaultNursery?.nursery_id
-          // from_site_id: '',
-          // to_site_id: ''
+          from_site_id: fromSiteId || defaultFromSite?.site_id,
+          to_site_id: toSiteId || defaultToSite?.site_id,
+          nursery_id: nurseryId || defaultNursery?.nursery_id
         }
         // console.log('params', params)
         await getTransferList(params).then(res => {
-          // console.log('response', res)
-          //   console.log('paginationModel2', paginationModel?.page)
-
           if (res?.data?.success) {
             let listWithId = res?.data?.data?.result?.map((el, i) => {
               return { ...el, id: i + 1 }
@@ -470,20 +486,30 @@ const TransferDetails = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await getTransferListFunc(q)
+        await getTransferListFunc(
+          q,
+          fromDate,
+          tillDate,
+          defaultFromSite?.site_id,
+          defaultToSite?.site_id,
+          defaultNursery?.nursery_id
+        )
       } catch (error) {
         console.error(error)
       }
     }, 1000),
     []
   )
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(value)
-  }
 
   useEffect(() => {
-    getTransferListFunc(searchValue)
+    getTransferListFunc(
+      searchValue,
+      fromDate,
+      tillDate,
+      defaultFromSite?.site_id,
+      defaultToSite?.site_id,
+      defaultNursery?.nursery_id
+    )
   }, [getTransferListFunc])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -537,6 +563,7 @@ const TransferDetails = () => {
               InputProps={{
                 disableUnderline: true
               }}
+              onChange={e => searchTableData(e.target.value)}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
@@ -557,7 +584,6 @@ const TransferDetails = () => {
                   backgroundColor: '#fff',
                   borderRadius: '8px',
                   width: '100%',
-                  // '& .MuiIconButton-edgeEnd': { display: 'block' },
                   '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
                     height: '40px',
                     borderRadius: '4px'
@@ -567,8 +593,18 @@ const TransferDetails = () => {
                 }}
                 value={fromDate}
                 onChange={newDate => {
-                  setFromDate(newDate)
-                  getTransferListFunc(searchValue, defaultNursery?.nursery_id)
+                  if (newDate) {
+                    const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                    setFromDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                    getTransferListFunc(
+                      searchValue,
+                      formattedDate,
+                      tillDate,
+                      defaultFromSite?.site_id,
+                      defaultToSite?.site_id,
+                      defaultNursery?.nursery_id
+                    )
+                  }
                 }}
                 label={'From Date'}
                 maxDate={dayjs()}
@@ -591,14 +627,23 @@ const TransferDetails = () => {
                   borderRadius: '8px',
                   width: '100%',
                   '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': { height: '40px', borderRadius: '4px' },
-                  // '& .MuiIconButton-edgeEnd': { display: 'block' },
                   '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
                 value={tillDate}
                 onChange={newDate => {
-                  setTilDate(newDate)
-                  getTransferListFunc(searchValue, defaultNursery?.nursery_id)
+                  if (newDate) {
+                    const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                    setTilDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                    getTransferListFunc(
+                      searchValue,
+                      fromDate,
+                      formattedDate,
+                      defaultFromSite?.site_id,
+                      defaultToSite?.site_id,
+                      defaultNursery?.nursery_id
+                    )
+                  }
                 }}
                 label={'Till Date'}
                 maxDate={dayjs()}
@@ -607,63 +652,133 @@ const TransferDetails = () => {
           </Box>
         </Grid>
         <Grid item xs={3}>
-          {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-            <FormControl fullWidth>
-              <Autocomplete
-                name='site_id'
-                value={defaultSite}
-                disablePortal
-                id='site_id'
-                sx={{
-                  '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
-                    height: '40px',
-                    borderRadius: '4px'
-                  },
-                  '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-                }}
-                options={siteList}
-                getOptionLabel={option => option.site_name}
-                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultSite(null)
-                  } else {
-                    setDefaultSite(val)
-                  }
-                }}
-                renderInput={params => (
-                  <TextField
-                    // onChange={e => {
-                    //   searchRoom(defaultNursery.nursery_id, e.target.value)
-                    // }}
-                    sx={{
-                      backgroundColor: '#fff',
-                      borderRadius: '8px',
-                      width: '100%',
-                      '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                        height: '40px',
-                        borderRadius: '4px'
-                      },
-                      '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                      '& input': {
-                        position: 'relative',
-                        top: -7
-                      }
-                      // '& ::placeholder': {
-                      //   position: 'relative',
-                      //   top: -0
-                      // }
-                    }}
-                    {...params}
-                    label='From Site'
-                    placeholder='Search'
-                  />
-                )}
-              />
-            </FormControl>
-          )}
+          <FormControl fullWidth>
+            <Autocomplete
+              name='fromSite'
+              value={defaultFromSite}
+              disablePortal
+              id='fromSite'
+              sx={{
+                '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
+                  height: '40px',
+                  borderRadius: '4px'
+                },
+                '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+              }}
+              options={fromSiteList}
+              getOptionLabel={option => option.site_name}
+              isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+              onChange={(e, val) => {
+                if (val === null) {
+                  setDefaultFromSite(null)
+                  getTransferListFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    '',
+                    defaultToSite?.site_id,
+                    defaultNursery?.nursery_id
+                  )
+                } else {
+                  setDefaultFromSite(val)
+                  getTransferListFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    val?.site_id,
+                    defaultToSite?.site_id,
+                    defaultNursery?.nursery_id
+                  )
+                }
+              }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    width: '100%',
+                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& input': {
+                      position: 'relative',
+                      top: -7
+                    }
+                  }}
+                  onChange={e => {
+                    searchFromSite(e.target.value)
+                  }}
+                  {...params}
+                  label='From Site'
+                  placeholder='Search'
+                />
+              )}
+            />
+          </FormControl>
         </Grid>
         <Grid item xs={3}>
+          <FormControl fullWidth>
+            <Autocomplete
+              name='toSite'
+              value={defaultToSite}
+              disablePortal
+              id='toSite'
+              options={toSiteList?.length > 0 ? toSiteList : []}
+              getOptionLabel={option => option.site_name}
+              isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+              onChange={(e, val) => {
+                if (val === null) {
+                  setDefaultToSite(null)
+                  getTransferListFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    defaultFromSite?.site_id,
+                    '',
+                    defaultNursery?.nursery_id
+                  )
+                } else {
+                  setDefaultToSite(val)
+                  getTransferListFunc(
+                    searchValue,
+                    fromDate,
+                    tillDate,
+                    defaultFromSite?.site_id,
+                    val?.site_id,
+                    defaultNursery?.nursery_id
+                  )
+                }
+              }}
+              renderInput={params => (
+                <TextField
+                  sx={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    width: '100%',
+                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                      height: '40px',
+                      borderRadius: '4px'
+                    },
+                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                    '& input': {
+                      position: 'relative',
+                      top: -7
+                    }
+                  }}
+                  onChange={e => {
+                    searchToSite(e.target.value)
+                  }}
+                  {...params}
+                  label='Receiving Site'
+                  placeholder='Search & Select'
+                />
+              )}
+            />
+          </FormControl>
+        </Grid>
+        {/* <Grid item xs={3}>
           <FormControl fullWidth>
             <Autocomplete
               name='nursery'
@@ -676,10 +791,10 @@ const TransferDetails = () => {
               onChange={(e, val) => {
                 if (val === null) {
                   setDefaultNursery(null)
-                  getTransferListFunc(searchValue, '')
+                  getTransferListFunc(searchValue, fromDate, tillDate, defaultFromSite?.site_id, defaultToSite?.site_id, '')
                 } else {
                   setDefaultNursery(val)
-                  getTransferListFunc(searchValue, val?.nursery_id)
+                  getTransferListFunc(searchValue, fromDate, tillDate, defaultFromSite?.site_id, defaultToSite?.site_id, val?.nursery_id)
                 }
               }}
               renderInput={params => (
@@ -702,13 +817,13 @@ const TransferDetails = () => {
                     searchNursery(e.target.value)
                   }}
                   {...params}
-                  label='Receiving Site'
+                  label='Nursery '
                   placeholder='Search & Select'
                 />
               )}
             />
           </FormControl>
-        </Grid>
+        </Grid> */}
       </Grid>
       <DataGrid
         sx={{
