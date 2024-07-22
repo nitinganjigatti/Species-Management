@@ -321,21 +321,16 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* <Avatar
-              variant='square'
-              alt='Icon Image'
-              sx={{
-                width: 30,
-                height: 30,
-                mr: 4,
-                borderRadius: '50%',
-                background: '#E8F4F2',
-                overflow: 'hidden'
-              }}
-            > */}
             {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
               <img
-                style={{ width: '100%', height: '100%', maxWidth: '24px', maxHeight: '24px', objectFit: 'cover' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '26px',
+                  maxHeight: '26px',
+                  objectFit: 'cover',
+                  marginLeft: 4
+                }}
                 src='/icons/pending_security_check_icon.png'
                 alt='Profile'
               />
@@ -354,19 +349,15 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
             )}
             {/* </Avatar> */}
 
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', m: 1 }}
-              className={status === 'eggs_received' ? 'hideField' : ''}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', m: 1 }}>
               {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Typography
                   noWrap
                   sx={{
                     color: '#FA6140',
-
                     fontSize: '16px',
                     fontWeight: '500',
-                    lineHeight: '16.94px'
+                    ml: 0.5
                   }}
                 >
                   {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? 'Pending' : '-'}
@@ -377,7 +368,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                     noWrap
                     sx={{
                       color: theme.palette.primary.main,
-                      fontSize: '14px',
+                      fontSize: '16px',
                       fontWeight: '500',
                       lineHeight: '16.94px'
                     }}
