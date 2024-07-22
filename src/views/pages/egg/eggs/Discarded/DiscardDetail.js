@@ -490,7 +490,12 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
               )}
             </Box>
           ) : (
-            <EggDisCarded eggList={eggList} getEggListSummary={getEggListSummary} fetchTableData={fetchTableData} />
+            <EggDisCarded
+              eggList={eggList}
+              getEggListSummary={getEggListSummary}
+              fetchTableData={fetchTableData}
+              setDetailDrawer={setDetailDrawer}
+            />
           )}
         </Box>
       </Drawer>

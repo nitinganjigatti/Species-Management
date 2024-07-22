@@ -39,9 +39,13 @@ import { useEggContext } from 'src/context/EggContext'
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
 import Utility from 'src/utility'
+import { useRouter } from 'next/router'
 
 const EggList = () => {
   const theme = useTheme()
+  const router = useRouter()
+
+  const { selected_nursery_id, tab_Value, subTab_value, page_value, search_value, selected_nursery_name } = router.query
 
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
@@ -51,17 +55,17 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(search_value ? search_value : '')
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: page_value ? page_value : 0, pageSize: 10 })
 
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(selectedEggTab ? selectedEggTab : 'eggs_received')
+  const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
 
-  const [isDiscarded, setIsDiscarded] = useState(subTab ? subTab : 'eggs_ready_to_be_discarded_at_nursery')
+  const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -73,9 +77,14 @@ const EggList = () => {
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
 
-  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [defaultNursery, setDefaultNursery] = useState(
+    selected_nursery_id && selected_nursery_name
+      ? { nursery_id: selected_nursery_id, nursery_name: selected_nursery_name }
+      : null
+  )
   const [nurseryList, setNurseryList] = useState([])
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
+  const [nursery_name, setNursery_name] = useState('')
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -1649,15 +1658,17 @@ const EggList = () => {
     if (event.target.closest('.MuiDataGrid-checkboxInput')) {
       return // Do nothing if the click is on the checkbox
     }
+
     if (params) {
       const data = params.row
 
       const values = {
-        nursery_id: filterByNurseryId ? filterByNurseryId : '',
         tab_Value: status,
         subTab_value: isDiscarded,
-        page_value: paginationModel,
-        search_value: searchValue
+        page_value: paginationModel?.page,
+        search_value: searchValue,
+        selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
+        selected_nursery_name: nursery_name ? nursery_name : ''
       }
       console.log('values :>> ', values)
 
@@ -1665,7 +1676,7 @@ const EggList = () => {
         pathname: `/egg/eggs/${data?.id}`,
 
         query: {
-          values
+          ...values
         }
       })
     } else {
@@ -1701,27 +1712,29 @@ const EggList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, statusRecived, isDiscarded, nurseryId) => {
+    async (sort, search, statusRecived, discardedTab, nurseryId) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
-          q,
+          q: search_value ? search_value : search,
           sorting_by_date: 'latest_date',
 
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryId ? nurseryId : '',
+          nursery_id: selected_nursery_id ? selected_nursery_id : nurseryId ? nurseryId : '',
 
           // nursery_id: 55,
           type:
             statusRecived === undefined
-              ? status
-              : statusRecived === 'eggs_ready_to_be_discarded_at_nursery'
               ? isDiscarded
+                ? isDiscarded
+                : status
+              : statusRecived === 'eggs_ready_to_be_discarded_at_nursery'
+              ? discardedTab
               : statusRecived
         }
 
@@ -1813,6 +1826,7 @@ const EggList = () => {
 
               // setValue('room', '')
               setFilterByNurseryId(val.nursery_id)
+              setNursery_name(val.nursery_name)
 
               // return onChange(val.nursery_id)
             }
