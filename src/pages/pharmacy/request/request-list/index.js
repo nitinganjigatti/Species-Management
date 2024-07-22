@@ -143,19 +143,20 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          console.log('res', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('requestPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('requestPageStatus')
           }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -165,7 +166,6 @@ const RequestList = () => {
   )
   useEffect(() => {
     const statusIsThere = read('requestPageStatus')
-    console.log('requestPageStatus', statusIsThere)
     if (statusIsThere) {
       debugger
       setStatus(statusIsThere?.currentStatus)
@@ -282,7 +282,7 @@ const RequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
+    return selectedPharmacy.type === 'central' ? 'Requested From' : 'Requested To'
   }
 
   const handleSwitchChange = event => {
@@ -419,7 +419,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3 / 2,
       minWidth: 20,
       field: 'request',
       headerName: 'Days',
@@ -441,17 +441,17 @@ const RequestList = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'request_date',
-    //   headerName: 'Requested Date',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {Utility.formatDisplayDate(params.row.request_date)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+        </Typography>
+      )
+    },
 
     // {
     //   flex: 0.2,

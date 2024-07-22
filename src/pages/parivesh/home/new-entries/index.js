@@ -159,7 +159,7 @@ const NewEntry = ({}) => {
         const params = {
           sort,
           q,
-          org_id: selectedParivesh?.id !== 'all' ? selectedParivesh?.id : null,
+          org_id: selectedParivesh?.id,
           sortColumn,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -194,10 +194,11 @@ const NewEntry = ({}) => {
   }))
 
   const handleSortModel = newModel => {
+    console.log(newModel, 'newModel')
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
     }
   }
@@ -240,10 +241,13 @@ const NewEntry = ({}) => {
 
   const confirmDeleteAction = async () => {
     try {
+      const payload = {
+        org_id: selectedParivesh?.id
+      }
       setIsModalOpen(false)
-      const response = await deleteSpeciesToOrganization(selectedId)
+      const response = await deleteSpeciesToOrganization(selectedId, payload)
       if (response.success === true) {
-        Toaster({ type: 'success', message: `Species ${selectedId} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Species has been successfully deleted` })
         // Reload the table data
         fetchTableData(sort, searchValue, sortColumn)
       } else {
@@ -256,8 +260,9 @@ const NewEntry = ({}) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
+      sortColumn: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
@@ -270,13 +275,19 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'species_image',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
           {/* <Box className='relative h-20'>
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
 
-          <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
+          <Avatar
+            variant='square'
+            src={params.row.species_image}
+            alt={'species_image'}
+            sx={{ height: 'auto', p: 0.5 }}
+          />
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -295,14 +306,13 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <Tooltip title={params.row.common_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+            {params.row.common_name ? params.row.common_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -310,10 +320,13 @@ const NewEntry = ({}) => {
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.scientific_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     // {
@@ -347,6 +360,7 @@ const NewEntry = ({}) => {
       minWidth: 10,
       field: 'gender',
       headerName: 'GENDER / COUNT',
+      sortable: false,
       renderCell: params => {
         let gender = params.row.gender ? params.row.gender : '-'
 
@@ -382,6 +396,7 @@ const NewEntry = ({}) => {
       minWidth: 30,
       field: 'possession_type',
       headerName: 'Category',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -399,10 +414,16 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'transaction_date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+          </Typography>
+          <Typography noWrap variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -410,6 +431,7 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
@@ -427,6 +449,7 @@ const NewEntry = ({}) => {
       flex: 0.4,
       minWidth: 20,
       field: 'checkbox',
+      sortable: false,
       headerName: (
         <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
       ),
@@ -523,6 +546,9 @@ const NewEntry = ({}) => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -567,67 +593,6 @@ const NewEntry = ({}) => {
       </>
     )
   }
-
-  const data = [
-    { value: 200, label: 'ANIMAL RECORDS ', color: '#FFFFFF', borderColor: '#FFFFFF' },
-    { value: 103, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
-    { value: 74, label: 'FEMALE', color: '#FFD3D3', borderColor: '#FFD3D3' },
-    { value: 23, label: 'OTHERS', color: '#FFFFFF', borderColor: '#FFFFFF' },
-    { value: 156, label: 'TOTAL SPECIES', color: '#E4B819', borderColor: '#E4B819' }
-  ]
-
-  const cards = [
-    {
-      value: 60,
-      content: 'Parent Stock',
-      bgColor: '#37BD69',
-      items: [
-        { value: 6, bgColor: '#00AFD6' },
-        { value: 5, bgColor: '#FFD3D3' },
-        { value: 10, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 25,
-      content: 'Acquisition',
-      bgColor: '#37BD69',
-      items: [
-        { value: 11, bgColor: '#00AFD6' },
-        { value: 7, bgColor: '#FFD3D3' },
-        { value: 6, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Births',
-      bgColor: '#37BD69',
-      items: [
-        { value: 21, bgColor: '#00AFD6' },
-        { value: 2, bgColor: '#FFD3D3' },
-        { value: 7, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Deaths',
-      bgColor: '#E93353',
-      items: [
-        { value: 2, bgColor: '#00AFD6' },
-        { value: 6, bgColor: '#FFD3D3' },
-        { value: 6, bgColor: '#FFFFFF' }
-      ]
-    },
-    {
-      value: 5,
-      content: 'Transfers',
-      bgColor: '#FA6140',
-      items: [
-        { value: 6, bgColor: '#00AFD6' },
-        { value: 11, bgColor: '#FFD3D3' },
-        { value: 3, bgColor: '#FFFFFF' }
-      ]
-    }
-  ]
 
   const fetchOrgCountData = useCallback(
     async (q, id) => {
@@ -734,7 +699,7 @@ const NewEntry = ({}) => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.yet_to_submitted_count.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -820,7 +785,7 @@ const NewEntry = ({}) => {
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.submitted_count_data.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
@@ -915,7 +880,7 @@ const NewEntry = ({}) => {
 
   return (
     <>
-      {selectedParivesh?.id !== 'all' && organizationCountList.length > 0 && (
+      {organizationCountList.length > 0 && (
         <Card>
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
             {organizationCountList.map((org, inx) => {
@@ -939,111 +904,81 @@ const NewEntry = ({}) => {
 
       <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
         <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsEditModal(false)}
-            sx={{ top: 10, right: 0, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Grid sx={{ display: 'flex', mt: 3 }}>
-            <Grid>
-              <Avatar variant='square' />
-            </Grid>
-            <Grid>
-              <Typography sx={{ ml: 2, mt: 2 }}>Created By: {''}</Typography>
-            </Grid>
-          </Grid>
-          <Box
-            sx={{
-              display: 'flex',
-              height: '80px',
-              mr: 10,
-              mt: 2
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                display: 'flex',
-                alignItems: 'center'
-              }}
+          <Grid container direction='column'>
+            {/* Close button */}
+            <IconButton
+              aria-label='close'
+              onClick={() => setIsEditModal(false)}
+              sx={{ top: 10, right: 6, position: 'absolute', color: 'grey.500' }}
             >
-              {/* <Icon width='60px' height='40px' color={'#ff3838'} icon={'mdi:delete'} /> */}
+              <Icon icon='mdi:close' />
+            </IconButton>
 
-              <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
-            </Box>
-            <Box>
-              <Typography variant='h6' sx={{ ml: 4, mt: 2, color: '#00afd6' }}>
-                {detailData?.scientific_name}
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 4 }}>
-                ({detailData?.common_name})
-              </Typography>
-            </Box>
-            {/* <div style='border-bottom: 1px solid black;'></div> */}
-          </Box>
-          <Box sx={{ borderBottom: '1px solid #839D8D', opacity: '30%', mt: 5 }}></Box>
-          <Grid sx={{ display: 'flex', mt: 2 }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6'>Gender</Typography>
+            {/* Header with Avatar and details */}
+            <Grid item container alignItems='center' mt={6}>
+              <Avatar variant='circular' src={detailData?.created_by_user?.profile_pic} />
+              <Typography sx={{ ml: 2 }}>Created By: {detailData?.created_by_user?.user_name}</Typography>
             </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6' sx={{ ml: 58 }}>
+
+            {/* Media details */}
+            <Box sx={{ display: 'flex', mt: 2, alignItems: 'center', mb: 2 }}>
+              <Box
+                sx={{
+                  padding: '16px',
+                  borderRadius: '12px',
+                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
+              </Box>
+              <Box sx={{ ml: 2 }}>
+                <Typography variant='h6' sx={{ color: '#00afd6' }}>
+                  {detailData?.scientific_name}
+                </Typography>
+                <Typography variant='h6'>({detailData?.common_name})</Typography>
+              </Box>
+            </Box>
+
+            {/* Divider */}
+            <Divider />
+
+            {/* Details */}
+            <Grid item container mt={2} alignItems='center'>
+              <Typography variant='h6' color={'#7A8684'}>
+                Gender
+              </Typography>
+              <Typography variant='h6' sx={{ ml: 58 }} color={'#1F515B'}>
                 {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
               </Typography>
             </Grid>
-          </Grid>
-          <Grid sx={{ display: 'flex' }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6'>Age</Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6' sx={{ ml: 66 }}>
-                {detailData?.age.charAt(0).toUpperCase() + detailData?.age.slice(1)}
+
+            <Grid item container mt={2} alignItems='center'>
+              <Typography variant='h6' color={'#7A8684'}>
+                Reason for Entry
               </Typography>
-            </Grid>
-          </Grid>
-          <Grid sx={{ display: 'flex' }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6'>Reason for Entry</Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6' sx={{ ml: 36 }}>
+              <Typography variant='h6' sx={{ ml: 36 }} color={'#1F515B'}>
                 {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
               </Typography>
             </Grid>
-          </Grid>
-          <Grid sx={{ display: 'flex', mt: 2 }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6'>Total Count</Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6' sx={{ ml: 50 }}>
+
+            <Grid item container mt={2} alignItems='center'>
+              <Typography variant='h6' color={'#7A8684'}>
+                Total Count
+              </Typography>
+              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.animal_count}
               </Typography>
             </Grid>
-          </Grid>
-          <Grid sx={{ display: 'flex', mt: 2 }}>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6'>Entry Date</Typography>
-            </Grid>
-            <Grid sx={{ mt: 2 }}>
-              {' '}
-              <Typography variant='h6' sx={{ ml: 50 }}>
+
+            <Grid item container mt={2} alignItems='center'>
+              <Typography variant='h6' color={'#7A8684'}>
+                Entry Date
+              </Typography>
+              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment(detailData?.transaction_date.split(' ')[0]).format('DD/MM/YYYY')
+                  ? moment.utc(detailData?.transaction_date).local().format('DD MMMM YYYY hh:mm A')
                   : ''}
               </Typography>
             </Grid>

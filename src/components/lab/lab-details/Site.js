@@ -22,23 +22,24 @@ const Site = ({ labId }) => {
           </Typography>
         </>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-
-      // field: 'Action',
-      // headerName: 'Action',
-      renderCell: params => (
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-            <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='ant-design:more-outlined' fontSize={30} />
-            </IconButton>
-          </Box>
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+
+    //   // field: 'Action',
+    //   // headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //         <IconButton size='small' sx={{ mr: 0.5 }}>
+    //           <Icon icon='ant-design:more-outlined' fontSize={30} />
+    //         </IconButton>
+    //       </Box>
+    //     </>
+    //   )
+    // }
   ]
 
   /***** Server side pagination */
@@ -76,10 +77,10 @@ const Site = ({ labId }) => {
     searchTableData(sort, value, 'request_number', status)
   }
 
-  const LabSitesById = async labId => {
+  const LabSitesById = async id => {
     const params = {
       // id: labId
-      lab_id: labId
+      lab_id: id || labId
     }
     try {
       const res = await GetLabSitesById({ params })
@@ -111,22 +112,23 @@ const Site = ({ labId }) => {
           getRowId={getRowId}
           rowCount={total}
           columns={columns}
-          slots={{ toolbar: ServerSideToolbar }}
+          // slots={{ toolbar: ServerSideToolbar }}
           loading={loading}
           slotProps={{
             baseButton: {
               variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-
-              onChange: event => {
-                setSearchValue(event.target.value)
-
-                return handleSearch(event.target.value)
-              }
             }
+
+            // toolbar: {
+            //   value: searchValue,
+            //   clearSearch: () => handleSearch(''),
+
+            //   onChange: event => {
+            //     setSearchValue(event.target.value)
+
+            //     return handleSearch(event.target.value)
+            //   }
+            // }
           }}
         />
       ) : (

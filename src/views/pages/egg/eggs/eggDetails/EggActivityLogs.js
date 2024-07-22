@@ -11,6 +11,7 @@ import MuiTimeline from '@mui/lab/Timeline'
 import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import Utility from 'src/utility'
 
 // Styled Timeline component
 const Timeline = styled(MuiTimeline)({
@@ -24,12 +25,22 @@ const Timeline = styled(MuiTimeline)({
   }
 })
 
-const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) => {
+const EggActivityLogs = ({
+  activtyLogData,
+  setActivtyLogData,
+  activtyLogCount,
+  setActivtyLogCount,
+  activtyLogSideBar,
+  setActivtyLogSideBar,
+  egg_id
+}) => {
   const theme = useTheme()
-  const [activtyLogData, setActivtyLogData] = useState([])
-  const [activtyLogCount, setActivtyLogCount] = useState(0)
+
+  // const [activtyLogData, setActivtyLogData] = useState([])
+  // const [activtyLogCount, setActivtyLogCount] = useState(0)
   let [page_no, setPage_no] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
+
   const getActivityLogsFunc = () => {
     const params = { page_no }
     try {
@@ -44,8 +55,10 @@ const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) =>
       console.log('error', error)
     }
   }
+
   const handleScroll = async e => {
     const container = e.target
+
     // Check if the user has reached the bottom
     if (
       container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight &&
@@ -85,6 +98,7 @@ const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) =>
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ')
   }
+
   return (
     <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
       <Drawer
@@ -164,6 +178,7 @@ const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) =>
                           item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
                             ? theme.palette.formContent.tertiary
                             : theme.palette.primary.main,
+
                         // backgroundColor: item.status === 'Fresh' ? theme.palette.primary.main : null,
                         boxSizing: 'border-box',
                         width: '22px',
@@ -263,7 +278,9 @@ const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) =>
                           }}
                           variant='caption'
                         >
-                          {moment(item?.created_at).format('DD MMM YYYY')}
+                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(item?.created_at))}
+                          {/* {moment(moment(moment.utc(item?.created_at).toDate().toLocaleString())).format('DD MMM YYYY')} */}
+                          {/* {moment(item?.created_at).format('DD MMM YYYY')} */}
                         </Typography>
                         <Typography
                           sx={{
@@ -274,7 +291,8 @@ const EggActivityLogs = ({ activtyLogSideBar, setActivtyLogSideBar, egg_id }) =>
                           }}
                           variant='caption'
                         >
-                          {moment(item?.created_at).format('h:mm A')}
+                          {/* {moment(item?.created_at).format('h:mm A')} */}
+                          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.created_at))}
                         </Typography>
                       </Box>
                     </Box>

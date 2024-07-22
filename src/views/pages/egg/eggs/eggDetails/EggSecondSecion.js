@@ -35,6 +35,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
+import Utility from 'src/utility'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -54,13 +55,23 @@ const CustomTableContainer = styled(TableContainer)({
   }
 })
 
-const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }) => {
+const EggSecondSecion = ({
+  activtyLogData,
+  setActivtyLogData,
+  activtyLogCount,
+  setActivtyLogCount,
+  eggDetails,
+  egg_id,
+  defaultEggAssesment,
+  getDetails
+}) => {
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
       Section: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.section_name,
       Enclosure: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.user_enclosure_name, // taken from h2
       'Clutch No': eggDetails?.clutch_number ? eggDetails?.clutch_number : '-'
+
       // Cage: 'C112',
       // 'Nest Box': 'N123',
       // Shape: 'Normal'
@@ -78,13 +89,17 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
           : eggDetails?.parent_list?.father_list?.length > 1
           ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
           : eggDetails?.parent_list?.father_list[0]?._id,
-      'Collected on': moment(eggDetails?.collection_date).format('DD MMM YYYY'),
-      'Lay Date': moment(eggDetails?.lay_date).format('DD MMM YYYY')
+
+      'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
+      'Lay Date': eggDetails?.lay_date
+        ? Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.lay_date))
+        : 'NA (Not Applicable)'
 
       // 'Collected By': 'Jordan Steveson'
     }
   }
   const theme = useTheme()
+
   const headerAction = (
     <Icon
       onClick={() => setActivtyLogSideBar(true)}
@@ -93,6 +108,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
       fontSize={28}
     />
   )
+
   const weightHeaderAction = (
     <>
       <Button
@@ -109,6 +125,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
+
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -125,8 +142,9 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   }
 
   const schema = yup.object().shape({
-    assessment_value: yup.number().required('Assessment value is Required')
+    assessment_value: yup.number().required('Assessment value is required')
   })
+
   const {
     reset,
     control,
@@ -144,6 +162,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
   const onSubmit = val => {
     const params = {
       egg_id: egg_id,
@@ -152,6 +171,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
       assessment_value: val?.assessment_value
     }
     setSubmitAssementloader(true)
+
     // if (isEdit) {
     //   setBtnDisabled(true)
     //   try {
@@ -188,6 +208,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     } catch (error) {
       console.log(error)
     }
+
     // }
   }
 
@@ -200,7 +221,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
       flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO ',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -232,7 +253,8 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('DD MMM YYYY')}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
+          {/* {moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
         </Typography>
       )
     },
@@ -252,7 +274,9 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('hh : mm A')}
+          {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(params?.row?.created_at))}
+          {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
+          {/* {moment(moment.utc(params?.row?.created_at).toDate().toLocaleString()).format('hh : mm A')} */}
         </Typography>
       )
     },
@@ -292,17 +316,20 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
     ...row,
     sl_no: getSlNo(index)
   }))
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
   }
+
   const fetchTableData = useCallback(async () => {
     try {
       setLoading(true)
 
       const params = {
         page_no: paginationModel.page + 1,
+
         // limit: paginationModel.pageSize,
         type: 'weight',
         egg_id
@@ -331,7 +358,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
       <Grid item xs={12}>
-        <Card>
+        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
           <CardHeader
             sx={{
               pb: 0,
@@ -672,7 +699,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                       Temperature
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Comming Soon
+                      Coming Soon
                     </Typography>
                     <Typography
                       sx={{
@@ -682,7 +709,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Comming Soon
+                      Coming Soon
                     </Typography>
                   </Grid>
                   <Grid
@@ -706,7 +733,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                       Humidity
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Comming Soon
+                      Coming soon
                     </Typography>
                     <Typography
                       sx={{
@@ -716,7 +743,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Comming Soon
+                      Coming soon
                     </Typography>
                   </Grid>
                 </Grid>
@@ -755,7 +782,9 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('DD MMM YYYY')}
+                            {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
+                            {/* {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
                           </TableCell>
                           <TableCell
                             style={{
@@ -765,7 +794,9 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('hh : mm A')}
+                            {/* {moment(row?.created_at).format('hh : mm A')} */}
+                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
+                            {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
                           </TableCell>
                           <TableCell
                             style={{
@@ -863,6 +894,7 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
                 // onChange: event => handleSearch(event.target.value)
               }
             }}
+
             // onCellClick={onCellClick}
           />
         </Box>
@@ -966,6 +998,10 @@ const EggSecondSecion = ({ eggDetails, egg_id, defaultEggAssesment, getDetails }
         activtyLogSideBar={activtyLogSideBar}
         setActivtyLogSideBar={setActivtyLogSideBar}
         egg_id={egg_id}
+        activtyLogData={activtyLogData}
+        setActivtyLogData={setActivtyLogData}
+        activtyLogCount={activtyLogCount}
+        setActivtyLogCount={setActivtyLogCount}
       />
     </Grid>
   )

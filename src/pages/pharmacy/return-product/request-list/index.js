@@ -76,13 +76,12 @@ const ReturnRequestList = () => {
         }
 
         await getRequestReturnList({ params: params }).then(res => {
-          console.log('response', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('returnPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('returnPageStatus')
           }
@@ -90,6 +89,8 @@ const ReturnRequestList = () => {
         setLoading(false)
       } catch (e) {
         console.log(e)
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },
@@ -273,6 +274,17 @@ const ReturnRequestList = () => {
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+        </Typography>
+      )
+    },
     ,
     {
       flex: 0.2,
@@ -346,7 +358,6 @@ const ReturnRequestList = () => {
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {Utility.formatDisplayDate(params.row.request_date)}
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
             </Typography>
           </Box>
         </Box>

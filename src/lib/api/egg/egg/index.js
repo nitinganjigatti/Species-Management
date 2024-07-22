@@ -1,5 +1,5 @@
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
-import { ADD, COMMENT, DELETE, EGG, LIST, DISCARD, STATUS, UPDATE } from 'src/constants/ApiConstant'
+import { ADD, COMMENT, DELETE, EGG, LIST, DISCARD, STATUS, UPDATE, NECROPSY_REPORTS } from 'src/constants/ApiConstant'
 
 export async function GetEggList({ params }) {
   const response = await axiosGet({ url: `${EGG}/detail/${LIST}`, params: params })
@@ -37,24 +37,26 @@ export async function getActivityLogs(id, params) {
   return response.data
 }
 
-export async function AddToDiscard(payload) {
-  try {
-    const url = `${EGG}/${DISCARD}/${ADD}`
-    var data = payload
-    const response = await axiosFormPost({ url, body: data })
+//Not in use
 
-    return response?.data
-  } catch (error) {
-    if (error.response) {
-      console.info('Request made and server responded')
-      console.error(error.response.data)
-      console.error(error.response.status)
-      console.error(error.response.headers)
-    }
+// export async function AddToDiscard(payload) {
+//   try {
+//     const url = `${EGG}/${DISCARD}/${ADD}`
+//     var data = payload
+//     const response = await axiosFormPost({ url, body: data })
 
-    return error
-  }
-}
+//     return response?.data
+//   } catch (error) {
+//     if (error.response) {
+//       console.info('Request made and server responded')
+//       console.error(error.response.data)
+//       console.error(error.response.status)
+//       console.error(error.response.headers)
+//     }
+
+//     return error
+//   }
+// }
 
 export async function getEggComments(params) {
   const response = await axiosGet({ url: `${EGG}/${COMMENT}-${LIST}`, params })
@@ -116,6 +118,25 @@ export async function AddAssesment(params) {
       url: `${EGG}/add-assessment`,
       body: params
     })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function AddEggNecropsy(payload) {
+  try {
+    const url = `${EGG}/${NECROPSY_REPORTS}/${ADD}`
+    var data = payload
+    const response = await axiosFormPost({ url, body: data })
 
     return response?.data
   } catch (error) {

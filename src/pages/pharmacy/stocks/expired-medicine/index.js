@@ -49,7 +49,6 @@ const ExpiredMedicine = () => {
         }
 
         await getExpiredMedicine({ params: params }).then(res => {
-          console.log('responsess', res)
           if (res?.list_items?.length > 0) {
             setTotal(parseInt(res?.total_count))
             setRows(
@@ -58,12 +57,17 @@ const ExpiredMedicine = () => {
                 res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
               )
             )
+          } else {
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
       } catch (error) {
         console.log('error', error)
         setLoading(false)
+        setTotal(0)
+        setRows([])
       }
     },
     [paginationModel]

@@ -1,6 +1,6 @@
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, Tooltip, Typography, debounce } from '@mui/material'
+import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
@@ -9,8 +9,9 @@ import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
 import { styled } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-
-import Router from 'next/router'
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
 
 const NurseryList = () => {
   const theme = useTheme()
@@ -24,7 +25,9 @@ const NurseryList = () => {
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
-  console.log('Paginate>', paginationModel)
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   function loadServerRows(currentPage, data) {
     return data
@@ -57,14 +60,16 @@ const NurseryList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(searchValue)
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchTableData(searchValue)
+    }
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData( searchValue, newModel[0].field, status)
+      fetchTableData(searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -73,7 +78,7 @@ const NurseryList = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData( q, column)
+        await fetchTableData(q, column)
       } catch (error) {
         console.error(error)
       }
@@ -128,7 +133,7 @@ const NurseryList = () => {
       field: 'Nursery Name',
       headerName: 'Nursery Name',
       align: 'left',
-     
+
       renderCell: params => (
         <Typography
           noWrap
@@ -220,14 +225,13 @@ const NurseryList = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -264,7 +268,9 @@ const NurseryList = () => {
                 lineHeight: '14.52px'
               }}
             >
-              {params.row?.created_at ? 'Created on' + ' ' + moment(params.row?.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row?.created_at
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -273,17 +279,20 @@ const NurseryList = () => {
   ]
 
   const handleCellClick = params => {
-    console.log('Params >>', params.row)
     router.push(`/egg/nursery/${params.row.id}`)
   }
 
   const headerAction = (
-    <div>
-      <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-    </div>
+    <>
+      {egg_nursery_permission && (
+        <div>
+          <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; Add New
+          </Button>
+        </div>
+      )}
+    </>
   )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -294,72 +303,76 @@ const NurseryList = () => {
     sl_no: getSlNo(index)
   }))
 
-  console.log('Indexed Rows ??', indexedRows)
-
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Egg
-        </Typography>
+      {egg_nursery_permission || egg_collection_permission ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Egg
+            </Typography>
 
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Nursery List
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Nursery' action={headerAction} />
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Nursery List
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Nursery' action={headerAction} />
 
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={handleCellClick}
-        />
-      </Card>
-      {openDrawer && (
-        <NurseryAddComponent
-          openDrawer={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          loading={loading}
-          // onSubmit={onSubmit}
-          fetchTableData={fetchTableData}
-        />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              rowHeight={64}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={handleCellClick}
+            />
+          </Card>
+          {openDrawer && (
+            <NurseryAddComponent
+              openDrawer={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              loading={loading}
+              fetchTableData={fetchTableData}
+            />
+          )}
+        </>
+      ) : (
+        <ErrorScreen></ErrorScreen>
       )}
     </>
   )

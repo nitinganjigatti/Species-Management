@@ -1,4 +1,4 @@
-const composeEggNavigation = () => {
+const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
   const title = {
     sectionTitle: 'Egg Module'
   }
@@ -30,11 +30,23 @@ const composeEggNavigation = () => {
     activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
   }
 
-  const dietNavigation = [title, nursery, incubatorRoom, incubators, eggs]
+  let eggNavigation = []
 
-  return dietNavigation
+  if (egg_nursery || egg_collection) {
+    eggNavigation.push(title)
+  }
+
+  if (egg_nursery && !egg_collection) {
+    eggNavigation.push(nursery, incubatorRoom, incubators)
+  }
+
+  if (egg_collection) {
+    eggNavigation.push(nursery, incubatorRoom, incubators, eggs)
+  }
+
+  return eggNavigation
 }
 
-const eggNavigation = () => composeEggNavigation()
+const eggNavigation = ({ egg_nursery, egg_collection }) => composeEggNavigation({ egg_nursery, egg_collection })
 
 export default eggNavigation

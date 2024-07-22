@@ -13,7 +13,17 @@ import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
-import { RadioGroup, FormLabel, FormControlLabel, Radio, Button, Grid } from '@mui/material'
+import {
+  RadioGroup,
+  FormLabel,
+  FormControlLabel,
+  Radio,
+  Button,
+  Grid,
+  InputAdornment,
+  debounce,
+  Autocomplete
+} from '@mui/material'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 
@@ -24,6 +34,7 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
+import { getSearchLMasterListSpecies } from 'src/lib/api/parivesh/addSpecies'
 
 // ** Styled Components
 
@@ -36,7 +47,16 @@ const schema = yup.object().shape({
   commonName: yup
     .string()
     .transform(value => (value ? value.trim() : value))
-    .required('Common Name is Required')
+    .required('Common Name is Required'),
+  // species: yup.object().nullable().required('Species is Required')
+  species: yup
+    .mixed() // Allow any type
+    .test('is-object', 'Please Select a Valid Species', value => {
+      // Validate that the selected value is an object or null
+      return typeof value === 'object' || value === null
+    })
+    .nullable()
+    .required('Species is Required')
 })
 
 const defaultValues = {
@@ -54,11 +74,13 @@ const AddSpecies = props => {
   const fileInputRef = useRef(null)
   const coverFileInputRef = useRef(null)
   const [values, setValues] = useState(defaultValues)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchValue, setSearchValue] = useState('')
   const [imgSrc, setImgSrc] = useState('')
   const [coverImgSrc, setCoverImgSrc] = useState('')
   const [displayFile, setDisplayFile] = useState('')
   const [displayCoverFile, setDisplayCoverFile] = useState('')
+  const [masterSpeciesList, setMasterSpeciesList] = useState([])
+  const [isScientificNameDisabled, setIsScientificNameDisabled] = useState(true)
 
   const {
     reset,
@@ -188,6 +210,60 @@ const AddSpecies = props => {
     }
   }
 
+  const searchMasterSpeciesLost = useCallback(
+    debounce(async q => {
+      setSearchValue(q)
+      try {
+        await fetchSpeciesMasterList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const fetchSpeciesMasterList = useCallback(async q => {
+    try {
+      const params = { q }
+
+      await getSearchLMasterListSpecies({ params: params }).then(res => {
+        console.log('responseSearch', res?.data?.data)
+        const speciesData = res?.data?.data?.map(item => ({
+          label: item.scientific_name,
+          value: item.scientific_name,
+          id: item.id
+        }))
+        setMasterSpeciesList(speciesData)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchSpeciesMasterList()
+  }, [fetchSpeciesMasterList])
+
+  const handleScientificNameChange = async (event, newValue) => {
+    // console.log('Selected Scientific Name:', newValue)
+    clearErrors('species')
+    // setValue('scientificName', newValue ? newValue.value || newValue : '')
+
+    setValue('scientificName', newValue ? newValue.value || newValue : '')
+    // Enable or disable the scientificName field based on the selected value
+    if (newValue && newValue.value === 'Others') {
+      setIsScientificNameDisabled(false)
+      setValue('scientificName', '')
+    } else {
+      setIsScientificNameDisabled(true)
+      try {
+        await fetchSpeciesMasterList(newValue?.value)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+
   return (
     <Drawer
       anchor='right'
@@ -215,10 +291,10 @@ const AddSpecies = props => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           {/* <FormControl fullWidth sx={{ mb: 6 }}>
             <TextField
-              label='Search...'
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder='Search Name'
+              label='Search Species'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              placeholder='Search & Select ...'
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
@@ -228,6 +304,40 @@ const AddSpecies = props => {
               }}
             />
           </FormControl> */}
+          <FormControl fullWidth sx={{ mb: 6 }}>
+            <Controller
+              name='species'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange } }) => (
+                <Autocomplete
+                  freeSolo
+                  options={masterSpeciesList}
+                  getOptionLabel={option => option.value || option}
+                  value={value}
+                  onChange={(event, newValue) => {
+                    clearErrors('species')
+                    onChange(newValue)
+                    handleScientificNameChange(event, newValue)
+                  }}
+                  onKeyUp={e => {
+                    searchMasterSpeciesLost(e?.target?.value)
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Species'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Search & Select...'
+                      error={Boolean(errors.species)}
+                    />
+                  )}
+                />
+              )}
+            />
+            {errors.species && <FormHelperText sx={{ color: 'error.main' }}>{errors.species.message}</FormHelperText>}
+          </FormControl>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='scientificName'
@@ -241,6 +351,7 @@ const AddSpecies = props => {
                   placeholder='Scientific Name'
                   error={Boolean(errors.scientificName)}
                   name='scientificName'
+                  disabled={isScientificNameDisabled}
                 />
               )}
             />

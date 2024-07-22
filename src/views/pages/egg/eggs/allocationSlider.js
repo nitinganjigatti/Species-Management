@@ -21,7 +21,6 @@ import {
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg/allocation'
@@ -46,8 +45,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const [nurseryId, setNurseryId] = useState([])
 
   const schema = yup.object().shape({
-    room: yup.string().required('Room is Required'),
-    incubator: yup.string().required('Incubator Name is Required'),
+    room: yup.string().required('Room is required'),
+    incubator: yup.string().required('Incubator name is required'),
     measurements: yup
       .array()
       .of(
@@ -55,9 +54,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
           assessment_value: yup
             .number()
             .typeError('Value must be a number')
-            .required('Weight is Required')
-            .positive('Value must be positive')
-            .min(0, 'Value cannot be negative')
+            .required('Weight is required')
+            .positive('Value must be positive') // Ensure positive
+            .min(1, 'Value must be greater than or equal to 1') // Ensure non-negative
         })
       )
       .required('At least one measurement is required')
@@ -77,7 +76,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
     getValues,
     setValue,
     watch,
+    formState,
+    setError,
     reset,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -106,6 +108,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         // Append items to the fields array using the API data
         if (assesmentTypes?.data?.length > 0) {
+          // console.log('assesmentTypes :>> ', assesmentTypes)
           assesmentTypes.data.forEach(item => {
             append(item)
           })
@@ -222,6 +225,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
+
       let params = {
         egg_id: allocateEggId,
         incubator_id: values.incubator,
@@ -234,13 +239,16 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         if (callApi) {
           callApi('')
         }
+        setLoader(false)
         setOpenDrawer(false)
       } else {
         Toaster({ type: 'error', message: response.message })
+        setLoader(true)
       }
     } catch (error) {
       console.error('Error while adding', error)
       Toaster({ type: 'error', message: 'An error occurred while adding' })
+      setLoader(true)
     }
   }
 
@@ -250,7 +258,11 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         anchor='right'
         open={open}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
+          '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
 
           // backgroundColor: 'background.default'
         }}
@@ -279,14 +291,38 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
 
         {/* drower */}
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', height: '120%' }}>
+        <Box
+          className='sidebar-body'
+          sx={
+            assesmentTypes?.data?.length >= 5
+              ? {
+                  backgroundColor: 'background.default',
+                  height: '120%',
+                  overflowY: 'scroll',
+                  border: '1px solid #ccc'
+                }
+              : {
+                  backgroundColor: 'background.default',
+                  height: '120%'
+                }
+          }
+        >
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box sx={{ px: 4 }}>
               {/* <Typography variant='h6' sx={{ mt: 5 }}>
                 Incubator Selection
               </Typography> */}
 
-              <CardContent sx={{ mt: 3, px: 0.5, bgcolor: '#fff', borderRadius: '8px' }}>
+              <CardContent
+                sx={{
+                  mt: 3,
+                  px: 0.5,
+                  bgcolor: '#fff',
+                  borderRadius: '8px',
+                  padding: '20px, 16px, 20px, 16px',
+                  border: '1px solid #C3CEC7'
+                }}
+              >
                 <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
                   {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
                       Nursery *
@@ -444,7 +480,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             // console.log('val', val)
                             setValue('incubator', '')
 
-                            return onChange(val.room_id)
+                            return onChange(val.incubator_id)
                           }
                         }}
                         renderInput={params => (
@@ -455,13 +491,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                             {...params}
                             label='Select Incubator *'
                             placeholder='Search & Select'
-                            error={Boolean(errors.room)}
+                            error={Boolean(errors.incubator)}
                           />
                         )}
                       />
                     )}
                   />
-                  {errors?.room && (
+                  {errors?.incubator && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>
                   )}
                 </FormControl>
@@ -533,97 +569,133 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CircularProgress />
               </Box>
             ) : (
-              fields.map((measurement, index) => (
-                <Card fullWidth sx={{ mt: 3, mb: fields.length === index + 1 ? 24 : 7, mx: 4 }} key={index}>
-                  <Grid container sx={{ mb: 3 }}>
-                    <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
-                        <Controller
-                          name={`measurements[${index}].assessment_value`}
-                          control={control}
-                          render={({ field: { value, onChange }, fieldState: { error } }) => (
-                            <TextField
-                              label={`${
-                                measurement.assessment_type_string_id.charAt(0).toUpperCase() +
-                                measurement.assessment_type_string_id.slice(1)
-                              }*`}
-                              value={value}
-                              onChange={onChange}
-                              focused={value !== ''}
-                              name={`measurements[${index}].assessment_value`}
-                              inputProps={{ type: 'number', step: 'any' }}
-                              error={!!error}
-                              helperText={error ? error.message : ''}
-                            />
-                          )}
-                          rules={{ required: 'Please Enter Weight' }}
-                        />
-                      </FormControl>
-                    </Grid>
+              <Card
+                fullWidth
+                sx={{ mt: 2, mx: 4, marginBottom: '122px', boxShadow: 'none', border: '1px solid #C3CEC7' }}
+              >
+                <CardContent sx={{ mt: '-1px' }}>
+                  {fields.map((measurement, index) => (
+                    <Grid container spacing={3} key={index}>
+                      <Grid item xs={6} sx={{ borderRadius: '5px' }}>
+                        <FormControl fullWidth sx={{ mt: 3, borderRadius: '5px' }}>
+                          <Controller
+                            name={`measurements[${index}].assessment_value`}
+                            control={control}
+                            render={({ field: { value, onChange }, fieldState: { error } }) => (
+                              <div>
+                                <TextField
+                                  sx={{ borderRadius: '4px' }}
+                                  label={`${
+                                    measurement.assessment_type_string_id.charAt(0).toUpperCase() +
+                                    measurement.assessment_type_string_id.slice(1)
+                                  }*`}
+                                  value={value}
+                                  onChange={e => {
+                                    debugger
+                                    const inputValue = e.target.value
+                                    if (inputValue === '' || parseFloat(inputValue) >= 1) {
+                                      onChange(e)
+                                      clearErrors(`measurements[${index}].assessment_value`)
+                                    } else {
+                                      setError(`measurements[${index}].assessment_value`, {
+                                        type: 'custom',
+                                        message: 'Non-negative '
+                                      })
 
-                    <Grid item xs={6}>
-                      <FormControl sx={{ mt: 5, ml: 3, width: '90%' }}>
-                        <InputLabel error={Boolean(errors?.site_id)} id='condition_label'>
-                          {measurement?.unit_name}
-                        </InputLabel>
-                        <Controller
-                          name={`measurements[${index}].measurement_unit_id`}
-                          control={control}
-                          rules={{ required: true }}
-                          defaultValue={measurement.unit_id}
-                          render={({ field: { value, onChange } }) => (
-                            <Select
-                              name={`measurements[${index}].measurement_unit_id`}
-                              value={value}
-                              disabled={measurement.default_measurement_unit_string_id && true}
-                              label={measurement?.unit_name}
-                              onChange={onChange}
-                              error={Boolean(errors?.condition)}
-                              labelId='condition_label'
-                            >
-                              <MenuItem key={measurement.unit_id} value={measurement.unit_id}>
-                                {measurement?.unit_name}
-                              </MenuItem>
-                            </Select>
+                                      // Update error state in react-hook-form if negative value
+                                      onChange(e) // Ensures the negative value is not stored in form state
+                                    }
+                                  }}
+                                  name={`measurements[${index}].assessment_value`}
+                                  inputProps={{ type: 'number', step: 'any' }}
+                                  error={!!error}
+                                  fullWidth
+                                />
+                                {error && error.type === 'validate' && (
+                                  <FormHelperText sx={{ color: 'error.main' }}>{error.message}</FormHelperText>
+                                )}
+                              </div>
+                            )}
+                            rules={{
+                              required: 'Please enter a value',
+                              validate: {
+                                nonNegative: value => parseFloat(value) >= 1 || 'Negative values are not allowed'
+                              }
+                            }}
+                          />
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <FormControl fullWidth sx={{ mt: 3 }}>
+                          <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
+                            {measurement?.unit_name.charAt(0).toUpperCase() + measurement?.unit_name.slice(1)}
+                          </InputLabel>
+
+                          <Controller
+                            name={`measurements[${index}].measurement_unit_id`}
+                            control={control}
+                            rules={{ required: true }}
+                            defaultValue={measurement.unit_id}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                sx={{ borderRadius: '5px' }}
+                                name={`measurements[${index}].measurement_unit_id`}
+                                value={value}
+                                disabled={measurement.default_measurement_unit_string_id && true}
+                                label={measurement?.unit_name}
+                                onChange={onChange}
+                                error={Boolean(errors?.condition)}
+                                labelId={`unit_label_${index}`}
+                                fullWidth
+                              >
+                                <MenuItem key={measurement.unit_id} value={measurement.unit_id}>
+                                  {measurement?.unit_name}
+                                </MenuItem>
+                              </Select>
+                            )}
+                          />
+                          {errors && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition?.message}</FormHelperText>
                           )}
-                        />
-                        {errors && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.condition?.message}</FormHelperText>
-                        )}
-                      </FormControl>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={6} sx={{ display: 'none' }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`measurements[${index}].assessment_type_id`}
+                            control={control}
+                            render={({ field }) => <input type='hidden' {...field} />}
+                            defaultValue={measurement.assessment_type_id}
+                          />
+                        </FormControl>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6} sx={{ display: 'none' }}>
-                      <FormControl fullWidth>
-                        <Controller
-                          name={`measurements[${index}].assessment_type_id`}
-                          control={control}
-                          render={({ field }) => <input type='hidden' {...field} />}
-                          defaultValue={measurement.assessment_type_id}
-                        />
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </Card>
-              ))
+                  ))}
+                </CardContent>
+              </Card>
             )}
+
             <Card>
               <Box
                 sx={{
+                  height: '100px',
+                  width: '100%',
+                  maxWidth: '562px',
                   position: 'fixed',
                   bottom: 0,
-                  height: '122px',
-                  backgroundColor: '#fff',
-                  width: '562px',
+                  zIndex: 1,
                   px: 4,
-                  display: 'flex',
-                  alignItems: 'center'
+                  bgcolor: 'white',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  display: 'flex'
                 }}
               >
                 <LoadingButton
                   fullWidth
                   variant='contained'
                   type='submit'
-                  disabled={loader && true}
+                  disabled={!formState.isValid || loader}
                   sx={{ height: '50px' }}
                 >
                   Submit

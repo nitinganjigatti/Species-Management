@@ -37,33 +37,45 @@ const schema = yup.object().shape({
   specie: yup
     .object()
     .shape({
-      name: yup.string().required('Specie is Required')
+      name: yup.string().required('Species is Required')
     })
-    .required('Specie is Required'),
-  animal_count: yup.string().required('Total Count is Required'),
+    .required('Species is Required'),
+  // animal_count: yup.string().required('Total Count is Required'),
+  // animal_count: yup
+  //   .number()
+  //   .typeError('Total Count must be a number')
+  //   .positive('Total Count must be greater than zero')
+  //   .required('Total Count is Required'),
+  animal_count: yup
+    .number()
+    .typeError('Total Count must be a number')
+    .positive('Total Count must be greater than zero')
+    .integer('Total Count must be a whole number')
+    .min(1, 'Total Count must be at least 1')
+    .required('Total Count is Required'),
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
-  possession_type: yup.string().required('Reason is Required'),
-  alloted_register_no: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Registration Number is Required for Death Reason')
-  }),
-  reason_for_death: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Reason for Death is Required')
-  }),
-  where_disposed: yup.string().when('reason', {
-    is: value => value === 'death',
-    then: schema => schema.required('Where and How Disposed is Required for Death Reason')
-  }),
+  possession_type: yup.string().required('Reason is Required')
+  // alloted_register_no: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Registration Number is Required for Death Reason')
+  // }),
+  // reason_for_death: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Reason for Death is Required')
+  // }),
+  // where_disposed: yup.string().when('reason', {
+  //   is: value => value === 'death',
+  //   then: schema => schema.required('Where and How Disposed is Required for Death Reason')
+  // })
 
-  organizationName: yup.mixed().when('selectedParivesh.id', {
-    is: 'all',
-    then: yup.object().shape({
-      organization_name: yup.string().required('Organization Name is Required')
-    })
-  })
+  // organizationName: yup.mixed().when('selectedParivesh.id', {
+  //   is: 'all',
+  //   then: yup.object().shape({
+  //     organization_name: yup.string().required('Organization Name is Required')
+  //   })
+  // })
 })
 
 const AddNewEntry = () => {
@@ -129,29 +141,31 @@ const AddNewEntry = () => {
       transaction_date,
       specie,
       possession_type,
-      organizationName,
-      age,
-      alloted_register_no,
-      reason_for_death,
-      where_disposed,
+      // organizationName,
+      // age,
+      // alloted_register_no,
+      // reason_for_death,
+      // where_disposed,
       animal_count
     } = { ...data }
 
     const payload = {
-      org_id: selectedParivesh.id === 'all' ? organizationName?.id : selectedParivesh.id,
+      org_id: selectedParivesh.id,
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD'),
+      transaction_date: moment.utc(transaction_date).format('YYYY-MM-DD HH:mm:ss')
       // age: age,
-      ...(possession_type === 'death' && {
-        alloted_register_no: alloted_register_no,
-        reason_for_death: reason_for_death,
-        where_disposed: where_disposed
-      })
+      // ...(possession_type === 'death' && {
+      //   alloted_register_no: alloted_register_no,
+      //   reason_for_death: reason_for_death,
+      //   where_disposed: where_disposed
+      // })
     }
+
+    console.log(payload, 'payload')
 
     try {
       setBtnLoader(true)
@@ -161,7 +175,7 @@ const AddNewEntry = () => {
 
       if (response?.success) {
         router.back()
-        Toaster({ type: 'success', message: response?.data })
+        Toaster({ type: 'success', message: response?.message })
       } else {
         Toaster({ type: 'error', message: response?.message })
       }
@@ -306,11 +320,10 @@ const AddNewEntry = () => {
   }, [fetchSpeciesData, searchValue])
 
   useEffect(() => {
-    if (selectedParivesh?.id === 'all') {
-      setOrganizations(organizationList.filter(el => el.id !== 'all'))
-    } else {
+    if (selectedParivesh?.id) {
       const selected = organizationList.find(el => el.id === selectedParivesh.id)
       setOrganizations(selected ? [selected] : [])
+    } else {
     }
   }, [selectedParivesh, organizationList])
 
@@ -323,16 +336,16 @@ const AddNewEntry = () => {
               {selectedParivesh?.organization_name}
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              {isEditMode ? 'Edit Entries' : 'New Entries'}
+              {isEditMode ? 'New Entries' : 'New Entries'}
             </Typography>
-            <Typography color='text.primary'>{isEditMode ? 'Edit Report' : 'New Report'}</Typography>
+            <Typography color='text.primary'>{isEditMode ? 'Edit New Entry' : 'Add New Entry'}</Typography>
           </Breadcrumbs>
         </Box>
 
         <Box sx={{ mt: 5, background: '#FFFFFF', borderRadius: '10px' }}>
           <CardContent>
             <Typography sx={{ mb: '20px' }} variant='h6'>
-              {isEditMode ? 'Edit Report' : 'New Report'}
+              {isEditMode ? 'Edit New Entry' : 'Add New Entry'}
             </Typography>
 
             <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -356,7 +369,7 @@ const AddNewEntry = () => {
                           onInputChange={(event, newInputValue) => {
                             handleSearch(newInputValue) // Fetch species based on user input
                           }}
-                          renderInput={params => <TextField {...params} label='Select the Species' />}
+                          renderInput={params => <TextField {...params} label='Search & Select…' />}
                         />
                       )}
                     />
@@ -366,7 +379,7 @@ const AddNewEntry = () => {
                   </FormControl>
                 </Grid>
               </Grid>
-              {selectedParivesh?.id === 'all' && organizations && organizations.length > 0 && (
+              {/* {organizations && organizations.length > 0 && (
                 <Grid container spacing={2} sx={{ mb: 6 }}>
                   <Grid item xs={12}>
                     <FormControl fullWidth error={Boolean(errors.organizationName)}>
@@ -394,7 +407,7 @@ const AddNewEntry = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-              )}
+              )} */}
 
               <Grid container spacing={2} sx={{ mb: 6 }}>
                 <Grid item xs={12}>
@@ -410,7 +423,7 @@ const AddNewEntry = () => {
                           value={value}
                           onChange={e => {
                             onChange(e)
-                            setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
+                            // setShowAdditionalFields(e.target.value === 'death') // Show additional fields only when reason is 'death'
                           }}
                           error={Boolean(errors.possession_type)}
                         >
@@ -428,9 +441,9 @@ const AddNewEntry = () => {
                 </Grid>
               </Grid>
               <Grid>
-                {showAdditionalFields && (
+                {/* {showAdditionalFields && (
                   <>
-                    {/* Additional input fields */}
+                 
                     <FormControl fullWidth sx={{ mb: 6 }}>
                       <Controller
                         name='alloted_register_no'
@@ -491,7 +504,7 @@ const AddNewEntry = () => {
                       )}
                     </FormControl>
                   </>
-                )}
+                )} */}
               </Grid>
 
               <Grid container spacing={2} sx={{ mb: 6 }}>

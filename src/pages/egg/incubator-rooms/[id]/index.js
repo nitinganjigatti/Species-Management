@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -12,12 +12,8 @@ import {
   Typography,
   CircularProgress,
   Breadcrumbs,
-  Link,
-  Divider,
   IconButton,
-  CardHeader,
   Button,
-  Stack,
   Avatar,
   Tooltip
 } from '@mui/material'
@@ -29,6 +25,10 @@ import DetailCard from 'src/components/egg/DetailCard'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
+import Utility from 'src/utility'
+
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
 
 const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -38,7 +38,8 @@ const RoomDetails = () => {
   const theme = useTheme()
   const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  console.log('editParams :>> ', editParams)
+
+  // console.log('editParams :>> ', editParams)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -49,12 +50,17 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
-  console.log('detailsData :>> ', detailsData)
+
+  // console.log('detailsData :>> ', detailsData)
 
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
   const [isPreFilled, setIsPreFilled] = useState({})
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const fetchTableData = useCallback(async () => {
     try {
@@ -89,10 +95,9 @@ const RoomDetails = () => {
   }, [paginationModel])
 
   useEffect(() => {
-    // if (eggModule) {
-    fetchTableData()
-
-    // }
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchTableData()
+    }
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -133,7 +138,7 @@ const RoomDetails = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -198,9 +203,9 @@ const RoomDetails = () => {
     // {
     //   flex: 0.3,
     //   minWidth: 10,
-    //   field: 'censors',
+    //   field: 'sensors',
     //   sortable: false,
-    //   headerName: 'CENSORS',
+    //   headerName: 'SENSORS',
     //   renderCell: params => (
     //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
     //       <Typography
@@ -213,19 +218,19 @@ const RoomDetails = () => {
     //       >
     //         2
     //       </Typography>{' '}
-    //       {params.row.censors === 'Alert' && <div className={Styles.circle}></div>}
-    //       {params.row.censors === 'Good' && (
+    //       {params.row.sensors === 'Alert' && <div className={Styles.circle}></div>}
+    //       {params.row.sensors === 'Good' && (
     //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
     //       )}
     //       <Typography
     //         sx={{
-    //           color: params.row.censors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+    //           color: params.row.sensors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
     //           fontSize: '14px',
     //           fontWeight: '500',
     //           lineHeight: '16.94px'
     //         }}
     //       >
-    //         {params.row.censors ? params.row.censors : '-'}
+    //         {params.row.sensors ? params.row.sensors : '-'}
     //       </Typography>
     //     </Box>
     //   )
@@ -296,7 +301,7 @@ const RoomDetails = () => {
       )
     },
     {
-      flex: 0.1,
+      flex: 0.2,
       minWidth: 20,
       sortable: false,
       align: 'center',
@@ -342,14 +347,13 @@ const RoomDetails = () => {
       field: 'added_by',
       headerName: 'ADDED BY',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -386,7 +390,9 @@ const RoomDetails = () => {
                 lineHeight: '14.52px'
               }}
             >
-              {params.row?.created_at ? 'Created on' + ' ' + moment(params.row?.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row?.created_at
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -438,39 +444,41 @@ const RoomDetails = () => {
     setIsOpen(true)
   }
 
-  const headerAction = (
-    <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <IconButton
-          sx={{ mr: 4 }}
-          onClick={event =>
-            handleEdit(
-              event,
-              detailsData.site_id,
-              detailsData.room_name,
-              detailsData.nursery_id,
-              detailsData.room_id,
-              detailsData.nursery_name
-            )
-          }
-        >
-          <Icon
-            icon='material-symbols:edit-outline'
-            fontSize={28}
-            color={theme.palette.customColors.OnSurfaceVariant}
-          />
-        </IconButton>
+  // const headerAction = (
+  //   <>
+  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  //       <IconButton
+  //         sx={{ mr: 4 }}
+  //         onClick={event =>
+  //           handleEdit(
+  //             event,
+  //             detailsData.site_id,
+  //             detailsData.room_name,
+  //             detailsData.nursery_id,
+  //             detailsData.room_id,
+  //             detailsData.nursery_name
+  //           )
+  //         }
+  //       >
+  //         <Icon
+  //           icon='material-symbols:edit-outline'
+  //           fontSize={28}
+  //           color={theme.palette.customColors.OnSurfaceVariant}
+  //         />
+  //       </IconButton>
 
-        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD INCUBATOR
-        </Button>
-      </Box>
-    </>
-  )
+  //       <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+  //         <Icon icon='mdi:add' fontSize={20} />
+  //         &nbsp; ADD INCUBATOR
+  //       </Button>
+  //     </Box>
+  //   </>
+  // )
 
   useEffect(() => {
-    fetchDetailsData()
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchDetailsData()
+    }
   }, [fetchDetailsData])
 
   // const onCellClick = params => {
@@ -495,106 +503,161 @@ const RoomDetails = () => {
 
   return (
     <>
-      {loader ? (
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
+      {egg_nursery_permission || egg_collection_permission ? (
+        loader ? (
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+              <CircularProgress />
+            </Box>
+          </CardContent>
+        ) : (
+          <>
+            <Grid container spacing={6}>
+              <Grid item xs={12}>
+                <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                  <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                    Egg
+                  </Typography>
+
+                  <Typography
+                    sx={{ cursor: 'pointer' }}
+                    color='inherit '
+                    onClick={() => Router.push('/egg/incubator-rooms/')}
+                  >
+                    Incubator Room
+                  </Typography>
+                  <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
+                    Room Details
+                  </Typography>
+                </Breadcrumbs>
+
+                <Card>
+                  {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
+                  <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <Icon
+                        style={{ cursor: 'pointer', fontSize: '24px' }}
+                        onClick={() => Router.push('/egg/incubator-rooms')}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                        icon='material-symbols:arrow-back'
+                      />
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '24px',
+                          lineHeight: '29.05px'
+                        }}
+                      >
+                        Room Details
+                      </Typography>
+                    </Box>
+
+                    {egg_nursery_permission && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        {' '}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <IconButton
+                            sx={{ mr: 4 }}
+                            onClick={event =>
+                              handleEdit(
+                                event,
+                                detailsData.site_id,
+                                detailsData.room_name,
+                                detailsData.nursery_id,
+                                detailsData.room_id,
+                                detailsData.nursery_name
+                              )
+                            }
+                          >
+                            <Icon
+                              icon='material-symbols:edit-outline'
+                              fontSize={28}
+                              color={theme.palette.customColors.OnSurfaceVariant}
+                            />
+                          </IconButton>
+
+                          <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+                            <Icon icon='mdi:add' fontSize={20} />
+                            &nbsp; ADD INCUBATOR
+                          </Button>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                  <Box sx={{ px: '16px', my: '8px' }}>
+                    <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+                  </Box>
+                  <Box>
+                    <DataGrid
+                      sx={{
+                        '.MuiDataGrid-cell:focus': {
+                          outline: 'none'
+                        },
+
+                        '& .MuiDataGrid-row:hover': {
+                          cursor: 'pointer'
+                        }
+                      }}
+                      columnVisibilityModel={{
+                        sl_no: false
+                      }}
+                      disableColumnSelector={true}
+                      autoHeight
+                      pagination
+                      rows={indexedRows === undefined ? [] : indexedRows}
+                      rowCount={total}
+                      columns={columns}
+                      sortingMode='server'
+                      paginationMode='server'
+                      rowHeight={64}
+                      pageSizeOptions={[7, 10, 25, 50]}
+                      paginationModel={paginationModel}
+                      onSortModelChange={handleSortModel}
+                      slots={{ toolbar: ServerSideToolbarWithFilter }}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={loading}
+                      slotProps={{
+                        baseButton: {
+                          variant: 'outlined'
+                        },
+                        toolbar: {
+                          value: searchValue,
+                          clearSearch: () => handleSearch(''),
+                          onChange: event => handleSearch(event.target.value)
+                        }
+                      }}
+                      onCellClick={onCellClick}
+                    />
+                  </Box>
+                </Card>
+              </Grid>
+            </Grid>
+            <>
+              <AddIncubatorRoom
+                callApi={fetchDetailsData}
+                callTableApi={fetchTableData}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                editParams={editParams}
+              />
+              <AddIncubators
+                actionApi={fetchTableData}
+                detailsApi={fetchDetailsData}
+                sidebarOpen={dialog}
+                handleSidebarClose={handleSidebarClose}
+                isPreFilled={isPreFilled}
+              />
+            </>
+          </>
+        )
       ) : (
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-              <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-                Egg
-              </Typography>
-
-              <Typography
-                sx={{ cursor: 'pointer' }}
-                color='inherit '
-                onClick={() => Router.push('/egg/incubator-rooms/')}
-              >
-                Incubator Room
-              </Typography>
-              <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
-                Room Details
-              </Typography>
-            </Breadcrumbs>
-
-            <Card>
-              <CardHeader title='Rooms Details' action={headerAction} />
-
-              <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
-
-              <Box sx={{}}>
-                <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
-
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilter }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                  onCellClick={onCellClick}
-                />
-              </Box>
-            </Card>
-          </Grid>
-        </Grid>
+        <>
+          <ErrorScreen></ErrorScreen>
+        </>
       )}
-
-      <>
-        <AddIncubatorRoom
-          callApi={fetchDetailsData}
-          callTableApi={fetchTableData}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          editParams={editParams}
-        />
-        <AddIncubators
-          actionApi={fetchTableData}
-          detailsApi={fetchDetailsData}
-          sidebarOpen={dialog}
-          handleSidebarClose={handleSidebarClose}
-          isPreFilled={isPreFilled}
-        />
-      </>
     </>
   )
 }
 
 export default RoomDetails
-
-const data = [
-  { id: '1', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' },
-  { id: '2', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' }
-]

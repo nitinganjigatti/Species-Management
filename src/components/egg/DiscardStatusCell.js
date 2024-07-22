@@ -51,14 +51,14 @@ const DiscardStatusCell = ({
       </Stack>
       {/* ) : ( */}
       <Box className={hideField} sx={{ display: 'flex', alignItems: 'center' }}>
-        <Stack direction='row'>
+        <Stack direction='row' gap={'12px'}>
           <Avatar
             variant='square'
             alt='Medicine Image'
             sx={{
               width: 30,
               height: 30,
-              mr: 4,
+
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -95,7 +95,7 @@ const DiscardStatusCell = ({
                 lineHeight: '14.52px'
               }}
             >
-              {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
             </Typography>
           </Box>
         </Stack>

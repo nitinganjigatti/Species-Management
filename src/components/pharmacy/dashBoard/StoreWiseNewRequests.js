@@ -18,8 +18,6 @@ const StoreWiseNewRequests = () => {
     try {
       const result = await getNewRequestsList()
 
-      console.log('getNewRequestsList', result)
-
       if (result?.success === true && result?.data?.list_items.length > 0) {
         setRequestList(result?.data?.list_items)
       }

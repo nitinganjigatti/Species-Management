@@ -173,7 +173,7 @@ const SpeciesList = () => {
       {
         flex: 0.2,
         Width: 40,
-        field: 'id',
+        field: 'sl_no',
         headerName: 'S.NO',
         renderCell: params => (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -182,40 +182,69 @@ const SpeciesList = () => {
         )
       },
       {
-        flex: 0.2,
+        flex: 0.3,
         minWidth: 30,
         field: 'species_image',
         headerName: 'IMAGE',
+        sortable: false,
         renderCell: params => (
           <>
             <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
           </>
         )
       },
+      // {
+      //   flex: 0.5,
+      //   minWidth: 30,
+      //   field: 'common_name',
+      //   headerName: 'COMMON NAME',
+      //   renderCell: params => (
+      //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+      //           {params.row.common_name ? params.row.common_name : '-'}
+      //         </Typography>
+      //       </Box>
+      //     </Box>
+      //   )
+      // },
+      // {
+      //   flex: 0.5,
+      //   minWidth: 30,
+      //   field: 'scientific_name',
+      //   headerName: 'SCIENTIFIC NAME',
+      //   renderCell: params => (
+      //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+      //       {params.row.scientific_name ? params.row.scientific_name : '-'}
+      //     </Typography>
+      //   )
+      // }
       {
-        flex: 0.5,
+        flex: 0.4,
         minWidth: 30,
         field: 'common_name',
         headerName: 'COMMON NAME',
+        sortable: false,
         renderCell: params => (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-                {params.row.common_name ? params.row.common_name : '-'}
-              </Typography>
-            </Box>
-          </Box>
+          <Tooltip title={params.row.common_name || '-'}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.common_name ? params.row.common_name : '-'}
+            </Typography>
+          </Tooltip>
         )
       },
       {
-        flex: 0.5,
+        flex: 0.4,
         minWidth: 30,
         field: 'scientific_name',
         headerName: 'SCIENTIFIC NAME',
+        sortable: false,
         renderCell: params => (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.scientific_name ? params.row.scientific_name : '-'}
-          </Typography>
+          <Tooltip title={params.row.scientific_name || '-'}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.scientific_name ? params.row.scientific_name : '-'}
+            </Typography>
+          </Tooltip>
         )
       }
     ]
@@ -229,6 +258,7 @@ const SpeciesList = () => {
       minWidth: 30,
       field: `org_${index}`,
       headerName: orgName,
+      sortable: false,
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
         return (
@@ -412,6 +442,9 @@ const SpeciesList = () => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'

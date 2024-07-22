@@ -211,7 +211,6 @@ const AddRequestForm = () => {
   }
 
   const validate = values => {
-    // console.log('validate', values.request_item_qty)
     const itemErrors = {}
     if (!values.medicine_name || values.medicine_name === '') {
       itemErrors.medicine_name = 'This field is required'
@@ -246,7 +245,6 @@ const AddRequestForm = () => {
     }
     // itemErrors.control_substance = 'This field is required'
     // }
-    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -390,7 +388,7 @@ const AddRequestForm = () => {
     // setLoader(true)
     try {
       //params: { q: 'central', column: 'type' }
-      const response = await getStoreList({ params: { type: 'central' } })
+      const response = await getStoreList({ params: { type: 'local' } })
       if (response.success && response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
         setToStocks(response?.data?.list_items)
@@ -451,10 +449,7 @@ const AddRequestForm = () => {
 
         const searchResults = await getGenericMedicineList({ params: params })
         // debugger
-        console.log('searchResults', searchResults)
         if (searchResults?.data?.list_items.length > 0) {
-          console.log('genrics', searchResults.data?.list_items)
-
           setOptionsMedicineList(
             searchResults?.data?.list_items?.map(item => ({
               value: item.id,
@@ -495,7 +490,6 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    console.log('result', result)
 
     if (result?.success === true && result?.data?.request_item_details?.length > 0) {
       const lineItems = result?.data?.request_item_details.map(el => {
@@ -632,33 +626,10 @@ const AddRequestForm = () => {
     }
   }
 
-  // const deleteLineItemFromDb = async lineItemId => {
-  //   debugger
-  //   console.log('lineItemId', lineItemId)
-  //   if (lineItemId) {
-  //     try {
-  //       const result = await deleteLineItem(lineItemId)
-  //       console.log('deleteLineItem result', result)
-  //       if (result?.data?.success === true) {
-  //         toast.success(result?.data?.data)
-  //         setDeleteDialog(false)
-  //         setDeleteItemId(null)
-  //         getListOfItemsById(id)
-  //       } else {
-  //         toast.error(result.data)
-  //       }
-  //     } catch (error) {
-  //       toast.error(error.data)
-  //       console.log('error', error)
-  //     }
-  //   }
-  // }
-
   const cancelRequest = async id => {
     if (id) {
       try {
         const result = await cancelRequestItems(id)
-        // console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)
