@@ -349,6 +349,21 @@ const Species = () => {
     // setStatus(newValue)
   }
 
+  const onCellClick = params => {
+    console.log(params, 'params')
+    const clickedColumn = params.field !== 'switch'
+
+    if (clickedColumn) {
+      const data = params.row
+
+      Router.push({
+        pathname: `/egg/species/${data?.taxonomy_id}`
+      })
+    } else {
+      return
+    }
+  }
+
   const getspeciesFunc = useCallback(
     async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
       try {
@@ -794,7 +809,7 @@ const Species = () => {
         //     onChange: event => handleSearch(event.target.value)
         //   }
         // }}
-        //   onCellClick={onCellClick}
+        onCellClick={onCellClick}
       />
     </Box>
   )
