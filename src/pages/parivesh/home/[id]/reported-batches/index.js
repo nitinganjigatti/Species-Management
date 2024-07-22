@@ -1,10 +1,18 @@
-// src/pages/RepotedBatch.js
-
 import React, { useCallback, useEffect, useState } from 'react'
-
 import moment from 'moment'
-import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, Button, Dialog, DialogContent, DialogTitle, IconButton, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Card,
+  CardHeader,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Typography,
+  debounce
+} from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
@@ -14,6 +22,11 @@ import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { deleteBatchToOrg } from 'src/lib/api/parivesh/addBatch'
 import Toaster from 'src/components/Toaster'
+import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import { DataGrid } from '@mui/x-data-grid'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 const ReportedBatches = ({ type }) => {
   const theme = useTheme()
@@ -30,6 +43,7 @@ const ReportedBatches = ({ type }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [loader, setLoader] = useState(false)
 
   const handleSortModel = newModel => {
     console.log(newModel, 'newModel')
@@ -399,26 +413,89 @@ const ReportedBatches = ({ type }) => {
     </>
   )
 
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ mt: 4 }}>
+            <CardHeader title={'To be Submitted'} action={headerAction} />
+            <ConfirmationDialog
+              // icon={'mdi:delete'}
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
+            <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              disableColumnSorting
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              columns={columns}
+              total={total}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
-      <CustomTable
-        rows={indexedRows === undefined ? [] : indexedRows}
-        columns={columns}
-        total={total}
-        loading={loading}
-        searchValue={searchValue}
-        paginationModel={paginationModel}
-        setPaginationModel={setPaginationModel}
-        handleSearch={handleSearch}
-        onCellClick={onCellClick}
-        dialog={dialog}
-        onClose={onClose}
-        check={check}
-        setCheck={setCheck}
-        headerAction={headerAction}
-        title={'To be Submitted'}
-        handleSortModel={handleSortModel}
-      />
+      <Grid>{tableData()}</Grid>
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>
           <IconButton
