@@ -63,7 +63,7 @@ const defaultValues = {
   scientificName: '',
   commonName: '',
   active: '1',
-  species: null
+  species: ''
 }
 
 const AddSpecies = props => {
