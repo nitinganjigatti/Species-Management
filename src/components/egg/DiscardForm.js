@@ -27,7 +27,7 @@ import { LoadingButton } from '@mui/lab'
 import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
 import Toaster from 'src/components/Toaster'
 
-const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails }) => {
+const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
@@ -181,6 +181,9 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails }) => {
 
         if (getDetails) {
           getDetails(eggID)
+        }
+        if (GetGalleryImgList) {
+          GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
         }
       } else {
         // setReason('')
