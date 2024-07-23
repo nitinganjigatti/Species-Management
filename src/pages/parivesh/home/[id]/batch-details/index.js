@@ -94,6 +94,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
   const [selectedId, setSelectedId] = useState(null)
+  const [buttonEnabled, setButtonEnabled] = useState(false)
 
   const onClose = () => {
     setDialog(false)
@@ -119,6 +120,12 @@ const BatchDetails = ({ params, searchParams }) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(response?.data?.total_count))
+
+          setPaginationModel(prev => ({
+            ...prev,
+            pageSize: response?.data?.total_count
+          }))
+          console.log(response?.data, 'response?.data?.data')
           setRows(loadServerRows(paginationModel.page, listWithId))
         } else {
         }
@@ -160,22 +167,24 @@ const BatchDetails = ({ params, searchParams }) => {
   const handleStatusChange = async event => {
     const value = event.target.value
     setSelectedStatus(value)
-    // if (value === 'submitted' && type === 'reportedBatch') {
-    //   setIsModalOpen(prevState => !prevState)
-    // } else {
-    //   setIsModalOpen(false) // Close modal for other selections
-    //   setRegId('')
-    //   reset()
-    // }
-    // if (type === 'submittedBatch') {
-    //   const payload = {
-    //     batch_id: batchDetails?.batch_id,
-    //     status: value,
-    //     registration_id: batchDetails?.registration_id
-    //   }
-    //   await updateStatus(payload)
-    // }
+    setSelectedStatus(value)
+    if (batchDetails?.status === 'withdrawn' && value === 'submitted') {
+      setButtonEnabled(false) // Disable if status is 'withdrawn' and dropdown is 'submitted'
+    } else {
+      setButtonEnabled(value === 'submitted' || batchDetails?.status === 'withdrawn')
+    }
   }
+
+  useEffect(() => {
+    // Enable button if status is 'withdrawn' or 'submitted'
+    if (batchDetails?.status === 'withdrawn') {
+      setButtonEnabled(true) // Default to false, will change based on dropdown value
+    } else if (batchDetails?.status === 'submitted') {
+      setButtonEnabled(true) // Button enabled if status is 'submitted'
+    } else {
+      setButtonEnabled(false)
+    }
+  }, [batchDetails?.status])
 
   const onClickStatus = async event => {
     if (event.target.dataset.value === 'submitted' && type === 'toBeSubmittedBatch') {
@@ -462,54 +471,6 @@ const BatchDetails = ({ params, searchParams }) => {
     // Handle cell click logic here
   }
 
-  // const { getRootProps, getInputProps } = useDropzone({
-  //   multiple: true, // Allow multiple files
-  //   accept: {
-  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
-  //     'application/pdf': ['.pdf'],
-  //     'application/msword': ['.doc'],
-  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-  //     'application/vnd.ms-excel': ['.xls'],
-  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-  //   },
-  //   onDrop: async acceptedFiles => {
-  //     console.log(acceptedFiles, 'acceptedFiles')
-
-  //     const totalFiles = acceptedFiles?.length + filePreviews?.length
-  //     if (totalFiles > 3) {
-  //       Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
-  //       return
-  //     }
-
-  //     try {
-  //       setAttachmentLoader(true) // Show loader
-  //       for (const file of acceptedFiles) {
-  //         const payload = {
-  //           batch_id: batchDetails?.batch_id,
-  //           status: batchDetails?.status,
-  //           batch_attachment: [file]
-  //         }
-
-  //         // Call your upload API function with formData
-  //         const res = await uploadAttachmentForBatch(payload)
-  //         console.log(res, 'uploadFile')
-  //         // Handle API response
-  //         if (res?.success && res?.data?.length > 0) {
-  //           Toaster({ type: 'success', message: res?.message })
-  //           // After successful upload, fetch updated batch details
-  //           await getBatchListById(batchDetails?.batch_id)
-  //         } else {
-  //           Toaster({ type: 'error', message: res?.message })
-  //         }
-  //       }
-  //       setAttachmentLoader(false) // Hide loader after processing files
-  //     } catch (error) {
-  //       console.error('Error uploading files:', error)
-  //       setAttachmentLoader(false) // Hide loader on error
-  //     }
-  //   }
-  // })
-
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true, // Allow multiple files
     accept: {
@@ -704,64 +665,6 @@ const BatchDetails = ({ params, searchParams }) => {
             </Grid>
           </Grid>
         </Box>
-
-        {/* <Box sx={{ background: 'rgba(195, 206, 199, 0.3)', borderRadius: '10px', m: 6, p: 6 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                Batch ID: <span style={{ color: '#44544A', fontWeight: 'bold' }}>{batchDetails?.batch_code}</span>
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                Batch Created:{' '}
-                <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                  {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY hh:mm A')}
-                </span>
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                Submitted Date:{' '}
-                <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                  {batchDetails?.submitted_on !== null
-                    ? moment.utc(batchDetails?.submitted_on).local().format('DD MMMM YYYY hh:mm A')
-                    : 'NA'}
-                </span>
-              </Typography>
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mt: 6 }}>
-            <Grid container spacing={2} sx={{ alignItems: 'baseline' }}>
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Organization:{' '}
-                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>{selectedParivesh?.organization_name}</span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  {type === '' ? 'Created By' : 'Submitted By'}:{' '}
-                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                    {type === 'reportedBatch'
-                      ? batchDetails?.created_by_user?.user_name
-                      : batchDetails?.submitted_by_user?.user_name}
-                  </span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Registration ID :{' '}
-                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                    {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
-                  </span>
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-        </Box> */}
 
         <Box
           sx={{
@@ -971,17 +874,19 @@ const BatchDetails = ({ params, searchParams }) => {
                 )}
               </Grid>
               <Grid item>
-                {batchDetails?.status !== 'accepted' && type === 'submittedBatch' && (
-                  <Button
-                    variant='contained'
-                    color='primary'
-                    onClick={() => handleSaveBatch('saveBatch')}
-                    disabled={batchDetails?.status === 'rejected' ? true : false}
-                    size='large'
-                  >
-                    Save Batch
-                  </Button>
-                )}
+                {batchDetails?.status !== 'accepted' &&
+                  batchDetails?.status !== 'rejected' &&
+                  type === 'submittedBatch' && (
+                    <Button
+                      variant='contained'
+                      color='primary'
+                      onClick={() => handleSaveBatch('saveBatch')}
+                      disabled={buttonEnabled}
+                      size='large'
+                    >
+                      Save Batch
+                    </Button>
+                  )}
               </Grid>
             </Grid>
           </Box>

@@ -282,22 +282,18 @@ const AddNewEntry = () => {
                           options={species}
                           id='autocomplete-clearOnEscape'
                           value={value}
-                          getOptionLabel={option => option.name || ''}
-                          // getOptionLabel={option => `${option.common_name} (${option.name})` || ''}
-                          isOptionEqualToValue={(option, value) => option.id === value?.id} // This line is changed
+                          getOptionLabel={option => option.common_name || ''}
+                          renderOption={(props, option) => (
+                            <Box component='li' {...props}>
+                              {option.common_name} ({option.name})
+                            </Box>
+                          )}
+                          isOptionEqualToValue={(option, value) => option.id === value?.id}
                           onChange={(event, newValue) => {
                             onChange(newValue)
                           }}
                           onInputChange={(event, newInputValue) => {
-                            // Extract the common name part before calling searchTableData
-                            // const searchTerm = newInputValue.split(' (')[0]
-                            // searchTableData(searchTerm)
                             searchTableData(newInputValue)
-                          }}
-                          filterOptions={(options, { inputValue }) => {
-                            return options.filter(option =>
-                              option.common_name.toLowerCase().includes(inputValue.toLowerCase())
-                            )
                           }}
                           renderInput={params => <TextField {...params} label='Search & Select…' />}
                         />

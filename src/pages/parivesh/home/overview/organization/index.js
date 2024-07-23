@@ -36,7 +36,7 @@ const Organization = () => {
   const [rows, setRows] = useState([])
   const { selectedParivesh } = usePariveshContext()
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('registration_id')
+  const [sortColumn, setSortColumn] = useState('accepted_on')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
