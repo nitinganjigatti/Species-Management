@@ -387,7 +387,6 @@ const AddRecipe = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Diet</Typography>
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
           Recipe
         </Link>

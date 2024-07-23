@@ -866,36 +866,42 @@ const DietDetail = () => {
                                                         }}
                                                       >
                                                         {/* <TableCell></TableCell> */}
-                                                        <Box
-                                                          sx={{
-                                                            display: 'flex',
-                                                            flexDirection: 'row',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            my: '10px'
-                                                          }}
-                                                        >
-                                                          <Typography
+                                                        {itemd?.notes ? (
+                                                          <Box
                                                             sx={{
-                                                              lineHeight: '29.05px',
-                                                              fontSize: '20px',
-                                                              fontWeight: 500,
-                                                              color: '#44544A'
+                                                              display: 'flex',
+                                                              flexDirection: 'row',
+                                                              alignItems: 'center',
+                                                              gap: '4px',
+                                                              my: '10px',
+                                                              width: '1070px'
                                                             }}
                                                           >
-                                                            Note:- &nbsp;
-                                                          </Typography>
-                                                          <Typography
-                                                            sx={{
-                                                              lineHeight: '19.36px',
-                                                              fontSize: '16px',
-                                                              fontWeight: 400,
-                                                              color: '#44544A'
-                                                            }}
-                                                          >
-                                                            {itemd.notes}{' '}
-                                                          </Typography>
-                                                        </Box>
+                                                            <Typography
+                                                              sx={{
+                                                                lineHeight: '29.05px',
+                                                                fontSize: '20px',
+                                                                fontWeight: 500,
+                                                                color: '#44544A'
+                                                              }}
+                                                            >
+                                                              Note:- &nbsp;
+                                                              <Typography
+                                                                component='span'
+                                                                sx={{
+                                                                  lineHeight: '19.36px',
+                                                                  fontSize: '16px',
+                                                                  fontWeight: 400,
+                                                                  color: '#44544A'
+                                                                }}
+                                                              >
+                                                                {itemd.notes}
+                                                              </Typography>
+                                                            </Typography>
+                                                          </Box>
+                                                        ) : (
+                                                          ''
+                                                        )}
                                                       </TableRow>
                                                     ) : null}
                                                   </>
@@ -921,14 +927,18 @@ const DietDetail = () => {
                   ))}
                 </TabContext>
               </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
-                  Remarks
-                </Typography>
-                <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
-                  {dietDetails?.remarks ? dietDetails?.remarks : 'No Remarks'}
-                </Typography>
-              </Box>
+              {dietDetails?.desc ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
+                    Remarks
+                  </Typography>
+                  <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
+                    {dietDetails?.desc ? dietDetails?.desc : 'No Remarks'}
+                  </Typography>
+                </Box>
+              ) : (
+                ''
+              )}
             </Card>
           </Box>
         </Box>

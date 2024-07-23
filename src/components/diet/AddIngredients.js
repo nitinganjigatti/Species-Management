@@ -25,6 +25,7 @@ import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
   const {
@@ -112,7 +113,7 @@ const AddIngredients = props => {
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value }
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
@@ -340,7 +341,7 @@ const AddIngredients = props => {
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, limit: 20 }
+      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -357,9 +358,9 @@ const AddIngredients = props => {
 
   // Top Feed Type
   const fetchData = async () => {
-    const params = {}
+    const params = { page: 1, limit: 50, status: 1 }
     try {
-      const response = await getPreparationTypeList()
+      const response = await getFeedTypeList(params)
 
       setFeedType(response?.data?.result)
     } catch (error) {
@@ -402,7 +403,7 @@ const AddIngredients = props => {
 
         setReachedEnd(true)
         try {
-          const params = { page: ingredientPage, q: searchValue, sort, limit: 20 }
+          const params = { page: ingredientPage, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result?.length > 0) {
               setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -497,7 +498,7 @@ const AddIngredients = props => {
         console.log('search ing :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: 1, q: search, sort }
+          const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
@@ -614,10 +615,17 @@ const AddIngredients = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300
+                      }
+                    }
+                  }}
                 >
                   {feedType?.map(feedList => (
                     <MenuItem key={feedList?.key} value={feedList?.id}>
-                      {feedList?.label}
+                      {feedList?.feed_type_name}
                     </MenuItem>
                   ))}
                 </Select>
