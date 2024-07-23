@@ -498,7 +498,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   </Box>
                 </Box>
               ) : (
-                summary?.activity_status === 'CANCELLED' && (
+                (summary?.activity_status === 'CANCELLED' || summary?.activity_status === 'CANCELED') && (
                   <Box
                     sx={{
                       width: '562px',
