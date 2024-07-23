@@ -321,20 +321,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
-              <img
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  maxWidth: '26px',
-                  maxHeight: '26px',
-                  objectFit: 'cover',
-                  marginLeft: 4
-                }}
-                src='/icons/pending_security_check_icon.png'
-                alt='Profile'
-              />
-            ) : (
+            {params.row.activity_status === 'COMPLETED' ? (
               <img
                 style={{
                   width: '100%',
@@ -344,6 +331,19 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   objectFit: 'cover'
                 }}
                 src='/icons/security_check_icon.png'
+                alt='Profile'
+              />
+            ) : (
+              <img
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '26px',
+                  maxHeight: '26px',
+                  objectFit: 'cover',
+                  marginLeft: 3
+                }}
+                src='/icons/pending_security_check_icon.png'
                 alt='Profile'
               />
             )}
@@ -362,7 +362,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 >
                   {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? 'Pending' : '-'}
                 </Typography>
-              ) : (
+              ) : params.row.activity_status === 'COMPLETED' ? (
                 <>
                   <Typography
                     noWrap
@@ -388,6 +388,36 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                     {params.row.discarded_person_name ? params.row.discarded_person_name : '-'}
                   </Typography>
                 </>
+              ) : (
+                params.row.activity_status === 'CANCELLED' && (
+                  <>
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: '#FA6140',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '16.94px',
+                        ml: 1
+                      }}
+                    >
+                      Cancelled
+                    </Typography>
+
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: theme.palette.customColors.neutralSecondary,
+                        fontSize: '12px',
+                        fontWeight: '400',
+                        lineHeight: '14.52px',
+                        ml: 1
+                      }}
+                    >
+                      {params.row.commented_by ? params.row.commented_by : '-'}
+                    </Typography>
+                  </>
+                )
               )}
             </Box>
           </Box>
