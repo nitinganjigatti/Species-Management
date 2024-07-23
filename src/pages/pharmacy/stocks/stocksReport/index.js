@@ -434,8 +434,8 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.mrp_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.mrp_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
             : 'NA'}
         </Typography>
       )
@@ -654,8 +654,8 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.mrp_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.mrp_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
             : 'NA'}
         </Typography>
       )

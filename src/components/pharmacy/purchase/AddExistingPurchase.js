@@ -761,14 +761,15 @@ const AddExistingPurchase = () => {
           }
           title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
         />
-
-        <AddButton
-          styles={{ marginRight: 20 }}
-          title='Add Supplier'
-          action={() => {
-            setSupplierDialog(true)
-          }}
-        />
+        {selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD' ? (
+          <AddButton
+            styles={{ marginRight: 20 }}
+            title='Add Supplier'
+            action={() => {
+              setSupplierDialog(true)
+            }}
+          />
+        ) : null}
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

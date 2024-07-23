@@ -18,6 +18,7 @@ const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, nam
         disabled={disabled ? disabled : null}
         showIcon
         selected={date}
+        dateFormat='dd/MM/yyyy'
         id='form-layouts-separator-date'
         popperPlacement={popperPlacement}
         onChange={onChangeHandler}
