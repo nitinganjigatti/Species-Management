@@ -73,7 +73,6 @@ const NewEntry = ({}) => {
   const [selectedRows, setSelectedRows] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [organizationCountList, setOrganizationCountList] = useState([])
-  const [editParams, setEditParams] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailData, setDetailData] = useState()
@@ -222,8 +221,7 @@ const NewEntry = ({}) => {
 
   const handleEdit = async (event, params) => {
     event.stopPropagation()
-    console.log('params >>', params)
-    setEditParams(params)
+    // console.log('params >>', params)
 
     // Ensure params.id exists and is a string or number
     if (params?.id) {
