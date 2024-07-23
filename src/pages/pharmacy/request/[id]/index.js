@@ -580,29 +580,27 @@ const IndividualRequest = () => {
       align: 'left',
 
       renderCell: params => (
-        <Tooltip title={params.row?.description}>
-          {params.row?.description ? (
-            <Typography
-              onClick={() => {
-                setExpandedText(params.row?.description)
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.description}>
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+            }}
+            onClick={() => {
+              if (params.row?.description) {
+                setExpandedText(params.row.description)
                 openNotesDialog()
-              }}
-              sx={{
-                minWidth: 30,
-                maxWidth: 80,
-                cursor: 'pointer',
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                WebkitLineClamp: 6,
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {params.row?.description}
-            </Typography>
-          ) : (
-            <Typography>NA</Typography>
-          )}
+              }
+            }}
+          >
+            {params.row?.description || 'NA'}
+          </Typography>
         </Tooltip>
       )
     },
