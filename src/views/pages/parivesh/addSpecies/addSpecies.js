@@ -110,16 +110,14 @@ const AddSpecies = props => {
       cover_image: coverImg
     }
     await handleSubmitData(payload)
-    reset(defaultValues)
-    setValue('species', '')
-    setImgSrc('')
-    setCoverImgSrc('')
   }
 
   useEffect(() => {
     if (resetForm) {
       reset(defaultValues)
       setValue('species', '')
+      setImgSrc('')
+      setCoverImgSrc('')
     }
   }, [resetForm, editParams, reset, setValue])
 
