@@ -137,10 +137,10 @@ const BatchDetails = ({ params, searchParams }) => {
   )
 
   useEffect(() => {
-    if (id !== 'all') {
+    if (id) {
       getBatchListById(id)
     }
-  }, [getBatchListById])
+  }, [id])
 
   const updateStatus = async payload => {
     try {
@@ -166,7 +166,6 @@ const BatchDetails = ({ params, searchParams }) => {
 
   const handleStatusChange = async event => {
     const value = event.target.value
-    setSelectedStatus(value)
     setSelectedStatus(value)
     if (batchDetails?.status === 'withdrawn' && value === 'submitted') {
       setButtonEnabled(false) // Disable if status is 'withdrawn' and dropdown is 'submitted'
