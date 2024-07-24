@@ -498,7 +498,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   </Box>
                 </Box>
               ) : (
-                (summary?.activity_status === 'CANCELLED' || summary?.activity_status === 'CANCELED') && (
+                summary?.activity_status === 'CANCELED' && (
                   <Box
                     sx={{
                       width: '562px',
@@ -552,7 +552,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
 
                         <Stack>
                           <Typography sx={{ fontSize: '14px', fontWeight: 500 }}>
-                            {summary.discarded_person_name ? summary.discarded_person_name : '-'}
+                            {summary.commented_by ? summary.commented_by : '-'}
                           </Typography>
                           <Box
                             sx={{
@@ -597,7 +597,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             color: '#FA6140'
                           }}
                         >
-                          Cancelled
+                          Canceled
                         </Typography>
                       </Stack>
                     </Box>

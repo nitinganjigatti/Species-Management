@@ -389,7 +389,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   </Typography>
                 </>
               ) : (
-                (params.row.activity_status === 'CANCELLED' || params.row.activity_status === 'CANCELED') && (
+                params.row.activity_status === 'CANCELED' && (
                   <>
                     <Typography
                       noWrap
@@ -401,7 +401,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                         ml: 1
                       }}
                     >
-                      Cancelled
+                      Canceled
                     </Typography>
 
                     <Typography
