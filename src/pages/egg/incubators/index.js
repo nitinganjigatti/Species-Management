@@ -78,7 +78,7 @@ const IncubatorsList = () => {
         setLoading(true)
 
         const params = {
-          q,
+          q: q || searchValue,
           sort,
           from_date: '2024-05-29',
           til_date: cuurent_date,
@@ -657,7 +657,12 @@ const IncubatorsList = () => {
                 }}
                 onCellClick={onCellClick}
               />
-              <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
+              <AddIncubators
+                searchValue={searchValue}
+                actionApi={fetchTableData}
+                sidebarOpen={dialog}
+                handleSidebarClose={handleSidebarClose}
+              />
             </Card>
           </>
         )

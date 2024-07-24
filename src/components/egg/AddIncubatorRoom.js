@@ -53,6 +53,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     control,
     handleSubmit,
     watch,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -90,6 +91,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
       // setSiteDetails({ site_id: selectedNursery.site_id, site_name: selectedNursery.site_name })
       setValue('site_id', selectedNursery?.site_id)
+      clearErrors('site_id')
     }
   }, [nurseryId])
 
@@ -143,7 +145,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           handleClose()
         } else {
           setLoader(false)
-          reset()
+          // reset()
           Toaster({ type: 'error', message: response.message })
         }
       } else {
@@ -151,7 +153,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
         if (response.success) {
           setLoader(false)
-
+          reset()
           Toaster({ type: 'success', message: response.message })
           if (callApi) {
             callApi()
@@ -162,7 +164,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           handleClose()
         } else {
           setLoader(false)
-          reset()
+          // reset()
           Toaster({ type: 'error', message: response.message })
         }
       }
