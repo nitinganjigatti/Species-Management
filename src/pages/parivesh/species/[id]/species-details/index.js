@@ -295,11 +295,12 @@ const SpeciesDetails = () => {
   }, [fetchTableData, status])
 
   const fetchOrgCountData = useCallback(
-    async (q, id) => {
+    async id => {
       try {
         const params = {
-          q,
-          id
+          org_id: id,
+          tsn_relation: tsn_relation,
+          tsn_id: tsn_id
         }
 
         await getOrgCountList({ params: params }).then(res => {
@@ -574,7 +575,7 @@ const SpeciesDetails = () => {
   )
 
   useEffect(() => {
-    fetchOrgCountData(selectedParivesh?.id)
+    fetchOrgCountData(selectedParivesh?.id, tsn_id, tsn_relation)
   }, [fetchOrgCountData])
 
   const handleSubmitData = async data => {
@@ -756,6 +757,7 @@ const SpeciesDetails = () => {
         <Card>
           {organizationCountList.length > 0 &&
             organizationCountList.map((org, inx) => {
+              console.log(org, 'ppppp')
               return (
                 <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                   <CustomAccordion
@@ -763,7 +765,7 @@ const SpeciesDetails = () => {
                     summaryIcon='ion:checkmark'
                     data={org?.approvedAccordionData?.data}
                     cards={org?.approvedAccordionData?.cards}
-                    backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                    backgroundImage={org?.species_image}
                     isOrganization
                     organizationName={org.organization_name}
                   />
@@ -777,7 +779,7 @@ const SpeciesDetails = () => {
                       summaryIcon='mdi:arrow-top-right'
                       data={org?.yetToSubmitAccordionData?.data}
                       cards={org?.yetToSubmitAccordionData?.cards}
-                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                      backgroundImage={org?.species_image}
                     />
                   </Box>
                   <Box
@@ -790,7 +792,7 @@ const SpeciesDetails = () => {
                       summaryIcon='mdi:checkbox-marked'
                       data={org?.submittedAccordionData?.data}
                       cards={org?.submittedAccordionData?.cards}
-                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                      backgroundImage={org?.species_image}
                     />
                   </Box>
                 </CardContent>

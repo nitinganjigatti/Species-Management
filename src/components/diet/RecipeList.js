@@ -39,7 +39,7 @@ const RecipeList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort }
+      const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
       await getRecipeList({ params }).then(res => {
         if (res.data.result.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -68,7 +68,7 @@ const RecipeList = props => {
         setReachedEnd(true)
         try {
           // const nextPage = paginationModel.page + 1
-          const params = { page: ingredientPage, q: searchValue, sort }
+          const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
 
           const res = await getRecipeList({ params })
 

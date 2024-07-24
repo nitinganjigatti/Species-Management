@@ -127,7 +127,7 @@ const NurserySlider = ({
         if (response.success) {
           // toast.success('Nursery updated Successfully')
           setLoader(false)
-          Toaster({ type: 'success', message: response.message || 'Nursery updated Successfully' })
+
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -136,7 +136,7 @@ const NurserySlider = ({
           if (callApi) {
             callApi()
           }
-          Toaster({ type: 'success', message: response.message })
+          Toaster({ type: 'success', message: response.message || 'Nursery updated Successfully' })
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response.message })
@@ -151,7 +151,7 @@ const NurserySlider = ({
 
         if (response.success) {
           setLoader(false)
-          Toaster({ type: 'success', message: response.message || 'Nursery added Successfully' })
+
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -160,7 +160,7 @@ const NurserySlider = ({
           if (callApi) {
             callApi()
           }
-          Toaster({ type: 'success', message: response.message })
+          Toaster({ type: 'success', message: response.message || 'Nursery added Successfully' })
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response.message || 'Unable to add Nursery' })

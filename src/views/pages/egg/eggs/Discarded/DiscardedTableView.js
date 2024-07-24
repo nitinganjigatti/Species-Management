@@ -8,6 +8,7 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import DiscardDetail from './DiscardDetail'
+import Utility from 'src/utility'
 
 const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   const theme = useTheme()
@@ -166,7 +167,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 width: '100%'
               }}
             >
-              {params.row?.egg_count ? params.row?.egg_count : '-'} Eggs
+              {params.row?.egg_count ? params.row?.egg_count : '-'} Egg
             </Typography>
           </Box>
         </Box>
@@ -191,11 +192,11 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
             }}
           >
             {params.row.requested_on
-              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.requested_on))
               : '-'}{' '}
             |{' '}
             {params.row.requested_on
-              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('hh:mm A')
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.requested_on))
               : '-'}
           </Typography>{' '}
         </Box>
@@ -298,8 +299,13 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
-                {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
+                {params.row.requested_on
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.requested_on))
+                  : '-'}{' '}
+                |{' '}
+                {params.row.requested_on
+                  ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.requested_on))
+                  : '-'}
               </Typography>
             </Box>
           </Box>
@@ -315,25 +321,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* <Avatar
-              variant='square'
-              alt='Icon Image'
-              sx={{
-                width: 30,
-                height: 30,
-                mr: 4,
-                borderRadius: '50%',
-                background: '#E8F4F2',
-                overflow: 'hidden'
-              }}
-            > */}
-            {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
-              <img
-                style={{ width: '100%', height: '100%', maxWidth: '24px', maxHeight: '24px', objectFit: 'cover' }}
-                src='/icons/pending_security_check_icon.png'
-                alt='Profile'
-              />
-            ) : (
+            {params.row.activity_status === 'COMPLETED' ? (
               <img
                 style={{
                   width: '100%',
@@ -345,33 +333,42 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 src='/icons/security_check_icon.png'
                 alt='Profile'
               />
+            ) : (
+              <img
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '26px',
+                  maxHeight: '26px',
+                  objectFit: 'cover',
+                  marginLeft: 3
+                }}
+                src='/icons/pending_security_check_icon.png'
+                alt='Profile'
+              />
             )}
             {/* </Avatar> */}
 
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', m: 1 }}
-              className={status === 'eggs_received' ? 'hideField' : ''}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', m: 1 }}>
               {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Typography
                   noWrap
                   sx={{
                     color: '#FA6140',
-
                     fontSize: '16px',
                     fontWeight: '500',
-                    lineHeight: '16.94px'
+                    ml: 0.5
                   }}
                 >
                   {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? 'Pending' : '-'}
                 </Typography>
-              ) : (
+              ) : params.row.activity_status === 'COMPLETED' ? (
                 <>
                   <Typography
                     noWrap
                     sx={{
                       color: theme.palette.primary.main,
-                      fontSize: '14px',
+                      fontSize: '16px',
                       fontWeight: '500',
                       lineHeight: '16.94px'
                     }}
@@ -391,6 +388,36 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                     {params.row.discarded_person_name ? params.row.discarded_person_name : '-'}
                   </Typography>
                 </>
+              ) : (
+                params.row.activity_status === 'CANCELED' && (
+                  <>
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: '#FA6140',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '16.94px',
+                        ml: 1
+                      }}
+                    >
+                      Canceled
+                    </Typography>
+
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: theme.palette.customColors.neutralSecondary,
+                        fontSize: '12px',
+                        fontWeight: '400',
+                        lineHeight: '14.52px',
+                        ml: 1
+                      }}
+                    >
+                      {params.row.commented_by ? params.row.commented_by : '-'}
+                    </Typography>
+                  </>
+                )
               )}
             </Box>
           </Box>

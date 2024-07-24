@@ -340,7 +340,7 @@ const AddDiet = () => {
       const updatedFormData = {
         ...numericFormData,
         meal_data: numericFormData.meal_data,
-        diet_image: numericFormData.diet_image[0]
+        diet_image: numericFormData?.diet_image?.length > 0 ? numericFormData.diet_image[0] : null
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -396,7 +396,7 @@ const AddDiet = () => {
       const updatedFormData = {
         ...numericFormData,
         meal_data: numericFormData.meal_data,
-        diet_image: numericFormData.diet_image[0]
+        diet_image: numericFormData?.diet_image?.length > 0 ? numericFormData.diet_image[0] : null
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -535,7 +535,6 @@ const AddDiet = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Diet</Typography>
         <Link underline='hover' color='inherit' href='/diet/diet/'>
           Diet
         </Link>

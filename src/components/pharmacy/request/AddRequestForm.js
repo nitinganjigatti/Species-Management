@@ -69,8 +69,6 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
-import { borderBottom } from '@mui/system'
-import Alert from '@mui/material/Alert'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -1415,8 +1413,8 @@ const AddRequestForm = () => {
               <TableCell>Quantity</TableCell>
               <TableCell>Unit price</TableCell>
               <TableCell>Total QTY price</TableCell>
-              <TableCell>Action</TableCell>
               <TableCell>Notes</TableCell>
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -1446,6 +1444,24 @@ const AddRequestForm = () => {
                       <TableCell align='center'>{el.unit_price > 0 ? el.unit_price : 'NA'}</TableCell>
                       <TableCell align='center'>
                         {el?.unit_price * el?.request_item_qty > 0 ? el?.unit_price * el?.request_item_qty : 'NA'}
+                      </TableCell>
+                      <TableCell align='left'>
+                        <Tooltip title={el?.notes}>
+                          <Typography
+                            sx={{
+                              minWidth: 30,
+                              maxWidth: 80,
+                              cursor: 'pointer',
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              WebkitLineClamp: 6,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {el?.notes ? el?.notes : 'NA'}
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
 
                       <TableCell>
@@ -1493,18 +1509,6 @@ const AddRequestForm = () => {
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
                         ) : null} */}
-                      </TableCell>
-                      <TableCell align='left'>
-                        {el?.notes ? (
-                          <Tooltip title={el?.notes}>
-                            {/* <Alert severity='info' /> */}
-                            <IconButton>
-                              <Icon icon='icomoon-free:info' />
-                            </IconButton>
-                          </Tooltip>
-                        ) : (
-                          'NA'
-                        )}
                       </TableCell>
                     </TableRow>
                   )

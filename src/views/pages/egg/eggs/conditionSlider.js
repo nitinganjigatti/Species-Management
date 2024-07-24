@@ -1220,7 +1220,7 @@ const ConditionSlider = ({
                               // disabled={isEdit || isPreFilled}
                               id='species'
                               options={taxonomyList?.length > 0 ? taxonomyList : []}
-                              getOptionLabel={option => option.scientific_name}
+                              getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
                               isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
                               onChange={(e, val) => {
                                 if (val === null) {

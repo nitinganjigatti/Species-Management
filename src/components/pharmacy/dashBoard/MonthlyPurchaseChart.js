@@ -28,8 +28,8 @@ const MonthlyPurchaseChart = () => {
   useEffect(() => {
     getMonthlyPurchases()
   }, [])
-  const transactionDates = purchaseList.map(item => item.month)
-  const dailyCounts = purchaseList.map(item => parseInt(item.daily_count))
+  const transactionDates = purchaseList.map(item => (item?.month ? item?.month : ''))
+  const dailyCounts = purchaseList.map(item => (item?.daily_count ? parseInt(item?.daily_count) : ''))
 
   // const options = {
   //   chart: {

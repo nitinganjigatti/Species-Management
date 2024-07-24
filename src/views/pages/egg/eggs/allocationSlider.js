@@ -23,12 +23,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
-import {
-  AddAllocation,
-  GetAssesmentTypes
-
-  // GetMasterList
-} from 'src/lib/api/egg/allocation'
+import { AddAllocation, GetAssesmentTypes } from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
