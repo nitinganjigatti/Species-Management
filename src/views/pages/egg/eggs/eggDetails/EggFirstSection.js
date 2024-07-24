@@ -30,7 +30,7 @@ import DiscardForm from 'src/components/egg/DiscardForm'
 import Router from 'next/router'
 import Utility from 'src/utility'
 
-const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
+const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList, handleBackButton }) => {
   const theme = useTheme()
 
   const {
@@ -148,7 +148,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
           <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <Icon
               style={{ cursor: 'pointer' }}
-              onClick={() => Router.push('/egg/eggs')}
+              onClick={() => handleBackButton()}
               color={theme.palette.customColors.OnSurfaceVariant}
               icon='material-symbols:arrow-back'
             />
@@ -629,7 +629,13 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
           allocateEggId={eggDetails?.egg_id}
         />
       )}
-      <DiscardForm isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
+      <DiscardForm
+        GetGalleryImgList={GetGalleryImgList}
+        getDetails={getDetails}
+        isOpen={openDiscard}
+        setIsOpen={setOpenDiscard}
+        eggID={eggDetails?.egg_id}
+      />
     </>
   )
 }
