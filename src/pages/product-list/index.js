@@ -1,5 +1,6 @@
 // import { Typography } from '@mui/material'
-// import React from 'react'
+import React from 'react'
+
 // import BlankLayout from 'src/@core/layouts/BlankLayout'
 // import { Link } from '@mui/material'
 // import Slider from 'react-slick'
@@ -137,6 +138,8 @@
 
 // export default ProductList
 
-export const ProductList = () => {
+const ProductList = () => {
   return <div></div>
 }
+
+export default ProductList
