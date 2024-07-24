@@ -12,9 +12,11 @@ import {
   debounce,
   CircularProgress,
   Avatar,
-  Card
+  Card,
+  InputAdornment
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import ClearIcon from '@mui/icons-material/Clear'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
@@ -94,6 +96,26 @@ const AddIngredientswithChoice = props => {
       const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         console.log(res, 'rest')
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res?.data?.result)
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+          setIngredientList([])
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleClearFeed = async () => {
+    setFeed('')
+    setReachedEnd(true)
+
+    try {
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: '', status: 1 }
+      await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
           setReachedEnd(false)
@@ -780,6 +802,17 @@ const AddIngredientswithChoice = props => {
                       }
                     }
                   }}
+                  endAdornment={
+                    feed ? (
+                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
+                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : (
+                      ''
+                    )
+                  }
                 >
                   {feedType?.map(feedList => (
                     <MenuItem key={feedList?.key} value={feedList?.id}>

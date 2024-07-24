@@ -115,7 +115,8 @@ const AddRecipe = () => {
         q,
         //active: 1,
         page,
-        limit
+        limit,
+        status: 1
       }
 
       await getIngredientList({ params: params }).then(res => {
