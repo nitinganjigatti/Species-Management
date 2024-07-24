@@ -23,7 +23,7 @@ import Utility from 'src/utility'
 const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDrawer }) => {
   const theme = useTheme()
 
-  // console.log('eggList :>> ', eggList)
+  console.log('eggList :>> ', eggList)
 
   const [iseOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -33,7 +33,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
     setIsOpen(true)
 
     if (item) {
-      console.log('item :>> ', item?.egg_id)
+      // console.log('item :>> ', item?.egg_id)
 
       setEggId(item?.id)
     }
@@ -47,7 +47,8 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
     const payload = {
       id: eggID
     }
-    console.log('params  handleDelete :>> ', payload)
+
+    // console.log('params  handleDelete :>> ', payload)
     try {
       await DeleteEggById(payload).then(res => {
         console.log('res :>> ', res)
@@ -77,27 +78,27 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
 
   return (
     <>
-      <Box
-        sx={{
-          bgcolor: 'white',
-          borderRadius: '8px',
-          width: '514px',
-          my: 4,
-          alignItems: 'center',
-          ml: 4,
+      {eggList?.length > 0 && (
+        <Box
+          sx={{
+            bgcolor: 'white',
+            borderRadius: '8px',
+            width: '514px',
+            my: 4,
+            alignItems: 'center',
+            ml: 4,
 
-          display: 'flex',
-          justifyContent: 'center',
-          py: '20px',
-          border: 1,
-          borderColor: '#c3cec7'
-        }}
+            display: 'flex',
+            justifyContent: 'center',
+            py: '20px',
+            border: 1,
+            borderColor: '#c3cec7'
+          }}
 
-        // onScroll={handleScroll}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {eggList?.length > 0 &&
-            eggList?.map(item => (
+          // onScroll={handleScroll}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {eggList?.map(item => (
               <Box
                 key={item?.id}
                 sx={{
@@ -258,7 +259,6 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                         lineHeight: '16.94px'
                       }}
                     >
-                      {' '}
                       {/* {item.collection_date ? moment(item.collection_date).format('DD MMM YYYY') : '-'} */}
                       {item.collection_date ? Utility.formatDisplayDate(item.collection_date) : '-'}
                     </Typography>
@@ -266,8 +266,9 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                 </Box>
               </Box>
             ))}
+          </Box>
         </Box>
-      </Box>
+      )}
 
       <Dialog open={iseOpen} onClose={() => setOpenDiscardDialog(false)}>
         <Card
