@@ -19,7 +19,7 @@ const AnimalDetails = ({ eggDetails }) => {
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>
-        <Box sx={{ backgroundColor: '#4C4E6438', borderRadius: '8px', py: '14px', px: '16px' }}>
+        <Box sx={{ backgroundColor: '#EFF5F2', borderRadius: '8px', py: '14px', px: '16px' }}>
           <Grid spacing={2} sx={{ rowGap: 4, alignItems: 'center' }} container>
             <Grid xs={12} sm={6} md={4} xl={3} item>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
