@@ -231,9 +231,8 @@ const Diet = () => {
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
-          {console.log(params.row)}
         </Typography>
       )
     },
@@ -277,7 +276,7 @@ const Diet = () => {
       field: 'no_meals',
       headerName: 'No meals',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.num_meals ? params.row.num_meals : '-'}
         </Typography>
       )
@@ -288,7 +287,7 @@ const Diet = () => {
       field: 'no_recipe',
       headerName: 'No Recipe',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
         </Typography>
       )

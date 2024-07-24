@@ -115,7 +115,8 @@ const AddRecipe = () => {
         q,
         //active: 1,
         page,
-        limit
+        limit,
+        status: 1
       }
 
       await getIngredientList({ params: params }).then(res => {
@@ -387,7 +388,6 @@ const AddRecipe = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Diet</Typography>
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
           Recipe
         </Link>

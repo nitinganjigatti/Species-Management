@@ -12,6 +12,7 @@ import {
   debounce,
   CircularProgress,
   Avatar,
+  InputAdornment,
   collapseClasses
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -20,11 +21,12 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
-
+import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
   const {
@@ -112,7 +114,27 @@ const AddIngredients = props => {
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value }
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
+      await getIngredientList({ params }).then(res => {
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res?.data?.result)
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+          setIngredientList([])
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleClearFeed = async () => {
+    setFeed('')
+    setReachedEnd(true)
+
+    try {
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: '', status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
@@ -340,7 +362,7 @@ const AddIngredients = props => {
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, limit: 20 }
+      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -357,9 +379,9 @@ const AddIngredients = props => {
 
   // Top Feed Type
   const fetchData = async () => {
-    const params = {}
+    const params = { page: 1, limit: 50, status: 1 }
     try {
-      const response = await getPreparationTypeList()
+      const response = await getFeedTypeList(params)
 
       setFeedType(response?.data?.result)
     } catch (error) {
@@ -402,7 +424,7 @@ const AddIngredients = props => {
 
         setReachedEnd(true)
         try {
-          const params = { page: ingredientPage, q: searchValue, sort, limit: 20 }
+          const params = { page: ingredientPage, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result?.length > 0) {
               setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
@@ -497,7 +519,7 @@ const AddIngredients = props => {
         console.log('search ing :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: 1, q: search, sort }
+          const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
@@ -614,10 +636,28 @@ const AddIngredients = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300
+                      }
+                    }
+                  }}
+                  endAdornment={
+                    feed ? (
+                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
+                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : (
+                      ''
+                    )
+                  }
                 >
                   {feedType?.map(feedList => (
                     <MenuItem key={feedList?.key} value={feedList?.id}>
-                      {feedList?.label}
+                      {feedList?.feed_type_name}
                     </MenuItem>
                   ))}
                 </Select>
