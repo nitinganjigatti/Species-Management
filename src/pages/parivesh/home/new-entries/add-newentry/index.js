@@ -33,7 +33,7 @@ const schema = yup.object().shape({
   specie: yup
     .object()
     .shape({
-      common_name: yup.string().required('Species is Required')
+      scientific_name: yup.string().required('Species is Required')
     })
     .required('Species is Required'),
   animal_count: yup
@@ -281,7 +281,7 @@ const AddNewEntry = () => {
                           options={species}
                           id='autocomplete-clearOnEscape'
                           value={value}
-                          getOptionLabel={option => option.common_name || ''}
+                          getOptionLabel={option => option.scientific_name || ''}
                           isOptionEqualToValue={(option, value) => option.id === value?.id}
                           onChange={(event, newValue) => {
                             onChange(newValue)
@@ -297,8 +297,8 @@ const AddNewEntry = () => {
                           filterOptions={(options, params) => {
                             const filtered = options.filter(
                               option =>
-                                option?.common_name?.toLowerCase().includes(params?.inputValue.toLowerCase()) ||
-                                option?.scientific_name?.toLowerCase().includes(params?.inputValue.toLowerCase())
+                                option?.scientific_name?.toLowerCase().includes(params?.inputValue.toLowerCase()) ||
+                                option?.common_name?.toLowerCase().includes(params?.inputValue.toLowerCase())
                             )
 
                             return filtered
@@ -308,9 +308,9 @@ const AddNewEntry = () => {
                           )}
                           renderOption={(props, option) => (
                             <Box component='li' {...props} key={option.id}>
-                              {option.common_name} <br />{' '}
+                              {option.scientific_name} <br />{' '}
                               <Typography variant='body2' color='textSecondary'>
-                                ({option.scientific_name})
+                                ({option.common_name})
                               </Typography>
                             </Box>
                           )}
