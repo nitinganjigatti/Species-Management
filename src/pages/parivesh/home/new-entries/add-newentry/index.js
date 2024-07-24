@@ -33,7 +33,7 @@ const schema = yup.object().shape({
   specie: yup
     .object()
     .shape({
-      name: yup.string().required('Species is Required')
+      common_name: yup.string().required('Species is Required')
     })
     .required('Species is Required'),
   animal_count: yup
@@ -180,7 +180,7 @@ const AddNewEntry = () => {
           const specieObject = {
             id: response.data.tsn_id,
             common_name: response.data.common_name,
-            name: response.data.scientific_name,
+            scientific_name: response.data.scientific_name,
             tsn_relation: response.data.tsn_relation
           }
           // Set the specie object
@@ -219,13 +219,12 @@ const AddNewEntry = () => {
   const fetchSpeciesData = useCallback(async q => {
     try {
       const params = { q }
-
       await getListAllSpeciesSearch({ params: params }).then(res => {
         // console.log('response123', res?.data?.result)
         const transformedSpecies = res?.data?.result.map(species => ({
           id: species?.tsn,
           common_name: species?.common_name,
-          name: species?.scientific_name,
+          scientific_name: species?.scientific_name,
           tsn_relation: species?.tsn_relation,
           zoo_id: species.zoo_id
         }))
@@ -237,7 +236,7 @@ const AddNewEntry = () => {
   }, [])
 
   useEffect(() => {
-    fetchSpeciesData()
+    fetchSpeciesData('')
   }, [fetchSpeciesData])
 
   useEffect(() => {
@@ -272,7 +271,7 @@ const AddNewEntry = () => {
             <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={2} sx={{ mb: 6 }}>
                 <Grid item xs={12}>
-                  <FormControl fullWidth error={Boolean(errors.specie)}>
+                  <FormControl fullWidth>
                     <Controller
                       name='specie'
                       control={control}
@@ -283,19 +282,38 @@ const AddNewEntry = () => {
                           id='autocomplete-clearOnEscape'
                           value={value}
                           getOptionLabel={option => option.common_name || ''}
-                          renderOption={(props, option) => (
-                            <Box component='li' {...props}>
-                              {option.common_name} ({option.name})
-                            </Box>
-                          )}
                           isOptionEqualToValue={(option, value) => option.id === value?.id}
                           onChange={(event, newValue) => {
                             onChange(newValue)
+                            if (newValue === null) {
+                              clearErrors('specie')
+                            } else {
+                              trigger('specie')
+                            }
                           }}
                           onInputChange={(event, newInputValue) => {
                             searchTableData(newInputValue)
                           }}
-                          renderInput={params => <TextField {...params} label='Search & Select…' />}
+                          filterOptions={(options, params) => {
+                            const filtered = options.filter(
+                              option =>
+                                option?.common_name?.toLowerCase().includes(params?.inputValue.toLowerCase()) ||
+                                option?.scientific_name?.toLowerCase().includes(params?.inputValue.toLowerCase())
+                            )
+
+                            return filtered
+                          }}
+                          renderInput={params => (
+                            <TextField {...params} label='Search & Select…' error={Boolean(errors.specie)} />
+                          )}
+                          renderOption={(props, option) => (
+                            <Box component='li' {...props} key={option.id}>
+                              {option.common_name} <br />{' '}
+                              <Typography variant='body2' color='textSecondary'>
+                                ({option.scientific_name})
+                              </Typography>
+                            </Box>
+                          )}
                         />
                       )}
                     />
