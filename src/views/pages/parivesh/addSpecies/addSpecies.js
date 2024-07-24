@@ -62,7 +62,8 @@ const schema = yup.object().shape({
 const defaultValues = {
   scientificName: '',
   commonName: '',
-  active: '1'
+  active: '1',
+  species: ''
 }
 
 const AddSpecies = props => {
@@ -88,6 +89,7 @@ const AddSpecies = props => {
     setValue,
     clearErrors,
     handleSubmit,
+
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -110,26 +112,14 @@ const AddSpecies = props => {
     await handleSubmitData(payload)
   }
 
-  const getDrugClass = useCallback(
-    async id => {
-      const response = await getDrugById(id)
-      if (response?.success) {
-        reset({ name: response.data.label, active: response.data.active, id: response.data.id })
-      } else {
-      }
-    },
-    [reset]
-  )
-
   useEffect(() => {
     if (resetForm) {
       reset(defaultValues)
+      setValue('species', '')
+      setImgSrc('')
+      setCoverImgSrc('')
     }
-
-    if (editParams?.id !== null) {
-      getDrugClass(editParams?.id)
-    }
-  }, [resetForm, editParams, reset, getDrugClass])
+  }, [resetForm, editParams, reset, setValue])
 
   const RenderSidebarFooter = () => {
     return (
@@ -210,7 +200,7 @@ const AddSpecies = props => {
     }
   }
 
-  const searchMasterSpeciesLost = useCallback(
+  const searchMasterSpeciesList = useCallback(
     debounce(async q => {
       setSearchValue(q)
       try {
@@ -321,7 +311,7 @@ const AddSpecies = props => {
                     handleScientificNameChange(event, newValue)
                   }}
                   onKeyUp={e => {
-                    searchMasterSpeciesLost(e?.target?.value)
+                    searchMasterSpeciesList(e?.target?.value)
                   }}
                   renderInput={params => (
                     <TextField
@@ -540,7 +530,7 @@ const AddSpecies = props => {
             </Grid>
           </Grid>
 
-          {editParams?.id !== null ? (
+          {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -570,7 +560,7 @@ const AddSpecies = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

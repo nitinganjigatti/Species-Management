@@ -167,6 +167,7 @@ const SpeciesList = () => {
   //     )
   //   }
   // ]
+
   const getColumns = rows => {
     // Create base columns
     const baseColumns = [
@@ -220,14 +221,14 @@ const SpeciesList = () => {
       //   )
       // }
       {
-        flex: 0.4,
+        flex: 0.5,
         minWidth: 30,
         field: 'common_name',
         headerName: 'COMMON NAME',
         sortable: false,
         renderCell: params => (
           <Tooltip title={params.row.common_name || '-'}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: '500' }}>
               {params.row.common_name ? params.row.common_name : '-'}
             </Typography>
           </Tooltip>
@@ -261,8 +262,9 @@ const SpeciesList = () => {
       sortable: false,
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
+        const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
         return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
             {org ? org.animal_count : '-'}
           </Typography>
         )
@@ -272,6 +274,88 @@ const SpeciesList = () => {
     // Combine base columns with organization columns
     return [...baseColumns, ...organizationColumns]
   }
+
+  // const getColumns = rows => {
+  //   // Create base columns
+  //   const baseColumns = [
+  //     {
+  //       flex: 0.2,
+  //       Width: 40,
+  //       field: 'sl_no',
+  //       headerName: 'S.NO',
+  //       renderCell: params => (
+  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //           {params.row.id}
+  //         </Typography>
+  //       )
+  //     },
+  //     {
+  //       flex: 0.3,
+  //       minWidth: 30,
+  //       field: 'species_image',
+  //       headerName: 'IMAGE',
+  //       sortable: false,
+  //       renderCell: params => (
+  //         <>
+  //           <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
+  //         </>
+  //       )
+  //     },
+  //     {
+  //       flex: 0.4,
+  //       minWidth: 30,
+  //       field: 'common_name',
+  //       headerName: 'COMMON NAME',
+  //       sortable: false,
+  //       renderCell: params => (
+  //         <Tooltip title={params.row.common_name || '-'}>
+  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+  //             {params.row.common_name ? params.row.common_name : '-'}
+  //           </Typography>
+  //         </Tooltip>
+  //       )
+  //     },
+  //     {
+  //       flex: 0.4,
+  //       minWidth: 30,
+  //       field: 'scientific_name',
+  //       headerName: 'SCIENTIFIC NAME',
+  //       sortable: false,
+  //       renderCell: params => (
+  //         <Tooltip title={params.row.scientific_name || '-'}>
+  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+  //             {params.row.scientific_name ? params.row.scientific_name : '-'}
+  //           </Typography>
+  //         </Tooltip>
+  //       )
+  //     }
+  //   ]
+
+  //   // Create column for the selected organization
+  //   const organizationColumns = rows.some(row => row.organizations.some(org => org.org_id === selectedParivesh.id))
+  //     ? [
+  //         {
+  //           flex: 0.4,
+  //           minWidth: 30,
+  //           field: `org_selected`,
+  //           headerName: selectedParivesh.organization_name, // Assuming `selectedParivesh` contains `organization_name`
+  //           sortable: false,
+  //           renderCell: params => {
+  //             const org = params.row.organizations.find(org => org.org_id === selectedParivesh.id)
+  //             const isSelected = org && org.org_id === selectedParivesh.id
+  //             return (
+  //               <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
+  //                 {org ? org.animal_count : '-'}
+  //               </Typography>
+  //             )
+  //           }
+  //         }
+  //       ]
+  //     : []
+
+  //   // Combine base columns with organization columns
+  //   return [...baseColumns, ...organizationColumns]
+  // }
 
   const onCellClick = params => {
     console.log(params, 'params')

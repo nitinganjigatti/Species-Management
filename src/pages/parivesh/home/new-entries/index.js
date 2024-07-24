@@ -73,7 +73,6 @@ const NewEntry = ({}) => {
   const [selectedRows, setSelectedRows] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [organizationCountList, setOrganizationCountList] = useState([])
-  const [editParams, setEditParams] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailData, setDetailData] = useState()
@@ -222,8 +221,7 @@ const NewEntry = ({}) => {
 
   const handleEdit = async (event, params) => {
     event.stopPropagation()
-    console.log('params >>', params)
-    setEditParams(params)
+    // console.log('params >>', params)
 
     // Ensure params.id exists and is a string or number
     if (params?.id) {
@@ -282,12 +280,7 @@ const NewEntry = ({}) => {
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
 
-          <Avatar
-            variant='square'
-            src={params.row.species_image}
-            alt={'species_image'}
-            sx={{ height: 'auto', p: 0.5 }}
-          />
+          <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} />
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -604,6 +597,7 @@ const NewEntry = ({}) => {
 
         await getOrgCountList({ params: params }).then(res => {
           const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
@@ -931,7 +925,7 @@ const NewEntry = ({}) => {
                   alignItems: 'center'
                 }}
               >
-                <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
+                <Avatar src={detailData?.species_image} alt={''} variant='square' sx={{ height: 'auto' }} />
               </Box>
               <Box sx={{ ml: 2 }}>
                 <Typography variant='h6' sx={{ color: '#00afd6' }}>
