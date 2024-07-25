@@ -37,7 +37,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(defaultProvider.user)
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
-  const { setSelectedPariveshState } = usePariveshContext()
+  const { setSelectedParivesh } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
 
   // ** Hooks
@@ -275,7 +275,7 @@ const AuthProvider = ({ children }) => {
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
-    setSelectedPariveshState('')
+    setSelectedParivesh('')
     localStorage.removeItem('userData')
     localStorage.removeItem('userDetails')
     localStorage.removeItem('refreshToken')
