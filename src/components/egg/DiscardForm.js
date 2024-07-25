@@ -295,7 +295,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 </Box>
               ))}
             </Box>
-            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is Required</FormHelperText>}
+            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is required</FormHelperText>}
 
             <Typography variant='h6' sx={{ m: 5 }}>
               Add Reason For Discard
