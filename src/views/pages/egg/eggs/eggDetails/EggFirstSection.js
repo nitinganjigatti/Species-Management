@@ -624,6 +624,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
 
       {openAllocate && (
         <AllocationSlider
+          getDetails={getDetails}
           allocationValues={allocationNurseryId}
           setOpenDrawer={setOpenAllocate}
           allocateEggId={eggDetails?.egg_id}

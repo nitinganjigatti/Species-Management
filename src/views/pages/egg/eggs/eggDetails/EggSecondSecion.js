@@ -334,7 +334,7 @@ const EggSecondSecion = ({
       const params = {
         page_no: paginationModel.page + 1,
 
-        // limit: paginationModel.pageSize,
+        limit: paginationModel.pageSize,
         type: 'weight',
         egg_id
       }
