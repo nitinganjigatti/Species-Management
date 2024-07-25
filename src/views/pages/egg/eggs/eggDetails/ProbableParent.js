@@ -24,12 +24,21 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
             p: theme => theme.spacing(3, 3.255, 3, 5.255)
           }}
         >
-          <Box sx={{ mt: 2 }}>
-            <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              backgroundColor: 'background.default'
+            }}
+          >
+            <Box sx={{ mt: 2 }}>
+              <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+            </Box>
+            <Typography variant='h6'>
+              Probable {parent} - {parentList?.length}
+            </Typography>
           </Box>
-          <Typography variant='h6'>
-            Probable {parent} - {parentList?.length}
-          </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }}>
               <Icon icon='mdi:close' fontSize={20} onClick={() => setProbableParentSideBar(false)} />

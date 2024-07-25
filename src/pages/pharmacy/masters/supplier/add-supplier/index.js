@@ -98,7 +98,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       .required('Mobile No is required')
       .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
       .max(10, 'Maximum of 10 digits'),
-    state_id: yup.string().required('State is Required'),
+    state_id: yup.string().required('State is required'),
     gst_number: yup
       .string()
       .nullable()
