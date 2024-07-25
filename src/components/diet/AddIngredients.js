@@ -350,7 +350,7 @@ const AddIngredients = props => {
   const handleAllSelect = event => {
     setSelectedCard(selectedCard)
     onChange(selectedCard)
-    event.stopPropagation()
+    event?.stopPropagation()
     setSelectedIngredient(selectedCard)
 
     if (selectedCard?.length > 0) {
