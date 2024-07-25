@@ -521,9 +521,12 @@ const AddIngredients = props => {
           // const currentAnimalFilterValue = animalFilterValueRef.current
           const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
+            console.log(res, 'res')
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
+            } else {
+              setIngredientList([])
             }
           })
         } catch (error) {

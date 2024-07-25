@@ -403,6 +403,8 @@ const AddIngredientswithChoice = props => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
+            } else {
+              setIngredientList([])
             }
           })
         } catch (error) {

@@ -437,7 +437,7 @@ const StepPreviewDiet = ({
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
-                  return meal.meal_value_header === parseFloat(headertype)
+                  return parseFloat(meal.meal_value_header) === parseFloat(headertype)
                 }
               })
               console.log(existingMealTypeIndex, 'existingMealTypeIndex')
@@ -511,7 +511,7 @@ const StepPreviewDiet = ({
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
-                  return meal.meal_value_header === parseFloat(headertype)
+                  return parseFloat(meal.meal_value_header) === parseFloat(headertype)
                 }
               })
               if (existingMealTypeIndex !== -1) {
