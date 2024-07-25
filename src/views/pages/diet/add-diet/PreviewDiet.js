@@ -733,6 +733,7 @@ const StepPreviewDiet = ({
     console.log(getValues())
     return (
       <Dialog
+        className='raghu'
         open={open}
         onClose={handleClosed}
         aria-labelledby='customized-dialog-title'
@@ -1800,6 +1801,37 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )}
+                                                {item.ingredients.length > 0 &&
+                                                  item?.ingredients.map((name, index) => (
+                                                    <Box
+                                                      key={index}
+                                                      sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        marginRight: '10px',
+                                                        backgroundColor: '#00D6C933',
+                                                        m: 1,
+                                                        borderRadius: '16px',
+                                                        px: '10px',
+                                                        gap: '8px'
+                                                      }}
+                                                    >
+                                                      {name?.ingredient_name}
+                                                      <Typography
+                                                        component='span'
+                                                        sx={{
+                                                          fontWeight: 'bold',
+                                                          marginLeft: '2px',
+                                                          fontSize: '14px',
+                                                          lineHeight: '1.7rem'
+                                                        }}
+                                                      >
+                                                        {parseFloat(name?.quantity)}
+                                                        {''}
+                                                        {name?.quantity_type === 'percentage' ? '%' : ''}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
 
                                               {item?.recipe?.length > 0 && (
