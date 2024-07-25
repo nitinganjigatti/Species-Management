@@ -310,6 +310,7 @@ const SpeciesDetails = () => {
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -765,7 +766,7 @@ const SpeciesDetails = () => {
                     summaryIcon='ion:checkmark'
                     data={org?.approvedAccordionData?.data}
                     cards={org?.approvedAccordionData?.cards}
-                    backgroundImage={org?.species_image}
+                    backgroundImage={org?.cover_image}
                     isOrganization
                     organizationName={org.organization_name}
                   />
@@ -779,7 +780,7 @@ const SpeciesDetails = () => {
                       summaryIcon='mdi:arrow-top-right'
                       data={org?.yetToSubmitAccordionData?.data}
                       cards={org?.yetToSubmitAccordionData?.cards}
-                      backgroundImage={org?.species_image}
+                      backgroundImage={org?.cover_image}
                     />
                   </Box>
                   <Box
@@ -792,7 +793,7 @@ const SpeciesDetails = () => {
                       summaryIcon='mdi:checkbox-marked'
                       data={org?.submittedAccordionData?.data}
                       cards={org?.submittedAccordionData?.cards}
-                      backgroundImage={org?.species_image}
+                      backgroundImage={org?.cover_image}
                     />
                   </Box>
                 </CardContent>

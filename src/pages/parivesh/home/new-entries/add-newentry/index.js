@@ -90,6 +90,13 @@ const AddNewEntry = () => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
 
+  const resetForm = () => {
+    reset({
+      ...defaultValues,
+      transaction_date: new Date() // Reset to current date and time
+    })
+  }
+
   const onSubmit = async data => {
     const {
       gender,
@@ -120,6 +127,7 @@ const AddNewEntry = () => {
 
       if (response?.success) {
         router.back()
+        resetForm()
         Toaster({ type: 'success', message: response?.message })
       } else {
         Toaster({ type: 'error', message: response?.message })
