@@ -49,12 +49,19 @@ export const PariveshProvider = ({ children }) => {
     localStorage.setItem('selectedParivesh', JSON.stringify(newSelectedParivesh))
   }
 
+  const setOrganizationListState = orgarnisationList => {
+    setOrganizationList(orgarnisationList)
+  }
+
   useEffect(() => {
+    debugger
     fetchOrgData() // Initial fetch on component mount
   }, [fetchOrgData])
 
   return (
-    <PariveshContext.Provider value={{ selectedParivesh, setSelectedParivesh, organizationList }}>
+    <PariveshContext.Provider
+      value={{ selectedParivesh, setSelectedParivesh, organizationList, setOrganizationListState }}
+    >
       {children}
     </PariveshContext.Provider>
   )
