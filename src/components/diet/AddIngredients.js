@@ -352,9 +352,14 @@ const AddIngredients = props => {
     onChange(selectedCard)
     // event.stopPropagation()
     setSelectedIngredient(selectedCard)
-    handleSidebarClose()
 
-    return toast.success('Ingredient selected')
+    if (selectedCard?.length > 0) {
+      // handleSidebarClose()
+
+      return toast.success('Ingredient selected')
+    } else {
+      return toast.error('Ingredients are required')
+    }
   }
 
   useEffect(() => {
