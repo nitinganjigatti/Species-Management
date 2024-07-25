@@ -6,7 +6,7 @@ import { GetLabSitesById } from 'src/lib/api/lab/labDetails'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const Site = ({ labId }) => {
-  console.log('labId', labId)
+  // console.log('labId', labId)
 
   const columns = [
     {
@@ -14,7 +14,9 @@ const Site = ({ labId }) => {
       minWidth: 20,
       field: 'site',
       headerName: 'SITE',
-      hide: true,
+      hide: false,
+      filterable: false,
+
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -46,7 +48,7 @@ const Site = ({ labId }) => {
 
   const [total, setTotal] = useState(0)
 
-  // const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
@@ -66,20 +68,22 @@ const Site = ({ labId }) => {
   // const handleSortModel = newModel => {
   //   if (newModel.length) {
   //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+
+  //     // setSortColumn(newModel[0].field)
+  //     LabSitesById(newModel[0].sort, searchValue, newModel[0].field)
   //   } else {
   //   }
   // }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
-  }
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, 'request_number', status)
+  // }
 
-  const LabSitesById = async id => {
+  const LabSitesById = async (short, id) => {
     const params = {
       // id: labId
+      short,
       lab_id: id || labId
     }
     try {
@@ -100,7 +104,7 @@ const Site = ({ labId }) => {
   return (
     <Card>
       <CardHeader
-        title='SITE'
+        title='SITES'
 
         //    action={headerAction}
       />
@@ -112,24 +116,28 @@ const Site = ({ labId }) => {
           getRowId={getRowId}
           rowCount={total}
           columns={columns}
+          disableColumnFilter
+          disableColumnMenu={true}
+          // onSortModelChange={false}
           // slots={{ toolbar: ServerSideToolbar }}
           loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            }
 
-            // toolbar: {
-            //   value: searchValue,
-            //   clearSearch: () => handleSearch(''),
+          // slotProps={{
+          //   baseButton: {
+          //     variant: 'outlined'
+          //   }
 
-            //   onChange: event => {
-            //     setSearchValue(event.target.value)
+          // toolbar: {
+          //   value: searchValue,
+          //   clearSearch: () => handleSearch(''),
 
-            //     return handleSearch(event.target.value)
-            //   }
-            // }
-          }}
+          //   onChange: event => {
+          //     setSearchValue(event.target.value)
+
+          //     return handleSearch(event.target.value)
+          //   }
+          // }
+          // }}
         />
       ) : (
         <Box sx={{ px: 4, pb: 3 }}>

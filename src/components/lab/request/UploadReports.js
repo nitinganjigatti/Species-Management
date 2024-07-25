@@ -167,32 +167,32 @@ const UploadReports = ({
         entity_id: id
       }
 
-      console.log('payload', payload)
+      // console.log('payload', payload)
 
-      // try {
-      //   const response = await UploadLabReports(payload)
-      //   if (response?.success) {
-      //     handleCloseUploader(false)
-      //     handleClosePopover()
-      //     reset(defaultValues)
-      //     setImgSrc('')
-      //     reset()
-      //     setImgArr([])
+      try {
+        const response = await UploadLabReports(payload)
+        if (response?.success) {
+          handleCloseUploader(false)
+          handleClosePopover()
+          reset(defaultValues)
+          setImgSrc('')
+          reset()
+          setImgArr([])
 
-      //     setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+          setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
-      //     fetchRequestDetails()
-      //     setKey(key + 1)
-      //   } else {
-      //     reset(defaultValues)
-      //     setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-      //   }
-      //   // Reset the form after successful submission
-      // } catch (error) {
-      //   console.error(error)
-      // } finally {
-      //   setSubmitting(false)
-      // }
+          fetchRequestDetails()
+          setKey(key + 1)
+        } else {
+          reset(defaultValues)
+          setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        }
+        // Reset the form after successful submission
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setSubmitting(false)
+      }
     }
   }
 
@@ -246,7 +246,7 @@ const UploadReports = ({
                     >
                       <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
-                      <Typography>Drop your image here</Typography>
+                      <Typography>Drop your files here</Typography>
                     </Box>
                   </Grid>
                   {/* )} */}
