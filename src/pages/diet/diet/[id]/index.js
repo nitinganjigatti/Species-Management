@@ -25,6 +25,7 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { getDietDetails } from 'src/lib/api/diet/dietList'
+import moment from 'moment'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -1103,21 +1104,13 @@ const DietDetail = () => {
                                       })}
                                     </> */}
                                     {dietDetails.meal_data?.map((itemd, index) => {
-                                      // console.log(itemd.meal_from_time, 'raghhhh')
-                                      const fromdate = new Date(itemd.meal_from_time)
+                                      const formattedfromTime = moment(itemd?.meal_from_time, 'h:mm A').isValid()
+                                        ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
+                                        : undefined
+                                      const formattedtoTime = moment(itemd?.meal_to_time, 'h:mm A').isValid()
+                                        ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
+                                        : undefined
 
-                                      const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true
-                                      })
-                                      const todate = new Date(itemd.meal_to_time)
-
-                                      const formattedtoTime = todate.toLocaleTimeString('en-US', {
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                        hour12: true
-                                      })
                                       const startTimes = formattedfromTime
                                       const endTimes = formattedtoTime
                                       const ind = index
@@ -1677,41 +1670,39 @@ const DietDetail = () => {
                                                                       ))}
                                                                     </Typography>
                                                                   )}
-                                                                {/* {item.ingredients.length > 0 &&  
-                                                                  item?.ingredients.map(
-                                                                    (name, index) => (
-                                                                      <Box
-                                                                        key={index}
+                                                                {item.ingredients.length > 0 &&
+                                                                  item?.ingredients.map((name, index) => (
+                                                                    <Box
+                                                                      key={index}
+                                                                      sx={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        marginRight: '10px',
+                                                                        backgroundColor: '#00D6C933',
+                                                                        m: 1,
+                                                                        borderRadius: '16px',
+                                                                        px: '10px',
+                                                                        gap: '8px'
+                                                                      }}
+                                                                    >
+                                                                      {name?.ingredient_name}
+                                                                      <Typography
+                                                                        component='span'
                                                                         sx={{
-                                                                          display: 'flex',
-                                                                          alignItems: 'center',
-                                                                          marginRight: '10px',
-                                                                          backgroundColor: '#00D6C933',
-                                                                          m: 1,
-                                                                          borderRadius: '16px',
-                                                                          px: '10px',
-                                                                          gap: '8px'
+                                                                          fontWeight: 'bold',
+                                                                          marginLeft: '2px',
+                                                                          fontSize: '14px',
+                                                                          lineHeight: '1.7rem'
                                                                         }}
                                                                       >
-                                                                        {name?.ingredient_name}
-                                                                        <Typography
-                                                                          component='span'
-                                                                          sx={{
-                                                                            fontWeight: 'bold',
-                                                                            marginLeft: '2px',
-                                                                            fontSize: '14px',
-                                                                            lineHeight: '1.7rem'
-                                                                          }}
-                                                                        >
-                                                                          {parseFloat(name?.quantity)}
-                                                                          {''}
-                                                                          {name?.quantity_type === 'percentage'
-                                                                            ? '%'
-                                                                            : ''}
-                                                                        </Typography>
-                                                                      </Box>
-                                                                    )
-                                                                  )} */}
+                                                                        {parseFloat(name?.quantity)}
+                                                                        {''}
+                                                                        {name?.quantity_type === 'percentage'
+                                                                          ? '%'
+                                                                          : ''}
+                                                                      </Typography>
+                                                                    </Box>
+                                                                  ))}
                                                               </Box>
 
                                                               {item?.recipe?.length > 0 && (
