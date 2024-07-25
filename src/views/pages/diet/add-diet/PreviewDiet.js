@@ -774,6 +774,7 @@ const StepPreviewDiet = ({
                       name='quantity'
                       onChange={onChange}
                       defaultValue={initialValues.quantity}
+                      autoFocus={true}
                     />
                   )}
                 />

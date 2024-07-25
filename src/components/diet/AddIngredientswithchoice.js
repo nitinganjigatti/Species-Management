@@ -994,6 +994,13 @@ const AddIngredientswithChoice = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 300
+                                  }
+                                }
+                              }}
                             >
                               <MenuItem value='' disabled>
                                 Select
