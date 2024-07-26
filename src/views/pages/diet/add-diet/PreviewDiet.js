@@ -740,7 +740,8 @@ const StepPreviewDiet = ({
         sx={{
           '& .MuiDialog-paper': {
             overflow: 'visible',
-            width: 500
+            width: 500,
+            boxShadow: 'none'
           },
           '& .MuiBackdrop-root': {
             backgroundColor: id ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.3)'
@@ -1801,7 +1802,7 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )}
-                                                {item.ingredients.length > 0 &&
+                                                {item?.ingredients?.length > 0 &&
                                                   item?.ingredients.map((name, index) => (
                                                     <Box
                                                       key={index}
