@@ -164,8 +164,17 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
             </Typography>
           </Box>
           <Grid container>
-            <Grid sx={{ pr: { xl: '24px', lg: '10px', md: '24px' } }} item xs={12} md={6} lg={2.7} xl={3}>
-              <Box sx={{ borderRadius: '8px', width: '100%', height: '100%' }}>
+            <Grid
+              sx={{ borderRadius: '8px', pr: { xl: '24px', lg: '10px', md: '24px' } }}
+              item
+              xs={12}
+              md={6}
+              lg={2.7}
+              xl={3}
+            >
+              <Box
+                sx={{ borderRadius: '8px', width: '100%', height: eggDetails?.egg_images?.length ? '100%' : '110%' }}
+              >
                 {eggDetails?.egg_images?.length ? (
                   <KeenSliderWrapper>
                     <>
@@ -212,14 +221,17 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 ) : (
                   <ImageListItem
                     style={{
+                      position: 'relative',
                       width: '100%',
                       aspectRatio: 15 / 9,
-                      height: '100%',
+                      height: '90%',
+
                       backgroundColor: theme.palette.background.default,
                       borderRadius: '8px'
                     }}
                   >
                     <img
+                      style={{ objectFit: 'contain' }}
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
@@ -228,12 +240,33 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       // height={'100%'}
                     />
 
-                    <ImageListItemBar
-                      sx={{ pb: 0 }}
+                    {/* <ImageListItemBar
+                    
+                      sx={{ pb: 0, borderBottomRightRadius: '8px', borderBottomLeftRadius: '8px' }}
                       title={eggDetails?.default_common_name}
-
-                      // subtitle={'Trichoglossus Moluccanus'}
-                    />
+                      subtitle={eggDetails?.complete_name}
+                    /> */}
+                    <Box
+                      sx={{
+                        borderBottomRightRadius: '8px',
+                        borderBottomLeftRadius: '8px',
+                        position: 'relative',
+                        top: '-57px',
+                        backgroundColor: '#00000033',
+                        py: '8px',
+                        px: '12px',
+                        gap: '4px',
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '16px', fontWeight: 500, lineHeight: '19.36px', color: '#fff' }}>
+                        {eggDetails?.default_common_name}
+                      </Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 400, lineHeight: '16.94px', color: '#fff' }}>
+                        {eggDetails?.complete_name}
+                      </Typography>
+                    </Box>
                   </ImageListItem>
                 )}
               </Box>
