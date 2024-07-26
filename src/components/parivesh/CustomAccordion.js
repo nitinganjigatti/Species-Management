@@ -95,7 +95,7 @@ const CustomAccordion = ({
             cursor: 'pointer',
             color: '#00AFD6'
           }}
-          onClick={() => handleBoxClick()}
+          // onClick={() => handleBoxClick()}
         >
           {/* #AFEFEB */}
           <Box
