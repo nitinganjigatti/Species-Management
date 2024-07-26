@@ -444,7 +444,7 @@ const BatchDetails = ({ params, searchParams }) => {
               columns={columns}
               sortingMode='server'
               paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[total]}
               paginationModel={paginationModel}
               // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
