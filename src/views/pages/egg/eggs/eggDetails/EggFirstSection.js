@@ -251,7 +251,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         borderBottomRightRadius: '8px',
                         borderBottomLeftRadius: '8px',
                         position: 'relative',
-                        top: '-57px',
+                        top: eggDetails?.default_common_name && eggDetails?.complete_name ? '-57px' : '-20px',
                         backgroundColor: '#00000033',
                         py: '8px',
                         px: '12px',
