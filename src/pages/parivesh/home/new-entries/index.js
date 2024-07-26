@@ -885,7 +885,7 @@ const NewEntry = ({}) => {
                   summaryIcon='mdi:arrow-top-right'
                   data={org?.yetToSubmitAccordionData?.data}
                   cards={org?.yetToSubmitAccordionData?.cards}
-                  backgroundImage={org?.cover_image !== '' && orgData?.cover_image}
+                  backgroundImage={org?.cover_image !== '' && org?.cover_image}
                   isOrganization={selectedParivesh.id !== 'all' ? true : false}
                   organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
                 />
