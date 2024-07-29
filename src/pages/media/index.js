@@ -95,7 +95,8 @@ const Media = () => {
           setLoading(false)
         }
       } catch (e) {
-        console.log(e)
+        console.error(e)
+        setLoading(false)
       }
     },
     [userId, hasMore]
