@@ -45,6 +45,7 @@ import xlsIcon from 'public/icons/xls_icon.svg'
 import docIcon from 'public/icons/doc_icon.svg'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -795,16 +796,19 @@ const BatchDetails = ({ params, searchParams }) => {
                       }}
                     >
                       {isImage(filePreview.attachment) ? (
-                        <img
-                          style={{
-                            height: '100%',
-                            borderRadius: '5%',
-                            objectFit: 'cover',
-                            width: '100%'
-                          }}
-                          alt='Attachment'
-                          src={filePreview.attachment}
-                        />
+                        // <img
+                        //   style={{
+                        //     height: '100%',
+                        //     borderRadius: '5%',
+                        //     objectFit: 'cover',
+                        //     width: '100%'
+                        //   }}
+                        //   alt='Attachment'
+                        //   src={filePreview.attachment}
+                        // />
+                        <Box>
+                          <ImageLightbox images={filePreview} />
+                        </Box>
                       ) : (
                         <a
                           href={filePreview.attachment}
