@@ -132,15 +132,19 @@ const AddFeedType = () => {
       try {
         setBtnLoader(true)
         await updateFeedType({ ...payload }, id).then(res => {
+          console.log(res, 'res')
           if (res?.success) {
             setBtnLoader(false)
 
             Router.push('/diet/feed')
 
             Toaster({ type: 'success', message: res?.data })
+          } else if (res?.success === false) {
+            setBtnLoader(false)
+            Toaster({ type: 'error', message: 'Image type only PNG and JPG is allowed' })
           } else {
             setBtnLoader(false)
-            Toaster({ type: 'error', message: res?.data })
+            Toaster({ type: 'error', message: res?.message?.feed_type_image })
           }
         })
       } catch (error) {
@@ -155,9 +159,12 @@ const AddFeedType = () => {
             setBtnLoader(false)
 
             Toaster({ type: 'success', message: res?.data })
+          } else if (res?.success === false) {
+            setBtnLoader(false)
+            Toaster({ type: 'error', message: 'Image type only PNG and JPG is allowed' })
           } else {
             setBtnLoader(false)
-            Toaster({ type: 'error', message: res?.message })
+            Toaster({ type: 'error', message: res?.message?.feed_type_image })
           }
         })
       } catch (error) {

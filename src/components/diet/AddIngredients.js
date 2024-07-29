@@ -350,11 +350,16 @@ const AddIngredients = props => {
   const handleAllSelect = event => {
     setSelectedCard(selectedCard)
     onChange(selectedCard)
-    // event.stopPropagation()
+    event?.stopPropagation()
     setSelectedIngredient(selectedCard)
-    handleSidebarClose()
 
-    return toast.success('Ingredient selected')
+    if (selectedCard?.length > 0) {
+      handleSidebarClose()
+
+      return toast.success('Ingredient selected')
+    } else {
+      return toast.error('Ingredients are required')
+    }
   }
 
   useEffect(() => {
@@ -521,9 +526,12 @@ const AddIngredients = props => {
           // const currentAnimalFilterValue = animalFilterValueRef.current
           const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
+            console.log(res, 'res')
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
+            } else {
+              setIngredientList([])
             }
           })
         } catch (error) {
@@ -833,6 +841,13 @@ const AddIngredients = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 300
+                                  }
+                                }
+                              }}
                             >
                               <MenuItem value='' disabled>
                                 Select
