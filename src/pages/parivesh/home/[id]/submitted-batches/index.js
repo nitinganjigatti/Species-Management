@@ -23,7 +23,7 @@ const SubmittedBatches = ({ type }) => {
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
   const [sort, setSort] = useState('DESC')
-  const [sortColumn, setSortColumn] = useState('batch_code')
+  const [sortColumn, setSortColumn] = useState('submitted_on')
   const [loader, setLoader] = useState(false)
   const { selectedParivesh } = usePariveshContext()
 
