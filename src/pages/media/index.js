@@ -108,12 +108,6 @@ const Media = () => {
     }
   }, [getMediaListUserId, userId, searchQuery, page])
 
-  const handleScroll = () => {
-    if (hasMore && !loading) {
-      setPage(prevPage => prevPage + 1)
-    }
-  }
-
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
     accept: {
@@ -277,6 +271,12 @@ const Media = () => {
 
   const handleClose = () => {
     setAnchorEl(null)
+  }
+
+  const handleScroll = () => {
+    if (hasMore && !loading) {
+      setPage(prevPage => prevPage + 1)
+    }
   }
 
   return (
