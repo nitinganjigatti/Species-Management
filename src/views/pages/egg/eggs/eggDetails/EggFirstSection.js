@@ -422,7 +422,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         sx={{
                           color: theme.palette.primary.contrastText,
                           fontWeight: 600,
-                          fontSize: '16px',
+                          fontSize: '14px',
                           lineHeight: '19.36px',
                           textAlign: 'center'
                         }}
