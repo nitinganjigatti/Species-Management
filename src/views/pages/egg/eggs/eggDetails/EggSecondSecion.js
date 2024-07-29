@@ -334,7 +334,7 @@ const EggSecondSecion = ({
       const params = {
         page_no: paginationModel.page + 1,
 
-        // limit: paginationModel.pageSize,
+        limit: paginationModel.pageSize,
         type: 'weight',
         egg_id
       }
@@ -442,17 +442,26 @@ const EggSecondSecion = ({
                       <Grid item xs={6}>
                         <Typography
                           onClick={() => {
-                            value.startsWith('Probable') && setProbableParentSideBar(true)
-                            value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                            value.startsWith('Probable') &&
-                              setParentList(
-                                key === 'Mother id'
-                                  ? eggDetails?.parent_list?.mother_list
-                                  : eggDetails?.parent_list?.father_list
-                              )
+                            // value.startsWith('Probable') && setProbableParentSideBar(true)
+                            setProbableParentSideBar(true)
+                            // value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                            setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                            // value.startsWith('Probable') &&
+                            //   setParentList(
+                            //     key === 'Mother id'
+                            //       ? eggDetails?.parent_list?.mother_list
+                            //       : eggDetails?.parent_list?.father_list
+                            //   )
+
+                            setParentList(
+                              key === 'Mother id'
+                                ? eggDetails?.parent_list?.mother_list
+                                : eggDetails?.parent_list?.father_list
+                            )
                           }}
                           sx={{
-                            cursor: value.startsWith('Probable') && 'pointer',
+                            // cursor: value.startsWith('Probable') && 'pointer',
+                            cursor: 'pointer',
                             textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
                             fontWeight: key === 'Mother id' || key === 'Father id' ? 600 : 400,
                             fontSize: '14px',

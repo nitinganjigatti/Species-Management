@@ -36,7 +36,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
               <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
             </Box>
             <Typography variant='h6'>
-              Probable {parent} - {parentList?.length}
+              {parentList?.length > 1 && 'Probable'} {parent} - {parentList?.length}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
