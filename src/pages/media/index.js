@@ -35,6 +35,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { deleteMediaFile, getMediaListById, uploadMediaFile } from 'src/lib/api/media'
 import moment from 'moment'
 import Image from 'next/image'
+import InfiniteScroll from 'react-infinite-scroll-component'
 
 const Media = () => {
   const auth = useAuth()
@@ -49,6 +50,8 @@ const Media = () => {
   const [selectedFileTypeFilter, setSelectedFileTypeFilter] = useState('all') // Initialize file type filter state
   const [searchQuery, setSearchQuery] = useState('')
   const [anchorEl, setAnchorEl] = useState(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
 
   const userId = auth?.userData?.user?.user_id
 
@@ -57,8 +60,9 @@ const Media = () => {
   const searchMediaData = useCallback(
     debounce(async q => {
       setSearchQuery(q)
+      setPage(1)
       try {
-        await getMediaListUserId(userId, q)
+        await getMediaListUserId(userId, q, 1)
       } catch (error) {
         console.error(error)
       }
@@ -67,32 +71,47 @@ const Media = () => {
   )
 
   const getMediaListUserId = useCallback(
-    async (userId, q) => {
+    async (userId, q, page) => {
+      if (!hasMore && page !== 1) return
       try {
         setLoading(true)
         const params = {
-          userId: userId,
-          q
+          q,
+          userId,
+          page
         }
         const response = await getMediaListById({ params })
         if (response?.success) {
-          setFilePreviews(response?.data?.result)
+          if (page === 1) {
+            setFilePreviews(response?.data?.result)
+          } else {
+            setFilePreviews(prev => [...prev, ...response?.data?.result])
+          }
+          setHasMore(response?.data?.result.length > 0)
           setLoading(false)
         } else {
           // Handle error scenario
+          setHasMore(false)
+          setLoading(false)
         }
       } catch (e) {
         console.log(e)
       }
     },
-    [userId]
+    [userId, hasMore]
   )
 
   useEffect(() => {
     if (userId !== undefined) {
-      getMediaListUserId(userId)
+      getMediaListUserId(userId, searchQuery, page)
     }
-  }, [getMediaListUserId, userId])
+  }, [getMediaListUserId, userId, searchQuery, page])
+
+  const handleScroll = () => {
+    if (hasMore && !loading) {
+      setPage(prevPage => prevPage + 1)
+    }
+  }
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
@@ -131,7 +150,7 @@ const Media = () => {
         }
         if (successCount === acceptedFiles.length) {
           Toaster({ type: 'success', message: message })
-          await getMediaListUserId(userId)
+          await getMediaListUserId(userId, searchQuery, page)
         }
         setBtnLoader(false) // Hide loader after processing files
         setLoading(false)
@@ -154,7 +173,7 @@ const Media = () => {
       const res = await deleteMediaFile(selectedId?.id)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
-        await getMediaListUserId(userId)
+        await getMediaListUserId(userId, searchQuery, page)
       } else {
         Toaster({ type: 'error', message: res?.message })
       }
@@ -162,24 +181,6 @@ const Media = () => {
       console.error('Error uploading files:', error)
     }
   }
-
-  // const handleDownload = async () => {
-  //   if (selectedId && selectedId.user_media) {
-  //     console.log('Downloading file:', selectedId)
-  //     const link = document.createElement('a')
-  //     link.href = selectedId.user_media
-  //     link.download = encodeURIComponent(selectedId.file_original_name)
-  //     link.target = '_blank'
-  //     document.body.appendChild(link)
-  //     link.click()
-  //     document.body.removeChild(link)
-  //     Toaster({ type: 'success', message: 'File downloaded successfully!' })
-  //     setAnchorEl(null)
-  //   } else {
-  //     Toaster({ type: 'error', message: 'No file selected for download.' })
-  //     setAnchorEl(null)
-  //   }
-  // }
 
   const handleDownload = async () => {
     if (selectedId && selectedId.user_media) {
@@ -381,45 +382,61 @@ const Media = () => {
                 </Grid> */}
               </Card>
 
-              <Grid container spacing={4}>
-                {filePreviews.map((group, groupIndex) => (
-                  <Grid item key={groupIndex} xs={12}>
-                    <Typography
-                      variant='subtitle1'
-                      gutterBottom
-                      sx={{ display: 'flex', alignItems: 'center', margin: '16px 0', fontWeight: 'bold' }}
-                    >
-                      <Divider sx={{ width: 30, marginRight: '5px' }} orientation='horizontal' />
-                      <EventIcon sx={{ marginRight: '5px' }} />
-                      {renderDateHeader(group.date)}
-                      <Divider sx={{ flexGrow: 1, marginLeft: '5px' }} orientation='horizontal' />
-                    </Typography>
+              <InfiniteScroll
+                dataLength={filePreviews.length}
+                next={handleScroll}
+                hasMore={hasMore}
+                loader={
+                  <Box sx={{ textAlign: 'center', my: 2 }}>
+                    <CircularProgress />
+                  </Box>
+                }
+                style={{ overflow: 'hidden' }}
+                endMessage={
+                  <Typography variant='body2' color='textSecondary' align='center' sx={{ mt: 6 }}>
+                    No more media files to load.
+                  </Typography>
+                }
+              >
+                <Grid container spacing={4}>
+                  {filePreviews.map((group, groupIndex) => (
+                    <Grid item key={groupIndex} xs={12}>
+                      <Typography
+                        variant='subtitle1'
+                        gutterBottom
+                        sx={{ display: 'flex', alignItems: 'center', margin: '16px 0', fontWeight: 'bold' }}
+                      >
+                        <Divider sx={{ width: 30, marginRight: '5px' }} orientation='horizontal' />
+                        <EventIcon sx={{ marginRight: '5px' }} />
+                        {renderDateHeader(group.date)}
+                        <Divider sx={{ flexGrow: 1, marginLeft: '5px' }} orientation='horizontal' />
+                      </Typography>
 
-                    <Grid container spacing={6}>
-                      {group.media.map((media, mediaIndex) => (
-                        <React.Fragment key={mediaIndex}>
-                          <Grid item xs={12} sm={6} md={4} lg={3}>
-                            <Card sx={{ position: 'relative', height: '100%', bgcolor: '#FFFFFF' }}>
-                              <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
-                                <Tooltip title={media?.file_original_name} arrow>
-                                  <Typography
-                                    variant='subtitle2'
-                                    gutterBottom
-                                    sx={{
-                                      ml: 2,
-                                      mb: 0,
-                                      whiteSpace: 'nowrap',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      maxWidth: 180 // Adjust this based on your design
-                                    }}
-                                  >
-                                    {media?.file_original_name}
-                                  </Typography>
-                                </Tooltip>
-                              </CardContent>
+                      <Grid container spacing={6}>
+                        {group.media.map((media, mediaIndex) => (
+                          <React.Fragment key={mediaIndex}>
+                            <Grid item xs={12} sm={6} md={4} lg={3}>
+                              <Card sx={{ position: 'relative', height: '100%', bgcolor: '#FFFFFF' }}>
+                                <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
+                                  <Tooltip title={media?.file_original_name} arrow>
+                                    <Typography
+                                      variant='subtitle2'
+                                      gutterBottom
+                                      sx={{
+                                        ml: 2,
+                                        mb: 0,
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        maxWidth: 180 // Adjust this based on your design
+                                      }}
+                                    >
+                                      {media?.file_original_name}
+                                    </Typography>
+                                  </Tooltip>
+                                </CardContent>
 
-                              {/* {media?.user_media && (
+                                {/* {media?.user_media && (
                                 <>
                                   {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
                                     <CardMedia
@@ -451,76 +468,77 @@ const Media = () => {
                                   )}
                                 </>
                               )} */}
-                              {media?.user_media && (
-                                <>
-                                  {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
-                                    <CardMedia
-                                      component='img'
-                                      height='160'
-                                      image={media?.user_media}
-                                      alt={media?.file_original_name}
-                                      sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
-                                    />
-                                  ) : media?.user_media.match(/\.(mp4|mov)$/) != null ? (
-                                    <CardMedia
-                                      component='video'
-                                      controls
-                                      height='160'
-                                      src={media?.user_media}
-                                      alt={media?.file_original_name}
-                                      sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
-                                    />
-                                  ) : (
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        height: 120,
-                                        borderRadius: 1,
-                                        bgcolor: getIconByFileType(media?.file_original_name)?.bgColor,
-                                        m: 5
-                                      }}
-                                    >
-                                      <Image
-                                        src={getIconByFileType(media?.file_original_name)?.icon}
-                                        alt=''
-                                        width={80}
-                                        height={80}
+                                {media?.user_media && (
+                                  <>
+                                    {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
+                                      <CardMedia
+                                        component='img'
+                                        height='160'
+                                        image={media?.user_media}
+                                        alt={media?.file_original_name}
+                                        sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
                                       />
-                                    </Box>
-                                  )}
-                                </>
-                              )}
+                                    ) : media?.user_media.match(/\.(mp4|mov)$/) != null ? (
+                                      <CardMedia
+                                        component='video'
+                                        controls
+                                        height='160'
+                                        src={media?.user_media}
+                                        alt={media?.file_original_name}
+                                        sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
+                                      />
+                                    ) : (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          height: 120,
+                                          borderRadius: 1,
+                                          bgcolor: getIconByFileType(media?.file_original_name)?.bgColor,
+                                          m: 5
+                                        }}
+                                      >
+                                        <Image
+                                          src={getIconByFileType(media?.file_original_name)?.icon}
+                                          alt=''
+                                          width={80}
+                                          height={80}
+                                        />
+                                      </Box>
+                                    )}
+                                  </>
+                                )}
 
-                              <IconButton
-                                aria-label='more'
-                                aria-controls='long-menu'
-                                aria-haspopup='true'
-                                sx={{
-                                  position: 'absolute',
-                                  top: 12,
-                                  right: 4,
-                                  cursor: 'pointer'
-                                }}
-                                onClick={e => handleClick(e, media)}
-                              >
-                                <Icon icon='mdi:dots-vertical' />
-                              </IconButton>
+                                <IconButton
+                                  aria-label='more'
+                                  aria-controls='long-menu'
+                                  aria-haspopup='true'
+                                  sx={{
+                                    position: 'absolute',
+                                    top: 12,
+                                    right: 4,
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={e => handleClick(e, media)}
+                                >
+                                  <Icon icon='mdi:dots-vertical' />
+                                </IconButton>
 
-                              <CardContent
-                                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
-                              >
-                                <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box>
-                              </CardContent>
-                            </Card>
-                          </Grid>
-                        </React.Fragment>
-                      ))}
+                                <CardContent
+                                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
+                                >
+                                  <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box>
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          </React.Fragment>
+                        ))}
+                      </Grid>
                     </Grid>
-                  </Grid>
-                ))}
-              </Grid>
+                  ))}
+                </Grid>
+              </InfiniteScroll>
             </Box>
           </CardContent>
 
