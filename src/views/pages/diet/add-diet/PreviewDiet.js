@@ -1236,8 +1236,7 @@ const StepPreviewDiet = ({
                                   //flexDirection: 'column',
                                   justifyContent: 'center',
                                   alignItems: 'center',
-                                  overflow: 'hidden',
-                                  position: 'sticky'
+                                  overflow: 'hidden'
                                 }}
                                 component='th'
                                 scope='row'

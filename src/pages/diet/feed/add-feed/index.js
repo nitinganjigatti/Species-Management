@@ -138,13 +138,13 @@ const AddFeedType = () => {
 
             Router.push('/diet/feed')
 
-            Toaster({ type: 'success', message: res?.data })
-          } else if (res?.success === false) {
-            setBtnLoader(false)
-            Toaster({ type: 'error', message: 'Image type only PNG and JPG is allowed' })
+            Toaster({ type: 'success', message: 'Feed Type' + ' ' + res?.data })
           } else {
             setBtnLoader(false)
-            Toaster({ type: 'error', message: res?.message?.feed_type_image })
+            Toaster({
+              type: 'error',
+              message: res?.message?.feed_type_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
           }
         })
       } catch (error) {
@@ -158,13 +158,13 @@ const AddFeedType = () => {
             Router.push('/diet/feed')
             setBtnLoader(false)
 
-            Toaster({ type: 'success', message: res?.data })
-          } else if (res?.success === false) {
-            setBtnLoader(false)
-            Toaster({ type: 'error', message: 'Image type only PNG and JPG is allowed' })
+            Toaster({ type: 'success', message: 'Feed Type' + ' ' + res?.data })
           } else {
             setBtnLoader(false)
-            Toaster({ type: 'error', message: res?.message?.feed_type_image })
+            Toaster({
+              type: 'error',
+              message: res?.message?.feed_type_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
           }
         })
       } catch (error) {

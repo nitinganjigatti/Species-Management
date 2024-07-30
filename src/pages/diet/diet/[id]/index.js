@@ -105,18 +105,6 @@ const DietDetail = () => {
     { value: '7', label: 'Sunday' }
   ]
 
-  const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
-    ({ theme }) => ({
-      [`& .MuiTooltip-tooltip`]: {
-        margin: 'auto',
-        maxWidth: 'none',
-        position: 'relative',
-        top: 20,
-        left: 100
-      }
-    })
-  )
-
   const Day = [
     { id: 0, name: 'All', isActive: false },
     { id: 1, name: 'Mon', isActive: false },
@@ -1127,63 +1115,79 @@ const DietDetail = () => {
                                               sx={{
                                                 position: 'sticky',
                                                 left: 0,
-                                                width: '160px',
-                                                // width: '180px',
+                                                width: '180px',
                                                 border: 'none',
                                                 pl: 0,
-                                                backgroundColor: '#fff',
-                                                pr: '36px'
+                                                pr: '36px',
+                                                background: '#fff',
+                                                height: '100px',
+                                                //display: 'flex',
+                                                //flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                overflow: 'hidden'
                                               }}
                                               component='th'
                                               scope='row'
                                             >
-                                              {/* <Typography>Meal Name :</Typography> */}
-                                              <Box
-                                                sx={{
-                                                  borderRadius: '25px',
-                                                  border: `2px dotted #00AFD6`,
-                                                  py: '5px',
-                                                  px: '4px'
+                                              <span
+                                                style={{
+                                                  position: 'absolute', // Change this to absolute
+                                                  top: '70px', // Center vertically
+                                                  transform: 'translateY(-50%)', // Adjust to center properly
+                                                  //display: 'flex',
+                                                  flexDirection: 'column',
+                                                  alignItems: 'center',
+                                                  width: '70%'
                                                 }}
                                               >
-                                                <Typography
-                                                  sx={{
-                                                    textAlign: 'center',
-                                                    color: '#00AFD6',
-                                                    fontWeight: 500,
-                                                    fontSize: '16px',
-                                                    lineHeight: '19.36px'
-                                                  }}
-                                                >
-                                                  {startTimes}
-                                                </Typography>
-                                              </Box>
-                                              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                                                 <Box
-                                                  sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}
-                                                ></Box>
-                                              </Box>
-
-                                              <Box
-                                                sx={{
-                                                  borderRadius: '25px',
-                                                  border: `2px dotted #00AFD6`,
-                                                  py: '5px',
-                                                  px: '4px'
-                                                }}
-                                              >
-                                                <Typography
                                                   sx={{
-                                                    textAlign: 'center',
-                                                    color: '#00AFD6',
-                                                    fontWeight: 500,
-                                                    fontSize: '16px',
-                                                    lineHeight: '19.36px'
+                                                    borderRadius: '25px',
+                                                    border: `2px dotted #00AFD6`,
+                                                    py: '5px',
+                                                    px: '4px'
                                                   }}
                                                 >
-                                                  {endTimes}
-                                                </Typography>
-                                              </Box>
+                                                  <Typography
+                                                    sx={{
+                                                      textAlign: 'center',
+                                                      color: '#00AFD6',
+                                                      fontWeight: 500,
+                                                      fontSize: '16px',
+                                                      lineHeight: '19.36px'
+                                                    }}
+                                                  >
+                                                    {startTimes}
+                                                  </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                  <Box
+                                                    sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}
+                                                  ></Box>
+                                                </Box>
+
+                                                <Box
+                                                  sx={{
+                                                    borderRadius: '25px',
+                                                    border: `2px dotted #00AFD6`,
+                                                    py: '5px',
+                                                    px: '4px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      textAlign: 'center',
+                                                      color: '#00AFD6',
+                                                      fontWeight: 500,
+                                                      fontSize: '16px',
+                                                      lineHeight: '19.36px'
+                                                    }}
+                                                  >
+                                                    {endTimes}
+                                                  </Typography>
+                                                </Box>
+                                              </span>
                                             </TableCell>
 
                                             <>
@@ -1425,39 +1429,26 @@ const DietDetail = () => {
                                                               height: '100%'
                                                             }}
                                                           >
-                                                            <CustomTooltip
-                                                              title={
-                                                                item.meal_type
-                                                                  ? item.meal_type.map((meal, i) => {
-                                                                      return meal.meal_value_header === 'Generic'
-                                                                        ? meal.notes
-                                                                        : ''
-                                                                    })
-                                                                  : ''
-                                                              }
-                                                              placement='left'
+                                                            <Typography
+                                                              sx={{
+                                                                color: '#000',
+                                                                lineHeight: '16.94px',
+                                                                fontWeight: 400,
+                                                                fontSize: '14px'
+                                                              }}
                                                             >
-                                                              <Typography
-                                                                sx={{
-                                                                  color: '#000',
-                                                                  lineHeight: '16.94px',
-                                                                  fontWeight: 400,
-                                                                  fontSize: '14px'
-                                                                }}
-                                                              >
-                                                                {/* {console.log(index, 'index')} */}
-                                                                {item.meal_type
-                                                                  ? item.meal_type.map((meal, i) => {
-                                                                      return meal.meal_value_header === 'Generic'
-                                                                        ? meal.quantity +
-                                                                            (meal.feed_uom_name
-                                                                              ? ' ' + meal.feed_uom_name
-                                                                              : '')
-                                                                        : ''
-                                                                    })
-                                                                  : ''}
-                                                              </Typography>
-                                                            </CustomTooltip>
+                                                              {/* {console.log(index, 'index')} */}
+                                                              {item.meal_type
+                                                                ? item.meal_type.map((meal, i) => {
+                                                                    return meal.meal_value_header === 'Generic'
+                                                                      ? meal.quantity +
+                                                                          (meal.feed_uom_name
+                                                                            ? ' ' + meal.feed_uom_name
+                                                                            : '')
+                                                                      : ''
+                                                                  })
+                                                                : ''}
+                                                            </Typography>
                                                           </Box>
                                                         </Box>
                                                       </TableCell>
@@ -1495,65 +1486,39 @@ const DietDetail = () => {
                                                                       height: '100%'
                                                                     }}
                                                                   >
-                                                                    <CustomTooltip
-                                                                      title={
-                                                                        dietDetails.diet_type_name === 'By Weight' &&
-                                                                        item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              if (
-                                                                                all.includes(meal.meal_value_header)
-                                                                              ) {
-                                                                                return meal.notes
-                                                                              } else {
-                                                                                return ''
-                                                                              }
-                                                                            })
-                                                                          : item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              return meal.meal_value_header === all
-                                                                                ? meal.notes
-                                                                                : ''
-                                                                            })
-                                                                          : ''
-                                                                      }
-                                                                      placement='left'
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#000',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
                                                                     >
-                                                                      <Typography
-                                                                        sx={{
-                                                                          color: '#000',
-                                                                          lineHeight: '16.94px',
-                                                                          fontWeight: 400,
-                                                                          fontSize: '14px'
-                                                                        }}
-                                                                      >
-                                                                        {dietDetails.diet_type_name === 'By Weight' &&
-                                                                        item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              if (
-                                                                                all.includes(meal.meal_value_header)
-                                                                              ) {
-                                                                                return (
-                                                                                  meal.quantity +
+                                                                      {dietDetails.diet_type_name === 'By Weight' &&
+                                                                      item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            if (all.includes(meal.meal_value_header)) {
+                                                                              return (
+                                                                                meal.quantity +
+                                                                                (meal.feed_uom_name
+                                                                                  ? ' ' + meal.feed_uom_name
+                                                                                  : '')
+                                                                              )
+                                                                            } else {
+                                                                              return ''
+                                                                            }
+                                                                          })
+                                                                        : item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            return meal.meal_value_header === all
+                                                                              ? meal.quantity +
                                                                                   (meal.feed_uom_name
                                                                                     ? ' ' + meal.feed_uom_name
                                                                                     : '')
-                                                                                )
-                                                                              } else {
-                                                                                return ''
-                                                                              }
-                                                                            })
-                                                                          : item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              return meal.meal_value_header === all
-                                                                                ? meal.quantity +
-                                                                                    (meal.feed_uom_name
-                                                                                      ? ' ' + meal.feed_uom_name
-                                                                                      : '')
-                                                                                : ''
-                                                                            })
-                                                                          : ''}
-                                                                      </Typography>
-                                                                    </CustomTooltip>
+                                                                              : ''
+                                                                          })
+                                                                        : ''}
+                                                                    </Typography>
                                                                   </Box>
                                                                 </Box>
                                                               </TableCell>
@@ -1868,39 +1833,26 @@ const DietDetail = () => {
                                                               height: '100%'
                                                             }}
                                                           >
-                                                            <CustomTooltip
-                                                              title={
-                                                                item.meal_type
-                                                                  ? item.meal_type.map((meal, i) => {
-                                                                      return meal.meal_value_header === 'Generic'
-                                                                        ? meal.notes
-                                                                        : ''
-                                                                    })
-                                                                  : ''
-                                                              }
-                                                              placement='left'
+                                                            <Typography
+                                                              sx={{
+                                                                color: '#000',
+                                                                lineHeight: '16.94px',
+                                                                fontWeight: 400,
+                                                                fontSize: '14px'
+                                                              }}
                                                             >
-                                                              <Typography
-                                                                sx={{
-                                                                  color: '#000',
-                                                                  lineHeight: '16.94px',
-                                                                  fontWeight: 400,
-                                                                  fontSize: '14px'
-                                                                }}
-                                                              >
-                                                                {/* {console.log(index, 'index')} */}
-                                                                {item.meal_type
-                                                                  ? item.meal_type.map((meal, i) => {
-                                                                      return meal.meal_value_header === 'Generic'
-                                                                        ? meal.quantity +
-                                                                            (meal.feed_uom_name
-                                                                              ? ' ' + meal.feed_uom_name
-                                                                              : '')
-                                                                        : ''
-                                                                    })
-                                                                  : ''}
-                                                              </Typography>
-                                                            </CustomTooltip>
+                                                              {/* {console.log(index, 'index')} */}
+                                                              {item.meal_type
+                                                                ? item.meal_type.map((meal, i) => {
+                                                                    return meal.meal_value_header === 'Generic'
+                                                                      ? meal.quantity +
+                                                                          (meal.feed_uom_name
+                                                                            ? ' ' + meal.feed_uom_name
+                                                                            : '')
+                                                                      : ''
+                                                                  })
+                                                                : ''}
+                                                            </Typography>
                                                           </Box>
                                                         </Box>
                                                       </TableCell>
@@ -1936,65 +1888,39 @@ const DietDetail = () => {
                                                                       height: '100%'
                                                                     }}
                                                                   >
-                                                                    <CustomTooltip
-                                                                      title={
-                                                                        dietDetails.diet_type_name === 'By Weight' &&
-                                                                        item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              if (
-                                                                                all.includes(meal.meal_value_header)
-                                                                              ) {
-                                                                                return meal.notes
-                                                                              } else {
-                                                                                return ''
-                                                                              }
-                                                                            })
-                                                                          : item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              return meal.meal_value_header === all
-                                                                                ? meal.notes
-                                                                                : ''
-                                                                            })
-                                                                          : ''
-                                                                      }
-                                                                      placement='left'
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#000',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
                                                                     >
-                                                                      <Typography
-                                                                        sx={{
-                                                                          color: '#000',
-                                                                          lineHeight: '16.94px',
-                                                                          fontWeight: 400,
-                                                                          fontSize: '14px'
-                                                                        }}
-                                                                      >
-                                                                        {dietDetails.diet_type_name === 'By Weight' &&
-                                                                        item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              if (
-                                                                                all.includes(meal.meal_value_header)
-                                                                              ) {
-                                                                                return (
-                                                                                  meal.quantity +
+                                                                      {dietDetails.diet_type_name === 'By Weight' &&
+                                                                      item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            if (all.includes(meal.meal_value_header)) {
+                                                                              return (
+                                                                                meal.quantity +
+                                                                                (meal.feed_uom_name
+                                                                                  ? ' ' + meal.feed_uom_name
+                                                                                  : '')
+                                                                              )
+                                                                            } else {
+                                                                              return ''
+                                                                            }
+                                                                          })
+                                                                        : item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            return meal.meal_value_header === all
+                                                                              ? meal.quantity +
                                                                                   (meal.feed_uom_name
                                                                                     ? ' ' + meal.feed_uom_name
                                                                                     : '')
-                                                                                )
-                                                                              } else {
-                                                                                return ''
-                                                                              }
-                                                                            })
-                                                                          : item.meal_type
-                                                                          ? item.meal_type.map((meal, i) => {
-                                                                              return meal.meal_value_header === all
-                                                                                ? meal.quantity +
-                                                                                    (meal.feed_uom_name
-                                                                                      ? ' ' + meal.feed_uom_name
-                                                                                      : '')
-                                                                                : ''
-                                                                            })
-                                                                          : ''}
-                                                                      </Typography>
-                                                                    </CustomTooltip>
+                                                                              : ''
+                                                                          })
+                                                                        : ''}
+                                                                    </Typography>
                                                                   </Box>
                                                                 </Box>
                                                               </TableCell>
@@ -2223,39 +2149,26 @@ const DietDetail = () => {
                                                             height: '100%'
                                                           }}
                                                         >
-                                                          <CustomTooltip
-                                                            title={
-                                                              item.meal_type
-                                                                ? item.meal_type.map((meal, i) => {
-                                                                    return meal.meal_value_header === 'Generic'
-                                                                      ? meal.notes
-                                                                      : ''
-                                                                  })
-                                                                : ''
-                                                            }
-                                                            placement='left'
+                                                          <Typography
+                                                            sx={{
+                                                              color: '#000',
+                                                              lineHeight: '16.94px',
+                                                              fontWeight: 400,
+                                                              fontSize: '14px'
+                                                            }}
                                                           >
-                                                            <Typography
-                                                              sx={{
-                                                                color: '#000',
-                                                                lineHeight: '16.94px',
-                                                                fontWeight: 400,
-                                                                fontSize: '14px'
-                                                              }}
-                                                            >
-                                                              {/* {console.log(index, 'index')} */}
-                                                              {item.meal_type
-                                                                ? item.meal_type.map((meal, i) => {
-                                                                    return meal.meal_value_header === 'Generic'
-                                                                      ? meal.quantity +
-                                                                          (meal.feed_uom_name
-                                                                            ? ' ' + meal.feed_uom_name
-                                                                            : '')
-                                                                      : ''
-                                                                  })
-                                                                : ''}
-                                                            </Typography>
-                                                          </CustomTooltip>
+                                                            {/* {console.log(index, 'index')} */}
+                                                            {item.meal_type
+                                                              ? item.meal_type.map((meal, i) => {
+                                                                  return meal.meal_value_header === 'Generic'
+                                                                    ? meal.quantity +
+                                                                        (meal.feed_uom_name
+                                                                          ? ' ' + meal.feed_uom_name
+                                                                          : '')
+                                                                    : ''
+                                                                })
+                                                              : ''}
+                                                          </Typography>
                                                         </Box>
                                                       </Box>
                                                     </TableCell>
@@ -2293,61 +2206,39 @@ const DietDetail = () => {
                                                                     height: '100%'
                                                                   }}
                                                                 >
-                                                                  <CustomTooltip
-                                                                    title={
-                                                                      dietDetails.diet_type_name === 'By Weight' &&
-                                                                      item.meal_type
-                                                                        ? item.meal_type.map((meal, i) => {
-                                                                            if (all.includes(meal.meal_value_header)) {
-                                                                              return meal.notes
-                                                                            } else {
-                                                                              return ''
-                                                                            }
-                                                                          })
-                                                                        : item.meal_type
-                                                                        ? item.meal_type.map((meal, i) => {
-                                                                            return meal.meal_value_header === all
-                                                                              ? meal.notes
-                                                                              : ''
-                                                                          })
-                                                                        : ''
-                                                                    }
-                                                                    placement='left'
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 400,
+                                                                      fontSize: '14px'
+                                                                    }}
                                                                   >
-                                                                    <Typography
-                                                                      sx={{
-                                                                        color: '#000',
-                                                                        lineHeight: '16.94px',
-                                                                        fontWeight: 400,
-                                                                        fontSize: '14px'
-                                                                      }}
-                                                                    >
-                                                                      {dietDetails.diet_type_name === 'By Weight' &&
-                                                                      item.meal_type
-                                                                        ? item.meal_type.map((meal, i) => {
-                                                                            if (all.includes(meal.meal_value_header)) {
-                                                                              return (
-                                                                                meal.quantity +
+                                                                    {dietDetails.diet_type_name === 'By Weight' &&
+                                                                    item.meal_type
+                                                                      ? item.meal_type.map((meal, i) => {
+                                                                          if (all.includes(meal.meal_value_header)) {
+                                                                            return (
+                                                                              meal.quantity +
+                                                                              (meal.feed_uom_name
+                                                                                ? ' ' + meal.feed_uom_name
+                                                                                : '')
+                                                                            )
+                                                                          } else {
+                                                                            return ''
+                                                                          }
+                                                                        })
+                                                                      : item.meal_type
+                                                                      ? item.meal_type.map((meal, i) => {
+                                                                          return meal.meal_value_header === all
+                                                                            ? meal.quantity +
                                                                                 (meal.feed_uom_name
                                                                                   ? ' ' + meal.feed_uom_name
                                                                                   : '')
-                                                                              )
-                                                                            } else {
-                                                                              return ''
-                                                                            }
-                                                                          })
-                                                                        : item.meal_type
-                                                                        ? item.meal_type.map((meal, i) => {
-                                                                            return meal.meal_value_header === all
-                                                                              ? meal.quantity +
-                                                                                  (meal.feed_uom_name
-                                                                                    ? ' ' + meal.feed_uom_name
-                                                                                    : '')
-                                                                              : ''
-                                                                          })
-                                                                        : ''}
-                                                                    </Typography>
-                                                                  </CustomTooltip>
+                                                                            : ''
+                                                                        })
+                                                                      : ''}
+                                                                  </Typography>
                                                                 </Box>
                                                               </Box>
                                                             </TableCell>

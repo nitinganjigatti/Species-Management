@@ -351,7 +351,10 @@ const AddDiet = () => {
         deleteCookie('dietTypeChildVal')
         return Toaster({ type: 'success', message: apival.message })
       } else {
-        return Toaster({ type: 'error', message: apival.message })
+        return Toaster({
+          type: 'error',
+          message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     } else if (id && urlType === 'copy') {
       const numericFormData = {
@@ -408,7 +411,10 @@ const AddDiet = () => {
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
-        return Toaster({ type: 'error', message: apival.message })
+        return Toaster({
+          type: 'error',
+          message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     } else {
       // Omitting child field from formData
@@ -478,7 +484,10 @@ const AddDiet = () => {
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
-        return Toaster({ type: 'error', message: apival.message })
+        return Toaster({
+          type: 'error',
+          message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     }
   }
