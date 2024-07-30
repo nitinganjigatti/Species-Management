@@ -106,8 +106,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
 
   const columns = [
     {
-      flex: 0.02,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       align: 'center',
@@ -126,19 +125,17 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 60,
+      width: 200,
       sortable: false,
       field: 'request_id_and_egg',
       headerName: 'Request ID & Eggs',
-
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Box sx={{ p: '6px', height: '40px', width: '40px', borderRadius: '4px', bgcolor: '#EFF5F2' }}>
             <img style={{ width: '100%', height: '100%' }} src={'/icons/redEgg.png'} alt='Egg' />
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '75%' }}>
             <Tooltip title={params.row.request_id ? params.row.request_id : '-'}>
               <Typography
                 sx={{
@@ -174,12 +171,10 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      width: 240,
       field: 'request_created_on',
       sortable: false,
       headerName: 'Request Created On',
-
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -204,8 +199,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 180,
       sortable: false,
       field: 'nursery_name',
       headerName: 'Nursery',
@@ -224,12 +218,10 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     },
 
     // {
-    //   flex: 0.2,
-    //   minWidth: 10,
+    //   width: 10,
     //   sortable: false,
     //   field: 'collected_on',
     //   headerName: 'COLLECTED ON',
-
     //   renderCell: params => (
     //     <Typography
     //       sx={{
@@ -245,8 +237,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     //   )
     // },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 220,
       sortable: false,
       field: 'created_by',
       headerName: 'Created By',
@@ -313,8 +304,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 220,
       sortable: false,
       field: 'security_check',
       headerName: 'Security Check',
