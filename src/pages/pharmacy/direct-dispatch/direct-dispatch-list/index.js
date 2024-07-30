@@ -75,19 +75,20 @@ const DirectDispatchList = () => {
         }
 
         await getDirectDispatchItemsList({ params: params }).then(res => {
-          console.log('result', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('dispatchPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('dispatchPageStatus')
           }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -168,7 +169,6 @@ const DirectDispatchList = () => {
 
   const onRowClick = params => {
     var data = params.row
-    console.log('params.row', params.row)
 
     Router.push({
       pathname: `/pharmacy/direct-dispatch/${data?.id}`
@@ -206,6 +206,9 @@ const DirectDispatchList = () => {
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, 'request_number', status)
+  }
+  const getRequestedText = () => {
+    return selectedPharmacy.type === 'central' ? 'Dispatched To' : 'Dispatch From'
   }
 
   const columns = [
@@ -246,11 +249,22 @@ const DirectDispatchList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'to_store',
-      headerName: 'Dispatched To',
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.to_store}
+          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'to_store',
+      headerName: getRequestedText(),
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
     },

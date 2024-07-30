@@ -38,7 +38,6 @@ const ListOfMedicine = () => {
   const [configureMedId, setConfigureMedId] = useState('')
 
   const { selectedPharmacy } = usePharmacyContext()
-  console.log(selectedPharmacy)
 
   const closeDialog = () => {
     setShow(false)
@@ -49,8 +48,6 @@ const ListOfMedicine = () => {
   }
 
   const handleEdit = async row => {
-    console.log('row', row)
-    debugger
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')

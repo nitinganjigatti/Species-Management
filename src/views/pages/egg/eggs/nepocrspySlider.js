@@ -14,10 +14,14 @@ import {
   Radio,
   RadioGroup,
   Select,
+  Stack,
+  Switch,
   TextField,
   Typography
 } from '@mui/material'
 import Image from 'next/image'
+import Toaster from 'src/components/Toaster'
+
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
@@ -26,32 +30,30 @@ import { useTheme } from '@emotion/react'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useEffect, useRef, useState } from 'react'
+import { AddEggNecropsy } from 'src/lib/api/egg/egg'
 
-// const schema = yup.object().shape({
-//   necropsy_report: yup.string().required('Please select an option for Necropsy Report'),
-//   sample_taken: yup.string().required('Please select an option for Sample Taken'),
-//   report_image: yup.mixed().when('necropsy_report', {
-//     is: 'Necropsy Report',
-//     then: yup
-//       .mixed()
-//       .required('Please upload an image for the necropsy report.')
-//       .test('fileType', 'Unsupported file format', value => {
-//         if (!value) return true // If no file is selected, no validation needed
-//         return ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(value.type)
-//       })
-//   })
-// })
-
-const NecropsySlider = ({ setOpenNepoFile }) => {
+const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }) => {
+  const theme = useTheme()
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState('')
+
+  const [fileSize, setFileSize] = useState('')
   const [displayFile, setDisplayFile] = useState('')
 
+  const [isSampleTaken, setIsSampleTaken] = useState(false)
+  const [loading, setLoading] = useState(false)
+
   const defaultValues = {
-    necropsy_report: '',
     sample_taken: '',
-    report_image: ''
+    report_file: ''
   }
+
+  const schema = yup.object().shape({
+    report_file: yup.mixed().when('isSampleTaken', {
+      is: false,
+      then: yup.mixed().required('Report file is required')
+    })
+  })
 
   const {
     control,
@@ -59,61 +61,44 @@ const NecropsySlider = ({ setOpenNepoFile }) => {
     setValue,
     getValues,
     reset,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues,
-    // resolver: yupResolver(schema),
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
 
-  // Determine initial selectedRadio state based on default values
-  const initialSelectedRadio = defaultValues.necropsy_report
-    ? 'necropsy_report'
-    : defaultValues.sample_taken
-    ? 'sample_taken'
-    : ''
-
-  const [selectedRadio, setSelectedRadio] = useState(initialSelectedRadio)
-
-  useEffect(() => {
-    reset(defaultValues)
-  }, [reset])
-
-  const handleRadioChange = value => {
-    setSelectedRadio(value)
-    if (value === 'sample_taken') {
-      setValue('necropsy_report', '')
-    } else if (value === 'necropsy_report') {
-      setValue('sample_taken', '')
-    }
-  }
-
-  const theme = useTheme()
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', 'pdf']
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'text/csv': ['.csv']
     },
     onDrop: acceptedFiles => {
       const reader = new FileReader()
       const files = acceptedFiles
       if (files && files.length !== 0) {
+        const file = files[0]
         reader.onload = () => {
-          setImgSrc(reader?.result)
+          setImgSrc(reader.result)
         }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setValue('ingredientImg', files[0])
-        clearErrors('ingredientImg')
+        setDisplayFile(file.name)
+
+        reader.readAsDataURL(file)
+        setValue('report_file', file)
+
+        clearErrors('report_file')
       }
     }
   })
-
-  const handleChange = e => {
-    console.log('e', e.target.files)
-  }
 
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
@@ -127,247 +112,286 @@ const NecropsySlider = ({ setOpenNepoFile }) => {
         setImgSrc(reader?.result)
       }
       setDisplayFile(files[0]?.name)
+
+      const size = (files[0]?.size / (1024 * 1024)).toFixed(2)
+      setFileSize(size)
       reader?.readAsDataURL(files[0])
-      setValue('report_image', files[0])
+      setValue('report_file', files[0])
+      clearErrors('report_file')
     }
   }
 
   const removeSelectedImage = () => {
     setImgSrc('')
-    setValue('report_image', '')
+    setValue('report_file', '')
   }
 
-  console.log('Get Val >', getValues())
-
-  const onSubmit = values => {
-    debugger
-    console.log('Values >', values)
+  const handleChangeSwitch = event => {
+    setIsSampleTaken(event.target.checked)
   }
+
+  const handleClose = () => {
+    setOpenNecropsy(false)
+    setIsSampleTaken(false)
+    setImgSrc('')
+    setValue('report_file', '')
+  }
+
+  const onSubmit = async values => {
+    setLoading(true)
+
+    const payload = {
+      egg_id: eggID,
+      egg_attachment: [getValues('report_file')],
+      is_sample_collected: isSampleTaken === true ? '1' : '0'
+    }
+
+    //  console.log('payload :>> ', payload)
+
+    try {
+      const response = await AddEggNecropsy(payload)
+
+      // console.log('response :>> ', response)
+
+      if (response?.success) {
+        setLoading(false)
+
+        Toaster({ type: 'success', message: response.message })
+        if (fetchTableData) {
+          fetchTableData()
+        }
+        handleClose()
+      } else {
+        setLoading(false)
+
+        Toaster({ type: 'error', message: response.message })
+      }
+    } catch (error) {
+      setLoading(false)
+
+      console.log('error :>> ', error)
+    }
+  }
+
   return (
     <>
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 600] } }}>
+      <Drawer anchor='right' open={openNecropsy} sx={{ '& .MuiDrawer-paper': { width: ['100%', '562px'] } }}>
+        {/* drawer */}
+
         <Box
-          className='sidebar-header'
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: 'background.default',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+            bgcolor: theme.palette.customColors.lightBg,
+            width: '100%',
+            height: '100%'
           }}
         >
-          <Box sx={{ mt: 2 }}>
-            <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
-          </Box>
-          <Typography variant='h6' sx={{ mr: 60 }}>
-            Attach Necropsy Report
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenNepoFile(false)} />
-            </IconButton>
-          </Box>
-        </Box>
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px',
 
-        {/* drower */}
+              bgcolor: theme.palette.customColors.lightBg
+            }}
+          >
+            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <Icon
+                style={{ marginLeft: -8 }}
+                icon='material-symbols-light:add-notes-outline-rounded'
+                fontSize={'32px'}
+              />
+              <Typography variant='h6'> Egg Necropsy</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton size='small' onClick={() => handleClose()} sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} />
+              </IconButton>
+            </Box>
+          </Box>
 
-        <Box className='sidebar-body' sx={{ backgroundColor: 'background.default', p: theme => theme.spacing(5, 6) }}>
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-            <Typography sx={{ mt: 4 }} variant='h6'>
-              Select Options
-            </Typography>
-            <Card fullWidth sx={{ mt: 3, mb: 12, cursor: 'pointer' }}>
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Grid item xs={12}>
-                  <Controller
-                    name='necropsy_report'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Box
-                        sx={{
-                          width: '94%',
-                          border: '1px solid #ccc',
-                          borderRadius: '5px',
-                          padding: '10px',
-                          ml: 4,
-                          display: 'flex',
-                          alignItems: 'center',
-                          mt: 4,
-                          mb: 3,
-                          cursor: 'pointer' // Add cursor pointer for better UX
-                        }}
-                        onClick={() => {
-                          const updatedValue = value === '1' ? '' : '1' // Toggle the value
-                          onChange(updatedValue)
-                          handleRadioChange('necropsy_report')
-                        }}
-                      >
-                        <Typography variant='body1' sx={{ flex: 1 }}>
-                          Necropsy Report
-                        </Typography>
-                        <FormControlLabel
-                          control={<Radio />}
-                          value='1'
-                          checked={value === '1'} // Check if value is '1'
-                          onChange={() => {
-                            onChange('1')
-                            handleRadioChange('necropsy_report')
-                          }}
-                        />
-                      </Box>
-                    )}
-                  />
-                </Grid>
-              </Grid>
-
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Grid item xs={12}>
-                  <Controller
-                    name='sample_taken'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Box
-                        sx={{
-                          width: '94%',
-                          border: '1px solid #ccc',
-                          borderRadius: '5px',
-                          padding: '10px',
-                          ml: 4,
-                          display: 'flex',
-                          alignItems: 'center',
-                          mt: 4,
-                          mb: 3,
-                          cursor: 'pointer' // Add cursor pointer for better UX
-                        }}
-                        onClick={() => {
-                          const updatedValue = value === '1' ? '' : '1' // Toggle the value
-                          onChange(updatedValue)
-                          handleRadioChange('sample_taken')
-                        }}
-                      >
-                        <Typography variant='body1' sx={{ flex: 1 }}>
-                          Sample Taken
-                        </Typography>
-                        <FormControlLabel
-                          control={<Radio />}
-                          value='1'
-                          checked={value === '1'} // Check if value is '1'
-                          onChange={() => {
-                            onChange('1')
-                            handleRadioChange('sample_taken')
-                          }}
-                        />
-                      </Box>
-                    )}
-                  />
-                </Grid>
-              </Grid>
-            </Card>
-
-            <Typography sx={{ mt: 10 }} variant='h6'>
-              Upload Document
-            </Typography>
-
-            <Card sx={{ mt: 4 }}>
-              {imgSrc !== '' ? null : (
-                <Grid item xs={6} sm={6} md={5} sx={{ ml: 2, mt: 4 }}>
-                  <input
-                    type='file'
-                    accept='image/*,.pdf,.ppt,.pptx'
-                    style={{ display: 'none' }}
-                    name='report_image'
-                    onChange={e => handleInputImageChange(e)}
-                    ref={fileInputRef}
-                  />
-
-                  <Box
-                    {...getRootProps({ className: 'dropzone' })}
-                    onClick={handleAddImageClick}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      width: '520px',
-                      ml: 2,
-                      gap: 7,
-                      height: 120,
-                      border: `2px solid ${theme.palette.customColors.trackBg}`,
-                      borderRadius: 1,
-                      padding: 3,
-                      mb: 4
-                    }}
-                  >
-                    <Image
-                      alt={'filename'}
-                      src={imageUploader}
-                      width={100}
-                      height={100}
-                      onChange={e => handleChange(e)}
-                    />
-
-                    <Typography>Drop your image here</Typography>
-                  </Box>
-                </Grid>
-              )}
-              <Grid item md={5.9}>
-                {imgSrc !== '' && (
-                  <Box sx={{ display: 'flex' }}>
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        backgroundColor: theme.palette.customColors.tableHeaderBg,
-                        borderRadius: '10px',
-                        height: 121,
-                        padding: '10.5px',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      <img
-                        style={{
-                          height: '80%',
-                          objectFit: 'cover',
-                          borderRadius: '2%'
-                        }}
-                        alt='Uploaded image'
-                        src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+            <>
+              <Box
+                sx={{
+                  m: 4,
+                  bgcolor: '#fff',
+                  borderRadius: '8px',
+                  border: 1,
+                  borderRadius: '8px',
+                  border: 1,
+                  borderColor: '#c3cec7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: '20px',
+                  py: '16px'
+                }}
+              >
+                <Typography>Have you taken sample?</Typography>
+                <>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isSampleTaken}
+                        onChange={handleChangeSwitch}
+                        name='Sample_Taken'
+                        color='primary'
                       />
+                    }
+                  />
+                </>
+              </Box>
+
+              <Box
+                sx={{
+                  m: 4,
+                  bgcolor: '#fff',
+                  borderRadius: '8px',
+                  border: 1,
+                  borderRadius: '8px',
+                  border: 1,
+                  borderColor: '#c3cec7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  px: '20px',
+                  py: '16px'
+                }}
+              >
+                {' '}
+                <Grid container sx={{ justifyContent: 'space-between' }}>
+                  {imgSrc !== '' ? null : (
+                    <Grid item xs={12} sm={12} md={12}>
+                      <input
+                        type='file'
+                        accept='*/*'
+                        onChange={e => handleInputImageChange(e)}
+                        style={{ display: 'none' }}
+                        name='report_file'
+                        ref={fileInputRef}
+                      />
+
                       <Box
+                        {...getRootProps({ className: 'dropzone' })}
+                        onClick={handleAddImageClick}
                         sx={{
-                          cursor: 'pointer',
-                          position: 'absolute',
-                          top: 0,
-                          right: 0,
-                          zIndex: 10,
-                          height: '24px',
-                          borderRadius: 0.4,
-                          backgroundColor: theme.palette.customColors.secondaryBg
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 7,
+                          height: 70,
+
+                          border: `2px solid ${theme.palette.customColors.trackBg}`,
+                          borderRadius: 1,
+
+                          padding: 3
                         }}
                       >
-                        <Icon icon='material-symbols-light:close' color='#fff' onClick={() => removeSelectedImage()}>
-                          {' '}
-                        </Icon>
-                      </Box>
-                    </Box>
-                  </Box>
-                )}
-              </Grid>
-            </Card>
+                        <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
-            <Grid
-              container
-              spacing={2}
-              sx={{ position: 'fixed', width: '30%', height: '50px', bottom: '0', mb: 3, ml: 2 }}
+                        <Typography>Drop your image here</Typography>
+                      </Box>
+                      {errors?.report_file && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.report_file?.message}</FormHelperText>
+                      )}
+                    </Grid>
+                  )}
+                  <Grid item md={12}>
+                    {imgSrc !== '' && (
+                      <Stack direction='row' gap={'24px'}>
+                        <Box sx={{ display: 'flex', width: '48px', height: '48px' }}>
+                          <img
+                            style={{
+                              aspectRatio: 2 / 2,
+                              height: '100%',
+                              width: '100%',
+                              borderRadius: '8px'
+                            }}
+                            alt='Uploaded image'
+                            src='/icons/Upload_doc_icon.png'
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              width: '422px',
+
+                              // gap: 50,
+                              mt: -2
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography
+                                sx={{
+                                  fontSize: '16px',
+                                  fontWeight: 500,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                Uploaded{' '}
+                              </Typography>
+                              <Typography
+                                style={{
+                                  fontSize: '15px',
+                                  fontWeight: 400,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {fileSize}MB
+                              </Typography>
+                            </Box>
+
+                            <IconButton sx={{ alignItems: 'flex-end' }} onClick={() => removeSelectedImage()}>
+                              <Icon icon='material-symbols-light:close' fontSize={20} />
+                            </IconButton>
+                          </Box>
+                          <Typography
+                            sx={{ mt: -1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            File Name : {displayFile}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    )}
+                  </Grid>
+                </Grid>
+              </Box>
+            </>
+            <Box
+              sx={{
+                height: '122px',
+                width: '100%',
+                maxWidth: '562px',
+                position: 'fixed',
+                bottom: 0,
+                px: 4,
+                py: '24px',
+                bgcolor: 'white',
+                alignItems: 'center',
+                justifyContent: 'center',
+                display: 'flex',
+                zIndex: 123
+              }}
             >
-              <Grid item xs={6}>
-                <LoadingButton fullWidth variant='outlined' sx={{ width: '230px', height: '45px' }}>
-                  Cancel
-                </LoadingButton>
-              </Grid>
-              <Grid item xs={6}>
-                <LoadingButton fullWidth type='submit' variant='contained' sx={{ width: '230px', height: '45px' }}>
-                  Submit
-                </LoadingButton>
-              </Grid>
-            </Grid>
+              <LoadingButton
+                sx={{ height: '58px' }}
+                fullWidth
+                variant='contained'
+                type='submit'
+                size='large'
+                loading={loading}
+              >
+                submit
+              </LoadingButton>
+            </Box>
           </form>
         </Box>
       </Drawer>

@@ -55,7 +55,7 @@ const LabDetails = () => {
             <TabContext value={status}>
               <TabList onChange={handleChange}>
                 {/* <Tab value='overview' label='OVERVIEW' /> */}
-                <Tab value='site' label='SITE' />
+                <Tab value='site' label='SITES' />
                 <Tab value='tests' label='TESTS' />
                 <Tab value='users' label='USERS' />
                 {/* <Tab value='equipments' label='EQUIPMENTS' /> */}

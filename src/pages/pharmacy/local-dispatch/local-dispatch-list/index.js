@@ -81,13 +81,15 @@ const DirectDispatchList = () => {
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('dispatchPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('dispatchPageStatus')
           }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -96,7 +98,7 @@ const DirectDispatchList = () => {
   )
 
   useEffect(() => {
-    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
+    // setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
     setPaginationModel({ page: 0, pageSize: 10 })
   }, [selectedPharmacy])
 
@@ -238,7 +240,7 @@ const DirectDispatchList = () => {
       headerName: 'Dispatched date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.request_date)}
+          {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
         </Typography>
       )
     },
@@ -336,7 +338,7 @@ const DirectDispatchList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.request_date)}
+              {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
             </Typography>
           </Box>
         </Box>
@@ -449,12 +451,10 @@ const DirectDispatchList = () => {
       <Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'local' ? (
-              <Tab
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
+            <Tab
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+            />
 
             <Tab
               value='shipped'

@@ -95,8 +95,9 @@ const IngredientsList = () => {
           console.log('response', res)
 
           // Generate uid field based on the index
+          const startingIndex = paginationModel.page * paginationModel.pageSize
           let listWithId = res.data.result.map((el, i) => {
-            return { ...el, uid: i + 1 }
+            return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
@@ -210,7 +211,7 @@ const IngredientsList = () => {
       field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
       )
@@ -245,7 +246,7 @@ const IngredientsList = () => {
       field: 'id',
       headerName: 'INGREDIENT ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
         </Typography>
       )
@@ -267,7 +268,7 @@ const IngredientsList = () => {
       field: 'protein',
       headerName: 'PREPARATION TYPES',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.preparation_types && params.row.preparation_types.length > 0

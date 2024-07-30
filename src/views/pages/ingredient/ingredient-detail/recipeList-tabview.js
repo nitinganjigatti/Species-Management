@@ -165,7 +165,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       field: 'kcal',
       headerName: 'KCAL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.kcal ? params.row.kcal + ' ' + 'Kcal' : '-'}
         </Typography>
       )
@@ -176,7 +176,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       field: 'ingredient_count',
       headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.ingredient_count ? params.row.ingredient_count : '-'}
         </Typography>
       )
@@ -249,7 +249,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
-                checkboxSelection={true}
+                checkboxSelection={false}
                 disableColumnMenu={true}
                 onRowSelectionModelChange={handleSelectionChange}
                 selectionModel={selectedRows}

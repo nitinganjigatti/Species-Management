@@ -27,8 +27,6 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import DialogActions from '@mui/material/DialogActions'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
-import TableHead from '@mui/material/TableHead'
-import ConfirmDialog from 'src/components/ConfirmationDialog'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
@@ -77,7 +75,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       })
     )
   })
-  console.log('fulfillMedicine in comp', fulfillMedicine)
 
   const {
     reset,
@@ -98,7 +95,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     reValidateMode: 'onChange'
   })
 
-  console.log('fulfillMedicine in dialog', fulfillMedicine)
   const [loader, setLoader] = useState(true)
   const [batchItems, setBatchItems] = useState([])
   const [totalProductCount, setTotalProductCount] = useState(0)
@@ -121,15 +117,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const [isLocalTableVisible, setIsLocalTableVisible] = useState(false)
   const [rowErrors, setRowErrors] = useState({})
 
-  // const showConfirmationDialog = () => {
-  //   setInvalidQtyDialog(true)
-  // }
-
-  // const closeConfirmationDialog = () => {
-  //   setInvalidQtyDialog(false)
-  //   setDispatchItems([])
-  //   setInvalidQty([])
-  // }
   const router = useRouter()
 
   const [openSnackbar, setOpenSnackbar] = useState({
@@ -144,27 +131,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
     return test
   }
-
-  // const handleQuantityChange = (enteredQuantity, row, index) => {
-  //   if (checkForPositiveInteger(enteredQuantity) && checkNumber(enteredQuantity) <= checkNumber(row.qty)) {
-  //     // No error, the entered quantity is valid
-  //     const tempState = rowErrors
-  //     tempState[index] = false
-  //     setRowErrors(tempState)
-  //   } else if (enteredQuantity === '') {
-  //     const tempState = rowErrors
-  //     tempState[index] = false
-  //     setRowErrors(tempState)
-  //   } else {
-  //
-  //     const tempState = rowErrors
-  //     tempState[index] = true
-  //     setRowErrors(tempState)
-  //   }
-
-  //   console.log('rowErrors', rowErrors)
-  //   onQuantityChange(row, enteredQuantity)
-  // }
 
   const { fields, append, remove, insert } = useFieldArray({
     control,
@@ -183,9 +149,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
     setRowErrors(tempRowErrors)
 
-    console.log('tempRowErrors', tempRowErrors)
-
-    console.log('rowErrors', rowErrors)
     onQuantityChange(row, enteredQuantity)
   }
 
@@ -226,9 +189,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       } else {
         if (isNaN(parseInt(qty)) || parseInt(qty) <= 0) {
           const index = tempFulfilStockItems.findIndex(item => {
-            console.log('item.batch_no', item.batch_no)
-            console.log('row.batch_no', row.batch_no)
-
             return item.request_item_batch_no === row.batch_no
           })
           if (index !== -1) {
@@ -236,8 +196,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           }
         }
       }
-
-      console.log('tempFulfilStockItems', tempFulfilStockItems)
 
       // }
 
@@ -263,7 +221,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setTotalMedicine(getMedicineTotal([medicineRow]))
       }
     }
-    console.log('fulfilStockItems', fulfilStockItems)
   }
 
   const getMedicineTotal = data => {
@@ -288,12 +245,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const getMedicineByMedicineId = async (id, productType) => {
     setLoader(true)
     const data = { stock_item_id: id }
-    const response = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
+    const response = await getAvailableMedicineByMedicineId(id, data, 'local', productType)
 
     if (response.success) {
-      console.log('batch details response', response)
-
-      //
       const data = response?.data?.items
 
       const updatedItems = data.map(el => ({
@@ -301,7 +255,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         ['stock_type']: fulfillMedicine?.stock_type
       }))
 
-      // setBatchItems(response?.data?.items)
       setBatchItems(updatedItems)
       setTotalProductCount(response?.data?.total_quantity)
 
@@ -311,28 +264,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     }
   }
 
-  // const getMedicineByMedicineIdLocalStore = async id => {
-  //   setLoader(true)
-  //   const data = { stock_item_id: id }
-  //   const response = await getAvailableMedicineByMedicineId(id, data, 'local')
-
-  //   if (response.success) {
-  //     setLocalBatchItems(response.data)
-  //     console.log(response.data)
-  //     setLoader(false)
-  //   } else {
-  //     setLoader(false)
-  //   }
-  // }
-
   const dispatchRequest = async data => {
     const payload = {
       dispatch_date: Utility.formatDate(Date()),
       dispatch_items: fulfilStockItems,
       request_number: storeDetails.id
     }
-
-    console.log('payload', JSON.stringify(payload))
 
     try {
       setErrors(false)
@@ -348,7 +285,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -356,12 +292,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   useEffect(() => {
     if (fulfillMedicine?.stock_item_id !== undefined && fulfillMedicine?.stock_item_id !== null) {
-      console.log(fulfillMedicine)
-      console.log(storeDetails)
-
       getMedicineByMedicineId(fulfillMedicine?.stock_item_id, fulfillMedicine?.stock_type)
-
-      // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
     }
   }, [fulfillMedicine, storeDetails])
 
@@ -442,46 +373,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           icon='material-symbols-light:close'
         />
       </Box>
-
-      // <Button
-      //   variant='outlined'
-      //   color='error'
-      //   startIcon={<Icon icon='material-symbols-light:close' />}
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts.splice(index, 1)
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //   }}
-      // >
-      //   {/* Remove */}
-      // </Button>
     )
   }
 
   const clearSaltFields = index => {
     return (
-      // eslint-disable-next-line lines-around-comment
-      // <Button
-      //   variant='outlined'
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts[index] = undefined
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //     insert(index, {})
-      //   }}
-      // >
-      //   Clear
-      // </Button>
-
       <Box>
         <Icon
           onClick={() => {
-            // var tempDefaultSalts = defaultSalts
-            // tempDefaultSalts[index] = undefined
-            // setDefaultSalts(tempDefaultSalts)
-
             if (fields?.length > 1) {
               remove(index)
             } else {
@@ -514,14 +413,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onSubmit = async params => {
-    console.log('pay load params', params)
-
     // setDispatchItems(params)
     var invalidQtyItems = []
 
     if (params?.product_batches?.length > 0) {
       invalidQtyItems = params?.product_batches?.filter(item => item.qty > item.quantityAvailable)
-      console.log('itemsWithMoreQty', invalidQtyItems)
     }
     if (invalidQtyItems?.length > 0) {
       // setInvalidQty(invalidQtyItems)
@@ -530,8 +426,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     } else {
       dispatchingItems(params)
     }
-
-    console.log('in outide block itemsWithMoreQty', invalidQtyItems)
   }
 
   const dispatchingItems = async params => {
@@ -567,8 +461,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         dispatch_items: payload_list,
         request_number: storeDetails.id
       }
-
-      console.log(payload)
 
       try {
         setErrors(false)
@@ -684,19 +576,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       parseInt(option?.batch_no) === parseInt(value?.batch_no)
                                     }
                                     onChange={(e, val) => {
-                                      // if (val === null) {
-                                      //   setValue(`product_batches[${index}].expiry_date`, '')
-
-                                      //   return onChange('')
-                                      // } else {
-                                      //   debugger
-                                      //   const expiryDate = val.expiry_date
-                                      //   const quantity = parseInt(val?.qty)
-                                      //   setValue(`product_batches[${index}].expiry_date`, expiryDate)
-                                      //   setValue(`product_batches[${index}].quantityAvailable`, quantity)
-
-                                      //   return onChange(val.batch_no)
-                                      // }
                                       if (val === null) {
                                         setValue(`product_batches[${index}].expiry_date`, '')
                                         setValue(`product_batches[${index}].quantityAvailable`, '')
@@ -818,20 +697,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   </FormGroup>
                 </Grid>
               </Grid>
-              {/* {fulfilledQuantity > 0 ? (
-                <>
-                  <Grid container>
-                    <Grid xs={12} style={{ textAlign: 'left', fontWeight: 'bold', marginTop: '10px' }}>
-                      <Typography variant='body2' style={{ fontWeight: 'bold' }} sx={{ color: 'text.primary' }}>
-                        <span style={{ fontWeight: 'normal' }}>Remaining Quantity - </span>
-                        {checkNumber(fulfillMedicine?.requested_qty) -
-                          checkNumber(fulfillMedicine?.dispatch_qty) -
-                          fulfilledQuantity}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </>
-              ) : null} */}
 
               <>
                 {fulfilledQuantity >
@@ -840,7 +705,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     <StyledErrorText>The selected quantity is greater than the quantity requested</StyledErrorText>
                   </div>
                 ) : null}
-                {console.log('totalProductCount', totalProductCount)}
                 {totalProductCount < checkNumber(fulfilledQuantity) ? (
                   <div style={{ color: `${theme.palette.warning}`, marginTop: '10px' }}>
                     <StyledErrorText>Total quantity should be lesser than Available Quantity</StyledErrorText>
@@ -868,22 +732,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       title='Add Item'
                     />
                   ) : (
-                    <LoadingButton
-                      size='large'
-                      variant='contained'
-                      loading={submitLoader}
-                      type='submit'
-
-                      // onClick={() => {
-                      //   const count = Object.values(rowErrors).filter(item => item.status).length
-                      //   if (
-                      //     count <= 0 &&
-                      //     totalMedicine <=
-                      //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
-                      //   )
-                      //     dispatchRequest()
-                      // }}
-                    >
+                    <LoadingButton size='large' variant='contained' loading={submitLoader} type='submit'>
                       Submit
                     </LoadingButton>
                   )}
@@ -951,165 +800,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </Box>
             }
           />
-
-          {/* <ConfirmDialog
-            open={invalidQtyDialog}
-            title={'Your quantity exceeds the batch limit'}
-            closeDialog={() => {
-              closeConfirmationDialog()
-            }}
-            action={() => {
-              handleConfirmDispatch()
-            }}
-            content={
-              <>
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
-                      <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                      <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                      <TableCell>Requested qty</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  {invalidQty?.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell
-                        sx={{
-                          py: 1,
-                          borderRight: '1px solid #ccc',
-                          borderBottom: index === invalidQty.length - 1 && 'none'
-                        }}
-                      >
-                        {item?.batch_no}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          py: 1,
-                          borderRight: '1px solid #ccc',
-                          borderBottom: index === invalidQty.length - 1 && 'none'
-                        }}
-                      >
-                        {item?.quantityAvailable}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          py: 1,
-                          borderRight: '1px solid #ccc',
-                          borderBottom: index === invalidQty.length - 1 && 'none'
-                        }}
-                      >
-                        {item?.qty}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </Table>
-              </>
-            }
-          /> */}
-
-          {/* {batchItems.length > 0 ? (
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label='simple table'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Batch</TableCell>
-                    <TableCell align='center'>Expiring</TableCell>
-                    <TableCell align='center'>Quantity Available</TableCell>
-                    <TableCell align='center'>Enter Quantity</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {batchItems?.map((row, index) => (
-                    <TableRow
-                      key={`batch_central_${index}`}
-                      sx={{
-                        '&:last-of-type td, &:last-of-type th': {
-                          border: 0
-                        }
-                      }}
-                    >
-                      <TableCell component='th' scope='row'>
-                        {row.batch_no}
-                      </TableCell>
-                      <TableCell align='center'>{row.expiry_date}</TableCell>
-                      <TableCell align='center'>{row.qty}</TableCell>
-                      <TableCell align='center'>
-                        <TextField
-                          size='small'
-                          name={`batch_central_${index}`}
-                          error={rowErrors[`batch_central_${index}`]?.status}
-                          onChange={e => {
-                            console.log(e.target.value)
-                            handleQuantityChange(e.target.value, row, `batch_central_${index}`)
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          ) : (
-            <CardContent>Medicine Not Available in central store.</CardContent>
-          )} */}
-          {/* <CardContent>
-            <div>
-              <StyledText onClick={toggleLocalTable}>Show stock in other stores</StyledText>
-            </div>
-          </CardContent>
-          {isLocalTableVisible ? (
-            <>
-              {localBatchItems.length > 0 ? (
-                <TableContainer component={Paper}>
-                  <Table sx={{ minWidth: 650 }} aria-label='simple table'>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Store</TableCell>
-                        <TableCell>Batch</TableCell>
-                        <TableCell align='center'>Expiring</TableCell>
-                        <TableCell align='center'>Quantity Available</TableCell>
-                        <TableCell align='center'>Enter Quantity</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {localBatchItems?.map((row, index) => (
-                        <TableRow
-                          key={`batch_local_${index}`}
-                          sx={{
-                            '&:last-of-type td, &:last-of-type th': {
-                              border: 0
-                            }
-                          }}
-                        >
-                          <TableCell component='th' scope='row'>
-                            {row.store_name}
-                          </TableCell>
-                          <TableCell component='th' scope='row'>
-                            {row.batch_no}
-                          </TableCell>
-                          <TableCell align='center'>{row.expiry_date}</TableCell>
-                          <TableCell align='center'>{row.qty}</TableCell>
-                          <TableCell align='center'>
-                            <TextField
-                              size='small'
-                              name={`batch_local_${index}`}
-                              error={rowErrors[`batch_local_${index}`]?.status}
-                              onChange={e => {
-                                console.log(e.target.value)
-                                handleQuantityChange(e.target.value, row, `batch_local_${index}`)
-                              }}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <CardContent>Medicine Not Available in other stores.</CardContent>
-              )}
-            </>
-          ) : null} */}
         </>
       )}
     </>

@@ -19,8 +19,6 @@ const MonthlyPurchaseChart = () => {
     try {
       const result = await getMonthWisePurchaseList()
 
-      console.log('getMonthWisePurchaseList', result)
-
       if (result?.success === true && result?.data) {
         setPurchaseList(result?.data)
       }

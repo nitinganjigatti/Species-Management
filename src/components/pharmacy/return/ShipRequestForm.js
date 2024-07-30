@@ -46,8 +46,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  debugger
-  console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -111,24 +109,16 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-  {
-    console.log('dispatchedItems', dispatchedItems)
-  }
 
   const router = useRouter()
   const { id, action } = router.query
 
   const shipRequest = async payload => {
-    console.log(JSON.stringify(payload))
-
     try {
       setSubmitLoader(true)
 
-      console.log(JSON.stringify(payload))
-
       const response = await shipRequestedItems(payload)
 
-      debugger
       if (response?.success) {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
@@ -180,8 +170,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
       payload.push(payloadItem)
     })
-
-    // console.log('payload', payload)
 
     shipRequest(payload)
   }
@@ -371,11 +359,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       width={'100%'}
                       date={date}
                       value={date}
+                      maxDate={new Date()}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
                       placeholderText={'Shipment Date*'}
                       onChangeHandler={date => {
-                        console.log(date)
                         setDate(date)
                       }}
                       customInput={<CustomInput label='Shipment Date*' auto />}

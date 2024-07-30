@@ -80,8 +80,9 @@ const RecipeList = () => {
           console.log('response', res)
 
           // Generate uid field based on the index
+          const startingIndex = paginationModel.page * paginationModel.pageSize
           let listWithId = res.data.result.map((el, i) => {
-            return { ...el, uid: i + 1 }
+            return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
@@ -201,7 +202,7 @@ const RecipeList = () => {
       field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
       )
@@ -257,7 +258,7 @@ const RecipeList = () => {
       field: 'ingredient_name',
       headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           <Tooltip
             title={
               params.row.ingredients && params.row.ingredients.length > 0

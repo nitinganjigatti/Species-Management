@@ -59,11 +59,18 @@ const StockOut = () => {
         }
 
         await getStockOutItems({ params: params }).then(res => {
-          setTotal(parseInt(res?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.list_items))
+          if (res?.list_items.length > 0) {
+            setTotal(parseInt(res?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.list_items))
+          } else {
+            setTotal(0)
+            setRows([])
+          }
         })
         setLoading(false)
       } catch (error) {
+        setTotal(0)
+        setRows([])
         console.log('error', error)
         setLoading(false)
       }

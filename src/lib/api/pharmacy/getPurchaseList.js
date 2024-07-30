@@ -53,7 +53,6 @@ export async function updatePurchase(id, payload) {
 }
 
 export async function getBatchExpiry(params) {
-  debugger
   const response = await axiosGet({ url: `${CHECK_BATCH}`, params, pharmacy: true })
 
   return response.data

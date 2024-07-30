@@ -21,8 +21,6 @@ const MonthlyDispatchChart = () => {
     try {
       const result = await getMonthWiseDispatchList()
 
-      console.log('getMonthWiseDispatchList', result)
-
       if (result?.success === true && result?.data) {
         setDispatchList(result?.data)
       }

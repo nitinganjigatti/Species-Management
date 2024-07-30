@@ -25,7 +25,7 @@ const DietDetailCard = ({ dietDetails }) => {
   const router = useRouter()
   const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
-
+  const [loading, setLoading] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [activitySearchValue, setActivitySearchValue] = useState('')
 
@@ -70,13 +70,16 @@ const DietDetailCard = ({ dietDetails }) => {
   }, [dietDetails])
 
   const confirmDeleteAction = async () => {
+    setLoading(true)
     try {
       const response = await deleteDiet(dietDetails?.id)
       if (response.success === true) {
         setDeleteDialogBox(false)
+        setLoading(false)
         Toaster({ type: 'success', message: response?.message })
         Router.push('/diet/diet')
       } else {
+        setLoading(false)
         setDeleteDialogBox(false)
         Toaster({ type: 'error', message: response.message })
       }
@@ -315,6 +318,7 @@ const DietDetailCard = ({ dietDetails }) => {
           onClose={handleCloseDetele}
           ConfirmationText={'Delete'}
           confirmAction={confirmDeleteAction}
+          loading={loading}
         />
 
         {/* ////it is for status change /////////*/}

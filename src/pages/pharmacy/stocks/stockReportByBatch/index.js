@@ -67,7 +67,6 @@ const ListOfStocksByBatch = () => {
           limit: paginationModel.pageSize
         }
         const result = await getStocksByBatch(id, params)
-        console.log('result', result)
         if (result?.data?.length === 0) {
           toast.success('There is no stock for this store')
         }
@@ -82,9 +81,13 @@ const ListOfStocksByBatch = () => {
           setStockReport(loadServerRows(paginationModel.page, listWithId))
           setLoading(false)
         } else {
+          setTotal(0)
+          setStockReport([])
           setLoading(false)
         }
       } catch (error) {
+        setTotal(0)
+        setStockReport([])
         console.log('error', error)
         setLoading(false)
       }
