@@ -279,7 +279,8 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={'species_image'} sx={{ height: 'auto', p: 2 }} />
+          {/* <ImageLightbox images={params.row.species_image} /> */}
+          <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} />
           {/* <Tooltip title={params.row.image_type} placement='right'> */}
           {/* <Typography
               variant='body2'

@@ -1,10 +1,25 @@
 import React from 'react'
-import { Box } from '@mui/material'
+import { Avatar, Box } from '@mui/material'
 import { SlideshowLightbox } from 'lightbox.js-react'
 import 'lightbox.js-react/dist/index.css'
 
 const ImageLightbox = ({ images }) => {
+  // Handle both objects and direct URLs
   const imageArray = Array.isArray(images) ? images : [images]
+
+  const formattedImages = imageArray.map(image => {
+    if (typeof image === 'string') {
+      // If the image is a direct URL
+      return { attachment: image, attachment_name: '' }
+    } else {
+      // If the image is an object with properties
+      return {
+        attachment: image?.attachment,
+        attachment_name: image?.attachment_name
+      }
+    }
+  })
+
   return (
     <Box
       sx={{
@@ -13,12 +28,11 @@ const ImageLightbox = ({ images }) => {
       }}
     >
       <SlideshowLightbox theme='lightbox'>
-        {imageArray.map((image, index) => (
+        {formattedImages.map((image, index) => (
           <img
             key={index}
-            className='w-full rounded'
             src={image.attachment}
-            alt={image.attachment_name}
+            alt={image.attachment_name || ' '}
             style={{ cursor: 'pointer', margin: '5px', width: '40px', height: 'auto' }}
           />
         ))}
@@ -28,6 +42,38 @@ const ImageLightbox = ({ images }) => {
 }
 
 export default ImageLightbox
+
+// import React from 'react'
+// import { Box } from '@mui/material'
+// import { SlideshowLightbox } from 'lightbox.js-react'
+// import 'lightbox.js-react/dist/index.css'
+
+// const ImageLightbox = ({ images }) => {
+//   console.log(images, '...')
+//   const imageArray = Array.isArray(images) ? images : [images]
+//   return (
+//     <Box
+//       sx={{
+//         display: 'flex',
+//         flexWrap: 'wrap'
+//       }}
+//     >
+//       <SlideshowLightbox theme='lightbox'>
+//         {imageArray.map((image, index) => (
+//           <img
+//             key={index}
+//             className='w-full rounded'
+//             src={image?.attachment}
+//             alt={image?.attachment_name}
+//             style={{ cursor: 'pointer', margin: '5px', width: '40px', height: 'auto' }}
+//           />
+//         ))}
+//       </SlideshowLightbox>
+//     </Box>
+//   )
+// }
+
+// export default ImageLightbox
 
 // import React from 'react'
 // import { Gallery, Item } from 'react-photoswipe-gallery'
