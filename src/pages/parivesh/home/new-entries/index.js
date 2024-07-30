@@ -48,6 +48,7 @@ import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
 import Image from 'next/image'
 import { display } from '@mui/system'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -269,7 +270,7 @@ const NewEntry = ({}) => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 30,
       field: 'species_image',
       headerName: 'IMAGE',
@@ -279,8 +280,11 @@ const NewEntry = ({}) => {
           {/* <Box className='relative h-20'>
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
+          <div onClick={event => event.stopPropagation()}>
+            {/* <ImageLightbox images={params.row.species_image} /> */}
 
-          <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} />
+            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} />
+          </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
