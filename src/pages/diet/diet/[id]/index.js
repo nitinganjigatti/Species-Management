@@ -342,7 +342,7 @@ const DietDetail = () => {
                                             border: 'none',
                                             backgroundColor: '#C1D3D099',
                                             height: '40px',
-                                            width: '127px',
+                                            width: '133px',
                                             borderRight: '1px solid #C3CEC7',
                                             textAlign: 'center'
                                           }}
@@ -354,7 +354,7 @@ const DietDetail = () => {
                                             border: 'none',
                                             backgroundColor: '#C1D3D099',
                                             height: '40px',
-                                            width: '127px',
+                                            width: '133px',
                                             borderRight: '1px solid #C3CEC7',
                                             textAlign: 'center'
                                           }}
@@ -366,7 +366,7 @@ const DietDetail = () => {
                                             border: 'none',
                                             backgroundColor: '#C1D3D099',
                                             height: '40px',
-                                            width: '127px',
+                                            width: '133px',
                                             borderRight: '1px solid #C3CEC7',
                                             textAlign: 'center'
                                           }}

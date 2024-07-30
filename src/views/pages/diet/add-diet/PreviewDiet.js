@@ -590,58 +590,58 @@ const StepPreviewDiet = ({
 
   console.log(screenSize.width, 'pppp')
 
-  useEffect(() => {
-    const mediaElements = document.getElementsByClassName('cellmodule')
-    for (const mediaElement of mediaElements) {
-      if (screenSize.width === 1821) {
-        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-          mediaElement.style.width = '580px'
-        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '850px'
-        } else if (formData?.child?.length === 2) {
-          mediaElement.style.width = '660px'
-        } else if (formData?.child?.length > 2) {
-          mediaElement.style.width = '510px'
-        } else {
-          mediaElement.style.width = '566px'
-        }
-      } else if (screenSize.width === 1619) {
-        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-          mediaElement.style.width = '580px'
-        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '790px'
-        } else if (formData?.child?.length === 2) {
-          mediaElement.style.width = '605px'
-        } else if (formData?.child?.length > 2) {
-          mediaElement.style.width = '510px'
-        } else {
-          mediaElement.style.width = '500px'
-        }
-      } else if (screenSize.width === 1457) {
-        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-          mediaElement.style.width = '580px'
-        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '680px'
-        } else if (formData?.child?.length == 2) {
-          mediaElement.style.width = '518px'
-        } else if (formData?.child?.length > 2) {
-          mediaElement.style.width = '500px'
-        } else {
-          mediaElement.style.width = '500px'
-        }
-      } else if (screenSize.width === 1943) {
-        if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-          mediaElement.style.width = '580px'
-        } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-          mediaElement.style.width = '860px'
-        } else if (formData?.child?.length > 1) {
-          mediaElement.style.width = '665px'
-        } else {
-          mediaElement.style.width = '568px'
-        }
-      }
-    }
-  }, [screenSize.width])
+  // useEffect(() => {
+  //   const mediaElements = document.getElementsByClassName('cellmodule')
+  //   for (const mediaElement of mediaElements) {
+  //     if (screenSize.width === 1821) {
+  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+  //         mediaElement.style.width = '580px'
+  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+  //         mediaElement.style.width = '850px'
+  //       } else if (formData?.child?.length === 2) {
+  //         mediaElement.style.width = '660px'
+  //       } else if (formData?.child?.length > 2) {
+  //         mediaElement.style.width = '510px'
+  //       } else {
+  //         mediaElement.style.width = '566px'
+  //       }
+  //     } else if (screenSize.width === 1619) {
+  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+  //         mediaElement.style.width = '580px'
+  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+  //         mediaElement.style.width = '790px'
+  //       } else if (formData?.child?.length === 2) {
+  //         mediaElement.style.width = '605px'
+  //       } else if (formData?.child?.length > 2) {
+  //         mediaElement.style.width = '510px'
+  //       } else {
+  //         mediaElement.style.width = '500px'
+  //       }
+  //     } else if (screenSize.width === 1457) {
+  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+  //         mediaElement.style.width = '580px'
+  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+  //         mediaElement.style.width = '680px'
+  //       } else if (formData?.child?.length == 2) {
+  //         mediaElement.style.width = '518px'
+  //       } else if (formData?.child?.length > 2) {
+  //         mediaElement.style.width = '500px'
+  //       } else {
+  //         mediaElement.style.width = '500px'
+  //       }
+  //     } else if (screenSize.width === 1943) {
+  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
+  //         mediaElement.style.width = '580px'
+  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
+  //         mediaElement.style.width = '860px'
+  //       } else if (formData?.child?.length > 1) {
+  //         mediaElement.style.width = '665px'
+  //       } else {
+  //         mediaElement.style.width = '568px'
+  //       }
+  //     }
+  //   }
+  // }, [screenSize.width])
 
   useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
@@ -1017,7 +1017,7 @@ const StepPreviewDiet = ({
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
-                                width: '127px',
+                                width: '141px',
                                 borderRight: '1px solid #C3CEC7',
                                 textAlign: 'center'
                               }}
@@ -1029,7 +1029,7 @@ const StepPreviewDiet = ({
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
-                                width: '127px',
+                                width: '141px',
                                 borderRight: '1px solid #C3CEC7',
                                 textAlign: 'center'
                               }}
@@ -1041,7 +1041,7 @@ const StepPreviewDiet = ({
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
-                                width: '127px',
+                                width: '141px',
                                 borderRight: '1px solid #C3CEC7',
                                 textAlign: 'center'
                               }}
@@ -1311,19 +1311,29 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          width:
-                                            formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                              ? '580px'
-                                              : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '680px'
-                                              : formData?.child?.length === 2
-                                              ? '518px'
-                                              : formData?.child?.length > 1
-                                              ? '500px'
-                                              : '500px',
+                                          // width:
+                                          //   formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                          //     ? '580px'
+                                          //     : formData?.child?.length === 1 || formData?.child?.length === 0
+                                          //     ? '680px'
+                                          //     : formData?.child?.length === 2
+                                          //     ? '518px'
+                                          //     : formData?.child?.length > 1
+                                          //     ? '500px'
+                                          //     : '500px',
                                           float: 'left'
                                         }}
-                                        className='cellmodule'
+                                        className={
+                                          formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                            ? 'cellmodule'
+                                            : formData?.child?.length === 1 || formData?.child?.length === 0
+                                            ? 'cellmodule1'
+                                            : formData?.child?.length === 2
+                                            ? 'cellmodule2'
+                                            : formData?.child?.length > 1
+                                            ? 'cellmodule3'
+                                            : 'cellmodule4'
+                                        }
                                       >
                                         <Box
                                           key={index}
@@ -1525,7 +1535,7 @@ const StepPreviewDiet = ({
                                       </TableCell>
                                       <TableCell
                                         style={{
-                                          paddingLeft: '8px',
+                                          paddingLeft: '0px',
                                           paddingRight: '8px',
                                           height: '10px',
                                           maxHeight: '100%',
@@ -1595,7 +1605,7 @@ const StepPreviewDiet = ({
                                             <TableCell
                                               key={index}
                                               style={{
-                                                paddingLeft: '8px',
+                                                paddingLeft: '0px',
                                                 paddingRight: '8px',
                                                 height: '10px',
                                                 maxHeight: '100%',
@@ -1712,19 +1722,29 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          width:
-                                            formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                              ? '580px'
-                                              : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '680px'
-                                              : formData?.child?.length === 2
-                                              ? '518px'
-                                              : formData?.child?.length > 1
-                                              ? '500px'
-                                              : '580px',
+                                          // width:
+                                          //   formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                          //     ? '580px'
+                                          //     : formData?.child?.length === 1 || formData?.child?.length === 0
+                                          //     ? '680px'
+                                          //     : formData?.child?.length === 2
+                                          //     ? '518px'
+                                          //     : formData?.child?.length > 1
+                                          //     ? '500px'
+                                          //     : '580px',
                                           float: 'left'
                                         }}
-                                        className='cellmodule'
+                                        className={
+                                          formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                            ? 'cellmodule'
+                                            : formData?.child?.length === 1 || formData?.child?.length === 0
+                                            ? 'cellmodule1'
+                                            : formData?.child?.length === 2
+                                            ? 'cellmodule2'
+                                            : formData?.child?.length > 1
+                                            ? 'cellmodule3'
+                                            : 'cellmodule4'
+                                        }
                                       >
                                         <Box
                                           key={index}
@@ -2157,19 +2177,29 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          width:
-                                            formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                              ? '580px'
-                                              : formData?.child?.length === 1 || formData?.child?.length === 0
-                                              ? '680px'
-                                              : formData?.child?.length === 2
-                                              ? '518px'
-                                              : formData?.child?.length > 1
-                                              ? '500px'
-                                              : '580px',
+                                          // width:
+                                          //   formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                          //     ? '580px'
+                                          //     : formData?.child?.length === 1 || formData?.child?.length === 0
+                                          //     ? '680px'
+                                          //     : formData?.child?.length === 2
+                                          //     ? '518px'
+                                          //     : formData?.child?.length > 1
+                                          //     ? '500px'
+                                          //     : '580px',
                                           float: 'left'
                                         }}
-                                        className='cellmodule'
+                                        className={
+                                          formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
+                                            ? 'cellmodule'
+                                            : formData?.child?.length === 1 || formData?.child?.length === 0
+                                            ? 'cellmodule1'
+                                            : formData?.child?.length === 2
+                                            ? 'cellmodule2'
+                                            : formData?.child?.length > 1
+                                            ? 'cellmodule3'
+                                            : 'cellmodule4'
+                                        }
                                       >
                                         <Box
                                           key={index}

@@ -29,3 +29,87 @@
     #000000 129.39%
   ); */
 }
+/* Small Mobile (Portrait) */
+@media (max-width: 320px) {
+  /* Styles for small mobile devices in portrait mode */
+}
+
+/* Mobile Devices (Portrait) */
+@media (max-width: 480px) {
+  /* Styles for mobile devices in portrait mode */
+}
+
+/* Tablets (Portrait) */
+@media (max-width: 768px) {
+  /* Styles for tablets in portrait mode */
+}
+
+/* Tablets (Landscape) */
+@media (max-width: 1024px) {
+  /* Styles for tablets in landscape mode */
+}
+
+/* Small Desktops */
+@media (max-width: 1200px) {
+  /* Styles for small desktops */
+}
+
+/* Large Desktops */
+@media (max-width: 1600px) {
+  /* Styles for large desktops */
+}
+
+/* Extra Large Screens */
+@media (max-width: 1920px) {
+  /* Styles for extra large screens */
+}
+
+/* Small Mobile (Portrait) */
+@media (min-width: 320px) {
+  /* Styles for small mobile devices in portrait mode */
+}
+
+/* Mobile Devices (Portrait) */
+@media (min-width: 480px) {
+  /* Styles for mobile devices in portrait mode */
+}
+
+/* Tablets (Portrait) */
+@media (min-width: 768px) {
+  /* Styles for tablets in portrait mode */
+}
+
+/* Tablets (Landscape) */
+@media (min-width: 1024px) {
+  /* Styles for tablets in landscape mode */
+  .cellmodule2 {
+    width: 583px !important;
+  }
+}
+
+/* Small Desktops */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  /* Styles for small desktops */
+  .cellmodule {
+    width: 785px !important;
+  }
+  .cellmodule2 {
+    width: 515px !important;
+  }
+}
+
+/* Large Desktops */
+@media (min-width: 1600px) and (max-width: 1920px) {
+  /* Styles for large desktops */
+  .cellmodule {
+    width: 782px !important;
+  }
+  .cellmodule2 {
+    width: 590px !important;
+  }
+}
+
+/* Extra Large Screens */
+@media (min-width: 1920px) {
+  /* Styles for extra large screens */
+}
