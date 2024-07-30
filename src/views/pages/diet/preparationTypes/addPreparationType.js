@@ -42,7 +42,6 @@ const AddPreparationType = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
 
-  // debugger
   console.log(editParams)
 
   const {
@@ -77,7 +76,6 @@ const AddPreparationType = props => {
       const response = await getPreparationTypeById(id)
       console.log('add state comp', response)
       if (response?.success) {
-        debugger
         console.log(response.data)
         reset({ label: response.data.label, status: response.data.status === 'active' ? 1 : 0 })
       } else {
@@ -93,7 +91,6 @@ const AddPreparationType = props => {
     }
 
     if (editParams?.id !== null) {
-      debugger
       getPreparationType(editParams?.id)
     }
   }, [resetForm, editParams, reset, getPreparationType])
@@ -108,7 +105,7 @@ const AddPreparationType = props => {
           variant='contained'
           loading={submitLoader}
         >
-          {editParams?.id !== null ? 'Edit' : 'Add'}
+          {editParams?.id !== null ? 'Update' : 'Add'}
         </LoadingButton>
       </Fragment>
     )
@@ -130,7 +127,7 @@ const AddPreparationType = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Preparation Type</Typography>
+        <Typography variant='h6'>{editParams?.id !== null ? 'Update' : 'Add'} Preparation Type</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={() => handleSidebarClose()} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
