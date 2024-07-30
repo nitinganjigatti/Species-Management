@@ -150,6 +150,14 @@ const AddLocalDispatch = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  useEffect(() => {
+    setEditParams({
+      ...editParams,
+      to_store_id: '',
+      to_store_type: ''
+    })
+  }, [selectedPharmacy.id])
+
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
 

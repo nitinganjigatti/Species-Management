@@ -7,7 +7,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
@@ -15,7 +15,10 @@ import { Box } from '@mui/material'
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
-
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -40,7 +43,16 @@ const ListOfStockAdjusted = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('Missing stock')
+  const [expandedText, setExpandedText] = useState('')
+  const [notesDialog, setNotesDialog] = useState(false)
 
+  const closeNotesDialog = () => {
+    setNotesDialog(false)
+    setExpandedText('')
+  }
+  const openNotesDialog = () => {
+    setNotesDialog(true)
+  }
   const handleChange = (event, newValue) => {
     setTotal(0)
     setSearchValue('')
@@ -205,9 +217,28 @@ const ListOfStockAdjusted = () => {
       field: 'comments',
       headerName: 'Comments',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.comments ? params?.row?.comments : 'NA'}
-        </Typography>
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.comments}>
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+            }}
+            onClick={() => {
+              if (params.row?.comments) {
+                setExpandedText(params.row.comments)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.comments || 'NA'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -342,25 +373,48 @@ const ListOfStockAdjusted = () => {
         loader ? (
           <FallbackSpinner />
         ) : (
-          <TabContext value={status}>
-            <TabList onChange={handleChange}>
-              <Tab
-                value='Missing stock'
-                label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
-              />
+          <>
+            <TabContext value={status}>
+              <TabList onChange={handleChange}>
+                <Tab
+                  value='Missing stock'
+                  label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
+                />
 
-              <Tab value='Expiry' label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />} />
+                <Tab
+                  value='Expiry'
+                  label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />}
+                />
 
-              <Tab
-                value='Broken at pharmacy'
-                label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
-              />
-            </TabList>
-            <TabPanel value='Missing stock'>{tableData()}</TabPanel>
-            <TabPanel value='Expiry'>{tableData()}</TabPanel>
+                <Tab
+                  value='Broken at pharmacy'
+                  label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
+                />
+              </TabList>
+              <TabPanel value='Missing stock'>{tableData()}</TabPanel>
+              <TabPanel value='Expiry'>{tableData()}</TabPanel>
 
-            <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
-          </TabContext>
+              <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
+            </TabContext>
+            <ConfirmDialogBox
+              open={notesDialog}
+              closeDialog={() => {
+                closeNotesDialog()
+              }}
+              action={() => {
+                closeNotesDialog()
+              }}
+              content={
+                <Box>
+                  <>
+                    <DialogContent>
+                      <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
+                    </DialogContent>
+                  </>
+                </Box>
+              }
+            />
+          </>
         )
       ) : (
         <Error404 />
