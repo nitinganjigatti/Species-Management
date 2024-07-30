@@ -130,8 +130,7 @@ const EggList = () => {
 
   const columns = [
     {
-      flex: 0.02,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       align: 'center',
@@ -150,12 +149,11 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 60,
+      width: 200,
+      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
-
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
@@ -181,6 +179,7 @@ const EggList = () => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
+              width: '70%',
               alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
               gap: '4px'
             }}
@@ -238,12 +237,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.15,
-      minWidth: 10,
+      width: 160,
       field: 'egg_number',
       sortable: false,
       headerName: 'EGG NUMBER',
-      align: 'center',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -299,12 +296,10 @@ const EggList = () => {
     },
 
     {
-      flex: 0.15,
-      minWidth: 10,
+      width: 160,
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -321,12 +316,10 @@ const EggList = () => {
     },
 
     // {
-    //   flex: 0.15,
-    //   minWidth: 20,
+    // width: 140,
     //   sortable: false,
     //   field: 'lay_date',
     //   headerName: 'Lay Date',
-    //   align: 'center',
     //   renderCell: params => (
     //     <Typography
     //       sx={{
@@ -344,8 +337,7 @@ const EggList = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       sortable: false,
       field: 'nursery_name',
       headerName: 'Nursery',
@@ -364,8 +356,7 @@ const EggList = () => {
     },
 
     // {
-    //   flex: 0.35,
-    //   minWidth: 20,
+    //  width: 140,
     //   sortable: false,
     //   field: 'discard_status',
     //   headerName: 'DISCARD STATUS',
@@ -384,12 +375,10 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.16,
-      minWidth: 10,
+      width: 150,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -408,8 +397,7 @@ const EggList = () => {
     },
 
     // {
-    //   flex: 0.24,
-    //   minWidth: 20,
+    //   width: 140,
     //   sortable: false,
     //   field: 'batch_no',
     //   headerName: 'BATCH NO',
@@ -428,8 +416,7 @@ const EggList = () => {
     // },
 
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 270,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
@@ -520,8 +507,7 @@ const EggList = () => {
 
   const hatchedColumn = [
     {
-      flex: 0.02,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       align: 'center',
@@ -540,8 +526,7 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 60,
+      width: 240,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -571,6 +556,7 @@ const EggList = () => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
+              width: '70%',
               alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
               gap: '4px'
             }}
@@ -586,7 +572,8 @@ const EggList = () => {
                       lineHeight: '19.36px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      width: '100%'
                     }}
                   >
                     {params.row.default_common_name}
@@ -628,12 +615,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.15,
-      minWidth: 10,
+      width: 140,
       field: 'egg_number',
       sortable: false,
       headerName: 'EGG NUMBER',
-      align: 'center',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -688,12 +673,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 160,
       field: 'animal_id',
       sortable: false,
       headerName: 'Animal Id',
-
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {params.row.animal_id ? (
@@ -731,8 +714,7 @@ const EggList = () => {
     },
 
     // {
-    //   flex: 0.15,
-    //   minWidth: 10,
+    //   width: 10,
     //   sortable: false,
     //   field: 'site',
     //   headerName: 'SITE NAME',
@@ -752,8 +734,7 @@ const EggList = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 170,
       sortable: false,
       field: 'nursery_name',
       headerName: 'Nursery',
@@ -771,12 +752,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.16,
-      minWidth: 10,
+      width: 160,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -794,8 +773,7 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 200,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
@@ -1324,8 +1302,7 @@ const EggList = () => {
 
   const discarded_Egg_Columns = [
     {
-      flex: 0.02,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       align: 'center',
@@ -1344,12 +1321,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 60,
+      width: 200,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
-
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
@@ -1358,7 +1333,6 @@ const EggList = () => {
             sx={{
               width: 35,
               height: 35,
-
               borderRadius: '50%',
               background: '#E8F4F2',
               overflow: 'hidden'
@@ -1375,6 +1349,7 @@ const EggList = () => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
+              width: '80%',
               alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
               gap: '4px'
             }}
@@ -1390,7 +1365,8 @@ const EggList = () => {
                       lineHeight: '19.36px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      width: '100%'
                     }}
                   >
                     {params.row.default_common_name}
@@ -1432,12 +1408,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.15,
-      minWidth: 10,
+      width: 160,
       field: 'egg_number',
       sortable: false,
       headerName: 'EGG NUMBER',
-      align: 'center',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -1492,12 +1466,10 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.16,
-      minWidth: 10,
+      width: 160,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -1514,8 +1486,7 @@ const EggList = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       sortable: false,
       field: 'sample_taken',
       headerName: 'Sample Taken',
@@ -1548,8 +1519,7 @@ const EggList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 170,
       sortable: false,
       field: 'necropsy_report',
       headerName: 'NECROPSY REPORT',
@@ -1581,8 +1551,7 @@ const EggList = () => {
     },
 
     {
-      flex: 0.25,
-      minWidth: 20,
+      width: 200,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
