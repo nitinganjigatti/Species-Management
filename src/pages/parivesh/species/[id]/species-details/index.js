@@ -24,6 +24,7 @@ import toast from 'react-hot-toast'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -94,12 +95,10 @@ const SpeciesDetails = () => {
       sortable: false,
       renderCell: params => (
         <>
-          <Avatar
-            variant='square'
-            src={params.row.species_image}
-            alt={'species image'}
-            sx={{ height: 'auto', padding: '2px' }}
-          />
+          <div onClick={event => event.stopPropagation()}>
+            {/* <ImageLightbox images={params.row.species_image} /> */}
+            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} />
+          </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography

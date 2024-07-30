@@ -125,10 +125,10 @@ const EggComment = ({ eggDetails, eggId }) => {
     const diffInHours = now.diff(date, 'hours')
 
     if (now.isSame(date, 'day')) {
-      if (diffInSeconds < 1) {
+      if (diffInSeconds < 60) {
         return `Just now`
-      } else if (diffInSeconds < 60) {
-        return `${diffInSeconds} Second${diffInSeconds !== 1 ? 's' : ''} ago`
+        // } else if (diffInSeconds < 60) {
+        //   return `${diffInSeconds} Second${diffInSeconds !== 1 ? 's' : ''} ago`
       } else if (diffInMinutes < 60) {
         return `${diffInMinutes} Min${diffInMinutes !== 1 ? 's' : ''} ago`
       } else {

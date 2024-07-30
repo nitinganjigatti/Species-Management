@@ -437,7 +437,7 @@ const StepPreviewDiet = ({
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
-                  return meal.meal_value_header === parseFloat(headertype)
+                  return parseFloat(meal.meal_value_header) === parseFloat(headertype)
                 }
               })
               console.log(existingMealTypeIndex, 'existingMealTypeIndex')
@@ -511,7 +511,7 @@ const StepPreviewDiet = ({
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
-                  return meal.meal_value_header === parseFloat(headertype)
+                  return parseFloat(meal.meal_value_header) === parseFloat(headertype)
                 }
               })
               if (existingMealTypeIndex !== -1) {
@@ -733,13 +733,15 @@ const StepPreviewDiet = ({
     console.log(getValues())
     return (
       <Dialog
+        className='raghu'
         open={open}
         onClose={handleClosed}
         aria-labelledby='customized-dialog-title'
         sx={{
           '& .MuiDialog-paper': {
             overflow: 'visible',
-            width: 500
+            width: 500,
+            boxShadow: 'none'
           },
           '& .MuiBackdrop-root': {
             backgroundColor: id ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.3)'
@@ -774,6 +776,7 @@ const StepPreviewDiet = ({
                       name='quantity'
                       onChange={onChange}
                       defaultValue={initialValues.quantity}
+                      autoFocus={true}
                     />
                   )}
                 />
@@ -1233,8 +1236,7 @@ const StepPreviewDiet = ({
                                   //flexDirection: 'column',
                                   justifyContent: 'center',
                                   alignItems: 'center',
-                                  overflow: 'hidden',
-                                  position: 'sticky'
+                                  overflow: 'hidden'
                                 }}
                                 component='th'
                                 scope='row'
@@ -1799,6 +1801,37 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )}
+                                                {item?.ingredients?.length > 0 &&
+                                                  item?.ingredients.map((name, index) => (
+                                                    <Box
+                                                      key={index}
+                                                      sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        marginRight: '10px',
+                                                        backgroundColor: '#00D6C933',
+                                                        m: 1,
+                                                        borderRadius: '16px',
+                                                        px: '10px',
+                                                        gap: '8px'
+                                                      }}
+                                                    >
+                                                      {name?.ingredient_name}
+                                                      <Typography
+                                                        component='span'
+                                                        sx={{
+                                                          fontWeight: 'bold',
+                                                          marginLeft: '2px',
+                                                          fontSize: '14px',
+                                                          lineHeight: '1.7rem'
+                                                        }}
+                                                      >
+                                                        {parseFloat(name?.quantity)}
+                                                        {''}
+                                                        {name?.quantity_type === 'percentage' ? '%' : ''}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
 
                                               {item?.recipe?.length > 0 && (

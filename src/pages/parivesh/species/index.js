@@ -27,6 +27,7 @@ import Router from 'next/router'
 import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
 import { usePariveshContext } from 'src/context/PariveshContext'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 // import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesList = () => {
@@ -190,7 +191,10 @@ const SpeciesList = () => {
         sortable: false,
         renderCell: params => (
           <>
-            <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
+            <div onClick={event => event.stopPropagation()}>
+              {/* <ImageLightbox images={params.row.species_image} /> */}
+              <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} />
+            </div>
           </>
         )
       },

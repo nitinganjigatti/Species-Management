@@ -45,6 +45,7 @@ import xlsIcon from 'public/icons/xls_icon.svg'
 import docIcon from 'public/icons/doc_icon.svg'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -278,7 +279,8 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={'species_image'} sx={{ height: 'auto', p: 2 }} />
+          {/* <ImageLightbox images={params.row.species_image} /> */}
+          <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} />
           {/* <Tooltip title={params.row.image_type} placement='right'> */}
           {/* <Typography
               variant='body2'
@@ -444,7 +446,7 @@ const BatchDetails = ({ params, searchParams }) => {
               columns={columns}
               sortingMode='server'
               paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[total]}
               paginationModel={paginationModel}
               // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
@@ -795,16 +797,19 @@ const BatchDetails = ({ params, searchParams }) => {
                       }}
                     >
                       {isImage(filePreview.attachment) ? (
-                        <img
-                          style={{
-                            height: '100%',
-                            borderRadius: '5%',
-                            objectFit: 'cover',
-                            width: '100%'
-                          }}
-                          alt='Attachment'
-                          src={filePreview.attachment}
-                        />
+                        // <img
+                        //   style={{
+                        //     height: '100%',
+                        //     borderRadius: '5%',
+                        //     objectFit: 'cover',
+                        //     width: '100%'
+                        //   }}
+                        //   alt='Attachment'
+                        //   src={filePreview.attachment}
+                        // />
+                        <Box>
+                          <ImageLightbox images={filePreview} />
+                        </Box>
                       ) : (
                         <a
                           href={filePreview.attachment}

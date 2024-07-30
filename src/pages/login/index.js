@@ -164,7 +164,7 @@ const LoginPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        backgroundImage: 'url(/images/frog_img.svg)',
+        backgroundImage: 'url(/images/frog_img.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'bottom',
         padding: '1.25rem'

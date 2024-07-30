@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
-import welcomeToAntz from 'public/images/welcome_antz.png'
+import welcomeToAntz from 'public/images/intro_antz_all.jpg'
 
 function Dashboard() {
   return (

@@ -29,7 +29,7 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import * as yup from 'yup'
 
-const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
+const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues, getDetails }) => {
   // const [nurseryName, setNurseryName] = useState([])
   // const [roomName, setRoomName] = useState([])
   const [incubatorList, setIncubatorList] = useState([])
@@ -235,7 +235,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       const response = await AddAllocation(params)
       if (response.success) {
         Toaster({ type: 'success', message: response.message })
-
+        if (getDetails) {
+          getDetails(allocateEggId)
+        }
         if (callApi) {
           callApi('')
         }
@@ -243,12 +245,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         setOpenDrawer(false)
       } else {
         Toaster({ type: 'error', message: response.message })
-        setLoader(true)
+        setLoader(false)
       }
     } catch (error) {
       console.error('Error while adding', error)
       Toaster({ type: 'error', message: 'An error occurred while adding' })
-      setLoader(true)
+      setLoader(false)
     }
   }
 

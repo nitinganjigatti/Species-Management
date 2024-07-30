@@ -16,7 +16,6 @@ import Toaster from 'src/components/Toaster'
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
-import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import { addNewDiet, getDietDetails, updateDiet } from 'src/lib/api/diet/dietList'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -352,7 +351,10 @@ const AddDiet = () => {
         deleteCookie('dietTypeChildVal')
         return Toaster({ type: 'success', message: apival.message })
       } else {
-        return Toaster({ type: 'error', message: apival.message })
+        return Toaster({
+          type: 'error',
+          message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     } else if (id && urlType === 'copy') {
       const numericFormData = {
@@ -409,7 +411,10 @@ const AddDiet = () => {
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
-        return Toaster({ type: 'error', message: apival.message })
+        return Toaster({
+          type: 'error',
+          message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     } else {
       // Omitting child field from formData
@@ -479,7 +484,10 @@ const AddDiet = () => {
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
-        return Toaster({ type: 'error', message: apival.message })
+        return Toaster({
+          type: 'error',
+          message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     }
   }
