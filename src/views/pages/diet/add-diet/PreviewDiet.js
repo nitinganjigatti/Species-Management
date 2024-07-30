@@ -1324,15 +1324,21 @@ const StepPreviewDiet = ({
                                           float: 'left'
                                         }}
                                         className={
-                                          formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                            ? 'cellmodule'
-                                            : formData?.child?.length === 1 || formData?.child?.length === 0
-                                            ? 'cellmodule1'
-                                            : formData?.child?.length === 2
-                                            ? 'cellmodule2'
-                                            : formData?.child?.length > 1
-                                            ? 'cellmodule3'
-                                            : 'cellmodule4'
+                                          formData?.diet_type_name === 'By Weight'
+                                            ? formData?.child?.length === 1
+                                              ? 'cellmodule'
+                                              : formData?.child?.length === 0
+                                              ? 'cellmodule1'
+                                              : formData?.child?.length === 2
+                                              ? 'cellmodule2'
+                                              : formData?.child?.length > 2
+                                              ? 'cellmodule3'
+                                              : 'cellmodule4'
+                                            : formData?.diet_type_name === 'By Gender'
+                                            ? formData?.child?.length === 2
+                                              ? 'cellmodule5'
+                                              : 'cellmodule9' // Default class if length is not covered by the other conditions
+                                            : 'cellmodule9' // Default class if diet_type_name is neither 'By Weight' nor 'By Gender'
                                         }
                                       >
                                         <Box
