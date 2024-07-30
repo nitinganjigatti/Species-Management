@@ -446,9 +446,11 @@ export const AddItemsForm = ({
                 </Box>
               )}
             </FormControl>
-            <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
-              {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
-            </Typography>
+            {watch('packageDetails') && (
+              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
+              </Typography>
+            )}
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>

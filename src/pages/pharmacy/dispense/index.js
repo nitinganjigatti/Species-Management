@@ -10,7 +10,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import moment from 'moment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-
+import Utility from 'src/utility'
 function Dispense() {
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('desc')
@@ -70,8 +70,8 @@ function Dispense() {
       headerName: 'created At',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* product count instead of */}
-          {moment(params.row.created_at).format('D MMM YYYY - h:mmA')}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
+          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.created_at))}
         </Typography>
       )
     },
