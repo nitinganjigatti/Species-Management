@@ -49,6 +49,8 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 import moment from 'moment'
+import { AuthContext } from 'src/context/AuthContext'
+import { useContext } from 'react'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -131,6 +133,7 @@ const AddPurchaseForm = () => {
   const { id, action } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -978,7 +981,7 @@ const AddPurchaseForm = () => {
           }
           title={id ? 'Edit Inventory List' : 'Add Inventory'}
         />
-        {selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD' ? (
+        {authData?.userData?.roles?.settings?.add_pharmacy && (
           <AddButton
             styles={{ marginRight: 20 }}
             title='Add Supplier'
@@ -986,7 +989,7 @@ const AddPurchaseForm = () => {
               setSupplierDialog(true)
             }}
           />
-        ) : null}
+        )}
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

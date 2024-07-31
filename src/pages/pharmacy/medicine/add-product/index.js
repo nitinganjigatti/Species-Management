@@ -1893,27 +1893,30 @@ const AddMedicine = () => {
                               >
                                 Submit
                               </LoadingButton>
-                              <Button
-                                onClick={() => {
-                                  reset(defaultValues)
-                                  setDefaultManufacturer(null)
-                                  setDefaultGenericName(null)
-                                  setDefaultPackage(null)
-                                  setDefaultUom(null)
-                                  setDefaultProductForm(null)
-                                  setDefaultSaltName(null)
-                                  setDefaultDrugClass(null)
-                                  setDefaultStorage(null)
-                                  setDefaultSalts([])
-                                  setShouldClearFields(false)
-                                  setFiles([])
-                                  setUploadedImage(null)
-                                }}
-                                size='large'
-                                variant='outlined'
-                              >
-                                Reset
-                              </Button>
+
+                              {id === undefined && action !== 'edit' && (
+                                <Button
+                                  onClick={() => {
+                                    reset(defaultValues)
+                                    setDefaultManufacturer(null)
+                                    setDefaultGenericName(null)
+                                    setDefaultPackage(null)
+                                    setDefaultUom(null)
+                                    setDefaultProductForm(null)
+                                    setDefaultSaltName(null)
+                                    setDefaultDrugClass(null)
+                                    setDefaultStorage(null)
+                                    setDefaultSalts([])
+                                    setShouldClearFields(false)
+                                    setFiles([])
+                                    setUploadedImage(null)
+                                  }}
+                                  size='large'
+                                  variant='outlined'
+                                >
+                                  Reset
+                                </Button>
+                              )}
                             </Box>
 
                             {/* {id === undefined && (
