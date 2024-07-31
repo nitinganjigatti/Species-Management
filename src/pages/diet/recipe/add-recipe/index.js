@@ -190,6 +190,13 @@ const AddRecipe = () => {
           ...prevData,
           ...updatedData
         }))
+
+        const ingredientList = data.by_percentage.map(item => ({
+          id: item.ingredient_id,
+          ingredient_name: item.ingredient_name
+        }))
+        console.log(ingredientList, 'ingredientList')
+        setFullIngredientList(ingredientList)
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -376,6 +383,7 @@ const AddRecipe = () => {
             formData={formData}
             uomList={uomList}
             fullIngredientList={fullIngredientList}
+            setFullIngredientList={setFullIngredientList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
           />

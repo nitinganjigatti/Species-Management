@@ -23,228 +23,226 @@
   border-color: #446f5470;
   border-image-slice: 1;
   border-radius: 15px;
-  background-color: rgb(0 109 53 / 11%);
+}
+.diet_val_container {
+  width: 125px;
+}
+.diet_val_cont {
+  width: 125px;
+}
+.diet_cell {
+  width: 121px;
+}
+.diet_gender {
+  width: 121px;
+}
+.cellmodule4 {
+  width: 580px;
+}
+.cell_gend {
+  width: 580px;
+}
+.cell_dimn {
+  width: 580px;
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cellmodule5 {
+    width: 515px !important;
+  }
+  .cellmodule6 {
+    width: 550px !important;
+  }
+  .cellmodule7 {
+    width: 510px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .diet_val_container {
+    width: 125px;
+  }
+  .cell_dimn {
+    width: 586px;
+  }
+  .cell_gend {
+    width: 580px;
+  }
+  .diet_gender {
+    width: 121px;
+  }
 }
 
-.container {
-  position: relative;
-  height: 100vh;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 2%;
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .cellmodule2 {
+    width: 630px !important;
+  }
+  .cellmodule1 {
+    width: 866px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .cellmodule5 {
+    width: 517px !important;
+  }
+  .cellmodule6 {
+    width: 673px !important;
+  }
+  .cellmodule7 {
+    width: 512px !important;
+  }
+  .diet_val_container {
+    width: 122px;
+  }
+  .cell_dimn {
+    width: 705px;
+  }
+  .cell_gend {
+    width: 580px;
+  }
+  .diet_gender {
+    width: 121px;
+  }
 }
 
-.container::before {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
-  background-image: url('/images/login_new.png');
-  background-size: cover;
-  background-position: center;
-  filter: blur(8px);
-  z-index: -1;
+@media (min-width: 1200px) and (max-width: 1440px) {
+  .cellmodule {
+    width: 785px !important;
+  }
+  .cellmodule2 {
+    width: 515px !important;
+  }
+  .cellmodule1 {
+    width: 692px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .cellmodule5 {
+    width: 508px !important;
+  }
+  .cellmodule6 {
+    width: 690px !important;
+  }
+  .cellmodule7 {
+    width: 510px !important;
+  }
+  .diet_val_container {
+    width: 127px;
+  }
+  .cell_dimn {
+    width: 730px;
+  }
+  .cell_gend {
+    width: 580px;
+  }
+  .diet_gender {
+    width: 121px;
+  }
 }
 
-.content {
-  position: relative;
-  text-align: center;
-  color: #fff;
+@media (min-width: 1300px) and (max-width: 1400px) {
+  .cellmodule6 {
+    width: 610px !important;
+  }
 }
 
-.content h1 {
-  font-weight: bold;
-  margin-top: 20px;
+@media (min-width: 1441px) and (max-width: 1600px) {
+  .cellmodule {
+    width: 785px !important;
+  }
+  .cellmodule2 {
+    width: 515px !important;
+  }
+  .cellmodule1 {
+    width: 692px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .cellmodule5 {
+    width: 582px !important;
+  }
+  .cellmodule6 {
+    width: 790px !important;
+  }
+  .cellmodule7 {
+    width: 515px !important;
+  }
+  .diet_val_container {
+    width: 140px;
+  }
+  .cell_dimn {
+    width: 840px;
+  }
+  .cell_gend {
+    width: 635px;
+  }
+  .diet_gender {
+    width: 129px;
+  }
 }
 
-.logo {
-  z-index: 1;
-  float: left;
+@media (min-width: 1601px) and (max-width: 1919px) {
+  .cellmodule {
+    width: 782px !important;
+  }
+  .cellmodule2 {
+    width: 632px !important;
+  }
+  .cellmodule1 {
+    width: 792px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .cellmodule5 {
+    width: 631px !important;
+  }
+  .cellmodule6 {
+    width: 850px !important;
+  }
+  .cellmodule7 {
+    width: 510px !important;
+  }
+  .diet_val_container {
+    width: 154px;
+  }
+  .cell_dimn {
+    width: 912px;
+  }
+  .cell_gend {
+    width: 685px;
+  }
+  .diet_gender {
+    width: 140px;
+  }
 }
 
-.skip-link {
-  position: absolute;
-  top: 70px;
-  right: 100px;
-  text-decoration: none;
-  font-weight: bold !important;
-  color: #fff !important;
-  font-size: 20px !important;
-  cursor: pointer;
-}
-.skip-link:hover {
-  text-decoration: none;
-}
-
-.test {
-  text-align: center;
-  background: green;
-  height: 100px;
-  padding-top: 26px;
-  width: 65%;
-}
-
-.overlay.always-show {
-  position: absolute;
-  top: inherit;
-  left: 0;
-  right: 0;
-  bottom: -5px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  padding-left: 20px;
-  transition: opacity 0.5s, transform 0.5s;
-  text-align: left;
-  color: white;
-  width: 544px;
-  height: 155px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-/* Add the following CSS */
-
-.overlay {
-  position: absolute;
-  top: inherit;
-  left: -15px;
-  right: 0;
-  bottom: -11px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  padding-left: 20px;
-  transition: opacity 0.5s, transform 0.5s;
-  text-align: left;
-  color: white;
-  width: 660px;
-  height: 155px;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.overlay.always-show {
-  opacity: 1;
-}
-
-.overlay-text {
-  font-size: 20px;
-  margin-bottom: 10px;
-}
-
-.overlay-button {
-  padding: 10px 20px;
-  background-color: #37bd69;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.overlay-button:hover {
-  background-color: #2e9c56;
-}
-
-.notblurred-image .overlay.always-show {
-  opacity: 1;
-}
-
-.blurred-image:hover .overlay {
-  opacity: 1;
-}
-
-.blurred-image {
-  transform: scale(0.5);
-  transition: transform 0.5s;
-  position: relative;
-}
-
-.blurred-image img {
-  filter: blur(8px);
-  border-radius: 12px;
-}
-
-.blurred-image:hover img {
-  filter: none;
-  transform: scale(1.05);
-}
-
-.notblurred-image:hover img {
-  filter: none;
-  transform: scale(1.05);
-}
-
-.notblurred-image {
-  transform: scale(1);
-  transition: transform 0.5s;
-  position: relative;
-}
-
-.notblurred-image img {
-  filter: none;
-  width: 544px;
-  transition: transform 0.5s;
-  border-radius: 12px;
-}
-
-.notblurred-image img:hover {
-  transform: scale(1.05);
-}
-
-.notblurred-image img:hover + .overlay.always-show {
-  transform: scale(1.05);
-}
-
-.notblurred-image:hover img + .overlay.always-show {
-  transform: scale(1.05);
-}
-.slick-dots {
-  bottom: 0px !important;
-}
-.slick-dots li button:before {
-  font-size: 0;
-  content: '';
-  width: 30px;
-  height: 2px;
-  background-color: #fff;
-  display: block;
-  margin: 0 auto;
-}
-
-.slick-dots li {
-  margin: 0 10px !important;
-}
-
-.slick-dots li.slick-active button:before {
-  background-color: #37bd69 !important;
-}
-
-.custom-dot {
-  width: 30px;
-  height: 2px;
-  background-color: #fff;
-  display: block;
-  margin: 0 auto;
-}
-
-.slick-active .custom-dot {
-  background-color: #006d35;
-}
-
-.slider-container {
-  margin-top: 5%;
-}
-
-.slick-slide {
-  transition: transform 0.5s;
+/* Extra Large Screens */
+@media (min-width: 1920px) {
+  .cellmodule5 {
+    width: 632px !important;
+  }
+  .cellmodule6 {
+    width: 850px !important;
+  }
+  .cellmodule7 {
+    width: 515px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .diet_val_container {
+    width: 153px;
+  }
+  .cell_dimn {
+    width: 905px;
+  }
+  .cell_gend {
+    width: 690px;
+  }
+  .diet_gender {
+    width: 138px;
+  }
 }
