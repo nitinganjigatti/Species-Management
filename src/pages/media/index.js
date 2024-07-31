@@ -36,6 +36,7 @@ import { deleteMediaFile, getMediaListById, uploadMediaFile } from 'src/lib/api/
 import moment from 'moment'
 import Image from 'next/image'
 import InfiniteScroll from 'react-infinite-scroll-component'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 
 const Media = () => {
   const auth = useAuth()
@@ -52,6 +53,7 @@ const Media = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
+  const [playingVideo, setPlayingVideo] = useState(null)
 
   const userId = auth?.userData?.user?.user_id
 
@@ -278,6 +280,12 @@ const Media = () => {
       setPage(prevPage => prevPage + 1)
     }
   }
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // Toggle play state when the media is clicked
+  const handleMediaClick = () => {
+    setIsPlaying(true)
+  }
 
   return (
     <>
@@ -448,9 +456,11 @@ const Media = () => {
                                         component='video'
                                         controls
                                         height='160'
+                                        // image={media?.user_media}
                                         src={media?.user_media}
                                         alt={media?.file_original_name}
                                         sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
+                                        type='video/mp4'
                                       />
                                     ) : (
                                       <Box
