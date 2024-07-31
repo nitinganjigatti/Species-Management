@@ -280,12 +280,6 @@ const Media = () => {
       setPage(prevPage => prevPage + 1)
     }
   }
-  const [isPlaying, setIsPlaying] = useState(false)
-
-  // Toggle play state when the media is clicked
-  const handleMediaClick = () => {
-    setIsPlaying(true)
-  }
 
   return (
     <>
