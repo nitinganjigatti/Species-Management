@@ -733,7 +733,7 @@ const StepPreviewDiet = ({
     console.log(getValues())
     return (
       <Dialog
-        className='raghu'
+        className=''
         open={open}
         onClose={handleClosed}
         aria-labelledby='customized-dialog-title'
@@ -1003,7 +1003,8 @@ const StepPreviewDiet = ({
                               sx={{
                                 fontSize: '12px',
                                 lineHeight: '16px',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                pl: 5
                               }}
                             >
                               MEAL DETAILS
@@ -1178,7 +1179,7 @@ const StepPreviewDiet = ({
                                     border: 'none',
                                     backgroundColor: '#C1D3D099',
                                     height: '40px',
-                                    width: '137px',
+                                    width: '140px',
                                     borderRight: '1px solid #C3CEC7',
                                     textAlign: 'center'
                                   }}
@@ -1311,16 +1312,6 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          // width:
-                                          //   formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                          //     ? '580px'
-                                          //     : formData?.child?.length === 1 || formData?.child?.length === 0
-                                          //     ? '680px'
-                                          //     : formData?.child?.length === 2
-                                          //     ? '518px'
-                                          //     : formData?.child?.length > 1
-                                          //     ? '500px'
-                                          //     : '500px',
                                           float: 'left'
                                         }}
                                         className={
@@ -1333,12 +1324,18 @@ const StepPreviewDiet = ({
                                               ? 'cellmodule2'
                                               : formData?.child?.length > 2
                                               ? 'cellmodule3'
-                                              : 'cellmodule4'
+                                              : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
                                             ? formData?.child?.length === 2
                                               ? 'cellmodule5'
-                                              : 'cellmodule9' // Default class if length is not covered by the other conditions
-                                            : 'cellmodule9' // Default class if diet_type_name is neither 'By Weight' nor 'By Gender'
+                                              : 'cellmodule4' // Default if By Gender does not match other conditions
+                                            : formData?.diet_type_name === 'Generic'
+                                            ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                            : formData?.diet_type_name === 'By Lifestage'
+                                            ? formData?.child?.length > 2
+                                              ? 'cellmodule7'
+                                              : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                            : 'cellmodule4' // Default for all other cases
                                         }
                                       >
                                         <Box
@@ -1541,7 +1538,7 @@ const StepPreviewDiet = ({
                                       </TableCell>
                                       <TableCell
                                         style={{
-                                          paddingLeft: '0px',
+                                          paddingLeft: '8px',
                                           paddingRight: '8px',
                                           height: '10px',
                                           maxHeight: '100%',
@@ -1559,13 +1556,17 @@ const StepPreviewDiet = ({
                                             sx={{
                                               backgroundColor: '#0000000d',
                                               p: '10px',
-                                              width: '125px',
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
                                               borderRadius: '8px',
                                               height: '100%'
                                             }}
+                                            className={
+                                              formData?.diet_type_name === 'By Gender'
+                                                ? 'diet_val_container'
+                                                : 'diet_val_cont'
+                                            }
                                           >
                                             <Typography
                                               sx={{
@@ -1611,7 +1612,7 @@ const StepPreviewDiet = ({
                                             <TableCell
                                               key={index}
                                               style={{
-                                                paddingLeft: '0px',
+                                                paddingLeft: '8px',
                                                 paddingRight: '8px',
                                                 height: '10px',
                                                 maxHeight: '100%',
@@ -1628,13 +1629,17 @@ const StepPreviewDiet = ({
                                                   sx={{
                                                     backgroundColor: '#0000000d',
                                                     p: '10px',
-                                                    width: '125px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
                                                     borderRadius: '8px',
                                                     height: '100%'
                                                   }}
+                                                  className={
+                                                    formData?.diet_type_name === 'By Gender'
+                                                      ? 'diet_val_container'
+                                                      : 'diet_val_cont'
+                                                  }
                                                 >
                                                   <Typography
                                                     sx={{
@@ -1728,28 +1733,30 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          // width:
-                                          //   formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                          //     ? '580px'
-                                          //     : formData?.child?.length === 1 || formData?.child?.length === 0
-                                          //     ? '680px'
-                                          //     : formData?.child?.length === 2
-                                          //     ? '518px'
-                                          //     : formData?.child?.length > 1
-                                          //     ? '500px'
-                                          //     : '580px',
                                           float: 'left'
                                         }}
                                         className={
-                                          formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                            ? 'cellmodule'
-                                            : formData?.child?.length === 1 || formData?.child?.length === 0
-                                            ? 'cellmodule1'
-                                            : formData?.child?.length === 2
-                                            ? 'cellmodule2'
-                                            : formData?.child?.length > 1
-                                            ? 'cellmodule3'
-                                            : 'cellmodule4'
+                                          formData?.diet_type_name === 'By Weight'
+                                            ? formData?.child?.length === 1
+                                              ? 'cellmodule'
+                                              : formData?.child?.length === 0
+                                              ? 'cellmodule1'
+                                              : formData?.child?.length === 2
+                                              ? 'cellmodule2'
+                                              : formData?.child?.length > 2
+                                              ? 'cellmodule3'
+                                              : 'cellmodule4' // Default for By Weight if no other condition is met
+                                            : formData?.diet_type_name === 'By Gender'
+                                            ? formData?.child?.length === 2
+                                              ? 'cellmodule5'
+                                              : 'cellmodule4' // Default if By Gender does not match other conditions
+                                            : formData?.diet_type_name === 'Generic'
+                                            ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                            : formData?.diet_type_name === 'By Lifestage'
+                                            ? formData?.child?.length > 2
+                                              ? 'cellmodule7'
+                                              : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                            : 'cellmodule4' // Default for all other cases
                                         }
                                       >
                                         <Box
@@ -2015,13 +2022,17 @@ const StepPreviewDiet = ({
                                             sx={{
                                               backgroundColor: '#0000000d',
                                               p: '10px',
-                                              width: '125px',
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
                                               borderRadius: '8px',
                                               height: '100%'
                                             }}
+                                            className={
+                                              formData?.diet_type_name === 'By Gender'
+                                                ? 'diet_val_container'
+                                                : 'diet_val_cont'
+                                            }
                                           >
                                             <Typography
                                               sx={{
@@ -2084,13 +2095,17 @@ const StepPreviewDiet = ({
                                                   sx={{
                                                     backgroundColor: '#0000000d',
                                                     p: '10px',
-                                                    width: '125px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
                                                     borderRadius: '8px',
                                                     height: '100%'
                                                   }}
+                                                  className={
+                                                    formData?.diet_type_name === 'By Gender'
+                                                      ? 'diet_val_container'
+                                                      : 'diet_val_cont'
+                                                  }
                                                 >
                                                   <Typography
                                                     sx={{
@@ -2183,28 +2198,30 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff',
-                                          // width:
-                                          //   formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                          //     ? '580px'
-                                          //     : formData?.child?.length === 1 || formData?.child?.length === 0
-                                          //     ? '680px'
-                                          //     : formData?.child?.length === 2
-                                          //     ? '518px'
-                                          //     : formData?.child?.length > 1
-                                          //     ? '500px'
-                                          //     : '580px',
                                           float: 'left'
                                         }}
                                         className={
-                                          formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1
-                                            ? 'cellmodule'
-                                            : formData?.child?.length === 1 || formData?.child?.length === 0
-                                            ? 'cellmodule1'
-                                            : formData?.child?.length === 2
-                                            ? 'cellmodule2'
-                                            : formData?.child?.length > 1
-                                            ? 'cellmodule3'
-                                            : 'cellmodule4'
+                                          formData?.diet_type_name === 'By Weight'
+                                            ? formData?.child?.length === 1
+                                              ? 'cellmodule'
+                                              : formData?.child?.length === 0
+                                              ? 'cellmodule1'
+                                              : formData?.child?.length === 2
+                                              ? 'cellmodule2'
+                                              : formData?.child?.length > 2
+                                              ? 'cellmodule3'
+                                              : 'cellmodule4' // Default for By Weight if no other condition is met
+                                            : formData?.diet_type_name === 'By Gender'
+                                            ? formData?.child?.length === 2
+                                              ? 'cellmodule5'
+                                              : 'cellmodule4' // Default if By Gender does not match other conditions
+                                            : formData?.diet_type_name === 'Generic'
+                                            ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                            : formData?.diet_type_name === 'By Lifestage'
+                                            ? formData?.child?.length > 2
+                                              ? 'cellmodule7'
+                                              : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                            : 'cellmodule4' // Default for all other cases
                                         }
                                       >
                                         <Box
@@ -2391,13 +2408,18 @@ const StepPreviewDiet = ({
                                             sx={{
                                               backgroundColor: '#0000000d',
                                               p: '10px',
-                                              width: '125px',
+
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
                                               borderRadius: '8px',
                                               height: '100%'
                                             }}
+                                            className={
+                                              formData?.diet_type_name === 'By Gender'
+                                                ? 'diet_val_container'
+                                                : 'diet_val_cont'
+                                            }
                                           >
                                             <Typography
                                               sx={{
@@ -2460,13 +2482,18 @@ const StepPreviewDiet = ({
                                                   sx={{
                                                     backgroundColor: '#0000000d',
                                                     p: '10px',
-                                                    width: '125px',
+
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
                                                     borderRadius: '8px',
                                                     height: '100%'
                                                   }}
+                                                  className={
+                                                    formData?.diet_type_name === 'By Gender'
+                                                      ? 'diet_val_container'
+                                                      : 'diet_val_cont'
+                                                  }
                                                 >
                                                   <Typography
                                                     sx={{

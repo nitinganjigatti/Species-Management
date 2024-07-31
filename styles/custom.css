@@ -19,69 +19,47 @@
   border-color: #446f54;
   border-image-slice: 1;
   border-radius: 15px;
-  /* border-image-source: linear-gradient(
-    132.05deg,
-    #c9ffdd -6.28%,
-    #2a884d 31.43%,
-    #1e6639 56.17%,
-    #7e8882 76.32%,
-    #0c2917 100.47%,
-    #000000 129.39%
-  ); */
 }
-/* Small Mobile (Portrait) */
-@media (max-width: 320px) {
-  /* Styles for small mobile devices in portrait mode */
+.diet_val_container {
+  width: 125px;
 }
-
-/* Mobile Devices (Portrait) */
-@media (max-width: 480px) {
-  /* Styles for mobile devices in portrait mode */
+.diet_val_cont {
+  width: 125px;
 }
-
-/* Tablets (Portrait) */
-@media (max-width: 768px) {
-  /* Styles for tablets in portrait mode */
+.cellmodule4 {
+  width: 580px;
 }
-
-/* Tablets (Landscape) */
-@media (max-width: 1024px) {
-  /* Styles for tablets in landscape mode */
+.cell_gend {
+  width: 580px;
 }
-
-/* Small Desktops */
-@media (max-width: 1200px) {
-  /* Styles for small desktops */
+.cell_dimn {
+  width: 580px;
 }
-
-/* Large Desktops */
-@media (max-width: 1600px) {
-  /* Styles for large desktops */
-}
-
-/* Extra Large Screens */
-@media (max-width: 1920px) {
-  /* Styles for extra large screens */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cellmodule5 {
+    width: 515px !important;
+  }
+  .cellmodule6 {
+    width: 550px !important;
+  }
+  .cellmodule7 {
+    width: 510px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .diet_val_container {
+    width: 125px;
+  }
+  .cell_dimn {
+    width: 586px;
+  }
+  .cell_gend {
+    width: 580px;
+  }
 }
 
-/* Small Mobile (Portrait) */
-@media (min-width: 320px) {
-  /* Styles for small mobile devices in portrait mode */
-}
-
-/* Mobile Devices (Portrait) */
-@media (min-width: 480px) {
-  /* Styles for mobile devices in portrait mode */
-}
-
-/* Tablets (Portrait) */
-@media (min-width: 768px) {
-  /* Styles for tablets in portrait mode */
-}
-
-/* Tablets (Landscape) */
-@media (min-width: 1024px) {
-  /* Styles for tablets in landscape mode */
+@media (min-width: 1024px) and (max-width: 1199px) {
   .cellmodule2 {
     width: 630px !important;
   }
@@ -92,13 +70,26 @@
     width: 500px !important;
   }
   .cellmodule5 {
-    width: 590px !important;
+    width: 517px !important;
+  }
+  .cellmodule6 {
+    width: 673px !important;
+  }
+  .cellmodule7 {
+    width: 512px !important;
+  }
+  .diet_val_container {
+    width: 122px;
+  }
+  .cell_dimn {
+    width: 705px;
+  }
+  .cell_gend {
+    width: 580px;
   }
 }
 
-/* Small Desktops */
-@media (min-width: 1200px) and (max-width: 1599px) {
-  /* Styles for small desktops */
+@media (min-width: 1200px) and (max-width: 1440px) {
   .cellmodule {
     width: 785px !important;
   }
@@ -112,13 +103,65 @@
     width: 500px !important;
   }
   .cellmodule5 {
-    width: 515px !important;
+    width: 508px !important;
+  }
+  .cellmodule6 {
+    width: 690px !important;
+  }
+  .cellmodule7 {
+    width: 510px !important;
+  }
+  .diet_val_container {
+    width: 127px;
+  }
+  .cell_dimn {
+    width: 730px;
+  }
+  .cell_gend {
+    width: 580px;
   }
 }
 
-/* Large Desktops */
+@media (min-width: 1300px) and (max-width: 1400px) {
+  .cellmodule6 {
+    width: 610px !important;
+  }
+}
+
+@media (min-width: 1441px) and (max-width: 1600px) {
+  .cellmodule {
+    width: 785px !important;
+  }
+  .cellmodule2 {
+    width: 515px !important;
+  }
+  .cellmodule1 {
+    width: 692px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .cellmodule5 {
+    width: 582px !important;
+  }
+  .cellmodule6 {
+    width: 790px !important;
+  }
+  .cellmodule7 {
+    width: 515px !important;
+  }
+  .diet_val_container {
+    width: 140px;
+  }
+  .cell_dimn {
+    width: 840px;
+  }
+  .cell_gend {
+    width: 645px;
+  }
+}
+
 @media (min-width: 1601px) and (max-width: 1919px) {
-  /* Styles for large desktops */
   .cellmodule {
     width: 782px !important;
   }
@@ -134,9 +177,44 @@
   .cellmodule5 {
     width: 631px !important;
   }
+  .cellmodule6 {
+    width: 850px !important;
+  }
+  .cellmodule7 {
+    width: 510px !important;
+  }
+  .diet_val_container {
+    width: 154px;
+  }
+  .cell_dimn {
+    width: 912px;
+  }
+  .cell_gend {
+    width: 700px;
+  }
 }
 
 /* Extra Large Screens */
 @media (min-width: 1920px) {
-  /* Styles for extra large screens */
+  .cellmodule5 {
+    width: 632px !important;
+  }
+  .cellmodule6 {
+    width: 850px !important;
+  }
+  .cellmodule7 {
+    width: 515px !important;
+  }
+  .cellmodule3 {
+    width: 500px !important;
+  }
+  .diet_val_container {
+    width: 153px;
+  }
+  .cell_dimn {
+    width: 905px;
+  }
+  .cell_gend {
+    width: 705px;
+  }
 }
