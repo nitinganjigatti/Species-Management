@@ -26,6 +26,12 @@
 .diet_val_cont {
   width: 125px;
 }
+.diet_cell {
+  width: 121px;
+}
+.diet_gender {
+  width: 121px;
+}
 .cellmodule4 {
   width: 580px;
 }
@@ -57,6 +63,9 @@
   .cell_gend {
     width: 580px;
   }
+  .diet_gender {
+    width: 121px;
+  }
 }
 
 @media (min-width: 1024px) and (max-width: 1199px) {
@@ -86,6 +95,9 @@
   }
   .cell_gend {
     width: 580px;
+  }
+  .diet_gender {
+    width: 121px;
   }
 }
 
@@ -119,6 +131,9 @@
   }
   .cell_gend {
     width: 580px;
+  }
+  .diet_gender {
+    width: 121px;
   }
 }
 
@@ -157,7 +172,10 @@
     width: 840px;
   }
   .cell_gend {
-    width: 645px;
+    width: 635px;
+  }
+  .diet_gender {
+    width: 129px;
   }
 }
 
@@ -190,7 +208,10 @@
     width: 912px;
   }
   .cell_gend {
-    width: 700px;
+    width: 685px;
+  }
+  .diet_gender {
+    width: 140px;
   }
 }
 
@@ -215,6 +236,9 @@
     width: 905px;
   }
   .cell_gend {
-    width: 705px;
+    width: 690px;
+  }
+  .diet_gender {
+    width: 138px;
   }
 }
