@@ -53,7 +53,7 @@ const Media = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
-  const [playingVideo, setPlayingVideo] = useState(null)
+  const [totalCount, setTotalCount] = useState(null)
 
   const userId = auth?.userData?.user?.user_id
 
@@ -84,6 +84,7 @@ const Media = () => {
         }
         const response = await getMediaListById({ params })
         if (response?.success) {
+          setTotalCount(response?.data?.total_count)
           if (page === 1) {
             setFilePreviews(response?.data?.result)
           } else {
