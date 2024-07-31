@@ -5,14 +5,13 @@ import {
   Button,
   Card,
   CardHeader,
-  Stack,
-  Tooltip,
   Typography,
-  Link,
   Grid,
-  IconButton
+  TextField,
+  Autocomplete,
+  FormControl
 } from '@mui/material'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
@@ -24,6 +23,10 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const RoomsList = () => {
   const theme = useTheme()
@@ -33,13 +36,21 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  console.log('searchValue :>> ', searchValue)
+  // console.log('searchValue :>> ', searchValue)
 
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [isOpen, setIsOpen] = useState(false)
+
+  const [nurseryList, setNurseryList] = useState([])
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [defaultStatus, setDefaultStatus] = useState(null)
+
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const headerAction = (
     <>
@@ -68,10 +79,10 @@ const RoomsList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async q => {
+    debounce(async (q, nurseryId, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q)
+        await fetchTableData(q, nurseryId, status)
       } catch (error) {
         console.error(error)
       }
@@ -79,9 +90,9 @@ const RoomsList = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, nurseryId, status) => {
     setSearchValue(value)
-    searchTableData(value, sortColumn, status)
+    searchTableData(value, nurseryId, status)
   }
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
@@ -89,6 +100,37 @@ const RoomsList = () => {
     setEditParams({ site_id: site_id, room_name: room_name, nursery_id: nursery_id, room_id: room_id })
     setIsOpen(true)
   }
+
+  const NurseryList = async q => {
+    try {
+      const params = {
+        // type: ['length', 'weight'],
+        search: q,
+        page: 1,
+        limit: 50
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const searchNursery = useCallback(
+    debounce(async q => {
+      try {
+        await NurseryList(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const columns = [
     {
@@ -318,15 +360,16 @@ const RoomsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q, nurseryId, status) => {
       try {
         setLoading(true)
 
         const params = {
           sort,
           search: q || '',
-
+          nursery_id: nurseryId,
           // column,
+          status,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -344,7 +387,7 @@ const RoomsList = () => {
   )
 
   useEffect(() => {
-    fetchTableData(searchValue)
+    fetchTableData(searchValue, defaultNursery?.nursery_id, defaultStatus?.key)
   }, [fetchTableData])
 
   return (
@@ -366,6 +409,136 @@ const RoomsList = () => {
             <Grid item xs={12}>
               <Card>
                 <CardHeader title='Incubator Rooms' action={headerAction} />
+
+                <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
+                  <Grid item xs={3}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '4px',
+                        padding: '0 8px',
+                        height: '40px'
+                      }}
+                    >
+                      <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        InputProps={{
+                          disableUnderline: true
+                        }}
+                        onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={3}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        name='nursery'
+                        value={defaultNursery}
+                        disablePortal
+                        id='nursery'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
+                            fetchTableData(searchValue, '', defaultStatus?.key)
+                          } else {
+                            setDefaultNursery(val)
+                            fetchTableData(searchValue, val?.nursery_id, defaultStatus?.key)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            sx={{
+                              backgroundColor: '#fff',
+                              borderRadius: '8px',
+                              width: '100%',
+                              '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                                height: '40px',
+                                borderRadius: '4px'
+                              },
+                              '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
+                              }
+                            }}
+                            onChange={e => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Nursery'
+                            placeholder='Search & Select'
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        name='status'
+                        value={defaultStatus}
+                        disablePortal
+                        id='status'
+                        options={[
+                          { label: 'Active', key: 'active' },
+                          { label: 'Inactive', key: 'inactive' }
+                        ]}
+                        getOptionLabel={option => option.label}
+                        isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultStatus(null)
+                            fetchTableData(searchValue, defaultNursery?.nursery_id, '')
+                          } else {
+                            setDefaultStatus(val)
+                            fetchTableData(searchValue, defaultNursery?.nursery_id, val?.key)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            sx={{
+                              backgroundColor: '#fff',
+                              borderRadius: '8px',
+                              width: '100%',
+                              '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                                height: '40px',
+                                borderRadius: '4px'
+                              },
+                              '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
+                              }
+                            }}
+                            onChange={e => {
+                              // searchSite(e.target.value)
+                            }}
+                            {...params}
+                            label='Status'
+                            placeholder='Search & Select'
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
+                </Grid>
 
                 {/* <Box sx={{ py: 4, px: 4 }}>
                   <Stack direction='row' gap={3}>
@@ -429,20 +602,20 @@ const RoomsList = () => {
                     pageSizeOptions={[7, 10, 25, 50]}
                     paginationModel={paginationModel}
                     onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbarWithFilter }}
+                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     rowHeight={64}
                     loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
+                    // slotProps={{
+                    //   baseButton: {
+                    //     variant: 'outlined'
+                    //   },
+                    //   toolbar: {
+                    //     value: searchValue,
+                    //     clearSearch: () => handleSearch(''),
+                    //     onChange: event => handleSearch(event.target.value)
+                    //   }
+                    // }}
                     onCellClick={onCellClick}
                   />
                 </Box>

@@ -124,8 +124,7 @@ const TransferDetails = () => {
 
   const columns = [
     {
-      flex: 0.07,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       sortable: false,
@@ -145,13 +144,11 @@ const TransferDetails = () => {
       )
     },
     {
-      flex: 0.15,
-      minWidth: 10,
+      width: 140,
       field: 'egg_number',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'EGG NUMBER',
-      align: 'center',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -197,8 +194,7 @@ const TransferDetails = () => {
       )
     },
     {
-      flex: 0.16,
-      Width: 40,
+      width: 200,
       field: 'assigned_status',
       headerName: 'STATUS',
       disableColumnMenu: true,
@@ -238,8 +234,7 @@ const TransferDetails = () => {
       )
     },
     {
-      flex: 0.24,
-      minWidth: 60,
+      width: 250,
       sortable: false,
       disableColumnMenu: true,
       field: 'species',
@@ -276,7 +271,7 @@ const TransferDetails = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '80%'
+                  width: '160px'
                 }}
               >
                 {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
@@ -296,7 +291,7 @@ const TransferDetails = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '80%'
+                  width: '160px'
                 }}
               >
                 {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
@@ -307,8 +302,7 @@ const TransferDetails = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 170,
       field: 'from_site_name',
       sortable: false,
       disableColumnMenu: true,
@@ -334,8 +328,7 @@ const TransferDetails = () => {
     },
 
     {
-      flex: 0.14,
-      minWidth: 10,
+      width: 140,
       sortable: false,
       disableColumnMenu: true,
       field: 'transfered_on',
@@ -357,8 +350,7 @@ const TransferDetails = () => {
     },
 
     {
-      flex: 0.16,
-      minWidth: 20,
+      width: 140,
       sortable: false,
       disableColumnMenu: true,
       field: 'to_site_name',
@@ -384,8 +376,7 @@ const TransferDetails = () => {
     },
 
     {
-      flex: 0.14,
-      minWidth: 10,
+      width: 140,
       sortable: false,
       disableColumnMenu: true,
       field: 'created_at',
@@ -407,8 +398,7 @@ const TransferDetails = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       sortable: false,
       disableColumnMenu: true,
       field: 'nursery_name',
@@ -425,7 +415,7 @@ const TransferDetails = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '80%'
+              width: '110px'
             }}
           >
             {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}

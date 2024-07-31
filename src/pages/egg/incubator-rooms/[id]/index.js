@@ -19,7 +19,10 @@ import {
   Button,
   Stack,
   Avatar,
-  Tooltip
+  Tooltip,
+  TextField,
+  FormControl,
+  Autocomplete
 } from '@mui/material'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
@@ -27,7 +30,7 @@ import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import DetailCard from 'src/components/egg/DetailCard'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
-import { getIncubatorList } from 'src/lib/api/egg/incubator'
+import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
 import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 
 const RoomDetails = () => {
@@ -49,48 +52,54 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
-  console.log('detailsData :>> ', detailsData)
+  // console.log('detailsData :>> ', detailsData)
 
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
   const [isPreFilled, setIsPreFilled] = useState({})
 
-  const fetchTableData = useCallback(async () => {
-    try {
-      // console.log('til_date', cuurent_date)
-      setLoading(true)
+  const [availibilityList, setAvailibilityList] = useState([])
+  const [defaultAvailibility, setDefaultAvailibility] = useState(null)
 
-      const params = {
-        sort,
-        q: searchValue,
-        room_id: id,
+  const fetchTableData = useCallback(
+    async (q, availability) => {
+      try {
+        // console.log('til_date', cuurent_date)
+        setLoading(true)
 
-        til_date: cuurent_date,
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize
-      }
+        const params = {
+          sort,
+          q,
+          room_id: id,
+          availability,
+          til_date: cuurent_date,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
 
-      await getIncubatorList({ params }).then(res => {
-        // Generate uid field based on the index
-        let listWithId = res?.data?.data?.result?.map((el, i) => {
-          return { ...el, id: i + 1 }
+        await getIncubatorList({ params }).then(res => {
+          // Generate uid field based on the index
+          let listWithId = res?.data?.data?.result?.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          setTotal(parseInt(res?.data?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+
+          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
-        setTotal(parseInt(res?.data?.data?.total_count))
-        setRows(loadServerRows(paginationModel.page, listWithId))
-
-        // setstatusCheckval(res?.data?.result.map(all => all.active))
-      })
-      setLoading(false)
-    } catch (e) {
-      console.log(e)
-      setLoading(false)
-    }
-  }, [paginationModel])
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
 
   useEffect(() => {
     // if (eggModule) {
-    fetchTableData()
+    fetchTableData(searchValue, defaultAvailibility?.key)
 
     // }
   }, [fetchTableData])
@@ -112,10 +121,10 @@ const RoomDetails = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async q => {
+    debounce(async (q, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData()
+        await fetchTableData(q, status)
       } catch (error) {
         console.error(error)
       }
@@ -123,10 +132,24 @@ const RoomDetails = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, status) => {
     setSearchValue(value)
-    searchTableData(value)
+    searchTableData(value, status)
   }
+
+  const AvailibityList = async () => {
+    try {
+      await getAvailibilityList().then(res => {
+        setAvailibilityList(res?.data?.data)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    AvailibityList()
+  }, [])
 
   const columns = [
     {
@@ -525,8 +548,87 @@ const RoomDetails = () => {
               <CardHeader title='Rooms Details' action={headerAction} />
 
               <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+              <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
+                <Grid item xs={3}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      InputProps={{
+                        disableUnderline: true
+                      }}
+                      onChange={e => handleSearch(e.target.value, defaultAvailibility?.key)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
 
-              <Box sx={{}}>
+                <Grid item xs={3}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      name='availibility'
+                      value={defaultAvailibility}
+                      disablePortal
+                      id='availibility'
+                      options={availibilityList?.length > 0 ? availibilityList : []}
+                      getOptionLabel={option => option.label}
+                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultAvailibility(null)
+                          fetchTableData(searchValue, '')
+                        } else {
+                          setDefaultAvailibility(val)
+                          fetchTableData(searchValue, val?.key)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          sx={{
+                            backgroundColor: '#fff',
+                            borderRadius: '8px',
+                            width: '100%',
+                            '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                              height: '40px',
+                              borderRadius: '4px'
+                            },
+                            '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
+                            }
+                          }}
+                          onChange={e => {
+                            // searchSite(e.target.value)
+                          }}
+                          {...params}
+                          label='Availibility'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              </Grid>
+              <Box>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
@@ -552,19 +654,19 @@ const RoomDetails = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
+                  // slotProps={{
+                  //   baseButton: {
+                  //     variant: 'outlined'
+                  //   },
+                  //   toolbar: {
+                  //     value: searchValue,
+                  //     clearSearch: () => handleSearch(''),
+                  //     onChange: event => handleSearch(event.target.value)
+                  //   }
+                  // }}
                   onCellClick={onCellClick}
                 />
               </Box>
@@ -595,7 +697,7 @@ const RoomDetails = () => {
 
 export default RoomDetails
 
-const data = [
-  { id: '1', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' },
-  { id: '2', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' }
-]
+// const data = [
+//   { id: '1', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' },
+//   { id: '2', nursery: 'Nursery name', site: 'Site name', room: 'Room', Incubator: 'Incubator' }
+// ]

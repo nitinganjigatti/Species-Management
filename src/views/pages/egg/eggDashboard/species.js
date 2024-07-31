@@ -18,6 +18,7 @@ import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import Router from 'next/router'
 
 const Species = () => {
   const authData = useContext(AuthContext)
@@ -124,8 +125,7 @@ const Species = () => {
 
   const columns = [
     {
-      flex: 0.02,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       disableColumnMenu: true,
@@ -146,14 +146,13 @@ const Species = () => {
     },
 
     {
-      flex: 0.24,
-      minWidth: 60,
+      width: 320,
       sortable: false,
       disableColumnMenu: true,
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
           <Avatar
             variant='rounded'
             alt='Medicine Image'
@@ -184,7 +183,7 @@ const Species = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '110px',
+                  width: '240px',
                   boxSizing: 'border-box'
                 }}
               >
@@ -205,7 +204,7 @@ const Species = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '110px'
+                  width: '240px'
                 }}
               >
                 {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
@@ -216,8 +215,7 @@ const Species = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 140,
       field: 'total_eggs',
       sortable: false,
       disableColumnMenu: true,
@@ -236,8 +234,7 @@ const Species = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 140,
       field: 'total_egg_in_nest',
       sortable: false,
       disableColumnMenu: true,
@@ -256,8 +253,7 @@ const Species = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 140,
       field: 'total_eggs_in_nursery',
       sortable: false,
       disableColumnMenu: true,
@@ -276,8 +272,7 @@ const Species = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 140,
       field: 'total_hatched_eggs',
       sortable: false,
       disableColumnMenu: true,
@@ -296,8 +291,7 @@ const Species = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 140,
       field: 'total_discarded_eggs',
       sortable: false,
       disableColumnMenu: true,
@@ -317,8 +311,7 @@ const Species = () => {
     }
 
     // {
-    //   flex: 0.16,
-    //   minWidth: 10,
+    //   width: 10,
     //   sortable: false,
     //   disableColumnMenu: true,
     //   field: 'created_at',
@@ -350,7 +343,6 @@ const Species = () => {
   }
 
   const onCellClick = params => {
-    console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {
