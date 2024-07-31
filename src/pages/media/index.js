@@ -36,6 +36,7 @@ import { deleteMediaFile, getMediaListById, uploadMediaFile } from 'src/lib/api/
 import moment from 'moment'
 import Image from 'next/image'
 import InfiniteScroll from 'react-infinite-scroll-component'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 
 const Media = () => {
   const auth = useAuth()
@@ -52,6 +53,7 @@ const Media = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(null)
 
   const userId = auth?.userData?.user?.user_id
 
@@ -82,17 +84,18 @@ const Media = () => {
         }
         const response = await getMediaListById({ params })
         if (response?.success) {
+          setTotalCount(response?.data?.total_count)
           if (page === 1) {
             setFilePreviews(response?.data?.result)
           } else {
             setFilePreviews(prev => [...prev, ...response?.data?.result])
           }
-          setHasMore(response?.data?.result.length > 0)
           setLoading(false)
+          setHasMore(response?.data?.result.length > 0)
         } else {
           // Handle error scenario
-          setHasMore(false)
           setLoading(false)
+          setHasMore(false)
         }
       } catch (e) {
         console.error(e)
@@ -387,11 +390,7 @@ const Media = () => {
                 dataLength={filePreviews.length}
                 next={handleScroll}
                 hasMore={hasMore}
-                loader={
-                  <Box sx={{ textAlign: 'center', my: 2 }}>
-                    <CircularProgress />
-                  </Box>
-                }
+                // loader={loading ? <CircularProgress /> : null}
                 style={{ overflow: 'hidden' }}
                 endMessage={
                   <Typography variant='body2' color='textSecondary' align='center' sx={{ mt: 6 }}>
@@ -437,38 +436,6 @@ const Media = () => {
                                   </Tooltip>
                                 </CardContent>
 
-                                {/* {media?.user_media && (
-                                <>
-                                  {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
-                                    <CardMedia
-                                      component='img'
-                                      height='160'
-                                      image={media?.user_media}
-                                      alt={media?.file_original_name}
-                                      sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
-                                    />
-                                  ) : (
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        height: 120,
-                                        borderRadius: 1,
-                                        bgcolor: getIconByFileType(media?.file_original_name)?.bgColor,
-                                        m: 5
-                                      }}
-                                    >
-                                      <Image
-                                        src={getIconByFileType(media?.file_original_name)?.icon}
-                                        alt=''
-                                        width={80}
-                                        height={80}
-                                      />
-                                    </Box>
-                                  )}
-                                </>
-                              )} */}
                                 {media?.user_media && (
                                   <>
                                     {media?.user_media.match(/\.(jpeg|jpg|gif|png|svg)$/) != null ? (
@@ -484,9 +451,11 @@ const Media = () => {
                                         component='video'
                                         controls
                                         height='160'
+                                        // image={media?.user_media}
                                         src={media?.user_media}
                                         alt={media?.file_original_name}
                                         sx={{ objectFit: 'cover', borderRadius: 2.6, p: 5 }}
+                                        type='video/mp4'
                                       />
                                     ) : (
                                       <Box
