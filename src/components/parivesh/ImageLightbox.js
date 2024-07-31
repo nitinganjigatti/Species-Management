@@ -33,7 +33,7 @@ const ImageLightbox = ({ images }) => {
             key={index}
             src={image.attachment}
             alt={image.attachment_name || ' '}
-            style={{ cursor: 'pointer', margin: '5px', width: '40px', height: 'auto' }}
+            style={{ cursor: 'pointer', margin: '5px', width: '30px', height: '24px', objectFit: 'fill' }}
           />
         ))}
       </SlideshowLightbox>
