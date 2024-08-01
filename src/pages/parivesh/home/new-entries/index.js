@@ -281,9 +281,9 @@ const NewEntry = ({}) => {
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
           <div onClick={event => event.stopPropagation()}>
-            {/* <ImageLightbox images={params.row.species_image} /> */}
+            <ImageLightbox images={params.row.species_image} />
 
-            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} />
+            {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} /> */}
           </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>

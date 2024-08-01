@@ -96,8 +96,8 @@ const SpeciesDetails = () => {
       renderCell: params => (
         <>
           <div onClick={event => event.stopPropagation()}>
-            {/* <ImageLightbox images={params.row.species_image} /> */}
-            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} />
+            <ImageLightbox images={params.row.species_image} />
+            {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} /> */}
           </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>

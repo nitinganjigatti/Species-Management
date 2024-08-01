@@ -279,8 +279,8 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <>
-          {/* <ImageLightbox images={params.row.species_image} /> */}
-          <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} />
+          <ImageLightbox images={params.row.species_image} />
+          {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} /> */}
           {/* <Tooltip title={params.row.image_type} placement='right'> */}
           {/* <Typography
               variant='body2'
@@ -789,10 +789,10 @@ const BatchDetails = ({ params, searchParams }) => {
                       sx={{
                         position: 'relative',
                         backgroundColor: '#f0f0f0', // Adjust background color as needed
-                        borderRadius: '10px',
-                        height: 44,
+                        borderRadius: '8px',
+                        height: 42,
                         width: 'auto',
-                        padding: '6px',
+                        padding: '8px',
                         boxSizing: 'border-box'
                       }}
                     >
@@ -807,9 +807,7 @@ const BatchDetails = ({ params, searchParams }) => {
                         //   alt='Attachment'
                         //   src={filePreview.attachment}
                         // />
-                        <Box>
-                          <ImageLightbox images={filePreview} />
-                        </Box>
+                        <ImageLightbox images={filePreview} />
                       ) : (
                         <a
                           href={filePreview.attachment}
