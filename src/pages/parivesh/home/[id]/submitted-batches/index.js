@@ -1,14 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import moment from 'moment'
-import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, Typography, debounce } from '@mui/material'
+import { Avatar, Card, CardHeader, Grid, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/system'
 import Router, { useRouter } from 'next/router'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
+import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { useTheme } from '@emotion/react'
+import { DataGrid } from '@mui/x-data-grid'
 
-const SubmittedBatches = ({ searchParams, type }) => {
+const SubmittedBatches = ({ type }) => {
+  const theme = useTheme()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -16,9 +22,20 @@ const SubmittedBatches = ({ searchParams, type }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
-  const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('batch_code')
+  const [sort, setSort] = useState('DESC')
+  const [sortColumn, setSortColumn] = useState('submitted_on')
+  const [loader, setLoader] = useState(false)
   const { selectedParivesh } = usePariveshContext()
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const newSort = newModel[0].sort === 'asc' ? 'ASC' : 'DESC'
+      setSortBy(newSort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async (sort, q, sortColumn) => {
@@ -103,8 +120,10 @@ const SubmittedBatches = ({ searchParams, type }) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.No',
+      sortable: false,
+      description: 'This column has a value getter and is not sortable.',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
@@ -117,6 +136,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'batch_code',
       headerName: 'BATCH ID',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_code}
@@ -129,12 +149,15 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'registration_id',
       headerName: 'REGISTRATION ID',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : '-'}
-            </Typography>
+            <Tooltip title={params.row.registration_id || '-'}>
+              <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+                {params.row.registration_id ? params.row.registration_id : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
@@ -143,8 +166,9 @@ const SubmittedBatches = ({ searchParams, type }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# OF ANIMALS',
+      headerName: 'NO. OF ANIMALS',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}
@@ -157,23 +181,25 @@ const SubmittedBatches = ({ searchParams, type }) => {
       field: 'submitted_on',
       headerName: 'SUBMITTED DATE',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('D MMMM YYYY') : '-'}
           </Typography>
-          <Typography variant='body2' sx={{ color: '#00AFD6', fontSize: '12px' }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('hh:mm A') : '-'}
+          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).local().format('hh:mm A') : '-'}
           </Typography>
         </Box>
       )
     },
+
     {
       flex: 0.5,
       minWidth: 60,
-      field: 'created_by_user',
-      headerName: 'CREATED BY',
-      alignItems: 'left',
+      field: 'submitted_by_user',
+      headerName: 'SUBMITTED BY',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -188,10 +214,10 @@ const SubmittedBatches = ({ searchParams, type }) => {
               overflow: 'hidden'
             }}
           >
-            {params.row.created_by_user?.profile_pic ? (
+            {params.row.submitted_by_user?.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.created_by_user?.profile_pic}
+                src={params.row.submitted_by_user?.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -200,21 +226,65 @@ const SubmittedBatches = ({ searchParams, type }) => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+              {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
       )
     },
+    // {
+    //   flex: 0.5,
+    //   minWidth: 60,
+    //   field: 'created_by_user',
+    //   headerName: 'CREATED BY',
+    //   alignItems: 'left',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Avatar
+    //         variant='square'
+    //         alt='Medicine Image'
+    //         sx={{
+    //           width: 30,
+    //           height: 30,
+    //           mr: 4,
+    //           borderRadius: '50%',
+    //           background: '#E8F4F2',
+    //           overflow: 'hidden'
+    //         }}
+    //       >
+    //         {params.row.created_by_user?.profile_pic ? (
+    //           <img
+    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    //             src={params.row.created_by_user?.profile_pic}
+    //             alt='Profile'
+    //           />
+    //         ) : (
+    //           <Icon icon='mdi:user' />
+    //         )}
+    //       </Avatar>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+    //           {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
+    //         </Typography>
+    //         <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+    //           {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
+
     {
       flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
       alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
@@ -223,9 +293,11 @@ const SubmittedBatches = ({ searchParams, type }) => {
             sx={{
               color:
                 params.row.status === 'submitted'
-                  ? '#37BD69'
-                  : params.row.status === 'accepted'
                   ? '#00AFD6'
+                  : params.row.status === 'accepted'
+                  ? '#37BD69'
+                  : params.row.status === 'withdrawn'
+                  ? '#FA6140'
                   : '#E93353',
               fontSize: 14
             }}
@@ -238,7 +310,7 @@ const SubmittedBatches = ({ searchParams, type }) => {
               : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-            {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
@@ -283,26 +355,87 @@ const SubmittedBatches = ({ searchParams, type }) => {
     </>
   )
 
-  return (
-    <CustomTable
-      rows={indexedRows === undefined ? [] : indexedRows}
-      columns={columns}
-      total={total}
-      loading={loading}
-      searchValue={searchValue}
-      paginationModel={paginationModel}
-      setPaginationModel={setPaginationModel}
-      handleSearch={handleSearch}
-      onCellClick={onCellClick}
-      dialog={dialog}
-      onClose={onClose}
-      check={check}
-      setCheck={setCheck}
-      headerAction={headerAction}
-      title={'Submitted Batches'}
-      searchParams={searchParams}
-    />
-  )
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ mt: 4 }}>
+            <CardHeader title={'Submitted Batches'} action={headerAction} />
+            <ConfirmationDialog
+              // icon={'mdi:delete'}
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
+            <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              disableColumnSorting
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              columns={columns}
+              total={total}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+
+  return <Grid>{tableData()}</Grid>
 }
 
 export default SubmittedBatches

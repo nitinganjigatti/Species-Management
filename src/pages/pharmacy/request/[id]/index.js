@@ -24,7 +24,6 @@ import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -45,11 +44,9 @@ import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
-import { height, minHeight } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -86,7 +83,16 @@ const IndividualRequest = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
+  const [expandedText, setExpandedText] = useState('')
+  const [notesDialog, setNotesDialog] = useState(false)
 
+  const closeNotesDialog = () => {
+    setNotesDialog(false)
+    setExpandedText('')
+  }
+  const openNotesDialog = () => {
+    setNotesDialog(true)
+  }
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   // const base_image_url = '/uploads/control_substance/'
 
@@ -121,7 +127,6 @@ const IndividualRequest = () => {
     const response = await getDispatchItemsByBatchId(id)
     if (response.success) {
       var responseData = response?.data
-      console.log('dispatchedss', response)
 
       const data = responseData?.dispatch_items?.map((el, index) => {
         const items = {
@@ -159,7 +164,6 @@ const IndividualRequest = () => {
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
-      // console.log('items', responseData.dispatch_items)
       setDispatchedItems(responseData.dispatch_items)
       setLoader(false)
     } else {
@@ -209,7 +213,7 @@ const IndividualRequest = () => {
         }
       } catch (error) {
         toast.error(error.data)
-        console.log('delet error result', error)
+        console.log('error', error)
       }
     }
   }
@@ -508,12 +512,10 @@ const IndividualRequest = () => {
               }
               variant='contained'
               onClick={() => {
-                // console.log('on click full fill dialog', params.row)
                 setFulfillMedicine({
                   ...params.row
                 })
 
-                // console.log('in fulfill button', params.row)
                 showDialog()
               }}
             >
@@ -569,6 +571,38 @@ const IndividualRequest = () => {
       // ) : (
       //   'NA'
       // )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'description',
+      headerName: 'Notes',
+      align: 'left',
+
+      renderCell: params => (
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.description}>
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+            }}
+            onClick={() => {
+              if (params.row?.description) {
+                setExpandedText(params.row.description)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.description || 'NA'}
+          </Typography>
+        </Tooltip>
+      )
     },
 
     {
@@ -751,8 +785,6 @@ const IndividualRequest = () => {
               onClick={() => {
                 setDeleteDialog(true)
                 setDeleteFullFillId(params.row.dispatch_item_id)
-
-                // console.log('full filled ', params.row.dispatch_item_id)
               }}
               icon='mdi:delete-outline'
             />
@@ -881,7 +913,7 @@ const IndividualRequest = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.shipment_date)}
+              {Utility.formatDisplayDate(params.row.created_at)}
             </Typography>
           </Box>
         </Box>
@@ -1138,6 +1170,7 @@ const IndividualRequest = () => {
                 show={showOrderFormDialog}
               />
               <Card sx={{ mb: 6 }}>
+                {console.log('sttt', requestItems.status)}
                 <CardHeader
                   avatar={
                     <Icon
@@ -1153,6 +1186,10 @@ const IndividualRequest = () => {
                   title={`Request - ${requestItems?.request_number}`}
                   action={
                     selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                      // ||
+                      //   (requestItems.status !== 'Cancelled' &&
+                      //     requestItems.status !== 'Partial Dispatched' &&
+                      //     requestItems.status !== 'Fully Dispatched')
                       <Button
                         size='big'
                         variant='contained'
@@ -1167,13 +1204,7 @@ const IndividualRequest = () => {
                     )
                   }
                 />
-                {console.log(
-                  'requestItems',
-                  requestItems,
 
-                  selectedPharmacy.type,
-                  requestItems.status
-                )}
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
@@ -1203,7 +1234,7 @@ const IndividualRequest = () => {
                             {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
                           </Typography>
                           <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.request_date)}
+                            {Utility.formatDisplayDate(requestItems?.created_at)}
                           </Typography>
                         </Box>
                       </Box>
@@ -1297,7 +1328,6 @@ const IndividualRequest = () => {
                       columns={shippedColumns}
                       rows={shippedItems}
                       onRowClick={e => {
-                        // console.log(e.id)
                         setOrderId(e.id)
                         showOrderFormDialog()
                       }}
@@ -1429,6 +1459,24 @@ const IndividualRequest = () => {
               {/* <strong>check it out!</strong> */}
             </Alert>
           )}
+          <ConfirmDialogBox
+            open={notesDialog}
+            closeDialog={() => {
+              closeNotesDialog()
+            }}
+            action={() => {
+              closeNotesDialog()
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
+                  </DialogContent>
+                </>
+              </Box>
+            }
+          />
         </>
       )}
     </>

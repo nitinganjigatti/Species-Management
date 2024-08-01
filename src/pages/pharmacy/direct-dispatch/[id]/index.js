@@ -75,13 +75,6 @@ const IndividualRequest = () => {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, request_number } = router.query
-  console.log('first', selectedPharmacy)
-  {
-    console.log(
-      'pharmacy',
-      selectedPharmacy.type === 'central' && selectedPharmacy.permission.key === 'allow_full_access'
-    ) || selectedPharmacy.permission.key === 'ADD'
-  }
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
@@ -91,7 +84,6 @@ const IndividualRequest = () => {
       setLoader(true)
       const response = await getRequestItemsListById(id)
       if (response.success) {
-        console.log('request items', response)
         const responseData = response.data
 
         const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -173,7 +165,6 @@ const IndividualRequest = () => {
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
-      console.log('shpped items', response)
       if (response.success) {
         // debugger
 
@@ -706,7 +697,7 @@ const IndividualRequest = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.shipment_date)}
+              {Utility.formatDisplayDate(params.row.created_at)}
             </Typography>
           </Box>
         </Box>
@@ -963,8 +954,6 @@ const IndividualRequest = () => {
                 show={showOrderFormDialog}
               />
               <Card sx={{ mb: 6 }}>
-                {console.log('shipped items', shippedItems)}
-                {console.log('requestItems', requestItems)}
                 <CardHeader
                   title={`Direct Dispatch - ${requestItems?.request_number}`}
                   avatar={
@@ -1039,7 +1028,7 @@ const IndividualRequest = () => {
                             {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
                           </Typography>
                           <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.request_date)}
+                            {Utility.formatDisplayDate(requestItems?.created_at)}
                           </Typography>
                         </Box>
                       </Box>
@@ -1104,7 +1093,6 @@ const IndividualRequest = () => {
                       columns={shippedColumns}
                       rows={shippedItems}
                       onRowClick={e => {
-                        // console.log(e.id)
                         setOrderId(e.id)
                         showOrderFormDialog()
                       }}

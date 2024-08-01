@@ -6,7 +6,7 @@ import { GetLabSitesById } from 'src/lib/api/lab/labDetails'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const Site = ({ labId }) => {
-  console.log('labId', labId)
+  // console.log('labId', labId)
 
   const columns = [
     {
@@ -14,7 +14,9 @@ const Site = ({ labId }) => {
       minWidth: 20,
       field: 'site',
       headerName: 'SITE',
-      hide: true,
+      hide: false,
+      filterable: false,
+
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -22,30 +24,31 @@ const Site = ({ labId }) => {
           </Typography>
         </>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-
-      // field: 'Action',
-      // headerName: 'Action',
-      renderCell: params => (
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-            <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='ant-design:more-outlined' fontSize={30} />
-            </IconButton>
-          </Box>
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+
+    //   // field: 'Action',
+    //   // headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //         <IconButton size='small' sx={{ mr: 0.5 }}>
+    //           <Icon icon='ant-design:more-outlined' fontSize={30} />
+    //         </IconButton>
+    //       </Box>
+    //     </>
+    //   )
+    // }
   ]
 
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
 
-  // const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   console.log('rows', rows)
   const [searchValue, setSearchValue] = useState('')
@@ -65,21 +68,23 @@ const Site = ({ labId }) => {
   // const handleSortModel = newModel => {
   //   if (newModel.length) {
   //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+
+  //     // setSortColumn(newModel[0].field)
+  //     LabSitesById(newModel[0].sort, searchValue, newModel[0].field)
   //   } else {
   //   }
   // }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
-  }
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, 'request_number', status)
+  // }
 
-  const LabSitesById = async labId => {
+  const LabSitesById = async (short, id) => {
     const params = {
       // id: labId
-      lab_id: labId
+      short,
+      lab_id: id || labId
     }
     try {
       const res = await GetLabSitesById({ params })
@@ -99,7 +104,7 @@ const Site = ({ labId }) => {
   return (
     <Card>
       <CardHeader
-        title='SITE'
+        title='SITES'
 
         //    action={headerAction}
       />
@@ -111,23 +116,28 @@ const Site = ({ labId }) => {
           getRowId={getRowId}
           rowCount={total}
           columns={columns}
-          slots={{ toolbar: ServerSideToolbar }}
+          disableColumnFilter
+          disableColumnMenu={true}
+          // onSortModelChange={false}
+          // slots={{ toolbar: ServerSideToolbar }}
           loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
 
-              onChange: event => {
-                setSearchValue(event.target.value)
+          // slotProps={{
+          //   baseButton: {
+          //     variant: 'outlined'
+          //   }
 
-                return handleSearch(event.target.value)
-              }
-            }
-          }}
+          // toolbar: {
+          //   value: searchValue,
+          //   clearSearch: () => handleSearch(''),
+
+          //   onChange: event => {
+          //     setSearchValue(event.target.value)
+
+          //     return handleSearch(event.target.value)
+          //   }
+          // }
+          // }}
         />
       ) : (
         <Box sx={{ px: 4, pb: 3 }}>

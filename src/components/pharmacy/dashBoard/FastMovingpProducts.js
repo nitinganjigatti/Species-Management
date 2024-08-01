@@ -24,8 +24,6 @@ const FastMovingProducts = () => {
     try {
       const result = await getFastMovingStocks()
 
-      console.log('getFastMovingStocks', result)
-
       if (result?.success === true && result?.data?.list_items?.length > 0) {
         setProductsList(result?.data?.list_items)
       }

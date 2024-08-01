@@ -40,7 +40,14 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
-  animal_count: yup.string().required('Total Count is Required'),
+  // animal_count: yup.string().required('Total Count is Required'),
+  animal_count: yup
+    .number()
+    .typeError('Total Count must be a number')
+    .positive('Total Count must be greater than zero')
+    .integer('Total Count must be an integer')
+    .required('Total Count is Required')
+    .min(1, 'Total Count must be at least 1'),
   gender: yup.string().required('Gender is Required'),
   // age: yup.string().required('Age is Required'),
   transaction_date: yup.date().required('Date is Required'),
@@ -70,7 +77,7 @@ const defaultValues = {
   possession_type: '',
   animal_count: '',
   gender: '',
-  transaction_date: null
+  transaction_date: new Date()
 }
 
 const AddSpeciesNewEntry = props => {
@@ -127,7 +134,7 @@ const AddSpeciesNewEntry = props => {
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment(transaction_date).format('YYYY-MM-DD')
+      transaction_date: moment.utc(transaction_date).format('YYYY-MM-DD HH:mm:ss')
       // age: age,
       // ...(possession_type === 'death' && {
       //   alloted_register_no: alloted_register_no,
@@ -140,7 +147,8 @@ const AddSpeciesNewEntry = props => {
     reset({
       ...defaultValues,
       scientific_name: values.scientific_name,
-      common_name: values.common_name
+      common_name: values.common_name,
+      transaction_date: new Date() // Reset to current date and time
     })
   }
 
@@ -384,6 +392,7 @@ const AddSpeciesNewEntry = props => {
                   width={'100%'}
                   dateFormat='dd/MM/yyyy'
                   onChangeHandler={onChange}
+                  maxDate={new Date()}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />
               )}

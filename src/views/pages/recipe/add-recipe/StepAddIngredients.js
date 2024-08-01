@@ -83,6 +83,7 @@ const StepAddIngredients = ({
   uomList,
   fullIngredientList,
   IngredientTypeListSearch,
+  setFullIngredientList,
   onCancelIconClick,
   handleIngredientChange
 }) => {

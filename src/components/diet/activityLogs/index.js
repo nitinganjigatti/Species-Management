@@ -1,7 +1,7 @@
-import { Avatar, CardContent, Drawer, Grid, Typography, debounce } from '@mui/material'
+import { Avatar, CardContent, Drawer, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 
 // import TimelineDot from '@mui/lab/TimelineDot'
@@ -15,6 +15,7 @@ import { styled } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { getDietActivityLogs } from 'src/lib/api/diet/getIngredients'
 import Toaster from 'src/components/Toaster'
+import Utility from 'src/utility'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 
@@ -68,6 +69,7 @@ const ActivityLogs = ({
     } catch (error) {
       console.log('error', error)
       Toaster({ type: 'error', message: JSON.stringify(error) })
+
       // Toaster({ type: 'error', message: JSON.stringify(error) })
 
       // setOpenSnackbar({

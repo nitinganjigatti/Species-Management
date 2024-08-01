@@ -50,6 +50,8 @@ import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import ExistingPurchaseForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm/ExistingPurchaseForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
+import { AuthContext } from 'src/context/AuthContext'
+import { useContext } from 'react'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -133,7 +135,7 @@ const AddExistingPurchase = () => {
   const { id, action } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
-
+  const authData = useContext(AuthContext)
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
     supplier_id: yup.string().required('Supplier is required'),
@@ -387,7 +389,6 @@ const AddExistingPurchase = () => {
       Router.push('/pharmacy/purchase/purchase-list/')
     } else {
       setSubmitLoader(false)
-      console.log('response catch purchase', response)
       if (response.data?.po_no) {
         toast.error('Purchase number already exist ')
       }
@@ -702,7 +703,6 @@ const AddExistingPurchase = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -763,14 +763,15 @@ const AddExistingPurchase = () => {
           }
           title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
         />
-
-        <AddButton
-          styles={{ marginRight: 20 }}
-          title='Add Supplier'
-          action={() => {
-            setSupplierDialog(true)
-          }}
-        />
+        {authData?.userData?.roles?.settings?.add_pharmacy && (
+          <AddButton
+            styles={{ marginRight: 20 }}
+            title='Add Supplier'
+            action={() => {
+              setSupplierDialog(true)
+            }}
+          />
+        )}
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -1121,8 +1122,6 @@ const AddExistingPurchase = () => {
             {id ? null : (
               <Button
                 onClick={() => {
-                  console.log('editParamsInitialState', editParamsInitialState)
-                  debugger
                   reset(editParamsInitialState)
                   setEditParams(editParamsInitialState)
                 }}

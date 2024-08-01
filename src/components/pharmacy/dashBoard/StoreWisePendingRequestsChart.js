@@ -28,8 +28,6 @@ const StoreWisePendingRequestsChart = () => {
     try {
       const result = await getStoreWisePendingList()
 
-      console.log('getStoreWisePendingList', result)
-
       if (result?.success === true && result?.data) {
         setPendingList(result?.data)
       }
@@ -44,7 +42,7 @@ const StoreWisePendingRequestsChart = () => {
   const seriesData = pendingList.map(item => {
     return `${item.total_request}/${item.pending_request}`
   })
-  const categories = pendingList.map(item => item.store_name)
+  const categories = pendingList.map(item => (item.store_name ? item.store_name : ''))
 
   const theme = useTheme()
 

@@ -134,12 +134,10 @@ const MedicineConfigure = ({ configureMedId }) => {
     setSubmitLoader(true)
     const { rack_id, store_id, shelf_id, config_id } = params
     if (config_id !== '') {
-      // console.log('config_id', config_id)
       try {
         const payload = { rack_id, store_id, shelf_id }
         const result = await updateMedicineConfig(payload, configureMedId, config_id)
         if (result.success == true) {
-          console.log('while updating result', result)
           toast.success(result.data)
           setDeleteRowId('')
           configureMedicine(configureMedId)
@@ -158,7 +156,6 @@ const MedicineConfigure = ({ configureMedId }) => {
         const payload = { rack_id, store_id, shelf_id }
         const result = await addMedicineConfig(payload, configureMedId)
         if (result.success == true) {
-          console.log(' while adding result', result)
           toast.success(result.data)
           configureMedicine(configureMedId)
           setDeleteRowId('')
@@ -184,7 +181,6 @@ const MedicineConfigure = ({ configureMedId }) => {
       const payload = { min_qty, store_id }
       const result = await addMedicineMinQuantity(payload, configureMedId)
       if (result.success == true) {
-        // console.log('result', result)
         toast.success(result.data)
         configureMedicine(configureMedId)
 
@@ -193,8 +189,6 @@ const MedicineConfigure = ({ configureMedId }) => {
         toast.error(result.data.config)
       }
       setSubmitLoader(false)
-
-      // console.log('Adding data', result)
     } catch (error) {
       setSubmitLoader(false)
 
@@ -206,7 +200,6 @@ const MedicineConfigure = ({ configureMedId }) => {
     try {
       const result = await getMedicineConfig(id)
 
-      // console.log('Medicine config', result)
       if (result?.length > 0) {
         const listWithId = result.map((el, i) => ({ ...el, uid: i + 1 }))
         setTableData(listWithId)
@@ -219,10 +212,6 @@ const MedicineConfigure = ({ configureMedId }) => {
   }
 
   const handleEdit = (store, shelf) => {
-    // config_id:''
-    // console.log('store', store)
-    // console.log('shelf', shelf)
-
     const valuesObject = {
       store_id: store.store_id,
       rack_id: store.racks[0].id,
@@ -250,10 +239,7 @@ const MedicineConfigure = ({ configureMedId }) => {
 
   // delete
   const confirmDeleteAction = async () => {
-    // console.log(deleteRowId)
     const response = await deleteMedicineConfig(deleteRowId)
-
-    // console.log('afterdelte', response)
 
     if (response?.success === true) {
       toast.success(response?.data)
@@ -314,8 +300,6 @@ const MedicineConfigure = ({ configureMedId }) => {
                     <TableCell>
                       {elm.racks[0]?.shelf_configs?.map(el => (
                         <>
-                          {console.log('el in chip', el)}
-
                           <Chip
                             key={el.id}
                             label={el.name}
@@ -439,8 +423,6 @@ const MedicineConfigure = ({ configureMedId }) => {
                         label='Shelf'
                         onChange={e => {
                           onChange(e)
-
-                          // console.log('shelf id', e.target.value)
                         }}
                         error={Boolean(errors?.shelf_id)}
                       >
@@ -497,7 +479,6 @@ const MedicineConfigure = ({ configureMedId }) => {
                         onChange={e => {
                           onChange(e)
 
-                          // console.log('in selector', e.target.value)
                           getRackFromStore(e.target.value)
                         }}
                         error={Boolean(errors?.supplier_id)}

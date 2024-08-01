@@ -24,6 +24,7 @@ import toast from 'react-hot-toast'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -77,7 +78,7 @@ const SpeciesDetails = () => {
     {
       flex: 0.2,
       minWidth: 30,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -91,14 +92,13 @@ const SpeciesDetails = () => {
       minWidth: 30,
       field: 'image_type',
       headerName: 'IMAGE',
+      sortable: false,
       renderCell: params => (
         <>
-          <Avatar
-            variant='square'
-            src={params.row.species_image}
-            alt={'species image'}
-            sx={{ height: 'auto', padding: '2px' }}
-          />
+          <div onClick={event => event.stopPropagation()}>
+            {/* <ImageLightbox images={params.row.species_image} /> */}
+            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} />
+          </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -112,30 +112,58 @@ const SpeciesDetails = () => {
         </>
       )
     },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 30,
+    //   field: 'common_name',
+    //   headerName: 'COMMON NAME',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.common_name ? params.row.common_name : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 10,
+    //   field: 'scientific_name',
+    //   headerName: 'SCIENTIFIC NAME',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.scientific_name ? params.row.scientific_name : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 30,
       field: 'common_name',
       headerName: 'COMMON NAME',
+      sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
+        <Tooltip title={params.row.common_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+            {params.row.common_name ? params.row.common_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'scientific_name',
       headerName: 'SCIENTIFIC NAME',
+      sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.scientific_name ? params.row.scientific_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.scientific_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.scientific_name ? params.row.scientific_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -143,6 +171,7 @@ const SpeciesDetails = () => {
       minWidth: 10,
       field: 'gender_count',
       headerName: 'Gender / Count',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.gender
@@ -182,10 +211,19 @@ const SpeciesDetails = () => {
       minWidth: 30,
       field: 'transaction_date',
       headerName: 'DATE',
+      sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment(params.row.transaction_date).format('DD/MM/YYYY') : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
+          </Typography>
+          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+          </Typography>
+        </Box>
+        // <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        //   {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+        // </Typography>
       )
     }
   ]
@@ -256,11 +294,12 @@ const SpeciesDetails = () => {
   }, [fetchTableData, status])
 
   const fetchOrgCountData = useCallback(
-    async (q, id) => {
+    async id => {
       try {
         const params = {
-          q,
-          id
+          org_id: id,
+          tsn_relation: tsn_relation,
+          tsn_id: tsn_id
         }
 
         await getOrgCountList({ params: params }).then(res => {
@@ -270,6 +309,7 @@ const SpeciesDetails = () => {
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -535,7 +575,7 @@ const SpeciesDetails = () => {
   )
 
   useEffect(() => {
-    fetchOrgCountData(selectedParivesh?.id)
+    fetchOrgCountData(selectedParivesh?.id, tsn_id, tsn_relation)
   }, [fetchOrgCountData])
 
   const handleSubmitData = async data => {
@@ -655,6 +695,9 @@ const SpeciesDetails = () => {
               confirmAction={onClose}
             />
             <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              // disableColumnSorting
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -714,6 +757,7 @@ const SpeciesDetails = () => {
         <Card>
           {organizationCountList.length > 0 &&
             organizationCountList.map((org, inx) => {
+              console.log(org, 'ppppp')
               return (
                 <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                   <CustomAccordion
@@ -721,7 +765,7 @@ const SpeciesDetails = () => {
                     summaryIcon='ion:checkmark'
                     data={org?.approvedAccordionData?.data}
                     cards={org?.approvedAccordionData?.cards}
-                    backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                    backgroundImage={org?.cover_image}
                     isOrganization
                     organizationName={org.organization_name}
                   />
@@ -735,7 +779,7 @@ const SpeciesDetails = () => {
                       summaryIcon='mdi:arrow-top-right'
                       data={org?.yetToSubmitAccordionData?.data}
                       cards={org?.yetToSubmitAccordionData?.cards}
-                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                      backgroundImage={org?.cover_image}
                     />
                   </Box>
                   <Box
@@ -748,7 +792,7 @@ const SpeciesDetails = () => {
                       summaryIcon='mdi:checkbox-marked'
                       data={org?.submittedAccordionData?.data}
                       cards={org?.submittedAccordionData?.cards}
-                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                      backgroundImage={org?.cover_image}
                     />
                   </Box>
                 </CardContent>

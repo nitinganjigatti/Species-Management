@@ -7,7 +7,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
@@ -15,7 +15,10 @@ import { Box } from '@mui/material'
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
-
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -40,7 +43,16 @@ const ListOfStockAdjusted = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('Missing stock')
+  const [expandedText, setExpandedText] = useState('')
+  const [notesDialog, setNotesDialog] = useState(false)
 
+  const closeNotesDialog = () => {
+    setNotesDialog(false)
+    setExpandedText('')
+  }
+  const openNotesDialog = () => {
+    setNotesDialog(true)
+  }
   const handleChange = (event, newValue) => {
     setTotal(0)
     setSearchValue('')
@@ -68,7 +80,7 @@ const ListOfStockAdjusted = () => {
         }
 
         await stocksAdjustedList({ params: params }).then(res => {
-          console.log('stocksAdjustedList', res)
+          // console.log('stocksAdjustedList', res)
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -83,6 +95,8 @@ const ListOfStockAdjusted = () => {
         setTotal(0)
         setRows([])
         setLoading(false)
+        setTotal(0)
+        setRows([])
       }
     },
     [paginationModel]
@@ -205,9 +219,28 @@ const ListOfStockAdjusted = () => {
       field: 'comments',
       headerName: 'Comments',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.comments ? params?.row?.comments : 'NA'}
-        </Typography>
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.comments}>
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+            }}
+            onClick={() => {
+              if (params.row?.comments) {
+                setExpandedText(params.row.comments)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.comments || 'NA'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -217,7 +250,7 @@ const ListOfStockAdjusted = () => {
       headerName: 'Expiry  Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.expiry_date)}
+          {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
     },
@@ -235,7 +268,7 @@ const ListOfStockAdjusted = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.adjusted_at)}
+              {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
             </Typography>
           </Box>
         </Box>
@@ -287,92 +320,107 @@ const ListOfStockAdjusted = () => {
 
   const tableData = () => {
     return (
-      <>
-        {selectedPharmacy.permission.key === 'allow_full_access' ||
-        selectedPharmacy.permission.stock_adjustment === 1 ||
-        selectedPharmacy.permission.stock_adjustment === '1' ? (
-          loader ? (
-            <FallbackSpinner />
-          ) : (
-            <>
-              <Card>
-                <CardHeader title='Stock Adjustment List' action={headerAction} />
-                <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
+      <Card>
+        <CardHeader title='Stock Adjustment List' action={headerAction} />
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
 
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  total
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                />
-              </Card>
-            </>
-          )
-        ) : (
-          <Error404 />
-        )}
-      </>
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl: false
+          }}
+          autoHeight
+          pagination
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          total
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          slots={{ toolbar: ServerSideToolbar }}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          disableColumnMenu
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchValue,
+              clearSearch: () => handleSearch(''),
+              onChange: event => handleSearch(event.target.value)
+            }
+          }}
+        />
+      </Card>
     )
   }
 
   return (
     <Grid>
-      <TabContext value={status}>
-        <TabList onChange={handleChange}>
-          <Tab
-            value='Missing stock'
-            label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
-          />
-          {/* <Tab
-              value='completed'
-              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
-            /> */}
-          <Tab value='Expiry' label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />} />
+      {selectedPharmacy.permission.key === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1 ||
+      selectedPharmacy.permission.stock_adjustment === '1' ? (
+        loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <TabContext value={status}>
+              <TabList onChange={handleChange}>
+                <Tab
+                  value='Missing stock'
+                  label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
+                />
 
-          <Tab
-            value='Broken at pharmacy'
-            label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
-          />
-        </TabList>
-        <TabPanel value='Missing stock'>{tableData()}</TabPanel>
-        {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
-        <TabPanel value='Expiry'>{tableData()}</TabPanel>
+                <Tab
+                  value='Expiry'
+                  label={<TabBadge label='Expiry' totalCount={status === 'Expiry' ? total : null} />}
+                />
 
-        <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
-      </TabContext>
+                <Tab
+                  value='Broken at pharmacy'
+                  label={<TabBadge label='Broken' totalCount={status === 'Broken at pharmacy' ? total : null} />}
+                />
+              </TabList>
+              <TabPanel value='Missing stock'>{tableData()}</TabPanel>
+              <TabPanel value='Expiry'>{tableData()}</TabPanel>
+
+              <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
+            </TabContext>
+            <ConfirmDialogBox
+              open={notesDialog}
+              closeDialog={() => {
+                closeNotesDialog()
+              }}
+              action={() => {
+                closeNotesDialog()
+              }}
+              content={
+                <Box>
+                  <>
+                    <DialogContent>
+                      <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
+                    </DialogContent>
+                  </>
+                </Box>
+              }
+            />
+          </>
+        )
+      ) : (
+        <Error404 />
+      )}
     </Grid>
   )
 }

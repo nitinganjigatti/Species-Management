@@ -176,7 +176,6 @@ export default function AddProduct() {
 
   const getSpecificProductList = async id => {
     await getNonExistingProductById(id).then(res => {
-      console.log('Product', res.data)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
       setPrescriptionField(res?.data?.prescription_images)
@@ -666,7 +665,6 @@ export default function AddProduct() {
                       <Grid item xs={12} sm={6}>
                         <Typography sx={{ mb: 4 }}>Product Image</Typography>
 
-                        {console.log('imgSrc', imgSrc)}
                         {imgSrc !== '' && imgSrc !== null && (
                           <Box
                             sx={{

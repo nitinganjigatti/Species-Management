@@ -242,6 +242,14 @@ export const COMMENT = 'comment'
 
 export const STATUS = 'status'
 
+export const SUMMARY = 'summary'
+
+export const DISCARD_LIST_BY_ID = 'discard-list-by-id'
+
+export const DISCARD_DELETE = 'discard-delete'
+
+export const NECROPSY_REPORTS = 'necropsy-report'
+
 export const ADD_SPECIES = 'v1/parivesh/species/add'
 
 export const LIST_ALL_SPECIES_SEARCH = 'v1/parivesh/species/listall'

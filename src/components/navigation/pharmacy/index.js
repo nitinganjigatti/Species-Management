@@ -5,6 +5,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     sectionTitle: 'Pharmacy'
   }
 
+  // const dashboard = {
+  //   title: 'Dashboard',
+  //   path: '/pharmacy/dashboard',
+  //   icon: 'lets-icons:home-duotone'
+  // }
+
   const inventoryParent = {
     title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
@@ -85,14 +91,22 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const directDispatchParent = {
-    title: 'Direct Dispatch',
+    // title: 'Direct Dispatch',
+    title: 'Dispatch without request',
+
     path: '/pharmacy/direct-dispatch',
     icon: 'iconamoon:delivery-light',
     children: []
   }
 
   const directDispatchList = {
-    title: 'Dispatch',
+    title: `Dispatch without request`,
+    icon: 'iconamoon:delivery-light',
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+  }
+
+  const directDispatchListForLocal = {
+    title: 'Received',
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
@@ -105,7 +119,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const localDispatchList = {
-    title: 'Local Dispatch ',
+    title: 'Direct Dispatch Local',
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/local-dispatch/local-dispatch-list'
   }
@@ -255,7 +269,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // requestParent.children.push(requestListing)
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
-
     // stockParent.children.push(stockReport)
     settingsParent.children.push(
       rackList
@@ -307,7 +320,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       requestListing,
       returnListing,
 
-      directDispatchList,
+      // directDispatchList,
+      directDispatchListForLocal,
+      localDispatchList,
 
       nonExistingProductRequestList,
       stockReport,

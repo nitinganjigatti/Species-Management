@@ -27,8 +27,10 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
+import Router from 'next/router'
+import Utility from 'src/utility'
 
-const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList }) => {
+const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList, handleBackButton }) => {
   const theme = useTheme()
 
   const {
@@ -43,6 +45,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
 
+  // const [openCreate, setOpenCreate] = useState(false)
+
   // ** Hook
   const [sliderRef, instanceRef] = useKeenSlider({
     rtl: direction === 'rtl',
@@ -56,7 +60,18 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
 
   function formatDate(dateString) {
     const now = moment()
-    const date = moment(dateString)
+
+    // const date = moment(dateString)
+    const date = Utility.formatDisplayDate(dateString)
+
+    // moment(moment.utc(dateString).toDate().toLocaleString())
+
+    // var dates = moment.utc(dateString).format('YYYY-MM-DD HH:mm:ss')
+
+    // // console.log(date); // 2015-09-13 03:39:27
+
+    // var stillUtc = moment.utc(dates).toDate()
+    // var date = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
 
     const diffInSeconds = now.diff(date, 'seconds')
     const diffInMinutes = now.diff(date, 'minutes')
@@ -129,10 +144,37 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
   return (
     <>
       <Card>
-        <CardContent>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <Icon
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleBackButton()}
+              color={theme.palette.customColors.OnSurfaceVariant}
+              icon='material-symbols:arrow-back'
+            />
+            <Typography
+              sx={{
+                color: theme.palette.secondary.dark,
+                fontWeight: 500,
+                fontSize: '24px',
+                lineHeight: '29.05px'
+              }}
+            >
+              Egg Details
+            </Typography>
+          </Box>
           <Grid container>
-            <Grid sx={{ pr: { xl: '24px', lg: '10px', md: '24px' } }} item xs={12} md={6} lg={2.7} xl={3}>
-              <Box sx={{ borderRadius: '8px', width: '100%', height: '100%' }}>
+            <Grid
+              sx={{ borderRadius: '8px', pr: { xl: '24px', lg: '10px', md: '24px' } }}
+              item
+              xs={12}
+              md={6}
+              lg={2.7}
+              xl={3}
+            >
+              <Box
+                sx={{ borderRadius: '8px', width: '100%', height: eggDetails?.egg_images?.length ? '100%' : '110%' }}
+              >
                 {eggDetails?.egg_images?.length ? (
                   <KeenSliderWrapper>
                     <>
@@ -179,27 +221,52 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 ) : (
                   <ImageListItem
                     style={{
+                      position: 'relative',
                       width: '100%',
                       aspectRatio: 15 / 9,
-                      height: '100%',
+                      height: '90%',
+
                       backgroundColor: theme.palette.background.default,
                       borderRadius: '8px'
                     }}
                   >
                     <img
+                      style={{ objectFit: 'contain' }}
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
                       loading='lazy'
+
                       // height={'100%'}
                     />
 
-                    <ImageListItemBar
-                      sx={{ pb: 0 }}
+                    {/* <ImageListItemBar
+                    
+                      sx={{ pb: 0, borderBottomRightRadius: '8px', borderBottomLeftRadius: '8px' }}
                       title={eggDetails?.default_common_name}
-
-                      // subtitle={'Trichoglossus Moluccanus'}
-                    />
+                      subtitle={eggDetails?.complete_name}
+                    /> */}
+                    <Box
+                      sx={{
+                        borderBottomRightRadius: '8px',
+                        borderBottomLeftRadius: '8px',
+                        position: 'relative',
+                        top: eggDetails?.default_common_name && eggDetails?.complete_name ? '-57px' : '-20px',
+                        backgroundColor: '#00000033',
+                        py: '8px',
+                        px: '12px',
+                        gap: '4px',
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '16px', fontWeight: 500, lineHeight: '19.36px', color: '#fff' }}>
+                        {eggDetails?.default_common_name}
+                      </Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 400, lineHeight: '16.94px', color: '#fff' }}>
+                        {eggDetails?.complete_name}
+                      </Typography>
+                    </Box>
                   </ImageListItem>
                 )}
               </Box>
@@ -269,7 +336,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on {moment(eggDetails?.modified_at).format('DD MMM YYYY')}
+                        Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
+                        {/* {moment(moment(moment.utc(eggDetails?.modified_at).toDate().toLocaleString())).format(
+                          'DD MMM YYYY'
+                        )} */}
                       </Typography>
                     </Box>
                     {/* <Box>
@@ -346,19 +416,19 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         {' '}
-                        {formatDate(eggDetails?.collection_date)?.count}
+                        {formatDate(eggDetails?.created_at)?.count}
                       </Typography>
                       <Typography
                         sx={{
                           color: theme.palette.primary.contrastText,
                           fontWeight: 600,
-                          fontSize: '16px',
+                          fontSize: '14px',
                           lineHeight: '19.36px',
                           textAlign: 'center'
                         }}
                       >
                         {' '}
-                        {formatDate(eggDetails?.collection_date)?.label}
+                        {formatDate(eggDetails?.created_at)?.label}
                       </Typography>
                     </Box>
 
@@ -372,7 +442,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {moment(eggDetails?.collection_date).format('DD MMM YYYY')}
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date))}
+                        {/* {moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
+                          'DD MMM YYYY'
+                        )} */}
                       </Typography>
 
                       <Typography
@@ -485,75 +558,83 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     alignItems: 'center'
                   }}
                 >
-                  <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Box
-                        item
-                        xs={3}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Box
+                      sx={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        backgroundColor: theme.palette.primary.contrastText
+                      }}
+                    >
+                      <Avatar
+                        src={
+                          eggDetails?.egg_status === ('Fresh' || 'Fertile')
+                            ? '/icons/EggFertile.png'
+                            : eggDetails?.egg_status === 'Discard'
+                            ? '/icons/EggDiscard.png'
+                            : eggDetails?.egg_status === 'Hatched'
+                            ? '/icons/EggHatched.png'
+                            : '/icons/EggFertile.png'
+                        }
+                        variant='square'
+                        sx={{ width: '100%', height: '100%' }}
+                      ></Avatar>
+                    </Box>
+
+                    <Box>
+                      <Typography
                         sx={{
-                          width: '64px',
-                          height: '64px',
-                          borderRadius: '8px',
-                          padding: '8px',
-                          backgroundColor: theme.palette.primary.contrastText
+                          fontWeight: 500,
+                          fontSize: '18px',
+                          lineHeight: '24.2px',
+                          color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
-                          src={
-                            eggDetails?.egg_status === ('Fresh' || 'Fertile')
-                              ? '/icons/Egg Fertile.png'
-                              : eggDetails?.egg_status === 'Discard'
-                              ? '/icons/Egg Discard.png'
-                              : eggDetails?.egg_status === 'Hatched'
-                              ? '/icons/Egg Hatched.png'
-                              : '/icons/Egg Fertile.png'
-                          }
-                          variant='square'
-                        ></Avatar>
-                      </Box>
-
-                      <Box>
-                        <Typography
-                          sx={{
-                            fontWeight: 500,
-                            fontSize: '18px',
-                            lineHeight: '24.2px',
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          {eggDetails?.egg_status}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '14px',
-                            lineHeight: '16.94px',
-                            color:
-                              eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
-                                ? theme.palette.primary.main
-                                : eggDetails?.egg_status == 'Discard'
-                                ? theme.palette.formContent.tertiary
-                                : theme.palette.primary.main
-                          }}
-                        >
-                          {eggDetails?.egg_state ? eggDetails?.egg_state : 'Condition'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box>
-                      <IconButton
-                        disabled={Number(eggDetails?.action_to_be_taken) != 5}
-                        onClick={() => setOpenDrawer(true)}
+                        {eggDetails?.egg_status}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          lineHeight: '16.94px',
+                          color:
+                            eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
+                              ? theme.palette.primary.main
+                              : eggDetails?.egg_status == 'Discard'
+                              ? theme.palette.formContent.tertiary
+                              : theme.palette.primary.main
+                        }}
                       >
-                        <Icon
-                          style={{ cursor: 'pointer' }}
-                          color={Number(eggDetails?.action_to_be_taken) != 5 ? '#7A8684' : '#00AFD6'}
-                          icon='fontisto:angle-right'
-                          fontSize={16}
-                        />
-                      </IconButton>
+                        {eggDetails?.egg_state ? eggDetails?.egg_state : 'Condition'}
+                      </Typography>
                     </Box>
+                  </Box>
+                  <Box>
+                    <IconButton
+                      disabled={
+                        Number(eggDetails?.action_to_be_taken) === 5 ||
+                        (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
+                        (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
+                          ? false
+                          : true
+                      }
+                      onClick={() => setOpenDrawer(true)}
+                    >
+                      <Icon
+                        style={{ cursor: 'pointer' }}
+                        color={
+                          Number(eggDetails?.action_to_be_taken) === 5 ||
+                          (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
+                          (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
+                            ? '#00AFD6'
+                            : '#7A8684'
+                        }
+                        icon='fontisto:angle-right'
+                        fontSize={16}
+                      />
+                    </IconButton>
                   </Box>
                 </Grid>
               </Grid>
@@ -561,6 +642,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
           </Grid>
         </CardContent>
       </Card>
+
       {openDrawer && (
         <ConditionSlider
           GetGalleryImgList={GetGalleryImgList}
@@ -575,12 +657,19 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
 
       {openAllocate && (
         <AllocationSlider
+          getDetails={getDetails}
           allocationValues={allocationNurseryId}
           setOpenDrawer={setOpenAllocate}
           allocateEggId={eggDetails?.egg_id}
         />
       )}
-      <DiscardForm isOpen={openDiscard} setIsOpen={setOpenDiscard} eggID={eggDetails?.egg_id} />
+      <DiscardForm
+        GetGalleryImgList={GetGalleryImgList}
+        getDetails={getDetails}
+        isOpen={openDiscard}
+        setIsOpen={setOpenDiscard}
+        eggID={eggDetails?.egg_id}
+      />
     </>
   )
 }

@@ -1,10 +1,18 @@
-// src/pages/RepotedBatch.js
-
 import React, { useCallback, useEffect, useState } from 'react'
-
 import moment from 'moment'
-import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, Button, Dialog, DialogContent, DialogTitle, IconButton, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Card,
+  CardHeader,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Typography,
+  debounce
+} from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
@@ -14,8 +22,13 @@ import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { deleteBatchToOrg } from 'src/lib/api/parivesh/addBatch'
 import Toaster from 'src/components/Toaster'
+import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import { DataGrid } from '@mui/x-data-grid'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
-const ReportedBatches = ({ searchParams, type }) => {
+const ReportedBatches = ({ type }) => {
   const theme = useTheme()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -24,12 +37,25 @@ const ReportedBatches = ({ searchParams, type }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
-  const [sort, setSort] = useState('desc')
+  const [sortBy, setSortBy] = useState('DESC')
   const [sortColumn, setSortColumn] = useState('batch_code')
   const { selectedParivesh } = usePariveshContext()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [loader, setLoader] = useState(false)
+
+  const handleSortModel = newModel => {
+    console.log(newModel, 'newModel')
+    if (newModel.length) {
+      const newSort = newModel[0].sort === 'asc' ? 'DESC' : 'ASC' // Invert the sort direction
+      setSortBy(newSort)
+      setSortColumn(newModel[0].field)
+      fetchTableData(newSort, searchValue, newModel[0].field) // Use the inverted sort direction here
+    } else {
+      // Handle the case where newModel is empty, if necessary
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async (sort, q, sortColumn) => {
@@ -45,7 +71,7 @@ const ReportedBatches = ({ searchParams, type }) => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sortBy, value, sortColumn)
   }
 
   const onClose = () => {
@@ -57,7 +83,7 @@ const ReportedBatches = ({ searchParams, type }) => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn) => {
+    async (sortBy, q, sortColumn) => {
       try {
         setLoading(true)
 
@@ -65,7 +91,7 @@ const ReportedBatches = ({ searchParams, type }) => {
           q,
           status: 'yet_to_submitted',
           page: paginationModel.page + 1,
-          sort,
+          sortBy,
           sortColumn,
           limit: paginationModel.pageSize,
           org_id: selectedParivesh.id !== 'all' ? selectedParivesh.id : null
@@ -90,7 +116,7 @@ const ReportedBatches = ({ searchParams, type }) => {
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sortBy, searchValue, sortColumn)
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -123,15 +149,15 @@ const ReportedBatches = ({ searchParams, type }) => {
 
   const confirmDeleteAction = async () => {
     const payload = {
-      org_id: selectedParivesh.id !== 'all' ? selectedParivesh.id : null
+      org_id: selectedParivesh.id
     }
     try {
       setIsModalOpen(false)
       const response = await deleteBatchToOrg(payload, selectedId)
       if (response.success === true) {
-        Toaster({ type: 'success', message: `Batch ${selectedId} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Batch has been successfully deleted` })
         // Reload the table data
-        fetchTableData(sort, searchValue, sortColumn)
+        fetchTableData(sortBy, searchValue, sortColumn)
       } else {
         Toaster({ type: 'error', message: 'something went wrong' })
       }
@@ -153,8 +179,11 @@ const ReportedBatches = ({ searchParams, type }) => {
     {
       flex: 0.2,
       Width: 40,
-      field: 'id',
+      field: 'sl_no',
       headerName: 'S.No',
+      sortable: false,
+      description: 'This column has a value getter and is not sortable.',
+
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.id}
@@ -166,32 +195,35 @@ const ReportedBatches = ({ searchParams, type }) => {
       Width: 40,
       field: 'batch_code',
       headerName: 'BATCH ID',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_code}
         </Typography>
       )
     },
-    {
-      flex: 0.4,
-      minWidth: 30,
-      field: 'registration_id',
-      headerName: 'REGISTRATION ID',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 30,
+    //   field: 'registration_id',
+    //   headerName: 'REGISTRATION ID',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.registration_id ? params.row.registration_id : 'NA'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 10,
       field: 'no_of_animals',
-      headerName: '# OF ANIMALS',
+      headerName: 'NO. OF ANIMALS',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.no_of_animals ? params.row.no_of_animals : '-'}
@@ -199,12 +231,54 @@ const ReportedBatches = ({ searchParams, type }) => {
       )
     },
 
+    // {
+    //   flex: 0.5,
+    //   minWidth: 60,
+    //   field: 'submitted_by_user',
+    //   headerName: 'SUBMITTED BY',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Avatar
+    //         variant='square'
+    //         alt='Medicine Image'
+    //         sx={{
+    //           width: 30,
+    //           height: 30,
+    //           mr: 4,
+    //           borderRadius: '50%',
+    //           background: '#E8F4F2',
+    //           overflow: 'hidden'
+    //         }}
+    //       >
+    //         {params.row.submitted_by_user?.profile_pic ? (
+    //           <img
+    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    //             src={params.row.submitted_by_user?.profile_pic}
+    //             alt='Profile'
+    //           />
+    //         ) : (
+    //           <Icon icon='mdi:user' />
+    //         )}
+    //       </Avatar>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
+    //           {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
+    //         </Typography>
+    //         <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+    //           {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.5,
       minWidth: 60,
-      field: 'submitted_by_user',
-      headerName: 'SUBMITTED BY',
-
+      field: 'created_by_user',
+      headerName: 'CREATED BY',
+      alignItems: 'left',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -219,10 +293,10 @@ const ReportedBatches = ({ searchParams, type }) => {
               overflow: 'hidden'
             }}
           >
-            {params.row.submitted_by_user?.profile_pic ? (
+            {params.row.created_by_user?.profile_pic ? (
               <img
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                src={params.row.submitted_by_user?.profile_pic}
+                src={params.row.created_by_user?.profile_pic}
                 alt='Profile'
               />
             ) : (
@@ -231,10 +305,10 @@ const ReportedBatches = ({ searchParams, type }) => {
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
-              {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
+              {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.submitted_on ? moment(params.row.submitted_on).format('DD/MM/YYYY') : '-'}
+              {params.row.created_on ? moment.utc(params.row.created_on).format('DD MMMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
@@ -251,24 +325,37 @@ const ReportedBatches = ({ searchParams, type }) => {
     //     </Typography>
     //   )
     // },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 20,
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   renderCell: params => {
+    //     let status = params.row.status ? params.row.status : '-'
+
+    //     if (status !== '-') {
+    //       status = status
+    //         .split('_')
+    //         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    //         .join(' ')
+    //     }
+
+    //     return (
+    //       <Typography variant='body2' sx={{ color: '#E93353' }}>
+    //         {status}
+    //       </Typography>
+    //     )
+    //   }
+    // },
     {
       flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',
       renderCell: params => {
-        let status = params.row.status ? params.row.status : '-'
-
-        if (status !== '-') {
-          status = status
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ')
-        }
-
         return (
           <Typography variant='body2' sx={{ color: '#E93353' }}>
-            {status}
+            {params.row.status ? 'Yet To Submit' : '-'}
           </Typography>
         )
       }
@@ -326,26 +413,89 @@ const ReportedBatches = ({ searchParams, type }) => {
     </>
   )
 
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ mt: 4 }}>
+            <CardHeader title={'To be Submitted'} action={headerAction} />
+            <ConfirmationDialog
+              // icon={'mdi:delete'}
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
+            <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              disableColumnSorting
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              columns={columns}
+              total={total}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
-      <CustomTable
-        rows={indexedRows === undefined ? [] : indexedRows}
-        columns={columns}
-        total={total}
-        loading={loading}
-        searchValue={searchValue}
-        paginationModel={paginationModel}
-        setPaginationModel={setPaginationModel}
-        handleSearch={handleSearch}
-        onCellClick={onCellClick}
-        dialog={dialog}
-        onClose={onClose}
-        check={check}
-        setCheck={setCheck}
-        headerAction={headerAction}
-        title={'Reported Batches'}
-        searchParams={searchParams}
-      />
+      <Grid>{tableData()}</Grid>
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>
           <IconButton

@@ -1,11 +1,14 @@
 import { Card, CardHeader, Grid, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
+import { debounce } from 'lodash'
+
 import React, { useCallback, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 function Escrow() {
   const [loader, setLoader] = useState(false)
@@ -20,11 +23,11 @@ function Escrow() {
   function loadServerRows(currentPage, data) {
     return data
   }
+  const { selectedPharmacy } = usePharmacyContext()
 
   const onRowClick = params => {
     var data = params.row
     if (data?.request_number?.startsWith('RES')) {
-      console.log('data', data)
       Router.push({
         pathname: `/pharmacy/request/${data?.request_id}`,
         query: { id: data.request_id, request_number: data.request_number }
@@ -141,7 +144,6 @@ function Escrow() {
 
   const fetchScrewTableData = useCallback(
     async ({ sort, q, column, type }) => {
-      debugger
       try {
         setLoading(true)
 
@@ -154,13 +156,18 @@ function Escrow() {
           type
         }
         await getScrewList({ params: params }).then(res => {
-          // console.log('response', res)
-          setTotal(parseInt(res?.count))
-          setRows(loadServerRows(paginationModel.page, res?.data))
+          if (res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel.page, res?.data))
+          } else {
+            setTotal(0)
+            setRows([])
+          }
         })
-        console.log('row', rows)
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -170,7 +177,7 @@ function Escrow() {
 
   useEffect(() => {
     fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
-  }, [fetchScrewTableData])
+  }, [fetchScrewTableData, selectedPharmacy.id])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -193,15 +200,20 @@ function Escrow() {
       fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type })
     }
   }
-
-  // useEffect(() => {
-  //   console.log('alert')
-  //   fetchScrewTableData({ sort, q: searchValue, column: sortColumn, stockType })
-  // }, [stockType])
-
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await fetchScrewTableData(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
   const handleSearch = async value => {
     setSearchValue(value)
-    await fetchScrewTableData({ sort, q: value, column: sortColumn })
+    await searchTableData({ sort, q: value, column: sortColumn })
   }
 
   return (
@@ -240,6 +252,7 @@ function Escrow() {
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               disableColumnMenu

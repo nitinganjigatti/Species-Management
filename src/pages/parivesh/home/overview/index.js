@@ -116,6 +116,7 @@ const Overview = () => {
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -401,7 +402,7 @@ const Overview = () => {
                     title={orgData.approvedAccordionData.title}
                     data={orgData.approvedAccordionData.data}
                     cards={orgData.approvedAccordionData.cards}
-                    backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                    backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
                     // backgroundImage={
                     //   orgData?.species_image !== ''
                     //     ? orgData?.species_image
@@ -418,7 +419,7 @@ const Overview = () => {
                       title={orgData.yetToSubmitAccordionData.title}
                       data={orgData.yetToSubmitAccordionData.data}
                       cards={orgData.yetToSubmitAccordionData.cards}
-                      backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                      backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
                       summaryIcon='mdi:arrow-top-right'
                     />
                   </Box>
@@ -428,7 +429,7 @@ const Overview = () => {
                         title={orgData.submittedAccordionData.title}
                         data={orgData.submittedAccordionData.data}
                         cards={orgData.submittedAccordionData.cards}
-                        backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
+                        backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
                         summaryIcon='mdi:checkbox-marked'
                       />
                     </Box>

@@ -48,13 +48,22 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
-  species: yup.object().nullable().required('Species is Required')
+  // species: yup.object().nullable().required('Species is Required')
+  species: yup
+    .mixed() // Allow any type
+    .test('is-object', 'Please Select a Valid Species', value => {
+      // Validate that the selected value is an object or null
+      return typeof value === 'object' || value === null
+    })
+    .nullable()
+    .required('Species is Required')
 })
 
 const defaultValues = {
   scientificName: '',
   commonName: '',
-  active: '1'
+  active: '1',
+  species: ''
 }
 
 const AddSpecies = props => {
@@ -80,6 +89,7 @@ const AddSpecies = props => {
     setValue,
     clearErrors,
     handleSubmit,
+
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -102,26 +112,14 @@ const AddSpecies = props => {
     await handleSubmitData(payload)
   }
 
-  const getDrugClass = useCallback(
-    async id => {
-      const response = await getDrugById(id)
-      if (response?.success) {
-        reset({ name: response.data.label, active: response.data.active, id: response.data.id })
-      } else {
-      }
-    },
-    [reset]
-  )
-
   useEffect(() => {
     if (resetForm) {
       reset(defaultValues)
+      setValue('species', '')
+      setImgSrc('')
+      setCoverImgSrc('')
     }
-
-    if (editParams?.id !== null) {
-      getDrugClass(editParams?.id)
-    }
-  }, [resetForm, editParams, reset, getDrugClass])
+  }, [resetForm, editParams, reset, setValue])
 
   const RenderSidebarFooter = () => {
     return (
@@ -202,7 +200,7 @@ const AddSpecies = props => {
     }
   }
 
-  const searchMasterSpeciesLost = useCallback(
+  const searchMasterSpeciesList = useCallback(
     debounce(async q => {
       setSearchValue(q)
       try {
@@ -237,7 +235,10 @@ const AddSpecies = props => {
   }, [fetchSpeciesMasterList])
 
   const handleScientificNameChange = async (event, newValue) => {
-    console.log('Selected Scientific Name:', newValue)
+    // console.log('Selected Scientific Name:', newValue)
+    clearErrors('species')
+    // setValue('scientificName', newValue ? newValue.value || newValue : '')
+
     setValue('scientificName', newValue ? newValue.value || newValue : '')
     // Enable or disable the scientificName field based on the selected value
     if (newValue && newValue.value === 'Others') {
@@ -305,11 +306,12 @@ const AddSpecies = props => {
                   getOptionLabel={option => option.value || option}
                   value={value}
                   onChange={(event, newValue) => {
+                    clearErrors('species')
                     onChange(newValue)
                     handleScientificNameChange(event, newValue)
                   }}
                   onKeyUp={e => {
-                    searchMasterSpeciesLost(e?.target?.value)
+                    searchMasterSpeciesList(e?.target?.value)
                   }}
                   renderInput={params => (
                     <TextField
@@ -528,7 +530,7 @@ const AddSpecies = props => {
             </Grid>
           </Grid>
 
-          {editParams?.id !== null ? (
+          {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -558,7 +560,7 @@ const AddSpecies = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null}
+          ) : null} */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

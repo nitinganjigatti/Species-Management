@@ -84,11 +84,11 @@ export const AddItemsForm = ({
   searchBatchData,
   batchLoading,
   batchList,
+  setBatchList,
   nestedMedicine,
   error,
   totalQuantity,
-  editParams,
-  setBatchList
+  editParams
 }) => {
   const {
     reset,
@@ -371,8 +371,6 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      console.log('Please', nestedMedicine)
-
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
@@ -390,7 +388,6 @@ export const AddItemsForm = ({
         packageDetails: nestedMedicine?.packageDetails,
         manufacture: nestedMedicine?.manufacture
       })
-      console.log('nested medicine in form', nestedMedicine)
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
       }
@@ -432,7 +429,6 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
-                      debugger
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
@@ -443,7 +439,6 @@ export const AddItemsForm = ({
 
                       if (value !== '' && value !== null) {
                         // debugger
-                        console.log('values', value)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
@@ -501,11 +496,11 @@ export const AddItemsForm = ({
                 </Box>
               )}
             </FormControl>
-            {/* {totalAvailableCount ? ( */}
-            <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
-              {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
-            </Typography>
-            {/* ) : null} */}
+            {totalAvailableCount ? (
+              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
+              </Typography>
+            ) : null}
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
@@ -522,16 +517,13 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
-                      // console.log('batch values', value)
-
-                      // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
                       checkTotalCount()
                       setQuantityError(false)
-                    }} // Set selected value
+                    }}
                     loading={batchLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (

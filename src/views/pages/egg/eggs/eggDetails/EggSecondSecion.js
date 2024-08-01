@@ -35,6 +35,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
+import Utility from 'src/utility'
+import ProbableParent from './ProbableParent'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -81,15 +83,18 @@ const EggSecondSecion = ({
           ? 'not available'
           : eggDetails?.parent_list?.mother_list?.length > 1
           ? `Probable (${eggDetails?.parent_list?.mother_list?.length})`
-          : eggDetails?.parent_list?.mother_list[0]?._id,
+          : eggDetails?.parent_list?.mother_list[0]?.animal_id,
       'Father id':
         eggDetails?.parent_list?.father_list?.length === 0
           ? 'not available'
           : eggDetails?.parent_list?.father_list?.length > 1
           ? `Probable (${eggDetails?.parent_list?.father_list?.length})`
-          : eggDetails?.parent_list?.father_list[0]?._id,
-      'Collected on': moment(eggDetails?.collection_date).format('DD MMM YYYY'),
-      'Lay Date': moment(eggDetails?.lay_date).format('DD MMM YYYY')
+          : eggDetails?.parent_list?.father_list[0]?.animal_id,
+
+      'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
+      'Lay Date': eggDetails?.lay_date
+        ? Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.lay_date))
+        : 'NA (Not Applicable)'
 
       // 'Collected By': 'Jordan Steveson'
     }
@@ -121,6 +126,9 @@ const EggSecondSecion = ({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
+  const [probableParentSideBar, setProbableParentSideBar] = useState(false)
+  const [parent, setParent] = useState('')
+  const [parentList, setParentList] = useState([])
 
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
@@ -138,7 +146,7 @@ const EggSecondSecion = ({
   }
 
   const schema = yup.object().shape({
-    assessment_value: yup.number().required('Assessment value is Required')
+    assessment_value: yup.number().required('Assessment value is required')
   })
 
   const {
@@ -217,7 +225,7 @@ const EggSecondSecion = ({
       flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'NO ',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -249,7 +257,8 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('DD MMM YYYY')}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
+          {/* {moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
         </Typography>
       )
     },
@@ -269,7 +278,9 @@ const EggSecondSecion = ({
             lineHeight: '19.36px'
           }}
         >
-          {moment(params?.row?.created_at).format('hh : mm A')}
+          {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(params?.row?.created_at))}
+          {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
+          {/* {moment(moment.utc(params?.row?.created_at).toDate().toLocaleString()).format('hh : mm A')} */}
         </Typography>
       )
     },
@@ -323,7 +334,7 @@ const EggSecondSecion = ({
       const params = {
         page_no: paginationModel.page + 1,
 
-        // limit: paginationModel.pageSize,
+        limit: paginationModel.pageSize,
         type: 'weight',
         egg_id
       }
@@ -351,7 +362,7 @@ const EggSecondSecion = ({
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
       <Grid item xs={12}>
-        <Card>
+        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
           <CardHeader
             sx={{
               pb: 0,
@@ -430,7 +441,27 @@ const EggSecondSecion = ({
                       </Grid>
                       <Grid item xs={6}>
                         <Typography
+                          onClick={() => {
+                            // value.startsWith('Probable') && setProbableParentSideBar(true)
+                            setProbableParentSideBar(true)
+                            // value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                            setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                            // value.startsWith('Probable') &&
+                            //   setParentList(
+                            //     key === 'Mother id'
+                            //       ? eggDetails?.parent_list?.mother_list
+                            //       : eggDetails?.parent_list?.father_list
+                            //   )
+
+                            setParentList(
+                              key === 'Mother id'
+                                ? eggDetails?.parent_list?.mother_list
+                                : eggDetails?.parent_list?.father_list
+                            )
+                          }}
                           sx={{
+                            // cursor: value.startsWith('Probable') && 'pointer',
+                            cursor: 'pointer',
                             textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
                             fontWeight: key === 'Mother id' || key === 'Father id' ? 600 : 400,
                             fontSize: '14px',
@@ -775,7 +806,9 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('DD MMM YYYY')}
+                            {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
+                            {/* {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
                           </TableCell>
                           <TableCell
                             style={{
@@ -785,7 +818,9 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {moment(row?.created_at).format('hh : mm A')}
+                            {/* {moment(row?.created_at).format('hh : mm A')} */}
+                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
+                            {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
                           </TableCell>
                           <TableCell
                             style={{
@@ -913,7 +948,14 @@ const EggSecondSecion = ({
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} onClick={() => setaddWeightSidebar(false)} />
+                <Icon
+                  icon='mdi:close'
+                  fontSize={20}
+                  onClick={() => {
+                    setaddWeightSidebar(false)
+                    reset()
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -935,9 +977,17 @@ const EggSecondSecion = ({
                             <TextField
                               label='Weight in Grams'
                               value={value}
-                              type='number'
+                              autoFocus
+                              // type='number'
                               inputProps={{ min: 1 }}
-                              onChange={onChange}
+                              // onChange={onChange}
+                              onChange={event => {
+                                const newValue = event.target.value
+                                // Validate the input to ensure it contains only numbers
+                                if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
+                                  onChange(event)
+                                }
+                              }}
                               placeholder='Enter Number'
                               error={Boolean(errors.assessment_value)}
                               name='assessment_value'
@@ -991,6 +1041,12 @@ const EggSecondSecion = ({
         setActivtyLogData={setActivtyLogData}
         activtyLogCount={activtyLogCount}
         setActivtyLogCount={setActivtyLogCount}
+      />
+      <ProbableParent
+        probableParentSideBar={probableParentSideBar}
+        setProbableParentSideBar={setProbableParentSideBar}
+        parent={parent}
+        parentList={parentList}
       />
     </Grid>
   )

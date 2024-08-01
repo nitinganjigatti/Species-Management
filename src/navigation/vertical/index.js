@@ -18,13 +18,15 @@ const ComposeNavigation = () => {
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
+  const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
   const navigationArray = []
-
-  // const dashboardNav = dashboardNavigation()
-  // navigationArray.push(...dashboardNav)
+  const dashboardNav = dashboardNavigation()
+  navigationArray.push(...dashboardNav)
 
   if (pharmacyList?.length > 0 || pharmacyRole) {
     const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
@@ -40,8 +42,10 @@ const ComposeNavigation = () => {
   //   const dietNav = dietNavigation()
   //   navigationArray.push(...dietNav)
   // }
-  // const eggNav = eggNavigation()
-  // navigationArray.push(...eggNav)
+  if (egg_nursery || egg_collection) {
+    const eggNav = eggNavigation({ egg_nursery, egg_collection })
+    navigationArray.push(...eggNav)
+  }
 
   // const pariveshNav = pariveshNavigation()
   // navigationArray.push(...pariveshNav)

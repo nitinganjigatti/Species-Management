@@ -14,16 +14,21 @@ import {
   Card,
   Autocomplete
 } from '@mui/material'
-import { Fragment, useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import { AddNursery, UpdateNursery } from 'src/lib/api/egg/nursery'
-import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
+
+const schema = yup.object().shape({
+  nursery_name: yup.string().required('Nursery name is required').trim().strict(true).min(1, 'Add nursery name'),
+
+  site_id: yup.string().required('Select site')
+})
 
 const NurserySlider = ({
   openDrawer,
@@ -37,6 +42,7 @@ const NurserySlider = ({
   fetchTableData
 }) => {
   const [defaultSite, setDefaultSite] = useState(null)
+  const [loader, setLoader] = useState(null)
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
@@ -46,7 +52,7 @@ const NurserySlider = ({
   }
 
   const schema = yup.object().shape({
-    nursery_name: yup.string().trim().required('Nursery Name is required'),
+    nursery_name: yup.string().trim().required('Nursery name is required'),
 
     site_id: yup.string().required('Site is required')
   })
@@ -77,6 +83,7 @@ const NurserySlider = ({
           position: 'fixed',
           bottom: 0,
           px: 4,
+          py: '24px',
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
@@ -84,7 +91,15 @@ const NurserySlider = ({
           zIndex: 1234
         }}
       >
-        <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
+        <LoadingButton
+          sx={{ height: '58px' }}
+          fullWidth
+          disabled={loader}
+          variant='contained'
+          type='submit'
+          size='large'
+          loading={loading}
+        >
           {editNurseryId ? 'Update Nursery' : 'Add Nursery'}
         </LoadingButton>
       </Box>
@@ -102,6 +117,7 @@ const NurserySlider = ({
 
   const onSubmit = async values => {
     try {
+      setLoader(true)
       if (editNurseryId) {
         const payload = {
           nursery_name: values?.nursery_name,
@@ -110,6 +126,8 @@ const NurserySlider = ({
         const response = await UpdateNursery(editNurseryId, payload)
         if (response.success) {
           // toast.success('Nursery updated Successfully')
+          setLoader(false)
+
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -118,8 +136,9 @@ const NurserySlider = ({
           if (callApi) {
             callApi()
           }
-          Toaster({ type: 'success', message: response.message })
+          Toaster({ type: 'success', message: response.message || 'Nursery updated Successfully' })
         } else {
+          setLoader(false)
           Toaster({ type: 'error', message: response.message })
         }
       } else {
@@ -131,6 +150,8 @@ const NurserySlider = ({
         const response = await AddNursery(payload)
 
         if (response.success) {
+          setLoader(false)
+
           setOpenDrawer(false)
           if (fetchTableData) {
             fetchTableData()
@@ -139,12 +160,14 @@ const NurserySlider = ({
           if (callApi) {
             callApi()
           }
-          Toaster({ type: 'success', message: response.message })
+          Toaster({ type: 'success', message: response.message || 'Nursery added Successfully' })
         } else {
-          Toaster({ type: 'error', message: response.message })
+          setLoader(false)
+          Toaster({ type: 'error', message: response.message || 'Unable to add Nursery' })
         }
       }
     } catch (error) {
+      setLoader(false)
       console.error('Error while adding/updating nursery:', error)
       Toaster({ type: 'error', message: 'An error occurred while adding/updating nursery' })
     }
@@ -165,7 +188,13 @@ const NurserySlider = ({
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+        <Box
+          sx={{
+            bgcolor: theme.palette.customColors.lightBg,
+            width: '100%',
+            height: '100%'
+          }}
+        >
           <Box
             className='sidebar-header'
             sx={{
@@ -198,21 +227,19 @@ const NurserySlider = ({
           <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
             <Box
               sx={{
-                m: 5,
-
+                m: '20px',
                 px: '16px',
-
-                // py: '20px',
+                py: '24px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                border: 1,
+                borderColor: '#c3cec7'
               }}
             >
-              <FormControl fullWidth sx={{ mt: 6 }}>
+              <FormControl fullWidth>
                 <Controller
                   name='nursery_name'
                   control={control}
@@ -300,9 +327,7 @@ const NurserySlider = ({
                 </FormControl>
               )}
 
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <RenderSidebarFooter />
-              </Box>
+              <RenderSidebarFooter />
             </Box>
           </form>
         </Box>

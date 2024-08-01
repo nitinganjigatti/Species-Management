@@ -150,6 +150,14 @@ const AddLocalDispatch = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  useEffect(() => {
+    setEditParams({
+      ...editParams,
+      to_store_id: '',
+      to_store_type: ''
+    })
+  }, [selectedPharmacy.id])
+
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
 
@@ -392,7 +400,7 @@ const AddLocalDispatch = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'local', productType)
 
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
@@ -555,7 +563,7 @@ const AddLocalDispatch = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/direct-dispatch/${response?.data}`)
+          Router.push(`/pharmacy/local-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -572,7 +580,7 @@ const AddLocalDispatch = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/direct-dispatch/${response?.data}`)
+          Router.push(`/pharmacy/local-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -591,7 +599,7 @@ const AddLocalDispatch = () => {
         console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+          Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -624,7 +632,7 @@ const AddLocalDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                    Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
                   }}
                   icon='ep:back'
                 />
@@ -690,7 +698,11 @@ const AddLocalDispatch = () => {
                         // labelId='state_id'
                       >
                         {toStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                          <MenuItem
+                            key={index}
+                            disabled={item?.status === 'inactive' || item.id === selectedPharmacy.id}
+                            value={item?.id}
+                          >
                             {item?.name}
                           </MenuItem>
                         ))}

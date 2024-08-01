@@ -160,7 +160,7 @@ const Navigation = props => {
           : null}
         <Box>
           <Typography variant='body' style={{ textAlign: 'center', display: 'inline-block', width: '100%' }}>
-            v2.0.4
+            {process.env.NEXT_PUBLIC_APP_VERSION}
           </Typography>
         </Box>
       </Drawer>

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const Tests = ({ labTest }) => {
-  console.log('labTest', labTest)
+  // console.log('labTest', labTest)
 
   const columns = [
     // {
@@ -24,7 +24,8 @@ const Tests = ({ labTest }) => {
       Width: 20,
       field: 'tests',
       headerName: 'TESTS',
-      hide: true,
+      hide: false,
+
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -32,23 +33,24 @@ const Tests = ({ labTest }) => {
           </Typography>
         </>
       )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-
-      // field: 'Action',
-      // headerName: 'Action',
-      renderCell: params => (
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-            <IconButton size='small' sx={{ mr: 0.5 }}>
-              <Icon icon='ant-design:more-outlined' fontSize={30} />
-            </IconButton>
-          </Box>
-        </>
-      )
     }
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+
+    //   // field: 'Action',
+    //   // headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //         <IconButton size='small' sx={{ mr: 0.5 }}>
+    //           <Icon icon='ant-design:more-outlined' fontSize={30} />
+    //         </IconButton>
+    //       </Box>
+    //     </>
+    //   )
+    // }
   ]
 
   /***** Server side pagination */
@@ -82,10 +84,10 @@ const Tests = ({ labTest }) => {
   //   }
   // }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
-  }
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, 'request_number', status)
+  // }
 
   function extractTestsData(labTest) {
     const parent = labTest.flatMap(lab =>
@@ -128,20 +130,22 @@ const Tests = ({ labTest }) => {
         rowCount={total}
         columns={columns}
         loading={loading}
+        disableColumnMenu={true}
         slotProps={{
           baseButton: {
             variant: 'outlined'
-          },
-          toolbar: {
-            value: searchValue,
-            clearSearch: () => handleSearch(''),
-
-            onChange: event => {
-              setSearchValue(event.target.value)
-
-              return handleSearch(event.target.value)
-            }
           }
+
+          // toolbar: {
+          //   value: searchValue,
+          //   clearSearch: () => handleSearch(''),
+
+          //   onChange: event => {
+          //     setSearchValue(event.target.value)
+
+          //     return handleSearch(event.target.value)
+          //   }
+          // }
         }}
       />
     </Card>

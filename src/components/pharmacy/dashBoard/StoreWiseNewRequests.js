@@ -10,6 +10,7 @@ import CardContent from '@mui/material/CardContent'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import { getNewRequestsList } from 'src/lib/api/pharmacy/dashboard'
+import Utility from 'src/utility'
 
 const StoreWiseNewRequests = () => {
   const [requestList, setRequestList] = useState([])
@@ -17,8 +18,6 @@ const StoreWiseNewRequests = () => {
   const getNewRequestsLists = async () => {
     try {
       const result = await getNewRequestsList()
-
-      console.log('getNewRequestsList', result)
 
       if (result?.success === true && result?.data?.list_items.length > 0) {
         setRequestList(result?.data?.list_items)
@@ -32,7 +31,7 @@ const StoreWiseNewRequests = () => {
 
   const columns = [
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'to_store',
       headerName: 'Pharmacy name',
@@ -60,12 +59,12 @@ const StoreWiseNewRequests = () => {
       headerName: 'Requested on',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.request_date ? params?.row?.request_date : 'NA'}
+          {params?.row?.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.1,
       minWidth: 20,
       field: 'priority',
       headerName: 'Priority',
@@ -89,7 +88,7 @@ const StoreWiseNewRequests = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'status',
       headerName: 'Status',

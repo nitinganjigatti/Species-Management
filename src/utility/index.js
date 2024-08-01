@@ -74,6 +74,13 @@ function getPreviousDaysDate(todayDate, days) {
 
   return previousDate
 }
+function getFeaturesDates(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() + days)
+  const featureDate = moment(date).format('YYYY-MM-DD')
+
+  return featureDate
+}
 function daysFromToday(inputDate) {
   const today = moment()
   const targetDate = moment(inputDate, 'YYYY-MM-DD')
@@ -86,6 +93,28 @@ function daysFromToday(inputDate) {
   } else {
     return `${Math.abs(differenceInDays)} Days`
   }
+}
+
+function convertUTCToLocal(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+  return local
+}
+
+function extractHoursAndMinutes(date) {
+  //9:21 PM
+  return moment(date).format('hh:mm A')
+}
+
+function toPascalSentenceCase(str) {
+  return str
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
+    .join(' ')
 }
 
 function renderUserAvatar(image) {
@@ -103,8 +132,12 @@ const Utility = {
   formatDisplayDate,
   errorMessageExtractorFromObject,
   exportToCSV,
+  getFeaturesDates,
   getPreviousDaysDate,
   daysFromToday,
+  convertUTCToLocal,
+  extractHoursAndMinutes,
+  toPascalSentenceCase,
   renderUserAvatar
 }
 

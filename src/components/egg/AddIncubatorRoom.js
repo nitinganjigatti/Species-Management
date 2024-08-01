@@ -1,8 +1,6 @@
 import {
   Autocomplete,
   Box,
-  Card,
-  CardContent,
   Drawer,
   FormControl,
   FormHelperText,
@@ -21,10 +19,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { AuthContext } from 'src/context/AuthContext'
 import { LoadingButton } from '@mui/lab'
-import toast from 'react-hot-toast'
 import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
-import { Router } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
@@ -46,8 +42,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   }
 
   const schema = yup.object().shape({
-    room_name: yup.string().trim().required('Room Name is required'),
-    site_id: yup.string().required('Select Site'),
+    room_name: yup.string().trim().required('Room name is required'),
+    site_id: yup.string().required('Select site'),
     nursery: defaultNursery?.nursery_id ? yup.string().notRequired() : yup.string().required('Nursery is required')
   })
 
@@ -57,6 +53,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
     control,
     handleSubmit,
     watch,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -94,6 +91,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
       // setSiteDetails({ site_id: selectedNursery.site_id, site_name: selectedNursery.site_name })
       setValue('site_id', selectedNursery?.site_id)
+      clearErrors('site_id')
     }
   }, [nurseryId])
 
@@ -147,7 +145,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           handleClose()
         } else {
           setLoader(false)
-          reset()
+          // reset()
           Toaster({ type: 'error', message: response.message })
         }
       } else {
@@ -155,7 +153,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
         if (response.success) {
           setLoader(false)
-
+          reset()
           Toaster({ type: 'success', message: response.message })
           if (callApi) {
             callApi()
@@ -166,7 +164,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           handleClose()
         } else {
           setLoader(false)
-          reset()
+          // reset()
           Toaster({ type: 'error', message: response.message })
         }
       }
@@ -180,6 +178,10 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const handleClose = () => {
     setIsOpen(false)
+    setDefaultNursery(null)
+    setValue('site_id', '')
+    setValue('nursery', '')
+
     reset()
   }
 
@@ -238,7 +240,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           </Box>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <CardContent
+            <Box
               sx={{
                 m: 5,
                 px: '16px',
@@ -249,8 +251,8 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 gap: '24px',
                 bgcolor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                border: 1,
+                borderColor: '#c3cec7'
               }}
             >
               <FormControl fullWidth>
@@ -394,7 +396,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                   <FormHelperText sx={{ color: 'error.main' }}>{errors.room_name?.message}</FormHelperText>
                 )}
               </FormControl>
-            </CardContent>
+            </Box>
 
             <Box
               sx={{
@@ -404,6 +406,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 position: 'fixed',
                 bottom: 0,
                 px: 4,
+                py: '24px',
                 bgcolor: 'white',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -411,7 +414,14 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 zIndex: 123
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loader}>
+              <LoadingButton
+                sx={{ height: '58px' }}
+                fullWidth
+                variant='contained'
+                type='submit'
+                size='large'
+                loading={loader}
+              >
                 {editParams?.nursery_id ? 'Edit Room' : 'Add Room'}
               </LoadingButton>
             </Box>
