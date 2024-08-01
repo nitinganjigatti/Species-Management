@@ -51,18 +51,18 @@ const ImageLightbox = ({ images }) => {
               />
             </SlideshowLightbox>
           ) : (
-            <Tooltip title='Image URL is incorrect or unavailable' arrow>
-              <Avatar
-                variant='square'
-                src={image.attachment}
-                alt={image.attachment_name || ''}
-                sx={{
-                  width: '34px',
-                  height: '26px',
-                  cursor: 'pointer'
-                }}
-              />
-            </Tooltip>
+            // <Tooltip title='Image URL is incorrect or unavailable' arrow>
+            <Avatar
+              variant='square'
+              src={image.attachment}
+              alt={image.attachment_name || ''}
+              sx={{
+                width: '34px',
+                height: '26px',
+                cursor: 'pointer'
+              }}
+            />
+            // </Tooltip>
           )}
         </React.Fragment>
       ))}
