@@ -40,6 +40,7 @@ const EggActivityLogs = ({
   // const [activtyLogCount, setActivtyLogCount] = useState(0)
   let [page_no, setPage_no] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
+  const [showCommentIndex, setShowCommentIndex] = useState(null)
 
   const getActivityLogsFunc = () => {
     const params = { page_no }
@@ -97,6 +98,10 @@ const EggActivityLogs = ({
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ')
+  }
+
+  const handleToggleComment = index => {
+    setShowCommentIndex(showCommentIndex === index ? null : index)
   }
 
   return (
@@ -213,89 +218,123 @@ const EggActivityLogs = ({
                     {activtyLogData.length === index + 1 ? null : <TimelineConnector />}
                   </TimelineSeparator>
                   <TimelineContent
+                    onClick={() => handleToggleComment(index)}
                     sx={{
-                      pt: 3,
-                      pb: 0,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      backgroundColor:
-                        item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                          ? '#FFBDA84D'
-                          : '#37BD691A',
                       ml: 4,
                       borderRadius: '8px',
-                      mb: '20px',
+                      // mb: '20px',
                       position: 'relative',
-                      top: -28
+                      top: -28,
+                      p: 0
                     }}
                   >
-                    <Box>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          mr: 2,
-                          fontSize: 16,
-                          fontWeight: 500,
-                          lineHeight: 'normal',
-                          mb: '4px',
-                          color:
-                            item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                              ? theme.palette.formContent.tertiary
-                              : theme.palette.primary.main
-                        }}
-                      >
-                        {item.status}
-                      </Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          fontSize: 14,
-                          fontWeight: 400,
-                          lineHeight: 'normal',
-                          color: theme.palette.customColors.OnSurfaceVariant
-                        }}
-                      >
-                        {item.action ? formatText(item.action) : '-'}
-                      </Typography>
-                    </Box>
                     <Box
                       sx={{
+                        backgroundColor:
+                          (showCommentIndex === index && item.status === 'Necropsy') ||
+                          (showCommentIndex === index && item.status === 'Discard') ||
+                          (showCommentIndex === index && item.status === 'Rotten')
+                            ? theme.palette.formContent.tertiary
+                            : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                            ? '#FFBDA84D'
+                            : showCommentIndex === index
+                            ? theme.palette.primary.light
+                            : '#37BD691A',
+                        // backgroundColor:
+                        //   showCommentIndex === index
+                        //     ? theme.palette.primary.light
+                        //     : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                        //     ? '#FFBDA84D'
+                        //     : '#37BD691A',
+                        p: '16px',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        justifyContent: 'space-between',
-                        mb: '20px'
+                        borderRadius: showCommentIndex === index ? 'none' : '8px',
+                        borderTopLeftRadius: showCommentIndex === index ? '8px' : 'none',
+                        borderTopRightRadius: showCommentIndex === index ? '8px' : 'none',
+                        justifyContent: 'space-between'
                       }}
                     >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'end' }}>
+                      <Box>
                         <Typography
                           sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
+                            mr: 2,
                             fontSize: 14,
+                            fontWeight: showCommentIndex === index ? 500 : 600,
+                            lineHeight: '16.94px',
+                            letterSpacing: showCommentIndex === index && '0.1px',
                             mb: '4px',
-                            fontWeight: 500,
-                            lineHeight: 'normal'
+                            color:
+                              showCommentIndex === index
+                                ? '#FFFFFF'
+                                : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
+                                ? theme.palette.formContent.tertiary
+                                : theme.palette.primary.light
                           }}
-                          variant='caption'
                         >
-                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(item?.created_at))}
-                          {/* {moment(moment(moment.utc(item?.created_at).toDate().toLocaleString())).format('DD MMM YYYY')} */}
-                          {/* {moment(item?.created_at).format('DD MMM YYYY')} */}
+                          {item.status}
                         </Typography>
                         <Typography
                           sx={{
-                            color: theme.palette.customColors.neutralSecondary,
-                            fontSize: 14,
-                            fontWeight: 500,
-                            lineHeight: 'normal'
+                            fontSize: 16,
+                            fontWeight: showCommentIndex === index ? 500 : 400,
+                            lineHeight: '19.36px',
+                            color: showCommentIndex === index ? '#fff' : theme.palette.primary.light
                           }}
-                          variant='caption'
                         >
-                          {/* {moment(item?.created_at).format('h:mm A')} */}
-                          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.created_at))}
+                          {item.action ? formatText(item.action) : '-'}
                         </Typography>
                       </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'end' }}>
+                          <Typography
+                            sx={{
+                              color: showCommentIndex === index ? '#fff' : theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: 14,
+                              mb: '4px',
+                              fontWeight: 400,
+                              lineHeight: '16.94px'
+                            }}
+                          >
+                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(item?.created_at))}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              color: showCommentIndex === index ? '#fff' : theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: 14,
+                              fontWeight: 400,
+                              lineHeight: '16.94px'
+                            }}
+                          >
+                            {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item?.created_at))}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </Box>
+                    {showCommentIndex === index && (
+                      <Typography
+                        sx={{
+                          backgroundColor: '#FCF4AE',
+                          borderBottomLeftRadius: showCommentIndex === index ? '8px' : 'none',
+                          borderBottomRightRadius: showCommentIndex === index ? '8px' : 'none',
+                          mb: '4px',
+                          p: '12px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: 14,
+                          fontWeight: 500,
+                          lineHeight: '16.94px',
+                          letterSpacing: '0.1px'
+                        }}
+                      >
+                        {item?.comments}
+                      </Typography>
+                    )}
                   </TimelineContent>
                 </TimelineItem>
               ))}
