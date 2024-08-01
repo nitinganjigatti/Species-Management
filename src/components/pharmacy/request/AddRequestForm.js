@@ -1132,7 +1132,7 @@ const AddRequestForm = () => {
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+              <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
                 <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
                 <FormControl fullWidth>
                   <TextField
