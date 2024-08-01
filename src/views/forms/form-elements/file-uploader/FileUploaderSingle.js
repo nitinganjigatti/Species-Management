@@ -51,7 +51,7 @@ const FileUploaderSingle = props => {
   })
 
   useEffect(() => {
-    if (props?.image === null) {
+    if (props?.files?.length === 0) {
       setFiles([])
     }
   }, [props])

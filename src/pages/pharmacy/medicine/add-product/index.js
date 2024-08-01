@@ -1878,7 +1878,7 @@ const AddMedicine = () => {
                             <Card>
                               <CardHeader title='Upload Product Picture' />
                               <CardContent>
-                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
+                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} files={files} />
                               </CardContent>
                             </Card>
                           </Grid>
