@@ -43,7 +43,6 @@ import ErrorScreen from 'src/pages/Error'
 
 const IncubatorsList = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
-
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)

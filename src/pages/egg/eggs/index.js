@@ -150,6 +150,7 @@ const EggList = () => {
     },
     {
       width: 200,
+
       // minWidth: 60,
       sortable: false,
       field: 'species',
@@ -169,7 +170,11 @@ const EggList = () => {
             }}
           >
             {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                src={params.row.default_icon}
+                alt='Profile'
+              />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -546,7 +551,11 @@ const EggList = () => {
             }}
           >
             {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                src={params.row.default_icon}
+                alt='Profile'
+              />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -947,7 +956,11 @@ const EggList = () => {
             }}
           >
             {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                src={params.row.default_icon}
+                alt='Profile'
+              />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -1339,7 +1352,11 @@ const EggList = () => {
             }}
           >
             {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                src={params.row.default_icon}
+                alt='Profile'
+              />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -1573,7 +1590,7 @@ const EggList = () => {
             >
               {params.row.user_profile_pic ? (
                 <img
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   src={params.row.user_profile_pic}
                   alt='Profile'
                 />
