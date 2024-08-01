@@ -172,7 +172,8 @@ const EggActivityLogs = ({
                         backgroundColor:
                           item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
                             ? theme.palette.formContent.tertiary
-                            : theme.palette.primary.main
+                            : // : theme.palette.primary.main
+                              theme.palette.primary.light
                       }
                     }}
                   >
@@ -182,7 +183,8 @@ const EggActivityLogs = ({
                         borderColor:
                           item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
                             ? theme.palette.formContent.tertiary
-                            : theme.palette.primary.main,
+                            : // : theme.palette.primary.main,
+                              theme.palette.primary.light,
 
                         // backgroundColor: item.status === 'Fresh' ? theme.palette.primary.main : null,
                         boxSizing: 'border-box',
@@ -201,7 +203,8 @@ const EggActivityLogs = ({
                           color:
                             item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
                               ? theme.palette.formContent.tertiary
-                              : theme.palette.primary.main
+                              : // : theme.palette.primary.main
+                                theme.palette.primary.light
                         }}
                         icon={
                           item.status === 'Fresh'
