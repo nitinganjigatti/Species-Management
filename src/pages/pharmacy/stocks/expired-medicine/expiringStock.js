@@ -14,7 +14,7 @@ import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { Tooltip } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 const ExpiringMedicine = () => {
   const [loader, setLoader] = useState(false)
@@ -29,10 +29,10 @@ const ExpiringMedicine = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [filterDates, setFilterDates] = useState({
-    startDate: '',
-    endDate: ''
+    startDate: Utility?.formattedPresentDate(),
+    endDate: Utility?.getFeaturesDates(new Date(), 7)
   })
-  const [selectDays, setSelectDays] = useState('all')
+  const [selectDays, setSelectDays] = useState(7)
 
   const [excelLoader, setExcelLoader] = useState(false)
 
@@ -43,7 +43,7 @@ const ExpiringMedicine = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async (sort, q, column, startDate, endDate) => {
+    async (sort, q, column, startDate, endDate, id) => {
       try {
         setLoading(true)
 
@@ -53,23 +53,13 @@ const ExpiringMedicine = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          pending_days_start: startDate ? startDate : filterDates.startDate,
-          pending_days_end: endDate ? endDate : filterDates.endDate
+          pending_days_start: startDate ? startDate : filterDates?.startDate,
+          pending_days_end: endDate ? endDate : filterDates?.endDate
         }
-
-        await getStocksReportById(selectedPharmacy?.id, params).then(res => {
-          console.log('ress', res)
-
+        await getStocksReportById(id, params).then(res => {
           if (res?.data?.length > 0) {
             setTotal(parseInt(res?.count))
-            console.log('ress', res)
-            setRows(
-              loadServerRows(
-                paginationModel.page,
-                // res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
-                res?.data
-              )
-            )
+            setRows(loadServerRows(paginationModel.page, res?.data))
           } else {
             setTotal(0)
             setRows([])
@@ -86,14 +76,9 @@ const ExpiringMedicine = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, filterDates.startDate, filterDates.endDate)
+    fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, filterDates])
-
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -106,7 +91,14 @@ const ExpiringMedicine = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, filterDates.startDate, filterDates.endDate)
+      fetchTableData(
+        newModel[0].sort,
+        searchValue,
+        newModel[0].field,
+        filterDates.startDate,
+        filterDates.endDate,
+        selectedPharmacy.id
+      )
     } else {
     }
   }
@@ -115,7 +107,7 @@ const ExpiringMedicine = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column, filterDates.startDate, filterDates.endDate)
+        await fetchTableData(sort, q, column, filterDates?.startDate, filterDates?.endDate, selectedPharmacy.id)
       } catch (error) {
         console.error(error)
       }
@@ -128,43 +120,38 @@ const ExpiringMedicine = () => {
     searchTableData(sort, value, sortColumn)
   }
   const filterByDays = days => {
-    if (days !== 'all') {
-      const currentDate = new Date()
-      const selectedDays = parseInt(days)
-      let startDate
-      let endDate
+    const currentDate = new Date()
+    const selectedDays = parseInt(days)
+    let startDate
+    let endDate
 
-      switch (selectedDays) {
-        case 7:
-          startDate = Utility.formattedPresentDate()
-          endDate = Utility.getFeaturesDates(currentDate, 7)
-          setFilterDates({ startDate, endDate })
-          break
-        case 15:
-          startDate = Utility.getFeaturesDates(currentDate, 7)
-          endDate = Utility.getFeaturesDates(currentDate, 15)
-          setFilterDates({ startDate, endDate })
+    switch (selectedDays) {
+      case 7:
+        startDate = Utility.formattedPresentDate()
+        endDate = Utility.getFeaturesDates(currentDate, 7)
+        setFilterDates({ startDate, endDate })
+        break
+      case 15:
+        startDate = Utility.getFeaturesDates(currentDate, 7)
+        endDate = Utility.getFeaturesDates(currentDate, 15)
+        setFilterDates({ startDate, endDate })
 
-          break
-        case 30:
-          startDate = Utility.getFeaturesDates(currentDate, 15)
-          endDate = Utility.getFeaturesDates(currentDate, 30)
-          setFilterDates({ startDate, endDate })
-          break
-        case 60:
-          startDate = Utility.getFeaturesDates(currentDate, 30)
-          endDate = Utility.getFeaturesDates(currentDate, 60)
-          setFilterDates({ startDate, endDate })
-          break
-        default:
-          startDate = Utility.getFeaturesDates(currentDate, selectedDays)
-          endDate = Utility.formattedPresentDate()
-          setFilterDates({ startDate, endDate })
-          break
-      }
-    } else {
-      setFilterDates({ startDate: '', endDate: '' })
-      fetchTableData(sort, searchValue, sortColumn)
+        break
+      case 30:
+        startDate = Utility.getFeaturesDates(currentDate, 15)
+        endDate = Utility.getFeaturesDates(currentDate, 30)
+        setFilterDates({ startDate, endDate })
+        break
+      case 60:
+        startDate = Utility.getFeaturesDates(currentDate, 30)
+        endDate = Utility.getFeaturesDates(currentDate, 60)
+        setFilterDates({ startDate, endDate })
+        break
+      default:
+        startDate = Utility.getFeaturesDates(currentDate, selectedDays)
+        endDate = Utility.formattedPresentDate()
+        setFilterDates({ startDate, endDate })
+        break
     }
   }
 
@@ -244,25 +231,19 @@ const ExpiringMedicine = () => {
   ]
 
   const getDataToExport = async () => {
-    try {
-      setExcelLoader(true)
-      const result = await getExpiredMedicine({ params: '' })
+    setExcelLoader(true)
+    if (indexedRows?.length > 0) {
+      const data = indexedRows?.map(el => {
+        return {
+          ['Medicine Name']: el?.stock_items_name,
+          ['Stock Quantity']: el?.stock_qty
+        }
+      })
 
-      if (result?.list_items.length > 0) {
-        const data = result?.list_items.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_item_name,
-            ['Supplier name']: el?.supplier_name
-          }
-        })
-
-        Utility.exportToCSV(data, 'Expired Products')
-      }
+      Utility.exportToCSV(data, 'Expired Products')
       setExcelLoader(false)
-    } catch (error) {
+    } else {
       setExcelLoader(false)
-
-      console.log('error', error)
     }
   }
 
@@ -272,10 +253,6 @@ const ExpiringMedicine = () => {
   if (loading) {
     return <FallbackSpinner />
   }
-
-  // if (isError) {
-  //   return <h1>{error.message}</h1>
-  // }
 
   return (
     <>
@@ -312,7 +289,6 @@ const ExpiringMedicine = () => {
                       setSelectDays(e.target.value)
                     }}
                   >
-                    <MenuItem value='all'>All</MenuItem>
                     <MenuItem value='7'>7 Days</MenuItem>
                     <MenuItem value='15'>7 to 15 Days </MenuItem>
                     <MenuItem value='30'>15 to 30 Days</MenuItem>
