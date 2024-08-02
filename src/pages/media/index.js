@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Card,
   CardContent,
@@ -55,9 +55,10 @@ const Media = () => {
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(null)
 
-  const userId = auth?.userData?.user?.user_id
-
-  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+  // const userId = auth?.userData?.user?.user_id
+  // const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+  const userId = useMemo(() => auth?.userData?.user?.user_id, [auth])
+  const imgPath = useMemo(() => auth?.userData?.settings?.DEFAULT_IMAGE_MASTER, [auth])
 
   const searchMediaData = useCallback(
     debounce(async q => {
@@ -102,14 +103,14 @@ const Media = () => {
         setLoading(false)
       }
     },
-    [userId, hasMore]
+    [hasMore]
   )
 
   useEffect(() => {
     if (userId !== undefined) {
       getMediaListUserId(userId, searchQuery, page)
     }
-  }, [getMediaListUserId, userId, searchQuery, page])
+  }, [userId, searchQuery, page, getMediaListUserId])
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
@@ -148,7 +149,7 @@ const Media = () => {
         }
         if (successCount === acceptedFiles.length) {
           Toaster({ type: 'success', message: message })
-          await getMediaListUserId(userId, searchQuery, page)
+          await getMediaListUserId(userId, searchQuery, 1)
         }
         setBtnLoader(false) // Hide loader after processing files
         setLoading(false)
@@ -171,7 +172,7 @@ const Media = () => {
       const res = await deleteMediaFile(selectedId?.id)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
-        await getMediaListUserId(userId, searchQuery, page)
+        await getMediaListUserId(userId, searchQuery, 1)
       } else {
         Toaster({ type: 'error', message: res?.message })
       }
@@ -253,18 +254,21 @@ const Media = () => {
     searchMediaData(value)
   }
 
-  const renderDateHeader = date => {
-    const today = moment().startOf('day')
-    const yesterday = moment().subtract(1, 'days').startOf('day')
+  const renderDateHeader = useMemo(
+    () => date => {
+      const today = moment().startOf('day')
+      const yesterday = moment().subtract(1, 'days').startOf('day')
 
-    if (moment(date).isSame(today, 'day')) {
-      return 'Today ' + moment(date).format('DD MMMM YYYY')
-    } else if (moment(date).isSame(yesterday, 'day')) {
-      return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
-    } else {
-      return moment.utc(date).format('DD MMMM YYYY')
-    }
-  }
+      if (moment(date).isSame(today, 'day')) {
+        return 'Today ' + moment(date).format('DD MMMM YYYY')
+      } else if (moment(date).isSame(yesterday, 'day')) {
+        return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
+      } else {
+        return moment.utc(date).format('DD MMMM YYYY')
+      }
+    },
+    []
+  )
 
   const handleClick = (event, media) => {
     setAnchorEl(event.currentTarget)
@@ -276,11 +280,11 @@ const Media = () => {
     setAnchorEl(null)
   }
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (hasMore && !loading) {
       setPage(prevPage => prevPage + 1)
     }
-  }
+  }, [hasMore, loading])
 
   return (
     <>
