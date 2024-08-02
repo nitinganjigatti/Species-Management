@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import { aboutExpiringProduct } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import CardHeader from '@mui/material/CardHeader'
@@ -56,7 +56,7 @@ const ExpiringMedicine = () => {
           pending_days_start: startDate ? startDate : filterDates?.startDate,
           pending_days_end: endDate ? endDate : filterDates?.endDate
         }
-        await getStocksReportById(id, params).then(res => {
+        await aboutExpiringProduct(id, params).then(res => {
           if (res?.data?.length > 0) {
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
