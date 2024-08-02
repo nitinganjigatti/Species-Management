@@ -1,4 +1,4 @@
-import { Avatar, Badge, Button, Card, CardHeader, Typography, debounce } from '@mui/material'
+import { Avatar, Badge, Button, Card, CardHeader, Grid, Typography, debounce } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
@@ -13,8 +13,12 @@ import {
   getVernacularSpeciesById
 } from 'src/lib/api/species'
 import AddSpeciesSlideBar from 'src/views/pages/species/SpeciesSlider'
-import { Try } from '@mui/icons-material'
 import toast from 'react-hot-toast'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import Chip from '@mui/material/Chip'
 
 const AddSpecies = () => {
   const authData = useContext(AuthContext)
@@ -25,10 +29,12 @@ const AddSpecies = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('complete_name')
+  const [status, setStatus] = useState('species')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [open, setOpen] = useState(false)
+  const [breedList, setBreedList] = useState([])
   const [editVernacularNames, setEditVernacularNames] = useState([])
   const [editName, setEditName] = useState('')
   const [commonName, setCommonName] = useState('')
@@ -37,6 +43,8 @@ const AddSpecies = () => {
   const [editCommonId, setEditCommonId] = useState('')
   const [taxonomy, setTaxonomy] = useState([])
   const [bannerImages, setBannerImages] = useState([])
+
+  console.log('Status >>', status)
 
   const fetchTaxonomy = async searchValue => {
     try {
@@ -53,6 +61,7 @@ const AddSpecies = () => {
     setEditName('')
     setEditVernacularNames([])
     setSpeciesImage('')
+    setCommonName('')
     setBannerImages([])
     setTaxonomy([])
   }
@@ -61,9 +70,13 @@ const AddSpecies = () => {
     setOpenDrawer(false)
   }
 
+  const handleChange = (event, newValue) => {
+    setStatus(newValue)
+  }
+
   const columns = [
     {
-      flex: 0.4,
+      flex: 0.2,
       minWidth: 20,
       field: 'default_icon',
       headerName: 'Species Image',
@@ -86,7 +99,7 @@ const AddSpecies = () => {
     },
 
     {
-      flex: 0.4,
+      flex: status === 'hybrid' ? 0.4 : 0.2,
       minWidth: 20,
       field: 'default_common_name',
       headerName: 'Common Name',
@@ -98,7 +111,7 @@ const AddSpecies = () => {
     },
 
     {
-      flex: 0.4,
+      flex: status === 'hybrid' ? 0.4 : 0.2,
       minWidth: 20,
       field: 'complete_name',
       headerName: 'Scientific Name',
@@ -115,11 +128,12 @@ const AddSpecies = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn) => {
+    async (sort, q, sortColumn, status) => {
+      debugger
       try {
         setLoading(true)
 
-        const params = {
+        let params = {
           sort,
           q,
           sortColumn,
@@ -127,16 +141,27 @@ const AddSpecies = () => {
           limit: paginationModel.pageSize,
           zoo_id: 11
         }
+        console.log(status, 'status1')
+        if (status === 'hybrid') {
+          params.is_hybrid = true
+        } else {
+          params.is_hybrid = false
+        }
 
-        await getSpeciesList(params).then(res => {
-          console.log('Response >>>', res)
-          setTotal(parseInt(res?.data?.taxonomy_total))
-
-          setRows(loadServerRows(paginationModel.page, res?.data?.taxonomy_list))
-        })
-        setLoading(false)
+        await getSpeciesList(params)
+          .then(res => {
+            console.log('Response >>>', res)
+            setTotal(parseInt(res?.data?.taxonomy_total))
+            setRows(loadServerRows(paginationModel.page, res?.data?.taxonomy_list))
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error)
+          })
+          .finally(() => {
+            setLoading(false)
+          })
       } catch (e) {
-        console.log(e)
+        console.error('Error:', e)
         setLoading(false)
       }
     },
@@ -144,10 +169,10 @@ const AddSpecies = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn) => {
+    debounce(async (sort, q, sortColumn, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, sortColumn)
+        await fetchTableData(sort, q, sortColumn, status)
       } catch (error) {
         console.error(error)
       }
@@ -159,30 +184,37 @@ const AddSpecies = () => {
     <>
       {authData?.userData?.permission?.user_settings?.add_taxonomy && (
         <div>
-          <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
-            Add Species
-          </Button>
+          {status === 'species' ? (
+            <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
+              Add Species
+            </Button>
+          ) : (
+            <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
+              Add Hybrid
+            </Button>
+          )}
         </div>
       )}
     </>
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
-  }, [fetchTableData])
+    fetchTableData(sort, searchValue, sortColumn, status)
+  }, [fetchTableData, status])
 
   const handleSortModel = async newModel => {
+    debugger
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, status)
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -228,6 +260,7 @@ const AddSpecies = () => {
         })
 
         console.log('Unique Banner images:', uniqueBannerImages)
+        console.log('Status >>', status)
 
         setBannerImages(uniqueBannerImages)
       } else {
@@ -243,7 +276,54 @@ const AddSpecies = () => {
 
   console.log('Vernacular >>', editVernacularNames)
 
+  const handleHybridRowClick = async params => {
+    console.log('Params >>', params)
+    setOpenDrawer(true)
+    setTsnId(params.row.tsn)
+    setEditName(params.row?.complete_name)
+    setCommonName(params.row.default_common_name)
+    setSpeciesImage(params?.row?.default_icon)
+    
+    try {
+      const addBannerResponse = await GetBannerImages(params.row.tsn)
+      if (addBannerResponse?.success) {
+        console.log('Banner images added successfully:', addBannerResponse.data)
+
+        // Use a Set to filter out duplicate image URLs
+        const seenUrls = new Set()
+        const uniqueBannerImages = addBannerResponse.data.filter(item => {
+          if (!seenUrls.has(item.image_url)) {
+            seenUrls.add(item.image_url)
+            return true
+          }
+          return false
+        })
+
+        console.log('Unique Banner images:', uniqueBannerImages)
+        console.log('Status >>', status)
+
+        setBannerImages(uniqueBannerImages)
+      } else {
+        // Handle error response
+        console.log('Failed to add banner images:', addBannerResponse?.error)
+        toast.error('Failed to add banner images')
+      }
+    } catch (error) {
+      console.log('Error:', error)
+      toast.error('Error fetching data')
+    }
+  }
+
   console.log('TSN iD>>', tsnId)
+
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
 
   return (
     <>
@@ -251,35 +331,81 @@ const AddSpecies = () => {
         <FallbackSpinner />
       ) : (
         <>
-          <Card>
-            <CardHeader title='Species Master' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              onCellClick={handleRowClick}
-              loading={loading}
-              slotProps={{
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-            />
-          </Card>
+          <Grid>
+            <TabContext sx={{ cursor: 'pointer' }} value={status}>
+              <TabList onChange={handleChange}>
+                <Tab value='species' label={<TabBadge label='Species' />} />
+                <Tab value='hybrid' label={<TabBadge label='Hybrid' />} />
+              </TabList>
+              <TabPanel sx={{ cursor: 'pointer' }} value='1'></TabPanel>
+              <TabPanel sx={{ cursor: 'pointer' }} value='0'></TabPanel>
+              <TabPanel sx={{ cursor: 'pointer' }} value=''></TabPanel>
+              {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
+            </TabContext>
+          </Grid>
+          {status === 'species' ? (
+            <Card>
+              <CardHeader title='Species' action={headerAction} />
+
+              <DataGrid
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                onCellClick={handleRowClick}
+                loading={loading}
+                slotProps={{
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+              />
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader title='Hybrid' action={headerAction} />
+
+              <DataGrid
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbar }}
+                onPaginationModelChange={setPaginationModel}
+                onCellClick={handleHybridRowClick}
+                loading={loading}
+                slotProps={{
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+              />
+            </Card>
+          )}
+
           {openDrawer && (
             <AddSpeciesSlideBar
               drawerWidth={400}
               addEventSidebarOpen={openDrawer}
+              status={status}
+              setStatus={setStatus}
+              open={open}
               setOpenDrawer={setOpenDrawer}
               handleSidebarClose={handleSidebarClose}
               editVernacularNames={editVernacularNames}
