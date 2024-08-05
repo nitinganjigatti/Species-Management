@@ -37,6 +37,7 @@ import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
 import Utility from 'src/utility'
 import ProbableParent from './ProbableParent'
+import TransferEgg from './TransferEgg'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -127,6 +128,7 @@ const EggSecondSecion = ({
   const [addWeightSidebar, setaddWeightSidebar] = useState(false)
   const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
   const [probableParentSideBar, setProbableParentSideBar] = useState(false)
+  const [transferEggSideBar, setTransferEggSideBar] = useState(false)
   const [parent, setParent] = useState('')
   const [parentList, setParentList] = useState([])
 
@@ -665,7 +667,8 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.neutralSecondary
                           }}
                         >
-                          {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Name'}
+                          {/* {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Name'} */}
+                          {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
                         </Typography>
                       </Box>
                       <Box>
@@ -682,26 +685,31 @@ const EggSecondSecion = ({
                       </Box>
                     </Box>
                   </Box>
-                  {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      lineHeight: '19.36px',
-                      color: theme.palette.primary.main
-                    }}
-                  >
-                    Transfer
-                  </Typography>
-                  <Icon
-                    color='#00AFD6'
-                    style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
-                    icon='akar-icons:arrow-repeat'
-                    fontSize={24}
-                  />
-                </Box> */}
+                  {Number(eggDetails?.action_to_be_taken) != 4 ? (
+                    <Box
+                      onClick={() => setTransferEggSideBar(true)}
+                      sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '14px',
+                          lineHeight: '19.36px',
+                          color: theme.palette.primary.main
+                        }}
+                      >
+                        Transfer
+                      </Typography>
+                      <Icon
+                        color='#00AFD6'
+                        style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
+                        icon='akar-icons:arrow-repeat'
+                        fontSize={24}
+                      />
+                    </Box>
+                  ) : null}
                 </Box>
-                <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
+                {/* <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
                   <Grid
                     item
                     xs={12}
@@ -770,7 +778,25 @@ const EggSecondSecion = ({
                       Coming soon
                     </Typography>
                   </Grid>
-                </Grid>
+                </Grid> */}
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <img
+                    style={{ height: '120px', width: '120px', mixBlendMode: 'Luminosity' }}
+                    src='/icons/folderNot.png'
+                    alt='folderNot'
+                  />
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: '24px',
+                    fontWeight: 500,
+                    lineHeight: '29.05px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    textAlign: 'center'
+                  }}
+                >
+                  Coming soon
+                </Typography>
               </Box>
             </CardContent>
           </Card>
@@ -781,10 +807,10 @@ const EggSecondSecion = ({
             <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
             <CardContent style={{ paddingBottom: 0 }}>
               <CustomTableContainer
-                className={Styles.main}
-                style={{ borderRadius: '8px' }}
+                // className={Styles.main}
+                style={{ border: '0.5px solid #C3CEC7', borderRadius: '8px' }}
                 component={Paper}
-                sx={{ height: 174 }}
+                sx={{ height: 175 }}
               >
                 <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                   <TableHead>
@@ -839,7 +865,7 @@ const EggSecondSecion = ({
                 </Table>
               </CustomTableContainer>
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0, mt: 4 }}>
                 {total > 3 && <Button onClick={() => setSidebarOpen(true)}>View All</Button>}
               </Box>
             </CardContent>
@@ -1047,6 +1073,11 @@ const EggSecondSecion = ({
         setProbableParentSideBar={setProbableParentSideBar}
         parent={parent}
         parentList={parentList}
+      />
+      <TransferEgg
+        transferEggSideBar={transferEggSideBar}
+        setTransferEggSideBar={setTransferEggSideBar}
+        eggDetails={eggDetails}
       />
     </Grid>
   )

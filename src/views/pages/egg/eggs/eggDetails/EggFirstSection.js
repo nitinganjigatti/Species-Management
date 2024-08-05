@@ -225,13 +225,15 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       width: '100%',
                       aspectRatio: 15 / 9,
                       height: '90%',
-
                       backgroundColor: theme.palette.background.default,
                       borderRadius: '8px'
                     }}
                   >
                     <img
-                      style={{ objectFit: 'contain' }}
+                      style={{
+                        objectFit: eggDetails?.default_icon.endsWith('svg') ? 'contain' : 'cover',
+                        borderRadius: '8px'
+                      }}
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
@@ -519,7 +521,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       <Typography
                         sx={{
                           fontWeight: 600,
-                          fontSize: '14px',
+                          fontSize: { xs: '14px', md: '14px', lg: '13px', xl: '14px' },
                           lineHeight: '16.94px',
                           color:
                             eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
