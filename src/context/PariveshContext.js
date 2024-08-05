@@ -54,7 +54,7 @@ export const PariveshProvider = ({ children }) => {
   // }
 
   useEffect(() => {
-    // debugger
+    debugger
     fetchOrgData()
   }, [fetchOrgData])
 
