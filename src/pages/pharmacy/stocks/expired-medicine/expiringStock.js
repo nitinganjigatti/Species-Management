@@ -242,7 +242,7 @@ const ExpiringMedicine = () => {
         }
       })
 
-      Utility.exportToCSV(data, 'Expired Products')
+      Utility.exportToCSV(data, 'Expiring Products')
       setExcelLoader(false)
     } else {
       setExcelLoader(false)
@@ -264,7 +264,7 @@ const ExpiringMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='About to expire'
+              title='About To Expire'
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton
