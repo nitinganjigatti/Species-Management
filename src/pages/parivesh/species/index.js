@@ -192,8 +192,8 @@ const SpeciesList = () => {
         renderCell: params => (
           <>
             <div onClick={event => event.stopPropagation()}>
-              {/* <ImageLightbox images={params.row.species_image} /> */}
-              <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} />
+              <ImageLightbox images={params.row.species_image} />
+              {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} /> */}
             </div>
           </>
         )

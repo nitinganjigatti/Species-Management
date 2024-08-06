@@ -150,6 +150,7 @@ const EggList = () => {
     },
     {
       width: 200,
+
       // minWidth: 60,
       sortable: false,
       field: 'species',
@@ -1959,7 +1960,7 @@ const EggList = () => {
         )}
         {openDrawer && (
           <AllocationSlider
-            callApi={fetchTableData}
+            callApi={() => fetchTableData(sort, '', 'eggs_received', isDiscarded, filterByNurseryId)}
             allocationValues={allocationValues}
             setOpenDrawer={setOpenDrawer}
             allocateEggId={eggID}

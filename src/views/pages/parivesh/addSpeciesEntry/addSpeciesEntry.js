@@ -127,6 +127,10 @@ const AddSpeciesNewEntry = props => {
       // where_disposed,
     } = { ...params }
 
+    const now = new Date()
+    const selectedDate = new Date(transaction_date)
+    selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
+
     const payload = {
       org_id: selectedParivesh.id,
       tsn_id: specie?.id,
@@ -134,7 +138,7 @@ const AddSpeciesNewEntry = props => {
       possession_type: possession_type,
       gender: gender,
       animal_count: animal_count,
-      transaction_date: moment.utc(transaction_date).format('YYYY-MM-DD HH:mm:ss')
+      transaction_date: moment.utc(selectedDate).format('YYYY-MM-DD HH:mm:ss')
       // age: age,
       // ...(possession_type === 'death' && {
       //   alloted_register_no: alloted_register_no,
