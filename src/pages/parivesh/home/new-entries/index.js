@@ -83,13 +83,36 @@ const NewEntry = ({}) => {
     return data
   }
 
+  // const handleSelectAll = event => {
+  //   event.stopPropagation()
+  //   setSelectAll(event.target.checked)
+  //   if (event.target.checked) {
+  //     setSelectedRows(rows.map(row => row.id))
+  //   } else {
+  //     setSelectedRows([])
+  //   }
+  // }
+
+  const updateSelectAllState = paginationModel => {
+    const startIndex = paginationModel.page * paginationModel.pageSize
+    const endIndex = startIndex + paginationModel.pageSize
+    const currentPageRows = rows.slice(startIndex, endIndex)
+    const allCurrentPageSelected = currentPageRows.every(row => selectedRows.includes(row.id))
+    setSelectAll(allCurrentPageSelected && currentPageRows.length > 0)
+  }
   const handleSelectAll = event => {
     event.stopPropagation()
-    setSelectAll(event.target.checked)
-    if (event.target.checked) {
-      setSelectedRows(rows.map(row => row.id))
+    const isChecked = event.target.checked
+    setSelectAll(isChecked)
+
+    const startIndex = paginationModel.page * paginationModel.pageSize
+    const endIndex = startIndex + paginationModel.pageSize
+    const currentPageRows = rows.slice(startIndex, endIndex)
+
+    if (isChecked) {
+      setSelectedRows(prevSelected => [...new Set([...prevSelected, ...currentPageRows.map(row => row.id)])])
     } else {
-      setSelectedRows([])
+      setSelectedRows(prevSelected => prevSelected.filter(id => !currentPageRows.some(row => row.id === id)))
     }
   }
 
@@ -127,20 +150,32 @@ const NewEntry = ({}) => {
     }
   }
 
-  const handleRowSelection = id => {
-    const selectedIndex = selectedRows.indexOf(id)
-    let newSelected = []
+  // const handleRowSelection = id => {
+  //   const selectedIndex = selectedRows.indexOf(id)
+  //   let newSelected = []
 
-    if (selectedIndex === -1) {
-      newSelected = [...selectedRows, id]
-    } else {
-      newSelected = selectedRows.filter(rowId => rowId !== id)
-    }
-    // Update selectedRows state
-    setSelectedRows(newSelected)
-    // Update selectAll state
-    setSelectAll(newSelected.length === rows.length)
+  //   if (selectedIndex === -1) {
+  //     newSelected = [...selectedRows, id]
+  //   } else {
+  //     newSelected = selectedRows.filter(rowId => rowId !== id)
+  //   }
+  //   // Update selectedRows state
+  //   setSelectedRows(newSelected)
+  //   // Update selectAll state
+  //   setSelectAll(newSelected.length === rows.length)
+  // }
+
+  const handleRowSelection = id => {
+    setSelectedRows(prevSelected => {
+      const newSelected = prevSelected.includes(id) ? prevSelected.filter(rowId => rowId !== id) : [...prevSelected, id]
+
+      updateSelectAllState(paginationModel)
+      return newSelected
+    })
   }
+  useEffect(() => {
+    updateSelectAllState(paginationModel)
+  }, [rows, selectedRows, paginationModel])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -447,8 +482,16 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'checkbox',
       sortable: false,
+      // headerName: (
+      //   <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+      // ),
       headerName: (
-        <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+        <Checkbox
+          checked={selectAll}
+          indeterminate={selectedRows.length > 0 && !selectAll}
+          onChange={handleSelectAll}
+          inputProps={{ 'aria-label': 'Select All Rows' }}
+        />
       ),
       renderCell: params => (
         <Checkbox
@@ -571,7 +614,11 @@ const NewEntry = ({}) => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
+              // onPaginationModelChange={setPaginationModel}
+              onPaginationModelChange={newModel => {
+                setPaginationModel(newModel)
+                updateSelectAllState(newModel)
+              }}
               loading={loading}
               slotProps={{
                 baseButton: {
