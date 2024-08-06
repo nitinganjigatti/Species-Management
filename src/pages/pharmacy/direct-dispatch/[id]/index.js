@@ -75,13 +75,6 @@ const IndividualRequest = () => {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, request_number } = router.query
-  console.log('first', selectedPharmacy)
-  {
-    console.log(
-      'pharmacy',
-      selectedPharmacy.type === 'central' && selectedPharmacy.permission.key === 'allow_full_access'
-    ) || selectedPharmacy.permission.key === 'ADD'
-  }
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
@@ -91,7 +84,6 @@ const IndividualRequest = () => {
       setLoader(true)
       const response = await getRequestItemsListById(id)
       if (response.success) {
-        console.log('request items', response)
         const responseData = response.data
 
         const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -173,7 +165,6 @@ const IndividualRequest = () => {
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
-      console.log('shpped items', response)
       if (response.success) {
         // debugger
 
@@ -692,6 +683,25 @@ const IndividualRequest = () => {
           </div>
         </Typography>
       )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Shipped by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.created_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
     }
 
     // {
@@ -944,8 +954,6 @@ const IndividualRequest = () => {
                 show={showOrderFormDialog}
               />
               <Card sx={{ mb: 6 }}>
-                {console.log('shipped items', shippedItems)}
-                {console.log('requestItems', requestItems)}
                 <CardHeader
                   title={`Direct Dispatch - ${requestItems?.request_number}`}
                   avatar={
@@ -994,21 +1002,36 @@ const IndividualRequest = () => {
                 <CardContent>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
                       <p>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item xs={3}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched From</h5>
                       <p>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
                       <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item xs={3}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched ID</h5>
                       <p>{requestItems?.request_number}</p>
+                    </Grid>
+                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
+                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
+
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                          </Typography>
+                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+                            {Utility.formatDisplayDate(requestItems?.created_at)}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </Grid>
                   </Grid>
                   {/* Medicine Listing */}
@@ -1070,7 +1093,6 @@ const IndividualRequest = () => {
                       columns={shippedColumns}
                       rows={shippedItems}
                       onRowClick={e => {
-                        // console.log(e.id)
                         setOrderId(e.id)
                         showOrderFormDialog()
                       }}

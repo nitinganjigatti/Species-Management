@@ -7,7 +7,8 @@ import {
   updateStatus,
   uploadLabReports,
   GetTestsStatusById,
-  LabFileDelete
+  LabFileDelete,
+  GETLABLISTBYTESTID
 } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -115,4 +116,10 @@ export async function DeleteLAbRequestAttachment(id) {
 
     return error
   }
+}
+
+export async function GetLabListByTestId({ params }) {
+  const response = await axiosGet({ url: `${GETLABLISTBYTESTID}`, params })
+
+  return response.data
 }

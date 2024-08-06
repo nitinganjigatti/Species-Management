@@ -108,7 +108,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
-const AddReturnRequest = () => {
+const AddDirectDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
@@ -264,7 +264,6 @@ const AddReturnRequest = () => {
 
     if (isMedicineAlreadyExists) {
       setDuplicateMedError(true)
-      console.log('Medicine already exists')
 
       return
     }
@@ -362,16 +361,18 @@ const AddReturnRequest = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        active: 1,
+        is_specific: 1
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
@@ -417,6 +418,7 @@ const AddReturnRequest = () => {
           }
         } else {
           setOptionsBatchList([])
+          setTotalBatchQuantity(0)
         }
         setBatchLoading(false)
       } catch (e) {
@@ -460,7 +462,6 @@ const AddReturnRequest = () => {
   const getListOfItemsById = async id => {
     try {
       const result = await getDirectDispatchItemsListById(id)
-      console.log('direct dispatch items id ', result)
 
       if (result.success === true && result?.data?.request_item_details?.length > 0) {
         const lineItems = result?.data?.request_item_details.map(el => {
@@ -587,7 +588,6 @@ const AddReturnRequest = () => {
       }
     } else {
       try {
-        console.log('postData', postData)
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
@@ -649,11 +649,9 @@ const AddReturnRequest = () => {
   // }
 
   const cancelDirectDispatch = async id => {
-    console.log('id', id)
     if (id) {
       try {
         const result = await cancelDirectDispatchItems(id)
-        console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
@@ -841,6 +839,7 @@ const AddReturnRequest = () => {
                           setEditParams({ ...editParams, ro_date: formatDate(date) })
                           setErrors({})
                         }}
+                        maxDate={new Date()}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                       />
                       {errors.ro_date && (
@@ -1177,4 +1176,4 @@ const AddReturnRequest = () => {
   )
 }
 
-export default AddReturnRequest
+export default AddDirectDispatch

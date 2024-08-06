@@ -386,7 +386,10 @@ const ExistingPurchaseForm = props => {
                   value={value}
                   getOptionLabel={option => option.label}
                   renderOption={(props, option) => (
-                    <li {...props}>
+                    <li
+                      {...props}
+                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    >
                       <Box>
                         <Typography>{option.label}</Typography>
                         <Typography variant='body2'>{option.package_details}</Typography>

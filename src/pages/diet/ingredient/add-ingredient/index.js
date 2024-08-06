@@ -270,7 +270,7 @@ const AddIngredient = () => {
 
   const getPreparationList = useCallback(async (sort, q, column) => {
     try {
-      await getPreparationTypeList({ sort, q, limit: 10, column }).then(res => {
+      await getPreparationTypeList({ sort, q, limit: 10, column, status: 1 }).then(res => {
         setOptions(res?.data?.result)
       })
     } catch (e) {
@@ -337,12 +337,15 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            Toaster({ type: 'success', message: JSON?.stringify(res?.message) })
+            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
 
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
-            Toaster({ type: 'warning', message: JSON?.stringify(res?.message) })
+            Toaster({
+              type: 'error',
+              message: res?.message?.ingredient_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
           }
         })
       } catch (error) {
@@ -355,7 +358,7 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            Toaster({ type: 'success', message: JSON?.stringify(res?.message) })
+            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
 
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
@@ -373,7 +376,7 @@ const AddIngredient = () => {
               type: 'error',
 
               // message: JSON?.stringify(res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message)
-              message: res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message
+              message: res?.message?.ingredient_image ? 'Image type only PNG and JPG is allowed' : res?.message
             })
           }
         })

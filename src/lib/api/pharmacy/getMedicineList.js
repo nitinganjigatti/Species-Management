@@ -1,8 +1,18 @@
-import { MEDICINE, PHARMACY_BASE_URL } from '../../../constants/ApiConstant'
+import { MEDICINE, PHARMACY_BASE_URL, LOCAL_STOCK_REPORT } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getMedicineList({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${MEDICINE}/list`, params, pharmacy: true })
+
+  return response.data
+}
+export async function getLocalMedicineList({ params }) {
+  const response = await axiosGet({ url: `${LOCAL_STOCK_REPORT}`, params, pharmacy: true })
+
+  return response.data
+}
+export async function getGenericMedicineList({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}stock/list`, params, pharmacy: true })
 
   return response.data
 }

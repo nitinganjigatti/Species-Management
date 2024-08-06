@@ -76,13 +76,12 @@ const ReturnRequestList = () => {
         }
 
         await getRequestReturnList({ params: params }).then(res => {
-          console.log('response', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('returnPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('returnPageStatus')
           }
@@ -90,6 +89,8 @@ const ReturnRequestList = () => {
         setLoading(false)
       } catch (e) {
         console.log(e)
+        setTotal(0)
+        setRows([])
         setLoading(false)
       }
     },
@@ -266,10 +267,21 @@ const ReturnRequestList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'request_date',
-      headerName: 'Request date',
+      headerName: 'Returned On',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.request_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
         </Typography>
       )
     },
@@ -330,6 +342,25 @@ const ReturnRequestList = () => {
           </div>
           {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Returned by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {Utility.formatDisplayDate(params.row.request_date)}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
 
@@ -414,6 +445,7 @@ const ReturnRequestList = () => {
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
+                disableColumnMenu
                 slotProps={{
                   baseButton: {
                     variant: 'outlined'

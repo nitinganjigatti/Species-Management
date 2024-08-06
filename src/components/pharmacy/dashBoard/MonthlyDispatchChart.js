@@ -21,8 +21,6 @@ const MonthlyDispatchChart = () => {
     try {
       const result = await getMonthWiseDispatchList()
 
-      console.log('getMonthWiseDispatchList', result)
-
       if (result?.success === true && result?.data) {
         setDispatchList(result?.data)
       }
@@ -32,8 +30,8 @@ const MonthlyDispatchChart = () => {
   useEffect(() => {
     getMonthlyDispatches()
   }, [])
-  const transactionDates = dispatchList.map(item => item.month)
-  const dailyCounts = dispatchList.map(item => parseInt(item.daily_count))
+  const transactionDates = dispatchList.map(item => (item.month ? item.month : ''))
+  const dailyCounts = dispatchList.map(item => (item.daily_count ? parseInt(item.daily_count) : ''))
 
   // const options = {
   //   chart: {

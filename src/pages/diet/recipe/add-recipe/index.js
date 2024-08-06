@@ -13,8 +13,6 @@ import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredi
 import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-import IconButton from '@mui/material/IconButton'
-import toast from 'react-hot-toast'
 
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
@@ -22,7 +20,7 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import AddToasterforSuccess from 'src/components/AddSuccessToaster'
+import Toaster from 'src/components/Toaster'
 
 const steps = [
   {
@@ -51,6 +49,7 @@ const AddRecipe = () => {
     recipe_name: '',
     portion_size: '',
     portion_uom_id: '',
+    portion_uom_name: '',
     nutrional_value: '',
     nutrional_uom_id: '',
     kcal: '',
@@ -99,46 +98,49 @@ const AddRecipe = () => {
     }
   }
 
-  // const IngredientTypeListSearch = debounce(async value => {
-  //   try {
-  //     await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }, 500)
+  const IngredientTypeListSearch = debounce(async value => {
+    try {
+      await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
 
   const callIngredientTypeList = async ({ status, page, limit, q }) => {
     try {
       const params = {
         //status,
         q,
-
         //active: 1,
         page,
-        limit
+        limit,
+        status: 1
       }
+
       await getIngredientList({ params: params }).then(res => {
         setIngredientTypeList(res?.data?.result)
-        setFullIngredientList(res?.data?.result)
+        setFullIngredientList(prevList => [
+          ...prevList,
+          ...res?.data?.result.filter(newItem => !prevList.some(item => item.id === newItem.id))
+        ])
       })
     } catch (e) {
       console.log(e)
     }
   }
-
-  const IngredientTypeListSearch = debounce(value => {
-    console.log(value, 'value')
-    if (value) {
-      const filteredList = fullIngredientList.filter(ingredient =>
-        ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
-      )
-      console.log(filteredList, 'filteredList')
-      setIngredientTypeList(filteredList)
-    } else {
-      // If no search value, show the full list
-      setIngredientTypeList(fullIngredientList)
-    }
-  }, 500)
+  // const IngredientTypeListSearch = debounce(value => {
+  //   console.log(value, 'value')
+  //   if (value) {
+  //     const filteredList = fullIngredientList.filter(ingredient =>
+  //       ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
+  //     )
+  //     console.log(filteredList, 'filteredList')
+  //     setIngredientTypeList(filteredList)
+  //   } else {
+  //     // If no search value, show the full list
+  //     setIngredientTypeList(fullIngredientList)
+  //   }
+  // }, 500)
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
@@ -188,6 +190,13 @@ const AddRecipe = () => {
           ...prevData,
           ...updatedData
         }))
+
+        const ingredientList = data.by_percentage.map(item => ({
+          id: item.ingredient_id,
+          ingredient_name: item.ingredient_name
+        }))
+        console.log(ingredientList, 'ingredientList')
+        setFullIngredientList(ingredientList)
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -287,7 +296,12 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' t={t} />)
+        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+      } else {
+        Toaster({
+          type: 'error',
+          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     } else {
       const numericFormData = {
@@ -338,7 +352,12 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' id={id} t={t} />)
+        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+      } else {
+        Toaster({
+          type: 'error',
+          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     }
   }
@@ -364,6 +383,7 @@ const AddRecipe = () => {
             formData={formData}
             uomList={uomList}
             fullIngredientList={fullIngredientList}
+            setFullIngredientList={setFullIngredientList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
           />
@@ -384,7 +404,6 @@ const AddRecipe = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Diet</Typography>
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
           Recipe
         </Link>

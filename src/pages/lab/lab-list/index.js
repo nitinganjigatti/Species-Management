@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import { getLabList } from 'src/lib/api/lab/addLab'
 import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
@@ -24,11 +24,16 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
 
+import { AuthContext } from 'src/context/AuthContext'
+
 const ListOfLab = () => {
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
+  const authData = useContext(AuthContext)
+
+  // console.log('authData :>> ', authData?.userData?.roles?.settings?.add_lab)
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -43,7 +48,8 @@ const ListOfLab = () => {
     setShow(true)
   }
 
-  const handleEdit = async params => {
+  const handleEdit = async (e, params) => {
+    e.stopPropagation()
     console.log('params Lab', params.row.id)
     Router.push({
       pathname: '/lab/add-Lab',
@@ -72,12 +78,10 @@ const ListOfLab = () => {
         <Typography
           variant='body2'
           sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
-          onClick={() =>
-            Router.push({
-              pathname: '/lab/lab-details',
-              query: { id: params.row.id }
-            })
-          }
+
+          // onClick={() =>
+
+          // }
         >
           {params.row.lab_name}
         </Typography>
@@ -96,18 +100,6 @@ const ListOfLab = () => {
       )
     },
 
-    // {
-    //   flex: 0.4,
-    //   minWidth: 20,
-    //   field: 'package',
-    //   headerName: 'PACKAGE',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-    //       ${params.row.package_uom_label} ${params.row.product_form_label}`}
-    //     </Typography>
-    //   )
-    // },
     {
       flex: 0.4,
       minWidth: 20,
@@ -121,79 +113,32 @@ const ListOfLab = () => {
     },
 
     // {
-    //   flex: 0.3,
+    //   flex: 0.2,
     //   minWidth: 20,
-    //   field: 'created_at',
-    //   headerName: 'Date',
+    //   field: 'active',
+    //   headerName: 'STATUS',
     //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {Utility.formatDate(params.row.created_at)}
+    //     <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+    //       {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
     //     </Typography>
     //   )
     // },
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'image',
-    //   headerName: 'IMAGE',
-    //   renderCell: params => (
-    //     <Badge
-    //       sx={{ ml: 2, cursor: 'pointer' }}
-    //       anchorOrigin={{
-    //         vertical: 'bottom',
-    //         horizontal: 'right'
-    //       }}
-    //     >
-    //       <Avatar
-    //         variant='square'
-    //         alt='Lab Image'
-    //         sx={{ width: 40, height: 40 }}
-    //         src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-    //       />
-    //     </Badge>
-    //   )
-    // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'active',
-      headerName: 'STATUS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
 
-      renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={() => handleEdit(params)} aria-label='Edit'>
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          {/* <IconButton
-              size='small'
-              onClick={() => {
-                setConfigureMedId(params.row.id)
-                showDialog()
-              }}
-            >
-              <Icon icon='grommet-icons:configure' />
-            </IconButton> */}
-          {/* <IconButton size='small'>
-              <Icon icon='mdi:eye-outline' />
-            </IconButton>
-
-            <IconButton size='small'>
-              <Icon icon='mdi:file' />
-            </IconButton> */}
-        </Box>
-      )
-    }
+    authData?.userData?.roles?.settings?.add_lab
+      ? {
+          flex: 0.2,
+          minWidth: 20,
+          field: 'Action',
+          headerName: 'Action',
+          renderCell: params => (
+            <Box>
+              <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </Box>
+          )
+        }
+      : null
   ]
 
   /***** Serverside pagination */
@@ -269,7 +214,7 @@ const ListOfLab = () => {
 
   const headerAction = (
     <>
-      {storedData?.roles?.settings?.add_lab === true ? (
+      {authData?.userData?.roles?.settings?.add_lab === true ? (
         <div>
           <Button
             size='big'
@@ -291,6 +236,15 @@ const ListOfLab = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
+
+  const onCellClick = params => {
+    const data = params.row
+
+    Router.push({
+      pathname: '/lab/lab-details',
+      query: { id: data?.id }
+    })
+  }
 
   return (
     <>
@@ -320,6 +274,7 @@ const ListOfLab = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+              onCellClick={onCellClick}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -327,11 +282,9 @@ const ListOfLab = () => {
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
-
                   onChange: event => {
                     setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
+                    handleSearch(event.target.value)
                   }
                 }
               }}

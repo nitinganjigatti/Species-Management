@@ -18,7 +18,7 @@ import {
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 
 // import DatePicker from 'react-datepicker'
 import SingleDatePicker from 'src/components/SingleDatePicker'
@@ -40,13 +40,13 @@ const defaultValues = {
   },
   purchase_batch_no: '',
   purchase_expiry_date: null,
-  purchase_unit_price: 0,
-  purchase_qty: 0,
+  purchase_unit_price: '',
+  purchase_qty: '',
   purchase_free_quantity: 0,
-  purchase_discount: 0,
-  purchase_cgst: 0,
-  purchase_sgst: 0,
-  purchase_igst: 0,
+  purchase_discount: '',
+  purchase_cgst: '',
+  purchase_sgst: '',
+  purchase_igst: '',
   purchase_gst: 0,
   purchase_cgst_amount: 0,
   purchase_sgst_amount: 0,
@@ -75,7 +75,6 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
-  console.log('first,', nestedRowMedicine)
 
   const schema = yup.object().shape({
     product: yup.object().shape({
@@ -84,18 +83,18 @@ const PurchaseItemForm = props => {
       stock_type: yup.string().nullable()
     }),
 
-    purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
-      const result =
-        stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
-
-      return result
+    purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
+      if (stockType === 'non_medical') {
+        return schema.notRequired()
+      } else {
+        return schema
+          .required('Please enter the expiry date')
+          .test('is-valid-date', 'Select a valid expiry date', value => !isNaN(Date.parse(value)))
+      }
     }),
-
     purchase_batch_no: yup
       .string()
       .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
-        console.log(purchase_details)
-
         const isDuplicate = purchase_details?.some(
           (entry, index) =>
             index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
@@ -124,60 +123,6 @@ const PurchaseItemForm = props => {
       .min(0, 'Discount must be greater than zero')
       .required('Discount is required'),
 
-    // purchase_cgst: yup
-    //   .number()
-    //   .typeError('Central GST must be a number')
-    //   .when('purchase_igst', {
-    //     is: purchase_igst => purchase_igst > 0,
-    //     then: () =>
-    //       yup
-    //         .number()
-    //         .min(0, 'Central GST must be greater positive number')
-    //         .notRequired()
-    //         .test('zero_cgst', 'Central GST must be zero when IGST is greater than 0', value => value === 0),
-    //     otherwise: () =>
-    //       yup.number().min(1, 'Central GST must be greater positive number').required('Central GST is required')
-    //   }),
-
-    // purchase_sgst: yup
-    //   .number()
-    //   .typeError('State GST must be a number')
-    //   .when('purchase_igst', {
-    //     is: purchase_igst => purchase_igst > 0,
-    //     then: () =>
-    //       yup
-    //         .number()
-    //         .min(0, 'State GST must be greater positive number')
-    //         .notRequired()
-    //         .test('zero_sgst', 'State GST must be zero when IGST is greater than 0', value => value === 0),
-    //     otherwise: () =>
-    //       yup.number().min(1, 'State GST must be greater positive number').required('State GST is required')
-    //   }),
-
-    // purchase_igst: yup
-    //   .number()
-    //   .typeError('GST must be a number')
-    //   .min(0, 'GST must be at least 0')
-    //   .test('igst_conditional', 'IGST must be  positive number if CGST and SGST both are not there', function (value) {
-    //     const { purchase_cgst, purchase_sgst } = this.parent
-    //     if (purchase_cgst === 0 && purchase_sgst === 0) {
-    //       return value > 0
-    //     }
-
-    //     return true
-    //   })
-    //   .test(
-    //     'igst_no_cgst_sgst',
-    //     'If IGST has a value, CGST and SGST should not have values greater than 0',
-    //     function (value) {
-    //       const { purchase_cgst, purchase_sgst } = this.parent
-    //       if (value) {
-    //         return purchase_cgst === 0 && purchase_sgst === 0
-    //       }
-
-    //       return true
-    //     }
-    //   ),
     purchase_cgst: yup
       .number()
       .typeError('Central GST must be a number')
@@ -265,13 +210,17 @@ const PurchaseItemForm = props => {
     reset,
     setValue,
     watch,
-    getValues
+    getValues,
+    setError
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    // mode: 'onBlur',
+    mode: 'onSubmit',
+    // reValidateMode: 'onSubmit',
     reValidateMode: 'onChange',
     context: {
       previousEntries: purchase_details,
@@ -279,15 +228,8 @@ const PurchaseItemForm = props => {
     }
   })
 
-  // const watchFields = watch([
-  //   'purchase_unit_price',
-  //   'purchase_qty',
-  //   'purchase_discount',
-  //   'purchase_free_quantity',
-  //   'purchase_gst'
-  // ])
-
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
+  const [userInteracted, setUserInteracted] = useState(false)
 
   const onSubmit = async params => {
     const {
@@ -314,7 +256,6 @@ const PurchaseItemForm = props => {
 
       // purchase_purchase_price,
     } = params
-    console.log(params)
 
     const { value, label, stock_type } = product
 
@@ -492,14 +433,13 @@ const PurchaseItemForm = props => {
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate))
+    } else {
+      setValue('purchase_expiry_date', '')
     }
   }, [productExpiryDate, expiryDateLoader])
 
   useEffect(() => {
-    debugger
     if (nestedRowMedicine.medicine_name !== '') {
-      console.log(optionsMedicineList)
-
       Object.keys(nestedRowMedicine).forEach(key => {
         if (key !== 'purchase_expiry_date') {
           setValue(key, nestedRowMedicine[key])
@@ -527,6 +467,23 @@ const PurchaseItemForm = props => {
     }
   }, [])
 
+  const purchaseCgst = useWatch({ control, name: 'purchase_cgst' })
+  const purchaseSgst = useWatch({ control, name: 'purchase_sgst' })
+  const purchaseIgst = useWatch({ control, name: 'purchase_igst' })
+
+  useEffect(() => {
+    if (purchaseCgst > 0 || purchaseSgst > 0) {
+      setValue('purchase_igst', 0)
+    }
+  }, [purchaseCgst, purchaseSgst, setValue])
+
+  useEffect(() => {
+    if (purchaseIgst > 0) {
+      setValue('purchase_cgst', 0)
+      setValue('purchase_sgst', 0)
+    }
+  }, [purchaseIgst, setValue])
+
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
@@ -540,7 +497,10 @@ const PurchaseItemForm = props => {
                   options={optionsMedicineList}
                   value={value}
                   renderOption={(props, option) => (
-                    <li {...props}>
+                    <li
+                      {...props}
+                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    >
                       <Box>
                         <Typography>{option.label}</Typography>
                         <Typography variant='body2'>{option.package_details}</Typography>
@@ -630,8 +590,7 @@ const PurchaseItemForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
-                      console.log('product', product)
-                      console.log('event', e?.target?.value)
+
                       if (product?.product?.value !== '' && e?.target?.value !== '') {
                         field?.onBlur()
                         checkMedicineExpiryDate(product?.product?.value, e.target.value)
@@ -784,8 +743,12 @@ const PurchaseItemForm = props => {
                   label='Central GST in %*'
                   onKeyUp={e => {
                     calculateStuff()
+                    field.onChange(e)
+                    if (field.value && !isNaN(field.value)) {
+                      setUserInteracted(false)
+                    }
                   }}
-                  error={Boolean(errors.purchase_cgst)}
+                  error={userInteracted ? false : Boolean(errors.purchase_cgst)}
 
                   // helperText={errors.purchase_gst?.message}
                 />
@@ -808,6 +771,10 @@ const PurchaseItemForm = props => {
                   label='State GST in %*'
                   onKeyUp={e => {
                     calculateStuff()
+                    if (field.value && !isNaN(field.value)) {
+                      setError('purchase_cgst', '')
+                      setUserInteracted(true)
+                    }
                   }}
                   error={Boolean(errors.purchase_sgst)}
 
@@ -831,6 +798,7 @@ const PurchaseItemForm = props => {
                   label='IGST in %*'
                   onKeyUp={e => {
                     calculateStuff()
+                    field.onChange(e)
                   }}
                   error={Boolean(errors.purchase_igst)}
 
@@ -1022,100 +990,6 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        {/*
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <TextField
-              type='Number'
-              value={nestedRowMedicine.purchase_unit_price}
-              error={Boolean(itemErrors.purchase_unit_price)}
-              label='Supplier Rate*'
-              onChange={onchange}
-            />
-            {itemErrors.purchase_unit_price && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                {itemErrors.purchase_unit_price}
-              </FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            {console.log('nestedRowMedicine.purchase_qty', nestedRowMedicine.purchase_qty)}
-            <TextField
-              type='number'
-              value={nestedRowMedicine.purchase_qty}
-              error={Boolean(itemErrors.purchase_qty)}
-              label='Quantity*'
-              onChange={onchange}
-            />
-            {itemErrors.purchase_qty && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                {itemErrors.purchase_qty}
-              </FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <TextField
-              type='Number'
-              disabled={true}
-              value={value}
-              error={Boolean(itemErrors.purchase_purchase_price)}
-              label='Total purchase price'
-              onChange={onchange}
-            />
-            {itemErrors.purchase_purchase_price && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                This field is required
-              </FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-
-        {nestedRowMedicine.purchase_gst_type ? (
-          <>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='text'
-                  disabled={true}
-                  value={value}
-                  error={Boolean(itemErrors.purchase_gst_type)}
-                  label='GST'
-                  onChange={value}
-                />
-                {itemErrors.purchase_gst_type && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <TextField
-                  type='number'
-                  disabled={true}
-                  value={value}
-                  error={Boolean(itemErrors.purchase_tax_amount)}
-                  label='Tax amount'
-                  onChange={onchange}
-                />
-                {itemErrors.purchase_tax_amount && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-          </>
-        ) : null} */}
-
-        {/* <Box sx={{ height: '150px' }}></Box> */}
-
         {/* // file uploader */}
         <Grid item xs={12}>
           <Box sx={{ float: 'right' }}>
@@ -1124,15 +998,6 @@ const PurchaseItemForm = props => {
                 <Button sx={{ mr: 2 }} type='submit' size='large' variant='contained'>
                   update
                 </Button>
-                {/* <Button
-                  onClick={() => {
-                    reset(defaultValues)
-                  }}
-                  size='large'
-                  variant='outlined'
-                >
-                  Reset
-                </Button> */}
               </>
             ) : (
               <>

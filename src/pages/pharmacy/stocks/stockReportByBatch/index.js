@@ -12,7 +12,7 @@ import MenuItem from '@mui/material/MenuItem'
 import InputLabel from '@mui/material/InputLabel'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
-import { Box, Card, CardHeader, LinearProgress, debounce } from '@mui/material'
+import { Box, Card, CardHeader, LinearProgress, debounce, Tooltip } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 
@@ -67,7 +67,6 @@ const ListOfStocksByBatch = () => {
           limit: paginationModel.pageSize
         }
         const result = await getStocksByBatch(id, params)
-        console.log('result', result)
         if (result?.data?.length === 0) {
           toast.success('There is no stock for this store')
         }
@@ -82,9 +81,13 @@ const ListOfStocksByBatch = () => {
           setStockReport(loadServerRows(paginationModel.page, listWithId))
           setLoading(false)
         } else {
+          setTotal(0)
+          setStockReport([])
           setLoading(false)
         }
       } catch (error) {
+        setTotal(0)
+        setStockReport([])
         console.log('error', error)
         setLoading(false)
       }
@@ -168,9 +171,11 @@ const ListOfStocksByBatch = () => {
       field: 'stock_items_name',
       headerName: 'MEDICINE NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_items_name}
-        </Typography>
+        <Tooltip title={params.row.stock_items_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_items_name}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -388,6 +393,7 @@ const ListOfStocksByBatch = () => {
                     slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
+                    disableColumnMenu
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'

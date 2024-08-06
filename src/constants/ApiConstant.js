@@ -20,6 +20,8 @@ export const GetTestsStatusById = 'lab-report-stats'
 
 export const GetRequestPopUpById = 'antz/request/lab-tests'
 
+export const GETLABLISTBYTESTID = 'antz/tests/list-available'
+
 export const RequestDetails = 'antz/request/tests'
 
 export const AddLAB = 'antz/labs/create-lab'
@@ -154,6 +156,12 @@ export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
 
 export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'
 
+export const STOCK_ADJUSTMENT = 'stock-adjustment'
+
+export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
+
+export const LOCAL_TO_LOCAL_DISPATCH = 'direct-dispatch-local'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
@@ -213,6 +221,34 @@ export const ADD = 'add'
 export const UPDATE = 'update'
 
 export const TYPE = 'type'
+
+export const ADD_NURSERY = 'egg/nursery'
+
+export const ROOM_LIST = 'room/list'
+
+export const EGG = 'egg'
+
+export const NURSERY = 'nursery'
+
+export const INCUBATOR = 'incubator'
+
+export const ASSESMENT_TYPES = 'egg/default_assessment_types'
+
+export const EDIT = 'edit'
+
+export const DISCARD = 'discard'
+
+export const COMMENT = 'comment'
+
+export const STATUS = 'status'
+
+export const SUMMARY = 'summary'
+
+export const DISCARD_LIST_BY_ID = 'discard-list-by-id'
+
+export const DISCARD_DELETE = 'discard-delete'
+
+export const NECROPSY_REPORTS = 'necropsy-report'
 
 export const ADD_SPECIES = 'v1/parivesh/species/add'
 

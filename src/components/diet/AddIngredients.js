@@ -12,6 +12,7 @@ import {
   debounce,
   CircularProgress,
   Avatar,
+  InputAdornment,
   collapseClasses
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -20,11 +21,12 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
-
+import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
   const {
@@ -40,15 +42,20 @@ const AddIngredients = props => {
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
+  console.log('selectFeed :>> ', selectFeed)
 
   const [searchValue, setSearchValue] = useState('')
+
   const [remarks, setRemarks] = useState('')
-  console.log('remarks i :>> ', remarks)
+
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
+
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
+
+  const [totalCount, setTotalCount] = useState('')
 
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
@@ -95,11 +102,11 @@ const AddIngredients = props => {
     })
 
     // Use the updated selectedDays state
-    setSelectedDays(currentSelectedDays => {
-      handelCardSelection(event, item, null, null, null, currentSelectedDays)
+    // setSelectedDays(currentSelectedDays => {
+    //   handelCardSelection(event, item, null, null, null, currentSelectedDays)
 
-      return currentSelectedDays
-    })
+    //   return currentSelectedDays
+    // })
   }
 
   const handleChangeTopFeed = async event => {
@@ -107,7 +114,27 @@ const AddIngredients = props => {
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value }
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
+      await getIngredientList({ params }).then(res => {
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res?.data?.result)
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+          setIngredientList([])
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleClearFeed = async () => {
+    setFeed('')
+    setReachedEnd(true)
+
+    try {
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: '', status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
@@ -120,25 +147,6 @@ const AddIngredients = props => {
       console.error(error)
     }
   }
-
-  // const handleChangeFeed = (event, item) => {
-  //   event.stopPropagation()
-  //   const { value } = event.target
-
-  //   const selectedFeedType = item.preparation_types.find(type => type.id === value)
-
-  //   setSelectFeed(prevState => ({
-  //     ...prevState,
-  //     [item.id]: {
-  //       id: selectedFeedType.id,
-  //       name: selectedFeedType.label
-  //     }
-  //   }))
-
-  //   if (selectedFeedType.label !== 'Chopped') {
-  //     handelCardSelection(event, item, selectedFeedType, null, null, selectedDays)
-  //   }
-  // }
 
   const handleChangeFeed = (event, item) => {
     event.stopPropagation()
@@ -154,16 +162,12 @@ const AddIngredients = props => {
       }
     }))
 
-    // Log the current selectedFeedType and selectedDays
-
-    // Update selectedDays if necessary before calling handelCardSelection
-    if (selectedFeedType.label !== 'Chopped') {
+    if (selectedFeedType.label) {
       setSelectedDays(prevSelectedDays => {
         const existingIndex = prevSelectedDays.findIndex(
           selectedItem => selectedItem && selectedItem.cardId === item.id
         )
 
-        // If the item doesn't exist, add it with all days selected
         if (existingIndex === -1) {
           const allDays = Array.from({ length: 8 }, (_, i) => ({
             dayId: i,
@@ -177,11 +181,10 @@ const AddIngredients = props => {
         return prevSelectedDays
       })
 
-      // Ensure that handelCardSelection uses the updated selectedDays state
       setSelectedDays(currentSelectedDays => {
-        if (selectedFeedType.label !== 'Chopped') {
-          handelCardSelection(event, item, selectedFeedType, null, null, currentSelectedDays)
-        }
+        // if (selectedFeedType.label !== 'Chopped') {
+        handelCardSelection(event, item, selectedFeedType, null, null, currentSelectedDays)
+        // }
 
         return currentSelectedDays
       })
@@ -190,28 +193,32 @@ const AddIngredients = props => {
 
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
+    const { value } = event.target
+    console.log('event :>> ', event)
 
-    const newUom = event.target.value
+    // const newUom = event.target.value
+    console.log('Selected value:', value)
+    console.log('UOM array:', uom)
+    console.log('item :>> ', item)
+
+    // Find the selected UOM object based on the value
+    const newUom = uom.find(type => Number(type._id) === Number(value))
+    console.log('uomValue :>> ', newUom)
 
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
+        id: event.target.value,
+        name: newUom?.name
       }
     }))
 
-    // Update the state with the new object
-    // setSize(updatedObject)
-
-    if (cutSize) {
+    if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
     }
   }
 
   const handleAddRemarks = (event, item) => {
-    // event.stopPropagation()
-    // setRemarks(event.target.value)
     const newRemarks = event.target.value
     setRemarks(prevState => ({
       ...prevState,
@@ -274,6 +281,7 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
+  console.log('selectedCard :>> ', selectedCard)
 
   useEffect(() => {
     const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
@@ -281,7 +289,9 @@ const AddIngredients = props => {
   }, [checkid])
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays, newRemarks) => {
+    console.log('newUom  handelcard:>> ', newUom)
     event.stopPropagation()
+    console.log('call ')
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
@@ -298,10 +308,14 @@ const AddIngredients = props => {
     }
 
     if (feed_type === 'Chopped') {
+      console.log('newUom  inside if:>> ', newUom)
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      const sizeValue = newUom ? newUom?._id : size[item.id]?.id || ''
+      console.log('sizeValue :>> ', sizeValue)
+      console.log('cutSizeValue :>> ', cutSizeValue)
       if (!cutSizeValue || !sizeValue) {
         // toast.error('Cut size and size are required for chopped feed.')
+        console.log('Return ')
 
         return
       }
@@ -318,19 +332,17 @@ const AddIngredients = props => {
       mealid: checkid,
       ingredient_image: item.image,
       feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
-      feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom : size[item.id]?.id || '') : ''
+      feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
+      feed_uom_name: feed_type === 'Chopped' ? (newUom ? newUom.name : size[item.id]?.name || '') : ''
     }
+    console.log('boxValues :>> ', boxValues)
 
     const existingIndex = selectedCard.findIndex(card => card.ingredient_id === item.id)
 
     if (existingIndex !== -1) {
-      // If the card already exists, update its values
-
       selectedCard[existingIndex] = boxValues
       setSelectedCard([...selectedCard])
     } else {
-      // If the card is new, add it to selectedCard
-
       setSelectedCard(prevValues => [...prevValues, boxValues])
     }
   }
@@ -338,11 +350,16 @@ const AddIngredients = props => {
   const handleAllSelect = event => {
     setSelectedCard(selectedCard)
     onChange(selectedCard)
-    // event.stopPropagation()
+    event?.stopPropagation()
     setSelectedIngredient(selectedCard)
-    handleSidebarClose()
 
-    return toast.success('Ingredient selected')
+    if (selectedCard?.length > 0) {
+      handleSidebarClose()
+
+      return toast.success('Ingredient selected')
+    } else {
+      return toast.error('Ingredients are required')
+    }
   }
 
   useEffect(() => {
@@ -350,10 +367,11 @@ const AddIngredients = props => {
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort }
+      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -366,9 +384,9 @@ const AddIngredients = props => {
 
   // Top Feed Type
   const fetchData = async () => {
-    const params = {}
+    const params = { page: 1, limit: 50, status: 1 }
     try {
-      const response = await getPreparationTypeList()
+      const response = await getFeedTypeList(params)
 
       setFeedType(response?.data?.result)
     } catch (error) {
@@ -379,8 +397,6 @@ const AddIngredients = props => {
   useEffect(() => {
     fetchData()
   }, [])
-
-  // uom
 
   const getUnitsList = async () => {
     try {
@@ -402,23 +418,29 @@ const AddIngredients = props => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
-      // User has reached the bottom, perform your action here
 
-      setIngredientPage(++ingredientPage)
-      setReachedEnd(true)
-      try {
-        const params = { page: ingredientPage, q: searchValue, sort }
-        await getIngredientList({ params }).then(res => {
-          if (res?.data?.result?.length > 0) {
-            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-            setReachedEnd(false)
-          } else {
-            setReachedEnd(false)
-          }
-        })
-      } catch (error) {
-        console.error(error)
+    if (totalCount > ingredientList.length) {
+      console.log('api :>> ')
+
+      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+        // User has reached the bottom, perform your action here
+
+        setIngredientPage(++ingredientPage)
+
+        setReachedEnd(true)
+        try {
+          const params = { page: ingredientPage, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
+          await getIngredientList({ params }).then(res => {
+            if (res?.data?.result?.length > 0) {
+              setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+              setReachedEnd(false)
+            } else {
+              setReachedEnd(false)
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
   }
@@ -436,7 +458,7 @@ const AddIngredients = props => {
     const updatedSelectedCard =
       selectedValuesWithCheckId?.map(item => ({
         ...item,
-        ingredient_id: String(item.ingredient_id) // Convert ingredient_id to string
+        ingredient_id: String(item.ingredient_id)
       })) || []
 
     setSelectedCard(updatedSelectedCard)
@@ -499,17 +521,20 @@ const AddIngredients = props => {
   const searchData = useCallback(
     debounce(async search => {
       if (searchValue != ' ') {
+        console.log('search ing :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: ingredientPage, q: search, sort }
+          const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
+            console.log(res, 'res')
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
+            } else {
+              setIngredientList([])
             }
           })
         } catch (error) {
-          // console.error(error)
           setIngredientPage(1)
         }
       }
@@ -530,9 +555,7 @@ const AddIngredients = props => {
         // name: selectedFeedType.label
       }
     }))
-    // setCutSize(event.target.value)
 
-    // Call handelCardSelection with the updated cutSize value
     if (newCutSize) {
       handelCardSelection(event, item, null, newCutSize, null, selectedDays)
     } else {
@@ -547,7 +570,6 @@ const AddIngredients = props => {
     const cardIndex = selectedCard.findIndex(card => card.ingredient_id === itemId)
 
     if (cardIndex !== -1) {
-      // If the card is found, remove it from the selectedCard state
       const updatedSelectedCard = [...selectedCard]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
@@ -555,6 +577,7 @@ const AddIngredients = props => {
   }
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  console.log(selectedCard, 'selectedCard')
 
   return (
     <>
@@ -621,10 +644,28 @@ const AddIngredients = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300
+                      }
+                    }
+                  }}
+                  endAdornment={
+                    feed ? (
+                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
+                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : (
+                      ''
+                    )
+                  }
                 >
                   {feedType?.map(feedList => (
                     <MenuItem key={feedList?.key} value={feedList?.id}>
-                      {feedList?.label}
+                      {feedList?.feed_type_name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -800,17 +841,13 @@ const AddIngredients = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
-                              // sx={{
-                              //   ...(visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible && {
-                              //     borderColor: !size[item.id]?.id ? 'red' : '#ffffff',
-                              //     borderWidth: '2px',
-                              //     borderStyle: 'solid',
-                              //     borderRadius: 1,
-                              //     '&.Mui-focused': {
-                              //       borderColor: 'transparent'
-                              //     }
-                              //   })
-                              // }}
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 300
+                                  }
+                                }
+                              }}
                             >
                               <MenuItem value='' disabled>
                                 Select
@@ -846,15 +883,27 @@ const AddIngredients = props => {
                                 selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                             )
                               ? '#203e56'
-                              : '#dedede',
+                              : '#dedede66',
                             borderRadius: 5,
                             p: 2,
                             justifyContent: 'center',
                             alignItems: 'center',
                             cursor: 'pointer',
                             '&:hover': {
-                              bgcolor: '#203e56',
-                              color: 'white'
+                              backgroundColor: selectedDays.some(
+                                selectedDay =>
+                                  selectedDay.cardId === item.id &&
+                                  selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                              )
+                                ? '#203e56'
+                                : '#dedede',
+                              color: selectedDays.some(
+                                selectedDay =>
+                                  selectedDay.cardId === item.id &&
+                                  selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                              )
+                                ? 'white'
+                                : 'black'
                             },
                             color: selectedDays.some(
                               selectedDay =>

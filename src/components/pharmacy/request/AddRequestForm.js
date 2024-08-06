@@ -34,6 +34,7 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
+import { Tooltip } from '@mui/material'
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -43,7 +44,7 @@ import SingleDatePicker from '../../SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+import { getMedicineList, getGenericMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
 import {
   addRequestItems,
@@ -68,7 +69,6 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
-import { borderBottom } from '@mui/system'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -94,7 +94,10 @@ const initialNestedRowMedicine = {
   prescription_required: false,
   prescription_required_file: '',
   package: '',
-  manufacture: ''
+  manufacture: '',
+  unit_price: '',
+  genericName: '',
+  notes: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -178,7 +181,10 @@ const AddRequestForm = () => {
       prescription_required_file: nestedRowMedicine.prescription_required_file,
       package: nestedRowMedicine.package,
       manufacture: nestedRowMedicine.manufacture,
-      request_item_leaf_id: ''
+      request_item_leaf_id: '',
+      unit_price: nestedRowMedicine?.unit_price,
+      genericName: nestedRowMedicine.genericName,
+      notes: nestedRowMedicine?.notes
     }
 
     const updatedNestedRows = [...editParams.request_item_details, newData]
@@ -242,7 +248,6 @@ const AddRequestForm = () => {
     }
     // itemErrors.control_substance = 'This field is required'
     // }
-    console.log('itemErrors', itemErrors)
 
     return itemErrors
   }
@@ -407,27 +412,28 @@ const AddRequestForm = () => {
   //  ****** debounce
   const fetchMedicineData = async searchText => {
     try {
-      var params = {
+      const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        active: true
       }
 
       const searchResults = await getMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
-        debugger
-        setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
-            value: item.id,
-            name: item.name,
-            package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-            label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
-            manufacture: item.manufacturer_name,
-            control_substance: item.controlled_substance === '1' ? true : false,
-
-            prescription_required: item.prescription_required === '1' ? true : false
-          }))
-        )
+        let optionMedListFromApi = searchResults?.data?.list_items?.map(item => ({
+          value: item.id,
+          name: item.name,
+          package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+          label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
+          manufacture: item.manufacturer_name,
+          control_substance: item.controlled_substance === '1' ? true : false,
+          status: item?.active === '0' ? 0 : 1,
+          prescription_required: item?.prescription_required === '1' ? true : false,
+          unit_price: item?.unit_price ? item?.unit_price : 0,
+          genericName: item?.generic_name
+        }))
+        setOptionsMedicineList(optionMedListFromApi)
         setItemErrors({})
       }
     } catch (e) {
@@ -445,6 +451,50 @@ const AddRequestForm = () => {
     }, 500),
     []
   )
+
+  const fetchGenericMedicineData = async searchText => {
+    try {
+      const params = {
+        sort: 'asc',
+        q: '',
+        limit: 20,
+        active: true,
+        generic: searchText
+      }
+
+      const searchResults = await getGenericMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items?.map(item => ({
+            value: item.id,
+            genericName: item?.generic_name,
+            name: item?.name,
+            package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+            label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
+            manufacture: item.manufacturer_name,
+            control_substance: item.controlled_substance === '1' ? true : false,
+            status: item?.active === '0' ? 0 : 1,
+            prescription_required: item?.prescription_required === '1' ? true : false,
+            unit_price: item?.unit_price ? item?.unit_price : 0
+          }))
+        )
+        setItemErrors({})
+      }
+    } catch (e) {
+      console.log('error', e)
+    }
+  }
+
+  const searchGenericMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchGenericMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
   useEffect(() => {
     getStoresLists()
     fetchMedicineData('')
@@ -453,7 +503,6 @@ const AddRequestForm = () => {
 
   const getListOfItemsById = async id => {
     const result = await getRequestItemsListById(id)
-    console.log('result', result)
 
     if (result?.success === true && result?.data?.request_item_details?.length > 0) {
       const lineItems = result?.data?.request_item_details.map(el => {
@@ -471,7 +520,10 @@ const AddRequestForm = () => {
           request_item_detail_id: el?.id,
           dispatch_item_id: el?.dispatch_item_id,
           package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-          manufacture: el?.manufacturer
+          manufacture: el?.manufacturer,
+          unit_price: el?.unit_price,
+          genericName: el?.generic_name,
+          notes: el?.description
         }
       })
 
@@ -509,7 +561,10 @@ const AddRequestForm = () => {
         prescription_required_file: getItems[0].prescription_required_file,
         id: getItems[0].id,
         package: getItems[0].package,
-        manufacture: getItems[0].manufacture
+        manufacture: getItems[0].manufacture,
+        unit_price: getItems[0]?.unit_price,
+        genericName: getItems[0].genericName,
+        notes: getItems[0].notes
       })
     } else {
       const getItems = editParams.request_item_details.filter(el => {
@@ -531,7 +586,10 @@ const AddRequestForm = () => {
 
         prescription_required: getItems[0].prescription_required,
         package: getItems[0].package,
-        manufacture: getItems[0].manufacture
+        manufacture: getItems[0].manufacture,
+        unit_price: getItems[0]?.unit_price,
+        genericName: getItems[0].genericName,
+        notes: getItems[0].notes
       })
     }
   }
@@ -610,7 +668,6 @@ const AddRequestForm = () => {
     if (id) {
       try {
         const result = await cancelRequestItems(id)
-        // console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)
@@ -630,9 +687,8 @@ const AddRequestForm = () => {
     return (
       // <CardContent>
       <form style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={6}>
-            {console.log('options list', optionsMedicineList)}
+        <Grid container item spacing={5} xs={12}>
+          <Grid item xs={12} sm={11 / 2}>
             <FormControl fullWidth>
               <Autocomplete
                 // sx={{ zIndex: 1 }}
@@ -642,7 +698,10 @@ const AddRequestForm = () => {
                 id='autocomplete-controlled'
                 options={optionsMedicineList}
                 renderOption={(props, option) => (
-                  <li {...props}>
+                  <li
+                    {...props}
+                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                  >
                     <Box>
                       <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
@@ -659,7 +718,9 @@ const AddRequestForm = () => {
                     control_substance: newValue?.control_substance,
                     prescription_required: newValue?.prescription_required,
                     package: newValue?.package,
-                    manufacture: newValue?.manufacture
+                    manufacture: newValue?.manufacture,
+                    genericName: newValue?.genericName,
+                    unit_price: newValue?.unit_price
                   })
                   setDuplicateMedError('')
                   setItemErrors({})
@@ -674,11 +735,20 @@ const AddRequestForm = () => {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    placeholder='Search & Select'
-                    label='Product Name*'
+                    placeholder='Search by product name'
+                    label='Search by Product Name*'
                     error={Boolean(itemErrors.medicine_name)}
                   />
                 )}
+                // isOptionEqualToValue={(option, value) => {
+                //   console.log('option', option)
+                //   console.log('value', value)
+
+                //   return option?.name === value
+                // }}
+                // getOptionLabel={option => {
+                //   return option?.medicine_name || nestedRowMedicine?.medicine_name || ''
+                // }}
                 // getOptionLabel={option => option?.label}
                 // renderOption={option => (
                 //   <Box sx={{ my: 3, mx: 2 }}>
@@ -688,22 +758,138 @@ const AddRequestForm = () => {
                 // )}
               />
               {nestedRowMedicine.medicine_name && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={nestedRowMedicine.package}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                <Grid container item sx={{ my: 2 }}>
+                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+                    <Tooltip title={nestedRowMedicine.package}>
+                      <Chip
+                        label={nestedRowMedicine.package}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Tooltip title={nestedRowMedicine.manufacture}>
+                      <Chip
+                        label={nestedRowMedicine.manufacture}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
+              )}
+              {itemErrors.medicine_name && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
+              )}
+              {duplicateMedError && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {duplicateMedError}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={1}>
+            <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
+          </Grid>
+          <Grid item xs={12} sm={11 / 2}>
+            <FormControl fullWidth>
+              <Autocomplete
+                // sx={{ zIndex: 1 }}
+                // forcePopupIcon={true}
+                // inputProps={{ tabIndex: '6' }}
+                // disablePortal
+                id='autocomplete-controlled'
+                options={optionsMedicineList}
+                renderOption={(props, option) => (
+                  <li
+                    {...props}
+                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                  >
+                    <Box>
+                      <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
+                      <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+
+                      <Typography variant='body2'>{option.package}</Typography>
+                      <Typography variant='body2'>{option.manufacture}</Typography>
+                    </Box>
+                  </li>
+                )}
+                value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
+                onChange={(event, newValue) => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    medicine_name: newValue?.name,
+                    request_item_medicine_id: newValue?.value,
+                    control_substance: newValue?.control_substance,
+                    prescription_required: newValue?.prescription_required,
+                    package: newValue?.package,
+                    manufacture: newValue?.manufacture,
+                    unit_price: newValue?.unit_price,
+                    genericName: newValue?.genericName
+                  })
+                  setDuplicateMedError('')
+                  setItemErrors({})
+                }}
+                onKeyUp={e => {
+                  searchGenericMedicineData(e.target.value)
+
+                  setItemErrors({})
+                }}
+                onBlur={() => {}}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    placeholder='Search by Generic name'
+                    label='Search by Generic Name*'
+                    error={Boolean(itemErrors.medicine_name)}
                   />
-                  <Chip
-                    label={nestedRowMedicine.manufacture}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
+                )}
+                isOptionEqualToValue={(option, value) => {
+                  return option?.genericName === value
+                }}
+                getOptionLabel={option => {
+                  return option?.genericName || nestedRowMedicine?.genericName || ''
+                }}
+                // getOptionLabel={option => option?.label}
+                // renderOption={option => (
+                //   <Box sx={{ my: 3, mx: 2 }}>
+                //     <div>{option.key.split('Manufacturer')[0]}</div>
+                //     <div>{option.key.split('Manufacturer')[1]}</div>
+                //   </Box>
+                // )}
+              />
+              {nestedRowMedicine.medicine_name && (
+                <Grid container item sx={{ my: 2 }}>
+                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+                    <Tooltip title={nestedRowMedicine.package}>
+                      <Chip
+                        label={nestedRowMedicine.package}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Tooltip title={nestedRowMedicine.manufacture}>
+                      <Chip
+                        label={nestedRowMedicine.manufacture}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
               )}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -718,7 +904,7 @@ const AddRequestForm = () => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={11 / 2}>
             <FormControl fullWidth>
               <TextField
                 type='number'
@@ -736,10 +922,50 @@ const AddRequestForm = () => {
                   {itemErrors?.request_item_qty}
                 </FormHelperText>
               )}
+
+              {nestedRowMedicine.unit_price > 0 ? (
+                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+                  <Chip
+                    label={`Unit Price - ${nestedRowMedicine.unit_price}`}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  />
+                  <Chip
+                    label={`Total QTY Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                    color='primary'
+                    variant='outlined'
+                    size='sm'
+                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  />
+                </Box>
+              ) : null}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={1}></Grid>
+          <Grid item xs={12} sm={11 / 2}>
+            <FormControl fullWidth>
+              <TextField
+                type='text'
+                value={nestedRowMedicine.notes}
+                error={Boolean(itemErrors.notes)}
+                label='Notes'
+                onChange={event => {
+                  setNestedRowMedicine({ ...nestedRowMedicine, notes: event.target.value })
+                  setItemErrors({})
+                }}
+              />
+              {itemErrors?.notes && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {/* This field is required */}
+                  {itemErrors?.notes}
+                </FormHelperText>
+              )}
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={11 / 2}>
             <Typography>Priority</Typography>
             <RadioGroup
               row
@@ -756,9 +982,11 @@ const AddRequestForm = () => {
           </Grid>
 
           {/* // file uploader */}
+          <Grid item xs={12} sm={1}></Grid>
+
           {nestedRowMedicine.control_substance === true ? (
             nestedRowMedicine.control_substance_file ? (
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={11 / 2}>
                 {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
                   <Chip
                     label={nestedRowMedicine.control_substance_file?.name}
@@ -811,7 +1039,7 @@ const AddRequestForm = () => {
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={11 / 2}>
                 <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
                 <FormControl fullWidth>
                   <TextField
@@ -851,7 +1079,7 @@ const AddRequestForm = () => {
           ) : null}
           {nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
-              <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+              <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
                 {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
                   <Chip
                     label={nestedRowMedicine.prescription_required_file?.name}
@@ -904,7 +1132,7 @@ const AddRequestForm = () => {
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={6} sx={{ ml: 'auto' }}>
+              <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
                 <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
                 <FormControl fullWidth>
                   <TextField
@@ -1007,6 +1235,7 @@ const AddRequestForm = () => {
   return (
     <Card>
       <Grid
+        item
         container
         sm={12}
         xs={12}
@@ -1044,8 +1273,8 @@ const AddRequestForm = () => {
         <form>
           <Grid container spacing={5}>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
+                <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Requested to :
                   </Typography>
@@ -1087,7 +1316,7 @@ const AddRequestForm = () => {
               </Grid>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   &nbsp;
                 </Typography>
@@ -1152,26 +1381,28 @@ const AddRequestForm = () => {
             </Grid>
           </Grid>
         </form>
-      </CardContent>
-      <Grid
-        container
-        spacing={6}
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          mb: 4
-        }}
-      >
-        <AddButton
-          title='Add Request Item'
-          action={() => {
-            handleSubmit()
+        <Grid
+          container
+          item
+          spacing={6}
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            mb: 2,
+            mt: 2
           }}
-        />
-      </Grid>
+        >
+          <AddButton
+            title='Add Request Item'
+            action={() => {
+              handleSubmit()
+            }}
+          />
+        </Grid>
+      </CardContent>
 
       <TableContainer>
         <Table>
@@ -1180,6 +1411,9 @@ const AddRequestForm = () => {
               <TableCell>Product Name</TableCell>
               <TableCell>Priority</TableCell>
               <TableCell>Quantity</TableCell>
+              <TableCell>Unit price</TableCell>
+              <TableCell>Total QTY price</TableCell>
+              <TableCell>Notes</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
@@ -1206,7 +1440,29 @@ const AddRequestForm = () => {
                         {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
                       </TableCell>
 
-                      <TableCell>{el.request_item_qty}</TableCell>
+                      <TableCell align='center'>{el.request_item_qty}</TableCell>
+                      <TableCell align='center'>{el.unit_price > 0 ? el.unit_price : 'NA'}</TableCell>
+                      <TableCell align='center'>
+                        {el?.unit_price * el?.request_item_qty > 0 ? el?.unit_price * el?.request_item_qty : 'NA'}
+                      </TableCell>
+                      <TableCell align='left'>
+                        <Tooltip title={el?.notes}>
+                          <Typography
+                            sx={{
+                              minWidth: 30,
+                              maxWidth: 80,
+                              cursor: 'pointer',
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              WebkitLineClamp: 6,
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {el?.notes ? el?.notes : 'NA'}
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
 
                       <TableCell>
                         <IconButton

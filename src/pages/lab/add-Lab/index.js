@@ -38,27 +38,40 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 import UserSnackbar from 'src/components/utility/snackbar'
+import Image from 'next/image'
+import { AuthContext } from 'src/context/AuthContext'
+
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
 
 // ** Source code imports
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/lab/addLab'
+import { useDropzone } from 'react-dropzone'
+import { useTheme } from '@mui/material/styles'
+import ErrorScreen from 'src/pages/Error'
+import { useContext } from 'react'
 
 const AddLab = () => {
+  const theme = useTheme()
+  const authData = useContext(AuthContext)
+
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [longitude, setLongitude] = useState('')
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
-  console.log('labType', labType)
+  // console.log('labType', labType)
   // const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [prevTests, setPrevTests] = useState([])
 
   const [dataToUpdate, setDataToUpdate] = useState([])
+  // console.log('dataToUpdate', dataToUpdate)
 
   const [showLabTests, setShowLabTests] = useState()
+  // console.log('showLabTests', showLabTests)
 
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   //image upload
@@ -77,7 +90,12 @@ const AddLab = () => {
   const router = useRouter()
   const { id, action } = router.query
   const [isDefault, setIsDefault] = useState(0)
-  console.log('isDefault', isDefault)
+  // console.log('isDefault :>> ', isDefault)
+  // console.log('isDefault', isDefault)
+  const fileInputRef = useRef(null)
+  const [imgSrc, setImgSrc] = useState([])
+  const [displayFile, setDisplayFile] = useState('')
+  const [imgArr, setImgArr] = useState([])
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -236,16 +254,12 @@ const AddLab = () => {
   }
 
   const schema = yup.object().shape({
-    lab_name: yup.string().required('Lab name is required'),
+    lab_name: yup.string().trim().required('Lab name is required'),
     type: yup.string().required('Lab Type is required'),
-    incharge_name: yup.string().required('Lab Incharge name  is required'),
-    lab_contact_number: yup
-      .string()
-      .required('Lab Incharge  No is required')
+    incharge_name: yup.string().trim().required('Lab Incharge name is required'),
+    address: yup.string().trim().required('Address is required'),
 
-      // .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
-
-      .max(10, 'Maximum of 10 digits'),
+    lab_contact_number: yup.string().trim().max(10, 'Maximum of 10 digits').required('Lab incharge No is required'),
     is_default: yup.boolean()
 
     // latitude: yup.string(),
@@ -259,7 +273,8 @@ const AddLab = () => {
     formState: { errors },
     trigger,
     setValue,
-    getValues
+    getValues,
+    clearErrors
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -271,7 +286,7 @@ const AddLab = () => {
   const handleSubmitData = async () => {
     try {
       const errors = await trigger()
-      const isLabTestsEmpty = dataToUpdate.every(sample => sample.tests.length === 0)
+      const isLabTestsEmpty = showLabTests.every(sample => sample.tests.length === 0)
 
       if (errors || isLabTestsEmpty) {
         handleSubmit(onSubmit)
@@ -291,6 +306,81 @@ const AddLab = () => {
     // handleSubmit(onSubmit)()
   }
 
+  // image
+
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: true,
+    accept: {
+      '*/*': []
+    },
+    onDrop: acceptedFiles => {
+      const reader = new FileReader()
+      const files = acceptedFiles
+      if (files && files.length !== 0) {
+        reader.onload = () => {
+          setImgSrc(pre => [...pre, reader?.result])
+        }
+        setDisplayFile(files[0]?.name)
+        reader?.readAsDataURL(files[0])
+        setImgArr(pre => [...pre, files[0]])
+        setValue('image', files)
+
+        clearErrors('image')
+      }
+    }
+  })
+
+  const handleAddImageClick = () => {
+    fileInputRef?.current?.click()
+  }
+
+  const handleInputImageChange = file => {
+    const reader = new FileReader()
+    const { files } = file.target
+    console.log('files :>> ', files)
+    if (files && files.length !== 0) {
+      reader.onload = () => {
+        setImgSrc(pre => [...pre, reader?.result])
+      }
+      setDisplayFile(files[0]?.name)
+      reader?.readAsDataURL(files[0])
+      setImgArr(pre => [...pre, files[0]])
+      setValue('image', files)
+      clearErrors('image')
+    }
+  }
+
+  // const removeSelectedImage = index => {
+  //   setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
+  //   setValue('image', '')
+  // }
+
+  const removeSelectedImage = index => {
+    setImgSrc(prevImages => {
+      const updatedImages = prevImages.filter((_, i) => i !== index)
+      if (updatedImages.length === 0) {
+        setValue('image', '')
+      } else {
+        setValue('image', updatedImages)
+      }
+
+      return updatedImages
+    })
+
+    setImgArr(prevFiles => {
+      const updatedFiles = prevFiles.filter((_, i) => i !== index)
+      if (updatedFiles.length === 0) {
+        setValue('image', '')
+      } else {
+        setValue('image', updatedFiles)
+      }
+
+      return updatedFiles
+    })
+  }
+
+  // ---------------
+
   const onSubmit = async params => {
     setSubmitLoader(true)
 
@@ -307,15 +397,17 @@ const AddLab = () => {
       lab_contact_number,
       latitudes: latitude,
       longitudes: longitude,
-      lab: JSON.stringify(dataToUpdate),
-      is_default: isDefault
+      // lab: JSON.stringify(dataToUpdate),
+      lab: JSON.stringify(showLabTests),
+      is_default: isDefault,
+      image: imgArr
       // user_id: '58'
     }
 
-    if (files.length > 0) {
-      payload.image = files[0]
-    } else {
-    }
+    // if (files.length > 0) {
+    //   payload.image = files[0]
+    // } else {
+    // }
     // console.log('payload', payload)
 
     if (id !== undefined && action === 'edit') {
@@ -323,11 +415,15 @@ const AddLab = () => {
 
       const response = await updateLabById(payload, id)
       setSubmitLoader(false)
+      console.log('response  update :>> ', response)
+      if (response?.success) {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        await Router.push('/lab/lab-list')
+      } else {
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
 
       // reset(defaultValues)
-
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-      await Router.push('/lab/lab-list')
     } else {
       console.log(payload)
 
@@ -362,8 +458,65 @@ const AddLab = () => {
 
   // Add Test
 
+  // const handleCheckBox = (sample, parent, child, isChecked) => {
+  //   // console.log('sample', sample)
+  //   setTestData(prevData => {
+  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+  //     if (sampleIndex === -1) {
+  //       // If the sample is not in TestData, add it with the parent and child
+  //       return [
+  //         ...prevData,
+  //         {
+  //           sample_id: sample.sample_id,
+  //           sample_name: sample.sample_name,
+  //           value: false,
+  //           tests: [
+  //             {
+  //               test_id: parent.test_id,
+  //               test_name: parent.test_name,
+  //               full_test: false,
+  //               child_tests: [
+  //                 {
+  //                   test_id: child.test_id,
+  //                   test_name: child.test_name,
+  //                   value: isChecked,
+  //                   input_type: child.input_type
+  //                 }
+  //               ]
+  //             }
+  //           ]
+  //         }
+  //       ]
+  //     } else {
+  //       // If the sample is in TestData, update the child_tests array
+  //       return prevData.map(data =>
+  //         data.sample_id === sample.sample_id
+  //           ? {
+  //               ...data,
+  //               tests: data.tests.map(test =>
+  //                 test.test_id === parent.test_id
+  //                   ? {
+  //                       ...test,
+  //                       child_tests: test.child_tests.map(ct =>
+  //                         ct.test_id === child.test_id
+  //                           ? {
+  //                               ...ct,
+  //                               value: isChecked
+  //                             }
+  //                           : ct
+  //                       )
+  //                     }
+  //                   : test
+  //               )
+  //             }
+  //           : data
+  //       )
+  //     }
+  //   })
+  // }
+
   const handleCheckBox = (sample, parent, child, isChecked) => {
-    console.log('sample', sample)
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
 
@@ -393,34 +546,94 @@ const AddLab = () => {
           }
         ]
       } else {
-        // If the sample is in TestData, update the child_tests array
-        return prevData.map(data =>
-          data.sample_id === sample.sample_id
-            ? {
-                ...data,
-                tests: data.tests.map(test =>
-                  test.test_id === parent.test_id
-                    ? {
-                        ...test,
-                        child_tests: test.child_tests.map(ct =>
-                          ct.test_id === child.test_id
-                            ? {
-                                ...ct,
-                                value: isChecked
-                              }
-                            : ct
-                        )
-                      }
-                    : test
+        return prevData.map(data => {
+          if (data.sample_id === sample.sample_id) {
+            const updatedTests = data.tests.map(test => {
+              if (test.test_id === parent.test_id) {
+                const updatedChildTests = test.child_tests.map(ct =>
+                  ct.test_id === child.test_id ? { ...ct, value: isChecked } : ct
                 )
+
+                // Unselect parent test if any child test is unchecked
+                const anyChildUnchecked = updatedChildTests.some(ct => !ct.value)
+
+                return { ...test, full_test: !anyChildUnchecked, child_tests: updatedChildTests }
+              } else {
+                return test
               }
-            : data
-        )
+            })
+
+            // Unselect sample if any parent test or child test is unchecked
+            const anyParentUnchecked = updatedTests.some(test => !test.full_test)
+
+            return { ...data, value: !anyParentUnchecked, tests: updatedTests }
+          } else {
+            return data
+          }
+        })
       }
     })
   }
 
   // Select All
+  // const handleParentSwitch = (sample, parent, isChecked) => {
+  //   setTestData(prevData => {
+  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+  //     if (sampleIndex === -1) {
+  //       // If the sample is not in TestData, add it with the parent and child
+  //       if (isChecked) {
+  //         return [
+  //           ...prevData,
+  //           {
+  //             sample_id: sample.sample_id,
+  //             sample_name: sample.sample_name,
+  //             tests: [
+  //               {
+  //                 test_id: parent.test_id,
+  //                 test_name: parent.test_name,
+  //                 full_test: isChecked,
+  //                 child_tests: parent.child_tests.map(childTest => ({
+  //                   ...childTest,
+  //                   value: isChecked
+  //                 }))
+  //               }
+  //             ]
+  //           }
+  //         ]
+  //       }
+
+  //       // Handle the case when the sample is not found and isChecked is false
+  //       return prevData
+  //     }
+
+  //     return prevData.map(data =>
+  //       data.sample_id === sample.sample_id
+  //         ? {
+  //             ...data,
+  //             tests: data.tests.map(test =>
+  //               test.test_id === parent.test_id
+  //                 ? {
+  //                     ...test,
+  //                     full_test: isChecked,
+  //                     child_tests: isChecked
+  //                       ? test.child_tests.map(childTest => ({
+  //                           ...childTest,
+  //                           value: isChecked
+  //                         }))
+  //                       : test.child_tests.map(childTest => ({
+  //                           ...childTest,
+  //                           value: false
+  //                         }))
+  //                   }
+  //                 : test
+  //             )
+  //           }
+  //         : data
+  //     )
+  //   })
+  // }
+
   const handleParentSwitch = (sample, parent, isChecked) => {
     setTestData(prevData => {
       const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
@@ -452,32 +665,83 @@ const AddLab = () => {
         return prevData
       }
 
-      return prevData.map(data =>
-        data.sample_id === sample.sample_id
-          ? {
-              ...data,
-              tests: data.tests.map(test =>
-                test.test_id === parent.test_id
-                  ? {
-                      ...test,
-                      full_test: isChecked,
-                      child_tests: isChecked
-                        ? test.child_tests.map(childTest => ({
-                            ...childTest,
-                            value: isChecked
-                          }))
-                        : test.child_tests.map(childTest => ({
-                            ...childTest,
-                            value: false
-                          }))
-                    }
-                  : test
-              )
-            }
-          : data
-      )
+      return prevData.map(data => {
+        if (data.sample_id === sample.sample_id) {
+          const updatedTests = data.tests.map(test =>
+            test.test_id === parent.test_id
+              ? {
+                  ...test,
+                  full_test: isChecked,
+                  child_tests: isChecked
+                    ? test.child_tests.map(childTest => ({
+                        ...childTest,
+                        value: isChecked
+                      }))
+                    : test.child_tests.map(childTest => ({
+                        ...childTest,
+                        value: false
+                      }))
+                }
+              : test
+          )
+
+          // Unselect sample if any parent test or child test is unchecked
+          const anyParentUnchecked = updatedTests.some(test => !test.full_test)
+
+          return { ...data, value: !anyParentUnchecked, tests: updatedTests }
+        } else {
+          return data
+        }
+      })
     })
   }
+
+  // const handleTestFullTestSwitch = (sample, parent, isChecked) => {
+  //   setTestData(prevData => {
+  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
+
+  //     if (sampleIndex === -1) {
+  //       // If the sample is not in TestData, add it with the parent and child
+  //       if (isChecked) {
+  //         return [
+  //           ...prevData,
+  //           {
+  //             sample_id: sample.sample_id,
+  //             sample_name: sample.sample_name,
+  //             tests: [
+  //               {
+  //                 test_id: parent.test_id,
+  //                 test_name: parent.test_name,
+  //                 full_test: isChecked,
+  //                 child_tests: parent.child_tests
+  //               }
+  //             ]
+  //           }
+  //         ]
+  //       }
+
+  //       // Handle the case when the sample is not found and isChecked is false
+  //       return prevData
+  //     }
+
+  //     return prevData.map(data =>
+  //       data.sample_id === sample.sample_id
+  //         ? {
+  //             ...data,
+  //             tests: data.tests.map(test =>
+  //               test.test_id === parent.test_id
+  //                 ? {
+  //                     ...test,
+  //                     full_test: isChecked,
+  //                     child_tests: parent.child_tests
+  //                   }
+  //                 : test
+  //             )
+  //           }
+  //         : data
+  //     )
+  //   })
+  // }
 
   const handleTestFullTestSwitch = (sample, parent, isChecked) => {
     setTestData(prevData => {
@@ -491,6 +755,7 @@ const AddLab = () => {
             {
               sample_id: sample.sample_id,
               sample_name: sample.sample_name,
+              value: true,
               tests: [
                 {
                   test_id: parent.test_id,
@@ -507,22 +772,31 @@ const AddLab = () => {
         return prevData
       }
 
-      return prevData.map(data =>
-        data.sample_id === sample.sample_id
-          ? {
-              ...data,
-              tests: data.tests.map(test =>
-                test.test_id === parent.test_id
-                  ? {
-                      ...test,
-                      full_test: isChecked,
-                      child_tests: parent.child_tests
-                    }
-                  : test
-              )
+      return prevData.map(data => {
+        if (data.sample_id === sample.sample_id) {
+          const updatedTests = data.tests.map(test => {
+            if (test.test_id === parent.test_id) {
+              return {
+                ...test,
+                full_test: isChecked,
+                child_tests: test.child_tests.map(childTest => ({
+                  ...childTest,
+                  value: isChecked
+                }))
+              }
+            } else {
+              return test
             }
-          : data
-      )
+          })
+
+          // Unselect sample if any parent test or child test is unchecked
+          const anyParentUnchecked = updatedTests.some(test => !test.full_test)
+
+          return { ...data, value: !anyParentUnchecked, tests: updatedTests }
+        } else {
+          return data
+        }
+      })
     })
   }
 
@@ -658,470 +932,622 @@ const AddLab = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {authData?.userData?.roles?.settings?.add_lab ? (
         <>
-          <Grid container spacing={6} className='match-height'>
-            <Grid item xs={12}>
-              <Card>
-                <CardHeader title='Add New Lab' />
-                <CardContent>
-                  <form onSubmit={handleSubmit(onSubmit)}>
-                    <Grid container spacing={5}>
-                      <Grid item xs={12} md={6} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='lab_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Lab Name*'
-                                name='lab_name'
-                                error={Boolean(errors.lab_name)}
-                                onChange={onChange}
-                                placeholder=''
-                              />
-                            )}
-                          />
-                          {errors.lab_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.lab_name?.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={6} sm={6}>
-                        <FormControl fullWidth mt={2}>
-                          <InputLabel error={Boolean(errors?.type)} id='type'>
-                            Lab Type*
-                          </InputLabel>
-                          <Controller
-                            name='type'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <Select
-                                name='type'
-                                value={value}
-                                label='Lab Type*'
-                                onChange={e => {
-                                  onChange(e.target.value)
-                                  setLabType(e.target.value)
-                                }}
-                                error={Boolean(errors?.type)}
-                                labelId='type'
-                              >
-                                <MenuItem value='internal'>Internal Lab</MenuItem>
-                                <MenuItem value='external'>External Lab</MenuItem>
-                              </Select>
-                            )}
-                          />
-                          {errors?.type && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.type?.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={6} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='incharge_name'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Lab Incharge Name*'
-                                name='incharge_name'
-                                error={Boolean(errors.incharge_name)}
-                                onChange={onChange}
-                                placeholder=''
-                              />
-                            )}
-                          />
-                          {errors.incharge_name && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.incharge_name?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-
-                      <Grid item xs={12} md={6} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='address'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Lab Address*'
-                                name='address'
-                                error={Boolean(errors.address)}
-                                onChange={onChange}
-                                placeholder=''
-                              />
-                            )}
-                          />
-                          {errors.address && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.address?.message}</FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={6} sm={6}>
-                        <FormControl fullWidth>
-                          <Controller
-                            name='lab_contact_number'
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { value, onChange } }) => (
-                              <TextField
-                                value={value}
-                                label='Lab Incharge Mobile Number'
-                                onChange={onChange}
-                                placeholder=''
-                                error={Boolean(errors?.lab_contact_number)}
-                                name='lab_contact_number'
-                              />
-                            )}
-                          />
-                          {errors?.phone && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.lab_contact_number?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} md={6} sm={6}>
-                        <Controller
-                          name='is_default'
-                          control={control}
-                          render={({ field: { value, onChange } }) => (
-                            <Stack
-                              direction='row'
-                              sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
-                            >
-                              <Typography>Mark as default Lab</Typography>
-                              <FormControlLabel
-                                // control={<Switch checked={value} onChange={onChange} />}
-                                control={
-                                  <Switch
-                                    checked={isDefault}
-                                    onChange={e => {
-                                      onChange(e.target.checked ? 1 : 0)
-                                      handleSwitchChange(e.target.checked)
-                                    }}
-                                  />
-                                }
-                                disabled={labType === 'external'}
-                              />
-                            </Stack>
-                          )}
-                        />
-                      </Grid>
-
-                      {/* test Data */}
-                      <Grid item xs={12} md={12} sm={12}>
-                        <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
-                          <div>
-                            <Box
-                              sx={{
-                                cursor: 'pointer',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                bgcolor: '#20de67',
-                                borderRadius: '8px',
-                                p: 2,
-                                width: '100%'
-                              }}
-                              onClick={() => handleOpen()}
-                            >
-                              <Typography
-                                variant='h6'
-                                sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
-                              >
-                                <Icon icon='ic:baseline-add' fontSize={25} />
-                                Add Lab Tests
-                              </Typography>
-                            </Box>
-
-                            {showLabTests?.map((sample, sampleId) => (
-                              <Box sx={{ p: 1, mt: 4 }}>
-                                <Box>
-                                  {sample?.tests?.length > 0 ? (
-                                    <Typography sx={{ mb: 2 }}>{sample?.sample_name}</Typography>
-                                  ) : null}
-
-                                  {sample?.tests?.map((parent, parentId) => (
-                                    <Card sx={{ p: 2, mb: 2 }}>
-                                      {/* {parent.full_test === true ? ( */}
-                                      <Stack
-                                        gap={1}
-                                        direction='row'
-                                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                                      >
-                                        <>
-                                          <Typography variant='subtitle1'>{parent.test_name}</Typography>
-                                          <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
-                                            <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
-                                          </IconButton>
-                                        </>
-                                      </Stack>
-                                      {/* ) : null} */}
-                                      <Stack>
-                                        {parent.child_tests?.map((child, childId) =>
-                                          child.value === true ? (
-                                            <Stack
-                                              direction='row'
-                                              gap={2}
-                                              sx={{ display: 'flex', alignItems: 'center', p: 1 }}
-                                            >
-                                              <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
-                                              <Typography sx>{child.test_name}</Typography>
-                                            </Stack>
-                                          ) : null
-                                        )}
-                                      </Stack>
-                                    </Card>
-                                  ))}
-                                </Box>
-                              </Box>
-                            ))}
-                          </div>
-                          {labTestsEmpty ? (
-                            <Typography variant='subtitle1' sx={{ color: 'red', m: 2 }}>
-                              Lab test is required
-                            </Typography>
-                          ) : null}
-                        </Card>
-                      </Grid>
-
-                      <Grid item xs={12} md={6} sm={6}>
-                        <Card sx={{ p: 2 }}>
-                          <Box
-                            sx={{
-                              bgcolor: '#20de67',
-                              borderRadius: '8px',
-                              p: 2,
-                              mb: 2
-                            }}
-                            onClick={handleClick}
-                          >
-                            <Typography
-                              variant='h6'
-                              sx={{
-                                p: 1,
-                                color: 'white',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Set Current Location <Icon icon='ic:baseline-my-location' fontSize={25} />
-                            </Typography>
-                          </Box>
-                          <FormControl fullWidth>
-                            <Controller
-                              name='longitude'
-                              control={control}
-                              rules={{ required: true }}
-                              render={({ field: { value, onChange } }) => (
-                                <TextField
-                                  value={value}
-                                  onChange={onChange}
-                                  placeholder='Longitude'
-                                  error={Boolean(errors?.longitude)}
-                                  name='longitude'
-                                  disabled
-                                />
-                              )}
-                            />
-                            {errors?.longitude && (
-                              <FormHelperText sx={{ color: 'error.main' }}>{errors?.longitude?.message}</FormHelperText>
-                            )}
-                          </FormControl>
-                          <Box mt={2}>
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Grid container spacing={6} className='match-height'>
+                <Grid item xs={12}>
+                  <Card>
+                    <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
+                    <CardContent>
+                      <form onSubmit={handleSubmit(onSubmit)}>
+                        <Grid container spacing={5}>
+                          <Grid item xs={12} md={6} sm={6}>
                             <FormControl fullWidth>
                               <Controller
-                                name='latitude'
+                                name='lab_name'
                                 control={control}
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
                                     value={value}
+                                    label='Lab Name*'
+                                    name='lab_name'
+                                    error={Boolean(errors.lab_name)}
                                     onChange={onChange}
-                                    placeholder='Latitude'
-                                    error={Boolean(errors?.latitude)}
-                                    name='latitude'
-                                    disabled
+                                    placeholder=''
                                   />
                                 )}
                               />
-                              {errors?.latitude && (
+                              {errors.lab_name && (
                                 <FormHelperText sx={{ color: 'error.main' }}>
-                                  {errors?.latitude?.message}
+                                  {errors?.lab_name?.message}
                                 </FormHelperText>
                               )}
                             </FormControl>
-                          </Box>
-                        </Card>
-                      </Grid>
-                      <Grid item xs={12} md={12} sm={12}>
-                        <Card>
-                          <CardHeader title='Upload LAB Picture' />
-                          <CardContent>
-                            <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                      <Grid item xs={12} md={12} sm={6}>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <LoadingButton
-                            loading={submitLoader}
-                            onClick={handleSubmitData}
-                            type='submit'
-                            variant='outlined'
-                          >
-                            Submit
-                          </LoadingButton>
-                        </Box>
-
-                        <UserSnackbar
-                          status={openSnackbar}
-                          message={snackbarMessage}
-                          severity={severity}
-                          handleClose={handleCloseSnackBar}
-                        />
-                      </Grid>
-                    </Grid>
-                  </form>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </>
-      )}
-      <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
-        <div>
-          <Box
-            className='sidebar-header'
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              backgroundColor: 'background.default',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255)
-            }}
-          >
-            <Typography variant='h6'>Add Labs</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
-              </IconButton>
-            </Box>
-          </Box>
-
-          {/* drower */}
-          <Stack sx={{ p: 5 }} spacing={3}>
-            {TestData?.map((sample, index) => (
-              <>
-                <Stack
-                  key={index}
-                  direction='row'
-                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <Typography variant='h6'>{sample?.sample_name}</Typography>
-                  <Typography sx={{ alignItems: 'center', display: 'flex' }}>
-                    Select All
-                    <Switch
-                      checked={sample?.value}
-                      onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)}
-                    />
-                  </Typography>
-                </Stack>
-
-                {sample?.tests?.map((parent, index) =>
-                  parent?.child_tests?.length > 0 ? (
-                    <>
-                      <Card mt={2}>
-                        <Accordion>
-                          <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
-                            <Typography variant='h6'>{parent?.test_name}</Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <Stack
-                              direction='row'
-                              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                            >
-                              <Typography>Full Test</Typography>
-                              <Switch
-                                checked={parent?.full_test}
-                                onChange={(e, v) => {
-                                  handleParentSwitch(sample, parent, v)
-                                }}
+                          </Grid>
+                          <Grid item xs={12} md={6} sm={6}>
+                            <FormControl fullWidth mt={2}>
+                              <InputLabel error={Boolean(errors?.type)} id='type'>
+                                Lab Type*
+                              </InputLabel>
+                              <Controller
+                                name='type'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <Select
+                                    name='type'
+                                    value={value}
+                                    label='Lab Type*'
+                                    onChange={e => {
+                                      onChange(e.target.value)
+                                      setLabType(e.target.value)
+                                    }}
+                                    error={Boolean(errors?.type)}
+                                    labelId='type'
+                                  >
+                                    <MenuItem value='internal'>Internal Lab</MenuItem>
+                                    <MenuItem value='external'>External Lab</MenuItem>
+                                  </Select>
+                                )}
                               />
-                            </Stack>
-                            {parent?.child_tests?.map((child, id) => {
-                              return (
+                              {errors?.type && (
+                                <FormHelperText sx={{ color: 'error.main' }}>{errors?.type?.message}</FormHelperText>
+                              )}
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12} md={6} sm={6}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name='incharge_name'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    value={value}
+                                    label='Lab Incharge Name*'
+                                    name='incharge_name'
+                                    error={Boolean(errors.incharge_name)}
+                                    onChange={onChange}
+                                    placeholder=''
+                                  />
+                                )}
+                              />
+                              {errors.incharge_name && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.incharge_name?.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          </Grid>
+
+                          <Grid item xs={12} md={6} sm={6}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name='address'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    value={value}
+                                    label='Lab Address*'
+                                    name='address'
+                                    error={Boolean(errors.address)}
+                                    onChange={onChange}
+                                    placeholder=''
+                                  />
+                                )}
+                              />
+                              {errors.address && (
+                                <FormHelperText sx={{ color: 'error.main' }}>{errors?.address?.message}</FormHelperText>
+                              )}
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12} md={6} sm={6}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name='lab_contact_number'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <TextField
+                                    value={value}
+                                    label='Lab Incharge Mobile Number'
+                                    onChange={onChange}
+                                    placeholder=''
+                                    error={Boolean(errors?.lab_contact_number)}
+                                    name='lab_contact_number'
+                                  />
+                                )}
+                              />
+                              {errors?.lab_contact_number && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.lab_contact_number?.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12} md={6} sm={6}>
+                            <Controller
+                              name='is_default'
+                              control={control}
+                              render={({ field: { value, onChange } }) => (
                                 <Stack
                                   direction='row'
-                                  key={child?.test_id}
-                                  sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                                  sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
                                 >
-                                  <Typography>{child?.test_name}</Typography>
-                                  <Checkbox
-                                    checked={child?.value}
-                                    onClick={(e, v) => {
-                                      handleCheckBox(sample, parent, child, e.target.checked)
+                                  <Typography>Mark as default Lab</Typography>
+                                  <FormControlLabel
+                                    // control={<Switch checked={value} onChange={onChange} />}
+                                    control={
+                                      <Switch
+                                        checked={Number(isDefault)}
+                                        onChange={e => {
+                                          onChange(e.target.checked ? 1 : 0)
+                                          handleSwitchChange(e.target.checked)
+                                        }}
+                                      />
+                                    }
+                                    disabled={labType === 'external'}
+                                  />
+                                </Stack>
+                              )}
+                            />
+                          </Grid>
+
+                          {/* test Data */}
+                          <Grid item xs={12} md={12} sm={12}>
+                            <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
+                              <div>
+                                <Box
+                                  sx={{
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    bgcolor: '#20de67',
+                                    borderRadius: '8px',
+                                    p: 2,
+                                    width: '100%'
+                                  }}
+                                  onClick={() => handleOpen()}
+                                >
+                                  <Typography
+                                    variant='h6'
+                                    sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
+                                  >
+                                    <Icon icon='ic:baseline-add' fontSize={25} />
+                                    Add Lab Tests
+                                  </Typography>
+                                </Box>
+
+                                {showLabTests?.map((sample, sampleId) => (
+                                  <Box sx={{ p: 1, mt: 4 }}>
+                                    <Box>
+                                      {sample?.tests?.length > 0 ? (
+                                        <Typography sx={{ mb: 2 }}>{sample?.sample_name}</Typography>
+                                      ) : null}
+
+                                      {sample?.tests?.map((parent, parentId) => (
+                                        <Card sx={{ p: 2, mb: 2 }}>
+                                          {/* {parent.full_test === true ? ( */}
+                                          <Stack
+                                            gap={1}
+                                            direction='row'
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}
+                                          >
+                                            <>
+                                              <Typography variant='subtitle1'>{parent.test_name}</Typography>
+                                              <IconButton onClick={() => handleCloseTest(sampleId, parentId)}>
+                                                <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
+                                              </IconButton>
+                                            </>
+                                          </Stack>
+                                          {/* ) : null} */}
+                                          <Stack>
+                                            {parent.child_tests?.map((child, childId) =>
+                                              child.value === true ? (
+                                                <Stack
+                                                  direction='row'
+                                                  gap={2}
+                                                  sx={{ display: 'flex', alignItems: 'center', p: 1 }}
+                                                >
+                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Typography sx>{child.test_name}</Typography>
+                                                </Stack>
+                                              ) : null
+                                            )}
+                                          </Stack>
+                                        </Card>
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                ))}
+                              </div>
+                              {labTestsEmpty ? (
+                                <Typography variant='subtitle1' sx={{ color: 'red', m: 2 }}>
+                                  Lab test is required
+                                </Typography>
+                              ) : null}
+                            </Card>
+                          </Grid>
+
+                          <Grid item xs={12} md={6} sm={6}>
+                            <Card sx={{ p: 2 }}>
+                              <Box
+                                sx={{
+                                  bgcolor: '#20de67',
+                                  borderRadius: '8px',
+                                  p: 2,
+                                  mb: 2
+                                }}
+                                onClick={handleClick}
+                              >
+                                <Typography
+                                  variant='h6'
+                                  sx={{
+                                    p: 1,
+                                    color: 'white',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Set Current Location <Icon icon='ic:baseline-my-location' fontSize={25} />
+                                </Typography>
+                              </Box>
+                              <FormControl fullWidth>
+                                <Controller
+                                  name='longitude'
+                                  control={control}
+                                  rules={{ required: true }}
+                                  render={({ field: { value, onChange } }) => (
+                                    <TextField
+                                      value={value}
+                                      onChange={onChange}
+                                      placeholder='Longitude'
+                                      error={Boolean(errors?.longitude)}
+                                      name='longitude'
+                                      disabled
+                                    />
+                                  )}
+                                />
+                                {errors?.longitude && (
+                                  <FormHelperText sx={{ color: 'error.main' }}>
+                                    {errors?.longitude?.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                              <Box mt={2}>
+                                <FormControl fullWidth>
+                                  <Controller
+                                    name='latitude'
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field: { value, onChange } }) => (
+                                      <TextField
+                                        value={value}
+                                        onChange={onChange}
+                                        placeholder='Latitude'
+                                        error={Boolean(errors?.latitude)}
+                                        name='latitude'
+                                        disabled
+                                      />
+                                    )}
+                                  />
+                                  {errors?.latitude && (
+                                    <FormHelperText sx={{ color: 'error.main' }}>
+                                      {errors?.latitude?.message}
+                                    </FormHelperText>
+                                  )}
+                                </FormControl>
+                              </Box>
+                            </Card>
+                          </Grid>
+                          <Grid item xs={12} md={12} sm={12}>
+                            <Card>
+                              <CardHeader title='Add Lab Picture' />
+                              <CardContent>
+                                {/* <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} /> */}
+                                <Grid container>
+                                  {/* {imgSrc !== '' ? null : ( */}
+                                  <Grid item md={12} sm={12} xs={12}>
+                                    <input
+                                      type='file'
+                                      accept='*/*'
+                                      onChange={e => handleInputImageChange(e)}
+                                      style={{ display: 'none' }}
+                                      name='image'
+                                      ref={fileInputRef}
+                                    />
+
+                                    <Box
+                                      {...getRootProps({ className: 'dropzone' })}
+                                      onClick={handleAddImageClick}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 7,
+                                        height: 100,
+
+                                        border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                        borderRadius: 1,
+                                        padding: 3
+                                      }}
+                                    >
+                                      <Image alt={'filename'} src={imageUploader} width={50} height={50} />
+
+                                      <Typography>Drop your files here</Typography>
+                                    </Box>
+                                  </Grid>
+                                  {/* )} */}
+                                  <Grid
+                                    item
+                                    md={12}
+                                    sm={12}
+                                    xs={12}
+                                    sx={{ display: 'flex', justifyContent: 'flex-start' }}
+                                  >
+                                    <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                                      {uploadedImage && (
+                                        <Box sx={{ display: 'flex', mt: 3 }}>
+                                          <Box
+                                            sx={{
+                                              position: 'relative',
+                                              backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                              borderRadius: '10px',
+                                              height: 130,
+                                              padding: '10.5px',
+                                              boxSizing: 'border-box'
+                                            }}
+                                          >
+                                            <img
+                                              style={{
+                                                // aspectRatio: 2 / 2,
+                                                height: '100%',
+                                                borderRadius: '5%'
+                                              }}
+                                              alt='image'
+                                              src={
+                                                uploadedImage ==
+                                                'https://api.dev.antzsystems.com/api/image/download/uploaded/file?path=uploads/'
+                                                  ? '/icons/document_icon.png'
+                                                  : uploadedImage
+                                              }
+                                            />
+                                            <Box
+                                              sx={{
+                                                cursor: 'pointer',
+                                                position: 'absolute',
+                                                top: 0,
+                                                right: 0,
+                                                zIndex: 10,
+                                                height: '24px',
+                                                borderRadius: 0.4,
+                                                backgroundColor: theme.palette.customColors.secondaryBg
+                                              }}
+                                            >
+                                              {/* <Icon
+                                            icon='material-symbols-light:close'
+                                            color='#fff'
+                                            // onClick={() => removeSelectedImage(index)}
+                                          ></Icon> */}
+                                            </Box>
+                                          </Box>
+                                        </Box>
+                                      )}
+
+                                      <>
+                                        {imgSrc?.length > 0 &&
+                                          imgSrc?.map((img, index) => (
+                                            <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                                              <Box
+                                                sx={{
+                                                  position: 'relative',
+                                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                                  borderRadius: '10px',
+                                                  height: 121,
+                                                  padding: '10.5px',
+                                                  boxSizing: 'border-box'
+                                                }}
+                                              >
+                                                <img
+                                                  style={{
+                                                    aspectRatio: 2 / 2,
+                                                    height: '100%',
+                                                    borderRadius: '5%'
+                                                  }}
+                                                  alt='image'
+                                                  src={img.startsWith('data:image/') ? img : '/icons/document_icon.png'}
+                                                />
+                                                <Box
+                                                  sx={{
+                                                    cursor: 'pointer',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    right: 0,
+                                                    zIndex: 10,
+                                                    height: '24px',
+                                                    borderRadius: 0.4,
+                                                    backgroundColor: theme.palette.customColors.secondaryBg
+                                                  }}
+                                                >
+                                                  <Icon
+                                                    icon='material-symbols-light:close'
+                                                    color='#fff'
+                                                    onClick={() => removeSelectedImage(index)}
+                                                  >
+                                                    {' '}
+                                                  </Icon>
+                                                </Box>
+                                              </Box>
+                                            </Box>
+                                          ))}
+                                      </>
+                                    </Stack>
+                                  </Grid>
+                                </Grid>
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                          <Grid item xs={12} md={12} sm={6}>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                              <LoadingButton
+                                loading={submitLoader}
+                                onClick={handleSubmitData}
+                                type='submit'
+                                variant='outlined'
+                              >
+                                Submit
+                              </LoadingButton>
+                            </Box>
+
+                            <UserSnackbar
+                              status={openSnackbar}
+                              message={snackbarMessage}
+                              severity={severity}
+                              handleClose={handleCloseSnackBar}
+                            />
+                          </Grid>
+                        </Grid>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </>
+          )}
+          <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
+            <div>
+              <Box
+                className='sidebar-header'
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'background.default',
+                  p: theme => theme.spacing(3, 3.255, 3, 5.255)
+                }}
+              >
+                <Typography variant='h6'>Add Lab Tests</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
+                    <Icon icon='mdi:close' fontSize={20} />
+                  </IconButton>
+                </Box>
+              </Box>
+
+              {/* drawer */}
+              <Stack sx={{ p: 5 }} spacing={3}>
+                {TestData?.map((sample, index) => (
+                  <>
+                    <Stack
+                      key={index}
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                      <Typography variant='h6'>{sample?.sample_name}</Typography>
+                      <Typography sx={{ alignItems: 'center', display: 'flex' }}>
+                        Select All
+                        <Switch
+                          checked={sample?.value}
+                          onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)}
+                        />
+                      </Typography>
+                    </Stack>
+
+                    {sample?.tests?.map((parent, index) =>
+                      parent?.child_tests?.length > 0 ? (
+                        <>
+                          <Card mt={2}>
+                            <Accordion>
+                              <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
+                                <Typography variant='h6'>{parent?.test_name}</Typography>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <Stack
+                                  direction='row'
+                                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                >
+                                  <Typography>Full Test</Typography>
+                                  <Switch
+                                    checked={parent?.full_test}
+                                    onChange={(e, v) => {
+                                      handleParentSwitch(sample, parent, v)
                                     }}
                                   />
                                 </Stack>
-                              )
-                            })}
-                          </AccordionDetails>
-                        </Accordion>
-                      </Card>
-                    </>
-                  ) : (
-                    <Card>
-                      <Stack
-                        direction='row'
-                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
-                      >
-                        <Typography variant='h6' ml={4}>
-                          {parent?.test_name}
-                        </Typography>
-                        <Checkbox
-                          checked={parent?.full_test}
-                          onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}
-                        />
-                      </Stack>
-                    </Card>
-                  )
-                )}
-              </>
-            ))}
-          </Stack>
-        </div>
-        <Box
-          sx={{
-            position: 'sticky',
-            bottom: 10,
-            // right: ,
-            // left: '85%',
-            transform: 'translateX(6%)',
-            display: 'flex',
-            justifyContent: 'center',
-            textAlign: 'center',
-            width: 345
-          }}
-        >
-          <Button variant='contained' color='primary' onClick={hanldeAddLabTests} fullWidth sx={{ p: 3 }}>
-            Add Lab Tests
-          </Button>
-        </Box>
-      </Drawer>
+                                {parent?.child_tests?.map((child, id) => {
+                                  return (
+                                    <Stack
+                                      direction='row'
+                                      key={child?.test_id}
+                                      sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                                    >
+                                      <Typography>{child?.test_name}</Typography>
+                                      <Checkbox
+                                        checked={child?.value}
+                                        onClick={(e, v) => {
+                                          handleCheckBox(sample, parent, child, e.target.checked)
+                                        }}
+                                      />
+                                    </Stack>
+                                  )
+                                })}
+                              </AccordionDetails>
+                            </Accordion>
+                          </Card>
+                        </>
+                      ) : (
+                        <Card>
+                          <Stack
+                            direction='row'
+                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
+                          >
+                            <Typography variant='h6' ml={4}>
+                              {parent?.test_name}
+                            </Typography>
+                            <Checkbox
+                              checked={parent?.full_test}
+                              onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}
+                            />
+                          </Stack>
+                        </Card>
+                      )
+                    )}
+                  </>
+                ))}
+              </Stack>
+            </div>
+            <Box
+              sx={{
+                position: 'sticky',
+                bottom: 10,
+                // right: ,
+                // left: '85%',
+                transform: 'translateX(6%)',
+                display: 'flex',
+                justifyContent: 'center',
+                textAlign: 'center',
+                width: 345
+              }}
+            >
+              <Button variant='contained' color='primary' onClick={hanldeAddLabTests} fullWidth sx={{ p: 3 }}>
+                Add Lab Tests
+              </Button>
+            </Box>
+          </Drawer>
+        </>
+      ) : (
+        <ErrorScreen />
+      )}
     </>
   )
 }

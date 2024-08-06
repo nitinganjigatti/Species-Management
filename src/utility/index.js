@@ -2,6 +2,7 @@ import moment from 'moment'
 import toast from 'react-hot-toast'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -73,6 +74,13 @@ function getPreviousDaysDate(todayDate, days) {
 
   return previousDate
 }
+function getFeaturesDates(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() + days)
+  const featureDate = moment(date).format('YYYY-MM-DD')
+
+  return featureDate
+}
 function daysFromToday(inputDate) {
   const today = moment()
   const targetDate = moment(inputDate, 'YYYY-MM-DD')
@@ -80,8 +88,40 @@ function daysFromToday(inputDate) {
   const differenceInDays = targetDate.diff(today, 'days')
   if (Math.abs(differenceInDays) === 0) {
     return 'Today'
+  } else if (Math.abs(differenceInDays) === 1) {
+    return `${Math.abs(differenceInDays)} Day`
   } else {
     return `${Math.abs(differenceInDays)} Days`
+  }
+}
+
+function convertUTCToLocal(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+  return local
+}
+
+function extractHoursAndMinutes(date) {
+  //9:21 PM
+  return moment(date).format('hh:mm A')
+}
+
+function toPascalSentenceCase(str) {
+  return str
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
+    .join(' ')
+}
+
+function renderUserAvatar(image) {
+  if (image) {
+    return <CustomAvatar src={image} sx={{ mr: 3, width: 34, height: 34 }} />
+  } else {
+    return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
   }
 }
 
@@ -92,8 +132,13 @@ const Utility = {
   formatDisplayDate,
   errorMessageExtractorFromObject,
   exportToCSV,
+  getFeaturesDates,
   getPreviousDaysDate,
-  daysFromToday
+  daysFromToday,
+  convertUTCToLocal,
+  extractHoursAndMinutes,
+  toPascalSentenceCase,
+  renderUserAvatar
 }
 
 export default Utility

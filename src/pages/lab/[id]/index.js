@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import {
   GetRequestDetails,
@@ -6,7 +6,8 @@ import {
   transferLab,
   getNoOfLab,
   UpdateStatus,
-  DeleteLAbRequestAttachment
+  DeleteLAbRequestAttachment,
+  GetLabListByTestId
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -54,9 +55,18 @@ import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import UserSnackbar from 'src/components/utility/snackbar'
+import moment from 'moment'
+import CommonMediaView from 'src/components/lab/CommonMediaView'
+import { AuthContext } from 'src/context/AuthContext'
 
 const RequestDetails = () => {
   const router = useRouter()
+  const authData = useContext(AuthContext)
+
+  // console.log('authData :>> ', authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
+  const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
+  console.log('fileViews :>> ', fileViews)
+
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
@@ -64,6 +74,7 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState()
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
+  const [transferStatus, setTransferStatus] = useState('')
 
   const { id } = Router.query
   const searchParams = useSearchParams()
@@ -105,7 +116,8 @@ const RequestDetails = () => {
   const [loading, setLoading] = useState(false)
   const [testId, setTestId] = useState()
   const [requestId, setRequestId] = useState()
-  console.log('requestId', requestId)
+  const [labId, setLab_id] = useState('')
+
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
 
@@ -115,6 +127,7 @@ const RequestDetails = () => {
   const [severity, setSeverity] = useState('success')
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
+  const [transferTestId, setTransferTestId] = useState('')
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -126,27 +139,30 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
+
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
   }, [PrvLabId])
 
   const handleChangeStatus = async (event, params) => {
-    // console.log('params status', params)
     setStatus(event.target.value)
-    console.log('event.target.value', event.target.value)
+
     const id = params
 
     const payload = {
       status: event.target.value
     }
-    console.log('payload', payload)
+
+    // console.log('payload', payload)
 
     const response = await UpdateStatus(id, payload)
     if (response?.success) {
       setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
       fetchRequestDetails()
     } else {
+      fetchRequestDetails()
+      setStatus(params?.row?.status)
       setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
     }
   }
@@ -168,22 +184,24 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
-  const fetchRequestDetails = async () => {
+  const fetchRequestDetails = async (sort, q) => {
     try {
       // Make your API call here
       setLoading(true)
 
       const params = {
-        lab_id: Selectedlab_id
+        lab_id: Selectedlab_id,
+        q,
+        sort
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
+        console.log('res?.data.result[0] :>> ', res?.data.result[0])
+        setLab_id(res?.data.result[0]?.lab_id)
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
-
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
-
         setRequestId(res?.data?.result[0]?.id)
         setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
         setTotal(parseInt(res?.data?.total_count))
@@ -197,23 +215,28 @@ const RequestDetails = () => {
     }
   }
 
-  useEffect(() => {
-    getNoOfLab().then(res => {
-      setLab(res?.data?.result)
-
-      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-    })
-  }, [])
-
   const handleOpenTransfer = params => {
-    if (permissions?.transfer_tests === true) {
+    console.log('params transfer :>> ', params)
+    if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
       setOpenTransfer(true)
-      setSelectedLab(params.row)
+
+      // setSelectedLab(params.row)
+
+      const params = {
+        test_id: transferTestId,
+        lab_id: labId
+      }
+      GetLabListByTestId({ params: params }).then(res => {
+        setLab(res?.data?.result)
+
+        // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      })
     }
+    handleClosePopover()
   }
 
   useEffect(() => {
-    fetchRequestDetails()
+    fetchRequestDetails(sort, searchValue)
   }, [id, paginationModel])
 
   function loadServerRows(currentPage, data) {
@@ -224,7 +247,7 @@ const RequestDetails = () => {
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchRequestDetails({ sort, q, column })
+        await fetchRequestDetails(sort, q, column)
       } catch (error) {
         console.error(error)
       }
@@ -235,8 +258,11 @@ const RequestDetails = () => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleOpenPopOver = (event, params) => {
+    // console.log('params :>> ', params?.row?.test_id)
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
+    setTransferTestId(params?.row?.test_id)
+    setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
 
@@ -248,11 +274,13 @@ const RequestDetails = () => {
 
   const handleOpenUploader = () => {
     setOpenUploader(true)
+    handleClosePopover()
   }
 
   const handleOpenShowFile = (e, params) => {
     setShowTestFile(true)
-    console.log('params?.row', params?.row?.attachments?.images)
+
+    // console.log('params?.row', params?.row?.attachments?.images)
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
   }
@@ -302,7 +330,7 @@ const RequestDetails = () => {
         <>
           {}
           <Box sx={{ minWidth: 120 }}>
-            {permissions?.transfer_tests === true ? (
+            {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
               <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
                 <InputLabel id='demo-simple-select-label'>Status</InputLabel>
                 <Select
@@ -310,7 +338,7 @@ const RequestDetails = () => {
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
                   defaultValue={params.row.status === 'transferred' ? 'pending' : params.row.status}
-                  value={status} // Assuming params.row.status contains the current status value
+                  value={params.row.status} // Assuming params.row.status contains the current status value
                   label='Status'
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
@@ -331,7 +359,7 @@ const RequestDetails = () => {
                 </Select>
               </FormControl>
             ) : (
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
                 <span
                   alt={params.row.status}
                   style={{
@@ -370,6 +398,9 @@ const RequestDetails = () => {
               '& .MuiPaper-root': {
                 minWidth: 140,
                 borderRadius: '5px'
+              },
+              '& .MuiBackdrop-root': {
+                bgcolor: 'transparent'
               }
             }}
             open={openPopover}
@@ -384,8 +415,13 @@ const RequestDetails = () => {
               horizontal: 'right'
             }}
           >
-            <MenuItem onClick={handleOpenTransfer}>Transfer</MenuItem>
-            <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+            {(permissions?.allow_full_access === true || permissions?.transfer_tests === true) && (
+              <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
+            )}
+
+            {(permissions?.allow_full_access === true || permissions?.perform_tests === true) && (
+              <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+            )}
           </Popover>
         </Box>
       )
@@ -495,17 +531,28 @@ const RequestDetails = () => {
       replaced_lab_id,
       transfer_reason
     }
-    console.log('payload', payload)
 
-    const response = await transferLab(id, payload)
-    if (response?.success) {
-      handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+    // console.log('payload', payload)
 
-      fetchRequestDetails()
+    if (transferStatus !== 'completed') {
+      const response = await transferLab(id, payload)
+      if (response?.success) {
+        handleCloseTransfer()
+        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        reset()
+
+        fetchRequestDetails()
+      } else {
+        handleCloseTransfer()
+        reset()
+
+        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      }
     } else {
       handleCloseTransfer()
-      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      reset()
+
+      setAlertDefaults({ status: true, message: 'Completed test can not be transferred', severity: 'error' })
     }
 
     // // setSubmitLoader(false)
@@ -575,7 +622,7 @@ const RequestDetails = () => {
                       </Typography>
                     </Box>
 
-                    <Typography> {Utility.formatDate(item?.created_at)}</Typography>
+                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                   </Box>
                   <Box gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box
@@ -609,7 +656,7 @@ const RequestDetails = () => {
                   </Stack>
 
                   <Typography>
-                    Request by - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
+                    Requested By- <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
                   </Typography>
                 </Box>
               </>
@@ -620,6 +667,7 @@ const RequestDetails = () => {
             message={snackbarMessage}
             severity={severity}
             handleClose={handleCloseSnackBar}
+            indexedRows
           />
 
           <Card sx={{ mt: 5 }}>
@@ -631,41 +679,47 @@ const RequestDetails = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              getRowId={row => row?.test_id}
-              slots={{ toolbar: ServerSideToolbar }}
+              // getRowId={row => row?.test_id}
+              onSortModelChange={handleSortModel}
+              // slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-
-                    return handleSearch(event.target.value)
-                  }
                 }
+
+                // toolbar: {
+                //   value: searchValue,
+                //   clearSearch: () => handleSearch(''),
+                //   onChange: event => {
+                //     setSearchValue(event.target.value)
+
+                //     return handleSearch(event.target.value)
+                //   }
+                // }
               }}
             />
             {/* image or Doc View */}
             {image || document ? (
               <Box sx={{ px: 5 }}>
                 <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+
+                {/* <CommonMediaView /> */}
                 {image ? (
                   <Box>
-                    <Typography sx={{ fontSize: '18px' }}>Images</Typography>
+                    <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      {image?.map(item => (
+                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                      {/* {image?.map(item => (
                         <a
                           key={item.file}
                           href={item.file}
                           target='_blank'
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none' }}
-                        >
-                          <Card
+                        > */}
+
+                      {/* <Card
                             sx={{
                               width: 200,
                               height: 150,
@@ -675,18 +729,38 @@ const RequestDetails = () => {
                               flexDirection: 'column'
                             }}
                           >
-                            <Box>
+                            <Box sx={{ position: 'relative' }}>
+                              <IconButton
+                                sx={{
+                                  position: 'absolute',
+                                  top: 4,
+                                  right: 4,
+                                  zIndex: 1
+
+                                  // width: 30,
+                                  // height: 30
+                                }}
+                                onClick={e => handleDeleteImg(e, item)}
+                              >
+                                <Icon
+                                  icon='material-symbols:close'
+                                  fontSize={20}
+                                  color={'#37BD69'}
+                                  sx={{ zIndex: 1, position: 'absolute' }}
+                                />
+                              </IconButton>
+
                               {item.file ? (
                                 <img
                                   src={item.file}
                                   alt={item.file_original_name}
-                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                  style={{ width: '100%', height: '100%', aspectRatio: '16 / 9' }}
                                 />
                               ) : (
                                 <img
                                   src='/images/tablet.png'
                                   alt={item.file_original_name}
-                                  style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
+                                  style={{ width: '100%', height: '100%', aspectRatio: '16 / 9' }}
                                 />
                               )}
                             </Box>
@@ -702,13 +776,10 @@ const RequestDetails = () => {
                               }}
                             >
                               {item?.file_original_name}{' '}
-                              <IconButton onClick={e => handleDeleteImg(e, item)}>
-                                <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                              </IconButton>
                             </Box>
-                          </Card>
-                        </a>
-                      ))}
+                          </Card> */}
+                      {/* </a>
+                      ))} */}
                     </Box>
                   </Box>
                 ) : null}
@@ -717,7 +788,8 @@ const RequestDetails = () => {
                   <Box>
                     <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      {document?.map(item => (
+                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                      {/* {document?.map(item => (
                         <a
                           key={item.file}
                           href={item.file}
@@ -725,7 +797,7 @@ const RequestDetails = () => {
                           rel='noopener noreferrer'
                           style={{ textDecoration: 'none', color: '#6e6f81' }}
                         >
-                          <Box
+                          {/* <Box
                             key={item?.file}
                             sx={{
                               bgcolor: '#EFF5F2',
@@ -745,9 +817,9 @@ const RequestDetails = () => {
                             <IconButton onClick={e => handleDeleteImg(e, item)}>
                               <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
                             </IconButton>
-                          </Box>
-                        </a>
-                      ))}
+                          </Box> */}
+                      {/* </a> */}
+                      {/* ))} */}
                     </Box>
                   </Box>
                 ) : null}
@@ -978,7 +1050,7 @@ const RequestDetails = () => {
       </>
       <>
         <Dialog open={openUploader} onClose={() => setOpenUploader(false)}>
-          <Card>
+          <Card sx={{ width: 600, height: 'auto' }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <IconButton onClick={() => setOpenUploader(false)}>
                 <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />

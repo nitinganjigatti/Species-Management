@@ -26,7 +26,6 @@ export default function NewProductList() {
 
   const getProductList = async () => {
     const response = await getNonExistingProductList()
-    console.log('response???', response)
     if (response) {
       setRows(response?.data)
       setLoader(false)

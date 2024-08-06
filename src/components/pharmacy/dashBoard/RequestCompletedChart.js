@@ -29,8 +29,6 @@ const RequestCompletedChart = props => {
     try {
       const result = await getCompletedRequestsList()
 
-      console.log('getCompletedRequestsList', result)
-
       if (result?.success === true && result?.data) {
         setCompletedRequest(result?.data)
       }
@@ -93,8 +91,8 @@ const RequestCompletedChart = props => {
   //     }
   //   ]
   // }
-  const months = completedRequest.map(item => item.month)
-  const counters = completedRequest.map(item => parseInt(item.counter))
+  const months = completedRequest.map(item => (item.month ? item.month : ''))
+  const counters = completedRequest.map(item => (item.counter ? parseInt(item.counter) : ''))
 
   const data = {
     labels: months,

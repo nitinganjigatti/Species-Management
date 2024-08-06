@@ -5,6 +5,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     sectionTitle: 'Pharmacy'
   }
 
+  const dashboard = {
+    title: 'Dashboard',
+    path: '/pharmacy/dashboard',
+    icon: 'lets-icons:home-duotone'
+  }
+
   const inventoryParent = {
     title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
@@ -40,6 +46,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Add Existing Inventory',
     icon: 'raphael:cart',
     path: '/pharmacy/purchase/add-purchase/existing-purchases'
+  }
+
+  const stocksAdjustment = {
+    title: 'Stocks Adjustment',
+    icon: 'material-symbols:rule-settings',
+    path: '/pharmacy/stocks-adjustments/stock-adjustment-list'
   }
 
   const report = {
@@ -79,16 +91,37 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const directDispatchParent = {
-    title: 'Direct Dispatch',
+    // title: 'Direct Dispatch',
+    title: 'Dispatch without request',
+
     path: '/pharmacy/direct-dispatch',
     icon: 'iconamoon:delivery-light',
     children: []
   }
 
   const directDispatchList = {
-    title: 'Dispatch',
+    title: `Dispatch without request`,
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+  }
+
+  const directDispatchListForLocal = {
+    title: 'Received',
+    icon: 'iconamoon:delivery-light',
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+  }
+
+  const localDispatchParent = {
+    title: 'Local Dispatch',
+    path: '/pharmacy/local-dispatch',
+    icon: 'iconamoon:delivery-light',
+    children: []
+  }
+
+  const localDispatchList = {
+    title: 'Direct Dispatch Local',
+    icon: 'iconamoon:delivery-light',
+    path: '/pharmacy/local-dispatch/local-dispatch-list'
   }
 
   const stockParent = {
@@ -236,7 +269,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // requestParent.children.push(requestListing)
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
-
     // stockParent.children.push(stockReport)
     settingsParent.children.push(
       rackList
@@ -256,6 +288,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     )
 
     pharmacyNavigationArray.push(
+      dashboard,
       stockReport,
       requestListing,
       returnListing,
@@ -263,7 +296,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       productsList,
       purchaseList,
       existingPurchase,
+      stocksAdjustment,
       nonExistingProductRequestList,
+
       settingsParent
     )
 
@@ -283,14 +318,17 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     directDispatchParent.children.push(directDispatchList)
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
+      dashboard,
       requestListing,
-
       returnListing,
 
-      directDispatchList,
+      // directDispatchList,
+      directDispatchListForLocal,
+      localDispatchList,
 
       nonExistingProductRequestList,
       stockReport,
+      stocksAdjustment,
 
       settingsParent
     )

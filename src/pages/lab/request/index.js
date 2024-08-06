@@ -29,6 +29,7 @@ import { useRouter } from 'next/router'
 import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
 import { jsx } from '@emotion/react'
+import moment from 'moment'
 
 const ListOfRequest = () => {
   const router = useRouter()
@@ -38,10 +39,11 @@ const ListOfRequest = () => {
   const [labSelected, setLabSelected] = useState()
   console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
-  const [selectedLab, setSelectedLab] = useState()
+  const authData = useContext(AuthContext)
+  const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
 
   const [storedData, setStoredData] = useState()
-  const authData = useContext(AuthContext)
+
   const [stats, setStats] = useState()
 
   useEffect(() => {
@@ -52,11 +54,19 @@ const ListOfRequest = () => {
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
+    console.log('id click req :>> ', id)
     write('selectedLAB', labSelected)
-    router.push({
-      pathname: `/lab/${id}`,
-      query: { lab_id: labSelected }
-    })
+    if (labSelected) {
+      router.push({
+        pathname: `/lab/${id}`,
+        query: { lab_id: labSelected }
+      })
+    } else {
+      router.push({
+        pathname: `/lab/${id}`,
+        query: { lab_id: authData?.userData?.modules?.lab_data?.lab[0]?.lab_id }
+      })
+    }
   }
 
   const columns = [
@@ -77,11 +87,7 @@ const ListOfRequest = () => {
       field: 'lab_test_id',
       headerName: 'REQUEST ID',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          onClick={() => handleClickRequestId(params)}
-          sx={{ color: 'text.primary', cursor: 'pointer' }}
-        >
+        <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer' }}>
           {params.row.lab_test_id}
         </Typography>
       )
@@ -106,7 +112,7 @@ const ListOfRequest = () => {
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDate(params.row.created_at)}
+          {moment(params.row.created_at).format('DD MMM YYYY')}
         </Typography>
       )
     },
@@ -197,9 +203,8 @@ const ListOfRequest = () => {
     {
       flex: 0.2,
       minWidth: 20,
-
-      // field: 'Action',
-      // headerName: 'Action',
+      field: 'Action',
+      headerName: 'Action',
 
       renderCell: params => (
         <>
@@ -246,6 +251,7 @@ const ListOfRequest = () => {
 
   useEffect(() => {
     const options = authData?.userData?.modules?.lab_data?.lab
+    console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
     setLab(options)
   }, [])
 
@@ -262,6 +268,7 @@ const ListOfRequest = () => {
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
+    console.log('Data :>> ', Data)
 
     setLabSelected(Data)
     if (Data) {
@@ -292,7 +299,7 @@ const ListOfRequest = () => {
         limit: paginationModel.pageSize,
         lab_id: data
       }
-      const params2 = { lab_id: Data }
+      const params2 = { lab_id: data }
       GetLabRequestStatus(params2)
       fetchData(params)
       setSelectLoader(false)
@@ -401,6 +408,14 @@ const ListOfRequest = () => {
   //     console.log('res', res)
   //   }
   // }, [])
+
+  const onCellClick = params => {
+    handleClickRequestId(params)
+
+    // Router.push({
+    //   pathname: `/egg/incubator-rooms/${data?.id}`
+    // })
+  }
 
   return (
     <>
@@ -516,6 +531,7 @@ const ListOfRequest = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
+              onCellClick={onCellClick}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'

@@ -21,6 +21,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -142,19 +143,20 @@ const RequestList = () => {
         }
 
         await getRequestItemsList({ params: params }).then(res => {
-          console.log('res', res)
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
             remove('requestPageStatus')
           } else {
-            setTotal(parseInt(res?.data?.total_count))
+            setTotal(0)
             setRows([])
             remove('requestPageStatus')
           }
         })
         setLoading(false)
       } catch (e) {
+        setTotal(0)
+        setRows([])
         console.log(e)
         setLoading(false)
       }
@@ -164,7 +166,6 @@ const RequestList = () => {
   )
   useEffect(() => {
     const statusIsThere = read('requestPageStatus')
-    console.log('requestPageStatus', statusIsThere)
     if (statusIsThere) {
       debugger
       setStatus(statusIsThere?.currentStatus)
@@ -281,7 +282,7 @@ const RequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy.type === 'central' ? 'Requested By' : 'Requested To'
+    return selectedPharmacy.type === 'central' ? 'Requested From' : 'Requested To'
   }
 
   const handleSwitchChange = event => {
@@ -418,13 +419,36 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3 / 2,
       minWidth: 20,
-      field: 'request_date',
+      field: 'request',
       headerName: 'Days',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.daysFromToday(params.row.request_date)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'request_date',
+      headerName: 'Request Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.request_date)}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
         </Typography>
       )
     },
@@ -529,6 +553,26 @@ const RequestList = () => {
           </div>
           {params.row.status === 'Cancelled' ? params.row.status : null}
         </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by_user_name',
+      headerName: 'Requested by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {Utility.formatDisplayDate(params.row.request_date)}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
 
@@ -683,6 +727,7 @@ const RequestList = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+              disableColumnMenu
               slotProps={{
                 baseButton: {
                   variant: 'outlined'

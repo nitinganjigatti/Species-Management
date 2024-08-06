@@ -70,8 +70,6 @@ export default function AddProduct() {
       .catch(err => console.log(err))
   }, [])
 
-  console.log('storeList??', storeList)
-
   const schema = yup.object().shape({
     from_store: yup.string().required('Select the From Store')
   })
@@ -101,11 +99,7 @@ export default function AddProduct() {
     name: 'prescription_images'
   })
 
-  console.log('fiellds>>>>>', fields)
-
   const handleFileChange = event => {
-    console.log('event ???', event)
-
     const newImages = Array.from(event).map(file => ({
       file
     }))
@@ -145,8 +139,6 @@ export default function AddProduct() {
     }
 
     let response
-
-    console.log('payload???', payload)
 
     try {
       if (id) {
@@ -189,11 +181,6 @@ export default function AddProduct() {
     }
   }
 
-  // console.log(
-  //   'presx???',
-  //   prescriptionField.map(item => console.log('item???', item))
-  // )
-
   const handleEditLineItems = (item, index) => {
     setEditValues(item)
     setEditIndex(index)
@@ -207,7 +194,6 @@ export default function AddProduct() {
       SetImgBaseUrl(res?.base_path)
       setGetDetails(res?.data)
       setDataChildValues(res?.data?.request_item_details)
-      console.log('prescription???', res.data?.prescription_images)
       setPrescriptionField(res.data?.prescription_images)
 
       res?.data?.request_item_details?.map(item => setResponseImage(item?.product_image))

@@ -83,6 +83,11 @@ const UserDropdown = props => {
     handleDropdownClose()
   }
 
+  const handleMedia = () => {
+    router.push('/media')
+    handleDropdownClose()
+  }
+
   useEffect(() => {
     getUserData()
   }, [])
@@ -133,8 +138,10 @@ const UserDropdown = props => {
             <Box sx={{ display: 'flex', ml: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>
                 {userData?.user?.user_first_name ? userData?.user?.user_first_name : null}
+                <span style={{ marginRight: '2px' }} />
                 {userData?.user?.user_last_name ? userData?.user?.user_last_name : null}
               </Typography>
+
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
                 {userData?.roles?.role_name ? userData?.roles?.role_name : null}
               </Typography>
@@ -186,6 +193,10 @@ const UserDropdown = props => {
         >
           <Icon icon='mdi:logout-variant' />
           Logout
+        </MenuItem>
+        <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
+          <Icon icon='ic:round-perm-media' />
+          Media
         </MenuItem>
       </Menu>
     </Fragment>

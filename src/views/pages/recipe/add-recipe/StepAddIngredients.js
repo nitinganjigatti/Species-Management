@@ -18,6 +18,7 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
+import Toaster from 'src/components/Toaster'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -48,32 +49,31 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  by_percentage: yup.array().of(
-    yup.object().shape({
-      ingredient_id: yup.string().required('Ingredient is required'),
-      quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-          return parseFloat(value) <= 100
-        }),
-      preparation_type_id: yup.string().required('Preparation type is required')
-    })
-  ),
-
-  by_quantity: yup.array().of(
-    yup.object().shape({
-      ingredient_id: yup.string().required('Ingredient is required'),
-      uom_id: yup.string().required('Uom is required'),
-      quantity: yup
-        .string()
-        .required('Quantity is required')
-        .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
-          return parseFloat(value) <= 100
-        }),
-      preparation_type_id: yup.string().required('Preparation type is required')
-    })
-  )
+  // by_percentage: yup.array().of(
+  //   yup.object().shape({
+  //     ingredient_id: yup.string().required('Ingredient is required'),
+  //     quantity: yup
+  //       .string()
+  //       .required('Quantity is required')
+  //       .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
+  //         return parseFloat(value) <= 100
+  //       }),
+  //     preparation_type_id: yup.string().required('Preparation type is required')
+  //   })
+  // ),
+  // by_quantity: yup.array().of(
+  //   yup.object().shape({
+  //     ingredient_id: yup.string().required('Ingredient is required'),
+  //     uom_id: yup.string().required('Uom is required'),
+  //     quantity: yup
+  //       .string()
+  //       .required('Quantity is required')
+  //       .test('is-less-than-100', 'Quantity must be less than or equal to 100', value => {
+  //         return parseFloat(value) <= 100
+  //       }),
+  //     preparation_type_id: yup.string().required('Preparation type is required')
+  //   })
+  // )
 })
 
 const StepAddIngredients = ({
@@ -83,6 +83,7 @@ const StepAddIngredients = ({
   uomList,
   fullIngredientList,
   IngredientTypeListSearch,
+  setFullIngredientList,
   onCancelIconClick,
   handleIngredientChange
 }) => {
@@ -259,8 +260,78 @@ const StepAddIngredients = ({
   }, [formData, reset])
 
   const onSubmit = async data => {
+    // Filter out incomplete entries
+    data.by_percentage = data.by_percentage.filter(
+      item => item.ingredient_id || item.quantity || item.preparation_type_id
+    )
+    data.by_quantity = data.by_quantity.filter(
+      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
+    )
+
+    // Function to find the first incomplete index
+    const findFirstIncompleteIndex = (array, keys) => {
+      return array.findIndex(item => keys.some(key => !item[key]))
+    }
+
+    // Check if all entries in by_percentage have all required fields
+    const isByPercentageValid = data.by_percentage.every(
+      item => item.ingredient_id && item.quantity && item.preparation_type_id
+    )
+
+    // Check if all entries in by_quantity have all required fields
+    const isByQuantityValid = data.by_quantity.every(
+      item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
+    )
+
+    // If both arrays are empty or have incomplete entries, show an error
+    if (data.by_percentage.length === 0 && data.by_quantity.length === 0) {
+      window.scrollTo(0, 0)
+      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      return Toaster({
+        type: 'error',
+        message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
+      })
+    }
+
+    if (!isByPercentageValid && !isByQuantityValid) {
+      window.scrollTo(0, 0)
+      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      return Toaster({
+        type: 'error',
+        message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
+      })
+    }
+
+    if (data.by_percentage.length > 0 && !isByPercentageValid) {
+      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
+        'ingredient_id',
+        'quantity',
+        'preparation_type_id'
+      ])
+      window.scrollTo(0, 0)
+      //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
+      return Toaster({
+        type: 'error',
+        message: `Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`
+      })
+    }
+
+    if (data.by_quantity.length > 0 && !isByQuantityValid) {
+      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_quantity, [
+        'ingredient_id',
+        'quantity',
+        'uom_id',
+        'preparation_type_id'
+      ])
+      window.scrollTo(0, 0)
+      //return toast.error(`Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`)
+      return Toaster({
+        type: 'error',
+        message: `Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`
+      })
+    }
     console.log(data, 'data')
-    if (calculateTotalQuantity() > 100) {
+    if (calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
 
       return toast(
@@ -293,7 +364,7 @@ const StepAddIngredients = ({
           }
         }
       )
-    } else if (calculateTotalQuantity() < 100) {
+    } else if (calculateTotalQuantity() < 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
 
       return toast(
@@ -391,6 +462,16 @@ const StepAddIngredients = ({
       }
     })
   }, [formData])
+
+  useEffect(() => {
+    // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
+    if (fieldsByQuantity.length === 0) {
+      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '' })
+    }
+    if (fieldsIngredients.length === 0) {
+      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '' })
+    }
+  }, [fieldsByQuantity, fieldsIngredients, appendByQuantity, appendIngredients])
 
   const ScrollToFieldError = ({ errors, index }) => {
     // if (!errors) return
@@ -674,6 +755,7 @@ const StepAddIngredients = ({
               ))}
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
+              {console.log(fieldsByQuantity, 'fieldsByQuantity')}
               {fieldsByQuantity.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'testnew' + index}>
                   <ScrollToFieldError errors={errors} index={index} />

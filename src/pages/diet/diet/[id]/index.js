@@ -25,6 +25,7 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { getDietDetails } from 'src/lib/api/diet/dietList'
+import moment from 'moment'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -104,17 +105,21 @@ const DietDetail = () => {
     { value: '7', label: 'Sunday' }
   ]
 
-  const CustomTooltip = styled(({ className, ...props }) => <Tooltip {...props} classes={{ popper: className }} />)(
-    ({ theme }) => ({
-      [`& .MuiTooltip-tooltip`]: {
-        margin: 'auto',
-        maxWidth: 'none',
-        position: 'relative',
-        top: 20,
-        left: 100
-      }
-    })
-  )
+  const Day = [
+    { id: 0, name: 'All', isActive: false },
+    { id: 1, name: 'Mon', isActive: false },
+    { id: 2, name: 'Tue', isActive: false },
+    { id: 3, name: 'Wed', isActive: false },
+    { id: 4, name: 'Thu', isActive: false },
+    { id: 5, name: 'Fri', isActive: false },
+    { id: 6, name: 'Sat', isActive: false },
+    { id: 7, name: 'Sun', isActive: false }
+  ]
+  const getDayName = dayId => {
+    const day = Day.find(d => d.id === dayId)
+
+    return day ? day.name : ''
+  }
 
   return (
     <>
@@ -136,9 +141,12 @@ const DietDetail = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <DietDetailCard dietDetails={dietDetails} />
             <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px' }}>
+                Meals Plan - {dietDetails?.diet_type_name}
+              </Typography>
+              {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  {/* <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
+                  <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
                     You have added{' '}
                     <span
                       style={{
@@ -152,13 +160,13 @@ const DietDetail = () => {
                       13 species{' '}
                     </span>{' '}
                     for this diet plan
-                  </Typography> */}
+                  </Typography>
                 </Box>
 
-                {/* <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
+                <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
                   ADD SPECIES
-                </Button> */}
-              </Box>
+                </Button>
+              </Box> */}
               <Box>
                 <TabContext value={value}>
                   <TabList
@@ -195,27 +203,36 @@ const DietDetail = () => {
                                 <TableHead>
                                   <TableRow>
                                     <TableCell
+                                      style={{ padding: '0px' }}
                                       sx={{
                                         border: 'none',
                                         height: '40px',
-                                        backgroundColor: '#C1D3D04D',
-                                        pl: '0px',
-                                        py: 0,
+                                        backgroundColor: '#fff',
                                         width: '160px',
                                         position: 'sticky',
                                         left: 0
                                       }}
                                       className={classes.sticky}
                                     >
-                                      <Typography
+                                      <Box
                                         sx={{
-                                          fontSize: '12px',
-                                          lineHeight: '16px',
-                                          fontWeight: 600
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          height: '100%',
+                                          padding: '17px',
+                                          backgroundColor: '#C1D3D04D'
                                         }}
                                       >
-                                        TIME
-                                      </Typography>
+                                        <Typography
+                                          sx={{
+                                            fontSize: '12px',
+                                            lineHeight: '16px',
+                                            fontWeight: 600
+                                          }}
+                                        >
+                                          TIME
+                                        </Typography>
+                                      </Box>
                                     </TableCell>
                                     <TableCell
                                       sx={{
@@ -248,7 +265,7 @@ const DietDetail = () => {
                                       </Box>
                                     </TableCell>
 
-                                    {dietDetails?.meal_data?.length > 0
+                                    {/* {dietDetails?.meal_data?.length > 0
                                       ? dietDetails?.meal_data[0]?.ingredient?.length > 0
                                         ? dietDetails?.meal_data[0]?.ingredient[0].meal_type?.map((item, index) => (
                                             <TableCell
@@ -317,12 +334,176 @@ const DietDetail = () => {
                                             )
                                           )
                                         : null
-                                      : null}
+                                      : null} */}
+                                    {dietDetails.diet_type_name === 'By Gender' ? (
+                                      <>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '133px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>GENERIC</Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '133px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>FEMALE </Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '133px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>MALE</Typography>
+                                        </TableCell>
+                                      </>
+                                    ) : dietDetails.diet_type_name === 'By Lifestage' ? (
+                                      <>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '137px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>GENERIC</Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '140px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>Juvenile </Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '140px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>Young</Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '140px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>Adult</Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '157px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>Undetermined</Typography>
+                                        </TableCell>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '127px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>Old</Typography>
+                                        </TableCell>
+                                      </>
+                                    ) : dietDetails.diet_type_name === 'Generic' ? (
+                                      <>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '137px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography>GENERIC</Typography>
+                                        </TableCell>
+                                      </>
+                                    ) : dietDetails.diet_type_name === 'By Weight' ? (
+                                      <>
+                                        <TableCell
+                                          sx={{
+                                            border: 'none',
+                                            backgroundColor: '#C1D3D099',
+                                            height: '40px',
+                                            width: '137px',
+                                            borderRight: '1px solid #C3CEC7',
+                                            textAlign: 'center'
+                                          }}
+                                        >
+                                          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
+                                        </TableCell>
+                                        {dietDetails.child?.map((all, index) => {
+                                          return (
+                                            <TableCell
+                                              key={index}
+                                              sx={{
+                                                border: 'none',
+                                                backgroundColor: '#C1D3D099',
+                                                height: '40px',
+                                                width: '137px',
+                                                borderRight: '1px solid #C3CEC7',
+                                                textAlign: 'center'
+                                              }}
+                                            >
+                                              <Typography sx={{ fontSize: 13, fontWeight: 500 }}>{all}</Typography>
+                                            </TableCell>
+                                          )
+                                        })}
+                                      </>
+                                    ) : (
+                                      ''
+                                    )}
                                   </TableRow>
                                 </TableHead>
                                 {dietDetails?.meal_data?.length > 0 ? (
                                   <TableBody>
-                                    <>
+                                    {/* <>
                                       {dietDetails?.meal_data?.map(itemd => {
                                         const startTimes = itemd?.meal_from_time
                                         const endTimes = itemd?.meal_to_time
@@ -862,37 +1043,42 @@ const DietDetail = () => {
                                                               : 'none'
                                                         }}
                                                       >
-                                                        {/* <TableCell></TableCell> */}
-                                                        <Box
-                                                          sx={{
-                                                            display: 'flex',
-                                                            flexDirection: 'row',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            my: '10px'
-                                                          }}
-                                                        >
-                                                          <Typography
+                                                        {itemd?.notes ? (
+                                                          <Box
                                                             sx={{
-                                                              lineHeight: '29.05px',
-                                                              fontSize: '20px',
-                                                              fontWeight: 500,
-                                                              color: '#44544A'
+                                                              display: 'flex',
+                                                              flexDirection: 'row',
+                                                              alignItems: 'center',
+                                                              gap: '4px',
+                                                              my: '10px',
+                                                              width: '1070px'
                                                             }}
                                                           >
-                                                            Note:- &nbsp;
-                                                          </Typography>
-                                                          <Typography
-                                                            sx={{
-                                                              lineHeight: '19.36px',
-                                                              fontSize: '16px',
-                                                              fontWeight: 400,
-                                                              color: '#44544A'
-                                                            }}
-                                                          >
-                                                            {itemd.notes}{' '}
-                                                          </Typography>
-                                                        </Box>
+                                                            <Typography
+                                                              sx={{
+                                                                lineHeight: '29.05px',
+                                                                fontSize: '20px',
+                                                                fontWeight: 500,
+                                                                color: '#44544A'
+                                                              }}
+                                                            >
+                                                              Note:- &nbsp;
+                                                              <Typography
+                                                                component='span'
+                                                                sx={{
+                                                                  lineHeight: '19.36px',
+                                                                  fontSize: '16px',
+                                                                  fontWeight: 400,
+                                                                  color: '#44544A'
+                                                                }}
+                                                              >
+                                                                {itemd.notes}
+                                                              </Typography>
+                                                            </Typography>
+                                                          </Box>
+                                                        ) : (
+                                                          ''
+                                                        )}
                                                       </TableRow>
                                                     ) : null}
                                                   </>
@@ -904,7 +1090,1195 @@ const DietDetail = () => {
                                           </>
                                         )
                                       })}
-                                    </>
+                                    </> */}
+                                    {dietDetails.meal_data?.map((itemd, index) => {
+                                      const formattedfromTime = moment(itemd?.meal_from_time, 'h:mm A').isValid()
+                                        ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
+                                        : undefined
+                                      const formattedtoTime = moment(itemd?.meal_to_time, 'h:mm A').isValid()
+                                        ? moment(itemd.meal_to_time, 'h:mm A').format('h:mm A')
+                                        : undefined
+
+                                      const startTimes = formattedfromTime
+                                      const endTimes = formattedtoTime
+                                      const ind = index
+
+                                      return (
+                                        <>
+                                          <TableRow
+                                            sx={{
+                                              borderBottom: '1px solid #C3CEC7'
+                                            }}
+                                            key={index}
+                                          >
+                                            <TableCell
+                                              sx={{
+                                                position: 'sticky',
+                                                left: 0,
+                                                width: '180px',
+                                                border: 'none',
+                                                pl: 0,
+                                                pr: '36px',
+                                                background: '#fff',
+                                                height: '100px',
+                                                //display: 'flex',
+                                                //flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                overflow: 'hidden'
+                                              }}
+                                              component='th'
+                                              scope='row'
+                                            >
+                                              <span
+                                                style={{
+                                                  position: 'absolute', // Change this to absolute
+                                                  top: '70px', // Center vertically
+                                                  transform: 'translateY(-50%)', // Adjust to center properly
+                                                  //display: 'flex',
+                                                  flexDirection: 'column',
+                                                  alignItems: 'center',
+                                                  width: '70%'
+                                                }}
+                                              >
+                                                <Box
+                                                  sx={{
+                                                    borderRadius: '25px',
+                                                    border: `2px dotted #00AFD6`,
+                                                    py: '5px',
+                                                    px: '4px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      textAlign: 'center',
+                                                      color: '#00AFD6',
+                                                      fontWeight: 500,
+                                                      fontSize: '16px',
+                                                      lineHeight: '19.36px'
+                                                    }}
+                                                  >
+                                                    {startTimes}
+                                                  </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                  <Box
+                                                    sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}
+                                                  ></Box>
+                                                </Box>
+                                                {console.log(endTimes, 'endTimes')}
+                                                <Box
+                                                  sx={{
+                                                    borderRadius: '25px',
+                                                    border: `2px dotted #00AFD6`,
+                                                    py: '5px',
+                                                    px: '4px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      textAlign: 'center',
+                                                      color: '#00AFD6',
+                                                      fontWeight: 500,
+                                                      fontSize: '16px',
+                                                      lineHeight: '19.36px'
+                                                    }}
+                                                  >
+                                                    {endTimes}
+                                                  </Typography>
+                                                </Box>
+                                              </span>
+                                            </TableCell>
+
+                                            <>
+                                              {itemd?.ingredient?.length > 0 &&
+                                                itemd?.ingredient?.map((item, index) => {
+                                                  // console.log(dietDetails?.child?.length, 'lll')
+
+                                                  return (
+                                                    <TableRow key={index}>
+                                                      <TableCell
+                                                        style={{ paddingLeft: '0px' }}
+                                                        sx={{
+                                                          position: 'sticky',
+                                                          left: '160px',
+                                                          border: 'none',
+                                                          backgroundColor: '#fff',
+                                                          float: 'left'
+                                                        }}
+                                                        className={
+                                                          dietDetails.diet_type_name === 'Generic'
+                                                            ? 'cell_dimn'
+                                                            : dietDetails.diet_type_name === 'By Gender'
+                                                            ? 'cell_gend'
+                                                            : 'cellmodule4'
+                                                        }
+                                                      >
+                                                        <Box
+                                                          key={index}
+                                                          sx={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            backgroundColor: '#00d6c957',
+                                                            borderRadius: '8px',
+                                                            p: '12px',
+                                                            gap: '16px'
+                                                          }}
+                                                        >
+                                                          <Box>
+                                                            <Box
+                                                              sx={{
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                gap: '12px'
+                                                              }}
+                                                            >
+                                                              <Box sx={{ display: 'flex' }}>
+                                                                {item?.ingredient_name && (
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 600,
+                                                                      fontSize: '16px'
+                                                                    }}
+                                                                  >
+                                                                    {item?.ingredient_name}
+                                                                  </Typography>
+                                                                )}
+                                                                {item?.preparation_type && (
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#7A8684',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 400,
+                                                                      fontSize: '14px'
+                                                                    }}
+                                                                  >
+                                                                    &nbsp;-&nbsp; {item?.preparation_type}
+                                                                  </Typography>
+                                                                )}
+                                                              </Box>
+
+                                                              {item?.ingredient?.length > 0 && (
+                                                                <Box
+                                                                  sx={{
+                                                                    display: 'flex',
+                                                                    gap: '24px'
+                                                                  }}
+                                                                >
+                                                                  {item?.ingredient?.map((item, index) => (
+                                                                    <Box key={index} sx={{ display: 'flex' }}>
+                                                                      <Typography
+                                                                        sx={{
+                                                                          color: '#1F515B',
+                                                                          lineHeight: '16.94px',
+                                                                          fontWeight: 400,
+                                                                          fontSize: '14px'
+                                                                        }}
+                                                                      >
+                                                                        {item.name}&nbsp;
+                                                                      </Typography>
+                                                                      <Typography
+                                                                        sx={{
+                                                                          color: '#000',
+                                                                          lineHeight: '16.94px',
+                                                                          fontWeight: 600,
+                                                                          fontSize: '14px'
+                                                                        }}
+                                                                      >
+                                                                        {item?.percentage}
+                                                                      </Typography>
+                                                                    </Box>
+                                                                  ))}
+                                                                </Box>
+                                                              )}
+                                                              {(item?.preparationType || item?.desc) && (
+                                                                <Box
+                                                                  sx={{
+                                                                    display: 'flex',
+                                                                    gap: '24px'
+                                                                  }}
+                                                                >
+                                                                  {item?.preparationType && (
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#1F515B',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
+                                                                    >
+                                                                      {item?.preparationType}
+                                                                    </Typography>
+                                                                  )}
+                                                                  {item?.desc && (
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#1F515B',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
+                                                                    >
+                                                                      {item?.desc}
+                                                                    </Typography>
+                                                                  )}
+                                                                </Box>
+                                                              )}
+                                                              {item?.remarks && (
+                                                                <Box
+                                                                  sx={{
+                                                                    backgroundColor: '#0000000d',
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    gap: '4px',
+                                                                    p: '12px',
+                                                                    borderRadius: '8px'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 600,
+                                                                      fontSize: '14px'
+                                                                    }}
+                                                                  >
+                                                                    Remarks
+                                                                  </Typography>
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 400,
+                                                                      fontSize: '14px'
+                                                                    }}
+                                                                  >
+                                                                    {item?.remarks}
+                                                                  </Typography>
+                                                                </Box>
+                                                              )}
+                                                            </Box>
+                                                          </Box>
+                                                          {item?.days_of_week?.length > 0 && (
+                                                            <>
+                                                              <Divider />
+                                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                                {item?.days_of_week?.map((item, index) => (
+                                                                  <Box
+                                                                    key={index}
+                                                                    sx={{
+                                                                      width: '48px',
+                                                                      height: '32px',
+                                                                      borderRadius: '16px',
+                                                                      backgroundColor: '#0000000d',
+                                                                      display: 'center',
+                                                                      justifyContent: 'center',
+                                                                      alignItems: 'center'
+                                                                    }}
+                                                                  >
+                                                                    <Typography
+                                                                      sx={{
+                                                                        fontWeight: 400,
+                                                                        fontSize: '13px',
+                                                                        lineHeight: '18px',
+                                                                        color: '#44544A'
+                                                                      }}
+                                                                    >
+                                                                      {getDayName(item)}
+                                                                    </Typography>
+                                                                  </Box>
+                                                                ))}
+                                                              </Box>
+                                                            </>
+                                                          )}
+                                                        </Box>
+                                                      </TableCell>
+                                                      <TableCell
+                                                        style={{
+                                                          paddingLeft: '8px',
+                                                          paddingRight: '8px',
+                                                          height: '10px',
+                                                          maxHeight: '100%',
+                                                          border: 'none'
+                                                        }}
+                                                        // onClick={() =>
+                                                        //   handleClickOpen(index, item, 'Generic', 'ingredient')
+                                                        // }
+                                                      >
+                                                        <Box
+                                                          sx={{
+                                                            height: '100%'
+                                                          }}
+                                                        >
+                                                          {/* {console.log(item.meal_type, 'eee')} */}
+                                                          <Box
+                                                            sx={{
+                                                              backgroundColor: '#0000000d',
+                                                              p: '10px',
+                                                              boxSizing: 'border-box',
+                                                              display: 'flex',
+                                                              justifyContent: 'center',
+                                                              alignItems: 'center',
+                                                              borderRadius: '8px',
+                                                              height: '100%'
+                                                            }}
+                                                            className={
+                                                              dietDetails.diet_type_name === 'By Lifestage'
+                                                                ? 'diet_val_cont'
+                                                                : dietDetails.diet_type_name === 'By Gender'
+                                                                ? 'diet_gender'
+                                                                : 'diet_cell'
+                                                            }
+                                                          >
+                                                            <Typography
+                                                              sx={{
+                                                                color: '#000',
+                                                                lineHeight: '16.94px',
+                                                                fontWeight: 400,
+                                                                fontSize: '14px'
+                                                              }}
+                                                            >
+                                                              {/* {console.log(index, 'index')} */}
+                                                              {item.meal_type
+                                                                ? item.meal_type.map((meal, i) => {
+                                                                    return meal.meal_value_header === 'Generic'
+                                                                      ? meal.quantity +
+                                                                          (meal.feed_uom_name
+                                                                            ? ' ' + meal.feed_uom_name
+                                                                            : '')
+                                                                      : ''
+                                                                  })
+                                                                : ''}
+                                                            </Typography>
+                                                          </Box>
+                                                        </Box>
+                                                      </TableCell>
+                                                      {dietDetails.child?.length > 0 &&
+                                                        dietDetails.child?.map((all, indexnew) => {
+                                                          if (all !== 'Generic') {
+                                                            return (
+                                                              <TableCell
+                                                                key={index}
+                                                                style={{
+                                                                  paddingLeft: '8px',
+                                                                  paddingRight: '8px',
+                                                                  height: '10px',
+                                                                  maxHeight: '100%',
+                                                                  border: 'none'
+                                                                }}
+                                                                // onClick={() =>
+                                                                //   handleClickOpen(index, item, all, 'ingredient')
+                                                                // }
+                                                              >
+                                                                <Box
+                                                                  sx={{
+                                                                    height: '100%'
+                                                                  }}
+                                                                >
+                                                                  <Box
+                                                                    sx={{
+                                                                      backgroundColor: '#0000000d',
+                                                                      p: '10px',
+                                                                      display: 'flex',
+                                                                      justifyContent: 'center',
+                                                                      alignItems: 'center',
+                                                                      borderRadius: '8px',
+                                                                      height: '100%'
+                                                                    }}
+                                                                    className={
+                                                                      dietDetails.diet_type_name === 'By Lifestage'
+                                                                        ? 'diet_val_cont'
+                                                                        : dietDetails.diet_type_name === 'By Gender'
+                                                                        ? 'diet_gender'
+                                                                        : 'diet_cell'
+                                                                    }
+                                                                  >
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#000',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
+                                                                    >
+                                                                      {dietDetails.diet_type_name === 'By Weight' &&
+                                                                      item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            if (all.includes(meal.meal_value_header)) {
+                                                                              return (
+                                                                                meal.quantity +
+                                                                                (meal.feed_uom_name
+                                                                                  ? ' ' + meal.feed_uom_name
+                                                                                  : '')
+                                                                              )
+                                                                            } else {
+                                                                              return ''
+                                                                            }
+                                                                          })
+                                                                        : item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            return meal.meal_value_header === all
+                                                                              ? meal.quantity +
+                                                                                  (meal.feed_uom_name
+                                                                                    ? ' ' + meal.feed_uom_name
+                                                                                    : '')
+                                                                              : ''
+                                                                          })
+                                                                        : ''}
+                                                                    </Typography>
+                                                                  </Box>
+                                                                </Box>
+                                                              </TableCell>
+                                                            )
+                                                          }
+                                                        })}
+
+                                                      {/* {getModal(index, item)} */}
+                                                    </TableRow>
+                                                  )
+                                                })}
+                                            </>
+
+                                            <>
+                                              {itemd?.recipe?.length > 0 &&
+                                                itemd?.recipe?.map((item, index) => {
+                                                  return (
+                                                    <TableRow key={index}>
+                                                      <TableCell
+                                                        style={{ paddingLeft: '0px' }}
+                                                        sx={{
+                                                          position: 'sticky',
+                                                          left: '160px',
+                                                          border: 'none',
+
+                                                          backgroundColor: '#fff',
+                                                          float: 'left'
+                                                        }}
+                                                        className={
+                                                          dietDetails.diet_type_name === 'Generic'
+                                                            ? 'cell_dimn'
+                                                            : dietDetails.diet_type_name === 'By Gender'
+                                                            ? 'cell_gend'
+                                                            : 'cellmodule4'
+                                                        }
+                                                      >
+                                                        <Box
+                                                          key={index}
+                                                          sx={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            backgroundColor: '#E1F9ED',
+                                                            borderRadius: '8px',
+                                                            p: '12px',
+                                                            gap: '16px'
+                                                          }}
+                                                        >
+                                                          <Box>
+                                                            <Box
+                                                              sx={{
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                gap: '12px'
+                                                              }}
+                                                            >
+                                                              <Box sx={{ display: 'flex' }}>
+                                                                {item?.recipe_name && (
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 600,
+                                                                      fontSize: '16px'
+                                                                    }}
+                                                                  >
+                                                                    {item?.recipe_name}
+                                                                  </Typography>
+                                                                )}
+                                                              </Box>
+                                                              {/* {console.log(item, 'kkkk')} */}
+                                                              <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                                                                {item.ingredient_name &&
+                                                                  item.ingredient_name.length > 0 && (
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#7A8684',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px',
+                                                                        display: 'flex',
+                                                                        flexWrap: 'wrap'
+                                                                      }}
+                                                                    >
+                                                                      {item?.ingredient_name.map((name, index) => (
+                                                                        <Box
+                                                                          key={index}
+                                                                          sx={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            marginRight: '10px'
+                                                                          }}
+                                                                        >
+                                                                          {name}
+                                                                          <Typography
+                                                                            component='span'
+                                                                            sx={{
+                                                                              fontWeight: 'bold',
+                                                                              marginLeft: '2px',
+                                                                              fontSize: '14px',
+                                                                              lineHeight: '1.7rem'
+                                                                            }}
+                                                                          >
+                                                                            {parseFloat(item?.quantity[index])}
+                                                                            {''}
+                                                                            {item?.quantity_type[index] === 'percentage'
+                                                                              ? '%'
+                                                                              : ''}
+                                                                          </Typography>
+                                                                        </Box>
+                                                                      ))}
+                                                                    </Typography>
+                                                                  )}
+                                                                {item.ingredients.length > 0 &&
+                                                                  item?.ingredients.map((name, index) => (
+                                                                    <Box
+                                                                      key={index}
+                                                                      sx={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        marginRight: '10px',
+                                                                        backgroundColor: '#00D6C933',
+                                                                        m: 1,
+                                                                        borderRadius: '16px',
+                                                                        px: '10px',
+                                                                        gap: '8px'
+                                                                      }}
+                                                                    >
+                                                                      {name?.ingredient_name}
+                                                                      <Typography
+                                                                        component='span'
+                                                                        sx={{
+                                                                          fontWeight: 'bold',
+                                                                          marginLeft: '2px',
+                                                                          fontSize: '14px',
+                                                                          lineHeight: '1.7rem'
+                                                                        }}
+                                                                      >
+                                                                        {parseFloat(name?.quantity)}
+                                                                        {''}
+                                                                        {name?.quantity_type === 'percentage'
+                                                                          ? '%'
+                                                                          : ''}
+                                                                      </Typography>
+                                                                    </Box>
+                                                                  ))}
+                                                              </Box>
+
+                                                              {item?.recipe?.length > 0 && (
+                                                                <Box
+                                                                  sx={{
+                                                                    display: 'flex',
+                                                                    gap: '24px'
+                                                                  }}
+                                                                >
+                                                                  {item?.recipe?.map((item, index) => (
+                                                                    <Box key={index} sx={{ display: 'flex' }}>
+                                                                      <Typography
+                                                                        sx={{
+                                                                          color: '#1F515B',
+                                                                          lineHeight: '16.94px',
+                                                                          fontWeight: 400,
+                                                                          fontSize: '14px'
+                                                                        }}
+                                                                      >
+                                                                        {item.name}&nbsp;
+                                                                      </Typography>
+                                                                      <Typography
+                                                                        sx={{
+                                                                          color: '#000',
+                                                                          lineHeight: '16.94px',
+                                                                          fontWeight: 600,
+                                                                          fontSize: '14px'
+                                                                        }}
+                                                                      >
+                                                                        {item?.percentage}
+                                                                      </Typography>
+                                                                    </Box>
+                                                                  ))}
+                                                                </Box>
+                                                              )}
+                                                              {(item?.preparationType || item?.desc) && (
+                                                                <Box
+                                                                  sx={{
+                                                                    display: 'flex',
+                                                                    gap: '24px'
+                                                                  }}
+                                                                >
+                                                                  {item?.preparationType && (
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#1F515B',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
+                                                                    >
+                                                                      {item?.preparationType}
+                                                                    </Typography>
+                                                                  )}
+                                                                  {item?.desc && (
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#1F515B',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
+                                                                    >
+                                                                      {item?.desc}
+                                                                    </Typography>
+                                                                  )}
+                                                                </Box>
+                                                              )}
+                                                              {item?.remarks && (
+                                                                <Box
+                                                                  sx={{
+                                                                    backgroundColor: '#0000000d',
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    gap: '4px',
+                                                                    p: '12px',
+                                                                    borderRadius: '8px'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 600,
+                                                                      fontSize: '14px'
+                                                                    }}
+                                                                  >
+                                                                    Remarks
+                                                                  </Typography>
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 400,
+                                                                      fontSize: '14px'
+                                                                    }}
+                                                                  >
+                                                                    {item?.remarks}
+                                                                  </Typography>
+                                                                </Box>
+                                                              )}
+                                                            </Box>
+                                                          </Box>
+                                                          {item?.days_of_week?.length > 0 && (
+                                                            <>
+                                                              <Divider />
+                                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                                {item?.days_of_week?.map((item, index) => (
+                                                                  <Box
+                                                                    key={index}
+                                                                    sx={{
+                                                                      width: '48px',
+                                                                      height: '32px',
+                                                                      borderRadius: '16px',
+                                                                      backgroundColor: '#0000000d',
+                                                                      display: 'center',
+                                                                      justifyContent: 'center',
+                                                                      alignItems: 'center'
+                                                                    }}
+                                                                  >
+                                                                    <Typography
+                                                                      sx={{
+                                                                        fontWeight: 400,
+                                                                        fontSize: '13px',
+                                                                        lineHeight: '18px',
+                                                                        color: '#44544A'
+                                                                      }}
+                                                                    >
+                                                                      {getDayName(item)}
+                                                                    </Typography>
+                                                                  </Box>
+                                                                ))}
+                                                              </Box>
+                                                            </>
+                                                          )}
+                                                        </Box>
+                                                      </TableCell>
+                                                      <TableCell
+                                                        style={{
+                                                          paddingLeft: '8px',
+                                                          paddingRight: '8px',
+                                                          height: '10px',
+                                                          maxHeight: '100%',
+                                                          border: 'none'
+                                                        }}
+                                                        // onClick={() => handleClickOpen(index, item, 'Generic', 'recipe')}
+                                                      >
+                                                        <Box
+                                                          sx={{
+                                                            height: '100%'
+                                                          }}
+                                                        >
+                                                          {/* {console.log(item.meal_type, 'eee')} */}
+                                                          <Box
+                                                            sx={{
+                                                              backgroundColor: '#0000000d',
+                                                              p: '10px',
+                                                              display: 'flex',
+                                                              justifyContent: 'center',
+                                                              alignItems: 'center',
+                                                              borderRadius: '8px',
+                                                              height: '100%'
+                                                            }}
+                                                            className={
+                                                              dietDetails.diet_type_name === 'By Lifestage'
+                                                                ? 'diet_val_cont'
+                                                                : dietDetails.diet_type_name === 'By Gender'
+                                                                ? 'diet_gender'
+                                                                : 'diet_cell'
+                                                            }
+                                                          >
+                                                            <Typography
+                                                              sx={{
+                                                                color: '#000',
+                                                                lineHeight: '16.94px',
+                                                                fontWeight: 400,
+                                                                fontSize: '14px'
+                                                              }}
+                                                            >
+                                                              {/* {console.log(index, 'index')} */}
+                                                              {item.meal_type
+                                                                ? item.meal_type.map((meal, i) => {
+                                                                    return meal.meal_value_header === 'Generic'
+                                                                      ? meal.quantity +
+                                                                          (meal.feed_uom_name
+                                                                            ? ' ' + meal.feed_uom_name
+                                                                            : '')
+                                                                      : ''
+                                                                  })
+                                                                : ''}
+                                                            </Typography>
+                                                          </Box>
+                                                        </Box>
+                                                      </TableCell>
+                                                      {dietDetails.child.length > 0 &&
+                                                        dietDetails.child?.map((all, indexnew) => {
+                                                          if (all !== 'Generic') {
+                                                            return (
+                                                              <TableCell
+                                                                key={index}
+                                                                style={{
+                                                                  paddingLeft: '8px',
+                                                                  paddingRight: '8px',
+                                                                  height: '10px',
+                                                                  maxHeight: '100%',
+                                                                  border: 'none'
+                                                                }}
+                                                                // onClick={() => handleClickOpen(index, item, all, 'recipe')}
+                                                              >
+                                                                <Box
+                                                                  sx={{
+                                                                    height: '100%'
+                                                                  }}
+                                                                >
+                                                                  <Box
+                                                                    sx={{
+                                                                      backgroundColor: '#0000000d',
+                                                                      p: '10px',
+                                                                      display: 'flex',
+                                                                      justifyContent: 'center',
+                                                                      alignItems: 'center',
+                                                                      borderRadius: '8px',
+                                                                      height: '100%'
+                                                                    }}
+                                                                    className={
+                                                                      dietDetails.diet_type_name === 'By Lifestage'
+                                                                        ? 'diet_val_cont'
+                                                                        : dietDetails.diet_type_name === 'By Gender'
+                                                                        ? 'diet_gender'
+                                                                        : 'diet_cell'
+                                                                    }
+                                                                  >
+                                                                    <Typography
+                                                                      sx={{
+                                                                        color: '#000',
+                                                                        lineHeight: '16.94px',
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px'
+                                                                      }}
+                                                                    >
+                                                                      {dietDetails.diet_type_name === 'By Weight' &&
+                                                                      item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            if (all.includes(meal.meal_value_header)) {
+                                                                              return (
+                                                                                meal.quantity +
+                                                                                (meal.feed_uom_name
+                                                                                  ? ' ' + meal.feed_uom_name
+                                                                                  : '')
+                                                                              )
+                                                                            } else {
+                                                                              return ''
+                                                                            }
+                                                                          })
+                                                                        : item.meal_type
+                                                                        ? item.meal_type.map((meal, i) => {
+                                                                            return meal.meal_value_header === all
+                                                                              ? meal.quantity +
+                                                                                  (meal.feed_uom_name
+                                                                                    ? ' ' + meal.feed_uom_name
+                                                                                    : '')
+                                                                              : ''
+                                                                          })
+                                                                        : ''}
+                                                                    </Typography>
+                                                                  </Box>
+                                                                </Box>
+                                                              </TableCell>
+                                                            )
+                                                          }
+                                                        })}
+                                                      {/* {getModal(index, item)} */}
+                                                    </TableRow>
+                                                  )
+                                                })}
+                                            </>
+
+                                            <>
+                                              {itemd?.ingredientwithchoice?.map((item, index) => {
+                                                return (
+                                                  <TableRow key={index}>
+                                                    <TableCell
+                                                      style={{ paddingLeft: '0px' }}
+                                                      sx={{
+                                                        position: 'sticky',
+                                                        left: '160px',
+                                                        border: 'none',
+                                                        backgroundColor: '#fff',
+                                                        float: 'left'
+                                                      }}
+                                                      className={
+                                                        dietDetails.diet_type_name === 'Generic'
+                                                          ? 'cell_dimn'
+                                                          : dietDetails.diet_type_name === 'By Gender'
+                                                          ? 'cell_gend'
+                                                          : 'cellmodule4'
+                                                      }
+                                                    >
+                                                      <Box
+                                                        key={index}
+                                                        sx={{
+                                                          display: 'flex',
+                                                          flexDirection: 'column',
+
+                                                          //backgroundColor: '#E1F9ED',
+                                                          backgroundColor: '#00d6c957',
+                                                          borderRadius: '8px',
+                                                          p: '12px',
+                                                          gap: '16px'
+                                                        }}
+                                                      >
+                                                        <Box
+                                                          sx={{
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '12px'
+                                                          }}
+                                                        >
+                                                          {item?.no_of_component_required && (
+                                                            <Typography
+                                                              sx={{
+                                                                color: '#000',
+                                                                lineHeight: '16.94px',
+                                                                fontWeight: 600,
+                                                                fontSize: '16px'
+                                                              }}
+                                                            >
+                                                              Offer minimum {item?.no_of_component_required} from the
+                                                              below items
+                                                            </Typography>
+                                                          )}
+
+                                                          {item?.ingredientList?.length > 0 && (
+                                                            <Box
+                                                              sx={{
+                                                                display: 'flex',
+                                                                flexWrap: 'wrap',
+                                                                columnGap: `24px`,
+                                                                rowGap: '10px'
+                                                              }}
+                                                            >
+                                                              {item?.ingredientList?.map((item, index) => (
+                                                                <>
+                                                                  <Box
+                                                                    key={index}
+                                                                    sx={{
+                                                                      height: '32px',
+                                                                      borderRadius: '16px',
+                                                                      backgroundColor: '#1F415B1A',
+                                                                      display: 'center',
+                                                                      px: 2,
+                                                                      justifyContent: 'center',
+                                                                      alignItems: 'center'
+                                                                    }}
+                                                                  >
+                                                                    <Typography
+                                                                      sx={{
+                                                                        fontWeight: 600,
+                                                                        fontSize: '14px',
+                                                                        lineHeight: '16.94px',
+                                                                        color: '#1F415B'
+                                                                      }}
+                                                                    >
+                                                                      {item?.ingredient_name}
+                                                                    </Typography>
+                                                                    <Typography
+                                                                      sx={{
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px',
+                                                                        lineHeight: '18px',
+                                                                        color: '#1F415B'
+                                                                      }}
+                                                                    >
+                                                                      &nbsp;-&nbsp;{item?.preparation_type}
+                                                                    </Typography>
+                                                                    <Typography
+                                                                      sx={{
+                                                                        fontWeight: 400,
+                                                                        fontSize: '14px',
+                                                                        lineHeight: '18px',
+                                                                        color: '#1F415B'
+                                                                      }}
+                                                                    >
+                                                                      &nbsp;-&nbsp;{item?.feed_uom_name}
+                                                                    </Typography>
+                                                                  </Box>
+                                                                </>
+                                                              ))}
+                                                            </Box>
+                                                          )}
+
+                                                          {item?.remarks && (
+                                                            <Box
+                                                              sx={{
+                                                                backgroundColor: '#0000000d',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                gap: '4px',
+                                                                p: '12px',
+                                                                borderRadius: '8px'
+                                                              }}
+                                                            >
+                                                              <Typography
+                                                                sx={{
+                                                                  color: '#000',
+                                                                  lineHeight: '16.94px',
+                                                                  fontWeight: 600,
+                                                                  fontSize: '14px'
+                                                                }}
+                                                              >
+                                                                Remarks
+                                                              </Typography>
+                                                              <Typography
+                                                                sx={{
+                                                                  color: '#000',
+                                                                  lineHeight: '16.94px',
+                                                                  fontWeight: 400,
+                                                                  fontSize: '14px'
+                                                                }}
+                                                              >
+                                                                {item?.remarks}
+                                                              </Typography>
+                                                            </Box>
+                                                          )}
+                                                        </Box>
+                                                        {item?.days_of_week?.length > 0 && (
+                                                          <>
+                                                            <Divider />
+                                                            <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                              {item?.days_of_week?.map((item, index) => (
+                                                                <Box
+                                                                  key={index}
+                                                                  sx={{
+                                                                    width: '48px',
+                                                                    height: '32px',
+                                                                    borderRadius: '16px',
+                                                                    backgroundColor: '#0000000d',
+                                                                    display: 'center',
+                                                                    justifyContent: 'center',
+                                                                    alignItems: 'center'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    sx={{
+                                                                      fontWeight: 400,
+                                                                      fontSize: '13px',
+                                                                      lineHeight: '18px',
+                                                                      color: '#44544A'
+                                                                    }}
+                                                                  >
+                                                                    {getDayName(item)}
+                                                                  </Typography>
+                                                                </Box>
+                                                              ))}
+                                                            </Box>
+                                                          </>
+                                                        )}
+                                                      </Box>
+                                                    </TableCell>
+                                                    <TableCell
+                                                      style={{
+                                                        paddingLeft: '8px',
+                                                        paddingRight: '8px',
+                                                        height: '10px',
+                                                        maxHeight: '100%',
+                                                        border: 'none'
+                                                      }}
+                                                      // onClick={() =>
+                                                      //   handleClickOpen(index, item, 'Generic', 'ingredientwithchoice')
+                                                      // }
+                                                    >
+                                                      <Box
+                                                        sx={{
+                                                          height: '100%'
+                                                        }}
+                                                      >
+                                                        {/* {console.log(item.meal_type, 'eee')} */}
+                                                        <Box
+                                                          sx={{
+                                                            backgroundColor: '#0000000d',
+                                                            p: '10px',
+                                                            display: 'flex',
+                                                            justifyContent: 'center',
+                                                            alignItems: 'center',
+                                                            borderRadius: '8px',
+                                                            height: '100%'
+                                                          }}
+                                                          className={
+                                                            dietDetails.diet_type_name === 'By Lifestage'
+                                                              ? 'diet_val_cont'
+                                                              : dietDetails.diet_type_name === 'By Gender'
+                                                              ? 'diet_gender'
+                                                              : 'diet_cell'
+                                                          }
+                                                        >
+                                                          <Typography
+                                                            sx={{
+                                                              color: '#000',
+                                                              lineHeight: '16.94px',
+                                                              fontWeight: 400,
+                                                              fontSize: '14px'
+                                                            }}
+                                                          >
+                                                            {/* {console.log(index, 'index')} */}
+                                                            {item.meal_type
+                                                              ? item.meal_type.map((meal, i) => {
+                                                                  return meal.meal_value_header === 'Generic'
+                                                                    ? meal.quantity +
+                                                                        (meal.feed_uom_name
+                                                                          ? ' ' + meal.feed_uom_name
+                                                                          : '')
+                                                                    : ''
+                                                                })
+                                                              : ''}
+                                                          </Typography>
+                                                        </Box>
+                                                      </Box>
+                                                    </TableCell>
+                                                    {dietDetails.child.length &&
+                                                      dietDetails.child?.map((all, indexnew) => {
+                                                        if (all !== 'Generic') {
+                                                          return (
+                                                            <TableCell
+                                                              key={index}
+                                                              style={{
+                                                                paddingLeft: '8px',
+                                                                paddingRight: '8px',
+                                                                height: '10px',
+                                                                maxHeight: '100%',
+                                                                border: 'none'
+                                                              }}
+                                                              // onClick={() =>
+                                                              //   handleClickOpen(index, item, all, 'ingredientwithchoice')
+                                                              // }
+                                                            >
+                                                              <Box
+                                                                sx={{
+                                                                  height: '100%'
+                                                                }}
+                                                              >
+                                                                <Box
+                                                                  sx={{
+                                                                    backgroundColor: '#0000000d',
+                                                                    p: '10px',
+                                                                    display: 'flex',
+                                                                    justifyContent: 'center',
+                                                                    alignItems: 'center',
+                                                                    borderRadius: '8px',
+                                                                    height: '100%'
+                                                                  }}
+                                                                  className={
+                                                                    dietDetails.diet_type_name === 'By Lifestage'
+                                                                      ? 'diet_val_cont'
+                                                                      : dietDetails.diet_type_name === 'By Gender'
+                                                                      ? 'diet_gender'
+                                                                      : 'diet_cell'
+                                                                  }
+                                                                >
+                                                                  <Typography
+                                                                    sx={{
+                                                                      color: '#000',
+                                                                      lineHeight: '16.94px',
+                                                                      fontWeight: 400,
+                                                                      fontSize: '14px'
+                                                                    }}
+                                                                  >
+                                                                    {dietDetails.diet_type_name === 'By Weight' &&
+                                                                    item.meal_type
+                                                                      ? item.meal_type.map((meal, i) => {
+                                                                          if (all.includes(meal.meal_value_header)) {
+                                                                            return (
+                                                                              meal.quantity +
+                                                                              (meal.feed_uom_name
+                                                                                ? ' ' + meal.feed_uom_name
+                                                                                : '')
+                                                                            )
+                                                                          } else {
+                                                                            return ''
+                                                                          }
+                                                                        })
+                                                                      : item.meal_type
+                                                                      ? item.meal_type.map((meal, i) => {
+                                                                          return meal.meal_value_header === all
+                                                                            ? meal.quantity +
+                                                                                (meal.feed_uom_name
+                                                                                  ? ' ' + meal.feed_uom_name
+                                                                                  : '')
+                                                                            : ''
+                                                                        })
+                                                                      : ''}
+                                                                  </Typography>
+                                                                </Box>
+                                                              </Box>
+                                                            </TableCell>
+                                                          )
+                                                        }
+                                                      })}
+                                                    {/* {getModal(index, item)} */}
+                                                  </TableRow>
+                                                )
+                                              })}
+                                            </>
+                                          </TableRow>
+                                        </>
+                                      )
+                                    })}
                                   </TableBody>
                                 ) : (
                                   <Typography sx={{ mt: 2, fontWeight: 700 }}>No Data</Typography>
@@ -918,14 +2292,18 @@ const DietDetail = () => {
                   ))}
                 </TabContext>
               </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
-                  Remarks
-                </Typography>
-                <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
-                  {dietDetails?.remarks ? dietDetails?.remarks : 'No Remarks'}
-                </Typography>
-              </Box>
+              {dietDetails?.desc ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
+                    Remarks
+                  </Typography>
+                  <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
+                    {dietDetails?.desc ? dietDetails?.desc : 'No Remarks'}
+                  </Typography>
+                </Box>
+              ) : (
+                ''
+              )}
             </Card>
           </Box>
         </Box>

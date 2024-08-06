@@ -11,7 +11,8 @@ import {
   FormControl,
   FormHelperText,
   FormControlLabel,
-  Tooltip
+  Tooltip,
+  Box
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -46,7 +47,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  // console.log('dispatchedItems', dispatchedItems)
   const [statesList, setStatesList] = useState([])
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -114,12 +114,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const { id, action } = router.query
 
   const shipRequest = async payload => {
-    // console.log(JSON.stringify(payload))
-
     try {
       setSubmitLoader(true)
-
-      // console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
       if (response?.success) {
@@ -132,7 +128,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      // console.log(e)
+      console.log(e)
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -389,6 +385,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       width={'100%'}
                       date={date}
                       value={date}
+                      maxDate={new Date()}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
                       placeholderText={'Shipment Date*'}
