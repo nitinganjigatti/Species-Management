@@ -191,7 +191,8 @@ const RequestDetails = () => {
 
       const params = {
         lab_id: Selectedlab_id,
-        q
+        q,
+        sort
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {

@@ -147,7 +147,8 @@ const AddSpeciesNewEntry = props => {
     reset({
       ...defaultValues,
       scientific_name: values.scientific_name,
-      common_name: values.common_name
+      common_name: values.common_name,
+      transaction_date: new Date() // Reset to current date and time
     })
   }
 

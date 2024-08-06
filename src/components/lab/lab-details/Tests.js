@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const Tests = ({ labTest }) => {
-  console.log('labTest', labTest)
+  // console.log('labTest', labTest)
 
   const columns = [
     // {
@@ -24,7 +24,8 @@ const Tests = ({ labTest }) => {
       Width: 20,
       field: 'tests',
       headerName: 'TESTS',
-      hide: true,
+      hide: false,
+
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -129,6 +130,7 @@ const Tests = ({ labTest }) => {
         rowCount={total}
         columns={columns}
         loading={loading}
+        disableColumnMenu={true}
         slotProps={{
           baseButton: {
             variant: 'outlined'

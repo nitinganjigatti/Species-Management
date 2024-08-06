@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
+
 // Assuming getOrganizationList is correctly imported
 import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies'
 
@@ -9,6 +10,7 @@ export const PariveshProvider = ({ children }) => {
     // Initialize from localStorage if available, otherwise default to null
     if (typeof window !== 'undefined') {
       const storedParivesh = localStorage.getItem('selectedParivesh')
+
       return storedParivesh ? JSON.parse(storedParivesh) : null
     } else {
       return null // Fallback for non-browser environments
@@ -28,6 +30,7 @@ export const PariveshProvider = ({ children }) => {
       const res = await getOrganizationList({ accessToken })
       if (res.length > 0) {
         setOrganizationList(res)
+
         // Initialize selectedParivesh with the first organization from res if not already set
         if (!selectedParivesh) {
           setSelectedPariveshState(res[0]) // Assuming res[0] is defined and not null
@@ -41,16 +44,24 @@ export const PariveshProvider = ({ children }) => {
 
   const setSelectedParivesh = newSelectedParivesh => {
     setSelectedPariveshState(newSelectedParivesh)
+
     // Update localStorage when selectedParivesh changes
     localStorage.setItem('selectedParivesh', JSON.stringify(newSelectedParivesh))
   }
 
+  const setOrganizationListState = orgarnisationList => {
+    setOrganizationList(orgarnisationList)
+  }
+
   useEffect(() => {
+    debugger
     fetchOrgData() // Initial fetch on component mount
   }, [fetchOrgData])
 
   return (
-    <PariveshContext.Provider value={{ selectedParivesh, setSelectedParivesh, organizationList }}>
+    <PariveshContext.Provider
+      value={{ selectedParivesh, setSelectedParivesh, organizationList, setOrganizationListState }}
+    >
       {children}
     </PariveshContext.Provider>
   )

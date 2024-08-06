@@ -72,8 +72,8 @@ const PendingRequestsChart = props => {
   //     }
   //   ]
   // }
-  const labels = pendingList.map(item => item.filter)
-  const dataValues = pendingList.map(item => parseInt(item.pending_request))
+  const labels = pendingList.map(item => (item.filter ? item.filter : ''))
+  const dataValues = pendingList.map(item => (item.pending_request ? parseInt(item.pending_request) : ''))
 
   // const labels = pendingList.map(item => {
   //   return `${item.total_request}/${item.pending_request}`

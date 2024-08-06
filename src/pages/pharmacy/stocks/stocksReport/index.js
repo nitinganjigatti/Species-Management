@@ -434,8 +434,8 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.mrp_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.mrp_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
             : 'NA'}
         </Typography>
       )
@@ -654,8 +654,8 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.mrp_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.mrp_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
             : 'NA'}
         </Typography>
       )
@@ -904,8 +904,8 @@ const ListOfStocks = () => {
               <Tab value='1' label='Stock Report' />
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
-              <Tab value='4' label='Expired Medicine' />
-              <Tab value='6' label='About To Expire Medicine' />
+              <Tab value='4' label='Expired Products' />
+              <Tab value='6' label='About To Expire Products' />
 
               <Tab value='5' label='Escrow' />
             </TabList>

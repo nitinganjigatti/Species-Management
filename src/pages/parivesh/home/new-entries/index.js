@@ -48,6 +48,7 @@ import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
 import Image from 'next/image'
 import { display } from '@mui/system'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -73,7 +74,6 @@ const NewEntry = ({}) => {
   const [selectedRows, setSelectedRows] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [organizationCountList, setOrganizationCountList] = useState([])
-  const [editParams, setEditParams] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailData, setDetailData] = useState()
@@ -222,8 +222,7 @@ const NewEntry = ({}) => {
 
   const handleEdit = async (event, params) => {
     event.stopPropagation()
-    console.log('params >>', params)
-    setEditParams(params)
+    // console.log('params >>', params)
 
     // Ensure params.id exists and is a string or number
     if (params?.id) {
@@ -271,7 +270,7 @@ const NewEntry = ({}) => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 30,
       field: 'species_image',
       headerName: 'IMAGE',
@@ -281,13 +280,11 @@ const NewEntry = ({}) => {
           {/* <Box className='relative h-20'>
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
+          <div onClick={event => event.stopPropagation()}>
+            {/* <ImageLightbox images={params.row.species_image} /> */}
 
-          <Avatar
-            variant='square'
-            src={params.row.species_image}
-            alt={'species_image'}
-            sx={{ height: 'auto', p: 0.5 }}
-          />
+            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} />
+          </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -604,10 +601,12 @@ const NewEntry = ({}) => {
 
         await getOrgCountList({ params: params }).then(res => {
           const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -890,7 +889,7 @@ const NewEntry = ({}) => {
                   summaryIcon='mdi:arrow-top-right'
                   data={org?.yetToSubmitAccordionData?.data}
                   cards={org?.yetToSubmitAccordionData?.cards}
-                  backgroundImage={org?.species_image !== '' && orgData?.species_image}
+                  backgroundImage={org?.cover_image !== '' && org?.cover_image}
                   isOrganization={selectedParivesh.id !== 'all' ? true : false}
                   organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
                 />
@@ -931,7 +930,7 @@ const NewEntry = ({}) => {
                   alignItems: 'center'
                 }}
               >
-                <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
+                <Avatar src={detailData?.species_image} alt={''} variant='square' sx={{ height: 'auto' }} />
               </Box>
               <Box sx={{ ml: 2 }}>
                 <Typography variant='h6' sx={{ color: '#00afd6' }}>

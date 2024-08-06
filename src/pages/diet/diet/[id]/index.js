@@ -342,7 +342,7 @@ const DietDetail = () => {
                                             border: 'none',
                                             backgroundColor: '#C1D3D099',
                                             height: '40px',
-                                            width: '127px',
+                                            width: '133px',
                                             borderRight: '1px solid #C3CEC7',
                                             textAlign: 'center'
                                           }}
@@ -354,7 +354,7 @@ const DietDetail = () => {
                                             border: 'none',
                                             backgroundColor: '#C1D3D099',
                                             height: '40px',
-                                            width: '127px',
+                                            width: '133px',
                                             borderRight: '1px solid #C3CEC7',
                                             textAlign: 'center'
                                           }}
@@ -366,7 +366,7 @@ const DietDetail = () => {
                                             border: 'none',
                                             backgroundColor: '#C1D3D099',
                                             height: '40px',
-                                            width: '127px',
+                                            width: '133px',
                                             borderRight: '1px solid #C3CEC7',
                                             textAlign: 'center'
                                           }}
@@ -1096,7 +1096,7 @@ const DietDetail = () => {
                                         ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
                                         : undefined
                                       const formattedtoTime = moment(itemd?.meal_to_time, 'h:mm A').isValid()
-                                        ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
+                                        ? moment(itemd.meal_to_time, 'h:mm A').format('h:mm A')
                                         : undefined
 
                                       const startTimes = formattedfromTime
@@ -1166,7 +1166,7 @@ const DietDetail = () => {
                                                     sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}
                                                   ></Box>
                                                 </Box>
-
+                                                {console.log(endTimes, 'endTimes')}
                                                 <Box
                                                   sx={{
                                                     borderRadius: '25px',
@@ -1204,18 +1204,15 @@ const DietDetail = () => {
                                                           left: '160px',
                                                           border: 'none',
                                                           backgroundColor: '#fff',
-                                                          width:
-                                                            // dietDetails?.diet_type_name === 'By Weight' &&
-                                                            // dietDetails?.child?.length === 1
-                                                            //   ? '580px'
-                                                            //   : dietDetails?.child?.length === 1 ||
-                                                            //     dietDetails?.child?.length === 0
-                                                            //   ? '680px'
-                                                            //   : dietDetails?.child?.length > 1
-                                                            //   ? '500px'
-                                                            '580px',
                                                           float: 'left'
                                                         }}
+                                                        className={
+                                                          dietDetails.diet_type_name === 'Generic'
+                                                            ? 'cell_dimn'
+                                                            : dietDetails.diet_type_name === 'By Gender'
+                                                            ? 'cell_gend'
+                                                            : 'cellmodule4'
+                                                        }
                                                       >
                                                         <Box
                                                           key={index}
@@ -1420,7 +1417,6 @@ const DietDetail = () => {
                                                             sx={{
                                                               backgroundColor: '#0000000d',
                                                               p: '10px',
-                                                              width: '121px',
                                                               boxSizing: 'border-box',
                                                               display: 'flex',
                                                               justifyContent: 'center',
@@ -1428,6 +1424,13 @@ const DietDetail = () => {
                                                               borderRadius: '8px',
                                                               height: '100%'
                                                             }}
+                                                            className={
+                                                              dietDetails.diet_type_name === 'By Lifestage'
+                                                                ? 'diet_val_cont'
+                                                                : dietDetails.diet_type_name === 'By Gender'
+                                                                ? 'diet_gender'
+                                                                : 'diet_cell'
+                                                            }
                                                           >
                                                             <Typography
                                                               sx={{
@@ -1478,13 +1481,19 @@ const DietDetail = () => {
                                                                     sx={{
                                                                       backgroundColor: '#0000000d',
                                                                       p: '10px',
-                                                                      width: '121px',
                                                                       display: 'flex',
                                                                       justifyContent: 'center',
                                                                       alignItems: 'center',
                                                                       borderRadius: '8px',
                                                                       height: '100%'
                                                                     }}
+                                                                    className={
+                                                                      dietDetails.diet_type_name === 'By Lifestage'
+                                                                        ? 'diet_val_cont'
+                                                                        : dietDetails.diet_type_name === 'By Gender'
+                                                                        ? 'diet_gender'
+                                                                        : 'diet_cell'
+                                                                    }
                                                                   >
                                                                     <Typography
                                                                       sx={{
@@ -1545,19 +1554,15 @@ const DietDetail = () => {
                                                           border: 'none',
 
                                                           backgroundColor: '#fff',
-                                                          width:
-                                                            // dietDetails?.diet_type_name === 'By Weight' &&
-                                                            // dietDetails?.child?.length === 1
-                                                            // ? '580px'
-                                                            // : dietDetails?.child?.length === 1 ||
-                                                            //   dietDetails?.child?.length === 0
-                                                            // ? '680px'
-                                                            // : dietDetails?.child?.length > 1
-                                                            // ? '500px'
-                                                            // : '580px',
-                                                            '580px',
                                                           float: 'left'
                                                         }}
+                                                        className={
+                                                          dietDetails.diet_type_name === 'Generic'
+                                                            ? 'cell_dimn'
+                                                            : dietDetails.diet_type_name === 'By Gender'
+                                                            ? 'cell_gend'
+                                                            : 'cellmodule4'
+                                                        }
                                                       >
                                                         <Box
                                                           key={index}
@@ -1825,13 +1830,19 @@ const DietDetail = () => {
                                                             sx={{
                                                               backgroundColor: '#0000000d',
                                                               p: '10px',
-                                                              width: '121px',
                                                               display: 'flex',
                                                               justifyContent: 'center',
                                                               alignItems: 'center',
                                                               borderRadius: '8px',
                                                               height: '100%'
                                                             }}
+                                                            className={
+                                                              dietDetails.diet_type_name === 'By Lifestage'
+                                                                ? 'diet_val_cont'
+                                                                : dietDetails.diet_type_name === 'By Gender'
+                                                                ? 'diet_gender'
+                                                                : 'diet_cell'
+                                                            }
                                                           >
                                                             <Typography
                                                               sx={{
@@ -1880,13 +1891,19 @@ const DietDetail = () => {
                                                                     sx={{
                                                                       backgroundColor: '#0000000d',
                                                                       p: '10px',
-                                                                      width: '121px',
                                                                       display: 'flex',
                                                                       justifyContent: 'center',
                                                                       alignItems: 'center',
                                                                       borderRadius: '8px',
                                                                       height: '100%'
                                                                     }}
+                                                                    className={
+                                                                      dietDetails.diet_type_name === 'By Lifestage'
+                                                                        ? 'diet_val_cont'
+                                                                        : dietDetails.diet_type_name === 'By Gender'
+                                                                        ? 'diet_gender'
+                                                                        : 'diet_cell'
+                                                                    }
                                                                   >
                                                                     <Typography
                                                                       sx={{
@@ -1944,19 +1961,15 @@ const DietDetail = () => {
                                                         left: '160px',
                                                         border: 'none',
                                                         backgroundColor: '#fff',
-                                                        width:
-                                                          // dietDetails?.diet_type_name === 'By Weight' &&
-                                                          // dietDetails?.child?.length === 1
-                                                          // ? '580px'
-                                                          // : dietDetails?.child?.length === 1 ||
-                                                          //   dietDetails?.child?.length === 0
-                                                          // ? '680px'
-                                                          // : dietDetails?.child?.length > 1
-                                                          // ? '500px'
-                                                          // : '580px',
-                                                          '580px',
                                                         float: 'left'
                                                       }}
+                                                      className={
+                                                        dietDetails.diet_type_name === 'Generic'
+                                                          ? 'cell_dimn'
+                                                          : dietDetails.diet_type_name === 'By Gender'
+                                                          ? 'cell_gend'
+                                                          : 'cellmodule4'
+                                                      }
                                                     >
                                                       <Box
                                                         key={index}
@@ -2141,13 +2154,19 @@ const DietDetail = () => {
                                                           sx={{
                                                             backgroundColor: '#0000000d',
                                                             p: '10px',
-                                                            width: '121px',
                                                             display: 'flex',
                                                             justifyContent: 'center',
                                                             alignItems: 'center',
                                                             borderRadius: '8px',
                                                             height: '100%'
                                                           }}
+                                                          className={
+                                                            dietDetails.diet_type_name === 'By Lifestage'
+                                                              ? 'diet_val_cont'
+                                                              : dietDetails.diet_type_name === 'By Gender'
+                                                              ? 'diet_gender'
+                                                              : 'diet_cell'
+                                                          }
                                                         >
                                                           <Typography
                                                             sx={{
@@ -2198,13 +2217,19 @@ const DietDetail = () => {
                                                                   sx={{
                                                                     backgroundColor: '#0000000d',
                                                                     p: '10px',
-                                                                    width: '121px',
                                                                     display: 'flex',
                                                                     justifyContent: 'center',
                                                                     alignItems: 'center',
                                                                     borderRadius: '8px',
                                                                     height: '100%'
                                                                   }}
+                                                                  className={
+                                                                    dietDetails.diet_type_name === 'By Lifestage'
+                                                                      ? 'diet_val_cont'
+                                                                      : dietDetails.diet_type_name === 'By Gender'
+                                                                      ? 'diet_gender'
+                                                                      : 'diet_cell'
+                                                                  }
                                                                 >
                                                                   <Typography
                                                                     sx={{

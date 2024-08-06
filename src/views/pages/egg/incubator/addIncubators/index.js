@@ -21,6 +21,7 @@ import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 
 const AddIncubators = ({
+  searchValue,
   incubatorDetail,
   actionApi,
   isEdit,
@@ -177,7 +178,7 @@ const AddIncubators = ({
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
             if (actionApi) {
-              actionApi('')
+              actionApi(searchValue)
             }
           } else {
             setBtnDisabled(false)

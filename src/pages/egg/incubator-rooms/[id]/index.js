@@ -62,37 +62,40 @@ const RoomDetails = () => {
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
-  const fetchTableData = useCallback(async () => {
-    try {
-      // console.log('til_date', cuurent_date)
-      setLoading(true)
+  const fetchTableData = useCallback(
+    async q => {
+      try {
+        // console.log('til_date', cuurent_date)
+        setLoading(true)
 
-      const params = {
-        sort,
-        q: searchValue,
-        room_id: id,
+        const params = {
+          sort,
+          q: q || searchValue,
+          room_id: id,
 
-        til_date: cuurent_date,
-        page_no: paginationModel.page + 1,
-        limit: paginationModel.pageSize
-      }
+          til_date: cuurent_date,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
 
-      await getIncubatorList({ params }).then(res => {
-        // Generate uid field based on the index
-        let listWithId = res?.data?.data?.result?.map((el, i) => {
-          return { ...el, id: i + 1 }
+        await getIncubatorList({ params }).then(res => {
+          // Generate uid field based on the index
+          let listWithId = res?.data?.data?.result?.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          setTotal(parseInt(res?.data?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
+
+          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
-        setTotal(parseInt(res?.data?.data?.total_count))
-        setRows(loadServerRows(paginationModel.page, listWithId))
-
-        // setstatusCheckval(res?.data?.result.map(all => all.active))
-      })
-      setLoading(false)
-    } catch (e) {
-      console.log(e)
-      setLoading(false)
-    }
-  }, [paginationModel])
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
@@ -120,7 +123,7 @@ const RoomDetails = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData()
+        await fetchTableData(q)
       } catch (error) {
         console.error(error)
       }

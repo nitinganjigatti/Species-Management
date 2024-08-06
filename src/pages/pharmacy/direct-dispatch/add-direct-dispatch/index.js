@@ -361,7 +361,9 @@ const AddDirectDispatch = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        active: 1,
+        is_specific: 1
       }
 
       const searchResults = await getMedicineList({ params: params })
@@ -416,6 +418,7 @@ const AddDirectDispatch = () => {
           }
         } else {
           setOptionsBatchList([])
+          setTotalBatchQuantity(0)
         }
         setBatchLoading(false)
       } catch (e) {

@@ -164,7 +164,7 @@ const LoginPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        backgroundImage: 'url(/images/login_new.svg)',
+        backgroundImage: 'url(/images/frog_img.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'bottom',
         padding: '1.25rem'
@@ -206,7 +206,7 @@ const LoginPage = () => {
                   </Typography>
                 </Box>
 
-                <form noValidate autoComplete='on' onSubmit={handleSubmit(onSubmit)}>
+                <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
                   <FormControl fullWidth sx={{ mb: 4, mt: 4, borderColor: 'white' }}>
                     <Controller
                       name='email'
@@ -221,7 +221,7 @@ const LoginPage = () => {
                           onChange={onChange}
                           error={Boolean(errors.email)}
                           InputProps={{
-                            style: { color: 'white' }
+                            style: { color: 'white', height: '50px' }
                           }}
                           InputLabelProps={{
                             style: { color: 'white' }
@@ -304,6 +304,7 @@ const LoginPage = () => {
                             </InputAdornment>
                           }
                           sx={{
+                            height: '50px',
                             '& .MuiOutlinedInput-root': {
                               '& fieldset': {
                                 borderColor: 'white'
@@ -347,13 +348,13 @@ const LoginPage = () => {
                     }}
                   >
                     {' '}
-                    <Typography
+                    {/* <Typography
                       sx={{ marginLeft: 'auto', mt: 3, color: '#E4B819', textDecoration: 'underline', fontSize: 12 }}
                       variant='body2'
                       color='primary'
                     >
                       Forgot Password
-                    </Typography>
+                    </Typography> */}
                   </Box>
 
                   <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>

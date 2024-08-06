@@ -27,7 +27,7 @@ import { LoadingButton } from '@mui/lab'
 import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
 import Toaster from 'src/components/Toaster'
 
-const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
+const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
@@ -36,6 +36,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   const [imgSrc, setImgSrc] = useState('')
   const [discardReason, setDiscardReason] = useState([])
   const [eggStateID, setEggStateId] = useState(null)
+  const [loader, setLoader] = useState(false)
 
   const [displayFile, setDisplayFile] = useState('')
 
@@ -154,6 +155,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   }
 
   const onSubmit = async values => {
+    setLoader(true)
     try {
       const payload = {
         egg_id: eggID,
@@ -170,22 +172,32 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         setImgSrc('')
         reset()
         setIsOpen(false)
+        setLoader(false)
         Toaster({ type: 'success', message: res?.message })
 
         if (callApi) {
           callApi('')
+        }
+
+        if (getDetails) {
+          getDetails(eggID)
+        }
+        if (GetGalleryImgList) {
+          GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
         }
       } else {
         // setReason('')
         // setImgSrc('')
         // // reset()
         // setIsOpen(false)
+        setLoader(false)
         Toaster({ type: 'error', message: res?.message })
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
       console.error('Error while :', error)
+      setLoader(false)
       Toaster({ type: 'error', message: 'An error occurred while Discard' })
     }
   }
@@ -283,7 +295,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 </Box>
               ))}
             </Box>
-            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is Required</FormHelperText>}
+            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is required</FormHelperText>}
 
             <Typography variant='h6' sx={{ m: 5 }}>
               Add Reason For Discard
@@ -495,7 +507,14 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 zIndex: 1
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' size='large'>
+              <LoadingButton
+                loading={loader}
+                disabled={loader}
+                fullWidth
+                variant='contained'
+                type='submit'
+                size='large'
+              >
                 Discard
               </LoadingButton>
             </Box>

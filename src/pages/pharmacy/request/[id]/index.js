@@ -24,7 +24,6 @@ import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -45,11 +44,9 @@ import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
-import { height, minHeight } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -86,7 +83,16 @@ const IndividualRequest = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
+  const [expandedText, setExpandedText] = useState('')
+  const [notesDialog, setNotesDialog] = useState(false)
 
+  const closeNotesDialog = () => {
+    setNotesDialog(false)
+    setExpandedText('')
+  }
+  const openNotesDialog = () => {
+    setNotesDialog(true)
+  }
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   // const base_image_url = '/uploads/control_substance/'
 
@@ -565,6 +571,38 @@ const IndividualRequest = () => {
       // ) : (
       //   'NA'
       // )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'description',
+      headerName: 'Notes',
+      align: 'left',
+
+      renderCell: params => (
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.description}>
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+            }}
+            onClick={() => {
+              if (params.row?.description) {
+                setExpandedText(params.row.description)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.description || 'NA'}
+          </Typography>
+        </Tooltip>
+      )
     },
 
     {
@@ -1147,12 +1185,11 @@ const IndividualRequest = () => {
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' &&
-                    requestItems.status === 'request' ? (
-                    // ||
-                    //   (requestItems.status !== 'Cancelled' &&
-                    //     requestItems.status !== 'Partial Dispatched' &&
-                    //     requestItems.status !== 'Fully Dispatched')
+                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
+                      // ||
+                      //   (requestItems.status !== 'Cancelled' &&
+                      //     requestItems.status !== 'Partial Dispatched' &&
+                      //     requestItems.status !== 'Fully Dispatched')
                       <Button
                         size='big'
                         variant='contained'
@@ -1422,6 +1459,24 @@ const IndividualRequest = () => {
               {/* <strong>check it out!</strong> */}
             </Alert>
           )}
+          <ConfirmDialogBox
+            open={notesDialog}
+            closeDialog={() => {
+              closeNotesDialog()
+            }}
+            action={() => {
+              closeNotesDialog()
+            }}
+            content={
+              <Box>
+                <>
+                  <DialogContent>
+                    <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
+                  </DialogContent>
+                </>
+              </Box>
+            }
+          />
         </>
       )}
     </>
