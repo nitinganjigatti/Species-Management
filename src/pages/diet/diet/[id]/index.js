@@ -1209,6 +1209,9 @@ const DietDetail = () => {
                                                         className={
                                                           dietDetails.diet_type_name === 'Generic'
                                                             ? 'cell_dimn'
+                                                            : dietDetails.diet_type_name === 'By Weight' &&
+                                                              dietDetails.child.length === 0
+                                                            ? 'cell_dimn'
                                                             : dietDetails.diet_type_name === 'By Gender'
                                                             ? 'cell_gend'
                                                             : 'cellmodule4'
@@ -1558,6 +1561,9 @@ const DietDetail = () => {
                                                         }}
                                                         className={
                                                           dietDetails.diet_type_name === 'Generic'
+                                                            ? 'cell_dimn'
+                                                            : dietDetails.diet_type_name === 'By Weight' &&
+                                                              dietDetails.child.length === 0
                                                             ? 'cell_dimn'
                                                             : dietDetails.diet_type_name === 'By Gender'
                                                             ? 'cell_gend'
@@ -1965,6 +1971,9 @@ const DietDetail = () => {
                                                       }}
                                                       className={
                                                         dietDetails.diet_type_name === 'Generic'
+                                                          ? 'cell_dimn'
+                                                          : dietDetails.diet_type_name === 'By Weight' &&
+                                                            dietDetails.child.length === 0
                                                           ? 'cell_dimn'
                                                           : dietDetails.diet_type_name === 'By Gender'
                                                           ? 'cell_gend'
