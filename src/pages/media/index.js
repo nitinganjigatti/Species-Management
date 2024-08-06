@@ -37,6 +37,7 @@ import moment from 'moment'
 import Image from 'next/image'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import Utility from 'src/utility'
 
 const Media = () => {
   const auth = useAuth()
@@ -254,17 +255,33 @@ const Media = () => {
     searchMediaData(value)
   }
 
+  // const renderDateHeader = useMemo(
+  //   () => date => {
+  //     const today = moment().startOf('day')
+  //     const yesterday = moment().subtract(1, 'days').startOf('day')
+
+  //     if (moment(date).isSame(today, 'day')) {
+  //       return 'Today ' + moment(date).format('DD MMMM YYYY')
+  //     } else if (moment(date).isSame(yesterday, 'day')) {
+  //       return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
+  //     } else {
+  //       return moment.utc(date).format('DD MMMM YYYY')
+  //     }
+  //   },
+  //   []
+  // )
+
   const renderDateHeader = useMemo(
     () => date => {
       const today = moment().startOf('day')
       const yesterday = moment().subtract(1, 'days').startOf('day')
 
       if (moment(date).isSame(today, 'day')) {
-        return 'Today ' + moment(date).format('DD MMMM YYYY')
+        return 'Today ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(date))
       } else if (moment(date).isSame(yesterday, 'day')) {
-        return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
+        return 'Yesterday ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(date))
       } else {
-        return moment.utc(date).format('DD MMMM YYYY')
+        return Utility.formatDisplayDate(Utility.convertUTCToLocal(date))
       }
     },
     []
@@ -502,7 +519,10 @@ const Media = () => {
                                 <CardContent
                                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
                                 >
-                                  <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box>
+                                  <Box>
+                                    {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(media?.created_at))}
+                                  </Box>
+                                  {/* <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box> */}
                                 </CardContent>
                               </Card>
                             </Grid>
