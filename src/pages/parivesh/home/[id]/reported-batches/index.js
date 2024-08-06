@@ -27,6 +27,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import Utility from 'src/utility'
 
 const ReportedBatches = ({ type }) => {
   const theme = useTheme()
@@ -308,7 +309,9 @@ const ReportedBatches = ({ type }) => {
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_on ? moment.utc(params.row.created_on).format('DD MMMM YYYY') : '-'}
+              {params.row.created_on
+                ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_on))
+                : '-'}
             </Typography>
           </Box>
         </Box>

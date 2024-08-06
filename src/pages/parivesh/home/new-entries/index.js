@@ -49,6 +49,7 @@ import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
 import Image from 'next/image'
 import { display } from '@mui/system'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -450,10 +451,14 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+            {params.row.transaction_date
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+            {params.row.transaction_date
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
         </Box>
       )
@@ -1024,7 +1029,9 @@ const NewEntry = ({}) => {
               </Typography>
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment.utc(detailData?.transaction_date).local().format('DD MMMM YYYY hh:mm A')
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(detailData?.transaction_date)) +
+                    ' ' +
+                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(detailData?.transaction_date))
                   : ''}
               </Typography>
             </Grid>

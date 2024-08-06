@@ -46,6 +46,7 @@ import docIcon from 'public/icons/doc_icon.svg'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -387,7 +388,9 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+          {params.row.transaction_date
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+            : '-'}
         </Typography>
       )
     }
@@ -708,7 +711,10 @@ const BatchDetails = ({ params, searchParams }) => {
             <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
               Batch Created:{' '}
               <span style={{ fontWeight: '600' }}>
-                {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY  hh:mm A')}
+                {Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.created_on)) +
+                  ' ' +
+                  Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.created_on))}
+                {/* {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY  hh:mm A')} */}
               </span>
             </Typography>
 
@@ -735,7 +741,9 @@ const BatchDetails = ({ params, searchParams }) => {
               Submitted Date:{' '}
               <span style={{ color: '#44544A', fontWeight: '600' }}>
                 {batchDetails?.submitted_on !== null
-                  ? moment.utc(batchDetails?.submitted_on).local().format('DD MMMM YYYY hh:mm A')
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.submitted_on)) +
+                    ' ' +
+                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.submitted_on))
                   : 'NA'}
               </span>
             </Typography>

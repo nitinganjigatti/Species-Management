@@ -107,8 +107,8 @@ const AddNewEntry = () => {
       animal_count
     } = { ...data }
 
-    const now = new Date()
     const selectedDate = new Date(transaction_date)
+    const now = new Date()
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
 
     const payload = {
