@@ -312,7 +312,57 @@ const Media = () => {
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box display='flex' flexDirection='column'>
               <Card sx={{ p: 4, mb: 6 }}>
-                <Grid container spacing={2} alignItems='center'>
+                <Grid container spacing={2} direction='column' alignItems='flex-start'>
+                  <Grid item xs={12} width='100%'>
+                    <Grid container justifyContent='space-between' alignItems='center'>
+                      <Grid item>
+                        <Typography
+                          variant='h6'
+                          gutterBottom
+                          sx={{ display: 'flex', alignItems: 'center', margin: '10px 0', fontWeight: 'bold' }}
+                        >
+                          Media
+                        </Typography>
+                      </Grid>
+                      <Grid item sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        <Button
+                          size='large'
+                          variant='outlined'
+                          sx={{ color: '#7A8684', cursor: 'pointer' }}
+                          {...getRootProps()}
+                          disabled={btnLoader}
+                        >
+                          {btnLoader ? (
+                            <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                          ) : (
+                            <Icon icon='ic:outline-file-upload' />
+                          )}
+                          &nbsp; Upload File
+                          <input {...getInputProps()} />
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={12} sx={{ display: { xs: 'block', sm: 'none' }, width: '100%' }}>
+                    <Button
+                      size='large'
+                      variant='outlined'
+                      fullWidth
+                      sx={{ color: '#7A8684', cursor: 'pointer', mt: 2 }}
+                      {...getRootProps()}
+                      disabled={btnLoader}
+                    >
+                      {btnLoader ? (
+                        <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                      ) : (
+                        <Icon icon='ic:outline-file-upload' />
+                      )}
+                      &nbsp; Upload File
+                      <input {...getInputProps()} />
+                    </Button>
+                  </Grid>
+                </Grid>
+                {/* <Grid container spacing={2} alignItems='center'>
                   <Grid item xs={12} md={6}>
                     <Typography
                       variant='h6'
@@ -343,51 +393,8 @@ const Media = () => {
                     </Grid>
                   </Grid>
 
-                  {/* <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <Select
-                        size='small'
-                        value={selectedDateFilter}
-                        onChange={handleDateFilterChange}
-                        variant='outlined'
-                        fullWidth
-                      >
-                        <MenuItem value='all'>All Dates</MenuItem>
-                       
-                      </Select>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Select
-                        size='small'
-                        value={selectedFileTypeFilter}
-                        onChange={handleFileTypeFilterChange}
-                        variant='outlined'
-                        fullWidth
-                      >
-                        <MenuItem value='all'>All Types</MenuItem>
-                      </Select>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <FormControl fullWidth>
-                        <TextField
-                          size='small'
-                          label='Search'
-                          value={searchQuery}
-                          onChange={handleSearchInputChange}
-                          placeholder='Search...'
-                          variant='outlined'
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position='end'>
-                                <SearchIcon />
-                              </InputAdornment>
-                            )
-                          }}
-                        />
-                      </FormControl>
-                    </Grid>
-                  </Grid> */}
-                </Grid>
+
+                </Grid> */}
                 {/* <Grid item xs={12} sm={4} mt={6} sx={{ display: 'flex', justifyContent: 'start' }}>
                   <Button
                     size='large'
