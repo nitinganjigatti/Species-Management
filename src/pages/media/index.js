@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Card,
   CardContent,
@@ -37,6 +37,7 @@ import moment from 'moment'
 import Image from 'next/image'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import Utility from 'src/utility'
 
 const Media = () => {
   const auth = useAuth()
@@ -55,9 +56,10 @@ const Media = () => {
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(null)
 
-  const userId = auth?.userData?.user?.user_id
-
-  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+  // const userId = auth?.userData?.user?.user_id
+  // const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
+  const userId = useMemo(() => auth?.userData?.user?.user_id, [auth])
+  const imgPath = useMemo(() => auth?.userData?.settings?.DEFAULT_IMAGE_MASTER, [auth])
 
   const searchMediaData = useCallback(
     debounce(async q => {
@@ -102,14 +104,14 @@ const Media = () => {
         setLoading(false)
       }
     },
-    [userId, hasMore]
+    [hasMore]
   )
 
   useEffect(() => {
     if (userId !== undefined) {
       getMediaListUserId(userId, searchQuery, page)
     }
-  }, [getMediaListUserId, userId, searchQuery, page])
+  }, [userId, searchQuery, page, getMediaListUserId])
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
@@ -148,7 +150,7 @@ const Media = () => {
         }
         if (successCount === acceptedFiles.length) {
           Toaster({ type: 'success', message: message })
-          await getMediaListUserId(userId, searchQuery, page)
+          await getMediaListUserId(userId, searchQuery, 1)
         }
         setBtnLoader(false) // Hide loader after processing files
         setLoading(false)
@@ -171,7 +173,7 @@ const Media = () => {
       const res = await deleteMediaFile(selectedId?.id)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
-        await getMediaListUserId(userId, searchQuery, page)
+        await getMediaListUserId(userId, searchQuery, 1)
       } else {
         Toaster({ type: 'error', message: res?.message })
       }
@@ -253,18 +255,37 @@ const Media = () => {
     searchMediaData(value)
   }
 
-  const renderDateHeader = date => {
-    const today = moment().startOf('day')
-    const yesterday = moment().subtract(1, 'days').startOf('day')
+  // const renderDateHeader = useMemo(
+  //   () => date => {
+  //     const today = moment().startOf('day')
+  //     const yesterday = moment().subtract(1, 'days').startOf('day')
 
-    if (moment(date).isSame(today, 'day')) {
-      return 'Today ' + moment(date).format('DD MMMM YYYY')
-    } else if (moment(date).isSame(yesterday, 'day')) {
-      return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
-    } else {
-      return moment.utc(date).format('DD MMMM YYYY')
-    }
-  }
+  //     if (moment(date).isSame(today, 'day')) {
+  //       return 'Today ' + moment(date).format('DD MMMM YYYY')
+  //     } else if (moment(date).isSame(yesterday, 'day')) {
+  //       return 'Yesterday ' + moment(date).format('DD MMMM YYYY')
+  //     } else {
+  //       return moment.utc(date).format('DD MMMM YYYY')
+  //     }
+  //   },
+  //   []
+  // )
+
+  const renderDateHeader = useMemo(
+    () => date => {
+      const today = moment().startOf('day')
+      const yesterday = moment().subtract(1, 'days').startOf('day')
+
+      if (moment(date).isSame(today, 'day')) {
+        return 'Today ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(date))
+      } else if (moment(date).isSame(yesterday, 'day')) {
+        return 'Yesterday ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(date))
+      } else {
+        return Utility.formatDisplayDate(Utility.convertUTCToLocal(date))
+      }
+    },
+    []
+  )
 
   const handleClick = (event, media) => {
     setAnchorEl(event.currentTarget)
@@ -276,11 +297,11 @@ const Media = () => {
     setAnchorEl(null)
   }
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (hasMore && !loading) {
       setPage(prevPage => prevPage + 1)
     }
-  }
+  }, [hasMore, loading])
 
   return (
     <>
@@ -291,7 +312,57 @@ const Media = () => {
           <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box display='flex' flexDirection='column'>
               <Card sx={{ p: 4, mb: 6 }}>
-                <Grid container spacing={2} alignItems='center'>
+                <Grid container spacing={2} direction='column' alignItems='flex-start'>
+                  <Grid item xs={12} width='100%'>
+                    <Grid container justifyContent='space-between' alignItems='center'>
+                      <Grid item>
+                        <Typography
+                          variant='h6'
+                          gutterBottom
+                          sx={{ display: 'flex', alignItems: 'center', margin: '10px 0', fontWeight: 'bold' }}
+                        >
+                          Media
+                        </Typography>
+                      </Grid>
+                      <Grid item sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        <Button
+                          size='large'
+                          variant='outlined'
+                          sx={{ color: '#7A8684', cursor: 'pointer' }}
+                          {...getRootProps()}
+                          disabled={btnLoader}
+                        >
+                          {btnLoader ? (
+                            <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                          ) : (
+                            <Icon icon='ic:outline-file-upload' />
+                          )}
+                          &nbsp; Upload File
+                          <input {...getInputProps()} />
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                  <Grid item xs={12} sx={{ display: { xs: 'block', sm: 'none' }, width: '100%' }}>
+                    <Button
+                      size='large'
+                      variant='outlined'
+                      fullWidth
+                      sx={{ color: '#7A8684', cursor: 'pointer', mt: 2 }}
+                      {...getRootProps()}
+                      disabled={btnLoader}
+                    >
+                      {btnLoader ? (
+                        <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                      ) : (
+                        <Icon icon='ic:outline-file-upload' />
+                      )}
+                      &nbsp; Upload File
+                      <input {...getInputProps()} />
+                    </Button>
+                  </Grid>
+                </Grid>
+                {/* <Grid container spacing={2} alignItems='center'>
                   <Grid item xs={12} md={6}>
                     <Typography
                       variant='h6'
@@ -322,51 +393,8 @@ const Media = () => {
                     </Grid>
                   </Grid>
 
-                  {/* <Grid item xs={12} md={6} container alignItems='center' justifyContent='flex-end' spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <Select
-                        size='small'
-                        value={selectedDateFilter}
-                        onChange={handleDateFilterChange}
-                        variant='outlined'
-                        fullWidth
-                      >
-                        <MenuItem value='all'>All Dates</MenuItem>
-                       
-                      </Select>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Select
-                        size='small'
-                        value={selectedFileTypeFilter}
-                        onChange={handleFileTypeFilterChange}
-                        variant='outlined'
-                        fullWidth
-                      >
-                        <MenuItem value='all'>All Types</MenuItem>
-                      </Select>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <FormControl fullWidth>
-                        <TextField
-                          size='small'
-                          label='Search'
-                          value={searchQuery}
-                          onChange={handleSearchInputChange}
-                          placeholder='Search...'
-                          variant='outlined'
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position='end'>
-                                <SearchIcon />
-                              </InputAdornment>
-                            )
-                          }}
-                        />
-                      </FormControl>
-                    </Grid>
-                  </Grid> */}
-                </Grid>
+
+                </Grid> */}
                 {/* <Grid item xs={12} sm={4} mt={6} sx={{ display: 'flex', justifyContent: 'start' }}>
                   <Button
                     size='large'
@@ -498,7 +526,10 @@ const Media = () => {
                                 <CardContent
                                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', pb: 0, pt: 0 }}
                                 >
-                                  <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box>
+                                  <Box>
+                                    {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(media?.created_at))}
+                                  </Box>
+                                  {/* <Box>{moment.utc(media?.created_at).local().format('hh:mm A')}</Box> */}
                                 </CardContent>
                               </Card>
                             </Grid>

@@ -49,6 +49,7 @@ import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
 import Image from 'next/image'
 import { display } from '@mui/system'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -83,13 +84,36 @@ const NewEntry = ({}) => {
     return data
   }
 
+  // const handleSelectAll = event => {
+  //   event.stopPropagation()
+  //   setSelectAll(event.target.checked)
+  //   if (event.target.checked) {
+  //     setSelectedRows(rows.map(row => row.id))
+  //   } else {
+  //     setSelectedRows([])
+  //   }
+  // }
+
+  const updateSelectAllState = paginationModel => {
+    const startIndex = paginationModel.page * paginationModel.pageSize
+    const endIndex = startIndex + paginationModel.pageSize
+    const currentPageRows = rows.slice(startIndex, endIndex)
+    const allCurrentPageSelected = currentPageRows.every(row => selectedRows.includes(row.id))
+    setSelectAll(allCurrentPageSelected && currentPageRows.length > 0)
+  }
   const handleSelectAll = event => {
     event.stopPropagation()
-    setSelectAll(event.target.checked)
-    if (event.target.checked) {
-      setSelectedRows(rows.map(row => row.id))
+    const isChecked = event.target.checked
+    setSelectAll(isChecked)
+
+    const startIndex = paginationModel.page * paginationModel.pageSize
+    const endIndex = startIndex + paginationModel.pageSize
+    const currentPageRows = rows.slice(startIndex, endIndex)
+
+    if (isChecked) {
+      setSelectedRows(prevSelected => [...new Set([...prevSelected, ...currentPageRows.map(row => row.id)])])
     } else {
-      setSelectedRows([])
+      setSelectedRows(prevSelected => prevSelected.filter(id => !currentPageRows.some(row => row.id === id)))
     }
   }
 
@@ -127,20 +151,32 @@ const NewEntry = ({}) => {
     }
   }
 
-  const handleRowSelection = id => {
-    const selectedIndex = selectedRows.indexOf(id)
-    let newSelected = []
+  // const handleRowSelection = id => {
+  //   const selectedIndex = selectedRows.indexOf(id)
+  //   let newSelected = []
 
-    if (selectedIndex === -1) {
-      newSelected = [...selectedRows, id]
-    } else {
-      newSelected = selectedRows.filter(rowId => rowId !== id)
-    }
-    // Update selectedRows state
-    setSelectedRows(newSelected)
-    // Update selectAll state
-    setSelectAll(newSelected.length === rows.length)
+  //   if (selectedIndex === -1) {
+  //     newSelected = [...selectedRows, id]
+  //   } else {
+  //     newSelected = selectedRows.filter(rowId => rowId !== id)
+  //   }
+  //   // Update selectedRows state
+  //   setSelectedRows(newSelected)
+  //   // Update selectAll state
+  //   setSelectAll(newSelected.length === rows.length)
+  // }
+
+  const handleRowSelection = id => {
+    setSelectedRows(prevSelected => {
+      const newSelected = prevSelected.includes(id) ? prevSelected.filter(rowId => rowId !== id) : [...prevSelected, id]
+
+      updateSelectAllState(paginationModel)
+      return newSelected
+    })
   }
+  useEffect(() => {
+    updateSelectAllState(paginationModel)
+  }, [rows, selectedRows, paginationModel])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -281,9 +317,9 @@ const NewEntry = ({}) => {
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
           <div onClick={event => event.stopPropagation()}>
-            {/* <ImageLightbox images={params.row.species_image} /> */}
+            <ImageLightbox images={params.row.species_image} />
 
-            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} />
+            {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} /> */}
           </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
@@ -415,10 +451,14 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+            {params.row.transaction_date
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+            {params.row.transaction_date
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
         </Box>
       )
@@ -447,8 +487,16 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'checkbox',
       sortable: false,
+      // headerName: (
+      //   <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+      // ),
       headerName: (
-        <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+        <Checkbox
+          checked={selectAll}
+          indeterminate={selectedRows.length > 0 && !selectAll}
+          onChange={handleSelectAll}
+          inputProps={{ 'aria-label': 'Select All Rows' }}
+        />
       ),
       renderCell: params => (
         <Checkbox
@@ -571,7 +619,11 @@ const NewEntry = ({}) => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
+              // onPaginationModelChange={setPaginationModel}
+              onPaginationModelChange={newModel => {
+                setPaginationModel(newModel)
+                updateSelectAllState(newModel)
+              }}
               loading={loading}
               slotProps={{
                 baseButton: {
@@ -977,7 +1029,9 @@ const NewEntry = ({}) => {
               </Typography>
               <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
                 {detailData?.transaction_date
-                  ? moment.utc(detailData?.transaction_date).local().format('DD MMMM YYYY hh:mm A')
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(detailData?.transaction_date)) +
+                    ' ' +
+                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(detailData?.transaction_date))
                   : ''}
               </Typography>
             </Grid>
