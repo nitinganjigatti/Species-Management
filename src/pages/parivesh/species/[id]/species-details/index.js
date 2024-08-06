@@ -25,6 +25,7 @@ import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -96,8 +97,8 @@ const SpeciesDetails = () => {
       renderCell: params => (
         <>
           <div onClick={event => event.stopPropagation()}>
-            {/* <ImageLightbox images={params.row.species_image} /> */}
-            <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} />
+            <ImageLightbox images={params.row.species_image} />
+            {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} /> */}
           </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
@@ -206,6 +207,7 @@ const SpeciesDetails = () => {
     //     </Box>
     //   )
     // },
+
     {
       flex: 0.3,
       minWidth: 30,
@@ -215,10 +217,14 @@ const SpeciesDetails = () => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
+            {params.row.transaction_date
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+            {params.row.transaction_date
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: 'text.primary' }}>

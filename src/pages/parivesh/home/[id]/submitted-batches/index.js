@@ -12,6 +12,7 @@ import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationChec
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useTheme } from '@emotion/react'
 import { DataGrid } from '@mui/x-data-grid'
+import Utility from 'src/utility'
 
 const SubmittedBatches = ({ type }) => {
   const theme = useTheme()
@@ -185,10 +186,14 @@ const SubmittedBatches = ({ type }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('D MMMM YYYY') : '-'}
+            {params.row.submitted_on
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+              : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).local().format('hh:mm A') : '-'}
+            {params.row.submitted_on
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.submitted_on))
+              : '-'}
           </Typography>
         </Box>
       )
@@ -229,7 +234,9 @@ const SubmittedBatches = ({ type }) => {
               {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
+              {params.row.submitted_on
+                ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -310,7 +317,9 @@ const SubmittedBatches = ({ type }) => {
               : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
+            {params.row.submitted_on
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+              : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
