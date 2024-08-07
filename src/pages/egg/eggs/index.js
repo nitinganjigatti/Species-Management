@@ -1962,7 +1962,7 @@ const EggList = () => {
         )}
         {openDrawer && (
           <AllocationSlider
-            callApi={fetchTableData}
+            callApi={() => fetchTableData(sort, '', 'eggs_received', isDiscarded, filterByNurseryId)}
             allocationValues={allocationValues}
             setOpenDrawer={setOpenDrawer}
             allocateEggId={eggID}
