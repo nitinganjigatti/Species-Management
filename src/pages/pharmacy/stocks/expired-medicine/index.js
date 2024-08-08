@@ -232,7 +232,7 @@ const ExpiredMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='Expired products'
+              title='Expired Products'
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton

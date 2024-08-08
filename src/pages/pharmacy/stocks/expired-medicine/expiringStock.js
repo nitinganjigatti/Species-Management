@@ -28,6 +28,7 @@ const ExpiringMedicine = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+
   const [filterDates, setFilterDates] = useState({
     startDate: Utility?.formattedPresentDate(),
     endDate: Utility?.getFeaturesDates(new Date(), 7)
@@ -119,6 +120,7 @@ const ExpiringMedicine = () => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
   }
+
   const filterByDays = days => {
     const currentDate = new Date()
     const selectedDays = parseInt(days)
@@ -240,7 +242,7 @@ const ExpiringMedicine = () => {
         }
       })
 
-      Utility.exportToCSV(data, 'Expired Products')
+      Utility.exportToCSV(data, 'Expiring Products')
       setExcelLoader(false)
     } else {
       setExcelLoader(false)
@@ -262,7 +264,7 @@ const ExpiringMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='Expired products'
+              title='About To Expire'
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton

@@ -904,8 +904,8 @@ const ListOfStocks = () => {
               <Tab value='1' label='Stock Report' />
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
-              <Tab value='4' label='Expired Medicine' />
-              <Tab value='6' label='About To Expire Medicine' />
+              <Tab value='4' label='Expired Products' />
+              <Tab value='6' label='About To Expire Products' />
 
               <Tab value='5' label='Escrow' />
             </TabList>
