@@ -340,9 +340,11 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Disagree</Button>
-          <Button onClick={handleSubmit(onSubmit)} autoFocus>
-            Done
+          <Button fullWidth variant='outlined' size='large' onClick={handleClose}>
+            CLOSE
+          </Button>
+          <Button fullWidth variant='contained' onClick={handleSubmit(onSubmit)} size='large'>
+            SUBMIT
           </Button>
         </DialogActions>
       </Dialog>
