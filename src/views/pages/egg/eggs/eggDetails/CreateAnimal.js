@@ -21,7 +21,8 @@ import {
   DialogTitle,
   DialogContentText,
   Button,
-  Grid
+  Grid,
+  InputAdornment
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
@@ -610,6 +611,16 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                               placeholder=''
                               onClick={() => setOpen(true)}
                               disabled
+                              InputProps={{
+                                endAdornment: (
+                                  <InputAdornment position='end'>
+                                    <Icon
+                                      icon={'material-symbols:add-circle-outline'}
+                                      style={{ color: '#37BD69' }}
+                                    ></Icon>
+                                  </InputAdornment>
+                                )
+                              }}
                             />
                           )}
                         />
