@@ -1424,6 +1424,16 @@ const ConditionSlider = ({
                                   placeholder=''
                                   onClick={() => setOpen(true)}
                                   disabled
+                                  InputProps={{
+                                    endAdornment: (
+                                      <InputAdornment position='end'>
+                                        <Icon
+                                          icon={'material-symbols:add-circle-outline'}
+                                          style={{ color: '#37BD69' }}
+                                        ></Icon>
+                                      </InputAdornment>
+                                    )
+                                  }}
                                 />
                               )}
                             />
