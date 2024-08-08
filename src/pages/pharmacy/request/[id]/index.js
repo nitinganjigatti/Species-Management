@@ -5,8 +5,6 @@ import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId,
-  markItemNotAvailable,
-  markItemAvailable,
   deleteFulfillItem
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
@@ -42,11 +40,14 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
-import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
+
+import ProductNotAvailable from 'src/components/pharmacy/request/ProductNotAvailable'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
+import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
+import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -85,14 +86,62 @@ const IndividualRequest = () => {
   const { id, request_number } = router.query
   const [expandedText, setExpandedText] = useState('')
   const [notesDialog, setNotesDialog] = useState(false)
+  const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
+  const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
+
+  const [medicineParentId, setMedicineParentId] = useState({
+    parent_id: '',
+    request_item_id: '',
+    qty_requested: '',
+    product: ''
+  })
 
   const closeNotesDialog = () => {
     setNotesDialog(false)
     setExpandedText('')
   }
+
   const openNotesDialog = () => {
     setNotesDialog(true)
   }
+
+  const closeAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(false)
+    setMedicineParentId({
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(true)
+  }
+
+  const closeRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(false)
+    setMedicineParentId({
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(true)
+  }
+
+  const closeProductNotAvailableDialog = () => {
+    setProductNotAvailableDialog(false)
+    setNotAvailableItemId([])
+  }
+
+  const openProductNotAvailableDialog = () => {
+    setProductNotAvailableDialog(true)
+  }
+
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   // const base_image_url = '/uploads/control_substance/'
 
@@ -372,6 +421,12 @@ const IndividualRequest = () => {
     )
   }
 
+  const boxStyles = request_status => {
+    return request_status === 'Alternate' || request_status === 'Not Available' || request_status === 'Rejected'
+      ? { opacity: 0.5, pointerEvents: 'none' }
+      : {}
+  }
+
   const columns = [
     {
       flex: 0.05,
@@ -396,7 +451,7 @@ const IndividualRequest = () => {
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%', ...boxStyles(params.row.request_status) }}>
           <Typography
             variant='body2'
             sx={{
@@ -445,7 +500,8 @@ const IndividualRequest = () => {
           variant='body2'
           sx={{
             color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none',
+            ...boxStyles(params.row.request_status)
           }}
         >
           {params.row.requested_qty}
@@ -464,7 +520,8 @@ const IndividualRequest = () => {
           variant='body2'
           sx={{
             color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none',
+            ...boxStyles(params.row.request_status)
           }}
         >
           {params.row.dispatch_qty}
@@ -484,7 +541,8 @@ const IndividualRequest = () => {
           variant='body2'
           sx={{
             color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none',
+            ...boxStyles(params.row.request_status)
           }}
         >
           {selectedPharmacy.type === 'local'
@@ -503,10 +561,13 @@ const IndividualRequest = () => {
           {selectedPharmacy.type === 'central' && (
             <Button
               size='small'
+              sx={{ ...boxStyles(params.row.request_status) }}
               disabled={
                 parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                requestItems.status !== 'Cancelled' &&
+                params.row.request_status !== 'Alternate' &&
                 params.row.request_status !== 'Not Available' &&
-                requestItems.status !== 'Cancelled'
+                params.row.request_status !== 'Rejected'
                   ? false
                   : true
               }
@@ -542,7 +603,9 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
-      renderCell: params => <>{renderAttachmentIcons(params.row)}</>
+      renderCell: params => (
+        <Box sx={{ ...boxStyles(params.row.request_status) }}>{renderAttachmentIcons(params.row)}</Box>
+      )
 
       // !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
       //   <>
@@ -590,7 +653,8 @@ const IndividualRequest = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               WebkitLineClamp: 6,
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              ...boxStyles(params.row.request_status)
             }}
             onClick={() => {
               if (params.row?.description) {
@@ -604,84 +668,178 @@ const IndividualRequest = () => {
         </Tooltip>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'comments',
+      headerName: 'Comments',
+      align: 'left',
+
+      renderCell: params => (
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.alternate_comments}>
+          {/* <Icon icon='uil:comments' style={{ color: 'primary.error' }} /> */}
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+
+              // ...boxStyles(params.row.request_status)
+            }}
+            onClick={() => {
+              if (params.row?.alternate_comments) {
+                setExpandedText(params.row.alternate_comments)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.alternate_comments || 'NA'}
+          </Typography>
+        </Tooltip>
+      )
+    },
 
     {
       flex: 0.3,
       minWidth: 20,
       field: 'priority',
       headerName: 'Availability',
-      renderCell: params => (
-        <>
-          {params.row.request_status === 'Not Available' && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.primary'
-              }}
-            >
-              <Box sx={{ color: 'error.main', mr: 2 }}>
-                <Icon icon='fluent-emoji:prohibited' style={{ color: 'primary.error' }} />
-              </Box>
-            </Typography>
-          )}
+      renderCell: params => {
+        let options = []
 
-          {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.primary'
-              }}
-            >
-              Not Available
-            </Typography>
-          )}
-
-          {selectedPharmacy.type === 'central' &&
+        if (selectedPharmacy.type === 'central') {
+          options.push({
+            label: 'ALTERNATIVE PRODUCT',
+            action: () => {
+              openAlternativeMedicineDialog()
+              setMedicineParentId({
+                ...medicineParentId,
+                parent_id: requestItems?.id,
+                request_item_id: params.row.id,
+                qty_requested: params.row.qty,
+                product: params.row.stock_name
+              })
+            }
+          })
+        }
+        if (
+          (selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status !== 'Not Available' && (
-              <>
-                {/* <Button
-                  size='small'
-                  variant='contained'
-                  color='error'
-                  onClick={() => {
-                    handleProductNotAvailableAction(params.row.id, false)
-                  }}
-                >
-                  MAKE IT NOT AVAILABLE
-                </Button> */}
-                <MenuWithDots
-                  option='MAKE IT NOT AVAILABLE'
-                  action={() => {
-                    handleProductNotAvailableAction(params.row.id, false)
-                  }}
-                />
-              </>
-            )}
+            params.row.request_status !== 'Alternate') ||
+          params.row.request_status !== 'Not Available' ||
+          params.row.request_status !== 'Rejected'
+        ) {
+          options.push(
+            {
+              label: 'MAKE IT NOT AVAILABLE',
+              action: () => {
+                setNotAvailableItemId({
+                  parent_id: requestItems?.id,
+                  request_item_id: params.row.id,
+                  qty_requested: params.row.qty,
+                  product: params.row.stock_name
+                })
+                openProductNotAvailableDialog()
+              }
+            },
+            {
+              label: 'REJECT PRODUCT',
+              action: () => {
+                setMedicineParentId({
+                  ...medicineParentId,
+                  parent_id: requestItems?.id,
+                  request_item_id: params.row.id,
+                  qty_requested: params.row.qty,
+                  product: params.row.stock_name
+                })
+                openRejectMedicineDialog()
+              }
+            }
+          )
+        }
 
-          {selectedPharmacy.type === 'central' &&
-            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status === 'Not Available' && (
-              // eslint-disable-next-line lines-around-comment
-              // <Button
-              //   size='small'
-              //   variant='contained'
-              //   color='secondary'
-              //   onClick={() => {
-              //     handleProductNotAvailableAction(params.row.id, true)
-              //   }}
-              // >
-              //   MAKE IT AVAILABLE
-              // </Button>
-              <MenuWithDots
-                option='MAKE IT AVAILABLE'
-                action={() => {
-                  handleProductNotAvailableAction(params.row.id, true)
+        return (
+          <>
+            {params.row.request_status === 'Not Available' && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.primary'
                 }}
-              />
+              >
+                <Box sx={{ color: 'error.main', mr: 2 }}>
+                  <Icon icon='fluent-emoji:prohibited' style={{ color: 'primary.error' }} />
+                </Box>
+              </Typography>
             )}
-        </>
-      )
+
+            {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Not Available
+              </Typography>
+            )}
+
+            {/* {selectedPharmacy.type === 'central' &&
+              parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+              params.row.request_status !== 'Not Available' && (
+                <>
+                  <MenuWithDots
+                    options={[
+                      {
+                        label: 'MAKE IT NOT AVAILABLE',
+                        action: () => handleProductNotAvailableAction(params.row.id, false)
+                      },
+                      {
+                        label: 'ALTERNATIVE PRODUCT',
+                        action: () => {
+                          openAlternativeMedicineDialog()
+                          setMedicineParentId({
+                            ...MedicineParentId,
+                            parent_id: requestItems?.id,
+                            request_item_id: params.row.id
+                          })
+
+                          console.log('line item', params.row.id)
+                          console.log('endpoint', requestItems.id)
+                        }
+                      }
+                    ]}
+                  />
+                </>
+              )}
+
+            {selectedPharmacy.type === 'central' &&
+              parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+              params.row.request_status === 'Not Available' && (
+                <MenuWithDots
+                  options={[
+                    {
+                      label: 'MAKE IT AVAILABLE',
+                      action: () => handleProductNotAvailableAction(params.row.id, true)
+                    }
+                  ]}
+                />
+              )} */}
+            {selectedPharmacy.type === 'central' && (
+              <Box sx={{ ...boxStyles(params.row.request_status) }}>
+                {params.row.request_status !== 'Alternate' &&
+                  params.row.request_status !== 'Not Available' &&
+                  params.row.request_status !== 'Rejected' && <MenuWithDots options={options} />}
+              </Box>
+            )}
+          </>
+        )
+      }
     }
   ]
 
@@ -1111,41 +1269,41 @@ const IndividualRequest = () => {
     })
   }
 
-  const handleProductNotAvailableAction = (id, available) => {
-    // debugger
-    setNotAvailableItemId({
-      id: id,
-      available: available
-    })
-    setProductNotAvailableDialog(true)
-  }
+  // const handleProductNotAvailableAction = (id, available) => {
+  //   // debugger
+  //   setNotAvailableItemId({
+  //     id: id,
+  //     available: available
+  //   })
+  //   setProductNotAvailableDialog(true)
+  // }
 
-  const handleProductNotAvailable = async (status, selectedObject) => {
-    if (status) {
-      try {
-        setProductNotAvailableLoading(true)
+  // const handleProductNotAvailable = async (status, selectedObject) => {
+  //   if (status) {
+  //     try {
+  //       setProductNotAvailableLoading(true)
 
-        const payload = {
-          request_item_id: selectedObject.id
-        }
+  //       const payload = {
+  //         request_item_id: selectedObject.id
+  //       }
 
-        const response = selectedObject?.available
-          ? await markItemAvailable(payload)
-          : await markItemNotAvailable(payload)
-        if (response?.success) {
-          setProductNotAvailableLoading(true)
-          setProductNotAvailableDialog(false)
-          Router.reload()
-        } else {
-          setProductNotAvailableLoading(true)
-        }
-      } catch (e) {
-        setProductNotAvailableLoading(true)
-      }
-    } else {
-      setProductNotAvailableDialog(false)
-    }
-  }
+  //       const response = selectedObject?.available
+  //         ? await markItemAvailable(payload)
+  //         : await markItemNotAvailable(payload)
+  //       if (response?.success) {
+  //         setProductNotAvailableLoading(true)
+  //         setProductNotAvailableDialog(false)
+  //         Router.reload()
+  //       } else {
+  //         setProductNotAvailableLoading(true)
+  //       }
+  //     } catch (e) {
+  //       setProductNotAvailableLoading(true)
+  //     }
+  //   } else {
+  //     setProductNotAvailableDialog(false)
+  //   }
+  // }
 
   return (
     <>
@@ -1170,26 +1328,21 @@ const IndividualRequest = () => {
                 show={showOrderFormDialog}
               />
               <Card sx={{ mb: 6 }}>
-                {console.log('sttt', requestItems.status)}
                 <CardHeader
                   avatar={
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push({
-                          pathname: '/pharmacy/request/request-list/'
-                        })
+                        Router.back()
                       }}
                       icon='ep:back'
                     />
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' && requestItems.status === 'request' ? (
-                      // ||
-                      //   (requestItems.status !== 'Cancelled' &&
-                      //     requestItems.status !== 'Partial Dispatched' &&
-                      //     requestItems.status !== 'Fully Dispatched')
+                    selectedPharmacy?.type === 'local' &&
+                    requestItems?.status === 'request' &&
+                    requestItems?.is_modified !== '1' ? (
                       <Button
                         size='big'
                         variant='contained'
@@ -1242,6 +1395,57 @@ const IndividualRequest = () => {
                   </Grid>
                   {/* Medicine Listing */}
                 </CardContent>
+                <Grid container>
+                  <CommonDialogBox
+                    title={'Add alternative medicine'}
+                    dialogBoxStatus={showAlternativeMedicineDialog}
+                    formComponent={
+                      <AlternativeMedicine
+                        parentId={medicineParentId}
+                        updateRequestItems={() => {
+                          getRequestItemLists(id)
+                          closeAlternativeMedicineDialog()
+                        }}
+                      />
+                    }
+                    close={closeAlternativeMedicineDialog}
+                    show={openAlternativeMedicineDialog}
+                  />
+                </Grid>
+                <Grid container>
+                  <CommonDialogBox
+                    title={'Reject medicine'}
+                    dialogBoxStatus={rejectRequestMedicineDialog}
+                    formComponent={
+                      <RejectRequestItem
+                        parentId={medicineParentId}
+                        updateRequestItems={() => {
+                          closeRejectMedicineDialog()
+                          getRequestItemLists(id)
+                        }}
+                      />
+                    }
+                    close={closeRejectMedicineDialog}
+                    show={openRejectMedicineDialog}
+                  />
+                </Grid>
+                <Grid container>
+                  <CommonDialogBox
+                    title={'Make Product Not Available'}
+                    dialogBoxStatus={productNotAvailableDialog}
+                    formComponent={
+                      <ProductNotAvailable
+                        payload={notAvailableItemId}
+                        updateRequestItems={() => {
+                          closeProductNotAvailableDialog()
+                          getRequestItemLists(id)
+                        }}
+                      />
+                    }
+                    close={closeProductNotAvailableDialog}
+                    show={openProductNotAvailableDialog}
+                  />
+                </Grid>
                 {requestItems?.request_item_details?.length > 0 ? (
                   <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null}
@@ -1435,12 +1639,12 @@ const IndividualRequest = () => {
                   close={closeShipmentDialog}
                 />
               </Dialog>
-              <ProductNotAvailable
+              {/* <ProductNotAvailable
                 open={productNotAvailableDialog}
                 onClose={handleProductNotAvailable}
                 selectedValue={notAvailableItemId}
                 loading={productNotAvailableLoading}
-              />{' '}
+              />{' '} */}
             </>
           ) : (
             <Alert severity='warning'>

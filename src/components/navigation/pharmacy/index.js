@@ -4,11 +4,13 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const pharmacyTitle = {
     sectionTitle: 'Pharmacy'
   }
+
   const dashboard = {
     title: 'Dashboard',
     path: '/pharmacy/dashboard',
     icon: 'lets-icons:home-duotone'
   }
+
   const inventoryParent = {
     title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
@@ -61,6 +63,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Request',
     icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list',
+
+    // path: '/pharmacy/request/request-list?total&sort&sort&q&column&status&startDate& endDate&store& page& limit& filterSwitch& days',
+
     children: []
   }
 
@@ -74,6 +79,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Return',
     icon: 'material-symbols:assignment-returned-outline-sharp',
     path: '/pharmacy/return-product/request-list',
+
+    // path: '/pharmacy/return-product/request-list?total&sort&sort&q&column&status&page&limit&filterSwitch',
     children: []
   }
 
@@ -93,6 +100,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Dispatch without request',
 
     path: '/pharmacy/direct-dispatch',
+
+    // path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&sort&q&column&status&page&limit&filterSwitch',
     icon: 'iconamoon:delivery-light',
     children: []
   }
@@ -101,11 +110,16 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: `Dispatch without request`,
     icon: 'iconamoon:delivery-light',
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+
+    // path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&q&column&status&page&limit&filterSwitch'
   }
+
   const directDispatchListForLocal = {
     title: 'Received',
     icon: 'iconamoon:delivery-light',
-    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&q&column&status&page&limit&filterSwitch'
+
+    // path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&q&column&status&page&limit&filterSwitch'
   }
 
   const localDispatchParent = {
@@ -204,6 +218,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const state = {
     title: 'State List',
     path: '/pharmacy/masters/state'
+  }
+
+  const driver = {
+    title: 'Driver List',
+    path: '/pharmacy/masters/driver'
   }
 
   const storeList = {
@@ -349,7 +368,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       salts,
       storage,
       supplierList,
-      state
+      state,
+      driver
     )
     pharmacyNavigationArray.push(mastersParent)
   }
