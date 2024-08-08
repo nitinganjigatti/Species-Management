@@ -68,6 +68,7 @@ export async function createAnimal(params) {
     return error
   }
 }
+
 export async function getTaxonomyList(params) {
   try {
     const response = await axiosPost({
@@ -86,4 +87,16 @@ export async function getTaxonomyList(params) {
 
     return error
   }
+}
+
+export async function getSectionList(params) {
+  const response = await axiosPost({ url: `zoos/section/listing`, body: params })
+
+  return response.data
+}
+
+export async function getEnclosures(params) {
+  const response = await axiosPost({ url: `section/parentchild/enclosure/listing`, body: params })
+
+  return response.data
 }
