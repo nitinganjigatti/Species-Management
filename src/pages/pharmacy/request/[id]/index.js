@@ -48,6 +48,7 @@ import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
 import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
+import { object } from 'yup'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -446,7 +447,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.6,
       Width: 40,
       field: 'stock_name',
       headerName: 'Product Name',
@@ -484,6 +485,27 @@ const IndividualRequest = () => {
               {params?.row?.manufacturer}
             </Typography>
           </Tooltip>
+          {params?.row?.request_status === 'Rejected' && (
+            <Typography variant='body2' sx={{ color: 'error.main' }}>
+              This Product was rejected
+            </Typography>
+          )}
+          {params?.row?.request_status === 'Not Available' && (
+            <Typography variant='body2' sx={{ color: 'error.main' }}>
+              This Product is not available
+            </Typography>
+          )}
+          {params?.row?.request_status === 'Alternate' && (
+            <Typography variant='body2' sx={{ color: 'error.main' }}>
+              This product has an alternative product
+            </Typography>
+          )}
+          {params?.row?.alt_parent && params?.row?.alt_parent.stock_item_name && (
+            <Typography variant='body2' sx={{ color: 'success.main' }}>
+              This Alternate product for <br />
+              {params?.row?.alt_parent.stock_item_name}
+            </Typography>
+          )}
         </Box>
       )
     },
@@ -1447,7 +1469,7 @@ const IndividualRequest = () => {
                   />
                 </Grid>
                 {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                  <TableBasic rowHeight={126} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null}
               </Card>
               {/* Dispatch list */}
