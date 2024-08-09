@@ -110,7 +110,6 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
           q: searchText,
           ignore_sys_gen: 1
         }).then(res => {
-          debugger
           if (res?.data?.length > 0) {
             setEnclosureList(res?.data)
           } else {
@@ -183,22 +182,23 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                           value={value}
                           label='Select Site'
                           onChange={async e => {
-                            reset({
-                              section: {
-                                section_id: '',
-                                section_name: ''
-                              },
-                              enclosure: {
-                                enclosure_id: '',
-                                site_id: '',
-                                site_name: '',
-                                user_enclosure_name: ''
-                              }
+                            resetField('section', {
+                              section_id: '',
+                              section_name: ''
+                            })
+
+                            resetField('enclosure', {
+                              enclosure_id: '',
+                              site_id: '',
+                              site_name: '',
+                              user_enclosure_name: ''
                             })
                             setSelectedSiteId(e.target.value)
                             setSectionList([])
                             setEnclosureList([])
                             await searchSections('', e.target.value)
+
+                            // console.log('site_id', e.target.value)
 
                             return onChange(e)
                           }}
@@ -249,8 +249,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
                                 section_name: ''
                               })
                             } else {
-                              debugger
-                              console.log(val)
+                              // console.log(val)
                               resetField('enclosure', {
                                 enclosure_id: '',
                                 site_id: '',
@@ -263,11 +262,15 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
 
                               return onChange(val)
                             }
+                            console.log('section_id', val?.section_id)
                           }}
                           renderInput={params => (
                             <TextField
                               onChange={e => {
-                                searchSections(e.target.value)
+                                // const site_id = getValues('site_id')
+                                // console.log('-----Site Id-----', site_id)
+                                // console.log('-----Selected Site Id-----', selected_site_id)
+                                searchSections(e.target.value, selected_site_id)
                               }}
                               {...params}
                               label='Select Section*'
