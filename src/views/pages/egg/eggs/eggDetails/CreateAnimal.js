@@ -14,7 +14,15 @@ import {
   Select,
   TextField,
   Typography,
-  debounce
+  debounce,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  DialogContentText,
+  Button,
+  Grid,
+  InputAdornment
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
@@ -39,6 +47,7 @@ import { DatePicker } from '@mui/x-date-pickers'
 import { GetEggDetails } from 'src/lib/api/egg/egg'
 import moment from 'moment'
 import dayjs from 'dayjs'
+import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
 
 const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }) => {
   const theme = useTheme()
@@ -58,6 +67,17 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
+  const [open, setOpen] = useState(false)
+
+  const [enclosureData, setEnclosureData] = useState({})
+
+  const handleClickOpen = () => {
+    setOpen(true)
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+  }
 
   const getDetails = id => {
     try {
@@ -97,7 +117,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     localIdentifier: '',
     sexingType: '',
     lifeStage: '',
-    contraceptionType: ''
+    contraceptionType: '',
+    enclosure_id: ''
   }
 
   const schema = yup.object().shape({
@@ -135,7 +156,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
 
           return true // Otherwise, always pass validation
         }
-      )
+      ),
+    enclosure_id: yup.string().required('Enclosure is required')
   })
 
   const {
@@ -146,6 +168,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     clearErrors,
     watch,
     reset,
+    resetField,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -163,7 +186,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         accession_type: values?.accessionType,
         accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
         taxonomy_id: values?.species,
-        enclosure_id: values?.enclosure,
+        enclosure_id: values?.enclosure_id,
         sex: values?.sextype,
         collection_type: values?.collectionType,
         organization_id: values?.mastersOrganization,
@@ -181,8 +204,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         description: '',
         form_type: 'single',
         zoo_id: '',
-        site_id: eggDetails?.enclosure_data[0]?.site_id,
-        section_id: eggDetails?.enclosure_data[0]?.section_id,
+        site_id: enclosureData?.site_id,
+        section_id: enclosureData?.section_id,
         egg_id: eggId
       }
 
@@ -307,6 +330,16 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     }, 1000),
     []
   )
+
+  const getEnclosureDetails = params => {
+    setEnclosureData(params)
+    setValue('enclosure_id', params?.enclosure_id)
+  }
+
+  const closeEnclosure = () => {
+    setEnclosureData({})
+    resetField('enclosure_id', '')
+  }
 
   useEffect(() => {
     if (eggDetails) {
@@ -452,7 +485,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.species?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='accessionType'>Accession Type *</InputLabel>
                     <Controller
@@ -536,7 +568,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
                       name='accessionDate'
@@ -559,96 +590,147 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionDate?.message}</FormHelperText>
                     )}
                   </FormControl>
+                  {Object.keys(enclosureData).length <= 0 && (
+                    <div style={{ zIndex: 2, position: 'relative' }}>
+                      <div
+                        onClick={() => setOpen(true)}
+                        style={{ position: 'absolute', width: '100%', height: '56px', zIndex: 1, cursor: 'pointer' }}
+                      ></div>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <Controller
+                          name='enclosure_id'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Select Enclosure *'
+                              name='enclosure_id'
+                              error={Boolean(errors.enclosure_id)}
+                              onChange={onChange}
+                              placeholder=''
+                              onClick={() => setOpen(true)}
+                              disabled
+                              InputProps={{
+                                endAdornment: (
+                                  <InputAdornment position='end'>
+                                    <Icon
+                                      icon={'material-symbols:add-circle-outline'}
+                                      style={{ color: '#37BD69' }}
+                                    ></Icon>
+                                  </InputAdornment>
+                                )
+                              }}
+                            />
+                          )}
+                        />
+                        {errors.enclosure_id && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure_id?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </div>
+                  )}
+                  {Object.keys(enclosureData).length > 0 && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <EnclosureCard
+                        user_enclosure_name={enclosureData?.user_enclosure_name}
+                        section_name={enclosureData?.section_name}
+                        site_name={enclosureData?.site_name}
+                        closeEnclosureCard={() => closeEnclosure()}
+                      ></EnclosureCard>
+                    </div>
+                  )}
+                  {/* <FormControl fullWidth sx={{ mb: 4 }}>
+                      <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
+                      <Controller
+                        name='enclosure'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange, onClick } }) => (
+                          <Select
+                            name='enclosure'
+                            value={value}
+                            label='Select Enclosure *'
+                            onChange={onChange}
+                            labelId='enclosure'
+                            error={Boolean(errors?.enclosure)}
+                            disabled
+                          >
+                            {eggDetails?.enclosure_data?.map(val => (
+                              <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
 
-                  <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
-                    <Controller
-                      name='enclosure'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='enclosure'
-                          value={value}
-                          label='Select Enclosure *'
-                          onChange={onChange}
-                          labelId='enclosure'
-                          error={Boolean(errors?.enclosure)}
-                        >
-                          {eggDetails?.enclosure_data?.map(val => (
-                            <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-                              {/* {val?.user_enclosure_name} */}
-                              <Box
-                                sx={{
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  display: 'flex',
-                                  padding: '12px',
-                                  width: '100%',
-                                  alignItems: 'center',
-                                  borderRadius: '8px',
-                                  gap: '12px'
-                                }}
-                              >
-                                <Box sx={{ height: '44px', width: '44px' }}>
-                                  <Avatar
-                                    variant='rounded'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      height: '100%',
-                                      width: '100%',
-                                      borderRadius: '50%',
-                                      border: '1px',
-                                      '& .css-1pqm26d-MuiAvatar-img': {
-                                        objectFit: 'contain'
-                                      }
-                                    }}
-                                    src={val?.enclosure_qr_image}
-                                  />
+                                <Box
+                                  sx={{
+                                    backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                    display: 'flex',
+                                    padding: '12px',
+                                    width: '100%',
+                                    alignItems: 'center',
+                                    borderRadius: '8px',
+                                    gap: '12px'
+                                  }}
+                                >
+                                  <Box sx={{ height: '44px', width: '44px' }}>
+                                    <Avatar
+                                      variant='rounded'
+                                      alt='Medicine Image'
+                                      sx={{
+                                        height: '100%',
+                                        width: '100%',
+                                        borderRadius: '50%',
+                                        border: '1px',
+                                        '& .css-1pqm26d-MuiAvatar-img': {
+                                          objectFit: 'contain'
+                                        }
+                                      }}
+                                      src={val?.enclosure_qr_image}
+                                    />
+                                  </Box>
+
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
+                                    </Typography>
+
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '14px',
+                                        fontWeight: '400',
+                                        lineHeight: '16.94px'
+                                      }}
+                                    >
+                                      Sec: {val?.section_name ? val?.section_name : '-'}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '14px',
+                                        fontWeight: '400',
+                                        lineHeight: '16.94px'
+                                      }}
+                                    >
+                                      Site: {val?.site_name ? val?.site_name : '-'}
+                                    </Typography>
+                                  </Box>
                                 </Box>
-
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
-
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    Sec: {val?.section_name ? val?.section_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    Site: {val?.site_name ? val?.site_name : '-'}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </MenuItem>
-                          ))}
-                        </Select>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors?.enclosure && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
                       )}
-                    />
-                    {errors?.enclosure && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl> */}
+                  {/* </div> */}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='enclosure'>Sex Type *</InputLabel>
                     <Controller
@@ -737,7 +819,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth>
                     <Controller
                       name='birthDate'
@@ -759,9 +840,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.birthDate?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <Typography sx={{ textAlign: 'center', fontSize: 20, fontWeight: 500, my: 4 }}>Or</Typography>
-
                   <Box sx={{ mb: 4, display: 'flex', flex: '1/2', gap: 4 }}>
                     <FormControl fullWidth>
                       <Controller
@@ -817,7 +896,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       )}
                     </FormControl>
                   </Box>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='localIdentifierType'>Local Identifier Type</InputLabel>
                     <Controller
@@ -867,7 +945,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='parentMother'>Parent Mother</InputLabel>
                     <Controller
@@ -1108,7 +1185,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.parentFather?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='sexingType'>Sexing Type</InputLabel>
                     <Controller
@@ -1218,9 +1294,90 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
               </LoadingButton>
             </Box>
           </form>
+          {open && (
+            <EnclosureSelectionDialog
+              open={open}
+              handleClose={() => handleClose()}
+              getEnclosureDetails={getEnclosureDetails}
+            ></EnclosureSelectionDialog>
+          )}
         </Box>
       </Drawer>
     </>
+  )
+}
+
+const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
+  const theme = useTheme()
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: theme.palette.customColors.tableHeaderBg,
+        display: 'flex',
+        padding: '12px',
+        width: '100%',
+        alignItems: 'center',
+        borderRadius: '8px',
+        gap: '12px'
+      }}
+    >
+      <Box sx={{ height: '44px', width: '44px' }}>
+        <Avatar
+          variant='rounded'
+          alt='Medicine Image'
+          sx={{
+            height: '100%',
+            width: '100%',
+            borderRadius: '50%',
+            border: '1px',
+            '& .css-1pqm26d-MuiAvatar-img': {
+              objectFit: 'contain'
+            }
+          }}
+          src={enclosure_qr_image}
+        />
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          Encl: {user_enclosure_name ? user_enclosure_name : '-'}
+        </Typography>
+
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Sec: {section_name ? section_name : '-'}
+        </Typography>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Site: {site_name ? site_name : '-'}
+        </Typography>
+      </Box>
+      <Box sx={{}}>
+        <IconButton size='small' onClick={closeEnclosureCard} sx={{ color: 'text.primary' }}>
+          <Icon icon='mdi:close-circle-outline' fontSize={36} style={{ color: 'red' }} />
+        </IconButton>
+      </Box>
+    </Box>
   )
 }
 

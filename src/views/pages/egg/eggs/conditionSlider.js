@@ -52,6 +52,9 @@ import {
 } from 'src/lib/api/egg/egg/createAnimal'
 import { DatePicker } from '@mui/x-date-pickers'
 import moment from 'moment'
+import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
 
 const ConditionSlider = ({
   getActivityLogsFunc,
@@ -88,6 +91,12 @@ const ConditionSlider = ({
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
+  //for enclosure
+  const [open, setOpen] = useState(false)
+  const [enclosureData, setEnclosureData] = useState({})
+
+  const authData = useContext(AuthContext)
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const getEggMasterData = async () => {
     try {
@@ -124,7 +133,7 @@ const ConditionSlider = ({
     animalOwnershipTerms: '',
     accessionDate: null,
     collectionType: '',
-    enclosure: '',
+    enclosure_id: '',
     sextype: '',
     mastersOrganization: '',
     institution: '',
@@ -175,9 +184,10 @@ const ConditionSlider = ({
             ),
           accessionDate: yup.string().required('Accession date is required'),
           collectionType: yup.string().required('Collection type is required'),
-          enclosure: yup.string().required('Enclosure is required'),
+          enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
           birthDate: yup.string().required('Birth date is required'),
+          enclosure_id: yup.string().required('Enclosure is required'),
           localIdentifier: yup
             .string()
             .test(
@@ -217,6 +227,7 @@ const ConditionSlider = ({
     clearErrors,
     watch,
     reset,
+    resetField,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -475,7 +486,7 @@ const ConditionSlider = ({
         accession_type: values?.accessionType,
         accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
         taxonomy_id: values?.species,
-        enclosure_id: values?.enclosure,
+        enclosure_id: values?.enclosure_id,
         sex: values?.sextype,
         collection_type: values?.collectionType,
         organization_id: values?.mastersOrganization,
@@ -493,8 +504,8 @@ const ConditionSlider = ({
         description: '',
         form_type: 'single',
         zoo_id: '',
-        site_id: eggDetails?.enclosure_data[0]?.site_id,
-        section_id: eggDetails?.enclosure_data[0]?.section_id,
+        site_id: enclosureData?.site_id,
+        section_id: enclosureData?.section_id,
         egg_id: eggId
       }
 
@@ -678,6 +689,29 @@ const ConditionSlider = ({
     }, 1000),
     []
   )
+
+  const getEnclosureDetails = params => {
+    setEnclosureData(params)
+    setValue('enclosure_id', params?.enclosure_id)
+  }
+
+  const closeEnclosure = () => {
+    setEnclosureData({})
+    resetField('enclosure_id', '')
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+  }
+
+  const checkAddPermission = () => {
+    if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      return true
+    } else {
+      return false
+    }
+  }
+
   useEffect(() => {
     if (eggDetails) {
       if (Number(eggDetails?.enclosure_data?.length) === 1) {
@@ -1081,7 +1115,8 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
-                  {statusID === '4' && (
+                  {console.log('permission check', checkAddPermission())}
+                  {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
 
@@ -1176,7 +1211,7 @@ const ConditionSlider = ({
                   </Box>
                 )}
 
-                {isAnimal && statusID === '4' && (
+                {isAnimal && statusID === '4' && checkAddPermission() && (
                   <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
                     <Box
@@ -1362,7 +1397,66 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
 
-                      <FormControl fullWidth sx={{ mb: 4 }}>
+                      {Object.keys(enclosureData).length <= 0 && (
+                        <div style={{ zIndex: 2, position: 'relative' }}>
+                          <div
+                            onClick={() => setOpen(true)}
+                            style={{
+                              position: 'absolute',
+                              width: '100%',
+                              height: '56px',
+                              zIndex: 1,
+                              cursor: 'pointer'
+                            }}
+                          ></div>
+                          <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                              name='enclosure_id'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  value={value}
+                                  label='Select Enclosure *'
+                                  name='enclosure_id'
+                                  error={Boolean(errors.enclosure_id)}
+                                  onChange={onChange}
+                                  placeholder=''
+                                  onClick={() => setOpen(true)}
+                                  disabled
+                                  InputProps={{
+                                    endAdornment: (
+                                      <InputAdornment position='end'>
+                                        <Icon
+                                          icon={'material-symbols:add-circle-outline'}
+                                          style={{ color: '#37BD69' }}
+                                        ></Icon>
+                                      </InputAdornment>
+                                    )
+                                  }}
+                                />
+                              )}
+                            />
+                            {errors.enclosure_id && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.enclosure_id?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </div>
+                      )}
+                      {Object.keys(enclosureData).length > 0 && (
+                        <div style={{ marginBottom: '16px' }}>
+                          <EnclosureCard
+                            user_enclosure_name={enclosureData?.user_enclosure_name}
+                            section_name={enclosureData?.section_name}
+                            site_name={enclosureData?.site_name}
+                            closeEnclosureCard={() => closeEnclosure()}
+                          ></EnclosureCard>
+                        </div>
+                      )}
+
+                      {/* <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
                         <Controller
                           name='enclosure'
@@ -1379,7 +1473,7 @@ const ConditionSlider = ({
                             >
                               {eggDetails?.enclosure_data?.map(val => (
                                 <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-                                  {/* {val?.user_enclosure_name} */}
+
                                   <Box
                                     sx={{
                                       backgroundColor: theme.palette.customColors.tableHeaderBg,
@@ -1444,7 +1538,7 @@ const ConditionSlider = ({
                         {errors?.enclosure && (
                           <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
                         )}
-                      </FormControl>
+                      </FormControl> */}
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='enclosure'>Sex Type *</InputLabel>
                         <Controller
@@ -2023,9 +2117,90 @@ const ConditionSlider = ({
               </Box>
             </form>
           </Box>
+          {open && (
+            <EnclosureSelectionDialog
+              open={open}
+              handleClose={() => handleClose()}
+              getEnclosureDetails={getEnclosureDetails}
+            ></EnclosureSelectionDialog>
+          )}
         </Box>
       </Drawer>
     </>
+  )
+}
+
+const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
+  const theme = useTheme()
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: theme.palette.customColors.tableHeaderBg,
+        display: 'flex',
+        padding: '12px',
+        width: '100%',
+        alignItems: 'center',
+        borderRadius: '8px',
+        gap: '12px'
+      }}
+    >
+      <Box sx={{ height: '44px', width: '44px' }}>
+        <Avatar
+          variant='rounded'
+          alt='Medicine Image'
+          sx={{
+            height: '100%',
+            width: '100%',
+            borderRadius: '50%',
+            border: '1px',
+            '& .css-1pqm26d-MuiAvatar-img': {
+              objectFit: 'contain'
+            }
+          }}
+          src={enclosure_qr_image}
+        />
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          Encl: {user_enclosure_name ? user_enclosure_name : '-'}
+        </Typography>
+
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Sec: {section_name ? section_name : '-'}
+        </Typography>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Site: {site_name ? site_name : '-'}
+        </Typography>
+      </Box>
+      <Box sx={{}}>
+        <IconButton size='small' onClick={closeEnclosureCard} sx={{ color: 'text.primary' }}>
+          <Icon icon='mdi:close-circle-outline' fontSize={36} style={{ color: 'red' }} />
+        </IconButton>
+      </Box>
+    </Box>
   )
 }
 
