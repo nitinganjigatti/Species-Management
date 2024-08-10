@@ -241,3 +241,5 @@ export const DISCARD_LIST_BY_ID = 'discard-list-by-id'
 export const DISCARD_DELETE = 'discard-delete'
 
 export const NECROPSY_REPORTS = 'necropsy-report'
+
+export const GET_COLLECTED_BY = 'get-collected-by-list'

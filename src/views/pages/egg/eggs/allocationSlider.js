@@ -593,7 +593,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                   }*`}
                                   value={value}
                                   onChange={e => {
-                                    debugger
+                                    // debugger
                                     const inputValue = e.target.value
                                     if (inputValue === '' || parseFloat(inputValue) >= 1) {
                                       onChange(e)

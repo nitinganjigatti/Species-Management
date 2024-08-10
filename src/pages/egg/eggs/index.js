@@ -41,7 +41,7 @@ import ErrorScreen from 'src/pages/Error'
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
-import EggTableHeader from 'src/components/egg/EggTableHeader'
+import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 
 const EggList = () => {
   const theme = useTheme()
@@ -67,6 +67,8 @@ const EggList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
 
+  // console.log('status :>> ', status)
+
   const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_ready_to_be_discarded_at_nursery')
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -79,14 +81,19 @@ const EggList = () => {
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
 
-  const [defaultNursery, setDefaultNursery] = useState(
-    selected_nursery_id && selected_nursery_name
-      ? { nursery_id: selected_nursery_id, nursery_name: selected_nursery_name }
-      : null
-  )
-  const [nurseryList, setNurseryList] = useState([])
-  const [filterByNurseryId, setFilterByNurseryId] = useState('')
+  // const [defaultNursery, setDefaultNursery] = useState(
+  //   selected_nursery_id && selected_nursery_name
+  //     ? { nursery_id: selected_nursery_id, nursery_name: selected_nursery_name }
+  //     : null
+  // )
+  // const [nurseryList, setNurseryList] = useState([])
+  // const [filterByNurseryId, setFilterByNurseryId] = useState('')
   const [nursery_name, setNursery_name] = useState('')
+
+  const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
+
+  const [filterList, setFilterList] = useState([])
+  console.log('filterList :>> ', filterList)
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -97,27 +104,27 @@ const EggList = () => {
     setEggId(eggId)
   }
 
-  const NurseryList = async q => {
-    try {
-      const params = {
-        // type: ['length', 'weight'],
-        search: q,
-        page: 1,
-        limit: 50
-      }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const NurseryList = async q => {
+  //   try {
+  //     const params = {
+  //       // type: ['length', 'weight'],
+  //       search: q,
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await GetNurseryList({ params: params }).then(res => {
+  //       setNurseryList(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
-  useEffect(() => {
-    if (egg_collection_permission) {
-      NurseryList()
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (egg_collection_permission) {
+  //     NurseryList()
+  //   }
+  // }, [])
 
   const searchNursery = useCallback(
     debounce(async q => {
@@ -201,30 +208,11 @@ const EggList = () => {
       )
     },
 
-    {
-      width: 140,
-      sortable: false,
-      field: 'batch_no',
-      headerName: 'Batch NO',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.batch_no ? params.row.batch_no : '-'}
-        </Typography>
-      )
-    },
-
     // {
-    //   width: 160,
+    //   width: 140,
     //   sortable: false,
-    //   field: 'nursery_name',
-    //   headerName: 'Nursery',
+    //   field: 'batch_no',
+    //   headerName: 'Batch NO',
     //   renderCell: params => (
     //     <Typography
     //       sx={{
@@ -234,10 +222,30 @@ const EggList = () => {
     //         lineHeight: '19.36px'
     //       }}
     //     >
-    //       {params.row.nursery_name ? params.row.nursery_name : '-'}
+    //       {params.row.batch_no ? params.row.batch_no : '-'}
     //     </Typography>
     //   )
     // },
+
+    {
+      width: 160,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            textTransform: 'capitalize'
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
 
     // {
     //  width: 140,
@@ -995,9 +1003,9 @@ const EggList = () => {
       renderCell: params => (
         <Typography
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
+            color: '#000000',
             fontSize: '16px',
-            fontWeight: '400',
+            fontWeight: 500,
             lineHeight: '19.36px',
             ml: 3
           }}
@@ -1633,9 +1641,10 @@ const EggList = () => {
         tab_Value: status,
         subTab_value: isDiscarded,
         page_value: paginationModel?.page,
-        search_value: searchValue,
-        selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
-        selected_nursery_name: nursery_name ? nursery_name : ''
+        search_value: searchValue
+
+        // selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
+        // selected_nursery_name: nursery_name ? nursery_name : ''
       }
       console.log('values :>> ', values)
 
@@ -1669,6 +1678,8 @@ const EggList = () => {
     setStatus(newValue)
     setSelectedEggTab(newValue)
     setSearchValue('')
+    setFilterList([])
+    setSelectedFiltersOptions({})
   }
 
   const handleTabs = (event, newValue) => {
@@ -1676,28 +1687,46 @@ const EggList = () => {
     setSearchValue('')
     setIsDiscarded(newValue)
     setSubTab(newValue)
+    setFilterList([])
+    setSelectedFiltersOptions({})
   }
 
   const fetchTableData = useCallback(
-    async (sort, search, statusRecived, discardedTab, nurseryId) => {
+    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions) => {
+      console.log('selectedFiltersOptions api :>> ', selectedFiltersOptions)
       try {
         setLoading(true)
+
+        // Extracting IDs from selectedFiltersOptions
+        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id)
+        const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id)
+
+        // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id)
+        const collectedByIds = selectedFiltersOptions.CollectedBy?.map(option => option.id)
+        const siteIds = selectedFiltersOptions.Site?.map(option => option.id)
+
+        // const collectedDate = moment(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
 
         const params = {
           sort,
           q: search_value ? search_value : search,
+
           sorting_by_date: 'latest_date',
 
           // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: selected_nursery_id ? selected_nursery_id : nurseryId ? nurseryId : '',
+          nursery_id: nurseryIds ? nurseryIds : [],
+          egg_state_id: eggStateIds ? eggStateIds : [],
+          collected_by: collectedByIds ? collectedByIds : [],
+          site_id: siteIds ? siteIds : [],
 
-          // nursery_id: 55,
+          // collected_date: collectedDate ? collectedDate : '',
+
           type:
             statusRecived === undefined
-              ? isDiscarded
+              ? status === 'eggs_ready_to_be_discarded_at_nursery'
                 ? isDiscarded
                 : status
               : statusRecived === 'eggs_ready_to_be_discarded_at_nursery'
@@ -1730,9 +1759,9 @@ const EggList = () => {
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {
-      fetchTableData(sort, searchValue, status, isDiscarded, filterByNurseryId)
+      fetchTableData(sort, searchValue, status, isDiscarded, selectedFiltersOptions)
     }
-  }, [fetchTableData, status, isDiscarded, filterByNurseryId])
+  }, [fetchTableData, status, isDiscarded, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -1765,53 +1794,53 @@ const EggList = () => {
     []
   )
 
-  const headerAction = (
-    <>
-      <Box>
-        <Autocomplete
-          sx={{
-            width: 250,
-            m: 2,
-            ml: 5
-          }}
-          name='nursery'
-          value={defaultNursery}
-          disablePortal
-          id='nursery'
-          options={nurseryList?.length > 0 ? nurseryList : []}
-          getOptionLabel={option => option.nursery_name}
-          isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
-          onChange={(e, val) => {
-            // console.log('val :>> ', val)
-            if (val === null) {
-              setDefaultNursery(null)
-              setFilterByNurseryId('')
+  // const headerAction = (
+  //   <>
+  //     <Box>
+  //       <Autocomplete
+  //         sx={{
+  //           width: 250,
+  //           m: 2,
+  //           ml: 5
+  //         }}
+  //         name='nursery'
+  //         value={defaultNursery}
+  //         disablePortal
+  //         id='nursery'
+  //         options={nurseryList?.length > 0 ? nurseryList : []}
+  //         getOptionLabel={option => option.nursery_name}
+  //         isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
+  //         onChange={(e, val) => {
+  //           // console.log('val :>> ', val)
+  //           if (val === null) {
+  //             setDefaultNursery(null)
+  //             setFilterByNurseryId('')
 
-              // return onChange('')
-            } else {
-              setDefaultNursery(val)
+  //             // return onChange('')
+  //           } else {
+  //             setDefaultNursery(val)
 
-              // setValue('room', '')
-              setFilterByNurseryId(val.nursery_id)
-              setNursery_name(val.nursery_name)
+  //             // setValue('room', '')
+  //             setFilterByNurseryId(val.nursery_id)
+  //             setNursery_name(val.nursery_name)
 
-              // return onChange(val.nursery_id)
-            }
-          }}
-          renderInput={params => (
-            <TextField
-              onChange={e => {
-                searchNursery(e.target.value)
-              }}
-              {...params}
-              label='Select Nursery *'
-              placeholder='Search & Select'
-            />
-          )}
-        />
-      </Box>
-    </>
-  )
+  //             // return onChange(val.nursery_id)
+  //           }
+  //         }}
+  //         renderInput={params => (
+  //           <TextField
+  //             onChange={e => {
+  //               searchNursery(e.target.value)
+  //             }}
+  //             {...params}
+  //             label='Select Nursery *'
+  //             placeholder='Search & Select'
+  //           />
+  //         )}
+  //       />
+  //     </Box>
+  //   </>
+  // )
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -1842,7 +1871,14 @@ const EggList = () => {
             status === 'eggs_hatched' ||
             status === 'all' ? (
               <>
-                <EggTableHeader tabValue={status} totalCount={total} handleSearch={handleSearch} />
+                <EggTableHeader
+                  tabValue={status}
+                  totalCount={total}
+                  setFilterList={setFilterList}
+                  filterList={filterList}
+                  handleSearch={handleSearch}
+                  setSelectedFiltersOptions={setSelectedFiltersOptions}
+                />
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
@@ -1899,7 +1935,15 @@ const EggList = () => {
             ) : (
               isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' && (
                 <Box>
-                  <EggTableHeader tabValue={status} totalCount={total} />
+                  <EggTableHeader
+                    tabValue={status}
+                    totalCount={total}
+                    setFilterList={setFilterList}
+                    filterList={filterList}
+                    handleSearch={handleSearch}
+                    setSelectedOptions={setSelectedOptions}
+                    selectedOptions={selectedOptions}
+                  />
 
                   <DataGrid
                     sx={{
@@ -1986,7 +2030,7 @@ const EggList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Egg List' action={headerAction} />
+            <CardHeader title='Egg List' />
 
             {/* <CardContent> */}
             <TabContext value={status}>
@@ -2026,7 +2070,14 @@ const EggList = () => {
                 <Divider />
                 {/* {tableData()} */}
                 <Box sx={{ width: '100%', overflowX: 'auto' }}>
-                  <EggTableHeader tabValue={status} totalCount={total} />
+                  <EggTableHeader
+                    tabValue={status}
+                    totalCount={total}
+                    setFilterList={setFilterList}
+                    filterList={filterList}
+                    handleSearch={handleSearch}
+                    setSelectedFiltersOptions={setSelectedFiltersOptions}
+                  />
 
                   <DataGrid
                     sx={{
@@ -2171,8 +2222,15 @@ const EggList = () => {
                   <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                     {' '}
                     <>
-                      <EggTableHeader tabValue={status} totalCount={total} />
-                      <DiscardedTableView filterByNurseryId={filterByNurseryId} setTotal={setTotal} />
+                      <EggTableHeader
+                        tabValue={status}
+                        totalCount={total}
+                        setFilterList={setFilterList}
+                        filterList={filterList}
+                        handleSearch={handleSearch}
+                        setSelectedFiltersOptions={setSelectedFiltersOptions}
+                      />
+                      <DiscardedTableView filterList={filterList} setTotal={setTotal} />
                     </>
                   </TabPanel>
                   <TabPanel
@@ -2187,7 +2245,14 @@ const EggList = () => {
                   >
                     {/* {tableData()} */}
                     <>
-                      <EggTableHeader tabValue={status} totalCount={total} />
+                      <EggTableHeader
+                        tabValue={status}
+                        totalCount={total}
+                        setFilterList={setFilterList}
+                        filterList={filterList}
+                        handleSearch={handleSearch}
+                        setSelectedFiltersOptions={setSelectedFiltersOptions}
+                      />
 
                       <DataGrid
                         sx={{

@@ -1,5 +1,16 @@
 import { axiosFormPost, axiosGet, axiosPost } from '../../utility'
-import { ADD, COMMENT, DELETE, EGG, LIST, DISCARD, STATUS, UPDATE, NECROPSY_REPORTS } from 'src/constants/ApiConstant'
+import {
+  ADD,
+  COMMENT,
+  DELETE,
+  EGG,
+  LIST,
+  DISCARD,
+  STATUS,
+  UPDATE,
+  NECROPSY_REPORTS,
+  GET_COLLECTED_BY
+} from 'src/constants/ApiConstant'
 
 export async function GetEggList({ params }) {
   const response = await axiosGet({ url: `${EGG}/detail/${LIST}`, params: params })
@@ -149,4 +160,11 @@ export async function AddEggNecropsy(payload) {
 
     return error
   }
+}
+
+export async function getCollectedByList({ params }) {
+  return await axiosGet({
+    url: `${EGG}/${GET_COLLECTED_BY}`,
+    params: params
+  })
 }

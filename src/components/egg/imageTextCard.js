@@ -35,8 +35,9 @@ const SpeciesImageCard = ({ imgURl, eggCondition, eggCode, defaultName, complete
           sx={{
             display: 'flex',
             alignItems: 'center',
+            p: '2px',
 
-            // border: 'solid 1px #C3CEC7',
+            border: 'solid 1px #C3CEC7',
             width: '35px',
             height: '35px',
             borderRadius: '50%'
@@ -93,7 +94,8 @@ const SpeciesImageCard = ({ imgURl, eggCondition, eggCode, defaultName, complete
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '100%'
+              width: '100%',
+              fontStyle: 'italic'
             }}
           >
             {completeName ? completeName : '-'}

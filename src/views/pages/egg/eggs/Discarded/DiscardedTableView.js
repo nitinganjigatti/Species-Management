@@ -10,7 +10,7 @@ import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import DiscardDetail from './DiscardDetail'
 import Utility from 'src/utility'
 
-const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
+const DiscardedTableView = ({ filterList, setTotal }) => {
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -27,7 +27,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, nurseryId) => {
+    async (sort, q, filterList) => {
       try {
         setLoading(true)
 
@@ -35,8 +35,9 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
           sort,
           q,
           page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          nursery_id: nurseryId ? nurseryId : filterByNurseryId
+          limit: paginationModel.pageSize
+
+          // nursery_id: nurseryId ? nurseryId : filterByNurseryId
         }
 
         const res = await DiscardedEggList({ params: params })
@@ -65,8 +66,8 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   useEffect(() => {
     // debugger
 
-    fetchTableData(sort, searchValue, filterByNurseryId)
-  }, [fetchTableData, filterByNurseryId])
+    fetchTableData(sort, searchValue, filterList)
+  }, [fetchTableData, filterList])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
