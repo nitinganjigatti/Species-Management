@@ -50,6 +50,8 @@ import Image from 'next/image'
 import { display } from '@mui/system'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Utility from 'src/utility'
+import { Details } from '@mui/icons-material'
+import NewEntryDetailsDialog from './new-entry-details/index'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -927,7 +929,11 @@ const NewEntry = ({}) => {
     fetchOrgCountData(selectedParivesh?.id)
   }, [fetchOrgCountData])
 
-  // console.log(organizationCountList, 'organizationCountList')
+  console.log('Details', detailData)
+  const capitalizeFirstLetter = str => {
+    if (!str) return ''
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
 
   return (
     <>
@@ -953,91 +959,7 @@ const NewEntry = ({}) => {
 
       <Grid>{tableData()}</Grid>
 
-      <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
-        <DialogTitle>
-          <Grid container direction='column'>
-            {/* Close button */}
-            <IconButton
-              aria-label='close'
-              onClick={() => setIsEditModal(false)}
-              sx={{ top: 10, right: 6, position: 'absolute', color: 'grey.500' }}
-            >
-              <Icon icon='mdi:close' />
-            </IconButton>
-
-            {/* Header with Avatar and details */}
-            <Grid item container alignItems='center' mt={6}>
-              <Avatar variant='circular' src={detailData?.created_by_user?.profile_pic} />
-              <Typography sx={{ ml: 2 }}>Created By: {detailData?.created_by_user?.user_name}</Typography>
-            </Grid>
-
-            {/* Media details */}
-            <Box sx={{ display: 'flex', mt: 2, alignItems: 'center', mb: 2 }}>
-              <Box
-                sx={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <Avatar src={detailData?.species_image} alt={''} variant='square' sx={{ height: 'auto' }} />
-              </Box>
-              <Box sx={{ ml: 2 }}>
-                <Typography variant='h6' sx={{ color: '#00afd6' }}>
-                  {detailData?.scientific_name}
-                </Typography>
-                <Typography variant='h6'>({detailData?.common_name})</Typography>
-              </Box>
-            </Box>
-
-            {/* Divider */}
-            <Divider />
-
-            {/* Details */}
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Gender
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 58 }} color={'#1F515B'}>
-                {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Reason for Entry
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 36 }} color={'#1F515B'}>
-                {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Total Count
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
-                {detailData?.animal_count}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Entry Date
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
-                {detailData?.transaction_date
-                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(detailData?.transaction_date)) +
-                    ' ' +
-                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(detailData?.transaction_date))
-                  : ''}
-              </Typography>
-            </Grid>
-          </Grid>
-        </DialogTitle>
-      </Dialog>
+      <NewEntryDetailsDialog isEditModal={isEditModal} setIsEditModal={setIsEditModal} detailData={detailData} />
 
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <DialogTitle>
