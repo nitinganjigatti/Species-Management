@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import EggFilterDrawer from './eggFilterDrawer'
+import { useRouter } from 'next/router'
 
 const EggTableHeader = ({
   tabValue,
@@ -11,10 +12,45 @@ const EggTableHeader = ({
   setFilterList,
   handleSearch,
   filterList,
-  setSelectedFiltersOptions
+  setSelectedFiltersOptions,
+  selectedFiltersOptions
 }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { search_value } = router.query
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(search_value || '')
+
+  const handleRemoveFilter = item => {
+    // Remove the item from the filterList
+    const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
+    setFilterList(updatedFilterList)
+
+    // Remove the item from the selectedFiltersOptions
+    const newSelectedFilters = { ...selectedFiltersOptions }
+
+    if (item?.id === 'collected_date') {
+      newSelectedFilters.collected_date = null
+    } else if (item?.id === 'search') {
+      setSearchQuery('') // Clear the search query
+      handleSearch('') // Trigger a search with an empty value
+      router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
+    }
+
+    for (const category in newSelectedFilters) {
+      if (Array.isArray(newSelectedFilters[category])) {
+        newSelectedFilters[category] = newSelectedFilters[category].filter(
+          filter => filter.id !== item.id || filter.name !== item.name
+        )
+      }
+    }
+
+    // Update the state with the new selected filters
+    setSelectedFiltersOptions(newSelectedFilters)
+
+    // Optionally refetch the table data if needed
+    // fetchTableData();
+  }
 
   return (
     <>
@@ -49,10 +85,16 @@ const EggTableHeader = ({
             <TextField
               variant='outlined'
               placeholder='Search'
+              value={searchQuery}
               InputProps={{
                 disableUnderline: true
               }}
-              onChange={e => handleSearch(e.target.value)}
+              onChange={e => {
+                setSearchQuery(e.target.value)
+                handleSearch(e.target.value)
+
+                // router.push({ query: { ...router.query, search_value: e.target.value } }, undefined, { shallow: true })
+              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
@@ -114,9 +156,9 @@ const EggTableHeader = ({
               <Typography sx={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', textTransform: 'capitalize' }}>
                 {item?.name}
               </Typography>{' '}
-              {/* <IconButton>
+              <IconButton onClick={() => handleRemoveFilter(item)}>
                 <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
-              </IconButton> */}
+              </IconButton>
             </Box>
           ))}
       </Box>

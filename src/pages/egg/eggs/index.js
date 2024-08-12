@@ -42,6 +42,7 @@ import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
+import dayjs from 'dayjs'
 
 const EggList = () => {
   const theme = useTheme()
@@ -57,7 +58,7 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(search_value ? search_value : '')
+  const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
 
@@ -92,8 +93,11 @@ const EggList = () => {
 
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
+  // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
+
   const [filterList, setFilterList] = useState([])
-  console.log('filterList :>> ', filterList)
+
+  // console.log('filterList :>> ', filterList)
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -1640,13 +1644,15 @@ const EggList = () => {
       const values = {
         tab_Value: status,
         subTab_value: isDiscarded,
-        page_value: paginationModel?.page,
-        search_value: searchValue
+        page_value: paginationModel?.page
+
+        // search_value: searchValue
 
         // selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
         // selected_nursery_name: nursery_name ? nursery_name : ''
       }
-      console.log('values :>> ', values)
+
+      // console.log('values :>> ', values)
 
       Router.push({
         pathname: `/egg/eggs/${data?.id}`,
@@ -1693,7 +1699,8 @@ const EggList = () => {
 
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions) => {
-      console.log('selectedFiltersOptions api :>> ', selectedFiltersOptions)
+      // debugger
+
       try {
         setLoading(true)
 
@@ -1702,10 +1709,13 @@ const EggList = () => {
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id)
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id)
-        const collectedByIds = selectedFiltersOptions.CollectedBy?.map(option => option.id)
+        const collectedByIds = selectedFiltersOptions['Collected By']?.map(option => option.id)
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id)
+        const statusId = [selectedFiltersOptions.status]
 
-        // const collectedDate = moment(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
+        const collectedDate = selectedFiltersOptions.collected_date
+          ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
+          : ''
 
         const params = {
           sort,
@@ -1717,12 +1727,14 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryIds ? nurseryIds : [],
+          nursery_id: nurseryIds ? nurseryIds : '',
           egg_state_id: eggStateIds ? eggStateIds : [],
           collected_by: collectedByIds ? collectedByIds : [],
           site_id: siteIds ? siteIds : [],
 
-          // collected_date: collectedDate ? collectedDate : '',
+          egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : []) : [],
+
+          collected_date: collectedDate ? collectedDate : '',
 
           type:
             statusRecived === undefined
@@ -1733,6 +1745,7 @@ const EggList = () => {
               ? discardedTab
               : statusRecived
         }
+        console.log('params table data :>> ', params)
 
         await GetEggList({ params: params }).then(res => {
           // console.log('res :>> ', res)
@@ -1786,7 +1799,7 @@ const EggList = () => {
     debounce(async (sort, q, status, isDiscarded) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, status, isDiscarded)
+        await fetchTableData(sort, q, status, isDiscarded, selectedFiltersOptions)
       } catch (error) {
         console.error(error)
       }
@@ -1878,6 +1891,7 @@ const EggList = () => {
                   filterList={filterList}
                   handleSearch={handleSearch}
                   setSelectedFiltersOptions={setSelectedFiltersOptions}
+                  selectedFiltersOptions={selectedFiltersOptions}
                 />
                 <DataGrid
                   sx={{
@@ -1941,8 +1955,8 @@ const EggList = () => {
                     setFilterList={setFilterList}
                     filterList={filterList}
                     handleSearch={handleSearch}
-                    setSelectedOptions={setSelectedOptions}
-                    selectedOptions={selectedOptions}
+                    setSelectedFiltersOptions={setSelectedFiltersOptions}
+                    selectedFiltersOptions={selectedFiltersOptions}
                   />
 
                   <DataGrid
@@ -2077,6 +2091,7 @@ const EggList = () => {
                     filterList={filterList}
                     handleSearch={handleSearch}
                     setSelectedFiltersOptions={setSelectedFiltersOptions}
+                    selectedFiltersOptions={selectedFiltersOptions}
                   />
 
                   <DataGrid
@@ -2222,14 +2237,15 @@ const EggList = () => {
                   <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                     {' '}
                     <>
-                      <EggTableHeader
+                      {/* <EggTableHeader
                         tabValue={status}
                         totalCount={total}
                         setFilterList={setFilterList}
                         filterList={filterList}
                         handleSearch={handleSearch}
                         setSelectedFiltersOptions={setSelectedFiltersOptions}
-                      />
+                        selectedFiltersOptions={selectedFiltersOptions}
+                      /> */}
                       <DiscardedTableView filterList={filterList} setTotal={setTotal} />
                     </>
                   </TabPanel>
@@ -2252,6 +2268,7 @@ const EggList = () => {
                         filterList={filterList}
                         handleSearch={handleSearch}
                         setSelectedFiltersOptions={setSelectedFiltersOptions}
+                        selectedFiltersOptions={selectedFiltersOptions}
                       />
 
                       <DataGrid
