@@ -28,7 +28,7 @@ import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 import Utility from 'src/utility'
-
+import CustomChip from 'src/@core/components/mui/chip'
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
 import { hatcheryStatus } from 'src/lib/api/egg'
@@ -386,16 +386,20 @@ const RoomDetails = () => {
       field: 'active',
       headerName: 'Status',
       renderCell: params => (
-        <Typography
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
           sx={{
-            color: params.row.active == 1 ? theme.palette.primary.main : theme.palette.formContent.tertiary,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
           }}
-        >
-          {params.row.active == 1 ? 'active' : 'inactive'}
-        </Typography>
+        />
       )
     },
     {

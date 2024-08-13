@@ -46,7 +46,7 @@ const StatusDialogBox = ({
               }}
             >
               {`This ${refType} has ${elements} ${
-                refType === 'nursery' ? 'room' : refType === 'room' ? 'incubator' : 'egg'
+                refType === 'nursery' ? 'incubator' : refType === 'room' ? 'incubator' : 'egg'
               }${elements > 1 ? 's' : ''}`}
             </Typography>
           )}

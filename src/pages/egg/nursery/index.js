@@ -5,6 +5,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
 import moment from 'moment'
+import CustomChip from 'src/@core/components/mui/chip'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
 import { styled } from '@mui/system'
@@ -223,16 +224,20 @@ const NurseryList = () => {
       // headerAlign: 'left',
       headerName: 'Status',
       renderCell: params => (
-        <Typography
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
           sx={{
-            color: params.row.active == 1 ? theme.palette.primary.main : theme.palette.formContent.tertiary,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
           }}
-        >
-          {params.row.active == 1 ? 'active' : 'inactive'}
-        </Typography>
+        />
       )
     },
     {

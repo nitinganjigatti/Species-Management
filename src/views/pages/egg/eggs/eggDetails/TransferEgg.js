@@ -102,6 +102,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
       const params = {
         page: 1,
         limit: 50,
+        status: 'active',
         nursery_id: id,
         search: q
       }
@@ -129,11 +130,11 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
       RoomList(eggDetails?.nursery_id)
     }
   }, [eggDetails?.nursery_id])
-  useEffect(() => {
-    if (eggDetails?.room_id) {
-      fetchIncubatorData(eggDetails?.room_id)
-    }
-  }, [eggDetails?.room_id])
+  // useEffect(() => {
+  //   if (eggDetails?.room_id) {
+  //     fetchIncubatorData(eggDetails?.room_id)
+  //   }
+  // }, [eggDetails?.room_id])
 
   const fetchIncubatorData = async (id, q) => {
     const params = {
@@ -263,7 +264,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <Typography
+              {/* <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontWeight: 500,
@@ -272,7 +273,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 }}
               >
                 Eggs Selected -
-              </Typography>
+              </Typography> */}
               <Box
                 sx={{
                   backgroundColor: theme.palette.primary.contrastText,
@@ -463,7 +464,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         value={defaultRoom}
                         disablePortal
                         id='room'
-                        disabled={eggDetails?.room_id}
+                        // disabled={eggDetails?.room_id}
                         options={roomList?.length > 0 ? roomList : []}
                         getOptionLabel={option => option.room_name}
                         isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}

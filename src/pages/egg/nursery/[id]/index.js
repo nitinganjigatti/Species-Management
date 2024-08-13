@@ -20,6 +20,7 @@ import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import Router from 'next/router'
+import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import ErrorScreen from 'src/pages/Error'
 
@@ -52,6 +53,7 @@ const NurseryDetails = () => {
 
   const [openStatusDialog, setOpenStatusDialog] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
+  const [incubatorNo, setIncubatorNo] = useState(0)
 
   const router = useRouter()
   const { id } = router.query
@@ -90,29 +92,39 @@ const NurseryDetails = () => {
     }
   }
 
-  const fetchNurseryById = async () => {
-    const res = await GetNurseryDetailsById(id)
-    setNurseryData({
-      list: {
-        'Nursery Name': res?.data?.nursery_name,
-        Room: res?.data?.no_of_rooms,
-        Site: res?.data?.site_name,
-        Incubator: res?.data?.no_of_incubators,
-        Eggs: res?.data?.no_of_eggs
-      },
-      Avatar: {
-        profile_Pic: res?.data?.user_profile_pic,
-        user_Name: res?.data?.user_full_name,
-        create_at: res?.data?.created_at,
-        site_id: res?.data?.site_id
-      }
-    })
-    setActive(Boolean(Number(res?.data?.active)))
-    setIsPreFilled(res?.data)
-    setEditNurseryId(id)
-    setEditName(res.data?.nursery_name)
-    setEditSite(res?.data?.site_id)
-    setEditSiteName(res?.data?.site_name)
+  const fetchNurseryById = () => {
+    try {
+      GetNurseryDetailsById(id).then(res => {
+        if (res?.success) {
+          setIncubatorNo(res?.data?.no_of_incubators)
+          setNurseryData({
+            list: {
+              'Nursery Name': res?.data?.nursery_name,
+              Room: res?.data?.no_of_rooms,
+              Site: res?.data?.site_name,
+              Incubator: res?.data?.no_of_incubators,
+              Eggs: res?.data?.no_of_eggs
+            },
+            Avatar: {
+              profile_Pic: res?.data?.user_profile_pic,
+              user_Name: res?.data?.user_full_name,
+              create_at: res?.data?.created_at,
+              site_id: res?.data?.site_id
+            }
+          })
+          setActive(Boolean(Number(res?.data?.active)))
+          setIsPreFilled(res?.data)
+          setEditNurseryId(id)
+          setEditName(res.data?.nursery_name)
+          setEditSite(res?.data?.site_id)
+          setEditSiteName(res?.data?.site_name)
+        } else {
+          Toaster({ message: res.message, type: 'error' })
+        }
+      })
+    } catch (error) {
+      Toaster({ message: res.message, type: 'error' })
+    }
   }
 
   useEffect(() => {
@@ -315,6 +327,30 @@ const NurseryDetails = () => {
         >
           {params.row.site_name}
         </Typography>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 20,
+      sortable: false,
+      align: 'left',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: params => (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
       )
     },
     {
@@ -546,7 +582,7 @@ const NurseryDetails = () => {
               refType={'nursery'}
               openStatusDialog={openStatusDialog}
               setOpenStatusDialog={setOpenStatusDialog}
-              elements={total}
+              elements={incubatorNo}
               statusLoading={statusLoading}
               hatcheryStatusFunc={hatcheryStatusFunc}
             />

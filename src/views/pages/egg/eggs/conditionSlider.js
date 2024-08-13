@@ -1729,7 +1729,7 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female' ? 'F' : val?.sex === 'male' ? 'M' : 'U'}
                                       </Typography>
                                     </Box>
 
@@ -1845,7 +1845,7 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female' ? 'F' : val?.sex === 'male' ? 'M' : 'U'}
                                       </Typography>
                                     </Box>
 
