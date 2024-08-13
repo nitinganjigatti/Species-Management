@@ -187,6 +187,26 @@ const RoomsList = () => {
       )
     },
     {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      align: 'center',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params.row.active == 1 ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.active == 1 ? 'active' : 'inactive'}
+        </Typography>
+      )
+    },
+    {
       flex: 0.4,
       minWidth: 60,
       field: 'user_name',
@@ -312,8 +332,7 @@ const RoomsList = () => {
         const params = {
           sort,
           search: q || '',
-
-          // column,
+          status: 'all',
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }

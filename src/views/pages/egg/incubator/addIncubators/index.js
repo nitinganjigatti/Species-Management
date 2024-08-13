@@ -91,6 +91,7 @@ const AddIncubators = ({
       const params = {
         page: 1,
         limit: 50,
+        type: 'only_active',
         nursery_id: id,
         search: q
       }
@@ -118,6 +119,7 @@ const AddIncubators = ({
       const params = {
         page: 1,
         limit: 50,
+        status: 'active',
         nursery_id: id,
         search: q
       }

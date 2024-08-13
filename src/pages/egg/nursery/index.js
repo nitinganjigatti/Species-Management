@@ -41,8 +41,7 @@ const NurseryList = () => {
         const params = {
           sort,
           search: q || '',
-
-          // column,
+          type: 'all',
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -215,7 +214,27 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
+    {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      align: 'left',
+      field: 'active',
+      // headerAlign: 'left',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params.row.active == 1 ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.active == 1 ? 'active' : 'inactive'}
+        </Typography>
+      )
+    },
     {
       flex: 0.5,
       minWidth: 60,

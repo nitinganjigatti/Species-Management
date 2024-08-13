@@ -1078,6 +1078,8 @@ const EggSecondSecion = ({
         transferEggSideBar={transferEggSideBar}
         setTransferEggSideBar={setTransferEggSideBar}
         eggDetails={eggDetails}
+        getDetails={getDetails}
+        egg_id={egg_id}
       />
     </Grid>
   )

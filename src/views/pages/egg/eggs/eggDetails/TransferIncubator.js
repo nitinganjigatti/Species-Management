@@ -13,18 +13,22 @@ import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
-import Utility from 'src/utility'
 import { LoadingButton } from '@mui/lab'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import * as yup from 'yup'
 import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { getIncubatorList } from 'src/lib/api/egg/incubator'
-import { transferEggToIncubator } from 'src/lib/api/egg/egg'
+import { transferEggToIncubator, transferIncubatorToRoom } from 'src/lib/api/egg/egg'
 import Toaster from 'src/components/Toaster'
 
-const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, getDetails, egg_id }) => {
+const TransferIncubator = ({
+  transferIncubatorSideBar,
+  setTransferIncubatorSideBar,
+  incubatorDetail,
+  incubatorId,
+  getDetails
+}) => {
   const theme = useTheme()
 
   const [loader, setLoader] = useState(false)
@@ -32,18 +36,14 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [roomList, setRoomList] = useState([])
   const [defaultRoom, setDefaultRoom] = useState(null)
-  const [incubatorList, setIncubatorList] = useState([])
-  const [defaultIncubator, setDefaultIncubator] = useState(null)
 
   const schema = yup.object().shape({
-    room: yup.string().required('Room is required'),
-    incubator: yup.string().required('Incubator name is required')
+    room: yup.string().required('Room is required')
   })
 
   const defaultValues = {
     nursery_name: '',
-    room: '',
-    incubator: ''
+    room: ''
   }
 
   const {
@@ -95,13 +95,12 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
     []
   )
 
-  const roomId = watch('room')
-
   const RoomList = async (id, q) => {
     try {
       const params = {
         page: 1,
         limit: 50,
+        type: 'only_active',
         nursery_id: id,
         search: q
       }
@@ -125,76 +124,39 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   )
 
   useEffect(() => {
-    if (eggDetails?.nursery_id) {
-      RoomList(eggDetails?.nursery_id)
+    if (incubatorDetail?.nursery_id) {
+      RoomList(incubatorDetail?.nursery_id)
     }
-  }, [eggDetails?.nursery_id])
-  useEffect(() => {
-    if (eggDetails?.room_id) {
-      fetchIncubatorData(eggDetails?.room_id)
-    }
-  }, [eggDetails?.room_id])
-
-  const fetchIncubatorData = async (id, q) => {
-    const params = {
-      room_id: id,
-      q,
-      type: 'only_active'
-    }
-    const incubatorName = await getIncubatorList({ params: params })
-
-    if (incubatorName?.data?.data?.result) {
-      setIncubatorList(incubatorName?.data?.data?.result)
-    }
-  }
-
-  const searchIncubator = useCallback(
-    debounce(async (id, q) => {
-      try {
-        await fetchIncubatorData(id, q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-  useEffect(() => {
-    if (roomId) {
-      fetchIncubatorData(roomId)
-    }
-  }, [roomId])
+  }, [incubatorDetail?.nursery_id])
 
   useEffect(() => {
-    if (eggDetails?.nursery_id) {
-      setDefaultNursery({ nursery_id: eggDetails?.nursery_id, nursery_name: eggDetails?.nursery_name })
-      setValue('nursery_name', eggDetails?.nursery_id)
+    if (incubatorDetail?.nursery_id) {
+      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
+      setValue('nursery_name', incubatorDetail?.nursery_id)
     }
-    if (eggDetails?.room_id) {
-      setDefaultRoom({ room_id: eggDetails?.room_id, room_name: eggDetails?.room_name })
-      setValue('room', eggDetails?.room_id)
+    if (incubatorDetail?.room_id) {
+      setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
+      setValue('room', incubatorDetail?.room_id)
     }
-  }, [eggDetails])
+  }, [incubatorDetail])
 
   const onSubmit = async values => {
-    // console.log('values', values)
-
     try {
       setLoader(true)
       let params = {
-        incubator_id: values.incubator,
-        egg_ids: [egg_id]
+        incubator_id: incubatorId,
+        to_room_id: values.room
       }
-      const response = await transferEggToIncubator(params)
+      const response = await transferIncubatorToRoom(params)
       if (response.success) {
         Toaster({ type: 'success', message: response.message })
         if (getDetails) {
-          getDetails(egg_id)
+          getDetails()
         }
         reset()
-        setDefaultIncubator(null)
         setDefaultNursery(null)
         setDefaultRoom(null)
-        setTransferEggSideBar(false)
+        setTransferIncubatorSideBar(false)
         setLoader(false)
       } else {
         Toaster({ type: 'error', message: response.message })
@@ -210,7 +172,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   return (
     <Drawer
       anchor='right'
-      open={transferEggSideBar}
+      open={transferIncubatorSideBar}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 560], height: '100vh' } }}
     >
       <Box sx={{ height: '100%', backgroundColor: 'background.default' }}>
@@ -245,11 +207,11 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 height: '32px'
               }}
             >
-              Transfer Eggs
+              Transfer Incubator
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            <Icon icon='mdi:close' fontSize={24} onClick={() => setTransferEggSideBar(false)} />
+            <Icon icon='mdi:close' fontSize={24} onClick={() => setTransferIncubatorSideBar(false)} />
           </IconButton>
         </Box>
         <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -263,7 +225,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <Typography
+              {/* <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontWeight: 500,
@@ -272,7 +234,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 }}
               >
                 Eggs Selected -
-              </Typography>
+              </Typography> */}
               <Box
                 sx={{
                   backgroundColor: theme.palette.primary.contrastText,
@@ -294,7 +256,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     height: '24px'
                   }}
                 >
-                  Current Location of Egg
+                  Current Location of Incubator
                 </Typography>
                 <Box
                   sx={{
@@ -305,7 +267,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     justifyContent: 'space-between'
                   }}
                 >
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
                       sx={{
                         color: theme.palette.customColors.neutralSecondary,
@@ -326,9 +288,9 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         height: '19px'
                       }}
                     >
-                      {eggDetails?.incubator_name}
+                      {incubatorDetail?.incubator_name}
                     </Typography>
-                  </Box>
+                  </Box> */}
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
                       sx={{
@@ -350,12 +312,13 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         height: '19px'
                       }}
                     >
-                      {eggDetails?.room_name}
+                      {incubatorDetail?.room_name}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
                       sx={{
+                        textAlign: 'end',
                         color: theme.palette.customColors.neutralSecondary,
                         fontWeight: 400,
                         fontSize: '14px',
@@ -374,7 +337,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         height: '19px'
                       }}
                     >
-                      {eggDetails?.nursery_name}
+                      {incubatorDetail?.nursery_name}
                     </Typography>
                   </Box>
                 </Box>
@@ -414,7 +377,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         name='nursery_name'
                         value={defaultNursery}
                         disablePortal
-                        disabled={eggDetails?.nursery_id}
+                        disabled={incubatorDetail?.nursery_id}
                         id='nursery_name'
                         options={nurseryList?.length > 0 ? nurseryList : []}
                         getOptionLabel={option => option.nursery_name}
@@ -428,7 +391,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                             setDefaultNursery(val)
 
                             setValue('nursery_name', '')
-                            RoomList(val.nursery_id)
+                            // RoomList(val.nursery_id)
 
                             return onChange(val.nursery_id)
                           }
@@ -463,7 +426,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         value={defaultRoom}
                         disablePortal
                         id='room'
-                        disabled={eggDetails?.room_id}
+                        // disabled={incubatorDetail?.room_id}
                         options={roomList?.length > 0 ? roomList : []}
                         getOptionLabel={option => option.room_name}
                         isOptionEqualToValue={(option, value) => option?.room_id === value?.room_id}
@@ -482,7 +445,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         renderInput={params => (
                           <TextField
                             onChange={e => {
-                              searchRoom(eggDetails?.nursery_id, e.target.value)
+                              searchRoom(incubatorDetail?.nursery_id, e.target.value)
                             }}
                             {...params}
                             label='Select Room *'
@@ -495,50 +458,6 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                   />
                   {errors?.room && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.room?.message}</FormHelperText>
-                  )}
-                </FormControl>
-
-                <FormControl fullWidth>
-                  <Controller
-                    name='incubator'
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { value, onChange } }) => (
-                      <Autocomplete
-                        name='incubator'
-                        value={defaultIncubator}
-                        disablePortal
-                        id='incubator'
-                        options={incubatorList?.length > 0 ? incubatorList : []}
-                        getOptionLabel={option => option.incubator_name}
-                        isOptionEqualToValue={(option, value) => option?.incubator_id === value?.incubator_id}
-                        onChange={(e, val) => {
-                          if (val === null) {
-                            setDefaultIncubator(null)
-
-                            return onChange('')
-                          } else {
-                            setDefaultIncubator(val)
-                            setValue('incubator', '')
-                            return onChange(val.incubator_id)
-                          }
-                        }}
-                        renderInput={params => (
-                          <TextField
-                            onChange={e => {
-                              searchIncubator(roomId, e.target.value)
-                            }}
-                            {...params}
-                            label='Select Incubator *'
-                            placeholder='Search & Select'
-                            error={Boolean(errors.incubator)}
-                          />
-                        )}
-                      />
-                    )}
-                  />
-                  {errors?.incubator && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.incubator?.message}</FormHelperText>
                   )}
                 </FormControl>
               </Box>
@@ -575,4 +494,4 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   )
 }
 
-export default TransferEgg
+export default TransferIncubator

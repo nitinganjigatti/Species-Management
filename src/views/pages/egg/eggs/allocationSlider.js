@@ -190,7 +190,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const fetchIncubatorData = async (id, q) => {
     const params = {
       room_id: id,
-      q
+      q,
+      type: 'only_active'
     }
     const incubatorName = await getIncubatorList({ params: params })
 

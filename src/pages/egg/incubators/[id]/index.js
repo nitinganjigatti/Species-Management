@@ -1,4 +1,14 @@
-import { Avatar, Breadcrumbs, Card, CardContent, Tooltip, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Breadcrumbs,
+  Card,
+  CardContent,
+  FormControlLabel,
+  Switch,
+  Tooltip,
+  Typography,
+  debounce
+} from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -17,6 +27,10 @@ import DetailCard from 'src/components/egg/DetailCard'
 import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
 import { AuthContext } from 'src/context/AuthContext'
+import { hatcheryStatus } from 'src/lib/api/egg'
+import Toaster from 'src/components/Toaster'
+import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
+import TransferIncubator from 'src/views/pages/egg/eggs/eggDetails/TransferIncubator'
 
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
@@ -45,6 +59,11 @@ const IncubatorDetails = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [status, setStatus] = useState('eggs_received')
+  const [transferIncubatorSideBar, setTransferIncubatorSideBar] = useState(false)
+
+  const [openStatusDialog, setOpenStatusDialog] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(false)
+  const [active, setActive] = useState(false)
 
   let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
   const [loading, setLoading] = useState(false)
@@ -68,6 +87,32 @@ const IncubatorDetails = () => {
 
   function loadServerRows(currentPage, data) {
     return data
+  }
+
+  const hatcheryStatusFunc = () => {
+    setStatusLoading(true)
+    try {
+      hatcheryStatus({
+        ref_type: 'incubator',
+        ref_id: id,
+        status: active ? 'deactivate' : 'activate'
+      }).then(response => {
+        if (response.success) {
+          Toaster({ type: 'success', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+          setActive(!active)
+        } else {
+          Toaster({ type: 'error', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+        }
+      })
+    } catch (error) {
+      setOpenStatusDialog(false)
+      setStatusLoading(false)
+      Toaster({ type: 'error', message: response.message })
+    }
   }
 
   const columns = [
@@ -775,7 +820,7 @@ const IncubatorDetails = () => {
             setIncubatorDetailList({
               list: {
                 'No of Sensors': '-',
-                'Slots Filled': `${res?.data?.data?.no_of_eggs} / ${res?.data?.data?.max_eggs}`,
+                'Slots Filled': `${res?.data?.data?.no_of_eggs || '-'} / ${res?.data?.data?.max_eggs || '-'}`,
                 Site: res?.data?.data?.site_name,
                 'Room No': res?.data?.data?.room_name,
                 Nursery: res?.data?.data?.nursery_name
@@ -786,6 +831,7 @@ const IncubatorDetails = () => {
                 value: res?.data?.data?.incubator_code
               }
             })
+            setActive(Boolean(Number(res?.data?.data?.active)))
 
             // console.log('res', res)
           }
@@ -911,6 +957,41 @@ const IncubatorDetails = () => {
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                  <Box
+                    onClick={() => setTransferIncubatorSideBar(true)}
+                    sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        lineHeight: '19.36px',
+                        color: theme.palette.primary.main
+                      }}
+                    >
+                      Transfer
+                    </Typography>
+                    <Icon
+                      color='#00AFD6'
+                      style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
+                      icon='akar-icons:arrow-repeat'
+                      fontSize={24}
+                    />
+                  </Box>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={active}
+                        onChange={e => {
+                          setOpenStatusDialog(true)
+                        }}
+                      />
+                    }
+                    sx={{ m: 0 }}
+                    labelPlacement='start'
+                    label='Active'
+                  />
+
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar
                       variant='square'
@@ -1055,6 +1136,22 @@ const IncubatorDetails = () => {
                     activity_type={'sa'}
                     activitySidebarOpen={activitySidebarOpen}
                     handleSidebarClose={handleActivitySidebarClose}
+                  />
+                  <StatusDialogBox
+                    active={active}
+                    refType={'incubator'}
+                    openStatusDialog={openStatusDialog}
+                    setOpenStatusDialog={setOpenStatusDialog}
+                    elements={total}
+                    statusLoading={statusLoading}
+                    hatcheryStatusFunc={hatcheryStatusFunc}
+                  />
+                  <TransferIncubator
+                    transferIncubatorSideBar={transferIncubatorSideBar}
+                    setTransferIncubatorSideBar={setTransferIncubatorSideBar}
+                    incubatorDetail={incubatorDetail}
+                    getDetails={getIncubatorDetailFunc}
+                    incubatorId={id}
                   />
                 </Box>
               )}

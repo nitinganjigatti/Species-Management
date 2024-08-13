@@ -168,3 +168,38 @@ export async function getCollectedByList({ params }) {
     params: params
   })
 }
+
+export async function transferEggToIncubator(payload) {
+  try {
+    const response = await axiosPost({ url: `${EGG}/transfer/incubator`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+export async function transferIncubatorToRoom(params) {
+  try {
+    const response = await axiosPost({
+      url: `${EGG}/incubator-room-change?incubator_id=${params?.incubator_id}&to_room_id=${params?.to_room_id}`
+    })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}

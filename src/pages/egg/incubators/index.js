@@ -83,6 +83,7 @@ const IncubatorsList = () => {
           til_date: cuurent_date,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
+          type: 'all',
           // room_id: 1,
           room_id: '',
           // nursery_id: 2,
@@ -360,6 +361,26 @@ const IncubatorsList = () => {
           }}
         >
           {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      align: 'center',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params.row.active == 1 ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.active == 1 ? 'active' : 'inactive'}
         </Typography>
       )
     },

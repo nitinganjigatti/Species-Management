@@ -1,5 +1,16 @@
 import { Icon } from '@iconify/react'
-import { Card, Box, Typography, debounce, Avatar, IconButton, Button, Breadcrumbs } from '@mui/material'
+import {
+  Card,
+  Box,
+  Typography,
+  debounce,
+  Avatar,
+  IconButton,
+  Button,
+  Breadcrumbs,
+  Switch,
+  FormControlLabel
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -15,6 +26,9 @@ import ErrorScreen from 'src/pages/Error'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
+import { hatcheryStatus } from 'src/lib/api/egg'
+import Toaster from 'src/components/Toaster'
+import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -36,8 +50,12 @@ const NurseryDetails = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [isPreFilled, setIsPreFilled] = useState({})
 
+  const [openStatusDialog, setOpenStatusDialog] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(false)
+
   const router = useRouter()
   const { id } = router.query
+  const [active, setActive] = useState(false)
 
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
@@ -45,6 +63,32 @@ const NurseryDetails = () => {
 
   // console.log('rows >>', rows)
   // console.log('Paginate>', paginationModel)
+
+  const hatcheryStatusFunc = () => {
+    setStatusLoading(true)
+    try {
+      hatcheryStatus({
+        ref_type: 'nursery',
+        ref_id: id,
+        status: active ? 'deactivate' : 'activate'
+      }).then(response => {
+        if (response.success) {
+          Toaster({ type: 'success', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+          setActive(!active)
+        } else {
+          Toaster({ type: 'error', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+        }
+      })
+    } catch (error) {
+      setOpenStatusDialog(false)
+      setStatusLoading(false)
+      Toaster({ type: 'error', message: response.message })
+    }
+  }
 
   const fetchNurseryById = async () => {
     const res = await GetNurseryDetailsById(id)
@@ -63,6 +107,7 @@ const NurseryDetails = () => {
         site_id: res?.data?.site_id
       }
     })
+    setActive(Boolean(Number(res?.data?.active)))
     setIsPreFilled(res?.data)
     setEditNurseryId(id)
     setEditName(res.data?.nursery_name)
@@ -395,10 +440,22 @@ const NurseryDetails = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {' '}
                 {egg_nursery_permission && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={active}
+                          onChange={e => {
+                            setOpenStatusDialog(true)
+                          }}
+                        />
+                      }
+                      labelPlacement='start'
+                      label='Active'
+                    />
                     <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
                       <Icon
                         icon='mdi:pencil-outline'
@@ -483,6 +540,15 @@ const NurseryDetails = () => {
               isOpen={isOpen}
               setIsOpen={setIsOpen}
               isPreFilled={isPreFilled}
+            />
+            <StatusDialogBox
+              active={active}
+              refType={'nursery'}
+              openStatusDialog={openStatusDialog}
+              setOpenStatusDialog={setOpenStatusDialog}
+              elements={total}
+              statusLoading={statusLoading}
+              hatcheryStatusFunc={hatcheryStatusFunc}
             />
           </Card>
         </>

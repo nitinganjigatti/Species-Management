@@ -15,7 +15,9 @@ import {
   IconButton,
   Button,
   Avatar,
-  Tooltip
+  Tooltip,
+  Switch,
+  FormControlLabel
 } from '@mui/material'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
@@ -29,6 +31,9 @@ import Utility from 'src/utility'
 
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
+import { hatcheryStatus } from 'src/lib/api/egg'
+import Toaster from 'src/components/Toaster'
+import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 
 const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -51,6 +56,10 @@ const RoomDetails = () => {
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
 
+  const [openStatusDialog, setOpenStatusDialog] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(false)
+  const [active, setActive] = useState(false)
+
   // console.log('detailsData :>> ', detailsData)
 
   const [isOpen, setIsOpen] = useState(false)
@@ -62,6 +71,32 @@ const RoomDetails = () => {
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
+  const hatcheryStatusFunc = () => {
+    setStatusLoading(true)
+    try {
+      hatcheryStatus({
+        ref_type: 'room',
+        ref_id: id,
+        status: active ? 'deactivate' : 'activate'
+      }).then(response => {
+        if (response.success) {
+          Toaster({ type: 'success', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+          setActive(!active)
+        } else {
+          Toaster({ type: 'error', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+        }
+      })
+    } catch (error) {
+      setOpenStatusDialog(false)
+      setStatusLoading(false)
+      Toaster({ type: 'error', message: response.message })
+    }
+  }
+
   const fetchTableData = useCallback(
     async q => {
       try {
@@ -72,7 +107,7 @@ const RoomDetails = () => {
           sort,
           q: q || searchValue,
           room_id: id,
-
+          type: 'all',
           til_date: cuurent_date,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -324,7 +359,7 @@ const RoomDetails = () => {
       )
     },
     {
-      flex: 0.12,
+      flex: 0.14,
       minWidth: 20,
       sortable: false,
       align: 'center',
@@ -340,6 +375,26 @@ const RoomDetails = () => {
           }}
         >
           {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      align: 'center',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params.row.active == 1 ? theme.palette.primary.main : theme.palette.formContent.tertiary,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.active == 1 ? 'active' : 'inactive'}
         </Typography>
       )
     },
@@ -427,6 +482,7 @@ const RoomDetails = () => {
             site_id: res?.data?.site_id
           }
         })
+        setActive(Boolean(Number(res?.data?.active)))
         setIsPreFilled(res?.data)
       })
       setLoader(false)
@@ -557,35 +613,47 @@ const RoomDetails = () => {
                     </Box>
 
                     {egg_nursery_permission && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        {' '}
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <IconButton
-                            sx={{ mr: 4 }}
-                            onClick={event =>
-                              handleEdit(
-                                event,
-                                detailsData.site_id,
-                                detailsData.room_name,
-                                detailsData.nursery_id,
-                                detailsData.room_id,
-                                detailsData.nursery_name
-                              )
-                            }
-                          >
-                            <Icon
-                              icon='material-symbols:edit-outline'
-                              fontSize={28}
-                              color={theme.palette.customColors.OnSurfaceVariant}
-                            />
-                          </IconButton>
+                      // <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
 
-                          <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-                            <Icon icon='mdi:add' fontSize={20} />
-                            &nbsp; ADD INCUBATOR
-                          </Button>
-                        </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={active}
+                              onChange={e => {
+                                setOpenStatusDialog(true)
+                              }}
+                            />
+                          }
+                          labelPlacement='start'
+                          label='Active'
+                        />
+
+                        <IconButton
+                          onClick={event =>
+                            handleEdit(
+                              event,
+                              detailsData.site_id,
+                              detailsData.room_name,
+                              detailsData.nursery_id,
+                              detailsData.room_id,
+                              detailsData.nursery_name
+                            )
+                          }
+                        >
+                          <Icon
+                            icon='material-symbols:edit-outline'
+                            fontSize={28}
+                            color={theme.palette.customColors.OnSurfaceVariant}
+                          />
+                        </IconButton>
+
+                        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+                          <Icon icon='mdi:add' fontSize={20} />
+                          &nbsp; ADD INCUBATOR
+                        </Button>
                       </Box>
+                      // </Box>
                     )}
                   </Box>
                   <Box sx={{ px: '16px', my: '8px' }}>
@@ -650,6 +718,15 @@ const RoomDetails = () => {
                 sidebarOpen={dialog}
                 handleSidebarClose={handleSidebarClose}
                 isPreFilled={isPreFilled}
+              />
+              <StatusDialogBox
+                active={active}
+                refType={'room'}
+                openStatusDialog={openStatusDialog}
+                setOpenStatusDialog={setOpenStatusDialog}
+                elements={total}
+                statusLoading={statusLoading}
+                hatcheryStatusFunc={hatcheryStatusFunc}
               />
             </>
           </>
