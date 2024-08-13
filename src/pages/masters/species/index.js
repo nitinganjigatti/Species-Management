@@ -46,15 +46,17 @@ const AddSpecies = () => {
 
   console.log('Status >>', status)
 
-  const fetchTaxonomy = async searchValue => {
-    try {
-      const response = await getSearchTaxonomyList(searchValue)
-      setTaxonomy(response?.data || [])
-      setOpen(true)
-    } catch (error) {
-      console.error('Error fetching taxonomy list:', error)
-    }
-  }
+  // const fetchTaxonomy = async searchValue => {
+  //   try {
+  //     const response = await getSearchTaxonomyList(searchValue)
+  //     setTaxonomy(response?.data || [])
+  //     setOpen(true)
+  //   } catch (error) {
+  //     console.error('Error fetching taxonomy list:', error)
+  //   }
+  // }
+
+
 
   const addEventSidebarOpen = () => {
     setOpenDrawer(true)
@@ -283,7 +285,7 @@ const AddSpecies = () => {
     setEditName(params.row?.complete_name)
     setCommonName(params.row.default_common_name)
     setSpeciesImage(params?.row?.default_icon)
-    
+
     try {
       const addBannerResponse = await GetBannerImages(params.row.tsn)
       if (addBannerResponse?.success) {
@@ -402,16 +404,17 @@ const AddSpecies = () => {
           {openDrawer && (
             <AddSpeciesSlideBar
               drawerWidth={400}
-              addEventSidebarOpen={openDrawer}
+              // addEventSidebarOpen={openDrawer}
+              openDrawer={openDrawer}
               status={status}
-              setStatus={setStatus}
-              open={open}
+              // setStatus={setStatus}
+              // open={open}
               setOpenDrawer={setOpenDrawer}
               handleSidebarClose={handleSidebarClose}
               editVernacularNames={editVernacularNames}
               fetchTableData={fetchTableData}
-              fetchTaxonomy={fetchTaxonomy}
-              taxonomy={taxonomy}
+              // fetchTaxonomy={fetchTaxonomy}
+              // taxonomy={taxonomy}
               editName={editName}
               tsnId={tsnId}
               commonName={commonName}

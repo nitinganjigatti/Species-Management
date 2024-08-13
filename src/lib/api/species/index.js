@@ -75,8 +75,7 @@ export async function getLocalityById(id) {
 }
 
 export async function getSearchTaxonomyList(params) {
-  const response = await axiosGet({ url: `${TAXONOMY_URL}/search?q=${params}`, pharmacy: true })
-
+  const response = await axiosGet({ url: `${TAXONOMY_URL}search`, params, pharmacy: true })
   return response.data
 }
 

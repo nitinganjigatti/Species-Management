@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Checkbox,
+  debounce,
   Divider,
   Drawer,
   FormControl,
@@ -18,7 +19,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box, display } from '@mui/system'
-import React, { useEffect, useMemo, useState, useRef } from 'react'
+import React, { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
 import CloseIcon from '@mui/icons-material/Close'
 import { Controller, useForm, useFieldArray } from 'react-hook-form'
@@ -52,9 +53,10 @@ import { CheckBox } from '@mui/icons-material'
 
 const AddSpeciesSlideBar = ({
   handleSidebarClose,
+  openDrawer,
   setOpenDrawer,
-  fetchTaxonomy,
-  taxonomy,
+  // fetchTaxonomy,
+  // taxonomy,
   editVernacularNames,
   editName,
   fetchTableData,
@@ -96,15 +98,10 @@ const AddSpeciesSlideBar = ({
   const [taxonomyName, setTaxonomyName] = useState('')
   const [filterId, setFilterId] = useState([])
   const [localityFilterId, setLocalityFilterId] = useState([])
+  const [taxonomy, setTaxonomy] = useState([])
 
   const fileInputRef = React.useRef(null)
   const inputRef = useRef(null)
-
-  console.log('EditName>>', editName, tsnId, commonName)
-
-  console.log('Species >>', speciesImage)
-
-  console.log('Vernacular Names >>', editVernacularNames)
 
   const schema = yup.object().shape({
     // tsn_id: yup.string().required('Please choose Taxonomy')
@@ -225,9 +222,6 @@ const AddSpeciesSlideBar = ({
     }
   }
 
-  console.log('selected images >>', selectedImages)
-  console.log('breed Total >>', breedList)
-
   const handleAddRemove1Image = indexToRemove => {
     const updatedImages = selectedImages.filter((image, index) => index !== indexToRemove)
     setValue('banner_images', updatedImages)
@@ -275,7 +269,7 @@ const AddSpeciesSlideBar = ({
     }
   }, [])
 
-  console.log('selecteditems >>', selectedItems)
+  // console.log('selecteditems >>', selectedItems)
 
   useEffect(() => {
     if (status === 'hybrid' && editName) {
@@ -307,6 +301,7 @@ const AddSpeciesSlideBar = ({
   }
 
   const handleRemoveTextField = index => {
+    debugger
     console.log('Field Value >>', index)
     console.log('taxonomyName', taxonomyName)
 
@@ -727,12 +722,28 @@ const AddSpeciesSlideBar = ({
     }
   }
 
+  const fetchTaxonomy = useCallback(
+    debounce(async q => {
+      try {
+        const params = {
+          q
+        }
+        const response = await getSearchTaxonomyList(params)
+        if (response?.data?.length) {
+          setTaxonomy(response.data)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   return (
     <>
-      {/* {console.log('breed>>', breedList)} */}
       <Drawer
         anchor='right'
-        open={addEventSidebarOpen}
+        open={openDrawer}
         ModalProps={{ keepMounted: true }}
         sx={{ '& .MuiDrawer-paper': { width: ['100%', 420], transitionDuration: '1s' } }}
       >
@@ -776,51 +787,96 @@ const AddSpeciesSlideBar = ({
         {status === 'species' ? (
           <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
             <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-              <FormControl fullWidth>
+              {/* <FormControl fullWidth>
                 <Controller
                   name='tsn_id'
                   control={control}
                   rules={{ required: true }}
                   render={({ field }) => {
-                    console.log('tsnId:>>>>>>>>>', tsnId)
-                    return (
-                      <Autocomplete
-                        id='tsn_id'
-                        value={editName ? prefillDefault : defaultTaxonomy}
-                        options={editName ? [prefillDefault] : taxonomy}
-                        getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
-                        isOptionEqualToValue={(option, value) => {
-                          return option ? option.taxonomy_id === value.taxonomy_id : tsnId
-                        }}
-                        onChange={(e, val) => {
-                          console.log('Value ?', val)
-                          setDefaultTaxonomy(val ? val : '')
-                          if (val) {
-                            fetchSpeciesVernacularData(val)
-                          }
-                          field.onChange(val ? val.taxonomy_id : tsnId)
-                          setValue('scientificName', val ? val?.scientific_name : editName)
-                        }}
-                        onKeyUp={e => {
-                          if (e.target.value.length >= 3) {
-                            fetchTaxonomy(e.target.value)
-                          }
-                        }}
-                        renderInput={params => (
-                          <TextField
-                            {...params}
-                            label='Choose Taxonomy*'
-                            placeholder='Enter at least 3 characters'
-                            disabled={editName && true}
-                            error={Boolean(errors.tsn_id)}
-                          />
-                        )}
-                      />
-                    )
+                    <Autocomplete
+                      id='tsn_id'
+                      name='tsn_id'
+                      value={editName ? prefillDefault : defaultTaxonomy}
+                      options={editName ? [prefillDefault] : taxonomy}
+                      getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
+                      isOptionEqualToValue={(option, value) => {
+                        return option ? option.taxonomy_id === value.taxonomy_id : tsnId
+                      }}
+                      onChange={(e, val) => {
+                        console.log('Value ?', val)
+                        setDefaultTaxonomy(val ? val : '')
+                        if (val) {
+                          fetchSpeciesVernacularData(val)
+                        }
+                        field.onChange(val ? val.taxonomy_id : tsnId)
+                        setValue('scientificName', val ? val?.scientific_name : editName)
+                      }}
+                      onKeyUp={e => {
+                        if (e.target.value.length >= 3) {
+                          fetchTaxonomy(e.target.value)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Choose Taxonomy*'
+                          placeholder='Enter at least 3 characters'
+                          disabled={editName && true}
+                          error={Boolean(errors.tsn_id)}
+                        />
+                      )}
+                    />
                   }}
                 />
                 {errors.tsn_id && <FormHelperText sx={{ color: 'error.main' }}>{errors.tsn_id.message}</FormHelperText>}
+              </FormControl> */}
+
+              <FormControl fullWidth sx={{ mb: 4, mt: 4 }}>
+                <Controller
+                  name='tsn_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <Autocomplete
+                      name='tsn_id'
+                      value={editName ? prefillDefault : defaultTaxonomy}
+                      disablePortal
+                      placeholder='Choose Taxonomy'
+                      id='tsn_id'
+                      options={taxonomy?.length > 0 ? taxonomy : []}
+                      getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
+                      isOptionEqualToValue={(option, value) => {
+                        return option ? option.taxonomy_id === value.taxonomy_id : tsnId
+                      }}
+                      onChange={(e, val) => {
+                        console.log('Value ?', val)
+                        setDefaultTaxonomy(val ? val : '')
+                        if (val) {
+                          fetchSpeciesVernacularData(val)
+                        }
+                        onChange(val ? val.taxonomy_id : tsnId)
+                        setValue('scientificName', val ? val?.scientific_name : editName)
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          onChange={e => {
+                            if (e.target.value.length >= 3) {
+                              fetchTaxonomy(e?.target?.value)
+                            }
+                          }}
+                          label='Choose Taxonomy *'
+                          placeholder='Enter at least 3 characters'
+                          disabled={editName && true}
+                          error={Boolean(errors.tsn_id)}
+                        />
+                      )}
+                    />
+                  )}
+                />
+                {errors.tsn_id && <FormHelperText sx={{ color: 'error.main' }}>{errors.tsn_id.message}</FormHelperText>}
               </FormControl>
+
               <Box>
                 <Avatar
                   sx={{
@@ -1156,7 +1212,7 @@ const AddSpeciesSlideBar = ({
                               fetchTaxonomy(e.target.value)
                             }
                           }}
-                          clearIcon={<ClearIcon onClick={() => remove(index)} />}
+                          clearIcon={<ClearIcon onClick={() => handleRemoveTextField(index)} />}
                           renderInput={params => (
                             <>
                               {index !== 0 ? (
