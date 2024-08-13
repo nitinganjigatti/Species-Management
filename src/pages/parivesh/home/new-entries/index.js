@@ -529,35 +529,29 @@ const NewEntry = ({}) => {
 
   const headerAction = (
     <>
-      <div>
-        <Button
-          size='medium'
-          variant='contained'
-          onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD ENTRY
-        </Button>
+      <Button size='medium' variant='contained' onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; ADD ENTRY
+      </Button>
 
-        <LoadingButton
-          loading={btnLoader}
-          size='medium'
-          variant='contained'
-          sx={{
-            m: 2,
-            backgroundColor: '#1F415B',
-            color: '#FFFFFF',
-            '&:hover': {
-              // CSS pseudo-class for hover effect
-              backgroundColor: '#0D2B3E' // Darker shade for hover background color
-            }
-          }}
-          onClick={handleCreateBatch}
-          disabled={selectedRows.length > 0 ? false : true}
-        >
-          {'CREATE BATCH'}
-        </LoadingButton>
-      </div>
+      <LoadingButton
+        loading={btnLoader}
+        size='medium'
+        variant='contained'
+        sx={{
+          m: 2,
+          backgroundColor: '#1F415B',
+          color: '#FFFFFF',
+          '&:hover': {
+            // CSS pseudo-class for hover effect
+            backgroundColor: '#0D2B3E' // Darker shade for hover background color
+          }
+        }}
+        onClick={handleCreateBatch}
+        disabled={selectedRows.length > 0 ? false : true}
+      >
+        {'CREATE BATCH'}
+      </LoadingButton>
     </>
   )
 

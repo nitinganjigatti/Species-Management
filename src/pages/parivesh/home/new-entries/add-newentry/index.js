@@ -197,41 +197,37 @@ const AddNewEntry = () => {
     }
   }, [watch('possession_type'), setValue, clearErrors])
 
-  // const onSubmit = async data => {
-  //   console.log('Form submitted with data:', data)
-
-  //   const isValid = await trigger() // Await the trigger function to ensure it completes
-
-  //   console.log('Form validity:', isValid)
-  //   console.log('errors:', errors)
-
-  //   if (!isValid) {
-  //     console.log('Form is invalid, not submitting')
-  //     return
-  //   }
-
-  //   console.log('Submitting data:', data)
-  //   // Your form submission logic here
-  // }
-
-  // console.log('Current possession_type:', watch('possession_type'))
-  // console.log('Current schema:', schema.describe())
-  // console.log('Entire form state:', getValues())
-
   const onSubmit = async data => {
-    const { gender, transaction_date, specie, possession_type, animal_count, attachments } = { ...data }
+    const {
+      gender,
+      transaction_date,
+      specie,
+      possession_type,
+      animal_count,
+      attachments,
+      death_date,
+      reason_for_death,
+      animal_id,
+      organization_transfer,
+      organization_acquire,
+      dgft_number,
+      dgft_attachments,
+      cites_required,
+      select_appendix,
+      cites_number
+    } = { ...data }
 
     console.log('Form submitted with data:', data)
 
-    const isValid = await trigger()
-    console.log('Form validity:', isValid)
+    // const isValid = await trigger()
+    // console.log('Form validity:', isValid)
 
-    if (!isValid) {
-      console.log('Form is invalid, not submitting')
-      return
-    }
+    // if (!isValid) {
+    //   console.log('Form is invalid, not submitting')
+    //   return
+    // }
 
-    console.log('Submitting data:', data)
+    // console.log('Submitting data:', data)
 
     const selectedDate = new Date(transaction_date)
     const now = new Date()
@@ -249,59 +245,60 @@ const AddNewEntry = () => {
     }
     // Add conditional fields based on possession_type
     if (possession_type === 'death') {
-      payload.reason_for_death = data.reason_for_death
-      payload.death_date = moment.utc(data.death_date).format('YYYY-MM-DD HH:mm:ss')
-      payload.animal_id = data.animal_id
+      payload.reason_for_death = reason_for_death
+      payload.death_date = moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss')
+      payload.animal_id = animal_id
+      payload.animal_count = 1
     } else {
       payload.animal_count = animal_count
     }
     if (possession_type === 'transfer') {
-      payload.where_to_transfer = data.organization_transfer
+      payload.where_to_transfer = organization_transfer
     } else if (possession_type === 'acquisition') {
-      payload.organization_acquire = data.organization_acquire
-      payload.dgft_number = data.dgft_number
-      payload.dgft_attachments = data.dgft_attachments
-      payload.cites_required = data.cites_required
+      payload.organization_acquire = organization_acquire
+      payload.dgft_number = dgft_number
+      payload.dgft_attachment = dgft_attachments
+      payload.cites_required = cites_required
       if (data.cites_required === 'Yes') {
-        payload.select_appendix = data.select_appendix
-        payload.cites_number = data.cites_number
+        payload.cites_appendix = select_appendix
+        payload.cites_numbers = cites_number
       }
     }
 
     console.log(payload, 'payload')
 
-    // try {
-    //   setBtnLoader(true)
-    //   const response = isEditMode
-    //     ? await updateSpeciesToOrganization(payload, editParams?.id)
-    //     : await addSpeciesToOrganization(payload)
+    try {
+      setBtnLoader(true)
+      const response = isEditMode
+        ? await updateSpeciesToOrganization(payload, editParams?.id)
+        : await addSpeciesToOrganization(payload)
 
-    //   if (response?.success) {
-    //     router.back()
-    //     resetForm()
-    //     Toaster({ type: 'success', message: response?.message })
-    //   } else {
-    //     Toaster({ type: 'error', message: response?.message })
-    //   }
-    // } catch (error) {
-    //   console.log('error', error)
-    // } finally {
-    //   setBtnLoader(false)
-    // }
+      if (response?.success) {
+        resetForm()
+        router.back()
+        Toaster({ type: 'success', message: response?.message })
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.log('error', error)
+    } finally {
+      setBtnLoader(false)
+    }
   }
 
-  const RenderSidebarFooter = () => {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-        <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
-          {'Save'}
-        </LoadingButton>
-        <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
-          Cancel
-        </Button>
-      </Box>
-    )
-  }
+  // const RenderSidebarFooter = () => {
+  //   return (
+  //     <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }} onClick={testcheck}>
+  //       <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
+  //         {'Save'}
+  //       </LoadingButton>
+  //       <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
+  //         Cancel
+  //       </Button>
+  //     </Box>
+  //   )
+  // }
 
   const searchTableData = useCallback(
     debounce(async q => {
@@ -415,10 +412,12 @@ const AddNewEntry = () => {
     },
     onDrop: acceptedFiles => {
       const filePromises = acceptedFiles.map(file => {
+        console.log(file, 'file')
         return new Promise(resolve => {
           const reader = new FileReader()
+          console.log(reader, reader.result, 'result')
           reader.onloadend = () => {
-            resolve({ name: file.name, fileSrc: reader.result })
+            resolve({ name: file.name, fileSrc: reader.result, file })
           }
           reader.readAsDataURL(file)
         })
@@ -432,6 +431,7 @@ const AddNewEntry = () => {
 
           // Update attachments in the form
           const currentFiles = getValues('attachments') || []
+          console.log(acceptedFiles, 'currentFiles')
           setValue('attachments', [...currentFiles, ...acceptedFiles])
 
           clearErrors('attachments')
@@ -442,6 +442,7 @@ const AddNewEntry = () => {
         })
     }
   })
+
   const removeSelectedImage = index => {
     setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
     setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
@@ -915,6 +916,7 @@ const AddNewEntry = () => {
                             setValue('cites_number', '')
                             setValue('animal_id', '')
                             setValue('attachments', [])
+                            setValue('dgft_attachments', [])
                             setImgSrc([])
                             setDisplayFile([])
                             setDgftDisplayFile([])
@@ -945,6 +947,7 @@ const AddNewEntry = () => {
                   watch={watch}
                   getValues={getValues}
                   setValue={setValue}
+                  clearErrors={clearErrors}
                   getIconByFileType={getIconByFileType}
                   truncateFilename={truncateFilename}
                   reasonType={reasonType}
@@ -954,7 +957,6 @@ const AddNewEntry = () => {
               )}
 
               <Divider />
-              {/* {renderFile()} */}
 
               <>
                 <Typography sx={{ mb: 6, mt: 6 }}>Attachments</Typography>
@@ -1081,7 +1083,15 @@ const AddNewEntry = () => {
                 </Grid>
               </>
               {/* <Button onClick={onSubmit}>save</Button> */}
-              <RenderSidebarFooter />
+
+              <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
+                <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
+                  {'Save'}
+                </LoadingButton>
+                <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
+                  Cancel
+                </Button>
+              </Box>
             </form>
           </CardContent>
         </Box>

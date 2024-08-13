@@ -29,7 +29,8 @@ const AcquisitionFields = ({
   dgftDisplayFile,
   setDgftDisplayFile,
   getValues,
-  setValue
+  setValue,
+  clearErrors
 }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
@@ -390,9 +391,9 @@ const AcquisitionFields = ({
                       error={Boolean(errors.select_appendix)}
                       //   helperText={errors.select_appendix?.message}
                     >
-                      <MenuItem value='Appendix_I'>Appendix I</MenuItem>
-                      <MenuItem value='Appendix_II'>Appendix II</MenuItem>
-                      <MenuItem value='Appendix_III'>Appendix III</MenuItem>
+                      <MenuItem value='Appendix-1'>Appendix I</MenuItem>
+                      <MenuItem value='Appendix-2'>Appendix II</MenuItem>
+                      <MenuItem value='Appendix-3'>Appendix III</MenuItem>
                     </TextField>
                   )}
                 />

@@ -1,15 +1,22 @@
 import React from 'react'
-import { Box, Grid, Avatar, Typography, Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material'
+import { Box, Grid, Avatar, Typography, Dialog, DialogTitle, DialogContent, IconButton, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
+import { useAuth } from 'src/hooks/useAuth'
+import { useTheme } from '@emotion/react'
+import { usePariveshContext } from 'src/context/PariveshContext'
 
 const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
+  const { selectedParivesh } = usePariveshContext()
+  const auth = useAuth()
+  const theme = useTheme()
   const borderColor = '#ccc'
   const backgroundColor = '#E1F9ED'
   const titleBackgroundColor = '#FFFFFF'
   const iconBackgroundColor = '#EFF5F2'
   const labelColor = '#7A8684'
   const valueColor = '#1F515B'
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
 
   const renderDetailRow = (label, value) => (
     <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -47,6 +54,32 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
   const capitalizeFirstLetter = str => {
     if (!str) return ''
     return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
+  const getIconByFileType = fileName => {
+    const extension = fileName?.split('.').pop().toLowerCase()
+    switch (extension) {
+      case 'pdf':
+        return { icon: imgPath?.pdf?.image_path, bgColor: imgPath?.pdf?.bg_color }
+      case 'xls':
+      case 'xlsx':
+        return { icon: imgPath?.xls?.image_path, bgColor: imgPath?.xls?.bg_color }
+      case 'doc':
+      case 'docx':
+        return { icon: imgPath?.document?.image_path, bgColor: imgPath?.document?.bg_color }
+      case 'mp3':
+      case 'wav':
+      case 'ogg':
+        return { icon: imgPath?.audio?.image_path, bgColor: imgPath?.audio?.bg_color }
+      default:
+        return { icon: imgPath?.default?.image_path, bgColor: imgPath?.default?.bg_color }
+    }
+  }
+  const truncateFilename = (filename, maxLength = 16) => {
+    if (filename.length <= maxLength) return filename
+    const start = filename.slice(0, Math.floor(maxLength / 2))
+    const end = filename.slice(-Math.floor(maxLength / 2))
+    return `${start}...${end}`
   }
 
   return (
@@ -102,19 +135,36 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
 
           <Box sx={{ pl: 6, pr: 6, pb: 3 }}>
             {renderDetailRow('Gender', capitalizeFirstLetter(detailData?.gender))}
-            {renderDetailRow('Total Count', detailData?.animal_count)}
+            {detailData?.possession_type === 'acquisition' &&
+              renderDetailRow('Acquired from', capitalizeFirstLetter(detailData?.where_to))}
+
+            {detailData?.possession_type === 'death' &&
+              renderDetailRow('Animal ID', capitalizeFirstLetter(detailData?.animal_id))}
+
+            {detailData?.possession_type !== 'death' && renderDetailRow('Total Count', detailData?.animal_count)}
 
             {detailData?.possession_type === 'transfer' && (
               <>
-                {renderDetailRow('Transfer From', '-')}
-                {renderDetailRow('Transfer To', '-')}
+                {renderDetailRow('Transfer From', capitalizeFirstLetter(selectedParivesh?.organization_name))}
+                {renderDetailRow('Transfer To', detailData?.where_to_transfer)}
               </>
             )}
 
             {detailData?.possession_type === 'death' && (
               <>
-                {renderDetailRow('Date Of Death', detailData?.date_of_death)}
+                {renderDetailRow(
+                  'Date Of Death',
+                  detailData?.death_date
+                    ? `${Utility.formatDisplayDate(Utility.convertUTCToLocal(detailData?.death_date))} `
+                    : '-'
+                )}
                 {renderDetailRow('Reason For Death', detailData?.reason_for_death)}
+              </>
+            )}
+            {detailData?.possession_type === 'acquisition' && (
+              <>
+                {renderDetailRow('DGFT ID', capitalizeFirstLetter(detailData?.dgft_number))}
+                {renderDetailRow('CITES Category', capitalizeFirstLetter(detailData?.cites_appendix))}
               </>
             )}
 
@@ -125,30 +175,98 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
                 ? `${Utility.formatDisplayDate(
                     Utility.convertUTCToLocal(detailData?.transaction_date)
                   )} ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(detailData?.transaction_date))}`
-                : '16 Jun 2024 10:20 AM'
+                : '-'
             )}
           </Box>
         </Box>
 
-        <Box mt={6}>
-          <Typography variant='body1' color={labelColor}>
-            Attachments:
-          </Typography>
-          {/* <Box display='flex' mt={1}>
-            <Box display='flex' alignItems='center' mr={2}>
-              <Icon icon='mdi:file-document-outline' color='#00afd6' />
-              <Typography variant='body2' ml={1}>
-                report.doc
-              </Typography>
-            </Box>
-            <Box display='flex' alignItems='center'>
-              <Icon icon='mdi:file-pdf-box' color='#ff5722' />
-              <Typography variant='body2' ml={1}>
-                report.pdf
-              </Typography>
-            </Box>
-          </Box> */}
-        </Box>
+        {detailData?.attachments?.length > 0 && (
+          <Box mt={6}>
+            <Typography variant='body1' color={labelColor}>
+              Attachments:
+            </Typography>
+
+            <Grid
+              container
+              direction={{ xs: 'column', sm: 'row' }} // Column for small screens, row for larger screens
+              spacing={2}
+              sx={{ mt: 2 }}
+            >
+              {detailData?.attachments?.map((src, index) => {
+                const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.attachment_name)
+
+                return (
+                  <Grid
+                    item
+                    xs={12}
+                    sm='auto'
+                    md='auto'
+                    lg='auto'
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'row', sm: 'column' }, // Row on small screens, column on larger
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: '8px',
+                        boxSizing: 'border-box',
+                        width: { xs: '100%', sm: 'auto' },
+                        height: '60px',
+                        bgcolor: isImage ? '#f0f0f0' : getIconByFileType(src?.attachment_name)?.bgColor
+                      }}
+                    >
+                      {isImage ? (
+                        <img
+                          style={{
+                            height: '60px',
+                            width: '60px',
+                            borderRadius: '20%',
+                            objectFit: 'cover',
+                            padding: '8px'
+                          }}
+                          alt={`Uploaded image ${index + 1}`}
+                          src={src?.attachment}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            padding: '4px',
+                            paddingRight: '16px'
+                          }}
+                        >
+                          <img
+                            src={getIconByFileType(src?.attachment)?.icon}
+                            alt=''
+                            style={{
+                              height: '40px',
+                              width: '40px'
+                            }}
+                          />
+                          <Tooltip title={src?.attachment_name}>
+                            <Typography variant='body2' color='textSecondary'>
+                              {truncateFilename(src?.attachment_name)}
+                            </Typography>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Box>
+                  </Grid>
+                )
+              })}
+            </Grid>
+          </Box>
+        )}
       </DialogContent>
     </Dialog>
   )
