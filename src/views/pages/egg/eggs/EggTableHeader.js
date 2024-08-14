@@ -21,6 +21,18 @@ const EggTableHeader = ({
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [searchQuery, setSearchQuery] = useState(search_value || '')
 
+  const [selectedOptions, setSelectedOptions] = useState({
+    Stage: [],
+    Nursery: [],
+    Site: [],
+    'Collected By': [],
+    collected_date: null,
+    status: null,
+    'Discarded By': [],
+    discarded_Date: null,
+    'Security Check': []
+  })
+
   // const handleRemoveFilter = item => {
   //   // Remove the item from the filterList
   //   const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
@@ -80,6 +92,7 @@ const EggTableHeader = ({
 
     // Update the state with the new selected filters
     setSelectedFiltersOptions(newSelectedFilters)
+    setSelectedOptions(newSelectedFilters)
 
     // Optionally refetch the table data if needed
     // fetchTableData();
@@ -200,6 +213,8 @@ const EggTableHeader = ({
         openFilterDrawer={openFilterDrawer}
         setFilterList={setFilterList}
         setSelectedFiltersOptions={setSelectedFiltersOptions}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
       />
     </>
   )

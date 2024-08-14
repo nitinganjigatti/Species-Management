@@ -27,7 +27,14 @@ import moment from 'moment'
 import { DatePicker } from '@mui/x-date-pickers'
 import { useRouter } from 'next/router'
 
-const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList, setSelectedFiltersOptions }) => {
+const EggFilterDrawer = ({
+  openFilterDrawer,
+  setOpenFilterDrawer,
+  setFilterList,
+  setSelectedFiltersOptions,
+  selectedOptions,
+  setSelectedOptions
+}) => {
   const theme = useTheme()
   const router = useRouter()
   const { tab_Value = 'eggs_received', subTab_value } = router.query
@@ -56,7 +63,8 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
   ]
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
-  console.log('selectedMenu :>> ', selectedMenu)
+
+  // console.log('selectedMenu :>> ', selectedMenu)
 
   useEffect(() => {
     if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded') {
@@ -80,19 +88,17 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
 
   const [selectedDropdownID, setSelectedDropdownId] = useState('1')
 
-  const [selectedOptions, setSelectedOptions] = useState({
-    Stage: [],
-    Nursery: [],
-    Site: [],
-    'Collected By': [],
-    collected_date: null,
-    status: null,
-    'Discarded By': [],
-    discarded_Date: null,
-    'Security Check': []
-  })
-
-  console.log('selectedOptions :>>', selectedOptions)
+  // const [selectedOptions, setSelectedOptions] = useState({
+  //   Stage: [],
+  //   Nursery: [],
+  //   Site: [],
+  //   'Collected By': [],
+  //   collected_date: null,
+  //   status: null,
+  //   'Discarded By': [],
+  //   discarded_Date: null,
+  //   'Security Check': []
+  // })
 
   const [selectedDate, setSelectedDate] = useState(null)
 
