@@ -261,7 +261,7 @@ const AddNewEntry = () => {
       payload.dgft_number = dgft_number
       payload.dgft_attachment = dgft_attachments
       payload.cites_required = cites_required
-      if (data.cites_required === 'Yes') {
+      if (data.cites_required === 'yes') {
         payload.cites_appendix = cites_appendix
         payload.cites_numbers = cites_numbers
       }
@@ -269,24 +269,24 @@ const AddNewEntry = () => {
 
     console.log(payload, 'payload')
 
-    // try {
-    //   setBtnLoader(true)
-    //   const response = isEditMode
-    //     ? await updateSpeciesToOrganization(payload, editParams?.id)
-    //     : await addSpeciesToOrganization(payload)
+    try {
+      setBtnLoader(true)
+      const response = isEditMode
+        ? await updateSpeciesToOrganization(payload, editParams?.id)
+        : await addSpeciesToOrganization(payload)
 
-    //   if (response?.success) {
-    //     resetForm()
-    //     router.back()
-    //     Toaster({ type: 'success', message: response?.message })
-    //   } else {
-    //     Toaster({ type: 'error', message: response?.message })
-    //   }
-    // } catch (error) {
-    //   console.log('error', error)
-    // } finally {
-    //   setBtnLoader(false)
-    // }
+      if (response?.success) {
+        resetForm()
+        router.back()
+        Toaster({ type: 'success', message: response?.message })
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      console.log('error', error)
+    } finally {
+      setBtnLoader(false)
+    }
   }
 
   const searchTableData = useCallback(
@@ -1101,16 +1101,16 @@ const AddNewEntry = () => {
                   })}
                 </Grid>
               </>
-              <Button onClick={onSubmit}>save</Button>
+              {/* <Button onClick={onSubmit}>save</Button> */}
 
-              {/* <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
                 <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
                   {'Save'}
                 </LoadingButton>
                 <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
                   Cancel
                 </Button>
-              </Box> */}
+              </Box>
             </form>
           </CardContent>
         </Box>

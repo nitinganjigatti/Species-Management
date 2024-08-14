@@ -375,7 +375,7 @@ const AcquisitionFields = ({
             </FormControl>
           </Grid>
         </Grid>
-        {watch('cites_required') === ('yes' || '0') && (
+        {watch('cites_required') === 'yes' && (
           <Grid container spacing={2} sx={{ mb: 6 }}>
             <Grid item xs={12} sm={3}>
               <FormControl fullWidth>
