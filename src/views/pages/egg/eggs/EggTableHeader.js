@@ -53,23 +53,21 @@ const EggTableHeader = ({
   // }
 
   const handleRemoveFilter = item => {
-    // Remove the item from the filterList
-    console.log('item :>> ', item)
     const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
     setFilterList(updatedFilterList)
 
-    // Remove the item from the selectedFiltersOptions
     const newSelectedFilters = { ...selectedFiltersOptions }
-    console.log('newSelectedFilters :>> ', newSelectedFilters)
+
+    // console.log('newSelectedFilters :>> ', newSelectedFilters)
 
     if (item?.id === 'collected_date') {
       newSelectedFilters.collected_date = null
     } else if (item?.id === 'search') {
-      setSearchQuery('') // Clear the search query
-      handleSearch('') // Trigger a search with an empty value
+      setSearchQuery('')
+      handleSearch('')
       router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
     } else {
-      newSelectedFilters.status = null // Remove the status filter
+      newSelectedFilters.status = null
     }
 
     for (const category in newSelectedFilters) {

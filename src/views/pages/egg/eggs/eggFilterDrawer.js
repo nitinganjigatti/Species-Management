@@ -55,16 +55,14 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
     { id: 6, name: 'Security Check' }
   ]
 
-  const [selectedMenu, setSelectedMenu] = useState()
+  const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   console.log('selectedMenu :>> ', selectedMenu)
 
   useEffect(() => {
     if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded') {
       setSelectedMenu(discardMenu[0])
-    } else {
-      setSelectedMenu(leftMenu[0])
     }
-  }, [selectedMenu])
+  }, [])
 
   const authData = useContext(AuthContext)
 
@@ -553,7 +551,9 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
                 scrollbarWidth: 'none' // Hide scrollbar for Firefox
               }}
             >
-              {selectedMenu?.name === 'Collected Date' || selectedMenu?.name === 'Discarded Date' ? null : (
+              {selectedMenu?.name === 'Collected Date' ||
+              selectedMenu?.name === 'Discarded Date' ||
+              selectedMenu?.name === 'Stage' ? null : (
                 <>
                   <Box
                     sx={{
@@ -630,17 +630,16 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
                       </Typography>
                     </Box>
                   ))}
-                  {selectedMenu?.name === 'Collected Date' ||
-                    (selectedMenu?.name === 'Discarded Date' && (
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DatePicker
-                          sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
-                          maxDate={dayjs()}
-                          value={selectedDate}
-                          onChange={handleDateChange}
-                        />
-                      </LocalizationProvider>
-                    ))}
+                  {(selectedMenu?.name === 'Collected Date' || selectedMenu?.name === 'Discarded Date') && (
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
+                        maxDate={dayjs()}
+                        value={selectedDate}
+                        onChange={handleDateChange}
+                      />
+                    </LocalizationProvider>
+                  )}
                 </Box>
               )}
             </Box>
