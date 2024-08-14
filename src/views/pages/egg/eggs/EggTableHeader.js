@@ -21,13 +21,46 @@ const EggTableHeader = ({
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [searchQuery, setSearchQuery] = useState(search_value || '')
 
+  // const handleRemoveFilter = item => {
+  //   // Remove the item from the filterList
+  //   const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
+  //   setFilterList(updatedFilterList)
+
+  //   // Remove the item from the selectedFiltersOptions
+  //   const newSelectedFilters = { ...selectedFiltersOptions }
+
+  //   if (item?.id === 'collected_date') {
+  //     newSelectedFilters.collected_date = null
+  //   } else if (item?.id === 'search') {
+  //     setSearchQuery('') // Clear the search query
+  //     handleSearch('') // Trigger a search with an empty value
+  //     router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
+  //   }
+
+  //   for (const category in newSelectedFilters) {
+  //     if (Array.isArray(newSelectedFilters[category])) {
+  //       newSelectedFilters[category] = newSelectedFilters[category].filter(
+  //         filter => filter.id !== item.id || filter.name !== item.name
+  //       )
+  //     }
+  //   }
+
+  //   // Update the state with the new selected filters
+  //   setSelectedFiltersOptions(newSelectedFilters)
+
+  //   // Optionally refetch the table data if needed
+  //   // fetchTableData();
+  // }
+
   const handleRemoveFilter = item => {
     // Remove the item from the filterList
+    console.log('item :>> ', item)
     const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
     setFilterList(updatedFilterList)
 
     // Remove the item from the selectedFiltersOptions
     const newSelectedFilters = { ...selectedFiltersOptions }
+    console.log('newSelectedFilters :>> ', newSelectedFilters)
 
     if (item?.id === 'collected_date') {
       newSelectedFilters.collected_date = null
@@ -35,6 +68,8 @@ const EggTableHeader = ({
       setSearchQuery('') // Clear the search query
       handleSearch('') // Trigger a search with an empty value
       router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
+    } else {
+      newSelectedFilters.status = null // Remove the status filter
     }
 
     for (const category in newSelectedFilters) {

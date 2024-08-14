@@ -1408,7 +1408,8 @@ const EggList = () => {
                 lineHeight: '19.36px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                textAlign: 'center'
               }}
             >
               {params.row.egg_state ? params.row.egg_state : '-'}
@@ -1438,24 +1439,24 @@ const EggList = () => {
       )
     },
 
-    {
-      width: 140,
-      sortable: false,
-      field: 'batch_no',
-      headerName: 'Batch NO',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.batch_no ? params.row.batch_no : '-'}
-        </Typography>
-      )
-    },
+    // {
+    //   width: 140,
+    //   sortable: false,
+    //   field: 'batch_no',
+    //   headerName: 'Batch NO',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px'
+    //       }}
+    //     >
+    //       {params.row.batch_no ? params.row.batch_no : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   width: 160,
@@ -1686,6 +1687,8 @@ const EggList = () => {
     setSearchValue('')
     setFilterList([])
     setSelectedFiltersOptions({})
+    setPaginationModel({ page: 0, pageSize: 10 })
+    router.push({ query: { ...router.query, tab_Value: newValue, page_value: 0 } }, undefined, { shallow: true })
   }
 
   const handleTabs = (event, newValue) => {
@@ -1695,23 +1698,26 @@ const EggList = () => {
     setSubTab(newValue)
     setFilterList([])
     setSelectedFiltersOptions({})
+    setPaginationModel({ page: 0, pageSize: 10 })
+
+    router.push({ query: { ...router.query, subTab_value: newValue, page_value: 0 } }, undefined, { shallow: true })
   }
 
   const fetchTableData = useCallback(
-    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions) => {
+    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}) => {
       // debugger
 
       try {
         setLoading(true)
 
         // Extracting IDs from selectedFiltersOptions
-        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id)
-        const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id)
+        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || ''
+        const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || ''
 
-        // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id)
-        const collectedByIds = selectedFiltersOptions['Collected By']?.map(option => option.id)
-        const siteIds = selectedFiltersOptions.Site?.map(option => option.id)
-        const statusId = [selectedFiltersOptions.status]
+        // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
+        const collectedByIds = selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
+        const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
+        const statusId = [selectedFiltersOptions.status?.id] || ''
 
         const collectedDate = selectedFiltersOptions.collected_date
           ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
@@ -1727,13 +1733,14 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryIds ? nurseryIds : '',
+          nursery_id: nurseryIds.length > 0 ? nurseryIds : '',
           egg_state_id: eggStateIds ? eggStateIds : [],
           collected_by: collectedByIds ? collectedByIds : [],
           site_id: siteIds ? siteIds : [],
 
-          egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : []) : [],
+          // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : []) : [],
 
+          egg_status_id: statusId ? statusId : '',
           collected_date: collectedDate ? collectedDate : '',
 
           type:
@@ -2246,7 +2253,14 @@ const EggList = () => {
                         setSelectedFiltersOptions={setSelectedFiltersOptions}
                         selectedFiltersOptions={selectedFiltersOptions}
                       /> */}
-                      <DiscardedTableView filterList={filterList} setTotal={setTotal} />
+                      <DiscardedTableView
+                        tabValue={status}
+                        setFilterList={setFilterList}
+                        filterList={filterList}
+                        setSelectedFiltersOptions={setSelectedFiltersOptions}
+                        selectedFiltersOptions={selectedFiltersOptions}
+                        setTotal={setTotal}
+                      />
                     </>
                   </TabPanel>
                   <TabPanel

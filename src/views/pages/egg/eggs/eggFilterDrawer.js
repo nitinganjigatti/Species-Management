@@ -25,22 +25,62 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import moment from 'moment'
 import { DatePicker } from '@mui/x-date-pickers'
+import { useRouter } from 'next/router'
 
 const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList, setSelectedFiltersOptions }) => {
   const theme = useTheme()
-  const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
+  const router = useRouter()
+  const { tab_Value = 'eggs_received', subTab_value } = router.query
+
+  // console.log('tab_Value f :>> ', tab_Value)
+
+  const leftMenu = [
+    { id: 1, name: 'Stage' },
+    { id: 2, name: 'Site' },
+    { id: 3, name: 'Nursery' },
+    { id: 4, name: 'Collected Date' },
+    { id: 5, name: 'Collected By' }
+
+    // { id: 6, name: 'Enclosure' }
+  ].filter(menu => (tab_Value !== 'eggs_received' && tab_Value !== 'eggs_hatched' ? true : menu.name !== 'Stage'))
+
+  const discardMenu = [
+    { id: 2, name: 'Site' },
+    { id: 3, name: 'Nursery' },
+    {
+      id: 4,
+      name: 'Discarded Date'
+    },
+    { id: 5, name: 'Discarded By' },
+    { id: 6, name: 'Security Check' }
+  ]
+
+  const [selectedMenu, setSelectedMenu] = useState()
+  console.log('selectedMenu :>> ', selectedMenu)
+
+  useEffect(() => {
+    if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded') {
+      setSelectedMenu(discardMenu[0])
+    } else {
+      setSelectedMenu(leftMenu[0])
+    }
+  }, [selectedMenu])
 
   const authData = useContext(AuthContext)
 
   const [selectAll, setSelectAll] = useState(false)
 
   const [eggStage, setEggStage] = useState([])
+
+  // console.log('eggStage :>> ', eggStage)
   const [nurseryList, setNurseryList] = useState([])
   const [siteList, setSiteList] = useState([])
   const [collectedByList, setCollectedByList] = useState([])
+  const [discardedByList, setDiscardedByList] = useState([])
+
   const [eggMaster, setEggMaster] = useState(null)
 
-  const [selectedDropdownID, setSelectedDropdownId] = useState(null)
+  const [selectedDropdownID, setSelectedDropdownId] = useState('1')
 
   const [selectedOptions, setSelectedOptions] = useState({
     Stage: [],
@@ -48,12 +88,21 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
     Site: [],
     'Collected By': [],
     collected_date: null,
-    status: null
+    status: null,
+    'Discarded By': [],
+    discarded_Date: null,
+    'Security Check': []
   })
+
+  console.log('selectedOptions :>>', selectedOptions)
 
   const [selectedDate, setSelectedDate] = useState(null)
 
   const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    setSelectedMenu(leftMenu[0])
+  }, [tab_Value])
 
   const getEggMasterData = async () => {
     try {
@@ -61,7 +110,7 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
         if (res.success) {
           setEggMaster(res?.data)
 
-          // setEggStage(res?.data?.egg_state)
+          setEggStage(res?.data?.egg_state)
 
           setSelectedDropdownId(res?.data?.egg_state[0]?.id)
         }
@@ -105,10 +154,31 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
     }
   }
 
+  const DiscardedByList = async search => {
+    try {
+      const params = {
+        type: 'discard',
+        q: search ? search : ''
+
+        // page: 1,
+        // limit: 50
+      }
+      await getCollectedByList({ params: params }).then(res => {
+        setDiscardedByList(res?.data?.data?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
   useEffect(() => {
     getEggMasterData()
     NurseryList()
+
     CollectedByList()
+
+    DiscardedByList()
+
     if (authData?.userData?.user?.zoos[0]?.sites.length > 0) {
       setSiteList(authData?.userData?.user?.zoos[0].sites)
     }
@@ -116,8 +186,8 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
 
   useEffect(() => {
     if (selectedDropdownID && eggMaster) {
-      const filteredEggStatus = eggMaster?.egg_state?.filter(status => status?.egg_status_id === selectedDropdownID)
-      setEggStage(filteredEggStatus)
+      const filteredEggStage = eggMaster?.egg_state?.filter(status => status?.egg_status_id === selectedDropdownID)
+      setEggStage(filteredEggStage)
 
       setSelectedOptions(prevSelectedOptions => ({
         ...prevSelectedOptions,
@@ -147,25 +217,38 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
   }
 
   const handleApplyFilter = () => {
-    // Format the date correctly using dayjs
+    setSearchQuery('')
+    searchData('')
     const formattedDate = selectedDate ? dayjs(selectedDate).format('DD MMM YYYY') : ''
+
+    // Find the status name based on the ID
+    const statusName = eggMaster?.egg_status?.find(status => status.id === selectedOptions.status)?.egg_status
 
     const updatedSelectedOptions = {
       ...selectedOptions,
-      collected_date: selectedDate
+      collected_date: selectedDate,
+      status: { id: selectedOptions.status, name: statusName } // Add both id and name
     }
 
     const combinedSelectedOptions = [
       ...updatedSelectedOptions.Stage,
       ...updatedSelectedOptions.Nursery,
       ...updatedSelectedOptions.Site,
+      ...updatedSelectedOptions['Security Check'],
+      ...updatedSelectedOptions['Discarded By'],
+
       ...updatedSelectedOptions['Collected By'],
-      ...(formattedDate ? [{ id: 'collected_date', name: formattedDate }] : [])
+      ...(formattedDate ? [{ id: 'collected_date', name: formattedDate }] : []),
+
+      // ...(formattedDate ? [{ id: 'discarded_date', name: formattedDate }] : []),
+
+      ...(tab_Value === 'all' && updatedSelectedOptions.status
+        ? [{ id: updatedSelectedOptions.status.id, name: updatedSelectedOptions.status.name }]
+        : [])
     ]
 
-    // console.log('Combined Selected Options:', combinedSelectedOptions)
-
     setSelectedFiltersOptions(updatedSelectedOptions)
+    console.log('combinedSelectedOptions :>> ', combinedSelectedOptions)
     setFilterList(combinedSelectedOptions)
     setOpenFilterDrawer(false)
   }
@@ -193,8 +276,30 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
     }
   }
 
+  // const handleCheckboxChange = (id, name) => {
+  //   const currentSelectedOptions = selectedOptions[selectedMenu.name]
+  //   const isChecked = currentSelectedOptions?.some(option => option.id === id)
+
+  //   const newSelectedOptions = isChecked
+  //     ? currentSelectedOptions.filter(option => option.id !== id)
+  //     : [...currentSelectedOptions, { id, name }]
+
+  //   const allOptions = getOptionsForMenu(selectedMenu)
+  //   const areAllSelected = newSelectedOptions.length === allOptions.length
+
+  //   setSelectedOptions({
+  //     ...selectedOptions,
+  //     [selectedMenu.name]: newSelectedOptions
+  //   })
+
+  //   setSelectAll(areAllSelected)
+
+  //   // console.log('Updated Selection: ')
+  // }
+
   const handleCheckboxChange = (id, name) => {
-    const currentSelectedOptions = selectedOptions[selectedMenu.name]
+    // Default to empty array if currentSelectedOptions is not defined
+    const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
     const isChecked = currentSelectedOptions.some(option => option.id === id)
 
     const newSelectedOptions = isChecked
@@ -210,23 +315,67 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
     })
 
     setSelectAll(areAllSelected)
-
-    // console.log('Updated Selection: ')
   }
 
   const getOptionsForMenu = menu => {
     switch (menu.name) {
       case 'Stage':
-        return eggStage.map(stage => ({ id: stage?.id, name: stage.egg_state }))
+        if (tab_Value === 'eggs_incubation') {
+          const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '2')
+
+          return filteredEggStage?.map(stage => ({
+            id: stage.id,
+            name: stage.egg_state
+          }))
+        } else if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+          const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
+
+          return filteredEggStage?.map(stage => ({
+            id: stage.id,
+            name: stage.egg_state
+          }))
+        } else if (tab_Value === 'all') {
+          const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === selectedDropdownID)
+
+          return filteredEggStage?.map(stage => ({
+            id: stage.id,
+            name: stage.egg_state
+          }))
+        }
+        break
       case 'Nursery':
-        return nurseryList.map(nursery => ({
-          id: nursery.nursery_id, // Ensure you use the correct field name
-          name: nursery.nursery_name
-        }))
+        return (
+          nurseryList?.map(nursery => ({
+            id: nursery.nursery_id,
+            name: nursery.nursery_name
+          })) || []
+        )
       case 'Site':
-        return siteList.map(site => ({ id: site.site_id, name: site.site_name }))
+        return (
+          siteList?.map(site => ({
+            id: site.site_id,
+            name: site.site_name
+          })) || []
+        )
       case 'Collected By':
-        return collectedByList.map(list => ({ id: list.user_id, name: list.user_full_name }))
+        return (
+          collectedByList?.map(list => ({
+            id: list.user_id,
+            name: list.user_full_name
+          })) || []
+        )
+      case 'Discarded By':
+        return (
+          discardedByList?.map(list => ({
+            id: list.user_id,
+            name: list.user_full_name
+          })) || []
+        )
+      case 'Security Check':
+        return [
+          { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
+          { id: 'COMPLETED', name: 'Security Checked' }
+        ]
       default:
         return []
     }
@@ -239,10 +388,17 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
     // Assuming newDate is a Day.js object
     setSelectedDate(newDate)
 
-    setSelectedOptions(prevSelectedOptions => ({
-      ...prevSelectedOptions,
-      collected_date: newDate
-    }))
+    if (selectedMenu?.name === 'Discarded Date') {
+      setSelectedOptions(prevSelectedOptions => ({
+        ...prevSelectedOptions,
+        discarded_Date: newDate
+      }))
+    } else {
+      setSelectedOptions(prevSelectedOptions => ({
+        ...prevSelectedOptions,
+        collected_date: newDate
+      }))
+    }
   }
 
   const searchData = useCallback(
@@ -254,6 +410,8 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
           await NurseryList(search)
         } else if (selectedMenu.name === 'Collected By') {
           await CollectedByList(search)
+        } else if (selectedMenu.name === 'Discarded By') {
+          await DiscardedByList(search)
         } else if (selectedMenu.name === 'Site') {
           const filtered = siteList.filter(site => site.site_name.toLowerCase().includes(search.toLowerCase()))
           if (search) {
@@ -340,24 +498,43 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item md={4} sm={4} xs={4}>
-            {leftMenu.map(menu => (
-              <Box
-                key={menu.id}
-                sx={{
-                  width: '190px',
-                  bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                  cursor: 'pointer',
-                  p: 4,
-                  borderTopLeftRadius: '8px',
-                  borderBottomLeftRadius: '8px'
-                }}
-                onClick={() => handleMenuClick(menu)}
-              >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                  {menu.name}
-                </Typography>
-              </Box>
-            ))}
+            {tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded'
+              ? discardMenu.map(menu => (
+                  <Box
+                    key={menu.id}
+                    sx={{
+                      width: '190px',
+                      bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                      cursor: 'pointer',
+                      p: 4,
+                      borderTopLeftRadius: '8px',
+                      borderBottomLeftRadius: '8px'
+                    }}
+                    onClick={() => handleMenuClick(menu)}
+                  >
+                    <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                      {menu.name}
+                    </Typography>
+                  </Box>
+                ))
+              : leftMenu.map(menu => (
+                  <Box
+                    key={menu.id}
+                    sx={{
+                      width: '190px',
+                      bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                      cursor: 'pointer',
+                      p: 4,
+                      borderTopLeftRadius: '8px',
+                      borderBottomLeftRadius: '8px'
+                    }}
+                    onClick={() => handleMenuClick(menu)}
+                  >
+                    <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                      {menu.name}
+                    </Typography>
+                  </Box>
+                ))}
           </Grid>
           <Grid item md={8} sm={8} xs={8}>
             <Box
@@ -376,7 +553,7 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
                 scrollbarWidth: 'none' // Hide scrollbar for Firefox
               }}
             >
-              {selectedMenu?.name === 'Collected Date' ? null : (
+              {selectedMenu?.name === 'Collected Date' || selectedMenu?.name === 'Discarded Date' ? null : (
                 <>
                   <Box
                     sx={{
@@ -421,7 +598,7 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
                 </>
               )}
 
-              {selectedMenu?.name === 'Stage' && (
+              {tab_Value === 'all' && selectedMenu?.name === 'Stage' && (
                 <FormControl fullWidth>
                   <InputLabel id='dropdown-label'>Select Status</InputLabel>
                   <Select
@@ -441,7 +618,7 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
 
               {selectedMenu && (
                 <Box sx={{ mt: 2 }}>
-                  {getOptionsForMenu(selectedMenu).map((option, index) => (
+                  {getOptionsForMenu(selectedMenu)?.map((option, index) => (
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Checkbox
                         checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
@@ -453,16 +630,17 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
                       </Typography>
                     </Box>
                   ))}
-                  {selectedMenu?.name === 'Collected Date' && (
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <DatePicker
-                        sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
-                        maxDate={dayjs()}
-                        value={selectedDate}
-                        onChange={handleDateChange}
-                      />
-                    </LocalizationProvider>
-                  )}
+                  {selectedMenu?.name === 'Collected Date' ||
+                    (selectedMenu?.name === 'Discarded Date' && (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                          sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
+                          maxDate={dayjs()}
+                          value={selectedDate}
+                          onChange={handleDateChange}
+                        />
+                      </LocalizationProvider>
+                    ))}
                 </Box>
               )}
             </Box>
@@ -500,12 +678,3 @@ const EggFilterDrawer = ({ openFilterDrawer, setOpenFilterDrawer, setFilterList,
 }
 
 export default EggFilterDrawer
-
-const leftMenu = [
-  { id: 1, name: 'Stage' },
-  { id: 2, name: 'Site' },
-  { id: 3, name: 'Nursery' },
-  { id: 4, name: 'Collected Date' },
-  { id: 5, name: 'Collected By' },
-  { id: 6, name: 'Enclosure' }
-]
