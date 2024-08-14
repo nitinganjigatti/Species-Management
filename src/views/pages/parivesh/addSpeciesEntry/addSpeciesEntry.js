@@ -230,7 +230,7 @@ const AddSpeciesNewEntry = props => {
     if (possession_type === 'transfer') {
       payload.where_to_transfer = organization_transfer
     } else if (possession_type === 'acquisition') {
-      payload.organization_acquire = organization_acquire
+      payload.where_to_acquisition = organization_acquire
       payload.dgft_number = dgft_number
       payload.dgft_attachment = dgft_attachments
       payload.cites_required = cites_required

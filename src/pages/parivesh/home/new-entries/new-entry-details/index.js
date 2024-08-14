@@ -136,7 +136,7 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
           <Box sx={{ pl: 6, pr: 6, pb: 3 }}>
             {renderDetailRow('Gender', capitalizeFirstLetter(detailData?.gender))}
             {detailData?.possession_type === 'acquisition' &&
-              renderDetailRow('Acquired from', capitalizeFirstLetter(detailData?.where_to))}
+              renderDetailRow('Acquired from', capitalizeFirstLetter(detailData?.where_to_acquisition))}
 
             {detailData?.possession_type === 'death' &&
               renderDetailRow('Animal ID', capitalizeFirstLetter(detailData?.animal_id))}

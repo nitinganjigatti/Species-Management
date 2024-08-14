@@ -110,20 +110,20 @@ const AcquisitionFields = ({
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
-              name='organization_acquire'
+              name='where_to_acquisition'
               control={control}
               render={({ field }) => (
                 <TextField
                   {...field}
                   fullWidth
                   label='Which organization would you acquire?'
-                  error={Boolean(errors.organization_acquire)}
-                  //   helperText={errors.organization_acquire?.message}
+                  error={Boolean(errors.where_to_acquisition)}
+                  //   helperText={errors.where_to_acquisition?.message}
                 />
               )}
             />
-            {errors.organization_acquire && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.organization_acquire?.message}</FormHelperText>
+            {errors.where_to_acquisition && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.where_to_acquisition?.message}</FormHelperText>
             )}
           </FormControl>
         </Grid>
@@ -364,8 +364,8 @@ const AcquisitionFields = ({
                     error={Boolean(errors.cites_required)}
                     // helperText={errors.cites_required?.message}
                   >
-                    <MenuItem value='Yes'>Yes</MenuItem>
-                    <MenuItem value='No'>No</MenuItem>
+                    <MenuItem value='yes'>Yes</MenuItem>
+                    <MenuItem value='no'>No</MenuItem>
                   </TextField>
                 )}
               />
@@ -375,12 +375,12 @@ const AcquisitionFields = ({
             </FormControl>
           </Grid>
         </Grid>
-        {watch('cites_required') === 'Yes' && (
+        {watch('cites_required') === ('yes' || '0') && (
           <Grid container spacing={2} sx={{ mb: 6 }}>
             <Grid item xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
-                  name='select_appendix'
+                  name='cites_appendix'
                   control={control}
                   render={({ field }) => (
                     <TextField
@@ -388,8 +388,8 @@ const AcquisitionFields = ({
                       select
                       fullWidth
                       label='Select Appendix'
-                      error={Boolean(errors.select_appendix)}
-                      //   helperText={errors.select_appendix?.message}
+                      error={Boolean(errors.cites_appendix)}
+                      //   helperText={errors.cites_appendix?.message}
                     >
                       <MenuItem value='Appendix-1'>Appendix I</MenuItem>
                       <MenuItem value='Appendix-2'>Appendix II</MenuItem>
@@ -397,28 +397,28 @@ const AcquisitionFields = ({
                     </TextField>
                   )}
                 />
-                {errors.select_appendix && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.select_appendix?.message}</FormHelperText>
+                {errors.cites_appendix && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.cites_appendix?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
-                  name='cites_number'
+                  name='cites_numbers'
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
                       fullWidth
                       label='CITES Numbers'
-                      error={Boolean(errors.cites_number)}
-                      //   helperText={errors.cites_number?.message}
+                      error={Boolean(errors.cites_numbers)}
+                      //   helperText={errors.cites_numbers?.message}
                     />
                   )}
                 />
-                {errors.cites_number && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.cites_number?.message}</FormHelperText>
+                {errors.cites_numbers && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.cites_numbers?.message}</FormHelperText>
                 )}
               </FormControl>
             </Grid>

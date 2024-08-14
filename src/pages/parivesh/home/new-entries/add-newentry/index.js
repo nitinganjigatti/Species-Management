@@ -64,7 +64,7 @@ const schema = yup.object().shape({
   possession_type: yup.string().required('Reason is Required'),
 
   // Conditional fields for Transfer
-  organization_transfer: yup.string().when('possession_type', {
+  where_to_transfer: yup.string().when('possession_type', {
     is: 'transfer',
     then: () => yup.string().required('Organization for transfer is required'),
     otherwise: () => yup.string().notRequired()
@@ -88,7 +88,7 @@ const schema = yup.object().shape({
   }),
 
   // Conditional fields for Acquisition
-  organization_acquire: yup.string().when('possession_type', {
+  where_to_acquisition: yup.string().when('possession_type', {
     is: 'acquisition',
     then: () => yup.string().required('Organization to acquire from is required'),
     otherwise: () => yup.string().notRequired()
@@ -103,12 +103,12 @@ const schema = yup.object().shape({
     then: () => yup.string().required('CITES required field is required'),
     otherwise: () => yup.string().notRequired()
   }),
-  select_appendix: yup.string().when(['possession_type', 'cites_required'], {
+  cites_appendix: yup.string().when(['possession_type', 'cites_required'], {
     is: (possession_type, cites_required) => possession_type === 'acquisition' && cites_required === 'Yes',
     then: () => yup.string().required('Select Appendix is required'),
     otherwise: () => yup.string().notRequired()
   }),
-  cites_number: yup.string().when(['possession_type', 'cites_required'], {
+  cites_numbers: yup.string().when(['possession_type', 'cites_required'], {
     is: (possession_type, cites_required) => possession_type === 'acquisition' && cites_required === 'Yes',
     then: () => yup.string().required('CITES Number is required'),
     otherwise: () => yup.string().notRequired()
@@ -132,11 +132,12 @@ const AddNewEntry = () => {
   const [isEditMode, setIsEditMode] = useState(false)
   const [species, setSpecies] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [imgSrc, setImgSrc] = useState([])
-  const [displayFile, setDisplayFile] = useState([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [reasonType, setReasonType] = useState(null)
+  const [imgSrc, setImgSrc] = useState([])
+  const [displayFile, setDisplayFile] = useState([])
   const [dgftDisplayFile, setDgftDisplayFile] = useState([])
+
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
 
   const defaultValues = {
@@ -146,13 +147,13 @@ const AddNewEntry = () => {
     possession_type: '',
     transaction_date: new Date(),
     reason_for_death: '',
-    death_date: null,
-    organization_transfer: '',
-    organization_acquire: '',
+    death_date: '',
+    where_to_transfer: '',
+    where_to_acquisition: '',
     dgft_number: '',
     cites_required: '',
-    select_appendix: '',
-    cites_number: '',
+    cites_appendix: '',
+    cites_numbers: '',
     animal_id: '',
     attachments: [],
     dgft_attachments: []
@@ -188,10 +189,10 @@ const AddNewEntry = () => {
   }
   const possessionType = watch('possession_type')
   useEffect(() => {
-    if (possessionType === 'death') {
+    if (possessionType === 'death' && !isEditMode) {
       setValue('animal_count', undefined)
       clearErrors('animal_count')
-    } else if (possessionType === 'transfer') {
+    } else if (possessionType === 'transfer' && !isEditMode) {
       setValue('gender', undefined)
       clearErrors('gender')
     }
@@ -208,26 +209,27 @@ const AddNewEntry = () => {
       death_date,
       reason_for_death,
       animal_id,
-      organization_transfer,
-      organization_acquire,
+      where_to_transfer,
+      where_to_acquisition,
       dgft_number,
       dgft_attachments,
       cites_required,
-      select_appendix,
-      cites_number
+      cites_appendix,
+      cites_numbers
     } = { ...data }
 
     console.log('Form submitted with data:', data)
 
-    // const isValid = await trigger()
-    // console.log('Form validity:', isValid)
+    const isValid = await trigger()
+    console.log('Form validity:', isValid)
+    console.log('errors', errors)
 
-    // if (!isValid) {
-    //   console.log('Form is invalid, not submitting')
-    //   return
-    // }
+    if (!isValid) {
+      console.log('Form is invalid, not submitting')
+      return
+    }
 
-    // console.log('Submitting data:', data)
+    console.log('Submitting data:', data)
 
     const selectedDate = new Date(transaction_date)
     const now = new Date()
@@ -253,52 +255,39 @@ const AddNewEntry = () => {
       payload.animal_count = animal_count
     }
     if (possession_type === 'transfer') {
-      payload.where_to_transfer = organization_transfer
+      payload.where_to_transfer = where_to_transfer
     } else if (possession_type === 'acquisition') {
-      payload.organization_acquire = organization_acquire
+      payload.where_to_acquisition = where_to_acquisition
       payload.dgft_number = dgft_number
       payload.dgft_attachment = dgft_attachments
       payload.cites_required = cites_required
       if (data.cites_required === 'Yes') {
-        payload.cites_appendix = select_appendix
-        payload.cites_numbers = cites_number
+        payload.cites_appendix = cites_appendix
+        payload.cites_numbers = cites_numbers
       }
     }
 
     console.log(payload, 'payload')
 
-    try {
-      setBtnLoader(true)
-      const response = isEditMode
-        ? await updateSpeciesToOrganization(payload, editParams?.id)
-        : await addSpeciesToOrganization(payload)
+    // try {
+    //   setBtnLoader(true)
+    //   const response = isEditMode
+    //     ? await updateSpeciesToOrganization(payload, editParams?.id)
+    //     : await addSpeciesToOrganization(payload)
 
-      if (response?.success) {
-        resetForm()
-        router.back()
-        Toaster({ type: 'success', message: response?.message })
-      } else {
-        Toaster({ type: 'error', message: response?.message })
-      }
-    } catch (error) {
-      console.log('error', error)
-    } finally {
-      setBtnLoader(false)
-    }
+    //   if (response?.success) {
+    //     resetForm()
+    //     router.back()
+    //     Toaster({ type: 'success', message: response?.message })
+    //   } else {
+    //     Toaster({ type: 'error', message: response?.message })
+    //   }
+    // } catch (error) {
+    //   console.log('error', error)
+    // } finally {
+    //   setBtnLoader(false)
+    // }
   }
-
-  // const RenderSidebarFooter = () => {
-  //   return (
-  //     <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }} onClick={testcheck}>
-  //       <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
-  //         {'Save'}
-  //       </LoadingButton>
-  //       <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
-  //         Cancel
-  //       </Button>
-  //     </Box>
-  //   )
-  // }
 
   const searchTableData = useCallback(
     debounce(async q => {
@@ -351,6 +340,9 @@ const AddNewEntry = () => {
               setValue(key, Number(response.data[key]))
             } else if (key === 'possession_type' && response.data[key] === 'death') {
               setValue(key, response.data[key])
+            } else if (key === 'death_date' && response.data[key] === 'death') {
+              const formattedDate = new Date(response.data[key])
+              setValue(key, formattedDate)
             } else if (
               key !== 'scientific_name' &&
               key !== 'tsn_id' &&
@@ -359,7 +351,30 @@ const AddNewEntry = () => {
             ) {
               // Skip fields already set in specieObject
               setValue(key, response.data[key])
+              // setDisplayFile(response.data[key])
             }
+          }
+          // Update displayFile with existing attachments
+          if (
+            response?.data?.attachments &&
+            Array.isArray(response?.data?.attachments || response?.data?.dgft_attachments)
+          ) {
+            const fetchedFiles = response.data.attachments?.map(file => ({
+              name: file?.attachment_name,
+              fileSrc: file?.attachment,
+              id: file?.id,
+              isBackendFile: true // Mark as backend file
+            }))
+
+            setDisplayFile(fetchedFiles)
+
+            const fetchedDgftFiles = response?.data?.dgft_attachments?.map(file => ({
+              name: file?.dgft_attachment_name,
+              fileSrc: file?.dgft_attachment,
+              id: file?.id,
+              isBackendFile: true // Mark as backend file
+            }))
+            setDgftDisplayFile(fetchedDgftFiles)
           }
         } else {
           console.log('response error >>', response?.error)
@@ -427,7 +442,6 @@ const AddNewEntry = () => {
         .then(fileDetails => {
           setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
           setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
-          setDgftDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
 
           // Update attachments in the form
           const currentFiles = getValues('attachments') || []
@@ -444,6 +458,7 @@ const AddNewEntry = () => {
   })
 
   const removeSelectedImage = index => {
+    // console.log(index, id)
     setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
     setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
 
@@ -461,7 +476,7 @@ const AddNewEntry = () => {
   }
 
   const getIconByFileType = fileName => {
-    const extension = fileName.split('.').pop().toLowerCase()
+    const extension = fileName?.split('.').pop().toLowerCase()
     switch (extension) {
       case 'pdf':
         return { icon: imgPath?.pdf?.image_path, bgColor: imgPath?.pdf?.bg_color }
@@ -481,9 +496,9 @@ const AddNewEntry = () => {
   }
 
   const truncateFilename = (filename, maxLength = 16) => {
-    if (filename.length <= maxLength) return filename
-    const start = filename.slice(0, Math.floor(maxLength / 2))
-    const end = filename.slice(-Math.floor(maxLength / 2))
+    if (filename?.length <= maxLength) return filename
+    const start = filename?.slice(0, Math.floor(maxLength / 2))
+    const end = filename?.slice(-Math.floor(maxLength / 2))
     return `${start}...${end}`
   }
 
@@ -597,6 +612,7 @@ const AddNewEntry = () => {
             <FormControl fullWidth>
               <Controller
                 name='death_date'
+                rules={{ required: possessionType === 'death' ? true : false }}
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <SingleDatePicker
@@ -713,7 +729,7 @@ const AddNewEntry = () => {
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <Controller
-                name='organization_transfer'
+                name='where_to_transfer'
                 control={control}
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
@@ -723,14 +739,14 @@ const AddNewEntry = () => {
                     type='text'
                     onChange={onChange}
                     placeholder='Which organization would you transfer?'
-                    error={Boolean(errors.organization_transfer)}
-                    name='organization_transfer'
+                    error={Boolean(errors.where_to_transfer)}
+                    name='where_to_transfer'
                   />
                 )}
               />
 
-              {errors.organization_transfer && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.organization_transfer?.message}</FormHelperText>
+              {errors.where_to_transfer && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.where_to_transfer?.message}</FormHelperText>
               )}
             </FormControl>
           </Grid>
@@ -899,27 +915,30 @@ const AddNewEntry = () => {
                           label='Reason*'
                           placeholder='Reason'
                           value={value}
+                          disabled={isEditMode}
                           onChange={e => {
                             const value = e.target.value
                             onChange(e)
                             setReasonType(value)
+                            if (!isEditMode) {
+                              setValue('animal_count', '')
+                              setValue('transaction_date', new Date())
+                              setValue('reason_for_death', '')
+                              setValue('death_date', null)
+                              setValue('where_to_transfer', '')
+                              setValue('where_to_acquisition', '')
+                              setValue('dgft_number', '')
+                              setValue('cites_required', '')
+                              setValue('cites_appendix', '')
+                              setValue('cites_numbers', '')
+                              setValue('animal_id', '')
+                              setValue('attachments', [])
+                              setValue('dgft_attachments', [])
+                              setImgSrc([])
+                              setDisplayFile([])
+                              setDgftDisplayFile([])
+                            }
                             setValue('gender', '')
-                            setValue('animal_count', '')
-                            setValue('transaction_date', new Date())
-                            setValue('reason_for_death', '')
-                            setValue('death_date', null)
-                            setValue('organization_transfer', '')
-                            setValue('organization_acquire', '')
-                            setValue('dgft_number', '')
-                            setValue('cites_required', '')
-                            setValue('select_appendix', '')
-                            setValue('cites_number', '')
-                            setValue('animal_id', '')
-                            setValue('attachments', [])
-                            setValue('dgft_attachments', [])
-                            setImgSrc([])
-                            setDisplayFile([])
-                            setDgftDisplayFile([])
                           }}
                           error={Boolean(errors.possession_type)}
                         >
@@ -1071,7 +1090,7 @@ const AddNewEntry = () => {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                               }}
-                              onClick={() => removeSelectedImage(index)}
+                              onClick={() => removeSelectedImage(index, src?.id)}
                             >
                               <Icon icon='material-symbols-light:close' color='#fff' size={16} />
                             </Box>
@@ -1082,16 +1101,16 @@ const AddNewEntry = () => {
                   })}
                 </Grid>
               </>
-              {/* <Button onClick={onSubmit}>save</Button> */}
+              <Button onClick={onSubmit}>save</Button>
 
-              <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
+              {/* <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
                 <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
                   {'Save'}
                 </LoadingButton>
                 <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
                   Cancel
                 </Button>
-              </Box>
+              </Box> */}
             </form>
           </CardContent>
         </Box>
