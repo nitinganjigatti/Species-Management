@@ -76,11 +76,20 @@ const schema = yup.object().shape({
     then: () => yup.string().required('Reason for Death is required'),
     otherwise: () => yup.string().notRequired()
   }),
-  death_date: yup.date().when('possession_type', {
-    is: 'death',
-    then: () => yup.date().required('Date of Death is required'),
-    otherwise: () => yup.date().notRequired()
-  }),
+  // death_date: yup.date().when('possession_type', {
+  //   is: 'death',
+  //   then: () => yup.date().required('Date of Death is required'),
+  //   otherwise: () => yup.date().notRequired()
+  // }),
+  death_date: yup
+    .date()
+    .nullable()
+    .transform((curr, orig) => (orig === '' ? null : curr))
+    .when('possession_type', {
+      is: 'death',
+      then: () => yup.date().nullable().required('Date of Death is required'),
+      otherwise: () => yup.date().nullable().notRequired()
+    }),
   animal_id: yup.string().when('possession_type', {
     is: 'death',
     then: () => yup.string().notRequired(),
@@ -248,7 +257,7 @@ const AddNewEntry = () => {
     // Add conditional fields based on possession_type
     if (possession_type === 'death') {
       payload.reason_for_death = reason_for_death
-      payload.death_date = moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss')
+      payload.death_date = death_date ? moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss') : null
       payload.animal_id = animal_id
       payload.animal_count = 1
     } else {
@@ -333,6 +342,7 @@ const AddNewEntry = () => {
 
           for (const key of Object.keys(response.data)) {
             console.log(response.data[key], 'key')
+            console.log(key, '123')
             if (key === 'transaction_date') {
               const formattedDate = new Date(response.data[key])
               setValue(key, formattedDate)
@@ -340,9 +350,11 @@ const AddNewEntry = () => {
               setValue(key, Number(response.data[key]))
             } else if (key === 'possession_type' && response.data[key] === 'death') {
               setValue(key, response.data[key])
-            } else if (key === 'death_date' && !isNaN(Date.parse(response.data[key]))) {
+            } else if (key === 'death_date' && response.data[key] && response.data[key] !== '') {
               const formattedDate = new Date(response.data[key])
               setValue(key, formattedDate)
+            } else if (key === 'death_date') {
+              setValue(key, null)
             } else if (
               key !== 'scientific_name' &&
               key !== 'tsn_id' &&
@@ -972,6 +984,7 @@ const AddNewEntry = () => {
                   reasonType={reasonType}
                   dgftDisplayFile={dgftDisplayFile}
                   setDgftDisplayFile={setDgftDisplayFile}
+                  isEditMode={isEditMode}
                 />
               )}
 

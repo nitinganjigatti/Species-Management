@@ -30,7 +30,8 @@ const AcquisitionFields = ({
   setDgftDisplayFile,
   getValues,
   setValue,
-  clearErrors
+  clearErrors,
+  isEditMode
 }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
