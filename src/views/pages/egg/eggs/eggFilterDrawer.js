@@ -221,6 +221,11 @@ const EggFilterDrawer = ({
           ...prevSelectedOptions,
           status: '2'
         }))
+      } else {
+        setSelectedOptions(prevSelectedOptions => ({
+          ...prevSelectedOptions,
+          status: selectedDropdownID
+        }))
       }
     }
   }, [selectedDropdownID, eggMaster, tab_Value])
