@@ -105,7 +105,20 @@ const EggFilterDrawer = ({
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
+    // Reset states when tab_Value changes
     setSelectedMenu(leftMenu[0])
+    setSelectAll(false)
+    setSelectedOptions({
+      Stage: [],
+      Nursery: [],
+      Site: [],
+      'Collected By': [],
+      collected_date: null,
+      status: null,
+      'Discarded By': [],
+      discarded_Date: null,
+      'Security Check': []
+    })
   }, [tab_Value])
 
   const getEggMasterData = async () => {
