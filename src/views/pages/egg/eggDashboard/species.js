@@ -395,17 +395,10 @@ const Species = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async q => {
+    debounce(async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
       setSearchValue(q)
       try {
-        await getspeciesFunc(
-          q,
-          fromDate,
-          tillDate,
-          defaultFromSite?.site_id,
-          defaultToSite?.site_id,
-          defaultNursery?.nursery_id
-        )
+        await getspeciesFunc(q, fDate, tDate, fromSiteId, toSiteId, nurseryId)
       } catch (error) {
         console.error(error)
       }
@@ -475,7 +468,16 @@ const Species = () => {
               InputProps={{
                 disableUnderline: true
               }}
-              onChange={e => searchTableData(e.target.value)}
+              onChange={e =>
+                searchTableData(
+                  e.target.value,
+                  fromDate,
+                  tillDate,
+                  defaultFromSite?.site_id,
+                  defaultToSite?.site_id,
+                  defaultNursery?.nursery_id
+                )
+              }
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',

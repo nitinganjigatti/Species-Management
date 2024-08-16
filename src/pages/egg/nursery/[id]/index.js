@@ -522,7 +522,7 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
-              <Grid sx={{ ml: -2, mb: 6, mt: -4 }} container columns={15} spacing={6}>
+              <Grid sx={{ ml: -6, mb: 6, mt: 0 }} container columns={15} spacing={6}>
                 <Grid item xs={3}>
                   <Box
                     sx={{

@@ -473,17 +473,10 @@ const TransferDetails = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async q => {
+    debounce(async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
       setSearchValue(q)
       try {
-        await getTransferListFunc(
-          q,
-          fromDate,
-          tillDate,
-          defaultFromSite?.site_id,
-          defaultToSite?.site_id,
-          defaultNursery?.nursery_id
-        )
+        await getTransferListFunc(q, fDate, tDate, fromSiteId, toSiteId, nurseryId)
       } catch (error) {
         console.error(error)
       }
@@ -553,7 +546,16 @@ const TransferDetails = () => {
               InputProps={{
                 disableUnderline: true
               }}
-              onChange={e => searchTableData(e.target.value)}
+              onChange={e =>
+                searchTableData(
+                  e.target.value,
+                  fromDate,
+                  tillDate,
+                  defaultFromSite?.site_id,
+                  defaultToSite?.site_id,
+                  defaultNursery?.nursery_id
+                )
+              }
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',

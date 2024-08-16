@@ -18,7 +18,9 @@ import {
   Tooltip,
   TextField,
   FormControl,
-  Autocomplete
+  Autocomplete,
+  FormControlLabel,
+  Switch
 } from '@mui/material'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
@@ -56,6 +58,9 @@ const RoomDetails = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
+
+  const [availibilityList, setAvailibilityList] = useState([])
+  const [defaultAvailibility, setDefaultAvailibility] = useState(null)
 
   const [openStatusDialog, setOpenStatusDialog] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
@@ -99,7 +104,7 @@ const RoomDetails = () => {
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q, availability) => {
       try {
         // console.log('til_date', cuurent_date)
         setLoading(true)
@@ -589,158 +594,249 @@ const RoomDetails = () => {
             </Box>
           </CardContent>
         ) : (
-          <>
-            <Grid container spacing={6}>
-              <Grid item xs={12}>
-                <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                  <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-                    Egg
-                  </Typography>
+          <Grid container spacing={6}>
+            <Grid item xs={12}>
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Egg
+                </Typography>
 
-                  <Typography
-                    sx={{ cursor: 'pointer' }}
-                    color='inherit '
-                    onClick={() => Router.push('/egg/incubator-rooms/')}
-                  >
-                    Incubator Room
-                  </Typography>
-                  <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
-                    Room Details
-                  </Typography>
-                </Breadcrumbs>
+                <Typography
+                  sx={{ cursor: 'pointer' }}
+                  color='inherit '
+                  onClick={() => Router.push('/egg/incubator-rooms/')}
+                >
+                  Incubator Room
+                </Typography>
+                <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
+                  Room Details
+                </Typography>
+              </Breadcrumbs>
 
-                <Card>
-                  {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
-                  <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <Icon
-                        style={{ cursor: 'pointer', fontSize: '24px' }}
-                        onClick={() => Router.push('/egg/incubator-rooms')}
-                        color={theme.palette.customColors.OnSurfaceVariant}
-                        icon='material-symbols:arrow-back'
-                      />
-                      <Typography
-                        sx={{
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontWeight: 500,
-                          fontSize: '24px',
-                          lineHeight: '29.05px'
-                        }}
-                      >
-                        Room Details
-                      </Typography>
-                    </Box>
-
-                    {egg_nursery_permission && (
-                      // <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={active}
-                              onChange={e => {
-                                setOpenStatusDialog(true)
-                              }}
-                            />
-                          }
-                          labelPlacement='start'
-                          label='Active'
-                        />
-
-                        <IconButton
-                          onClick={event =>
-                            handleEdit(
-                              event,
-                              detailsData.site_id,
-                              detailsData.room_name,
-                              detailsData.nursery_id,
-                              detailsData.room_id,
-                              detailsData.nursery_name
-                            )
-                          }
-                        >
-                          <Icon
-                            icon='material-symbols:edit-outline'
-                            fontSize={28}
-                            color={theme.palette.customColors.OnSurfaceVariant}
-                          />
-                        </IconButton>
-
-                        <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-                          <Icon icon='mdi:add' fontSize={20} />
-                          &nbsp; ADD INCUBATOR
-                        </Button>
-                      </Box>
-                      // </Box>
-                    )}
-                  </Box>
-                  <Box sx={{ px: '16px', my: '8px' }}>
-                    <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
-                  </Box>
-                  <Box>
-                    <DataGrid
+              <Card>
+                {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
+                <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <Icon
+                      style={{ cursor: 'pointer', fontSize: '24px' }}
+                      onClick={() => Router.push('/egg/incubator-rooms')}
+                      color={theme.palette.customColors.OnSurfaceVariant}
+                      icon='material-symbols:arrow-back'
+                    />
+                    <Typography
                       sx={{
-                        '.MuiDataGrid-cell:focus': {
-                          outline: 'none'
-                        },
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontWeight: 500,
+                        fontSize: '24px',
+                        lineHeight: '29.05px'
+                      }}
+                    >
+                      Room Details
+                    </Typography>
+                  </Box>
 
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  rowHeight={64}
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  // slotProps={{
-                  //   baseButton: {
-                  //     variant: 'outlined'
-                  //   },
-                  //   toolbar: {
-                  //     value: searchValue,
-                  //     clearSearch: () => handleSearch(''),
-                  //     onChange: event => handleSearch(event.target.value)
-                  //   }
-                  // }}
-                  onCellClick={onCellClick}
-                />
-              </Box>
-            </Card>
+                  {egg_nursery_permission && (
+                    // <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={active}
+                            onChange={e => {
+                              setOpenStatusDialog(true)
+                            }}
+                          />
+                        }
+                        labelPlacement='start'
+                        label='Active'
+                      />
+
+                      <IconButton
+                        onClick={event =>
+                          handleEdit(
+                            event,
+                            detailsData.site_id,
+                            detailsData.room_name,
+                            detailsData.nursery_id,
+                            detailsData.room_id,
+                            detailsData.nursery_name
+                          )
+                        }
+                      >
+                        <Icon
+                          icon='material-symbols:edit-outline'
+                          fontSize={28}
+                          color={theme.palette.customColors.OnSurfaceVariant}
+                        />
+                      </IconButton>
+
+                      <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
+                        <Icon icon='mdi:add' fontSize={20} />
+                        &nbsp; ADD INCUBATOR
+                      </Button>
+                    </Box>
+                    // </Box>
+                  )}
+                </Box>
+                <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
+                  <Grid item xs={3}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '4px',
+                        padding: '0 8px',
+                        height: '40px'
+                      }}
+                    >
+                      <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        InputProps={{
+                          disableUnderline: true
+                        }}
+                        onChange={e => handleSearch(e.target.value, defaultAvailibility?.key)}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={3}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        name='availibility'
+                        value={defaultAvailibility}
+                        disablePortal
+                        id='availibility'
+                        options={availibilityList?.length > 0 ? availibilityList : []}
+                        getOptionLabel={option => option.label}
+                        isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultAvailibility(null)
+                            fetchTableData(searchValue, '')
+                          } else {
+                            setDefaultAvailibility(val)
+                            fetchTableData(searchValue, val?.key)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            sx={{
+                              backgroundColor: '#fff',
+                              borderRadius: '8px',
+                              width: '100%',
+                              '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                                height: '40px',
+                                borderRadius: '4px'
+                              },
+                              '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
+                              }
+                            }}
+                            onChange={e => {
+                              // searchSite(e.target.value)
+                            }}
+                            {...params}
+                            label='Availibility'
+                            placeholder='Search & Select'
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                <Box sx={{ px: '16px', mt: '0px', mb: '24px' }}>
+                  <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
+                </Box>
+                <Box>
+                  <DataGrid
+                    sx={{
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
+
+                      '& .MuiDataGrid-row:hover': {
+                        cursor: 'pointer'
+                      }
+                    }}
+                    columnVisibilityModel={{
+                      sl_no: false
+                    }}
+                    disableColumnSelector={true}
+                    autoHeight
+                    pagination
+                    rows={indexedRows === undefined ? [] : indexedRows}
+                    rowCount={total}
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    rowHeight={64}
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onSortModelChange={handleSortModel}
+                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={loading}
+                    // slotProps={{
+                    //   baseButton: {
+                    //     variant: 'outlined'
+                    //   },
+                    //   toolbar: {
+                    //     value: searchValue,
+                    //     clearSearch: () => handleSearch(''),
+                    //     onChange: event => handleSearch(event.target.value)
+                    //   }
+                    // }}
+                    onCellClick={onCellClick}
+                  />
+                </Box>
+              </Card>
+            </Grid>
+            <AddIncubatorRoom
+              callApi={fetchDetailsData}
+              callTableApi={fetchTableData}
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              editParams={editParams}
+            />
+            <AddIncubators
+              actionApi={fetchTableData}
+              detailsApi={fetchDetailsData}
+              sidebarOpen={dialog}
+              handleSidebarClose={handleSidebarClose}
+              isPreFilled={isPreFilled}
+            />
+            <StatusDialogBox
+              active={active}
+              refType={'room'}
+              openStatusDialog={openStatusDialog}
+              setOpenStatusDialog={setOpenStatusDialog}
+              elements={total}
+              statusLoading={statusLoading}
+              hatcheryStatusFunc={hatcheryStatusFunc}
+            />
           </Grid>
-        </Grid>
+        )
+      ) : (
+        <>
+          {' '}
+          <ErrorScreen></ErrorScreen>
+        </>
       )}
-
-      <>
-        <AddIncubatorRoom
-          callApi={fetchDetailsData}
-          callTableApi={fetchTableData}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          editParams={editParams}
-        />
-        <AddIncubators
-          actionApi={fetchTableData}
-          detailsApi={fetchDetailsData}
-          sidebarOpen={dialog}
-          handleSidebarClose={handleSidebarClose}
-          isPreFilled={isPreFilled}
-        />
-      </>
     </>
   )
 }
