@@ -37,6 +37,8 @@ const DiscardedTableView = ({
 
   const fetchTableData = useCallback(
     async (sort, q, selectedFiltersOptions = {}) => {
+      console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
+
       // debugger
       try {
         setLoading(true)
@@ -52,8 +54,8 @@ const DiscardedTableView = ({
 
         // const statusId = selectedFiltersOptions?.status ? [selectedFiltersOptions.status] : []
 
-        const discardedDate = selectedFiltersOptions?.discarded_Date
-          ? dayjs(selectedFiltersOptions?.discarded_Date).format('YYYY-MM-DD')
+        const discardedDate = selectedFiltersOptions?.collected_date
+          ? dayjs(selectedFiltersOptions?.collected_date).format('YYYY-MM-DD')
           : ''
 
         const params = {

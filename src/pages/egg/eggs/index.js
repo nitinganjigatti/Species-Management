@@ -89,7 +89,7 @@ const EggList = () => {
   // )
   // const [nurseryList, setNurseryList] = useState([])
   // const [filterByNurseryId, setFilterByNurseryId] = useState('')
-  const [nursery_name, setNursery_name] = useState('')
+  // const [nursery_name, setNursery_name] = useState('')
 
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
@@ -130,16 +130,16 @@ const EggList = () => {
   //   }
   // }, [])
 
-  const searchNursery = useCallback(
-    debounce(async q => {
-      try {
-        await NurseryList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  // const searchNursery = useCallback(
+  //   debounce(async q => {
+  //     try {
+  //       await NurseryList(q)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
 
   const columns = [
     {
@@ -1717,6 +1717,8 @@ const EggList = () => {
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
         const collectedByIds = selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
+
+        // console.log('object :>> ', object);
         const statusId = [selectedFiltersOptions.status?.id] || ''
 
         const collectedDate = selectedFiltersOptions.collected_date
@@ -1738,9 +1740,9 @@ const EggList = () => {
           collected_by: collectedByIds ? collectedByIds : [],
           site_id: siteIds ? siteIds : [],
 
-          // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : []) : [],
+          egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
 
-          egg_status_id: statusId ? statusId : '',
+          // egg_status_id: statusId ? statusId : '',
           collected_date: collectedDate ? collectedDate : '',
 
           type:
