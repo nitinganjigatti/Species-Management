@@ -252,7 +252,8 @@ const EggFilterDrawer = ({
     ]
 
     setSelectedFiltersOptions(updatedSelectedOptions)
-    console.log('combinedSelectedOptions :>> ', combinedSelectedOptions)
+
+    // console.log('combinedSelectedOptions :>> ', combinedSelectedOptions)
     setFilterList(combinedSelectedOptions)
     setOpenFilterDrawer(false)
   }

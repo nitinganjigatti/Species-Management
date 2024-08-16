@@ -37,7 +37,7 @@ const DiscardedTableView = ({
 
   const fetchTableData = useCallback(
     async (sort, q, selectedFiltersOptions = {}) => {
-      console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
+      // console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
 
       // debugger
       try {
