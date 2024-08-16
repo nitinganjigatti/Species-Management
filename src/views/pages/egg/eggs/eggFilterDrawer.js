@@ -105,7 +105,20 @@ const EggFilterDrawer = ({
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
+    // Reset states when tab_Value changes
     setSelectedMenu(leftMenu[0])
+    setSelectAll(false)
+    setSelectedOptions({
+      Stage: [],
+      Nursery: [],
+      Site: [],
+      'Collected By': [],
+      collected_date: null,
+      status: null,
+      'Discarded By': [],
+      discarded_Date: null,
+      'Security Check': []
+    })
   }, [tab_Value])
 
   const getEggMasterData = async () => {
@@ -193,12 +206,29 @@ const EggFilterDrawer = ({
       const filteredEggStage = eggMaster?.egg_state?.filter(status => status?.egg_status_id === selectedDropdownID)
       setEggStage(filteredEggStage)
 
-      setSelectedOptions(prevSelectedOptions => ({
-        ...prevSelectedOptions,
-        status: selectedDropdownID
-      }))
+      if (tab_Value === 'eggs_received') {
+        setSelectedOptions(prevSelectedOptions => ({
+          ...prevSelectedOptions,
+          status: '1'
+        }))
+      } else if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+        setSelectedOptions(prevSelectedOptions => ({
+          ...prevSelectedOptions,
+          status: '3'
+        }))
+      } else if (tab_Value === 'eggs_incubation') {
+        setSelectedOptions(prevSelectedOptions => ({
+          ...prevSelectedOptions,
+          status: '2'
+        }))
+      } else {
+        setSelectedOptions(prevSelectedOptions => ({
+          ...prevSelectedOptions,
+          status: selectedDropdownID
+        }))
+      }
     }
-  }, [selectedDropdownID, eggMaster])
+  }, [selectedDropdownID, eggMaster, tab_Value])
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
