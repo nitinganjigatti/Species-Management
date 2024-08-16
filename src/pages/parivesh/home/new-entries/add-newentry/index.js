@@ -340,7 +340,7 @@ const AddNewEntry = () => {
               setValue(key, Number(response.data[key]))
             } else if (key === 'possession_type' && response.data[key] === 'death') {
               setValue(key, response.data[key])
-            } else if (key === 'death_date' && response.data[key] === 'death') {
+            } else if (key === 'death_date' && !isNaN(Date.parse(response.data[key]))) {
               const formattedDate = new Date(response.data[key])
               setValue(key, formattedDate)
             } else if (
