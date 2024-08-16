@@ -406,6 +406,7 @@ const EggList = () => {
       width: 60,
       field: 'uid',
       headerName: 'NO',
+
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -422,7 +423,7 @@ const EggList = () => {
       )
     },
     {
-      width: 250,
+      width: 300,
 
       // minWidth: 60,
       sortable: false,
@@ -440,26 +441,27 @@ const EggList = () => {
         />
       )
     },
-    {
-      width: 150,
-      sortable: false,
-      field: 'hatch_no',
-      headerName: 'Hatch NO',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.hatch_no ? params.row.hatch_no : '-'}
-        </Typography>
-      )
-    },
+    // {
+    //   width: 150,
+    //   sortable: false,
+    //   field: 'hatch_no',
+    //   headerName: 'Hatch NO',
+
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.hatch_no ? params.row.hatch_no : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   width: 140,
@@ -520,7 +522,7 @@ const EggList = () => {
     //   )
     // },
     {
-      width: 160,
+      width: 200,
       field: 'animal_id',
       sortable: false,
       headerName: 'Animal Id',
@@ -561,7 +563,7 @@ const EggList = () => {
     },
 
     {
-      width: 150,
+      width: 200,
       sortable: false,
       field: 'lay_date',
       headerName: 'Lay Date',
@@ -600,7 +602,7 @@ const EggList = () => {
     //   )
     // },
     {
-      width: 160,
+      width: 200,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
@@ -861,9 +863,9 @@ const EggList = () => {
       renderCell: params => (
         <Typography
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
+            color: '#000000',
             fontSize: '16px',
-            fontWeight: '400',
+            fontWeight: 500,
             lineHeight: '19.36px'
           }}
         >
@@ -916,26 +918,7 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.15,
-      width: 130,
-      sortable: false,
-      field: 'initial_size',
-      headerName: 'Initial Size',
-      align: 'center',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.initial_length ? params.row.initial_length : '-'}
-        </Typography>
-      )
-    },
+
     {
       // flex: 0.15,
       width: 150,
@@ -953,6 +936,46 @@ const EggList = () => {
           }}
         >
           {params.row.initial_weight ? params.row.initial_weight : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 130,
+      sortable: false,
+      field: 'initial_length',
+      headerName: 'Initial Size-L',
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.initial_length ? params.row.initial_length : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 130,
+      sortable: false,
+      field: 'initial_width',
+      headerName: 'Initial Size-W',
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.initial_width ? params.row.initial_width : '-'}
         </Typography>
       )
     },
@@ -994,6 +1017,48 @@ const EggList = () => {
           }}
         >
           {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 130,
+      sortable: false,
+      field: 'no_of_eggs_in_clutch',
+      headerName: 'No Eggs / Clutch',
+
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: '#000000',
+            fontSize: '16px',
+            fontWeight: 500,
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.eno_of_eggs_in_clutch ? params.row.no_of_eggs_in_clutch : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 130,
+      sortable: false,
+      field: 'clutch_id',
+      headerName: 'Clutch Id',
+
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: '#000000',
+            fontSize: '16px',
+            fontWeight: 500,
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.clutch_id ? params.row.clutch_id : '-'}
         </Typography>
       )
     },
