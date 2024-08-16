@@ -81,7 +81,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, eggCode, defaultName, complete
               whiteSpace: 'nowrap'
             }}
           >
-            {defaultName ? defaultName : '-'}
+            {defaultName ? defaultName : 'Unknown'}
           </Typography>
         </Tooltip>
         <Tooltip title={completeName}>
@@ -98,7 +98,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, eggCode, defaultName, complete
               fontStyle: 'italic'
             }}
           >
-            {completeName ? completeName : '-'}
+            {completeName ? completeName : 'Unknown'}
           </Typography>
         </Tooltip>
       </Box>
@@ -114,7 +114,7 @@ const TextCard = ({ eggCondition }) => {
       sx={{
         borderRadius: '4px',
         px: 3,
-        width: 100,
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
