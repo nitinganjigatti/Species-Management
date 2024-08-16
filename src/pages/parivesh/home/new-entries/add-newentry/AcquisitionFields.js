@@ -3,14 +3,20 @@ import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'rea
 import { Controller, useForm } from 'react-hook-form'
 import {
   Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   FormControl,
   FormHelperText,
   Grid,
+  IconButton,
   MenuItem,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  editParams
 } from '@mui/material'
 
 import SingleDatePicker from 'src/components/SingleDatePicker'
@@ -18,6 +24,9 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
 import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
+import { deleteAttachment } from 'src/lib/api/parivesh/entryList'
+import { useRouter } from 'next/router'
 
 const AcquisitionFields = ({
   control,
@@ -31,15 +40,23 @@ const AcquisitionFields = ({
   getValues,
   setValue,
   clearErrors,
-  isEditMode
+  isEditMode,
+  editParams
 }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
   const fileInputRef = useRef(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [btnLoader, setBtnLoader] = useState(false)
+  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
+  const [selectedFileId, setSelectedFileId] = useState(null)
 
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
+
+  console.log(id, 'qwe', editParams)
 
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
@@ -56,7 +73,7 @@ const AcquisitionFields = ({
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     onDrop: acceptedFiles => {
-      if (acceptedFiles.length + dgftDisplayFile.length > 2) {
+      if (acceptedFiles.length + dgftDisplayFile?.length > 2) {
         Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
         return
       }
@@ -88,20 +105,54 @@ const AcquisitionFields = ({
     }
   })
 
-  const removeSelectedImage = index => {
-    // setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
-    setDgftDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
+  const removeSelectedImage = (index, fileId) => {
+    if (fileId) {
+      setIsModalOpenDelete(true)
+      setSelectedFileId(fileId)
+    } else {
+      setDgftDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
+      // Update the attachments in the form
+      const currentFiles = getValues('dgft_attachments') || []
+      const updatedFiles = currentFiles.filter((_, i) => i !== index)
+      setValue('dgft_attachments', updatedFiles)
 
-    // Update the attachments in the form
-    const currentFiles = getValues('dgft_attachments') || []
-    const updatedFiles = currentFiles.filter((_, i) => i !== index)
-    setValue('dgft_attachments', updatedFiles)
+      // Adjust the current image index if necessary
+      if (index === currentImageIndex && dgftDisplayFile?.length > 1) {
+        setCurrentImageIndex(prev => (prev === dgftDisplayFile?.length - 1 ? prev - 1 : prev))
+      } else if (index < currentImageIndex) {
+        setCurrentImageIndex(prev => prev - 1)
+      }
+    }
+  }
 
-    // Adjust the current image index if necessary
-    if (index === currentImageIndex && dgftDisplayFile.length > 1) {
-      setCurrentImageIndex(prev => (prev === dgftDisplayFile.length - 1 ? prev - 1 : prev))
-    } else if (index < currentImageIndex) {
-      setCurrentImageIndex(prev => prev - 1)
+  const confirmDeleteAction = async () => {
+    try {
+      const payload = {
+        apad_id: editParams?.id,
+        attachment_for: 'dgft'
+      }
+      setBtnLoader(true)
+      const response = await deleteAttachment(selectedFileId, payload)
+      console.log('response123', response)
+      if (response?.success) {
+        setBtnLoader(false)
+        setIsModalOpenDelete(false)
+        const fetchedDgftFiles = response?.data?.dgft_attachments?.map(file => ({
+          name: file?.dgft_attachment_name,
+          fileSrc: file?.dgft_attachment,
+          id: file?.id,
+          isBackendFile: true // Mark as backend file
+        }))
+        setDgftDisplayFile(fetchedDgftFiles || [])
+        Toaster({ type: 'success', message: response?.message })
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+        setBtnLoader(false)
+      }
+    } catch (error) {
+      setIsModalOpenDelete(false)
+      setBtnLoader(false)
+      console.error('Error uploading files:', error)
     }
   }
 
@@ -264,7 +315,7 @@ const AcquisitionFields = ({
               </Grid>
 
               {/* {/ Uploaded files display /} */}
-              {dgftDisplayFile.map((src, index) => {
+              {dgftDisplayFile?.map((src, index) => {
                 const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
                 return (
                   <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
@@ -335,7 +386,7 @@ const AcquisitionFields = ({
                             justifyContent: 'center',
                             alignItems: 'center'
                           }}
-                          onClick={() => removeSelectedImage(index)}
+                          onClick={() => removeSelectedImage(index, src?.id)}
                         >
                           <Icon icon='material-symbols-light:close' color='#fff' size={16} />
                         </Box>
@@ -426,6 +477,66 @@ const AcquisitionFields = ({
           </Grid>
         )}
       </>
+      <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
+        <DialogTitle>
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsModalOpenDelete(false)}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '32px',
+
+              // padding: '40px',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                padding: '16px',
+                borderRadius: '12px',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }}
+            >
+              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                Are you sure you want to delete this attachment?
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+              <Button
+                disabled={btnLoader}
+                onClick={() => setIsModalOpenDelete(false)}
+                variant='outlined'
+                sx={{
+                  color: 'gray',
+                  width: '45%'
+                }}
+              >
+                Cancel
+              </Button>
+
+              <LoadingButton
+                loading={btnLoader}
+                size='large'
+                variant='contained'
+                sx={{ width: '45%' }}
+                onClick={() => confirmDeleteAction()}
+              >
+                Delete
+              </LoadingButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent />
+      </Dialog>
     </>
   )
 }

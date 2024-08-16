@@ -12,3 +12,22 @@ export async function getEntryListById(params) {
 
   return response.data
 }
+
+export async function deleteAttachment(id, payload) {
+  const attachment = `v1/parivesh/species/site/deleteattachmentforanimal`
+  try {
+    const url = `${attachment}/${id}`
+    const response = await axiosFormPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}

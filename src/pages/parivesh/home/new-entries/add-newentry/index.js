@@ -14,7 +14,11 @@ import {
   Tooltip,
   Typography,
   debounce,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  IconButton,
+  DialogContent
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -29,7 +33,7 @@ import {
 } from 'src/lib/api/parivesh/addSpecies'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
-import { getEntryListById } from 'src/lib/api/parivesh/entryList'
+import { deleteAttachment, getEntryListById } from 'src/lib/api/parivesh/entryList'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
@@ -146,6 +150,9 @@ const AddNewEntry = () => {
   const [imgSrc, setImgSrc] = useState([])
   const [displayFile, setDisplayFile] = useState([])
   const [dgftDisplayFile, setDgftDisplayFile] = useState([])
+  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
+  const [selectedFileId, setSelectedFileId] = useState(null)
+  const [deleteBtnLoader, setDeleteBtnLoader] = useState(false)
 
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
 
@@ -386,7 +393,7 @@ const AddNewEntry = () => {
               id: file?.id,
               isBackendFile: true // Mark as backend file
             }))
-            setDgftDisplayFile(fetchedDgftFiles)
+            setDgftDisplayFile(fetchedDgftFiles || [])
           }
         } else {
           console.log('response error >>', response?.error)
@@ -469,21 +476,59 @@ const AddNewEntry = () => {
     }
   })
 
-  const removeSelectedImage = index => {
-    // console.log(index, id)
-    setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
-    setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
+  const removeSelectedImage = async (index, fileId) => {
+    if (fileId) {
+      setSelectedFileId(fileId)
+      setIsModalOpenDelete(true)
+      // Toaster({ type: 'error', message: 'you need to call the api here ' })
+    } else {
+      // console.log(index, id)
+      setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
+      setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
 
-    // Update the attachments in the form
-    const currentFiles = getValues('attachments') || []
-    const updatedFiles = currentFiles.filter((_, i) => i !== index)
-    setValue('attachments', updatedFiles)
+      // Update the attachments in the form
+      const currentFiles = getValues('attachments') || []
+      const updatedFiles = currentFiles.filter((_, i) => i !== index)
+      setValue('attachments', updatedFiles)
 
-    // Adjust the current image index if necessary
-    if (index === currentImageIndex && imgSrc.length > 1) {
-      setCurrentImageIndex(prev => (prev === imgSrc.length - 1 ? prev - 1 : prev))
-    } else if (index < currentImageIndex) {
-      setCurrentImageIndex(prev => prev - 1)
+      // Adjust the current image index if necessary
+      if (index === currentImageIndex && imgSrc.length > 1) {
+        setCurrentImageIndex(prev => (prev === imgSrc.length - 1 ? prev - 1 : prev))
+      } else if (index < currentImageIndex) {
+        setCurrentImageIndex(prev => prev - 1)
+      }
+    }
+  }
+
+  const confirmDeleteAction = async () => {
+    try {
+      const payload = {
+        apad_id: editParams?.id,
+        attachment_for: 'animal'
+        // attachment_for: 'dgft'
+      }
+      setDeleteBtnLoader(true)
+      const response = await deleteAttachment(selectedFileId, payload)
+      console.log('response123', response)
+      if (response?.success) {
+        setDeleteBtnLoader(false)
+        setIsModalOpenDelete(false)
+        const fetchedFiles = response?.data?.attachments?.map(file => ({
+          name: file?.attachment_name,
+          fileSrc: file?.attachment,
+          id: file?.id,
+          isBackendFile: true // Mark as backend file
+        }))
+        setDisplayFile(fetchedFiles)
+        Toaster({ type: 'success', message: response?.message })
+      } else {
+        setDeleteBtnLoader(false)
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (error) {
+      setDeleteBtnLoader(false)
+      setIsModalOpenDelete(false)
+      console.error('Error uploading files:', error)
     }
   }
 
@@ -985,6 +1030,7 @@ const AddNewEntry = () => {
                   dgftDisplayFile={dgftDisplayFile}
                   setDgftDisplayFile={setDgftDisplayFile}
                   isEditMode={isEditMode}
+                  editParams={editParams}
                 />
               )}
 
@@ -1128,6 +1174,67 @@ const AddNewEntry = () => {
           </CardContent>
         </Box>
       </Box>
+
+      <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
+        <DialogTitle>
+          <IconButton
+            aria-label='close'
+            onClick={() => setIsModalOpenDelete(false)}
+            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '32px',
+
+              // padding: '40px',
+              alignItems: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                padding: '16px',
+                borderRadius: '12px',
+                backgroundColor: theme.palette.customColors.mdAntzNeutral
+              }}
+            >
+              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                Are you sure you want to delete this attachment?
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+              <Button
+                disabled={deleteBtnLoader}
+                onClick={() => setIsModalOpenDelete(false)}
+                variant='outlined'
+                sx={{
+                  color: 'gray',
+                  width: '45%'
+                }}
+              >
+                Cancel
+              </Button>
+
+              <LoadingButton
+                loading={deleteBtnLoader}
+                size='large'
+                variant='contained'
+                sx={{ width: '45%' }}
+                onClick={() => confirmDeleteAction()}
+              >
+                Delete
+              </LoadingButton>
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent />
+      </Dialog>
     </>
   )
 }
