@@ -8,6 +8,10 @@ import {
   IconButton,
   Button,
   Breadcrumbs,
+  Grid,
+  TextField,
+  Autocomplete,
+  FormControl,
   Switch,
   FormControlLabel
 } from '@mui/material'
@@ -50,6 +54,8 @@ const NurseryDetails = () => {
   const [openRoomSideBar, setOpenRoomSidebar] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [isPreFilled, setIsPreFilled] = useState({})
+
+  const [defaultStatus, setDefaultStatus] = useState(null)
 
   const [openStatusDialog, setOpenStatusDialog] = useState(false)
   const [statusLoading, setStatusLoading] = useState(false)
@@ -144,7 +150,7 @@ const NurseryDetails = () => {
   }
 
   const fetchTableData = useCallback(
-    async (q, column) => {
+    async (q, column, status) => {
       try {
         setLoading(true)
 
@@ -152,6 +158,7 @@ const NurseryDetails = () => {
           sort,
           search: q || '',
           column,
+          status,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -174,15 +181,15 @@ const NurseryDetails = () => {
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue, sortColumn)
+      fetchTableData(searchValue, sortColumn, defaultStatus?.key)
     }
   }, [fetchTableData])
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q, column)
+        await fetchTableData(q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -190,9 +197,9 @@ const NurseryDetails = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, status) => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(value, sortColumn, status)
   }
 
   const handleSortModel = newModel => {
@@ -515,6 +522,89 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
+              <Grid sx={{ ml: -2, mb: 6, mt: -4 }} container columns={15} spacing={6}>
+                <Grid item xs={3}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      InputProps={{
+                        disableUnderline: true
+                      }}
+                      onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+                <Grid item xs={3}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      name='status'
+                      value={defaultStatus}
+                      disablePortal
+                      id='status'
+                      options={[
+                        { label: 'Active', key: 'active' },
+                        { label: 'Inactive', key: 'inactive' }
+                      ]}
+                      getOptionLabel={option => option.label}
+                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultStatus(null)
+                          fetchTableData(searchValue, sortColumn, '')
+                        } else {
+                          setDefaultStatus(val)
+                          fetchTableData(searchValue, sortColumn, val?.key)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          sx={{
+                            backgroundColor: '#fff',
+                            borderRadius: '8px',
+                            width: '100%',
+                            '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                              height: '40px',
+                              borderRadius: '4px'
+                            },
+                            '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
+                            }
+                          }}
+                          onChange={e => {
+                            searchNursery(e.target.value)
+                          }}
+                          {...params}
+                          label='Status'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              </Grid>
             </Box>
             <DataGrid
               sx={{
@@ -538,7 +628,7 @@ const NurseryDetails = () => {
               disableMultipleColumnsSorting={true}
               columns={columns}
               sortingMode='server'
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
@@ -546,16 +636,16 @@ const NurseryDetails = () => {
               onPaginationModelChange={setPaginationModel}
               rowHeight={64}
               loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
+              // slotProps={{
+              //   baseButton: {
+              //     variant: 'outlined'
+              //   },
+              //   toolbar: {
+              //     value: searchValue,
+              //     clearSearch: () => handleSearch(''),
+              //     onChange: event => handleSearch(event.target.value)
+              //   }
+              // }}
               onCellClick={onCellClick}
             />
             {openDrawer && (

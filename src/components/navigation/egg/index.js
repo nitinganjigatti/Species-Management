@@ -3,6 +3,12 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     sectionTitle: 'Egg Module'
   }
 
+  const dashboard = {
+    title: 'Dashboard',
+    path: '/egg/dashboard',
+    icon: 'material-symbols:inventory-2-outline'
+  }
+
   const nursery = {
     title: 'Nursery',
     path: '/egg/nursery',
@@ -37,11 +43,11 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
   }
 
   if (egg_nursery && !egg_collection) {
-    eggNavigation.push(nursery, incubatorRoom, incubators)
+    eggNavigation.push(dashboard, nursery, incubatorRoom, incubators)
   }
 
   if (egg_collection) {
-    eggNavigation.push(nursery, incubatorRoom, incubators, eggs)
+    eggNavigation.push(dashboard, nursery, incubatorRoom, incubators, eggs)
   }
 
   return eggNavigation

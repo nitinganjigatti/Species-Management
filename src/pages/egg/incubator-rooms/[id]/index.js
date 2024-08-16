@@ -16,8 +16,9 @@ import {
   Button,
   Avatar,
   Tooltip,
-  Switch,
-  FormControlLabel
+  TextField,
+  FormControl,
+  Autocomplete
 } from '@mui/material'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
@@ -25,7 +26,7 @@ import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
 import DetailCard from 'src/components/egg/DetailCard'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
-import { getIncubatorList } from 'src/lib/api/egg/incubator'
+import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
 import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 import Utility from 'src/utility'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -105,9 +106,9 @@ const RoomDetails = () => {
 
         const params = {
           sort,
-          q: q || searchValue,
+          q,
           room_id: id,
-          type: 'all',
+          availability,
           til_date: cuurent_date,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize
@@ -134,7 +135,7 @@ const RoomDetails = () => {
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData()
+      fetchTableData(searchValue, defaultAvailibility?.key)
     }
   }, [fetchTableData])
 
@@ -155,10 +156,10 @@ const RoomDetails = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async q => {
+    debounce(async (q, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q)
+        await fetchTableData(q, status)
       } catch (error) {
         console.error(error)
       }
@@ -166,10 +167,24 @@ const RoomDetails = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, status) => {
     setSearchValue(value)
-    searchTableData(value)
+    searchTableData(value, status)
   }
+
+  const AvailibityList = async () => {
+    try {
+      await getAvailibilityList().then(res => {
+        setAvailibilityList(res?.data?.data)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    AvailibityList()
+  }, [])
 
   const columns = [
     {
@@ -670,76 +685,62 @@ const RoomDetails = () => {
                           outline: 'none'
                         },
 
-                        '& .MuiDataGrid-row:hover': {
-                          cursor: 'pointer'
-                        }
-                      }}
-                      columnVisibilityModel={{
-                        sl_no: false
-                      }}
-                      disableColumnSelector={true}
-                      autoHeight
-                      pagination
-                      rows={indexedRows === undefined ? [] : indexedRows}
-                      rowCount={total}
-                      columns={columns}
-                      sortingMode='server'
-                      paginationMode='server'
-                      rowHeight={64}
-                      pageSizeOptions={[7, 10, 25, 50]}
-                      paginationModel={paginationModel}
-                      onSortModelChange={handleSortModel}
-                      slots={{ toolbar: ServerSideToolbarWithFilter }}
-                      onPaginationModelChange={setPaginationModel}
-                      loading={loading}
-                      slotProps={{
-                        baseButton: {
-                          variant: 'outlined'
-                        },
-                        toolbar: {
-                          value: searchValue,
-                          clearSearch: () => handleSearch(''),
-                          onChange: event => handleSearch(event.target.value)
-                        }
-                      }}
-                      onCellClick={onCellClick}
-                    />
-                  </Box>
-                </Card>
-              </Grid>
-            </Grid>
-            <>
-              <AddIncubatorRoom
-                callApi={fetchDetailsData}
-                callTableApi={fetchTableData}
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-                editParams={editParams}
-              />
-              <AddIncubators
-                actionApi={fetchTableData}
-                detailsApi={fetchDetailsData}
-                sidebarOpen={dialog}
-                handleSidebarClose={handleSidebarClose}
-                isPreFilled={isPreFilled}
-              />
-              <StatusDialogBox
-                active={active}
-                refType={'room'}
-                openStatusDialog={openStatusDialog}
-                setOpenStatusDialog={setOpenStatusDialog}
-                elements={total}
-                statusLoading={statusLoading}
-                hatcheryStatusFunc={hatcheryStatusFunc}
-              />
-            </>
-          </>
-        )
-      ) : (
-        <>
-          <ErrorScreen></ErrorScreen>
-        </>
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  rowHeight={64}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  // slotProps={{
+                  //   baseButton: {
+                  //     variant: 'outlined'
+                  //   },
+                  //   toolbar: {
+                  //     value: searchValue,
+                  //     clearSearch: () => handleSearch(''),
+                  //     onChange: event => handleSearch(event.target.value)
+                  //   }
+                  // }}
+                  onCellClick={onCellClick}
+                />
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
       )}
+
+      <>
+        <AddIncubatorRoom
+          callApi={fetchDetailsData}
+          callTableApi={fetchTableData}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          editParams={editParams}
+        />
+        <AddIncubators
+          actionApi={fetchTableData}
+          detailsApi={fetchDetailsData}
+          sidebarOpen={dialog}
+          handleSidebarClose={handleSidebarClose}
+          isPreFilled={isPreFilled}
+        />
+      </>
     </>
   )
 }

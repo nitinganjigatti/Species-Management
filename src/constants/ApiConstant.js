@@ -240,6 +240,14 @@ export const DISCARD_LIST_BY_ID = 'discard-list-by-id'
 
 export const DISCARD_DELETE = 'discard-delete'
 
+export const COUNT_GET_BY_SPECIES = 'count-get-by-species'
+
+export const LIST_GET_BY_SPECIES = 'list-get-by-species'
+
+export const EGG_STATUS_LIST = 'master/data/all'
+
+export const SPECIES_WISE_DETAILS = 'species-wise-details'
+
 export const NECROPSY_REPORTS = 'necropsy-report'
 
 export const GET_COLLECTED_BY = 'get-collected-by-list'
