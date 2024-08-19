@@ -7,7 +7,8 @@ import {
   IconButton,
   ImageListItem,
   ImageListItemBar,
-  Typography
+  Typography,
+  Drawer
 } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useState } from 'react'
@@ -29,6 +30,7 @@ import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
 import Router from 'next/router'
 import Utility from 'src/utility'
+import EditEggInfo from 'src/components/egg/EditEggInfo'
 
 const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList, handleBackButton }) => {
   const theme = useTheme()
@@ -45,6 +47,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
 
+  //Edit Egg info
+
+  const [openEditDrawer, setOpenEditDrawer] = useState(false)
+
   // const [openCreate, setOpenCreate] = useState(false)
 
   // ** Hook
@@ -57,6 +63,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
       setLoaded(true)
     }
   })
+
+  const closeEditDrawer = () => {
+    setOpenEditDrawer(false)
+  }
 
   function formatDate(dateString) {
     const now = moment()
@@ -145,23 +155,33 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
     <>
       <Card>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => handleBackButton()}
-              color={theme.palette.customColors.OnSurfaceVariant}
-              icon='material-symbols:arrow-back'
-            />
-            <Typography
-              sx={{
-                color: theme.palette.secondary.dark,
-                fontWeight: 500,
-                fontSize: '24px',
-                lineHeight: '29.05px'
-              }}
-            >
-              Egg Details
-            </Typography>
+          <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleBackButton()}
+                color={theme.palette.customColors.OnSurfaceVariant}
+                icon='material-symbols:arrow-back'
+              />
+              <Typography
+                sx={{
+                  color: theme.palette.secondary.dark,
+                  fontWeight: 500,
+                  fontSize: '24px',
+                  lineHeight: '29.05px'
+                }}
+              >
+                Egg Details
+              </Typography>
+            </Box>
+            <Box>
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => setOpenEditDrawer(true)}
+                color={theme.palette.customColors.OnSurfaceVariant}
+                icon='mdi:pencil-outline'
+              />
+            </Box>
           </Box>
           <Grid container>
             <Grid
@@ -241,7 +261,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     />
 
                     {/* <ImageListItemBar
-                    
+
                       sx={{ pb: 0, borderBottomRightRadius: '8px', borderBottomLeftRadius: '8px' }}
                       title={eggDetails?.default_common_name}
                       subtitle={eggDetails?.complete_name}
@@ -292,18 +312,30 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   mb: '24px'
                 }}
               >
-                <Typography
-                  sx={{
-                    textAlign: { xs: 'center', sm: 'start' },
-                    fontWeight: 600,
-                    fontSize: '36px',
-                    lineHeight: '43.57px',
-                    mb: { xs: 4 },
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  {eggDetails?.egg_code || 'egg_code'}
-                </Typography>
+                <Box sx={{ mb: { xs: 4 } }}>
+                  <Typography
+                    sx={{
+                      textAlign: { xs: 'center', sm: 'start' },
+                      fontWeight: 600,
+                      fontSize: '36px',
+                      lineHeight: '43.57px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {eggDetails?.egg_code || 'egg_code'}
+                  </Typography>
+                  {eggDetails?.egg_number && (
+                    <Typography
+                      sx={{
+                        textAlign: { xs: 'center', sm: 'start' },
+                        mb: { xs: 4 },
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      UID: {eggDetails?.egg_number}
+                    </Typography>
+                  )}
+                </Box>
                 <Box
                   sx={{
                     display: 'flex',
@@ -670,6 +702,57 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
         setIsOpen={setOpenDiscard}
         eggID={eggDetails?.egg_id}
       />
+      {openEditDrawer && (
+        <Drawer
+          anchor='right'
+          open={openEditDrawer}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
+          }}
+        >
+          <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%', overflowY: 'auto' }}>
+            <Box
+              className='sidebar-header'
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                p: theme => theme.spacing(3, 3.255, 3, 5.255),
+                px: '24px'
+
+                // bgcolor: theme.palette.customColors.lightBg
+              }}
+            >
+              <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                <Icon
+                  style={{ marginLeft: -8 }}
+                  icon='material-symbols-light:add-comment-outline-rounded'
+                  fontSize={'32px'}
+                />
+                <Typography variant='h6'>
+                  {eggDetails?.egg_number !== null ? 'Edit Egg Identifier' : 'Add Egg Identifier'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton size='small' onClick={() => closeEditDrawer()} sx={{ color: 'text.primary' }}>
+                  <Icon icon='mdi:close' fontSize={20} />
+                </IconButton>
+              </Box>
+            </Box>
+
+            <EditEggInfo
+              egg_id={eggDetails?.egg_id}
+              egg_number={eggDetails?.egg_number}
+              closeEditDrawer={closeEditDrawer}
+              getDetails={getDetails}
+            />
+          </Box>
+        </Drawer>
+      )}
     </>
   )
 }
