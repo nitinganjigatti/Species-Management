@@ -263,7 +263,18 @@ const EggList = () => {
             }}
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>{' '}
+          </Typography>
+          {params.row.egg_number !== null && (
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '12px'
+              }}
+            >
+              UID: {params.row.egg_number}
+            </Typography>
+          )}
+
           <Typography
             sx={{
               color:
@@ -641,7 +652,17 @@ const EggList = () => {
             }}
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>{' '}
+          </Typography>
+          {params.row.egg_number !== null && (
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '12px'
+              }}
+            >
+              UID: {params.row.egg_number}
+            </Typography>
+          )}
           <Typography
             sx={{
               color:
@@ -906,6 +927,16 @@ const EggList = () => {
             >
               {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
+            {params.row.egg_number !== null && (
+              <Typography
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px'
+                }}
+              >
+                UID: {params.row.egg_number}
+              </Typography>
+            )}
             <Typography
               sx={{
                 color:
@@ -1444,7 +1475,17 @@ const EggList = () => {
             }}
           >
             {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>{' '}
+          </Typography>
+          {params.row.egg_number !== null && (
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '12px'
+              }}
+            >
+              UID: {params.row.egg_number}
+            </Typography>
+          )}
           <Typography
             sx={{
               color:
