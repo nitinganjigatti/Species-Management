@@ -309,10 +309,11 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'row' },
                   justifyContent: 'space-between',
+                  alignItems: 'flext-start',
                   mb: '24px'
                 }}
               >
-                <Box sx={{ mb: { xs: 4 } }}>
+                <Box sx={{ mb: { xs: 4 }, alignItems: 'flext-start' }}>
                   <Typography
                     sx={{
                       textAlign: { xs: 'center', sm: 'start' },
@@ -342,7 +343,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: { sm: 'space-between' },
                     gap: '24px',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    alignSelf: 'flex-start'
                   }}
                 >
                   <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
