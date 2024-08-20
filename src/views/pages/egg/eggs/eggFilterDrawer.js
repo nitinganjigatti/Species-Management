@@ -311,27 +311,6 @@ const EggFilterDrawer = ({
     }
   }
 
-  // const handleCheckboxChange = (id, name) => {
-  //   const currentSelectedOptions = selectedOptions[selectedMenu.name]
-  //   const isChecked = currentSelectedOptions?.some(option => option.id === id)
-
-  //   const newSelectedOptions = isChecked
-  //     ? currentSelectedOptions.filter(option => option.id !== id)
-  //     : [...currentSelectedOptions, { id, name }]
-
-  //   const allOptions = getOptionsForMenu(selectedMenu)
-  //   const areAllSelected = newSelectedOptions.length === allOptions.length
-
-  //   setSelectedOptions({
-  //     ...selectedOptions,
-  //     [selectedMenu.name]: newSelectedOptions
-  //   })
-
-  //   setSelectAll(areAllSelected)
-
-  //   // console.log('Updated Selection: ')
-  // }
-
   const handleCheckboxChange = (id, name) => {
     // Default to empty array if currentSelectedOptions is not defined
     const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
