@@ -62,9 +62,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const requestParent = {
     title: 'Request',
     icon: 'material-symbols:request-quote-outline',
-    path: '/pharmacy/request/request-list',
 
-    // path: '/pharmacy/request/request-list?total&sort&sort&q&column&status&startDate& endDate&store& page& limit& filterSwitch& days',
+    // path: '/pharmacy/request/request-list',
+    path: '/pharmacy/request/request-list?total&sort&sort&q&column&status&startDate& endDate&store& page& limit& filterSwitch& days',
 
     children: []
   }

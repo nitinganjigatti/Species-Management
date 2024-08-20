@@ -168,7 +168,7 @@ export const AddItemsForm = ({
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
-    const isMedicineAlreadyExists = editParams.request_item_details.some(
+    const isMedicineAlreadyExists = editParams?.request_item_details?.some(
       item =>
         item.request_item_medicine_id === request_item.value &&
         item.request_item_batch_no === request_item_batch_no.value &&

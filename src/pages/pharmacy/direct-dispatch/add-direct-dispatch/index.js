@@ -174,7 +174,7 @@ const AddDirectDispatch = () => {
 
   // local nested items delete
   const removeItemsFromTable = itemId => {
-    const updatedItems = editParams.request_item_details.filter(el => {
+    const updatedItems = editParams?.request_item_details?.filter(el => {
       return el.uuid != itemId
     })
     setEditParams({ ...editParams, request_item_details: updatedItems })
@@ -225,7 +225,7 @@ const AddDirectDispatch = () => {
     }
     // if (values.control_substance) {
     if (values.control_substance === true) {
-      if (values.control_substance_file.length === 0) {
+      if (values?.control_substance_file?.length === 0) {
         itemErrors.control_substance_file = 'This field is required'
       }
     }
@@ -255,7 +255,7 @@ const AddDirectDispatch = () => {
     //
     setDuplicateMedError(false)
 
-    const isMedicineAlreadyExists = editParams.request_item_details.some(
+    const isMedicineAlreadyExists = editParams?.request_item_details?.some(
       item =>
         item.request_item_medicine_id === params.request_item_medicine_id &&
         item.request_item_batch_no === params.request_item_batch_no &&
@@ -285,7 +285,7 @@ const AddDirectDispatch = () => {
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
-    const updatedIndex = updatedState.request_item_details.findIndex(row => row.uuid === params.uuid)
+    const updatedIndex = updatedState?.request_item_details?.findIndex(row => row.uuid === params.uuid)
 
     if (updatedIndex !== -1) {
       const updatedNestedRows = [...updatedState.request_item_details]
@@ -312,7 +312,7 @@ const AddDirectDispatch = () => {
       return
     }
     if (params.control_substance === true) {
-      if (params.control_substance_file.length === 0) {
+      if (params?.control_substance_file?.length === 0) {
         setItemErrors(validate(params))
 
         return
@@ -335,7 +335,7 @@ const AddDirectDispatch = () => {
   }
 
   const filterToStocks = id => {
-    const optionsForSelectB = fromStocks.filter(option => option.id !== id)
+    const optionsForSelectB = fromStocks?.filter(option => option.id !== id)
     setToStocks(optionsForSelectB)
   }
 
@@ -367,7 +367,7 @@ const AddDirectDispatch = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length > 0) {
+      if (searchResults?.data?.list_items?.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
@@ -395,7 +395,7 @@ const AddDirectDispatch = () => {
         const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
 
         if (searchResults?.success) {
-          if (searchResults?.data?.items.length > 0) {
+          if (searchResults?.data?.items?.length > 0) {
             // const data = searchResults?.data.map(item => ({
             //   value: item?.batch_no,
             //   label: item?.batch_no,
@@ -464,7 +464,7 @@ const AddDirectDispatch = () => {
       const result = await getDirectDispatchItemsListById(id)
 
       if (result.success === true && result?.data?.request_item_details?.length > 0) {
-        const lineItems = result?.data?.request_item_details.map(el => {
+        const lineItems = result?.data?.request_item_details?.map(el => {
           return {
             request_item_medicine_id: el.stock_item_id,
             // medicine_name: el.stock_name,
@@ -492,10 +492,10 @@ const AddDirectDispatch = () => {
           id: result.data.id,
           dispatch_id: result?.data?.dispatch_id,
           // from_store_id: result.data.from_store_id,
-          to_store_id: result.data.to_store_id,
+          to_store_id: result?.data?.to_store_id,
           ro_date: result.data.request_date,
           // from_store_type: result.data.from_store_type,
-          to_store_type: result.data.to_store_type,
+          to_store_type: result?.data?.to_store_type,
           request_item_details: lineItems
         })
       }
@@ -529,7 +529,7 @@ const AddDirectDispatch = () => {
     //     uuid: getItems[0].uuid
     //   })
     // } else {
-    const getItems = editParams.request_item_details.filter(el => {
+    const getItems = editParams?.request_item_details?.filter(el => {
       return el.uuid === itemId
     })
 
@@ -886,8 +886,8 @@ const AddDirectDispatch = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {editParams.request_item_details
-                  ? editParams.request_item_details.map((el, index) => {
+                {editParams?.request_item_details
+                  ? editParams?.request_item_details?.map((el, index) => {
                       return (
                         <TableRow key={index}>
                           <TableCell>
@@ -1016,7 +1016,7 @@ const AddDirectDispatch = () => {
                 </>
               ) : null}
               <LoadingButton
-                disabled={editParams.request_item_details.length > 0 ? false : true}
+                disabled={editParams?.request_item_details?.length > 0 ? false : true}
                 sx={{ marginRight: '8px' }}
                 size='large'
                 onClick={() => {

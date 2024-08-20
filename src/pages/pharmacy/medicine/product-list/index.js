@@ -364,6 +364,7 @@ const ListOfMedicine = () => {
                   </Grid>
                 </Grid>
                 <DataGrid
+                  sx={{ cursor: 'pointer' }}
                   columnVisibilityModel={{
                     id: false
                   }}

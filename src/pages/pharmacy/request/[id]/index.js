@@ -49,6 +49,11 @@ import MenuWithDots from 'src/components/MenuWithDots'
 import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
 import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
 import { object } from 'yup'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import Chip from '@mui/material/Chip'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -96,6 +101,16 @@ const IndividualRequest = () => {
     qty_requested: '',
     product: ''
   })
+  const [status, setStatus] = useState('Pending')
+
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
 
   const closeNotesDialog = () => {
     setNotesDialog(false)
@@ -1417,6 +1432,59 @@ const IndividualRequest = () => {
                   </Grid>
                   {/* Medicine Listing */}
                 </CardContent>
+                {/* {requestItems?.request_item_details?.length > 0 ? (
+                  <TableBasic rowHeight={126} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
+                ) : null} */}
+
+                <Grid>
+                  <TabContext value={status}>
+                    <TabList
+                      onChange={(event, newValue) => {
+                        setStatus(newValue)
+                      }}
+                    >
+                      <Tab
+                        value='Pending'
+                        label={<TabBadge label='Pending' totalCount={status === 'Pending' ? 0 : null} />}
+                      />
+                      <Tab
+                        value='Completed'
+                        label={<TabBadge label='Completed' totalCount={status === 'Completed' ? 0 : null} />}
+                      />
+
+                      <Tab value='All' label={<TabBadge label='All' totalCount={status === 'All' ? 0 : null} />} />
+                    </TabList>
+                    <TabPanel value='Completed'>
+                      <TableBasic
+                        rowHeight={126}
+                        columns={columns}
+                        rows={
+                          requestItems?.request_item_details.length > 0
+                            ? requestItems?.request_item_details.filter(el => el.request_search_status === 'Completed')
+                            : []
+                        }
+                      ></TableBasic>
+                    </TabPanel>
+                    <TabPanel value='Pending'>
+                      <TableBasic
+                        rowHeight={126}
+                        columns={columns}
+                        rows={
+                          requestItems?.request_item_details.length > 0
+                            ? requestItems?.request_item_details.filter(el => el.request_search_status === 'Pending')
+                            : []
+                        }
+                      ></TableBasic>
+                    </TabPanel>
+                    <TabPanel value='All'>
+                      <TableBasic
+                        rowHeight={126}
+                        columns={columns}
+                        rows={requestItems?.request_item_details}
+                      ></TableBasic>
+                    </TabPanel>
+                  </TabContext>
+                </Grid>
                 <Grid container>
                   <CommonDialogBox
                     title={'Add alternative medicine'}
@@ -1468,9 +1536,6 @@ const IndividualRequest = () => {
                     show={openProductNotAvailableDialog}
                   />
                 </Grid>
-                {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic rowHeight={126} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-                ) : null}
               </Card>
               {/* Dispatch list */}
               {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
