@@ -513,13 +513,31 @@ const AddNewEntry = () => {
       if (response?.success) {
         setDeleteBtnLoader(false)
         setIsModalOpenDelete(false)
+        // const fetchedFiles = response?.data?.attachments?.map(file => ({
+        //   name: file?.attachment_name,
+        //   fileSrc: file?.attachment,
+        //   id: file?.id,
+        //   isBackendFile: true // Mark as backend file
+        // }))
+        // setDisplayFile(fetchedFiles)
+
+        // Fetch the updated backend files
         const fetchedFiles = response?.data?.attachments?.map(file => ({
           name: file?.attachment_name,
           fileSrc: file?.attachment,
           id: file?.id,
           isBackendFile: true // Mark as backend file
         }))
-        setDisplayFile(fetchedFiles)
+
+        // Retain only the files that are not deleted (including newly uploaded files)
+        const updatedDisplayFiles = [
+          ...fetchedFiles,
+          ...displayFile.filter(file => file.id !== selectedFileId && !file.isBackendFile)
+        ]
+
+        // Update the displayFile state
+        setDisplayFile(updatedDisplayFiles)
+
         Toaster({ type: 'success', message: response?.message })
       } else {
         setDeleteBtnLoader(false)

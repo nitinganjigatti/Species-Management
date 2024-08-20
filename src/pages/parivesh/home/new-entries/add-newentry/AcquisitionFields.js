@@ -137,13 +137,32 @@ const AcquisitionFields = ({
       if (response?.success) {
         setBtnLoader(false)
         setIsModalOpenDelete(false)
+
+        // const fetchedDgftFiles = response?.data?.dgft_attachments?.map(file => ({
+        //   name: file?.dgft_attachment_name,
+        //   fileSrc: file?.dgft_attachment,
+        //   id: file?.id,
+        //   isBackendFile: true // Mark as backend file
+        // }))
+        // setDgftDisplayFile(fetchedDgftFiles || [])
+
+        // Fetch the updated backend files
         const fetchedDgftFiles = response?.data?.dgft_attachments?.map(file => ({
           name: file?.dgft_attachment_name,
           fileSrc: file?.dgft_attachment,
           id: file?.id,
           isBackendFile: true // Mark as backend file
         }))
-        setDgftDisplayFile(fetchedDgftFiles || [])
+
+        // Retain only the files that are not deleted (including newly uploaded files)
+        const updatedDisplayFiles = [
+          ...fetchedDgftFiles,
+          ...dgftDisplayFile.filter(file => file.id !== selectedFileId && !file.isBackendFile)
+        ]
+
+        // Update the displayFile state
+        setDgftDisplayFile(updatedDisplayFiles)
+
         Toaster({ type: 'success', message: response?.message })
       } else {
         Toaster({ type: 'error', message: response?.message })
