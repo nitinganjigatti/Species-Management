@@ -229,6 +229,9 @@ const EggFilterDrawer = ({
     setSelectedMenu(menu)
 
     // Reset selectAll state when menu changes
+    setSearchQuery('')
+    searchData('')
+
     setSelectAll(false)
   }
 
@@ -323,7 +326,9 @@ const EggFilterDrawer = ({
       [selectedMenu.name]: newSelectedOptions
     })
 
-    setSelectAll(areAllSelected)
+    if (searchQuery === '') {
+      setSelectAll(areAllSelected)
+    }
   }
 
   const getOptionsForMenu = menu => {
