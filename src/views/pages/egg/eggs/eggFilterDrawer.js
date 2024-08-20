@@ -70,7 +70,7 @@ const EggFilterDrawer = ({
     if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded') {
       setSelectedMenu(discardMenu[0])
     }
-  }, [])
+  }, [tab_Value, subTab_value])
 
   const authData = useContext(AuthContext)
 
@@ -216,11 +216,6 @@ const EggFilterDrawer = ({
           ...prevSelectedOptions,
           status: '3'
         }))
-      } else if (tab_Value === 'eggs_incubation') {
-        setSelectedOptions(prevSelectedOptions => ({
-          ...prevSelectedOptions,
-          status: '2'
-        }))
       } else {
         setSelectedOptions(prevSelectedOptions => ({
           ...prevSelectedOptions,
@@ -276,7 +271,7 @@ const EggFilterDrawer = ({
 
       // ...(formattedDate ? [{ id: 'discarded_date', name: formattedDate }] : []),
 
-      ...(tab_Value === 'all' && updatedSelectedOptions.status
+      ...((tab_Value === 'all' || tab_Value === 'eggs_incubation') && updatedSelectedOptions.status
         ? [{ id: updatedSelectedOptions.status.id, name: updatedSelectedOptions.status.name }]
         : [])
     ]
@@ -335,7 +330,14 @@ const EggFilterDrawer = ({
     switch (menu.name) {
       case 'Stage':
         if (tab_Value === 'eggs_incubation') {
-          const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '2')
+          // const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '2')
+
+          // return filteredEggStage?.map(stage => ({
+          //   id: stage.id,
+          //   name: stage.egg_state
+          // }))
+
+          const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === selectedDropdownID)
 
           return filteredEggStage?.map(stage => ({
             id: stage.id,
@@ -615,7 +617,7 @@ const EggFilterDrawer = ({
                 </>
               )}
 
-              {tab_Value === 'all' && selectedMenu?.name === 'Stage' && (
+              {/* {tab_Value === 'all' && selectedMenu?.name === 'Stage' && (
                 <FormControl fullWidth>
                   <InputLabel id='dropdown-label'>Select Status</InputLabel>
                   <Select
@@ -629,6 +631,26 @@ const EggFilterDrawer = ({
                         {item.egg_status}
                       </MenuItem>
                     ))}
+                  </Select>
+                </FormControl>
+              )} */}
+
+              {(tab_Value === 'all' || tab_Value === 'eggs_incubation') && selectedMenu?.name === 'Stage' && (
+                <FormControl fullWidth>
+                  <InputLabel id='dropdown-label'>Select Status</InputLabel>
+                  <Select
+                    labelId='dropdown-label'
+                    label='Select Status'
+                    value={selectedDropdownID}
+                    onChange={handleDropdownChange}
+                  >
+                    {eggMaster?.egg_status
+                      .filter(item => tab_Value !== 'eggs_incubation' || ['1', '2'].includes(item.id))
+                      .map(item => (
+                        <MenuItem key={item.id} value={item.id}>
+                          {item.egg_status}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               )}

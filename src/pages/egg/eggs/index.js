@@ -1818,7 +1818,15 @@ const EggList = () => {
           collected_by: collectedByIds ? collectedByIds : '',
           site_id: siteIds ? siteIds : [],
 
-          egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
+          egg_status_id: (() => {
+            if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
+              return statusId ? statusId : ''
+            } else {
+              return eggStateIds?.length > 0 ? (statusId ? statusId : '') : ''
+            }
+          })(),
+
+          // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
 
           // egg_status_id: statusId ? statusId : '',
           collected_date: collectedDate ? collectedDate : '',
