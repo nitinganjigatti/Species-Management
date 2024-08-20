@@ -110,6 +110,8 @@ export const SALTS = 'salts'
 
 export const STORAGE = 'storage'
 
+export const DRIVER = 'driver'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
@@ -161,6 +163,12 @@ export const STOCK_ADJUSTMENT = 'stock-adjustment'
 export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
 
 export const LOCAL_TO_LOCAL_DISPATCH = 'direct-dispatch-local'
+
+export const AlTERNATIVE_MEDICINE = 'alternate'
+
+export const REJECT_MEDICINE = 'reject'
+
+export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
 
 export const FEED_DETAILS = 'details'
 

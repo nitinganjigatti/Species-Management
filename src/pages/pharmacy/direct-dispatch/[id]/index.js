@@ -960,7 +960,7 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                        Router.back()
                       }}
                       icon='ep:back'
                     />

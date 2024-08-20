@@ -6,11 +6,13 @@ export async function getMedicineList({ params }) {
 
   return response.data
 }
+
 export async function getLocalMedicineList({ params }) {
   const response = await axiosGet({ url: `${LOCAL_STOCK_REPORT}`, params, pharmacy: true })
 
   return response.data
 }
+
 export async function getGenericMedicineList({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_BASE_URL}stock/list`, params, pharmacy: true })
 
