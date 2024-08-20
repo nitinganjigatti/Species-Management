@@ -1245,7 +1245,7 @@ const EggList = () => {
       )
     },
     {
-      width: 250,
+      width: 300,
 
       // minWidth: 60,
       sortable: false,
@@ -1445,7 +1445,7 @@ const EggList = () => {
       )
     },
     {
-      width: 250,
+      width: 300,
 
       // minWidth: 60,
       sortable: false,
@@ -1463,7 +1463,7 @@ const EggList = () => {
       )
     },
     {
-      width: 160,
+      width: 180,
       field: 'stage_state',
       sortable: false,
       headerName: ' STATE & STAGE',
@@ -2116,7 +2116,7 @@ const EggList = () => {
         )}
         {openDrawer && (
           <AllocationSlider
-            callApi={() => fetchTableData(sort, '', 'eggs_received', isDiscarded, filterByNurseryId)}
+            callApi={() => fetchTableData(sort, '', 'eggs_received', isDiscarded, selectedFiltersOptions)}
             allocationValues={allocationValues}
             setOpenDrawer={setOpenDrawer}
             allocateEggId={eggID}

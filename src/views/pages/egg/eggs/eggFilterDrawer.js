@@ -33,7 +33,9 @@ const EggFilterDrawer = ({
   setFilterList,
   setSelectedFiltersOptions,
   selectedOptions,
-  setSelectedOptions
+  setSelectedOptions,
+  selectedDate,
+  setSelectedDate
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -41,15 +43,37 @@ const EggFilterDrawer = ({
 
   // console.log('tab_Value f :>> ', tab_Value)
 
+  // const leftMenu = [
+  //   { id: 1, name: 'Stage' },
+  //   { id: 2, name: 'Site' },
+  //   { id: 3, name: 'Nursery' },
+  //   { id: 4, name: 'Collected Date' },
+  //   { id: 5, name: 'Collected By' }
+
+  //   // { id: 6, name: 'Enclosure' }
+  // ].filter(menu => (tab_Value !== 'eggs_received' && tab_Value !== 'eggs_hatched' ? true : menu.name !== 'Stage'))
+
   const leftMenu = [
     { id: 1, name: 'Stage' },
     { id: 2, name: 'Site' },
     { id: 3, name: 'Nursery' },
     { id: 4, name: 'Collected Date' },
     { id: 5, name: 'Collected By' }
+  ]
+    .filter(menu => (tab_Value !== 'eggs_received' && tab_Value !== 'eggs_hatched' ? true : menu.name !== 'Stage'))
+    .map(menu => {
+      // Rename 'Collected Date' and 'Collected By' based on `tab_Value`
+      if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+        if (menu.name === 'Collected Date') {
+          return { ...menu, name: 'Discarded Date' }
+        }
+        if (menu.name === 'Collected By') {
+          return { ...menu, name: 'Discarded By' }
+        }
+      }
 
-    // { id: 6, name: 'Enclosure' }
-  ].filter(menu => (tab_Value !== 'eggs_received' && tab_Value !== 'eggs_hatched' ? true : menu.name !== 'Stage'))
+      return menu
+    })
 
   const discardMenu = [
     { id: 2, name: 'Site' },
@@ -100,7 +124,7 @@ const EggFilterDrawer = ({
   //   'Security Check': []
   // })
 
-  const [selectedDate, setSelectedDate] = useState(null)
+  // const [selectedDate, setSelectedDate] = useState(null)
 
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -244,8 +268,15 @@ const EggFilterDrawer = ({
       Nursery: [],
       Site: [],
       'Collected By': [],
-      collected_date: null
+      collected_date: null,
+      status: null,
+      'Discarded By': [],
+      discarded_Date: null,
+      'Security Check': []
     }) // Reset selected options
+    setSearchQuery('')
+    searchData('')
+    setSelectedDate(null)
   }
 
   const handleApplyFilter = () => {
@@ -266,8 +297,12 @@ const EggFilterDrawer = ({
       ...updatedSelectedOptions.Stage,
       ...updatedSelectedOptions.Nursery,
       ...updatedSelectedOptions.Site,
-      ...updatedSelectedOptions['Security Check'],
-      ...updatedSelectedOptions['Discarded By'],
+      ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded'
+        ? updatedSelectedOptions['Security Check'] || []
+        : []),
+      ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded'
+        ? updatedSelectedOptions['Discarded By'] || []
+        : []),
 
       ...updatedSelectedOptions['Collected By'],
       ...(formattedDate ? [{ id: 'collected_date', name: formattedDate }] : []),

@@ -20,6 +20,7 @@ const EggTableHeader = ({
   const { search_value } = router.query
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [searchQuery, setSearchQuery] = useState(search_value || '')
+  const [selectedDate, setSelectedDate] = useState(null)
 
   const [selectedOptions, setSelectedOptions] = useState({
     Stage: [],
@@ -43,6 +44,7 @@ const EggTableHeader = ({
 
     if (item?.id === 'collected_date') {
       newSelectedFilters.collected_date = null
+      setSelectedDate(null)
     } else if (item?.id === 'search') {
       setSearchQuery('')
       handleSearch('')
@@ -121,7 +123,7 @@ const EggTableHeader = ({
               }}
             />
           </Box>
-          <Box
+          {/* <Box
             sx={{
               display: 'flex',
               justifyContent: 'center',
@@ -134,7 +136,7 @@ const EggTableHeader = ({
             }}
           >
             <Icon icon='uil:calender' fontSize={24} />
-          </Box>
+          </Box> */}
           <Box
             sx={{
               display: 'flex',
@@ -184,6 +186,8 @@ const EggTableHeader = ({
         setSelectedFiltersOptions={setSelectedFiltersOptions}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
       />
     </>
   )
