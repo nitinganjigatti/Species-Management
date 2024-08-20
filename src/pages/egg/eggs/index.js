@@ -184,7 +184,8 @@ const EggList = () => {
       field: 'state',
       sortable: false,
       headerName: 'STATE',
-      align: 'center',
+
+      // align: 'center',
       renderCell: params => (
         <Box>
           <TextCard eggCondition={params.row.egg_condition} />
@@ -834,8 +835,11 @@ const EggList = () => {
 
       // align: 'center',
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <TextCard eggCondition={params.row.egg_condition} />
+        <Stack direction='column' spacing={1}>
+          <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
+            <TextCard eggCondition={params.row.egg_condition} />
+          </Box>
+
           <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
             <Typography
               sx={{
@@ -845,12 +849,14 @@ const EggList = () => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'
+
+                // Ensures Typography doesn't exceed container width
               }}
             >
               {params.row.egg_state ? params.row.egg_state : '-'}
             </Typography>
           </Tooltip>
-        </Box>
+        </Stack>
       )
     },
     {
@@ -981,7 +987,7 @@ const EggList = () => {
     },
     {
       // flex: 0.15,
-      width: 100,
+      width: 150,
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
@@ -1461,10 +1467,14 @@ const EggList = () => {
       field: 'stage_state',
       sortable: false,
       headerName: ' STATE & STAGE',
-      align: 'center',
+
+      // align: 'center',
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <TextCard eggCondition={params.row.egg_condition} />
+        <Stack direction='column' spacing={1}>
+          <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
+            <TextCard eggCondition={params.row.egg_condition} />
+          </Box>
+
           <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
             <Typography
               sx={{
@@ -1473,14 +1483,15 @@ const EggList = () => {
                 lineHeight: '19.36px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                textAlign: 'center'
+                whiteSpace: 'nowrap'
+
+                // Ensures Typography doesn't exceed container width
               }}
             >
               {params.row.egg_state ? params.row.egg_state : '-'}
             </Typography>
           </Tooltip>
-        </Box>
+        </Stack>
       )
     },
 
@@ -1774,13 +1785,15 @@ const EggList = () => {
 
       try {
         setLoading(true)
+        console.log('selectedFiltersOptions[Collected By] ', selectedFiltersOptions['Collected By']?.[0]?.id)
 
         // Extracting IDs from selectedFiltersOptions
         const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || ''
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || ''
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
-        const collectedByIds = selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
+        // const collectedByIds = selectedFiltersOptions['Collected By']?.id || ''
+        const collectedByIds = selectedFiltersOptions['Collected By']?.[0]?.id || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
 
         // console.log('object :>> ', object);
@@ -1802,12 +1815,12 @@ const EggList = () => {
 
           nursery_id: nurseryIds.length > 0 ? nurseryIds : '',
           egg_state_id: eggStateIds ? eggStateIds : [],
-          collected_by: collectedByIds ? collectedByIds : [],
+          collected_by: collectedByIds ? collectedByIds : '',
           site_id: siteIds ? siteIds : [],
 
-          // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
+          egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
 
-          egg_status_id: statusId ? statusId : '',
+          // egg_status_id: statusId ? statusId : '',
           collected_date: collectedDate ? collectedDate : '',
 
           type:
@@ -1820,7 +1833,7 @@ const EggList = () => {
               : statusRecived
         }
 
-        // console.log('params table data :>> ', params)
+        console.log('params table data :>> ', params)
 
         await GetEggList({ params: params }).then(res => {
           // console.log('res :>> ', res)

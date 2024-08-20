@@ -388,6 +388,7 @@ const EggFilterDrawer = ({
       case 'Security Check':
         return [
           { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
+          { id: 'CANCELED', name: 'Canceled' },
           { id: 'COMPLETED', name: 'Security Checked' }
         ]
       default:
