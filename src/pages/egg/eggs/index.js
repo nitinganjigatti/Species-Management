@@ -1263,7 +1263,7 @@ const EggList = () => {
       )
     },
     {
-      width: 160,
+      width: 180,
       field: 'state',
       sortable: false,
       headerName: 'State',
@@ -1463,7 +1463,7 @@ const EggList = () => {
       )
     },
     {
-      width: 180,
+      width: 200,
       field: 'stage_state',
       sortable: false,
       headerName: ' STATE & STAGE',
