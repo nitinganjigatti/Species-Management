@@ -63,8 +63,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Request',
     icon: 'material-symbols:request-quote-outline',
 
-    // path: '/pharmacy/request/request-list',
-    path: '/pharmacy/request/request-list?total&sort&sort&q&column&status&startDate& endDate&store& page& limit& filterSwitch& days',
+    path: '/pharmacy/request/request-list',
 
     children: []
   }
@@ -78,9 +77,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const returnParent = {
     title: 'Return',
     icon: 'material-symbols:assignment-returned-outline-sharp',
+
     path: '/pharmacy/return-product/request-list',
 
-    // path: '/pharmacy/return-product/request-list?total&sort&sort&q&column&status&page&limit&filterSwitch',
     children: []
   }
 
@@ -101,7 +100,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     path: '/pharmacy/direct-dispatch',
 
-    // path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&sort&q&column&status&page&limit&filterSwitch',
     icon: 'iconamoon:delivery-light',
     children: []
   }
@@ -109,17 +107,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const directDispatchList = {
     title: `Dispatch without request`,
     icon: 'iconamoon:delivery-light',
-    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
 
-    // path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&q&column&status&page&limit&filterSwitch'
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
   const directDispatchListForLocal = {
     title: 'Received',
     icon: 'iconamoon:delivery-light',
-    path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&q&column&status&page&limit&filterSwitch'
-
-    // path: '/pharmacy/direct-dispatch/direct-dispatch-list?total&sort&q&column&status&page&limit&filterSwitch'
+    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
   const localDispatchParent = {

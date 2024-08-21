@@ -826,50 +826,10 @@ const IndividualRequest = () => {
               </Typography>
             )}
 
-            {/* {selectedPharmacy.type === 'central' &&
-              parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-              params.row.request_status !== 'Not Available' && (
-                <>
-                  <MenuWithDots
-                    options={[
-                      {
-                        label: 'MAKE IT NOT AVAILABLE',
-                        action: () => handleProductNotAvailableAction(params.row.id, false)
-                      },
-                      {
-                        label: 'ALTERNATIVE PRODUCT',
-                        action: () => {
-                          openAlternativeMedicineDialog()
-                          setMedicineParentId({
-                            ...MedicineParentId,
-                            parent_id: requestItems?.id,
-                            request_item_id: params.row.id
-                          })
-
-                          console.log('line item', params.row.id)
-                          console.log('endpoint', requestItems.id)
-                        }
-                      }
-                    ]}
-                  />
-                </>
-              )}
-
-            {selectedPharmacy.type === 'central' &&
-              parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-              params.row.request_status === 'Not Available' && (
-                <MenuWithDots
-                  options={[
-                    {
-                      label: 'MAKE IT AVAILABLE',
-                      action: () => handleProductNotAvailableAction(params.row.id, true)
-                    }
-                  ]}
-                />
-              )} */}
             {selectedPharmacy.type === 'central' && (
               <Box sx={{ ...boxStyles(params.row.request_status) }}>
-                {params.row.request_status !== 'Alternate' &&
+                {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                  params.row.request_status !== 'Alternate' &&
                   params.row.request_status !== 'Not Available' &&
                   params.row.request_status !== 'Rejected' && <MenuWithDots options={options} />}
               </Box>
@@ -1436,7 +1396,7 @@ const IndividualRequest = () => {
                   <TableBasic rowHeight={126} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
                 ) : null} */}
 
-                <Grid>
+                <Grid sx={{ mx: 4 }}>
                   <TabContext value={status}>
                     <TabList
                       onChange={(event, newValue) => {

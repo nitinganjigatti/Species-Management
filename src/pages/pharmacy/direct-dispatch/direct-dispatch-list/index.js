@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getDirectDispatchItemsList } from 'src/lib/api/pharmacy/directDispatch'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -8,8 +7,7 @@ import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
+
 import TabList from '@mui/lab/TabList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
@@ -17,17 +15,16 @@ import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-import { write, read, remove } from 'src/lib/windows/utils'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
+import { useRouter } from 'next/router'
 
 import Utility from 'src/utility'
 
@@ -37,19 +34,59 @@ const DirectDispatchList = () => {
   /***** Server side pagination */
   const { selectedPharmacy } = usePharmacyContext()
 
+  // const [total, setTotal] = useState(0)
+  // const [sort, setSort] = useState('desc')
+  // const [rows, setRows] = useState([])
+  // const [searchValue, setSearchValue] = useState('')
+  // const [sortColumn, setSortColumn] = useState('label')
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  // const [loading, setLoading] = useState(false)
+  // const [status, setStatus] = useState('pending')
+  // const [filterSwitch, setFilterSwitch] = useState(false)
+  const router = useRouter()
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('pending')
-  const [filterSwitch, setFilterSwitch] = useState(false)
+  const [stores, setStores] = useState([])
+
+  const [status, setStatus] = useState(selectedPharmacy.type === 'central' ? 'pending' : 'shipped')
+  const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
 
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  useEffect(() => {
+    if (!router.query.status) {
+      if (selectedPharmacy.type === 'local') {
+        setStatus('shipped')
+      } else if (selectedPharmacy.type === 'central') {
+        setStatus('pending')
+      }
+    } else {
+      setStatus(
+        selectedPharmacy.type === 'central' && router.query.status === 'pending'
+          ? 'pending'
+          : selectedPharmacy.type === 'local' && router.query.status === 'pending'
+          ? 'shipped'
+          : router.query.status
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.type])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -78,11 +115,9 @@ const DirectDispatchList = () => {
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-            remove('dispatchPageStatus')
           } else {
             setTotal(0)
             setRows([])
-            remove('dispatchPageStatus')
           }
         })
         setLoading(false)
@@ -96,15 +131,10 @@ const DirectDispatchList = () => {
     [paginationModel]
   )
 
-  useEffect(() => {
-    setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
-    setPaginationModel({ page: 0, pageSize: 10 })
-  }, [selectedPharmacy])
-
   // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn, status)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
+  //   setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
+  //   setPaginationModel({ page: 0, pageSize: 10 })
+  // }, [selectedPharmacy])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -115,7 +145,7 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const currentStatus = filterSwitch ? 'completed' : status
+      const currentStatus = filterSwitch === true ? 'completed' : status
 
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -126,8 +156,10 @@ const DirectDispatchList = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
+      setTotal(0)
+      setPaginationModel({ page: 0, pageSize: 10 })
       setSearchValue(q)
-      const currentStatus = filterSwitch ? 'completed' : status
+      const currentStatus = filterSwitch === true ? 'completed' : status
 
       try {
         await fetchTableData(sort, q, column, currentStatus)
@@ -139,52 +171,43 @@ const DirectDispatchList = () => {
   )
 
   const handleSwitchChange = event => {
-    setFilterSwitch(event.target.checked)
+    setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterSwitch(prev => event.target.checked)
+    if (event.target.checked === false) {
+      setStatus(prev => 'all')
+    }
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: status,
+      page: 0,
+      limit: 10
+    })
   }
   useEffect(() => {
-    const statusIsThere = read('dispatchPageStatus')
+    const currentStatus = filterSwitch === true ? 'completed' : status
 
-    // console.log('requestPageStatus', statusIsThere)
-    if (statusIsThere) {
-      // debugger
-      setStatus(statusIsThere.currentStatus)
-      setFilterSwitch(statusIsThere.filterSwitch)
-      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
-
-      fetchTableData(
-        statusIsThere.sort,
-        statusIsThere.searchValue,
-        statusIsThere.sortColumn,
-        statusIsThere.currentStatus,
-        statusIsThere.page,
-        statusIsThere.limit
-      )
-    } else {
-      const currentStatus = filterSwitch ? 'completed' : status
-      const tabStatus = status === 'all' ? currentStatus : status
-      fetchTableData(sort, searchValue, sortColumn, tabStatus)
-    }
+    const tabStatus = status === 'all' ? currentStatus : status
+    debugger
+    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: currentStatus,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize,
+      filterSwitch
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch])
+  }, [status, fetchTableData, filterSwitch, selectedPharmacy.id])
 
   const onRowClick = params => {
-    var data = params.row
-
     Router.push({
-      pathname: `/pharmacy/direct-dispatch/${data?.id}`
+      pathname: `/pharmacy/direct-dispatch/${params.row?.id}`
     })
-
-    const currentPageData = {
-      sort: sort,
-      searchValue: searchValue,
-      sortColumn: sortColumn,
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
-      currentStatus: status,
-      filterSwitch: filterSwitch
-    }
-
-    write('dispatchPageStatus', currentPageData)
   }
 
   const headerAction = (
@@ -207,6 +230,7 @@ const DirectDispatchList = () => {
     setSearchValue(value)
     searchTableData(sort, value, 'request_number', status)
   }
+
   const getRequestedText = () => {
     return selectedPharmacy.type === 'central' ? 'Dispatched To' : 'Dispatch From'
   }
@@ -269,17 +293,6 @@ const DirectDispatchList = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'from_store',
-    //   headerName: 'Dispatched By',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.from_store}
-    //     </Typography>
-    //   )
-    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -358,26 +371,6 @@ const DirectDispatchList = () => {
         </Box>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //       <IconButton
-    //         size='small'
-    //         sx={{ mr: 0.5 }}
-    //         onClick={() => {
-    //           onRowClick(params.row)
-    //         }}
-    //       >
-    //         <Icon icon='mdi:pencil-outline' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
   ]
 
   const handleRowClick = params => {
@@ -402,10 +395,10 @@ const DirectDispatchList = () => {
           <>
             <Card>
               <CardHeader title={'Direct Dispatch List'} action={headerAction} />
-              {status === 'all' ? (
+              {status === 'all' || status === 'completed' ? (
                 <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
                   <FormControlLabel
-                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                     label='Completed'
                     labelPlacement='end'
                   />
@@ -484,15 +477,18 @@ const DirectDispatchList = () => {
               value='cancel'
               label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
             />
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
+            <Tab
+              value={'all' ? 'all' : 'completed'}
+              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+            />
           </TabList>
 
           <TabPanel value='pending'>{tableData()}</TabPanel>
           <TabPanel value='shipped'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
-
-          <TabPanel value='all'>{tableData()}</TabPanel>
+          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
+          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
         </TabContext>
       </Grid>
     </>
