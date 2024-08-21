@@ -188,7 +188,7 @@ const EggList = () => {
       // align: 'center',
       renderCell: params => (
         <Box>
-          <TextCard eggCondition={params.row.egg_condition} />
+          <TextCard egg_status={params.row.egg_status} />
         </Box>
       )
     },
@@ -858,7 +858,7 @@ const EggList = () => {
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
-            <TextCard eggCondition={params.row.egg_condition} />
+            <TextCard egg_status={params.row.egg_status} />
           </Box>
 
           <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
@@ -1293,7 +1293,7 @@ const EggList = () => {
       headerName: 'State',
       renderCell: params => (
         <Box>
-          <TextCard eggCondition={params.row.egg_condition} />
+          <TextCard egg_status={params.row.egg_status} />
         </Box>
       )
     },
@@ -1496,7 +1496,7 @@ const EggList = () => {
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
-            <TextCard eggCondition={params.row.egg_condition} />
+            <TextCard egg_status={params.row.egg_status} />
           </Box>
 
           <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
