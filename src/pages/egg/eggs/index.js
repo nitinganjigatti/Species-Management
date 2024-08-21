@@ -900,30 +900,31 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.15,
-      width: 130,
-      sortable: false,
-      field: 'condition',
-      headerName: 'condition',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: '#000000',
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row.egg_initial_temperature ? params.row.egg_initial_temperature : '-'}
-        </Typography>
-      )
-    },
+    // {
+    //   // flex: 0.15,
+    //   width: 130,
+    //   sortable: false,
+    //   field: 'condition',
+    //   headerName: 'condition',
+
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: '#000000',
+    //         fontSize: '16px',
+    //         fontWeight: 500,
+    //         lineHeight: '19.36px',
+    //         overflow: 'hidden',
+    //         textOverflow: 'ellipsis',
+    //         whiteSpace: 'nowrap',
+    //         textTransform: 'capitalize'
+    //       }}
+    //     >
+    //       {params.row.egg_initial_temperature ? params.row.egg_initial_temperature : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       // flex: 0.15,
@@ -1089,27 +1090,28 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.15,
-      width: 130,
-      sortable: false,
-      field: 'enclosure_id',
-      headerName: 'Enclosure',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: '#000000',
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.enclosure_id ? params.row.enclosure_id : '-'}
-        </Typography>
-      )
-    },
+    // {
+    //   // flex: 0.15,
+    //   width: 130,
+    //   sortable: false,
+    //   field: 'enclosure_id',
+    //   headerName: 'Enclosure',
+
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: '#000000',
+    //         fontSize: '16px',
+    //         fontWeight: 500,
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.enclosure_id ? params.row.enclosure_id : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       // flex: 0.16,
       width: 130,
@@ -1133,26 +1135,27 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      width: 150,
-      sortable: false,
-      field: 'lay_date',
-      headerName: 'Lay Date',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-        </Typography>
-      )
-    },
+    // {
+    //   width: 150,
+    //   sortable: false,
+    //   field: 'lay_date',
+    //   headerName: 'Lay Date',
+
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       // flex: 0.3,
