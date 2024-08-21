@@ -3,7 +3,7 @@ import React from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 
-const SpeciesImageCard = ({ imgURl, eggCondition, eggCode, defaultName, completeName, eggIcon, tab }) => {
+const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultName, completeName, eggIcon, tab }) => {
   const theme = useTheme()
 
   return (
@@ -56,51 +56,85 @@ const SpeciesImageCard = ({ imgURl, eggCondition, eggCode, defaultName, complete
       </Box>
 
       <Box>
-        <Typography
-          sx={{
-            fontSize: '20px',
-            fontWeight: 500,
-            lineHeight: '24.2px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            color: '#000000'
-          }}
-        >
-          {eggCode ? eggCode : '-'}
-        </Typography>
-        <Tooltip title={defaultName}>
+        {eggCode && (
           <Typography
             sx={{
-              color: theme.palette.primary.light,
-              fontSize: '16px',
-              fontWeight: '500',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {defaultName ? defaultName : 'Unknown'}
-          </Typography>
-        </Tooltip>
-        <Tooltip title={completeName}>
-          <Typography
-            sx={{
-              color: theme.palette.primary.light,
-              fontSize: '14px',
-              fontWeight: '400',
-              lineHeight: '16.94px',
+              fontSize: '20px',
+              fontWeight: 500,
+              lineHeight: '24.2px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '100%',
-              fontStyle: 'italic'
+              color: '#000000'
             }}
           >
-            {completeName ? completeName : 'Unknown'}
+            {eggCode ? eggCode : '-'}
           </Typography>
-        </Tooltip>
+        )}
+        {defaultName && (
+          <Tooltip title={defaultName}>
+            <Typography
+              sx={{
+                color: theme.palette.primary.light,
+                fontSize: '16px',
+                fontWeight: '500',
+                lineHeight: '19.36px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {defaultName ? defaultName : 'Unknown'}
+            </Typography>
+          </Tooltip>
+        )}
+        {completeName && (
+          <Tooltip title={completeName}>
+            <Typography
+              sx={{
+                color: theme.palette.primary.light,
+                fontSize: '14px',
+                fontWeight: '400',
+                lineHeight: '16.94px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                width: '100%',
+                fontStyle: 'italic'
+              }}
+            >
+              {completeName ? completeName : 'Unknown'}
+            </Typography>
+          </Tooltip>
+        )}
+        {egg_status && (
+          <Typography
+            sx={{
+              color:
+                egg_status === 'Fresh' || egg_status === 'Fertile'
+                  ? theme.palette.primary.dark
+                  : egg_status === 'Discard'
+                  ? '#fa6140'
+                  : egg_status === 'Hatched'
+                  ? theme.palette.primary.main
+                  : null,
+              fontSize: '14px',
+              fontWeight: '500',
+              px: 3,
+              backgroundColor:
+                egg_status === 'Discard'
+                  ? '#FFD3D3'
+                  : egg_status === 'Fresh' || egg_status === 'Fertile' || egg_status === 'Hatched'
+                  ? '#EFF5F2'
+                  : '#EFF5F2',
+              textAlign: 'center',
+              borderRadius: '4px',
+              display: 'inline-block'
+            }}
+          >
+            {egg_status ? egg_status : '-'}
+          </Typography>
+        )}
       </Box>
     </Stack>
   )

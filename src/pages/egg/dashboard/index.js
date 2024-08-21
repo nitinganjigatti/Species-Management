@@ -147,7 +147,7 @@ const Dashboard = () => {
           </Grid> */}
         </Grid>
         <Grid container spacing={3} columns={5}>
-          <Grid item xs={5} sm={2.5} xl={1}>
+          <Grid item xs={5} sm={2.5} lg={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -187,7 +187,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={5} sm={2.5} xl={1}>
+          <Grid item xs={5} sm={2.5} lg={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -227,7 +227,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={5} sm={2.5} xl={1}>
+          <Grid item xs={5} sm={2.5} lg={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -267,7 +267,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={5} sm={2.5} xl={1}>
+          <Grid item xs={5} sm={2.5} lg={1}>
             <Box
               sx={{
                 borderRadius: '8px',
@@ -307,7 +307,7 @@ const Dashboard = () => {
               </Box>
             </Box>
           </Grid>
-          <Grid item xs={5} sm={2.5} xl={1}>
+          <Grid item xs={5} sm={2.5} lg={1}>
             <Box
               sx={{
                 borderRadius: '8px',

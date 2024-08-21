@@ -19,6 +19,7 @@ import Toaster from 'src/components/Toaster'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import Utility from 'src/utility'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
 
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
@@ -144,53 +145,62 @@ const TransferDetails = () => {
       )
     },
     {
-      width: 140,
+      width: 240,
       field: 'egg_number',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'EGG NUMBER',
       renderCell: params => (
-        <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '500'
+        // <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        //   <Typography
+        //     style={{
+        //       color: theme.palette.customColors.OnSurfaceVariant,
+        //       fontSize: '16px',
+        //       fontWeight: '500'
 
-              // lineHeight: '19.36px'
-            }}
-          >
-            {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>{' '}
-          <Typography
-            sx={{
-              color:
-                params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
-                  ? theme.palette.primary.dark
-                  : params.row.egg_status === 'Discard'
-                  ? '#fa6140'
-                  : params.row.egg_status === 'Hatched'
-                  ? theme.palette.primary.main
-                  : null,
-              fontSize: '14px',
-              fontWeight: '500',
-              px: 3,
+        //       // lineHeight: '19.36px'
+        //     }}
+        //   >
+        //     {params.row.egg_code ? params.row.egg_code : '-'}
+        //   </Typography>{' '}
+        //   <Typography
+        //     sx={{
+        //       color:
+        //         params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
+        //           ? theme.palette.primary.dark
+        //           : params.row.egg_status === 'Discard'
+        //           ? '#fa6140'
+        //           : params.row.egg_status === 'Hatched'
+        //           ? theme.palette.primary.main
+        //           : null,
+        //       fontSize: '14px',
+        //       fontWeight: '500',
+        //       px: 3,
 
-              backgroundColor:
-                params.row.egg_status === 'Discard'
-                  ? '#FFD3D3'
-                  : params.row.egg_status === 'Fresh' ||
-                    params.row.egg_status === 'Fertile' ||
-                    params.row.egg_status === 'Hatched'
-                  ? '#EFF5F2'
-                  : '#EFF5F2',
-              textAlign: 'center',
-              borderRadius: '4px'
-            }}
-          >
-            {params.row.egg_status ? params.row.egg_status : '-'}
-          </Typography>
-        </Box>
+        //       backgroundColor:
+        //         params.row.egg_status === 'Discard'
+        //           ? '#FFD3D3'
+        //           : params.row.egg_status === 'Fresh' ||
+        //             params.row.egg_status === 'Fertile' ||
+        //             params.row.egg_status === 'Hatched'
+        //           ? '#EFF5F2'
+        //           : '#EFF5F2',
+        //       textAlign: 'center',
+        //       borderRadius: '4px'
+        //     }}
+        //   >
+        //     {params.row.egg_status ? params.row.egg_status : '-'}
+        //   </Typography>
+        // </Box>
+        <SpeciesImageCard
+          imgURl={params.row.default_icon}
+          eggCondition={params.row.egg_condition}
+          eggCode={params.row.egg_code}
+          egg_status={params.row.egg_status}
+          // defaultName={params.row.default_common_name}
+          // completeName={params.row.complete_name}
+          eggIcon={'/icons/Egg_icon.png'}
+        />
       )
     },
     {
@@ -217,7 +227,9 @@ const TransferDetails = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '90%',
+              // width: '90%',
+              // textAlign: 'center',
+              // margin: '0 auto',
               backgroundColor:
                 params.row.assigned_status === 'COMPLETED'
                   ? '#E1F9ED'
@@ -225,7 +237,8 @@ const TransferDetails = () => {
                   ? '#FA61401A'
                   : '#AFEFEB80',
               textAlign: 'center',
-              borderRadius: '4px'
+              borderRadius: '4px',
+              display: 'inline-block'
             }}
           >
             {params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}

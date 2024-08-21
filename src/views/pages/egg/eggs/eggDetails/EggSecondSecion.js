@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Divider,
   Drawer,
   FormControl,
   FormHelperText,
@@ -38,6 +39,7 @@ import EggActivityLogs from './EggActivityLogs'
 import Utility from 'src/utility'
 import ProbableParent from './ProbableParent'
 import TransferEgg from './TransferEgg'
+import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
 const CustomTableContainer = styled(TableContainer)({
   '::-webkit-scrollbar': {
@@ -134,6 +136,7 @@ const EggSecondSecion = ({
 
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
+  const [rowsWeight, setRowsWeight] = useState([])
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
@@ -346,8 +349,12 @@ const EggSecondSecion = ({
           let listWithId = res.data?.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
+          let rowWeights = res.data?.result.map((el, i) => {
+            return el?.assessment_value
+          })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
+          setRowsWeight(rowWeights)
         } else {
           console.log('res', res.message)
         }
@@ -360,6 +367,66 @@ const EggSecondSecion = ({
   useEffect(() => {
     fetchTableData()
   }, [fetchTableData])
+  const series = [
+    {
+      name: 'Actual Value',
+      data: rowsWeight.reverse()
+    }
+  ]
+
+  const options = {
+    chart: {
+      type: 'line',
+      height: 350,
+      toolbar: {
+        show: false
+      }
+    },
+    // title: {
+    //   text: 'Egg Weight',
+    //   align: 'left',
+    //   style: {
+    //     fontSize: '16px',
+    //     fontWeight: 'bold',
+    //     color: '#333'
+    //   }
+    // },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    },
+    markers: {
+      size: 4,
+      hover: {
+        sizeOffset: 2
+      }
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: {
+        formatter: val => `${val}g`
+      }
+    },
+    xaxis: {
+      categories: Array.from({ length: 21 }, (_, i) => i + 1),
+      title: {
+        text: 'Days'
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Weight (g)'
+      }
+      // min: 100
+      // max: 300
+    },
+    legend: {
+      position: 'top',
+      horizontalAlign: 'center'
+    },
+    colors: ['#00E396', '#008FFB'] // Colors for the lines (green and blue)
+  }
 
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
@@ -482,7 +549,7 @@ const EggSecondSecion = ({
                 </Box>
               </Grid>
             </Grid>
-            {/* <Box
+            <Box
               sx={{
                 backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
                 borderRadius: '8px',
@@ -624,7 +691,64 @@ const EggSecondSecion = ({
                   </Grid>
                 </Grid>
               </Box>
-            </Box> */}
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12}>
+        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '20px',
+                  lineHeight: '24.2px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Egg Weight
+              </Typography>
+              <Box sx={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <Box sx={{ backgroundColor: '#00AFD6', height: '10px', width: '10px', borderRadius: '10px' }}></Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      lineHeight: '16.94px',
+                      letterSpacing: '0.1px',
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
+                    Actual Value
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    lineHeight: '16.94px',
+                    letterSpacing: '0.1px',
+                    color: theme.palette.customColors.neutralSecondary
+                  }}
+                >
+                  X - Days
+                </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    lineHeight: '16.94px',
+                    letterSpacing: '0.1px',
+                    color: theme.palette.customColors.neutralSecondary
+                  }}
+                >
+                  Y - Weight
+                </Typography>
+              </Box>
+            </Box>
+            <ReactApexcharts type='line' height={350} series={series} options={options} />
           </CardContent>
         </Card>
       </Grid>
@@ -636,7 +760,7 @@ const EggSecondSecion = ({
                 <Box
                   sx={{
                     display: 'flex',
-                    height: '88px',
+                    height: '68px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
                     alignItems: 'center'
@@ -865,7 +989,7 @@ const EggSecondSecion = ({
                 </Table>
               </CustomTableContainer>
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0, mt: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0, mt: 1 }}>
                 {total > 3 && <Button onClick={() => setSidebarOpen(true)}>View All</Button>}
               </Box>
             </CardContent>

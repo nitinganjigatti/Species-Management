@@ -85,7 +85,7 @@ const TodaysCollection = () => {
       axisBorder: { show: false },
       categories: ['In Nest', 'In Nursery', 'Hatched', 'Discarded'],
       labels: {
-        formatter: val => `${Number(val)}`,
+        formatter: val => `${Number(val).toFixed(2)}`,
         style: {
           fontSize: '0.875rem',
           colors: theme.palette.text.disabled

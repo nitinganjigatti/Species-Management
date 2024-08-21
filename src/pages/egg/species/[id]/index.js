@@ -29,6 +29,7 @@ import { GetSpeciesList, GetEggStatusList, GetSpeciesDetails, GetSectionList } f
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import ClearIcon from '@mui/icons-material/Clear'
 import { styled } from '@mui/material/styles'
+import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
 
 const SpeciesDetail = () => {
   const router = useRouter()
@@ -404,43 +405,50 @@ const SpeciesDetail = () => {
       const eggnumberByColumn = columns.find(column => column.field === 'egg_code')
       if (eggnumberByColumn) {
         eggnumberByColumn.renderCell = params => (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar
-              variant='square'
-              alt='Medicine Image'
-              sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', borderRadius: '4px' }}
-              src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
-            >
-              {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
-            </Avatar>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography
-                noWrap
-                variant='body2'
-                sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500', color: '#006D35' }}
-              >
-                {params.row.egg_code}
-              </Typography>
-              <Typography
-                noWrap
-                variant='body2'
-                sx={{
-                  color: '#37BD69',
-                  fontSize: '13px',
-                  background: '#E1F9ED',
-                  borderRadius: '3px',
-                  fontWeight: 600,
-                  mt: 1,
-                  pb: 1,
-                  pt: 0.7,
-                  textAlign: 'center',
-                  width: '80px'
-                }}
-              >
-                {params.row.egg_status}
-              </Typography>
-            </Box>
-          </Box>
+          // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          //   <Avatar
+          //     variant='square'
+          //     alt='Medicine Image'
+          //     sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', borderRadius: '4px' }}
+          //     src={params.row.image ? params.row.image : '/icons/Egg_icon.png'}
+          //   >
+          //     {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
+          //   </Avatar>
+          //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          //     <Typography
+          //       noWrap
+          //       variant='body2'
+          //       sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500', color: '#006D35' }}
+          //     >
+          //       {params.row.egg_code}
+          //     </Typography>
+          //     <Typography
+          //       noWrap
+          //       variant='body2'
+          //       sx={{
+          //         color: '#37BD69',
+          //         fontSize: '13px',
+          //         background: '#E1F9ED',
+          //         borderRadius: '3px',
+          //         fontWeight: 600,
+          //         mt: 1,
+          //         pb: 1,
+          //         pt: 0.7,
+          //         textAlign: 'center',
+          //         width: '80px'
+          //       }}
+          //     >
+          //       {params.row.egg_status}
+          //     </Typography>
+          //   </Box>
+          // </Box>
+          <SpeciesImageCard
+            imgURl={params.row.default_icon}
+            eggCondition={params.row.egg_condition}
+            eggCode={params.row.egg_code}
+            egg_status={params.row.egg_status}
+            eggIcon={params.row.image ? params.row.image : '/icons/Egg_icon.png'}
+          />
         )
       }
 

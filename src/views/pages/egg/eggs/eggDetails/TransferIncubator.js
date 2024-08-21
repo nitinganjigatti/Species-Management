@@ -52,6 +52,7 @@ const TransferIncubator = ({
     handleSubmit,
     getValues,
     setValue,
+    isdirty,
     watch,
     formState,
     setError,
@@ -138,7 +139,7 @@ const TransferIncubator = ({
       setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
       setValue('room', incubatorDetail?.room_id)
     }
-  }, [incubatorDetail])
+  }, [incubatorDetail, transferIncubatorSideBar])
 
   const onSubmit = async values => {
     try {
@@ -211,7 +212,15 @@ const TransferIncubator = ({
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            <Icon icon='mdi:close' fontSize={24} onClick={() => setTransferIncubatorSideBar(false)} />
+            <Icon
+              icon='mdi:close'
+              fontSize={24}
+              onClick={() => {
+                setTransferIncubatorSideBar(false)
+                // reset()
+                // setDefaultRoom(null)
+              }}
+            />
           </IconButton>
         </Box>
         <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -353,7 +362,7 @@ const TransferIncubator = ({
                   height: '24.2px'
                 }}
               >
-                Select The Another Incubator
+                Select The Another Room
               </Typography>
               <Box
                 sx={{

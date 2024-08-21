@@ -275,7 +275,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
             </Grid>
             <Grid
               sx={{
-                alignSelf: 'stretch',
+                alignSelf: 'end',
                 height: '100%',
                 py: { xs: '24px', sm: '24px', md: '0px', lg: '0px', xl: '0px' }
               }}

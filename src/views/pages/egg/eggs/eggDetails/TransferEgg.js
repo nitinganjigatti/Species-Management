@@ -391,7 +391,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                   height: '24.2px'
                 }}
               >
-                Select The Another Incubator
+                Select room and incubator
               </Typography>
               <Box
                 sx={{

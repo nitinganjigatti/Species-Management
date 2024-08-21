@@ -1,4 +1,4 @@
-import { Drawer, LinearProgress, Typography, IconButton } from '@mui/material'
+import { Drawer, LinearProgress, Typography, IconButton, Collapse } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
@@ -233,6 +233,7 @@ const EggActivityLogs = ({
                   >
                     <Box
                       sx={{
+                        cursor: 'pointer',
                         backgroundColor:
                           (showCommentIndex === index && item.status === 'Necropsy') ||
                           (showCommentIndex === index && item.status === 'Discard') ||
@@ -250,6 +251,7 @@ const EggActivityLogs = ({
                         //     ? '#FFBDA84D'
                         //     : '#37BD691A',
                         p: '16px',
+                        transition: '0.4s ease-in-out',
                         display: 'flex',
                         borderRadius: showCommentIndex === index ? 'none' : '8px',
                         borderTopLeftRadius: showCommentIndex === index ? '8px' : 'none',
@@ -257,7 +259,7 @@ const EggActivityLogs = ({
                         justifyContent: 'space-between'
                       }}
                     >
-                      <Box>
+                      <Box sx={{ flex: 5 }}>
                         <Typography
                           sx={{
                             mr: 2,
@@ -292,7 +294,8 @@ const EggActivityLogs = ({
                           display: 'flex',
                           alignItems: 'center',
                           gap: '12px',
-                          justifyContent: 'space-between'
+                          flex: 2,
+                          justifyContent: 'end'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'end' }}>
@@ -320,7 +323,7 @@ const EggActivityLogs = ({
                         </Box>
                       </Box>
                     </Box>
-                    {showCommentIndex === index && (
+                    <Collapse in={showCommentIndex === index} timeout={400} unmountOnExit>
                       <Typography
                         sx={{
                           backgroundColor: '#FCF4AE',
@@ -337,7 +340,7 @@ const EggActivityLogs = ({
                       >
                         {item?.comments}
                       </Typography>
-                    )}
+                    </Collapse>
                   </TimelineContent>
                 </TimelineItem>
               ))}
