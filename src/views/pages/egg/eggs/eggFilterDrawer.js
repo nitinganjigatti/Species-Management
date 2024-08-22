@@ -86,15 +86,15 @@ const EggFilterDrawer = ({
     { id: 6, name: 'Security Check' }
   ]
 
-  const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
+  const [selectedMenu, setSelectedMenu] = useState(tab_Value === 'eggs_discarded' ? discardMenu[0] : leftMenu[0])
 
   // console.log('selectedMenu :>> ', selectedMenu)
 
-  useEffect(() => {
-    if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
-      setSelectedMenu(discardMenu[0])
-    }
-  }, [tab_Value, subTab_value])
+  // useEffect(() => {
+  //   if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
+  //     setSelectedMenu(discardMenu[0])
+  //   }
+  // }, [tab_Value, subTab_value])
 
   const authData = useContext(AuthContext)
 
@@ -132,7 +132,12 @@ const EggFilterDrawer = ({
 
   useEffect(() => {
     // Reset states when tab_Value changes
-    setSelectedMenu(leftMenu[0])
+    if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
+      setSelectedMenu(discardMenu[0])
+    } else {
+      setSelectedMenu(leftMenu[0])
+    }
+
     setSelectAll(false)
     setSelectedOptions({
       Stage: [],
@@ -145,7 +150,7 @@ const EggFilterDrawer = ({
       discarded_Date: null,
       'Security Check': []
     })
-  }, [tab_Value])
+  }, [tab_Value, subTab_value])
 
   const getEggMasterData = async () => {
     try {
