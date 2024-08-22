@@ -1288,14 +1288,33 @@ const EggList = () => {
       )
     },
     {
-      width: 180,
-      field: 'state',
+      width: 200,
+      field: 'stage_state',
       sortable: false,
-      headerName: 'State',
+      headerName: ' STATE & STAGE',
       renderCell: params => (
-        <Box>
-          <TextCard egg_status={params.row.egg_status} />
-        </Box>
+        <Stack direction='column' spacing={1}>
+          <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
+            <TextCard egg_status={params.row.egg_status} />
+          </Box>
+
+          <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+            <Typography
+              sx={{
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+
+                // Ensures Typography doesn't exceed container width
+              }}
+            >
+              {params.row.egg_state ? params.row.egg_state : '-'}
+            </Typography>
+          </Tooltip>
+        </Stack>
       )
     },
     {
