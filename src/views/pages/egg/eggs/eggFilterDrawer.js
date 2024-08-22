@@ -110,7 +110,8 @@ const EggFilterDrawer = ({
 
   const [eggMaster, setEggMaster] = useState(null)
 
-  const [selectedDropdownID, setSelectedDropdownId] = useState('1')
+  const [selectedDropdownID, setSelectedDropdownId] = useState('all')
+  console.log('selectedDropdownID :>> ', selectedDropdownID)
 
   // const [selectedOptions, setSelectedOptions] = useState({
   //   Stage: [],
@@ -153,7 +154,7 @@ const EggFilterDrawer = ({
 
           setEggStage(res?.data?.egg_state)
 
-          setSelectedDropdownId(res?.data?.egg_state[0]?.id)
+          // setSelectedDropdownId(res?.data?.egg_state[0]?.id)
         }
       })
     } catch (e) {
@@ -290,7 +291,9 @@ const EggFilterDrawer = ({
     const updatedSelectedOptions = {
       ...selectedOptions,
       collected_date: selectedDate,
-      status: { id: selectedOptions.status, name: statusName } // Add both id and name
+      status: selectedDropdownID !== 'all' ? { id: selectedOptions.status, name: statusName } : null
+
+      // status: { id: selectedOptions.status, name: statusName } // Add both id and name
     }
 
     const combinedSelectedOptions = [
@@ -309,7 +312,10 @@ const EggFilterDrawer = ({
 
       // ...(formattedDate ? [{ id: 'discarded_date', name: formattedDate }] : []),
 
-      ...((tab_Value === 'all' || tab_Value === 'eggs_incubation') && updatedSelectedOptions.status
+      // Check if status is not "All" before adding it
+      ...((tab_Value === 'all' || tab_Value === 'eggs_incubation') &&
+      updatedSelectedOptions.status &&
+      selectedDropdownID !== 'all'
         ? [{ id: updatedSelectedOptions.status.id, name: updatedSelectedOptions.status.name }]
         : [])
     ]
@@ -681,9 +687,12 @@ const EggFilterDrawer = ({
                   <Select
                     labelId='dropdown-label'
                     label='Select Status'
-                    value={selectedDropdownID}
+                    value={selectedDropdownID ? selectedDropdownID : 'all'}
                     onChange={handleDropdownChange}
                   >
+                    <MenuItem value='all' disabled>
+                      All
+                    </MenuItem>
                     {eggMaster?.egg_status
                       .filter(item => tab_Value !== 'eggs_incubation' || ['1', '2'].includes(item.id))
                       .map(item => (

@@ -179,16 +179,18 @@ const EggTableHeader = ({
             </Box>
           ))}
       </Box>
-      <EggFilterDrawer
-        setOpenFilterDrawer={setOpenFilterDrawer}
-        openFilterDrawer={openFilterDrawer}
-        setFilterList={setFilterList}
-        setSelectedFiltersOptions={setSelectedFiltersOptions}
-        selectedOptions={selectedOptions}
-        setSelectedOptions={setSelectedOptions}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-      />
+      {openFilterDrawer && (
+        <EggFilterDrawer
+          setOpenFilterDrawer={setOpenFilterDrawer}
+          openFilterDrawer={openFilterDrawer}
+          setFilterList={setFilterList}
+          setSelectedFiltersOptions={setSelectedFiltersOptions}
+          selectedOptions={selectedOptions}
+          setSelectedOptions={setSelectedOptions}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
+      )}
     </>
   )
 }

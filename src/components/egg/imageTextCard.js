@@ -140,7 +140,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
   )
 }
 
-const TextCard = ({ eggCondition }) => {
+const TextCard = ({ egg_status }) => {
   const theme = useTheme()
 
   return (
@@ -154,13 +154,15 @@ const TextCard = ({ eggCondition }) => {
         justifyContent: 'center',
 
         backgroundColor:
-          eggCondition === 'Rotten'
+          egg_status === 'Rotten'
             ? '#FFD3D3'
-            : eggCondition === 'Cracked'
+            : egg_status === 'Cracked'
             ? '#fdfad7'
-            : eggCondition === 'Broken'
+            : egg_status === 'Discard'
             ? '#FFD3D3'
-            : eggCondition === 'Thin-Shelled'
+            : egg_status === 'Thin-Shelled'
+            ? '#E8F4F2'
+            : egg_status === 'Fertile'
             ? '#E8F4F2'
             : '#E1F9ED'
       }}
@@ -168,24 +170,24 @@ const TextCard = ({ eggCondition }) => {
       <Typography
         sx={{
           color:
-            eggCondition === 'Intact'
+            egg_status === 'Fresh'
               ? '#006D35'
-              : eggCondition === 'Rotten'
+              : egg_status === 'Rotten'
               ? '#FA6140'
-              : eggCondition === 'Cracked'
+              : egg_status === 'Cracked'
               ? '#E4B819'
-              : eggCondition === 'Broken'
+              : egg_status === 'Discard'
               ? '#fa6140'
-              : eggCondition === 'Hatched'
+              : egg_status === 'Hatched'
               ? '#32bfdd'
-              : eggCondition === 'Thin-Shelled'
+              : egg_status === 'Thin-Shelled'
               ? '#1F515B'
-              : null,
+              : '#006D35',
           fontSize: '14px',
           fontWeight: '500'
         }}
       >
-        {eggCondition ? eggCondition : '-'}
+        {egg_status ? egg_status : '-'}
       </Typography>
     </Box>
   )
