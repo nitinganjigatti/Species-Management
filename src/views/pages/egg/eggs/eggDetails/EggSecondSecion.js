@@ -791,7 +791,6 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.neutralSecondary
                           }}
                         >
-                          {/* {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Name'} */}
                           {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
                         </Typography>
                       </Box>
@@ -804,7 +803,7 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          {eggDetails?.incubator_code ? eggDetails?.incubator_code : 'Incubator Code'}
+                          {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
                         </Typography>
                       </Box>
                     </Box>
@@ -833,7 +832,7 @@ const EggSecondSecion = ({
                     </Box>
                   ) : null}
                 </Box>
-                {/* <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
+                <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
                   <Grid
                     item
                     xs={12}
@@ -902,8 +901,8 @@ const EggSecondSecion = ({
                       Coming soon
                     </Typography>
                   </Grid>
-                </Grid> */}
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                </Grid>
+                {/* <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <img
                     style={{ height: '120px', width: '120px', mixBlendMode: 'Luminosity' }}
                     src='/icons/folderNot.png'
@@ -920,7 +919,7 @@ const EggSecondSecion = ({
                   }}
                 >
                   Coming soon
-                </Typography>
+                </Typography> */}
               </Box>
             </CardContent>
           </Card>

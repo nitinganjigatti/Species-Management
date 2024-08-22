@@ -34,6 +34,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { hatcheryStatus } from 'src/lib/api/egg'
 import Toaster from 'src/components/Toaster'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
+import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -61,6 +62,8 @@ const NurseryDetails = () => {
   const [statusLoading, setStatusLoading] = useState(false)
   const [incubatorNo, setIncubatorNo] = useState(0)
 
+  const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
+
   const router = useRouter()
   const { id } = router.query
   const [active, setActive] = useState(false)
@@ -71,6 +74,10 @@ const NurseryDetails = () => {
 
   // console.log('rows >>', rows)
   // console.log('Paginate>', paginationModel)
+
+  const EditRedirectionFunc = () => {
+    // router.push(`/egg/incubator-rooms/${params.row.id}`)
+  }
 
   const hatcheryStatusFunc = () => {
     setStatusLoading(true)
@@ -85,6 +92,7 @@ const NurseryDetails = () => {
           setOpenStatusDialog(false)
           setStatusLoading(false)
           setActive(!active)
+          // setOpenRedirectionDialog(true)
         } else {
           Toaster({ type: 'error', message: response.message })
           setOpenStatusDialog(false)
@@ -675,6 +683,12 @@ const NurseryDetails = () => {
               elements={incubatorNo}
               statusLoading={statusLoading}
               hatcheryStatusFunc={hatcheryStatusFunc}
+            />
+            <EditRedirectionDialog
+              refType={'nursery'}
+              openRedirectionDialog={openRedirectionDialog}
+              setOpenRedirectionDialog={setOpenRedirectionDialog}
+              EditRedirectionFunc={EditRedirectionFunc}
             />
           </Card>
         </>
