@@ -1,4 +1,4 @@
-import { ENTRY_LIST_SPECIES } from '../../../constants/ApiConstant'
+import { DELETE_ATTACHMENT_FOR_ANIMAL, ENTRY_LIST_SPECIES } from '../../../constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function getEntryList({ params }) {
@@ -14,9 +14,9 @@ export async function getEntryListById(params) {
 }
 
 export async function deleteAttachment(id, payload) {
-  const attachment = `v1/parivesh/species/site/deleteattachmentforanimal`
+  // const attachment = `v1/parivesh/species/site/deleteattachmentforanimal`
   try {
-    const url = `${attachment}/${id}`
+    const url = `${DELETE_ATTACHMENT_FOR_ANIMAL}/${id}`
     const response = await axiosFormPost({ url, body: payload })
 
     return response?.data

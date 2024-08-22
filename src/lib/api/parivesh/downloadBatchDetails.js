@@ -1,8 +1,10 @@
+import { DOWNLOAD_CSV_FOR_BATCH_DATA } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function downloadCsvForBatchData(payload) {
   try {
-    const url = `v1/parivesh/animal/site/downloadcsvforbatchdata`
+    // const url = `v1/parivesh/animal/site/downloadcsvforbatchdata`
+    const url = `${DOWNLOAD_CSV_FOR_BATCH_DATA}`
     const response = await axiosFormPost({ url, body: payload })
 
     return response?.data
