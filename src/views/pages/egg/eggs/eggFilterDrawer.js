@@ -63,7 +63,7 @@ const EggFilterDrawer = ({
     .filter(menu => (tab_Value !== 'eggs_received' && tab_Value !== 'eggs_hatched' ? true : menu.name !== 'Stage'))
     .map(menu => {
       // Rename 'Collected Date' and 'Collected By' based on `tab_Value`
-      if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+      if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded') {
         if (menu.name === 'Collected Date') {
           return { ...menu, name: 'Discarded Date' }
         }
@@ -91,7 +91,7 @@ const EggFilterDrawer = ({
   // console.log('selectedMenu :>> ', selectedMenu)
 
   useEffect(() => {
-    if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded') {
+    if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
       setSelectedMenu(discardMenu[0])
     }
   }, [tab_Value, subTab_value])
@@ -111,7 +111,8 @@ const EggFilterDrawer = ({
   const [eggMaster, setEggMaster] = useState(null)
 
   const [selectedDropdownID, setSelectedDropdownId] = useState('all')
-  console.log('selectedDropdownID :>> ', selectedDropdownID)
+
+  // console.log('selectedDropdownID :>> ', selectedDropdownID)
 
   // const [selectedOptions, setSelectedOptions] = useState({
   //   Stage: [],
@@ -236,7 +237,7 @@ const EggFilterDrawer = ({
           ...prevSelectedOptions,
           status: '1'
         }))
-      } else if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+      } else if (tab_Value === 'eggs_discarded') {
         setSelectedOptions(prevSelectedOptions => ({
           ...prevSelectedOptions,
           status: '3'
@@ -300,10 +301,10 @@ const EggFilterDrawer = ({
       ...updatedSelectedOptions.Stage,
       ...updatedSelectedOptions.Nursery,
       ...updatedSelectedOptions.Site,
-      ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded'
+      ...(tab_Value === 'eggs_discarded' || tab_Value === 'eggs_discarded'
         ? updatedSelectedOptions['Security Check'] || []
         : []),
-      ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded'
+      ...(tab_Value === 'eggs_discarded' || tab_Value === 'eggs_discarded'
         ? updatedSelectedOptions['Discarded By'] || []
         : []),
 
@@ -389,7 +390,7 @@ const EggFilterDrawer = ({
             id: stage.id,
             name: stage.egg_state
           }))
-        } else if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+        } else if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded') {
           const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
 
           return filteredEggStage?.map(stage => ({
@@ -561,7 +562,7 @@ const EggFilterDrawer = ({
       >
         <Grid container sx={{ px: 5 }}>
           <Grid item md={4} sm={4} xs={4}>
-            {tab_Value === 'eggs_ready_to_be_discarded_at_nursery' && subTab_value === 'eggs_discarded'
+            {tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded'
               ? discardMenu.map(menu => (
                   <Box
                     key={menu.id}

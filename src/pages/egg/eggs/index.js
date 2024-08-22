@@ -68,9 +68,10 @@ const EggList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
 
-  // console.log('status :>> ', status)
+  console.log('status :>> ', status)
 
-  const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_ready_to_be_discarded_at_nursery')
+  const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_discarded')
+  console.log('isDiscarded :>> ', isDiscarded)
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -1806,10 +1807,13 @@ const EggList = () => {
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}) => {
       // debugger
+      console.log('statusRecived :>> ', statusRecived)
+      console.log('discardedTab :>> ', discardedTab)
 
       try {
         setLoading(true)
-        console.log('selectedFiltersOptions[Collected By] ', selectedFiltersOptions['Collected By']?.[0]?.id)
+
+        // console.log('selectedFiltersOptions[Collected By] ', selectedFiltersOptions['Collected By']?.[0]?.id)
 
         // Extracting IDs from selectedFiltersOptions
         const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || ''
@@ -1857,10 +1861,10 @@ const EggList = () => {
 
           type:
             statusRecived === undefined
-              ? status === 'eggs_ready_to_be_discarded_at_nursery'
+              ? status === 'eggs_discarded'
                 ? isDiscarded
                 : status
-              : statusRecived === 'eggs_ready_to_be_discarded_at_nursery'
+              : statusRecived === 'eggs_discarded'
               ? discardedTab
               : statusRecived
         }
@@ -2067,7 +2071,7 @@ const EggList = () => {
                 />
               </>
             ) : (
-              isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' && (
+              status === 'eggs_ready_to_be_discarded_at_nursery' && (
                 <Box>
                   <EggTableHeader
                     tabValue={status}
@@ -2183,6 +2187,15 @@ const EggList = () => {
                 />
                 <Tab
                   value='eggs_ready_to_be_discarded_at_nursery'
+                  label={
+                    <TabBadge
+                      label='Ready to Discard'
+                      totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+                    />
+                  }
+                ></Tab>
+                <Tab
+                  value='eggs_discarded'
                   label='Discarded'
 
                   // label={
@@ -2304,6 +2317,16 @@ const EggList = () => {
                 {tableData()}
               </TabPanel>
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+                {selectionEggModel?.length > 0 && (
+                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2 }}>
+                    <Button sx={{ p: 5 }} size='medium' variant='contained' onClick={() => setOpenDiscardDialog(true)}>
+                      &nbsp;{selectionEggModel?.length}&nbsp;Discard
+                    </Button>
+                  </Box>
+                )}
+                {tableData()}
+              </TabPanel>
+              <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                 <Divider sx={{ mb: 3 }} />
 
                 {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}> */}
@@ -2311,7 +2334,7 @@ const EggList = () => {
                 {/* </Box> */}
                 <TabContext value={isDiscarded}>
                   <TabList onChange={handleTabs} sx={{ px: 2 }}>
-                    <Tab
+                    {/* <Tab
                       value='eggs_ready_to_be_discarded_at_nursery'
                       label={
                         <TabBadge
@@ -2319,7 +2342,7 @@ const EggList = () => {
                           totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
                         />
                       }
-                    ></Tab>
+                    ></Tab> */}
                     <Tab
                       value='eggs_discarded'
                       label={
@@ -2339,7 +2362,7 @@ const EggList = () => {
                       }
                     />
                   </TabList>
-                  <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
+                  {/* <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                     {selectionEggModel?.length > 0 && (
                       <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2 }}>
                         <Button
@@ -2353,7 +2376,7 @@ const EggList = () => {
                       </Box>
                     )}
                     {tableData()}
-                  </TabPanel>
+                  </TabPanel> */}
                   <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                     {' '}
                     <>
