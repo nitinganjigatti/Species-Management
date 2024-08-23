@@ -68,10 +68,11 @@ const EggList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
 
-  console.log('status :>> ', status)
+  // console.log('status :>> ', status)
 
   const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_discarded')
-  console.log('isDiscarded :>> ', isDiscarded)
+
+  // console.log('isDiscarded :>> ', isDiscarded)
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -1826,8 +1827,9 @@ const EggList = () => {
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}) => {
       // debugger
-      console.log('statusRecived :>> ', statusRecived)
-      console.log('discardedTab :>> ', discardedTab)
+      // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
+
+      // console.log('discardedTab :>> ', discardedTab)
 
       try {
         setLoading(true)
