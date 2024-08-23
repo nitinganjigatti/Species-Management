@@ -117,6 +117,15 @@ const AddDiet = () => {
   //   }
   // }
 
+  useEffect(() => {
+    if (id) {
+      const url = new URL(window.location.href)
+      const action = url.searchParams.get('action')
+      console.log(action, 'action')
+      seturlType(action || '')
+    }
+  }, [id])
+
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
       ...prevData,
@@ -130,6 +139,14 @@ const AddDiet = () => {
     callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
   }
 
+  useEffect(() => {
+    console.log(id, 'id')
+    if (id && urlType) {
+      console.log(urlType, 'urlType')
+      getIngredientsDetailval(id)
+    }
+  }, [id, urlType])
+
   const getIngredientsDetailval = async id => {
     try {
       const response = await getDietDetails(id, { week_day: 0 })
@@ -141,7 +158,8 @@ const AddDiet = () => {
         // Update formData state with the values from data
         setFormData(prevFormData => ({
           ...prevFormData,
-          diet_name: data.diet_name,
+          diet_name:
+            urlType === 'copy' && !data.diet_name.endsWith(' copy') ? `${data.diet_name} copy` : data.diet_name,
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
           child: data.child,
@@ -203,22 +221,6 @@ const AddDiet = () => {
 
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
-
-  useEffect(() => {
-    console.log(id, 'id')
-    if (id) {
-      getIngredientsDetailval(id)
-    }
-  }, [id])
-
-  useEffect(() => {
-    if (id) {
-      const url = new URL(window.location.href)
-      const action = url.searchParams.get('action')
-      console.log(action, 'action')
-      seturlType(action)
-    }
-  }, [id])
 
   const handleNext = data => {
     // setFormData(prevData => ({

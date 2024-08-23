@@ -177,17 +177,35 @@ const RecipeDetail = () => {
                         {IngredientsDetailsval.recipe_name}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
+                        {console.log(dietModuleAccess, 'dietModuleAccess')}
+                        <Box>
+                          <Icon
+                            icon='fluent:copy-32-regular'
+                            style={{
+                              fontSize: 24,
+                              transform: 'rotate(180deg)',
+                              cursor: 'pointer',
+                              marginLeft: '10px'
+                            }}
+                            onClick={() =>
+                              Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id, action: 'copy' } })
+                            }
+                          />
+                        </Box>
                         {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                           <Icon
                             icon='bx:pencil'
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id } })}
+                            style={{ cursor: 'pointer', marginLeft: '10px' }}
+                            onClick={() =>
+                              Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id, action: 'edit' } })
+                            }
                           />
                         )}
+
                         {dietModuleAccess === 'DELETE' && (
                           <Icon
                             icon='material-symbols:delete-outline'
-                            style={{ cursor: 'pointer', marginLeft: '15px' }}
+                            style={{ cursor: 'pointer', marginLeft: '10px' }}
                             onClick={() => {
                               handleClickOpen()
                             }}
