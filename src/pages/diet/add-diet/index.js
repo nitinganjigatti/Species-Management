@@ -360,7 +360,7 @@ const AddDiet = () => {
       }
     } else if (id && urlType === 'copy') {
       const numericFormData = {
-        // ...formDataWithoutChild,
+        //...formDataWithoutChild,
         ...formData,
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
@@ -399,8 +399,18 @@ const AddDiet = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        meal_data: numericFormData.meal_data,
-        diet_image: numericFormData?.diet_image?.length > 0 ? numericFormData.diet_image[0] : null
+        meal_data: numericFormData.meal_data
+      }
+      console.log(formData.diet_image, 'klkl')
+      if (formData.diet_image === null) {
+        delete updatedFormData.diet_image
+        delete updatedFormData.remove_current_image
+      } else if (typeof formData.diet_image === 'string') {
+        delete updatedFormData.diet_image
+        delete updatedFormData.remove_current_image
+      } else {
+        updatedFormData.diet_image = formData.diet_image[0]
+        updatedFormData.remove_current_image = '1'
       }
 
       console.log(updatedFormData, 'updatedFormData')
