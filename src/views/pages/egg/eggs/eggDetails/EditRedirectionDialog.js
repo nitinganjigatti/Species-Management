@@ -39,7 +39,7 @@ const EditRedirectionDialog = ({
           >
             {`Do you want to edit this ${refType}?`}
           </Typography>
-          {/* 
+
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -49,10 +49,11 @@ const EditRedirectionDialog = ({
               textAlign: 'center'
             }}
           >
-            {`A active ${refType} is already exist with the same name`}
-          </Typography> */}
+            {`The ${refType} name is already in use. `} <br />
+            {`Please rename the  ${refType} to proceed.`}
+          </Typography>
 
-          {message && (
+          {/* {message && (
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -63,7 +64,7 @@ const EditRedirectionDialog = ({
             >
               {message}
             </Typography>
-          )}
+          )} */}
         </Box>
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>
           <Button variant='outlined' fullWidth sx={{ p: 4 }} onClick={() => setOpenRedirectionDialog(false)}>
