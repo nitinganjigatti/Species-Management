@@ -141,7 +141,7 @@ const AddSpeciesSlideBar = ({
   })
 
   const prefillDefault = { taxonomy_id: tsnId, scientific_name: editName, common_name: '' }
-  const prefillHybrid = { taxonomy_id: tsnId, scientific_name: editName, common_name: commonName }
+  const prefillHybrid = { taxonomy_id: tsnId, scientific_name: editName, common_name: '' }
 
   const addEventSidebarOpen = () => {
     setOpenDrawer(true)
@@ -300,8 +300,6 @@ const AddSpeciesSlideBar = ({
     setCrossText(true)
     setTaxonomy([])
   }
-
-
 
   const handleRemoveTextField = index => {
     console.log('Field Value >>', index)
