@@ -63,6 +63,7 @@ const NurseryDetails = () => {
   const [incubatorNo, setIncubatorNo] = useState(0)
 
   const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
+  const [editMessage, setEditMessage] = useState('')
 
   const router = useRouter()
   const { id } = router.query
@@ -76,7 +77,8 @@ const NurseryDetails = () => {
   // console.log('Paginate>', paginationModel)
 
   const EditRedirectionFunc = () => {
-    // router.push(`/egg/incubator-rooms/${params.row.id}`)
+    setOpenDrawer(true)
+    setOpenRedirectionDialog(false)
   }
 
   const hatcheryStatusFunc = () => {
@@ -92,9 +94,12 @@ const NurseryDetails = () => {
           setOpenStatusDialog(false)
           setStatusLoading(false)
           setActive(!active)
-          // setOpenRedirectionDialog(true)
+          fetchNurseryById()
         } else {
           Toaster({ type: 'error', message: response.message })
+          setEditMessage(response?.message)
+          setOpenRedirectionDialog(true)
+          fetchNurseryById()
           setOpenStatusDialog(false)
           setStatusLoading(false)
         }
@@ -686,6 +691,7 @@ const NurseryDetails = () => {
             />
             <EditRedirectionDialog
               refType={'nursery'}
+              message={editMessage}
               openRedirectionDialog={openRedirectionDialog}
               setOpenRedirectionDialog={setOpenRedirectionDialog}
               EditRedirectionFunc={EditRedirectionFunc}

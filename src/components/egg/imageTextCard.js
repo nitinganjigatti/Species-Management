@@ -34,8 +34,6 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           sx={{
             display: 'flex',
             alignItems: 'center',
-            p: '2px',
-
             border: 'solid 1px #C3CEC7',
             width: '35px',
             height: '35px',
@@ -43,7 +41,16 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           }}
         >
           {imgURl ? (
-            <img src={imgURl} alt='Default Icon' style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+            <img
+              src={imgURl}
+              alt='Default Icon'
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                backgroundColor: theme.palette.primary.contrastText
+              }}
+            />
           ) : (
             <Icon icon='mdi:user' />
           )}

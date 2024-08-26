@@ -31,6 +31,8 @@ import { hatcheryStatus } from 'src/lib/api/egg'
 import Toaster from 'src/components/Toaster'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import TransferIncubator from 'src/views/pages/egg/eggs/eggDetails/TransferIncubator'
+import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
+import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
 
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
@@ -73,9 +75,27 @@ const IncubatorDetails = () => {
   const [incubatorDetail, setIncubatorDetail] = useState(null)
   const [incubatorDetailList, setIncubatorDetailList] = useState(null)
 
+  const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
+  const [editMessage, setEditMessage] = useState('')
+
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
+  const calculatePercentageChange = (value1, value2) => {
+    const numValue1 = parseFloat(value1)
+    const numValue2 = parseFloat(value2)
+
+    const difference = numValue2 - numValue1
+    const percentageChange = (difference / numValue1) * 100
+
+    return percentageChange.toFixed()
+  }
+
+  const EditRedirectionFunc = () => {
+    setDialog(true)
+    setOpenRedirectionDialog(false)
+  }
 
   const handleSidebarClose = () => {
     setDialog(false)
@@ -101,9 +121,15 @@ const IncubatorDetails = () => {
           Toaster({ type: 'success', message: response.message })
           setOpenStatusDialog(false)
           setStatusLoading(false)
+          // setEditMessage(response?.message)
+          // setOpenRedirectionDialog(true)
           setActive(!active)
+          getIncubatorDetailFunc()
         } else {
           Toaster({ type: 'error', message: response.message })
+          setEditMessage(response?.message)
+          setOpenRedirectionDialog(true)
+          getIncubatorDetailFunc()
           setOpenStatusDialog(false)
           setStatusLoading(false)
         }
@@ -117,8 +143,7 @@ const IncubatorDetails = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       align: 'center',
@@ -127,7 +152,10 @@ const IncubatorDetails = () => {
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
-            textAlign: 'center'
+            textAlign: 'center',
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
           }}
         >
           {params.row.sl_no}
@@ -135,133 +163,243 @@ const IncubatorDetails = () => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 60,
+      width: 240,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 35,
-              height: 35,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
-                }}
-              >
-                {params.row.complete_name ? params.row.complete_name : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
-              <Typography
-                sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '100%'
-                }}
-              >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
+        <SpeciesImageCard
+          imgURl={params.row.default_icon}
+          defaultName={params.row.default_common_name}
+          completeName={params.row.complete_name}
+          eggIcon={'/icons/Egg_icon.png'}
+        />
       )
     },
     {
-      flex: 0.14,
-      minWidth: 60,
+      width: 170,
       sortable: false,
       field: 'egg_number',
-      align: 'center',
-      headerName: 'EGG NUMBER',
+      headerName: 'ID & IDENTIFIER',
       renderCell: params => (
-        <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
             style={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
-              fontWeight: '500'
+              fontWeight: '500',
+              lineHeight: '19.36px'
             }}
           >
-            {params.row.egg_code ? params.row.egg_code : '-'}
+            AID: {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>{' '}
           <Typography
-            sx={{
-              color:
-                params.row.egg_condition === 'Intact'
-                  ? theme.palette.primary.main
-                  : params.row.egg_condition === 'Rotten'
-                  ? '#fa6140'
-                  : params.row.egg_condition === 'Cracked'
-                  ? '#fa6140'
-                  : params.row.egg_condition === 'Broken'
-                  ? '#fa6140'
-                  : params.row.egg_condition === 'Hatched'
-                  ? '#32bfdd'
-                  : params.row.egg_condition === 'Thin-Shelled'
-                  ? '#fa6140'
-                  : null,
-              fontSize: '14px',
-              fontWeight: '500',
-              px: 3,
-
-              backgroundColor:
-                params.row.egg_condition === 'Rotten'
-                  ? '#FFD3D3'
-                  : params.row.egg_condition === 'Cracked'
-                  ? '#FFD3D3'
-                  : params.row.egg_condition === 'Broken'
-                  ? '#FFD3D3'
-                  : params.row.egg_condition === 'Thin-Shelled'
-                  ? '#FFD3D3'
-                  : '#E1F9ED',
-
-              textAlign: 'center',
-              borderRadius: '4px'
+            style={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '12px',
+              fontWeight: '400',
+              lineHeight: '14.52px'
             }}
           >
-            {params.row.egg_condition ? params.row.egg_condition : '-'}
-          </Typography>
+            EID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>{' '}
         </Box>
       )
     },
     {
-      flex: 0.15,
-      minWidth: 10,
+      width: 170,
+      sortable: false,
+      field: 'stage',
+      headerName: 'STATE & STAGE',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography
+            sx={{
+              color:
+                params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
+                  ? theme.palette.primary.dark
+                  : params.row.egg_status === 'Discard'
+                  ? '#fa6140'
+                  : params.row.egg_status === 'Hatched'
+                  ? theme.palette.primary.main
+                  : null,
+              fontSize: '14px',
+              fontWeight: '500',
+              px: 3,
+              backgroundColor:
+                params.row.egg_status === 'Discard'
+                  ? '#FFD3D3'
+                  : params.row.egg_status === 'Fresh' ||
+                    params.row.egg_status === 'Fertile' ||
+                    params.row.egg_status === 'Hatched'
+                  ? '#EFF5F2'
+                  : '#EFF5F2',
+              textAlign: 'center',
+              borderRadius: '4px',
+              display: 'inline-block'
+            }}
+          >
+            {params.row.egg_status ? params.row.egg_status : '-'}
+          </Typography>{' '}
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.state ? params.row.state : '-'}
+          </Typography>{' '}
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      sortable: false,
+      field: 'incubation',
+      headerName: 'DAYS IN INCUBATION',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '500',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.days_in_incubation ? params.row.days_in_incubation : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 170,
+      sortable: false,
+      field: 'currentweight',
+      headerName: 'CURRENT WEIGHT',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.current_weight ? params.row.current_weight : '-'}{' '}
+          <span
+            style={{
+              borderLeft: `2px solid gray`,
+              paddingLeft: 4,
+              color:
+                calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                  ? theme.palette.primary.main
+                  : calculatePercentageChange(params.row.initial_weight, params.row.current_weight) < 0
+                  ? theme.palette.formContent.tertiary
+                  : theme.palette.customColors.neutralSecondary
+            }}
+          >
+            {' '}
+            {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+          </span>
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      sortable: false,
+      field: 'initialWeight',
+      headerName: 'INITIAL WEIGHT',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.initial_weight ? params.row.initial_weight : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      sortable: false,
+      field: 'initialSizeL',
+      headerName: 'INITIAL SIZE - L',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.initial_length ? params.row.initial_length : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      sortable: false,
+      field: 'initialSizeW',
+      headerName: 'INITIAL SIZE - W',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.initial_width ? params.row.initial_width : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 170,
+      sortable: false,
+      field: 'clutch',
+      headerName: 'NO. EGG / CLUTCH',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.no_of_eggs_in_clutch ? params.row.no_of_eggs_in_clutch : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      sortable: false,
+      field: 'clutchId',
+      headerName: 'CLUTCH ID',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.clutch_id ? params.row.clutch_id : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: 'SITE',
       renderCell: params => (
         <Typography
           sx={{
@@ -276,12 +414,28 @@ const IncubatorDetails = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      width: 140,
+      sortable: false,
+      field: 'nursery',
+      headerName: 'NURSERY',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -299,8 +453,25 @@ const IncubatorDetails = () => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 20,
+      width: 140,
+      sortable: false,
+      field: 'enclosure',
+      headerName: 'ENCLOSURE',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '500',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.enclosure_id ? params.row.enclosure_id : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
       sortable: false,
       field: 'collected_by',
       headerName: 'ADDED BY',
@@ -362,402 +533,6 @@ const IncubatorDetails = () => {
         </>
       )
     }
-
-    // {
-    //   flex: 0.5,
-    //   minWidth: 60,
-    //   sortable: false,
-    //   field: 'added_by',
-    //   headerName: 'ADDED BY',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Avatar
-    //         variant='circular'
-    //         alt='Medicine Image'
-    //         sx={{
-    //           width: 30,
-    //           height: 30,
-    //           mr: 4,
-    //           borderRadius: '50%',
-    //           background: '#E8F4F2',
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.species?.species_pic ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //             src={params.row.species?.species_pic}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-    //         <Typography
-    //           noWrap
-    //           sx={{
-    //             color: theme.palette.primary.light,
-    //             fontSize: '16px',
-    //             fontWeight: '500',
-    //             lineHeight: '19.36px'
-    //           }}
-    //         >
-    //           {params.row.species?.species_name ? params.row.species?.species_name : '-'}
-    //         </Typography>
-    //         <Tooltip title={params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}>
-    //           <Typography
-    //             noWrap
-    //             sx={{
-    //               color: theme.palette.customColors.neutralSecondary,
-    //               fontSize: '14px',
-    //               fontWeight: '400',
-    //               lineHeight: '16.94px'
-    //             }}
-    //           >
-    //             {params.row?.species?.species_desc ? params.row?.species?.species_desc : '-'}
-    //           </Typography>
-    //         </Tooltip>
-    //       </Box>
-    //     </Box>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 30,
-    //   sortable: false,
-    //   field: 'days_in_incubation',
-    //   headerName: 'Days In Incubation',
-    //   renderCell: params => (
-    //     <Typography
-    //       noWrap
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '500',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.days_in_incubation ? params.row.days_in_incubation : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   sortable: false,
-    //   field: 'stage',
-    //   headerName: 'Stage',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.primary.dark,
-    //         fontSize: '16px',
-    //         fontWeight: '500',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.stage ? params.row.stage : '-'}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'condition',
-    //   headerName: 'Condition',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.primary.dark,
-    //         fontSize: '16px',
-    //         fontWeight: '500',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.condition ? params.row.condition : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'curret_weight',
-    //   headerName: 'Curret Weight',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex' }}>
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           lineHeight: '16.94px'
-    //         }}
-    //       >
-    //         {params.row.curret_weight?.gram ? params.row.curret_weight?.gram : '-'}
-    //       </Typography>
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           lineHeight: '16.94px'
-    //         }}
-    //       >
-    //         &nbsp;|&nbsp;
-    //       </Typography>
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.primary.main,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           lineHeight: '16.94px'
-    //         }}
-    //       >
-    //         {params.row.curret_weight?.precentage ? params.row.curret_weight?.precentage : '-'}%
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'initial_weight',
-    //   headerName: 'Initial Weight',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.initial_weight ? params.row.initial_weight : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'initial_size_l',
-    //   headerName: 'Initial Size L',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.initial_size_l ? params.row.initial_size_l : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'initial_size_w',
-    //   headerName: 'Initial Size W',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.initial_size_w ? params.row.initial_size_w : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'no_of_egg',
-    //   headerName: 'No Of Egg',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.no_of_egg ? params.row.no_of_egg : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 10,
-    //   field: 'clutch_id',
-    //   headerName: 'Clutch Id',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.clutch_id ? params.row.clutch_id : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 20,
-    //   field: 'site',
-    //   headerName: 'SITE',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.site ? params.row.site : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 20,
-    //   field: 'nursery',
-    //   headerName: 'Nursery',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.nursery ? params.row.nursery : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.35,
-    //   minWidth: 20,
-    //   field: 'inclosure',
-    //   headerName: 'Inclosure',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.primary.dark,
-    //         fontSize: '16px',
-    //         fontWeight: '500',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.inclosure ? params.row.inclosure : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.24,
-    //   minWidth: 20,
-    //   field: 'collected_on',
-    //   headerName: 'Collected On',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.collected_on ? moment(params.row?.collected_on).format('DD MMM YYYY') : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.24,
-    //   minWidth: 20,
-    //   field: 'ley_date',
-    //   headerName: 'Lay Date',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.ley_date ? moment(params.row?.ley_date).format('DD MMM YYYY') : '-'}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   flex: 0.5,
-    //   minWidth: 60,
-    //   field: 'collected_by',
-    //   headerName: 'Collected BY',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Avatar
-    //         variant='square'
-    //         alt='Medicine Image'
-    //         sx={{
-    //           width: 30,
-    //           height: 30,
-    //           mr: 4,
-    //           borderRadius: '50%',
-    //           background: '#E8F4F2',
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.collected_by?.profile_pic ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //             src={params.row.collected_by?.profile_pic}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-    //         <Typography
-    //           noWrap
-    //           sx={{
-    //             color: theme.palette.customColors.OnSurfaceVariant,
-    //             fontSize: '14px',
-    //             fontWeight: '500',
-    //             lineHeight: '16.94px'
-    //           }}
-    //         >
-    //           {params.row.collected_by?.user_name ? params.row.collected_by?.user_name : '-'}
-    //         </Typography>
-    //         <Typography
-    //           noWrap
-    //           sx={{
-    //             color: theme.palette.customColors.neutralSecondary,
-    //             fontSize: '12px',
-    //             fontWeight: '400',
-    //             lineHeight: '14.52px'
-    //           }}
-    //         >
-    //           {params.row?.collected_by?.created_at
-    //             ? 'Created on' + ' ' + moment(params.row?.collected_by?.created_at).format('DD/MM/YYYY')
-    //             : '-'}
-    //         </Typography>
-    //       </Box>
-    //     </Box>
-    //   )
-    // }
   ]
 
   const fetchTableData = useCallback(
@@ -1102,7 +877,7 @@ const IncubatorDetails = () => {
                     pagination
                     rows={indexedRows === undefined ? [] : indexedRows}
                     rowCount={total}
-                    rowHeight={72}
+                    rowHeight={64}
                     columns={columns}
                     sortingMode='server'
                     paginationMode='server'
@@ -1152,6 +927,13 @@ const IncubatorDetails = () => {
                     incubatorDetail={incubatorDetail}
                     getDetails={getIncubatorDetailFunc}
                     incubatorId={id}
+                  />
+                  <EditRedirectionDialog
+                    refType={'incubator'}
+                    message={editMessage}
+                    openRedirectionDialog={openRedirectionDialog}
+                    setOpenRedirectionDialog={setOpenRedirectionDialog}
+                    EditRedirectionFunc={EditRedirectionFunc}
                   />
                 </Box>
               )}

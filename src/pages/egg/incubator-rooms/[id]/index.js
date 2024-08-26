@@ -37,6 +37,7 @@ import ErrorScreen from 'src/pages/Error'
 import { hatcheryStatus } from 'src/lib/api/egg'
 import Toaster from 'src/components/Toaster'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
+import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
 
 const RoomDetails = () => {
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -73,9 +74,24 @@ const RoomDetails = () => {
   const [dialog, setDialog] = useState(false)
   const [isPreFilled, setIsPreFilled] = useState({})
 
+  const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
+  const [editMessage, setEditMessage] = useState('')
+
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
+  const EditRedirectionFunc = event => {
+    handleEdit(
+      event,
+      detailsData.site_id,
+      detailsData.room_name,
+      detailsData.nursery_id,
+      detailsData.room_id,
+      detailsData.nursery_name
+    )
+    setOpenRedirectionDialog(false)
+  }
 
   const hatcheryStatusFunc = () => {
     setStatusLoading(true)
@@ -90,8 +106,12 @@ const RoomDetails = () => {
           setOpenStatusDialog(false)
           setStatusLoading(false)
           setActive(!active)
+          fetchDetailsData()
         } else {
           Toaster({ type: 'error', message: response.message })
+          setEditMessage(response?.message)
+          setOpenRedirectionDialog(true)
+          fetchDetailsData()
           setOpenStatusDialog(false)
           setStatusLoading(false)
         }
@@ -516,7 +536,7 @@ const RoomDetails = () => {
   }, [])
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id, nursery_name) => {
-    event.stopPropagation()
+    event?.stopPropagation()
     setEditParams({
       site_id: site_id,
       room_name: room_name,
@@ -828,6 +848,13 @@ const RoomDetails = () => {
               elements={total}
               statusLoading={statusLoading}
               hatcheryStatusFunc={hatcheryStatusFunc}
+            />
+            <EditRedirectionDialog
+              refType={'incubator room'}
+              message={editMessage}
+              openRedirectionDialog={openRedirectionDialog}
+              setOpenRedirectionDialog={setOpenRedirectionDialog}
+              EditRedirectionFunc={EditRedirectionFunc}
             />
           </Grid>
         )

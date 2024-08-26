@@ -603,7 +603,7 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.neutralSecondary
                           }}
                         >
-                          Not Added
+                          {eggDetails?.initial_length ? eggDetails?.initial_length : 'Not Added'}
                         </Typography>
                         <Typography
                           sx={{
@@ -645,7 +645,7 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.neutralSecondary
                           }}
                         >
-                          Not Added
+                          {eggDetails?.initial_width ? eggDetails?.initial_width : 'Not Added'}
                         </Typography>
                         <Typography
                           sx={{
@@ -674,7 +674,7 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.neutralSecondary
                           }}
                         >
-                          Not Added
+                          {eggDetails?.initial_weight ? eggDetails?.initial_weight : ' Not Added'}
                         </Typography>
                         <Typography
                           sx={{

@@ -208,6 +208,8 @@ const AddIncubators = ({
               detailsApi()
             }
             handleSidebarClose()
+            setDefaultNursery(null)
+            setDefaultRoom(null)
             setBtnDisabled(false)
             Toaster({ type: 'success', message: res.message })
           } else {
@@ -288,6 +290,7 @@ const AddIncubators = ({
                 handleSidebarClose()
                 reset()
                 setDefaultNursery(null)
+                setDefaultRoom(null)
               }}
               sx={{ color: 'text.primary' }}
             >

@@ -64,7 +64,7 @@ const IncubatorsList = () => {
           sort,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          type: status,
+          type: status || 'all',
           room_id: roomId,
           nursery_id: '',
           availability: availibility,

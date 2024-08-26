@@ -5,10 +5,10 @@ import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 
 const EditRedirectionDialog = ({
+  message,
   refType,
   openRedirectionDialog,
   setOpenRedirectionDialog,
-  elements,
   EditRedirectionFunc
 }) => {
   const theme = useTheme()
@@ -27,25 +27,44 @@ const EditRedirectionDialog = ({
         <Box sx={{ bgcolor: '#ffe5e5', p: '16px', borderRadius: '12px', mt: 10 }}>
           <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={'#E93353'} />
         </Box>
+
         <Box>
-          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 600 }}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '24px',
+              fontWeight: 600,
+              textAlign: 'center'
+            }}
+          >
             {`Do you want to edit this ${refType}?`}
           </Typography>
-          {elements > 0 && (
+          {/* 
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              mt: 2,
+              textAlign: 'center'
+            }}
+          >
+            {`A active ${refType} is already exist with the same name`}
+          </Typography> */}
+
+          {message && (
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: 400,
-                mt: 2,
                 textAlign: 'center'
               }}
             >
-              {`A active ${refType} is already exist with the same name`}
+              {message}
             </Typography>
           )}
         </Box>
-
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>
           <Button variant='outlined' fullWidth sx={{ p: 4 }} onClick={() => setOpenRedirectionDialog(false)}>
             No

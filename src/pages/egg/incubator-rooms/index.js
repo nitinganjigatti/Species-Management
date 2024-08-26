@@ -380,17 +380,15 @@ const RoomsList = () => {
     async (q, nurseryId, status) => {
       try {
         setLoading(true)
-
         const params = {
           sort,
           search: q || '',
           nursery_id: nurseryId,
           // column,
-          status,
+          status: status || 'all',
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
-
         await GetRoomList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.result))
