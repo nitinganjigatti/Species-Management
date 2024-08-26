@@ -174,6 +174,7 @@ const EggList = () => {
         <SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
+          egg_status={params.row.egg_status}
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
           completeName={params.row.complete_name}
@@ -198,15 +199,17 @@ const EggList = () => {
           >
             AID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 400,
-              lineHeight: '19.36px'
-            }}
-          >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
-          </Typography>
+          {params.row.egg_number && (
+            <Typography
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px'
+              }}
+            >
+              EID : {params.row.egg_number}
+            </Typography>
+          )}
         </Box>
       )
     },
@@ -465,6 +468,7 @@ const EggList = () => {
         <SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
+          egg_status={params.row.egg_status}
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
           completeName={params.row.complete_name}
@@ -570,15 +574,17 @@ const EggList = () => {
           >
             AID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 400,
-              lineHeight: '19.36px'
-            }}
-          >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
-          </Typography>
+          {params.row.egg_number && (
+            <Typography
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px'
+              }}
+            >
+              EID : {params.row.egg_number}
+            </Typography>
+          )}
         </Box>
       )
     },
@@ -806,6 +812,7 @@ const EggList = () => {
           <SpeciesImageCard
             imgURl={params.row.default_icon}
             eggCondition={params.row.egg_condition}
+            egg_status={params.row.egg_status}
             eggCode={params.row.egg_code}
             defaultName={params.row.default_common_name}
             completeName={params.row.complete_name}
@@ -925,15 +932,17 @@ const EggList = () => {
           >
             AID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 400,
-              lineHeight: '19.36px'
-            }}
-          >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
-          </Typography>
+          {params.row.egg_number && (
+            <Typography
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px'
+              }}
+            >
+              EID : {params.row.egg_number}
+            </Typography>
+          )}
         </Box>
       )
     },
@@ -951,22 +960,24 @@ const EggList = () => {
             <TextCard egg_status={params.row.egg_status} />
           </Box>
 
-          <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: '400',
-                lineHeight: '19.36px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+          {params.row.egg_status !== 'Fresh' && (
+            <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
 
-                // Ensures Typography doesn't exceed container width
-              }}
-            >
-              {params.row.egg_state ? params.row.egg_state : '-'}
-            </Typography>
-          </Tooltip>
+                  // Ensures Typography doesn't exceed container width
+                }}
+              >
+                {params.row.egg_state ? params.row.egg_state : '-'}
+              </Typography>
+            </Tooltip>
+          )}
         </Stack>
       )
     },
@@ -1369,6 +1380,7 @@ const EggList = () => {
         <SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
+          egg_status={params.row.egg_status}
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
           completeName={params.row.complete_name}
@@ -1393,15 +1405,17 @@ const EggList = () => {
           >
             AID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 400,
-              lineHeight: '19.36px'
-            }}
-          >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
-          </Typography>
+          {params.row.egg_number && (
+            <Typography
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px'
+              }}
+            >
+              EID : {params.row.egg_number}
+            </Typography>
+          )}
         </Box>
       )
     },
@@ -1617,6 +1631,7 @@ const EggList = () => {
         <SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
+          egg_status={params.row.egg_status}
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
           completeName={params.row.complete_name}
@@ -1641,15 +1656,17 @@ const EggList = () => {
           >
             AID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
-          <Typography
-            sx={{
-              fontSize: '12px',
-              fontWeight: 400,
-              lineHeight: '19.36px'
-            }}
-          >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
-          </Typography>
+          {params.row.egg_number && (
+            <Typography
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px'
+              }}
+            >
+              EID : {params.row.egg_number}
+            </Typography>
+          )}
         </Box>
       )
     },

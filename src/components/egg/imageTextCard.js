@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 
 const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultName, completeName, eggIcon, tab }) => {
   const theme = useTheme()
+  console.log('egg_status :>> ', egg_status)
 
   return (
     <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -18,14 +19,12 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           bgcolor:
             tab === 'hatched'
               ? '#37BD69'
-              : eggCondition === 'Rotten'
-              ? '#FA6140'
-              : eggCondition === 'Cracked'
-              ? '#E4B819'
-              : eggCondition === 'Broken'
-              ? '#E93353'
-              : eggCondition === 'Thin-Shelled'
+              : egg_status === 'Fresh'
+              ? '#006d35'
+              : egg_status === 'Fertile'
               ? '#1F515B'
+              : egg_status === 'Discard'
+              ? '#E93353'
               : '#006D35',
           alignItems: 'center',
           borderRadius: '50px'
@@ -71,7 +70,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             {eggCode ? eggCode : '-'}
           </Typography>
         )} */}
-        {/* {defaultName && ( */}
+
         <Tooltip title={defaultName}>
           <Typography
             sx={{
@@ -87,8 +86,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             {defaultName ? defaultName : 'Unknown'}
           </Typography>
         </Tooltip>
-        {/* )} */}
-        {/* {completeName && ( */}
+
         <Tooltip title={completeName}>
           <Typography
             sx={{
@@ -106,35 +104,37 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             {completeName ? completeName : 'Unknown'}
           </Typography>
         </Tooltip>
-        {/* )} */}
-        {egg_status && (
-          <Typography
-            sx={{
-              color:
-                egg_status === 'Fresh' || egg_status === 'Fertile'
-                  ? theme.palette.primary.dark
-                  : egg_status === 'Discard'
-                  ? '#fa6140'
-                  : egg_status === 'Hatched'
-                  ? theme.palette.primary.main
-                  : null,
-              fontSize: '14px',
-              fontWeight: '500',
-              px: 3,
-              backgroundColor:
-                egg_status === 'Discard'
-                  ? '#FFD3D3'
-                  : egg_status === 'Fresh' || egg_status === 'Fertile' || egg_status === 'Hatched'
-                  ? '#EFF5F2'
-                  : '#EFF5F2',
-              textAlign: 'center',
-              borderRadius: '4px',
-              display: 'inline-block'
-            }}
-          >
-            {egg_status ? egg_status : '-'}
-          </Typography>
-        )}
+
+        {/* {tab === 'hatched'
+          ? null
+          : egg_status && (
+              <Typography
+                sx={{
+                  color:
+                    egg_status === 'Fresh' || egg_status === 'Fertile'
+                      ? theme.palette.primary.dark
+                      : egg_status === 'Discard'
+                      ? '#fa6140'
+                      : egg_status === 'Hatched'
+                      ? theme.palette.primary.main
+                      : null,
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  px: 3,
+                  backgroundColor:
+                    egg_status === 'Discard'
+                      ? '#FFD3D3'
+                      : egg_status === 'Fresh' || egg_status === 'Fertile' || egg_status === 'Hatched'
+                      ? '#EFF5F2'
+                      : '#EFF5F2',
+                  textAlign: 'center',
+                  borderRadius: '4px',
+                  display: 'inline-block'
+                }}
+              >
+                {egg_status ? egg_status : '-'}
+              </Typography>
+            )} */}
       </Box>
     </Stack>
   )
