@@ -77,6 +77,7 @@ const EggList = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
   const [eggID, setEggId] = useState('')
+  const [searchQuery, setSearchQuery] = useState(search_value || '')
 
   // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -1929,9 +1930,9 @@ const EggList = () => {
       const values = {
         tab_Value: status,
         subTab_value: isDiscarded,
-        page_value: paginationModel?.page
+        page_value: paginationModel?.page,
 
-        // search_value: searchValue
+        search_value: search_value ? search_value : ''
 
         // selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
         // selected_nursery_name: nursery_name ? nursery_name : ''
@@ -1972,7 +1973,10 @@ const EggList = () => {
     setFilterList([])
     setSelectedFiltersOptions({})
     setPaginationModel({ page: 0, pageSize: 10 })
-    router.push({ query: { ...router.query, tab_Value: newValue, page_value: 0 } }, undefined, { shallow: true })
+    setSearchQuery('')
+    router.push({ query: { ...router.query, tab_Value: newValue, search_value: '', page_value: 0 } }, undefined, {
+      shallow: true
+    })
   }
 
   const handleTabs = (event, newValue) => {
@@ -1983,8 +1987,11 @@ const EggList = () => {
     setFilterList([])
     setSelectedFiltersOptions({})
     setPaginationModel({ page: 0, pageSize: 10 })
+    setSearchQuery('')
 
-    router.push({ query: { ...router.query, subTab_value: newValue, page_value: 0 } }, undefined, { shallow: true })
+    router.push({ query: { ...router.query, subTab_value: newValue, search_value: '', page_value: 0 } }, undefined, {
+      shallow: true
+    })
   }
 
   const fetchTableData = useCallback(
@@ -1992,7 +1999,7 @@ const EggList = () => {
       // debugger
       // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
 
-      // console.log('discardedTab :>> ', discardedTab)
+      console.log('search :>> ', search)
 
       try {
         setLoading(true)
@@ -2017,7 +2024,7 @@ const EggList = () => {
 
         const params = {
           sort,
-          q: search_value ? search_value : search,
+          q: search ? search : '',
 
           sorting_by_date: 'latest_date',
 
@@ -2080,7 +2087,7 @@ const EggList = () => {
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {
-      fetchTableData(sort, searchValue, status, isDiscarded, selectedFiltersOptions)
+      fetchTableData(sort, searchQuery, status, isDiscarded, selectedFiltersOptions)
     }
   }, [fetchTableData, status, isDiscarded, selectedFiltersOptions])
 
@@ -2200,6 +2207,8 @@ const EggList = () => {
                   handleSearch={handleSearch}
                   setSelectedFiltersOptions={setSelectedFiltersOptions}
                   selectedFiltersOptions={selectedFiltersOptions}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
                 />
                 <DataGrid
                   sx={{
@@ -2265,6 +2274,8 @@ const EggList = () => {
                     handleSearch={handleSearch}
                     setSelectedFiltersOptions={setSelectedFiltersOptions}
                     selectedFiltersOptions={selectedFiltersOptions}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                   />
 
                   <DataGrid
@@ -2409,6 +2420,8 @@ const EggList = () => {
                     handleSearch={handleSearch}
                     setSelectedFiltersOptions={setSelectedFiltersOptions}
                     selectedFiltersOptions={selectedFiltersOptions}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                   />
 
                   <DataGrid
@@ -2603,6 +2616,8 @@ const EggList = () => {
                         handleSearch={handleSearch}
                         setSelectedFiltersOptions={setSelectedFiltersOptions}
                         selectedFiltersOptions={selectedFiltersOptions}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
                       />
 
                       <DataGrid

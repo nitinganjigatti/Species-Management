@@ -13,13 +13,15 @@ const EggTableHeader = ({
   handleSearch,
   filterList,
   setSelectedFiltersOptions,
-  selectedFiltersOptions
+  selectedFiltersOptions,
+  searchQuery,
+  setSearchQuery
 }) => {
   const theme = useTheme()
   const router = useRouter()
   const { search_value } = router.query
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [searchQuery, setSearchQuery] = useState(search_value || '')
+
   const [selectedDate, setSelectedDate] = useState(null)
 
   const [selectedOptions, setSelectedOptions] = useState({
@@ -45,11 +47,14 @@ const EggTableHeader = ({
     if (item?.id === 'collected_date') {
       newSelectedFilters.collected_date = null
       setSelectedDate(null)
-    } else if (item?.id === 'search') {
-      setSearchQuery('')
-      handleSearch('')
-      router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
-    } else {
+    }
+
+    // else if (item?.id === 'search') {
+    //   setSearchQuery('')
+    //   handleSearch('')
+    //   router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
+    // }
+    else {
       newSelectedFilters.status = null
     }
 
@@ -110,7 +115,7 @@ const EggTableHeader = ({
                 setSearchQuery(e.target.value)
                 handleSearch(e.target.value)
 
-                // router.push({ query: { ...router.query, search_value: e.target.value } }, undefined, { shallow: true })
+                router.push({ query: { ...router.query, search_value: e.target.value } }, undefined, { shallow: true })
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
