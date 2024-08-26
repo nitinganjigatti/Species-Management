@@ -56,7 +56,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
       </Box>
 
       <Box>
-        {eggCode && (
+        {/* {eggCode && (
           <Typography
             sx={{
               fontSize: '20px',
@@ -70,43 +70,43 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           >
             {eggCode ? eggCode : '-'}
           </Typography>
-        )}
-        {defaultName && (
-          <Tooltip title={defaultName}>
-            <Typography
-              sx={{
-                color: theme.palette.primary.light,
-                fontSize: '16px',
-                fontWeight: '500',
-                lineHeight: '19.36px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {defaultName ? defaultName : 'Unknown'}
-            </Typography>
-          </Tooltip>
-        )}
-        {completeName && (
-          <Tooltip title={completeName}>
-            <Typography
-              sx={{
-                color: theme.palette.primary.light,
-                fontSize: '14px',
-                fontWeight: '400',
-                lineHeight: '16.94px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                width: '100%',
-                fontStyle: 'italic'
-              }}
-            >
-              {completeName ? completeName : 'Unknown'}
-            </Typography>
-          </Tooltip>
-        )}
+        )} */}
+        {/* {defaultName && ( */}
+        <Tooltip title={defaultName}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.light,
+              fontSize: '16px',
+              fontWeight: '500',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {defaultName ? defaultName : 'Unknown'}
+          </Typography>
+        </Tooltip>
+        {/* )} */}
+        {/* {completeName && ( */}
+        <Tooltip title={completeName}>
+          <Typography
+            sx={{
+              color: theme.palette.primary.light,
+              fontSize: '14px',
+              fontWeight: '400',
+              lineHeight: '16.94px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
+              fontStyle: 'italic'
+            }}
+          >
+            {completeName ? completeName : 'Unknown'}
+          </Typography>
+        </Tooltip>
+        {/* )} */}
         {egg_status && (
           <Typography
             sx={{

@@ -182,6 +182,35 @@ const EggList = () => {
       )
     },
     {
+      width: 200,
+      sortable: false,
+      field: 'id_identifier',
+      headerName: 'Id & Identifier',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: '#000000',
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 400,
+              lineHeight: '19.36px'
+            }}
+          >
+            EID : {params.row.egg_number ? params.row.egg_number : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
       width: 160,
       field: 'state',
       sortable: false,
@@ -526,6 +555,35 @@ const EggList = () => {
     // },
     {
       width: 200,
+      sortable: false,
+      field: 'id_identifier',
+      headerName: 'Id & Identifier',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: '#000000',
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 400,
+              lineHeight: '19.36px'
+            }}
+          >
+            EID : {params.row.egg_number ? params.row.egg_number : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
       field: 'animal_id',
       sortable: false,
       headerName: 'Animal Id',
@@ -849,6 +907,36 @@ const EggList = () => {
     //     </Box>
     //   )
     // },
+
+    {
+      width: 200,
+      sortable: false,
+      field: 'id_identifier',
+      headerName: 'Id & Identifier',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: '#000000',
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 400,
+              lineHeight: '19.36px'
+            }}
+          >
+            EID : {params.row.egg_number ? params.row.egg_number : '-'}
+          </Typography>
+        </Box>
+      )
+    },
     {
       // flex: 0.15,
       width: 200,
@@ -1290,6 +1378,35 @@ const EggList = () => {
     },
     {
       width: 200,
+      sortable: false,
+      field: 'id_identifier',
+      headerName: 'Id & Identifier',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: '#000000',
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 400,
+              lineHeight: '19.36px'
+            }}
+          >
+            EID : {params.row.egg_number ? params.row.egg_number : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
       field: 'stage_state',
       sortable: false,
       headerName: ' STATE & STAGE',
@@ -1505,6 +1622,35 @@ const EggList = () => {
           completeName={params.row.complete_name}
           eggIcon={'/icons/Egg_icon.png'}
         />
+      )
+    },
+    {
+      width: 200,
+      sortable: false,
+      field: 'id_identifier',
+      headerName: 'Id & Identifier',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: '#000000',
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              fontWeight: 400,
+              lineHeight: '19.36px'
+            }}
+          >
+            EID : {params.row.egg_number ? params.row.egg_number : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -2210,7 +2356,7 @@ const EggList = () => {
                   value='eggs_ready_to_be_discarded_at_nursery'
                   label={
                     <TabBadge
-                      label='Ready to Discard'
+                      label='To Be Discarded'
                       totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
                     />
                   }
