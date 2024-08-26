@@ -201,7 +201,7 @@ const IncubatorDetails = () => {
               lineHeight: '14.52px'
             }}
           >
-            EID : {params.row.egg_code ? params.row.egg_code : '-'}
+            EID : {params.row.egg_number ? params.row.egg_number : '-'}
           </Typography>{' '}
         </Box>
       )
