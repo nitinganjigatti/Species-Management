@@ -298,37 +298,61 @@ const AddSpeciesSlideBar = ({
       taxonomy_id: ''
     })
     setCrossText(true)
+    setTaxonomy([])
   }
 
+
+
   const handleRemoveTextField = index => {
-    debugger
     console.log('Field Value >>', index)
     console.log('taxonomyName', taxonomyName)
 
     // Remove the field at the specified index
-
     remove(index)
 
-    // Remove scientific and common names
+    // Get current form values
     const formValues = getValues()
     const fieldValues = fields
-    console.log('Fields Final>>', fieldValues)
+    console.log('Fields Final >>', fieldValues)
 
+    // Extract scientific and common names from the form values
     let scientificNames = formValues['scientificName']
     let commonNames = formValues['vernacular_name']
 
+    // Ensure scientificNames and commonNames are strings
     if (typeof scientificNames === 'string' && typeof commonNames === 'string') {
-      const scientificNameToRemove = fieldValues[index].scientific_name
-      const commonNameToRemove = fieldValues[index].common_name
+      // Find the corresponding field value using the index
+      const fieldToRemove = fieldValues[index]
+      let scientificNameToRemove = fieldToRemove?.scientific_name
+      let commonNameToRemove = fieldToRemove?.common_name
 
-      if (scientificNames.includes(scientificNameToRemove) && commonNames.includes(commonNameToRemove)) {
-        // Remove the scientificNameToRemove from scientificNames
-        const scientificregex = new RegExp(`\\bX?\\s*${scientificNameToRemove}\\b,?`, 'g')
-        const commonregex = new RegExp(`\\bX?\\s*${commonNameToRemove}\\b,?`, 'g')
-        scientificNames = scientificNames.replace(scientificregex, '').replace(/,\s*$/, '').trim()
-        commonNames = commonNames.replace(commonregex, '').replace(/,\s*$/, '').trim()
+      // If scientificNameToRemove or commonNameToRemove is undefined, remove the last added names
+      if (!scientificNameToRemove || !commonNameToRemove) {
+        // Split the scientific and common names into parts and remove the last part
+        const scientificParts = scientificNames.split(/\s+X\s+/)
+        const commonParts = commonNames.split(/\s+X\s+/)
 
-        // Set the updated scientificNames back in the form
+        if (scientificParts.length > 1) {
+          scientificNameToRemove = scientificParts.pop()
+          scientificNames = scientificParts.join(' X ')
+        }
+
+        if (commonParts.length > 1) {
+          commonNameToRemove = commonParts.pop()
+          commonNames = commonParts.join(' X ')
+        }
+      }
+
+      if (scientificNameToRemove && commonNameToRemove) {
+        // Create a regex to remove the specific scientific name and common name
+        const scientificregex = new RegExp(`\\s+X\\s+${scientificNameToRemove}\\b\\s*`, 'g')
+        const commonregex = new RegExp(`\\s+X\\s+${commonNameToRemove}\\b\\s*`, 'g')
+
+        // Remove the scientific name and common name from their respective strings
+        scientificNames = scientificNames.replace(scientificregex, '').trim()
+        commonNames = commonNames.replace(commonregex, '').trim()
+
+        // Set the updated scientificNames and commonNames back in the form
         setValue('scientificName', scientificNames)
         setValue('vernacular_name', commonNames)
       }

@@ -56,8 +56,6 @@ const AddSpecies = () => {
   //   }
   // }
 
-
-
   const addEventSidebarOpen = () => {
     setOpenDrawer(true)
     setEditName('')
@@ -131,7 +129,6 @@ const AddSpecies = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, sortColumn, status) => {
-      debugger
       try {
         setLoading(true)
 
@@ -205,7 +202,6 @@ const AddSpecies = () => {
   }, [fetchTableData, status])
 
   const handleSortModel = async newModel => {
-    debugger
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
