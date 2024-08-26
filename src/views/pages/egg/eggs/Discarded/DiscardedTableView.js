@@ -11,6 +11,7 @@ import DiscardDetail from './DiscardDetail'
 import Utility from 'src/utility'
 import EggTableHeader from '../EggTableHeader'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
 
 const DiscardedTableView = ({
   tabValue,
@@ -20,6 +21,8 @@ const DiscardedTableView = ({
   selectedFiltersOptions,
   setTotal
 }) => {
+  const router = useRouter()
+  const { search_value } = router.query
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -30,6 +33,7 @@ const DiscardedTableView = ({
   const [loading, setLoading] = useState(false)
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [eggDiscardedId, setEggDiscardedId] = useState('')
+  const [searchQuery, setSearchQuery] = useState(search_value || '')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -468,6 +472,8 @@ const DiscardedTableView = ({
         handleSearch={handleSearch}
         setSelectedFiltersOptions={setSelectedFiltersOptions}
         selectedFiltersOptions={selectedFiltersOptions}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
       <DataGrid
         sx={{
