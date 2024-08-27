@@ -167,3 +167,5 @@ export const AlTERNATIVE_MEDICINE = 'alternate'
 export const REJECT_MEDICINE = 'reject'
 
 export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
+
+export const DISCARD_PRODUCT = 'discard'
