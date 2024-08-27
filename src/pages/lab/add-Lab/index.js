@@ -259,7 +259,12 @@ const AddLab = () => {
     incharge_name: yup.string().trim().required('Lab Incharge name is required'),
     address: yup.string().trim().required('Address is required'),
 
-    lab_contact_number: yup.string().trim().max(10, 'Maximum of 10 digits').required('Lab incharge No is required'),
+    lab_contact_number: yup
+      .string()
+      .trim()
+      .max(10, 'Maximum of 10 digits')
+      .min(10, 'Maximum of 10 digits')
+      .required('Lab incharge No is required'),
     is_default: yup.boolean()
 
     // latitude: yup.string(),

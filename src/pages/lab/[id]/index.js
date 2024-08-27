@@ -72,6 +72,7 @@ const RequestDetails = () => {
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
   const [testImage, setTestImage] = useState()
+  console.log('testImage :>> ', testImage)
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
@@ -280,7 +281,7 @@ const RequestDetails = () => {
   const handleOpenShowFile = (e, params) => {
     setShowTestFile(true)
 
-    // console.log('params?.row', params?.row?.attachments?.images)
+    console.log('params?.row', params?.row)
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
   }
@@ -442,7 +443,10 @@ const RequestDetails = () => {
               </IconButton>
 
               <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                <span alt={params.row.attachments}>{params?.row?.attachments?.images?.length}</span>
+                <span alt={params.row.attachments}>
+                  {params?.row?.attachments?.images?.length +
+                    (params?.row?.attachments?.docs?.length ? params?.row?.attachments?.docs?.length : null)}
+                </span>
               </Typography>
             </Box>
           ) : null}
@@ -559,6 +563,7 @@ const RequestDetails = () => {
   }
 
   const handleDeleteImg = async (e, item) => {
+    console.log('Delete id :>> ', item)
     e.preventDefault()
     e.stopPropagation()
 
@@ -1072,17 +1077,17 @@ const RequestDetails = () => {
       </>
       <>
         <Dialog open={showTestFile} onClose={() => setShowTestFile(false)}>
-          <Box sx={{ py: 2 }}>
-            {testImage || testDoc ? (
-              <Box sx={{ px: 5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <IconButton onClick={() => setShowTestFile(false)}>
-                      <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-                    </IconButton>
-                  </Box>
-                </Box>
+          <Box sx={{ py: 2, minWidth: 200 }}>
+            {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton onClick={() => setShowTestFile(false)}>
+                  <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+                </IconButton>
+              </Box>
+            </Box> */}
+            {/* {testImage || testDoc ? (
+              
                 {testImage ? (
                   <Box>
                     <Typography sx={{ fontSize: '18px' }}>Images</Typography>
@@ -1174,6 +1179,39 @@ const RequestDetails = () => {
                   </Box>
                 ) : null}
               </Box>
+            ) : null} */}
+
+            {testImage || testDoc ? (
+              <>
+                <Box sx={{ display: 'flex', px: 5, justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <IconButton onClick={() => setShowTestFile(false)}>
+                      <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+                    </IconButton>
+                  </Box>
+                </Box>
+                <Box sx={{ px: 5 }}>
+                  {/* <CommonMediaView /> */}
+                  {testImage ? (
+                    <Box>
+                      <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                        <CommonMediaView image={testImage} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                      </Box>
+                    </Box>
+                  ) : null}
+
+                  {testDoc ? (
+                    <Box>
+                      <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                        <CommonMediaView document={testDoc} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                      </Box>
+                    </Box>
+                  ) : null}
+                </Box>
+              </>
             ) : null}
           </Box>
         </Dialog>
