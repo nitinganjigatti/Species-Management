@@ -53,6 +53,7 @@ const AddDiet = () => {
     child: '',
     diet_image: '',
     desc: '',
+    remarks: '',
     meal_data: [
       {
         mealid: 'meal0',
@@ -93,6 +94,13 @@ const AddDiet = () => {
       console.log(e)
     }
   }, 500)
+
+  const handleRemarksChange = newRemarks => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      remarks: newRemarks
+    }))
+  }
 
   // const handleDietTypeChildValuesChange = values => {
   //   // Update the parent component state with the received values
@@ -165,6 +173,7 @@ const AddDiet = () => {
           child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,
+          remarks: data.remarks,
           meal_data: data.meal_data.map(meal => ({
             ...meal,
             meal_from_time: formatTime(meal.meal_from_time),
@@ -409,7 +418,7 @@ const AddDiet = () => {
         delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.diet_image = formData.diet_image[0]
+        updatedFormData.diet_image = formData.diet_image?.[0] || null
         updatedFormData.remove_current_image = '1'
       }
 
@@ -482,7 +491,7 @@ const AddDiet = () => {
         delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.diet_image = formData.diet_image[0]
+        updatedFormData.diet_image = formData.diet_image?.[0] || null
         updatedFormData.remove_current_image = '1'
       }
 
@@ -536,6 +545,8 @@ const AddDiet = () => {
             uomprev={uomprev}
             setFormData={setFormData}
             id={id}
+            remarks={formData.remarks}
+            onRemarksChange={handleRemarksChange}
 
             // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
             // diettypechildvalues={diettypechildvalues}

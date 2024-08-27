@@ -49,7 +49,9 @@ const StepPreviewDiet = ({
   finalhandleSubmit,
   uomprev,
   setFormData,
-  id
+  id,
+  remarks,
+  onRemarksChange
 }) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
@@ -65,6 +67,7 @@ const StepPreviewDiet = ({
   const [uomId, setuomId] = useState('')
   const [uomLabel, setuomLabel] = useState('')
   const [errorpop, setErrorpop] = useState('')
+  const [expanded, setExpanded] = useState(false)
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -254,6 +257,19 @@ const StepPreviewDiet = ({
     }
 
     return null
+  }
+
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+  }
+
+  const convertToTitleCase = str => {
+    if (!str) return ''
+
+    const firstLetter = str.charAt(0).toUpperCase()
+    const restOfWord = str.slice(1).toLowerCase()
+
+    return firstLetter + restOfWord
   }
 
   useEffect(() => {
@@ -915,8 +931,50 @@ const StepPreviewDiet = ({
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
-                <Typography variant='h6'>Description</Typography>
-                <Typography sx={{ pt: 1 }}>{formData.desc ? formData.desc : 'No Description to show'}</Typography>
+                {/* <Typography sx={{ pt: 1 }}>{formData.desc ? formData.desc : 'No Description to show'}</Typography> */}
+                {formData?.desc ? (
+                  <div>
+                    <Typography variant='h6' sx={{ mb: 2 }}>
+                      Description
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        width: '100%',
+                        color: '#7A8684',
+                        fontSize: '14px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: expanded ? 'unset' : 3,
+                        WebkitBoxOrient: 'vertical',
+                        transition: 'max-height 2s ease-in-out',
+                        maxHeight: expanded ? '1000px' : '60px'
+                      }}
+                    >
+                      {convertToTitleCase(formData.desc)}
+                    </Typography>
+                    {formData.desc.length > 180 ? (
+                      <Typography
+                        onClick={toggleExpanded}
+                        sx={{
+                          fontWeight: '600',
+                          fontSize: '13px',
+
+                          textDecoration: 'underline',
+                          color: '#000',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {expanded ? 'View less' : 'View more'}
+                      </Typography>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                ) : (
+                  ''
+                )}
               </Grid>
             </Grid>
           </Grid>
@@ -1216,13 +1274,7 @@ const StepPreviewDiet = ({
 
                         return (
                           <>
-                            <TableRow
-                              sx={{
-                                borderBottom: '1px solid #C3CEC7'
-                              }}
-                              key={index}
-                              className=''
-                            >
+                            <TableRow key={index} className=''>
                               <TableCell
                                 sx={{
                                   position: 'sticky',
@@ -1299,7 +1351,6 @@ const StepPreviewDiet = ({
                                   </Box>
                                 </span>
                               </TableCell>
-
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   console.log(formData?.child?.length, 'lll')
@@ -1722,7 +1773,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
@@ -2187,7 +2237,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
@@ -2576,12 +2625,50 @@ const StepPreviewDiet = ({
                                 })}
                               </>
                             </TableRow>
+                            {itemd.notes ? (
+                              <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+                                <Typography
+                                  sx={{
+                                    width: '100%',
+                                    display: 'block',
+                                    pb: 3
+                                  }}
+                                >
+                                  <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>Notes :</span>{' '}
+                                  {itemd.notes}
+                                </Typography>
+                              </TableRow>
+                            ) : (
+                              ''
+                            )}
                           </>
                         )
                       })}
                     </TableBody>
                   </Table>
                 </CustomScrollbar>
+                <Grid item xs={12} sx={{ pt: 10, pb: 8 }}>
+                  <Controller
+                    name='remarks'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { onChange } }) => (
+                      <TextField
+                        multiline
+                        fullWidth
+                        value={remarks}
+                        label='Remarks (Optional)'
+                        name='remarks'
+                        onChange={e => {
+                          onChange(e) // Update react-hook-form state
+                          onRemarksChange(e.target.value) // Update formData state in AddDiet
+                        }}
+                        id='textarea-outlined'
+                        rows={5}
+                      />
+                    )}
+                  />
+                </Grid>
               </Grid>
             </Grid>
           </Card>

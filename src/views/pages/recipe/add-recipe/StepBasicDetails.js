@@ -158,11 +158,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                   />
                 )}
               />
+
               {errors.recipe_name && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.recipe_name?.message}</FormHelperText>
               )}
             </FormControl>
           </Grid>
+
           <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
             <Grid item xs={12} sm={3}>
               <FormControl fullWidth>

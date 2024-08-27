@@ -1105,12 +1105,7 @@ const DietDetail = () => {
 
                                       return (
                                         <>
-                                          <TableRow
-                                            sx={{
-                                              borderBottom: '1px solid #C3CEC7'
-                                            }}
-                                            key={index}
-                                          >
+                                          <TableRow key={index}>
                                             <TableCell
                                               sx={{
                                                 position: 'sticky',
@@ -2285,6 +2280,24 @@ const DietDetail = () => {
                                               })}
                                             </>
                                           </TableRow>
+                                          {itemd.notes ? (
+                                            <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+                                              <Typography
+                                                sx={{
+                                                  width: '100%',
+                                                  display: 'block',
+                                                  pb: 3
+                                                }}
+                                              >
+                                                <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>
+                                                  Notes :
+                                                </span>{' '}
+                                                {itemd.notes}
+                                              </Typography>
+                                            </TableRow>
+                                          ) : (
+                                            ''
+                                          )}
                                         </>
                                       )
                                     })}
@@ -2301,13 +2314,13 @@ const DietDetail = () => {
                   ))}
                 </TabContext>
               </Box>
-              {dietDetails?.desc ? (
+              {dietDetails?.remarks ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
                     Remarks
                   </Typography>
                   <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
-                    {dietDetails?.desc ? dietDetails?.desc : 'No Remarks'}
+                    {dietDetails?.remarks ? dietDetails?.remarks : 'No Remarks'}
                   </Typography>
                 </Box>
               ) : (

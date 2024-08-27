@@ -38,6 +38,7 @@ const defaultValues = {
   child: '',
   diet_image: '',
   desc: '',
+  remarks: '',
   meal_data: [
     {
       mealid: 'meal',

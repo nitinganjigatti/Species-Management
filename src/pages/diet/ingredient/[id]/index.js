@@ -124,8 +124,9 @@ const IngredientDetail = () => {
       const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: activePayload })
       console.log(response, 'response')
       if (response.success === true) {
-        Router.push(`/diet/ingredient`)
-
+        //Router.push(`/diet/ingredient`)
+        getIngredientsDetailval(id)
+        setstatusDialog(false)
         return Toaster({ type: 'success', message: response?.data })
       } else {
         return Toaster({ type: 'error', message: response?.data })
@@ -210,6 +211,7 @@ const IngredientDetail = () => {
                           setIsActive={setIsActive}
                           IngredientsDetailsval={IngredientsDetailsval}
                           permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
+                          getIngredientsDetailval={getIngredientsDetailval}
                         />
 
                         <Grid item xs={8}>

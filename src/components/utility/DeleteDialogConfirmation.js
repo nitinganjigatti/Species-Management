@@ -281,6 +281,7 @@ const DeleteDialogConfirmation = ({
             </Typography>
           )}
           <Grid>
+            {console.log(active, 'active')}
             <Typography sx={{ fontSize: 15 }}>
               <FormControlLabel
                 label={

@@ -20,15 +20,18 @@ import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirm
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
 
-const RecipeDetailCardview = ({ IngredientsDetailsval, permission }) => {
+const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDetailval, isActive, setIsActive }) => {
   const router = useRouter()
-  const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
 
   const handleClosenew = () => {
     setDeleteDialogBox(false)
-    setIsActive(IngredientsDetailsval.active)
+    //setIsActive(IngredientsDetailsval.active)
   }
+
+  useEffect(() => {
+    setIsActive(IngredientsDetailsval?.active)
+  }, [IngredientsDetailsval])
 
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
@@ -44,8 +47,8 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission }) => {
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: isActive })
       console.log(response, 'response')
       if (response.success === true) {
-        Router.push(`/diet/recipe`)
-
+        //Router.push(`/diet/recipe`)
+        getRecipeDetailval(IngredientsDetailsval?.id)
         //return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
         return Toaster({ type: 'success', message: response?.message })
       } else {
@@ -115,13 +118,13 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission }) => {
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={IngredientsDetailsval.active === '1' ? true : false}
+                      checked={isActive === '1' ? true : false}
                       onChange={permission ? handleSwitchChange : null}
                       fontSize={2}
                     />
                   }
                   labelPlacement='start'
-                  label={IngredientsDetailsval.active === '1' ? 'Active' : 'InActive'}
+                  label={isActive === '1' ? 'Active' : 'InActive'}
                 />
               </Grid>
             </Box>
@@ -198,7 +201,11 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission }) => {
         dietCount={IngredientsDetailsval.diet_count}
         type='recipe'
         ingredientCount={IngredientsDetailsval?.total_ingredients}
-        message={<span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deactivate Recipe?</span>}
+        message={
+          <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+            {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+          </span>
+        }
       />
     </Grid>
   )
