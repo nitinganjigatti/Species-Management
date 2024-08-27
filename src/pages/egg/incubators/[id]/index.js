@@ -93,6 +93,7 @@ const IncubatorDetails = () => {
   }
 
   const EditRedirectionFunc = () => {
+    setIsEdit(true)
     setDialog(true)
     setOpenRedirectionDialog(false)
   }
