@@ -436,17 +436,26 @@ const RequestDetails = () => {
 
       renderCell: params => (
         <>
-          {params?.row?.attachments?.images?.length > 0 ? (
+          {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton onClick={e => handleOpenShowFile(e, params)}>
                 <Icon icon='et:attachments' fontSize={15} />
               </IconButton>
 
               <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                <span alt={params.row.attachments}>
-                  {params?.row?.attachments?.images?.length +
-                    (params?.row?.attachments?.docs?.length ? params?.row?.attachments?.docs?.length : null)}
-                </span>
+                {
+                  params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
+                    ? params.row.attachments.images.length + params.row.attachments.docs.length
+                    : params?.row?.attachments?.images?.length > 0
+                    ? params.row.attachments.images.length
+                    : params?.row?.attachments?.docs
+                    ? params.row.attachments.docs.length
+                    : null
+
+                  // params?.row?.attachments?.docs?.length
+
+                  // console.log(' params.row.attachments.docs.length :>> ', params.row.attachments)
+                }
               </Typography>
             </Box>
           ) : null}
