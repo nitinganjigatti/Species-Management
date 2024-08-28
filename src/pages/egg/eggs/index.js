@@ -1999,7 +1999,7 @@ const EggList = () => {
       // debugger
       // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
 
-      console.log('search :>> ', search)
+      ///// console.log('search :>> ', search)
 
       try {
         setLoading(true)
@@ -2060,7 +2060,7 @@ const EggList = () => {
               : statusRecived
         }
 
-        console.log('params table data :>> ', params)
+        // console.log('params table data :>> ', params)
 
         await GetEggList({ params: params }).then(res => {
           // console.log('res :>> ', res)
