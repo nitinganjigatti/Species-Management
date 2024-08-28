@@ -65,14 +65,13 @@ const RequestDetails = () => {
 
   // console.log('authData :>> ', authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
-  console.log('fileViews :>> ', fileViews)
 
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
   const [testImage, setTestImage] = useState()
-  console.log('testImage :>> ', testImage)
+
   const [testDoc, setTestDoc] = useState()
   const [popUpRow, setPopUpRow] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
@@ -197,7 +196,6 @@ const RequestDetails = () => {
       }
 
       const response = await GetRequestDetails(id, { params }).then(res => {
-        console.log('res?.data.result[0] :>> ', res?.data.result[0])
         setLab_id(res?.data.result[0]?.lab_id)
         setAnimalId(res?.data?.result[0]?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
@@ -217,7 +215,6 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = params => {
-    console.log('params transfer :>> ', params)
     if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
       setOpenTransfer(true)
 
@@ -259,7 +256,6 @@ const RequestDetails = () => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleOpenPopOver = (event, params) => {
-    // console.log('params :>> ', params?.row?.test_id)
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
     setTransferTestId(params?.row?.test_id)
@@ -281,7 +277,6 @@ const RequestDetails = () => {
   const handleOpenShowFile = (e, params) => {
     setShowTestFile(true)
 
-    console.log('params?.row', params?.row)
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
   }
@@ -572,7 +567,7 @@ const RequestDetails = () => {
   }
 
   const handleDeleteImg = async (e, item) => {
-    console.log('Delete id :>> ', item)
+    // console.log('Delete id :>> ', item)
     e.preventDefault()
     e.stopPropagation()
 

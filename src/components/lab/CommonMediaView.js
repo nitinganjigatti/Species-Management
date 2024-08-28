@@ -5,8 +5,8 @@ import React from 'react'
 import moment from 'moment'
 
 const CommonMediaView = ({ type, image, document, handleDeleteImg, userData, fileViews }) => {
-  console.log('image :>> ', image)
-  console.log('document :>> ', document)
+  // console.log('image :>> ', image)
+  // console.log('document :>> ', document)
 
   return (
     <>
