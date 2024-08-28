@@ -580,7 +580,9 @@ const RequestDetails = () => {
         setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
         fetchRequestDetails()
+        setShowTestFile(false)
       } else {
+        setShowTestFile(false)
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (error) {}
@@ -719,76 +721,6 @@ const RequestDetails = () => {
                     <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
-                      {/* {image?.map(item => (
-                        <a
-                          key={item.file}
-                          href={item.file}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          style={{ textDecoration: 'none' }}
-                        > */}
-
-                      {/* <Card
-                            sx={{
-                              width: 200,
-                              height: 150,
-                              bgcolor: '#B1B1B1',
-                              mt: 3,
-                              display: 'flex',
-                              flexDirection: 'column'
-                            }}
-                          >
-                            <Box sx={{ position: 'relative' }}>
-                              <IconButton
-                                sx={{
-                                  position: 'absolute',
-                                  top: 4,
-                                  right: 4,
-                                  zIndex: 1
-
-                                  // width: 30,
-                                  // height: 30
-                                }}
-                                onClick={e => handleDeleteImg(e, item)}
-                              >
-                                <Icon
-                                  icon='material-symbols:close'
-                                  fontSize={20}
-                                  color={'#37BD69'}
-                                  sx={{ zIndex: 1, position: 'absolute' }}
-                                />
-                              </IconButton>
-
-                              {item.file ? (
-                                <img
-                                  src={item.file}
-                                  alt={item.file_original_name}
-                                  style={{ width: '100%', height: '100%', aspectRatio: '16 / 9' }}
-                                />
-                              ) : (
-                                <img
-                                  src='/images/tablet.png'
-                                  alt={item.file_original_name}
-                                  style={{ width: '100%', height: '100%', aspectRatio: '16 / 9' }}
-                                />
-                              )}
-                            </Box>
-                            <Box
-                              sx={{
-                                flex: 1,
-                                bgcolor: 'white',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                p: 2,
-                                maxHeight: 40,
-                                bgcolor: '#EFF5F2'
-                              }}
-                            >
-                              {item?.file_original_name}{' '}
-                            </Box>
-                          </Card> */}
-                      {/* </a>
-                      ))} */}
                     </Box>
                   </Box>
                 ) : null}
@@ -798,37 +730,6 @@ const RequestDetails = () => {
                     <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
-                      {/* {document?.map(item => (
-                        <a
-                          key={item.file}
-                          href={item.file}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          style={{ textDecoration: 'none', color: '#6e6f81' }}
-                        >
-                          {/* <Box
-                            key={item?.file}
-                            sx={{
-                              bgcolor: '#EFF5F2',
-                              maxWidth: 250,
-                              p: 2,
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              borderRadius: '10px'
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              {' '}
-                              <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
-                            </Box>
-
-                            <IconButton onClick={e => handleDeleteImg(e, item)}>
-                              <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                            </IconButton>
-                          </Box> */}
-                      {/* </a> */}
-                      {/* ))} */}
                     </Box>
                   </Box>
                 ) : null}
@@ -1082,109 +983,6 @@ const RequestDetails = () => {
       <>
         <Dialog open={showTestFile} onClose={() => setShowTestFile(false)}>
           <Box sx={{ py: 2, minWidth: 200 }}>
-            {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <IconButton onClick={() => setShowTestFile(false)}>
-                  <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-                </IconButton>
-              </Box>
-            </Box> */}
-            {/* {testImage || testDoc ? (
-              
-                {testImage ? (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px' }}>Images</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mb: 5 }}>
-                      {testImage?.map(item => (
-                        <a
-                          key={item.file}
-                          href={item.file}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          style={{ textDecoration: 'none' }}
-                        >
-                          <Card
-                            sx={{
-                              width: 200,
-                              height: 150,
-                              bgcolor: '#B1B1B1',
-                              mt: 3,
-                              display: 'flex',
-                              flexDirection: 'column'
-                            }}
-                          >
-                            <Box>
-                              <img
-                                src={item.file}
-                                alt={item.file_original_name}
-                                style={{ width: '100%', height: '100%', aspectRatio: 16 / 9 }}
-                              />
-                            </Box>
-                            <Box
-                              sx={{
-                                flex: 1,
-                                bgcolor: 'white',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                p: 2,
-                                maxHeight: 40,
-                                bgcolor: '#EFF5F2'
-                              }}
-                            >
-                              {item?.file_original_name}{' '}
-                              <IconButton onClick={e => handleDeleteImg(e, item)}>
-                                <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                              </IconButton>
-                            </Box>
-                          </Card>
-                        </a>
-                      ))}
-                    </Box>
-                  </Box>
-                ) : null}
-
-                {testDoc ? (
-                  <Box sx={{ pb: 5 }}>
-                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      {testDoc?.map(item => (
-                        <a
-                          key={item.file}
-                          href={item.file}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          style={{ textDecoration: 'none' }}
-                        >
-                          <Box
-                            key={item?.file}
-                            sx={{
-                              bgcolor: '#EFF5F2',
-                              maxWidth: 250,
-                              p: 2,
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              borderRadius: '10px'
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              {' '}
-                              <Icon icon='jam:document' fontSize={25} /> {item?.file_original_name}
-                            </Box>
-
-                            <IconButton onClick={e => handleDeleteImg(e, item)}>
-                              <Icon icon='material-symbols:close' fontSize={25} color={'#37BD69'} />
-                            </IconButton>
-                          </Box>
-                        </a>
-                      ))}
-                    </Box>
-                  </Box>
-                ) : null}
-              </Box>
-            ) : null} */}
-
             {testImage || testDoc ? (
               <>
                 <Box sx={{ display: 'flex', px: 5, justifyContent: 'space-between', alignItems: 'center' }}>
