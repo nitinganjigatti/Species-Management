@@ -1686,7 +1686,7 @@ const ConditionSlider = ({
                               error={Boolean(errors?.parentMother)}
                             >
                               {eggDetails?.parent_list?.mother_list?.map(val => (
-                                <MenuItem key={val?._id} value={val?._id}>
+                                <MenuItem key={val?._id} value={val?.animal_id}>
                                   {/* {val?.common_name} */}
                                   <Box
                                     sx={{
@@ -1802,7 +1802,7 @@ const ConditionSlider = ({
                               error={Boolean(errors?.parentFather)}
                             >
                               {eggDetails?.parent_list?.father_list?.map(val => (
-                                <MenuItem key={val?._id} value={val?._id}>
+                                <MenuItem key={val?._id} value={val?.animal_id}>
                                   {/* {val?.common_name} */}
                                   <Box
                                     sx={{
