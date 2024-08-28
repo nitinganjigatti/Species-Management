@@ -1,7 +1,8 @@
 import { AuthContext } from 'src/context/AuthContext'
 import { useContext } from 'react'
 
-const ComposeLabNavigation = () => {
+const ComposeLabNavigation = ({ labRole }) => {
+  console.log(labRole, 'labRole')
   const labTitle = {
     sectionTitle: 'Lab'
   }
@@ -18,6 +19,22 @@ const ComposeLabNavigation = () => {
     icon: 'solar:clipboard-list-line-duotone'
   }
 
+  const labSample = {
+    title: 'Lab Sample',
+    path: '/lab/master/lab-sample'
+  }
+  const labTest = {
+    title: 'Lab Test',
+    path: '/lab/master/lab-test'
+  }
+
+  const mastersLabParent = {
+    title: 'Lab Master',
+    path: '/lab/master/',
+    icon: 'uil:setting',
+    children: []
+  }
+
   const authData = useContext(AuthContext)
   const addlabPermission = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
@@ -27,7 +44,8 @@ const ComposeLabNavigation = () => {
 
   if (labList?.length > 0) {
     labNavigationArray.push(labTitle)
-    labNavigationArray.push(lab, request)
+    mastersLabParent.children.push(labSample, labTest)
+    labNavigationArray.push(lab, request, mastersLabParent)
   } else if (addlabPermission) {
     labNavigationArray.push(labTitle)
     labNavigationArray.push(lab)
@@ -36,6 +54,6 @@ const ComposeLabNavigation = () => {
   return labNavigationArray
 }
 
-const labNavigation = () => ComposeLabNavigation()
+const labNavigation = ({ labRole }) => ComposeLabNavigation({ labRole })
 
 export default labNavigation

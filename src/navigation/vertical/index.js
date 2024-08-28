@@ -31,7 +31,7 @@ const ComposeNavigation = () => {
   }
 
   if (labList?.length > 0 || labRole) {
-    const labNav = labNavigation()
+    const labNav = labNavigation({ labRole })
     navigationArray.push(...labNav)
   }
 
