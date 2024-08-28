@@ -11,6 +11,7 @@ import {
   Grid,
   IconButton,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
@@ -429,8 +430,179 @@ const EggSecondSecion = ({
   }
 
   return (
-    <Grid justifyContent='space-between' container alignItems='stretch' rowGap={6}>
-      <Grid item xs={12}>
+    <Grid justifyContent='space-between' container alignItems='stretch' spacing={6}>
+      <Grid item xs={12} md={4}>
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  height: '68px',
+                  borderRadius: '8px',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Box
+                    sx={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Avatar
+                      sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                      src={'/icons/Incubator_CON.png'}
+                      variant='square'
+                    ></Avatar>
+                  </Box>
+                  <Box>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          lineHeight: '16.94px',
+                          mb: '4px',
+                          color: theme.palette.customColors.neutralSecondary
+                        }}
+                      >
+                        {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+                {Number(eggDetails?.action_to_be_taken) != 4 ? (
+                  <Box
+                    onClick={() => setTransferEggSideBar(true)}
+                    sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '14px',
+                        lineHeight: '19.36px',
+                        color: theme.palette.primary.main
+                      }}
+                    >
+                      Transfer
+                    </Typography>
+                    <Icon
+                      color='#00AFD6'
+                      style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
+                      icon='akar-icons:arrow-repeat'
+                      fontSize={24}
+                    />
+                  </Box>
+                ) : null}
+              </Box>
+              <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
+                <Grid
+                  item
+                  xs={12}
+                  // sm={5.8}
+                  // md={5.7}
+                  // xl={5.8}
+                  // xxl={5.8}
+                  sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.neutralSecondary,
+                      mb: '10px'
+                    }}
+                  >
+                    Temperature
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
+                    Coming Soon
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
+                    Coming Soon
+                  </Typography>
+                </Grid>
+                <Grid
+                  item
+                  xs={12}
+                  // sm={5.8}
+                  // md={5.7}
+                  // xl={5.8}
+                  // xxl={5.8}
+                  sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.neutralSecondary,
+                      mb: '10px'
+                    }}
+                  >
+                    Humidity
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
+                    Coming soon
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '14px',
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.neutralSecondary
+                    }}
+                  >
+                    Coming soon
+                  </Typography>
+                </Grid>
+              </Grid>
+              {/* <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <img
+                    style={{ height: '120px', width: '120px', mixBlendMode: 'Luminosity' }}
+                    src='/icons/folderNot.png'
+                    alt='folderNot'
+                  />
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: '24px',
+                    fontWeight: 500,
+                    lineHeight: '29.05px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    textAlign: 'center'
+                  }}
+                >
+                  Coming soon
+                </Typography> */}
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12} md={8}>
         <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
           <CardHeader
             sx={{
@@ -454,7 +626,7 @@ const EggSecondSecion = ({
                   }}
                 >
                   {Object.entries(historyData?.history1)?.map(([key, value]) => (
-                    <Grid container sx={{ justifyContent: 'space-between', pb: '4px' }}>
+                    <Grid container key={key} sx={{ justifyContent: 'space-between', pb: '4px' }}>
                       <Grid item xs={6}>
                         <Typography
                           sx={{
@@ -468,16 +640,21 @@ const EggSecondSecion = ({
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
-                        <Typography
-                          sx={{
-                            fontWeight: 400,
-                            fontSize: '14px',
-                            lineHeight: '16.94px',
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          {value}
-                        </Typography>
+                        <Tooltip title={value ? value : '-'}>
+                          <Typography
+                            sx={{
+                              fontWeight: 400,
+                              fontSize: '14px',
+                              lineHeight: '16.94px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            {value}
+                          </Typography>
+                        </Tooltip>
                       </Grid>
                     </Grid>
                   ))}
@@ -495,7 +672,7 @@ const EggSecondSecion = ({
                   }}
                 >
                   {Object.entries(historyData?.history2)?.map(([key, value]) => (
-                    <Grid container sx={{ justifyContent: 'space-between', pb: '4px' }}>
+                    <Grid key={key} container sx={{ justifyContent: 'space-between', pb: '4px' }}>
                       <Grid item xs={6}>
                         <Typography
                           sx={{
@@ -509,40 +686,45 @@ const EggSecondSecion = ({
                         </Typography>
                       </Grid>
                       <Grid item xs={6}>
-                        <Typography
-                          onClick={() => {
-                            // value.startsWith('Probable') && setProbableParentSideBar(true)
-                            setProbableParentSideBar(true)
-                            // value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                            setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                            // value.startsWith('Probable') &&
-                            //   setParentList(
-                            //     key === 'Mother id'
-                            //       ? eggDetails?.parent_list?.mother_list
-                            //       : eggDetails?.parent_list?.father_list
-                            //   )
+                        <Tooltip title={value ? value : '-'}>
+                          <Typography
+                            onClick={() => {
+                              // value.startsWith('Probable') && setProbableParentSideBar(true)
+                              setProbableParentSideBar(true)
+                              // value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                              setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                              // value.startsWith('Probable') &&
+                              //   setParentList(
+                              //     key === 'Mother id'
+                              //       ? eggDetails?.parent_list?.mother_list
+                              //       : eggDetails?.parent_list?.father_list
+                              //   )
 
-                            setParentList(
-                              key === 'Mother id'
-                                ? eggDetails?.parent_list?.mother_list
-                                : eggDetails?.parent_list?.father_list
-                            )
-                          }}
-                          sx={{
-                            // cursor: value.startsWith('Probable') && 'pointer',
-                            cursor: 'pointer',
-                            textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
-                            fontWeight: key === 'Mother id' || key === 'Father id' ? 600 : 400,
-                            fontSize: '14px',
-                            lineHeight: '16.94px',
-                            color:
-                              key === 'Mother id' || key === 'Father id'
-                                ? '#00AFD6'
-                                : theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          {value}
-                        </Typography>
+                              setParentList(
+                                key === 'Mother id'
+                                  ? eggDetails?.parent_list?.mother_list
+                                  : eggDetails?.parent_list?.father_list
+                              )
+                            }}
+                            sx={{
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              // cursor: value.startsWith('Probable') && 'pointer',
+                              cursor: 'pointer',
+                              textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
+                              fontWeight: key === 'Mother id' || key === 'Father id' ? 600 : 400,
+                              fontSize: '14px',
+                              lineHeight: '16.94px',
+                              color:
+                                key === 'Mother id' || key === 'Father id'
+                                  ? '#00AFD6'
+                                  : theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            {value}
+                          </Typography>
+                        </Tooltip>
                       </Grid>
                     </Grid>
                   ))}
@@ -695,7 +877,8 @@ const EggSecondSecion = ({
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12}>
+
+      <Grid item xs={12} md={6} xl={8}>
         <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -748,252 +931,78 @@ const EggSecondSecion = ({
                 </Typography>
               </Box>
             </Box>
-            <ReactApexcharts type='line' height={350} series={series} options={options} />
+            <ReactApexcharts type='line' height={220} series={series} options={options} />
           </CardContent>
         </Card>
       </Grid>
-      <Grid container spacing={6} sx={{ justifyContent: 'space-between' }}>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    height: '68px',
-                    borderRadius: '8px',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Box
-                      sx={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      <Avatar
-                        sx={{ width: '100%', height: '100%', borderRadius: '8px' }}
-                        src={'/icons/Incubator_CON.png'}
-                        variant='square'
-                      ></Avatar>
-                    </Box>
-                    <Box>
-                      <Box>
-                        <Typography
-                          sx={{
-                            fontWeight: 400,
-                            fontSize: '14px',
-                            lineHeight: '16.94px',
-                            mb: '4px',
-                            color: theme.palette.customColors.neutralSecondary
-                          }}
-                        >
-                          {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '16px',
-                            lineHeight: '19.36px',
+      <Grid item xs={12} md={6} xl={4}>
+        <Card sx={{ height: '100%' }}>
+          <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
+          <CardContent style={{ paddingBottom: 0 }}>
+            <CustomTableContainer
+              // className={Styles.main}
+              style={{ border: '0.5px solid #C3CEC7', borderRadius: '8px' }}
+              component={Paper}
+              sx={{ height: 175 }}
+            >
+              <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>DATE</TableCell>
+                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>TIME</TableCell>
+                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>ACTUAL</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {eggDetails?.assessments_data?.map((row, key) => {
+                    return (
+                      <TableRow key={key} sx={{ py: 1 }} hover>
+                        <TableCell
+                          style={{
+                            padding: '11px 12px 11px 12px',
+                            fontSize: '12px',
+                            fontWeight: '400',
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                  {Number(eggDetails?.action_to_be_taken) != 4 ? (
-                    <Box
-                      onClick={() => setTransferEggSideBar(true)}
-                      sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <Typography
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '14px',
-                          lineHeight: '19.36px',
-                          color: theme.palette.primary.main
-                        }}
-                      >
-                        Transfer
-                      </Typography>
-                      <Icon
-                        color='#00AFD6'
-                        style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
-                        icon='akar-icons:arrow-repeat'
-                        fontSize={24}
-                      />
-                    </Box>
-                  ) : null}
-                </Box>
-                <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
-                  <Grid
-                    item
-                    xs={12}
-                    sm={5.8}
-                    md={5.7}
-                    xl={5.8}
-                    xxl={5.8}
-                    sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
-                  >
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        color: theme.palette.customColors.neutralSecondary,
-                        mb: '27px'
-                      }}
-                    >
-                      Temperature
-                    </Typography>
-                    <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Coming Soon
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.neutralSecondary
-                      }}
-                    >
-                      Coming Soon
-                    </Typography>
-                  </Grid>
-                  <Grid
-                    item
-                    xs={12}
-                    sm={5.8}
-                    md={5.7}
-                    xl={5.8}
-                    xxl={5.8}
-                    sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
-                  >
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        color: theme.palette.customColors.neutralSecondary,
-                        mb: '27px'
-                      }}
-                    >
-                      Humidity
-                    </Typography>
-                    <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Coming soon
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '16.94px',
-                        color: theme.palette.customColors.neutralSecondary
-                      }}
-                    >
-                      Coming soon
-                    </Typography>
-                  </Grid>
-                </Grid>
-                {/* <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <img
-                    style={{ height: '120px', width: '120px', mixBlendMode: 'Luminosity' }}
-                    src='/icons/folderNot.png'
-                    alt='folderNot'
-                  />
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: '24px',
-                    fontWeight: 500,
-                    lineHeight: '29.05px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    textAlign: 'center'
-                  }}
-                >
-                  Coming soon
-                </Typography> */}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+                          {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
+                          {/* {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
+                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
+                        </TableCell>
+                        <TableCell
+                          style={{
+                            padding: '11px 12px 11px 12px',
+                            fontSize: '12px',
+                            fontWeight: '400',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {/* {moment(row?.created_at).format('hh : mm A')} */}
+                          {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
+                          {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
+                        </TableCell>
+                        <TableCell
+                          style={{
+                            padding: '11px 12px 11px 12px',
+                            fontSize: '12px',
+                            fontWeight: '400',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {`${row?.assessment_value} ${row?.uom_abbr}`}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </CustomTableContainer>
 
-        <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%' }}>
-            <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
-            <CardContent style={{ paddingBottom: 0 }}>
-              <CustomTableContainer
-                // className={Styles.main}
-                style={{ border: '0.5px solid #C3CEC7', borderRadius: '8px' }}
-                component={Paper}
-                sx={{ height: 175 }}
-              >
-                <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>DATE</TableCell>
-                      <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>TIME</TableCell>
-                      <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>ACTUAL</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {eggDetails?.assessments_data?.map(row => {
-                      return (
-                        <TableRow sx={{ py: 1 }} hover>
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
-                            {/* {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
-                            {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
-                          </TableCell>
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {/* {moment(row?.created_at).format('hh : mm A')} */}
-                            {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
-                            {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
-                          </TableCell>
-                          <TableCell
-                            style={{
-                              padding: '11px 12px 11px 12px',
-                              fontSize: '12px',
-                              fontWeight: '400',
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {`${row?.assessment_value} ${row?.uom_abbr}`}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </CustomTableContainer>
-
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0, mt: 1 }}>
-                {total > 3 && <Button onClick={() => setSidebarOpen(true)}>View All</Button>}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0, mt: 1 }}>
+              {total > 3 && <Button onClick={() => setSidebarOpen(true)}>View All</Button>}
+            </Box>
+          </CardContent>
+        </Card>
       </Grid>
       <Drawer
         anchor='right'
@@ -1096,15 +1105,15 @@ const EggSecondSecion = ({
               Add Weight
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' sx={{ color: 'text.primary' }}>
-                <Icon
-                  icon='mdi:close'
-                  fontSize={20}
-                  onClick={() => {
-                    setaddWeightSidebar(false)
-                    reset()
-                  }}
-                />
+              <IconButton
+                size='small'
+                sx={{ color: 'text.primary' }}
+                onClick={() => {
+                  setaddWeightSidebar(false)
+                  reset()
+                }}
+              >
+                <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
             </Box>
           </Box>

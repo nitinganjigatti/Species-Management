@@ -445,9 +445,11 @@ const RoomsList = () => {
                           <TextField
                             variant='outlined'
                             placeholder='Search...'
-                            InputProps={{
-                              disableUnderline: true
-                            }}
+                            InputProps={
+                              {
+                                // disableUnderline: true
+                              }
+                            }
                             onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
                             sx={{
                               '& .MuiOutlinedInput-root': {

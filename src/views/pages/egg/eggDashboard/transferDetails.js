@@ -556,9 +556,11 @@ const TransferDetails = () => {
             <TextField
               variant='outlined'
               placeholder='Search'
-              InputProps={{
-                disableUnderline: true
-              }}
+              InputProps={
+                {
+                  // disableUnderline: true
+                }
+              }
               onChange={e =>
                 searchTableData(
                   e.target.value,

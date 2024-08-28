@@ -656,9 +656,11 @@ const IncubatorsList = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
-                      InputProps={{
-                        disableUnderline: true
-                      }}
+                      InputProps={
+                        {
+                          // disableUnderline: true
+                        }
+                      }
                       onChange={e =>
                         handleSearch(
                           e.target.value,

@@ -217,7 +217,7 @@ const NurserySlider = ({
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
+                <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
             </Box>
           </Box>

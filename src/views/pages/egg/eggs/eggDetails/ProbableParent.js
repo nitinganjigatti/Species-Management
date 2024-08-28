@@ -40,8 +40,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} onClick={() => setProbableParentSideBar(false)} />
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setProbableParentSideBar(false)}>
+              <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
         </Box>

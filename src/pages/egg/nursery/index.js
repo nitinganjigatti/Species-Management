@@ -375,9 +375,11 @@ const NurseryList = () => {
                   <TextField
                     variant='outlined'
                     placeholder='Search...'
-                    InputProps={{
-                      disableUnderline: true
-                    }}
+                    InputProps={
+                      {
+                        // disableUnderline: true
+                      }
+                    }
                     onChange={e => handleSearch(e.target.value, defaultSite?.site_id)}
                     sx={{
                       '& .MuiOutlinedInput-root': {

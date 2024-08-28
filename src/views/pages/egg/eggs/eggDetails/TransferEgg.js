@@ -249,8 +249,12 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
               Transfer Eggs
             </Typography>
           </Box>
-          <IconButton size='small' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-            <Icon icon='mdi:close' fontSize={24} onClick={() => setTransferEggSideBar(false)} />
+          <IconButton
+            size='small'
+            onClick={() => setTransferEggSideBar(false)}
+            sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+          >
+            <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
         <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

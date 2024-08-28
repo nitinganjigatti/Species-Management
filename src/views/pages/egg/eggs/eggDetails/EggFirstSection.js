@@ -28,7 +28,7 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
-import Router from 'next/router'
+// import Router from 'next/router'
 import Utility from 'src/utility'
 import EditEggInfo from 'src/components/egg/EditEggInfo'
 
@@ -252,12 +252,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       // height={'100%'}
                     />
 
-                    {/* <ImageListItemBar
-
-                      sx={{ pb: 0, borderBottomRightRadius: '8px', borderBottomLeftRadius: '8px' }}
-                      title={eggDetails?.default_common_name}
-                      subtitle={eggDetails?.complete_name}
-                    /> */}
                     <Box
                       sx={{
                         borderBottomRightRadius: '8px',
@@ -304,19 +298,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   mb: '24px'
                 }}
               >
-                {/* <Typography
-                  sx={{
-                    textAlign: { xs: 'center', sm: 'start' },
-                    fontWeight: 600,
-                    fontSize: '36px',
-                    lineHeight: '43.57px',
-                    mb: { xs: 4 },
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  {eggDetails?.egg_code || 'egg_code'}
-                </Typography> */}
-
                 <Box sx={{ mb: { xs: 4 } }}>
                   <Typography
                     sx={{
@@ -375,20 +356,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
-                        {/* {moment(moment(moment.utc(eggDetails?.modified_at).toDate().toLocaleString())).format(
-                          'DD MMM YYYY'
-                        )} */}
                       </Typography>
                     </Box>
-                    {/* <Box>
-                      {' '}
-                      <Icon
-                        style={{ cursor: 'pointer' }}
-                        color={theme.palette.customColors.OnSurfaceVariant}
-                        icon='bi:pencil'
-                        fontSize={32}
-                      />
-                    </Box> */}
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: '8px' }}>
@@ -442,8 +411,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 >
                   <Grid container gap={4} alignItems='center'>
                     <Box
-                      item
-                      xs={3}
                       sx={{
                         width: '64px',
                         height: '64px',
@@ -461,7 +428,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           textAlign: 'center'
                         }}
                       >
-                        {' '}
                         {formatDate(eggDetails?.created_at)?.count}
                       </Typography>
                       <Typography
@@ -473,12 +439,11 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           textAlign: 'center'
                         }}
                       >
-                        {' '}
                         {formatDate(eggDetails?.created_at)?.label}
                       </Typography>
                     </Box>
 
-                    <Box item xs={7}>
+                    <Box>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -489,9 +454,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date))}
-                        {/* {moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
-                          'DD MMM YYYY'
-                        )} */}
                       </Typography>
 
                       <Typography
@@ -505,9 +467,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         Found date
                       </Typography>
                     </Box>
-                    {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
                   </Grid>
                 </Grid>
                 <Grid
@@ -529,8 +488,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 >
                   <Grid container gap={4} alignItems='center'>
                     <Box
-                      item
-                      xs={3}
                       sx={{
                         width: '64px',
                         height: '64px',
@@ -545,7 +502,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         variant='square'
                       ></Avatar>
                     </Box>
-                    <Box item xs={7}>
+                    <Box>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -578,9 +535,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           : displayText}
                       </Typography>
                     </Box>
-                    {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
                   </Grid>
                 </Grid>
                 <Grid
