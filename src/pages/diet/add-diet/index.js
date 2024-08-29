@@ -35,7 +35,7 @@ const steps = [
 
 const AddDiet = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUomList] = useState([])
   const [uomprev, setUomprev] = useState([])
@@ -166,8 +166,7 @@ const AddDiet = () => {
         // Update formData state with the values from data
         setFormData(prevFormData => ({
           ...prevFormData,
-          diet_name:
-            urlType === 'copy' && !data.diet_name.endsWith(' copy') ? `${data.diet_name} copy` : data.diet_name,
+          diet_name: urlType === 'copy' ? name : data.diet_name,
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
           child: data.child,

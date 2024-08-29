@@ -931,50 +931,45 @@ const StepPreviewDiet = ({
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
-                {/* <Typography sx={{ pt: 1 }}>{formData.desc ? formData.desc : 'No Description to show'}</Typography> */}
-                {formData?.desc ? (
-                  <div>
-                    <Typography variant='h6' sx={{ mb: 2 }}>
-                      Description
-                    </Typography>
+                <div>
+                  <Typography variant='h6' sx={{ mb: 2 }}>
+                    Description
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      width: '100%',
+                      color: '#7A8684',
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: expanded ? 'unset' : 3,
+                      WebkitBoxOrient: 'vertical',
+                      transition: 'max-height 2s ease-in-out',
+                      maxHeight: expanded ? '1000px' : '60px'
+                    }}
+                  >
+                    {formData.desc ? convertToTitleCase(formData.desc) : 'No Description to show '}
+                  </Typography>
+                  {formData.desc.length > 180 ? (
                     <Typography
-                      variant='body2'
+                      onClick={toggleExpanded}
                       sx={{
-                        width: '100%',
-                        color: '#7A8684',
-                        fontSize: '14px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: expanded ? 'unset' : 3,
-                        WebkitBoxOrient: 'vertical',
-                        transition: 'max-height 2s ease-in-out',
-                        maxHeight: expanded ? '1000px' : '60px'
+                        fontWeight: '600',
+                        fontSize: '13px',
+
+                        textDecoration: 'underline',
+                        color: '#000',
+                        cursor: 'pointer'
                       }}
                     >
-                      {convertToTitleCase(formData.desc)}
+                      {expanded ? 'View less' : 'View more'}
                     </Typography>
-                    {formData.desc.length > 180 ? (
-                      <Typography
-                        onClick={toggleExpanded}
-                        sx={{
-                          fontWeight: '600',
-                          fontSize: '13px',
-
-                          textDecoration: 'underline',
-                          color: '#000',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {expanded ? 'View less' : 'View more'}
-                      </Typography>
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                ) : (
-                  ''
-                )}
+                  ) : (
+                    ''
+                  )}
+                </div>
               </Grid>
             </Grid>
           </Grid>

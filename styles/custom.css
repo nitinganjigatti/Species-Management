@@ -41,6 +41,9 @@
 .cell_dimn {
   width: 580px;
 }
+.diet_weight {
+  width: 155px;
+}
 @media (min-width: 768px) and (max-width: 1023px) {
   .cellmodule5 {
     width: 515px !important;

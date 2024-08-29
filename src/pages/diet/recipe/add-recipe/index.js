@@ -39,7 +39,7 @@ const steps = [
 
 const AddRecipe = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
@@ -162,13 +162,10 @@ const AddRecipe = () => {
       console.log(response, 'response')
       if (response.data.success === true && response.data.data !== null) {
         const data = response.data.data
-
+        console.log(name, 'name')
         // Update recipe_name based on urlType
         if (urlType === 'copy') {
-          // Check if "copy" is already at the end of the recipe_name
-          if (!data.recipe_name.endsWith(' copy')) {
-            data.recipe_name = `${data.recipe_name} copy`
-          }
+          data.recipe_name = name
         }
 
         const convertedData = {

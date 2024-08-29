@@ -31,10 +31,11 @@ import toast from 'react-hot-toast'
 import RecipeListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
 import IngredientsListforRecipeDetail from '../ingredient-list'
 import Toaster from 'src/components/Toaster'
-
+import Tooltip from '@mui/material/Tooltip'
 import { AuthContext } from 'src/context/AuthContext'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ChangeRecipeName from 'src/components/diet/ChangeRecipename'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -66,6 +67,7 @@ const RecipeDetail = () => {
   const { id } = router.query
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
   const [statusDialog, setstatusDialog] = useState(false)
@@ -151,6 +153,10 @@ const RecipeDetail = () => {
     } catch (error) {}
   }
 
+  const handleRecipeClick = () => {
+    setIsOpen(true)
+  }
+
   return (
     <>
       {loader ? (
@@ -178,47 +184,57 @@ const RecipeDetail = () => {
                         {IngredientsDetailsval.recipe_name}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
-                        {console.log(dietModuleAccess, 'dietModuleAccess')}
-                        <Box>
-                          <Icon
-                            icon='fluent:copy-32-regular'
-                            style={{
-                              fontSize: 24,
-                              transform: 'rotate(180deg)',
-                              cursor: 'pointer',
-                              marginLeft: '10px'
-                            }}
-                            onClick={() =>
-                              Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id, action: 'copy' } })
-                            }
-                          />
-                        </Box>
+                        <Tooltip title='Copy' placement='top'>
+                          <Box sx={{ pr: 3 }}>
+                            <Icon
+                              icon='fluent:copy-32-regular'
+                              style={{
+                                fontSize: 24,
+                                transform: 'rotate(180deg)',
+                                cursor: 'pointer',
+                                marginLeft: '10px'
+                              }}
+                              onClick={handleRecipeClick}
+                            />
+                          </Box>
+                        </Tooltip>
                         {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                          <Icon
-                            icon='bx:pencil'
-                            style={{ cursor: 'pointer', marginLeft: '10px' }}
-                            onClick={() =>
-                              Router.push({ pathname: '/diet/recipe/add-recipe', query: { id: id, action: 'edit' } })
-                            }
-                          />
+                          <Tooltip title='Edit' placement='top'>
+                            <Box sx={{ pr: 3 }}>
+                              <Icon
+                                icon='bx:pencil'
+                                style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                onClick={() =>
+                                  Router.push({
+                                    pathname: '/diet/recipe/add-recipe',
+                                    query: { id: id, action: 'edit' }
+                                  })
+                                }
+                              />
+                            </Box>
+                          </Tooltip>
                         )}
 
                         {dietModuleAccess === 'DELETE' && (
-                          <Icon
-                            icon='material-symbols:delete-outline'
-                            style={{ cursor: 'pointer', marginLeft: '10px' }}
-                            onClick={() => {
-                              if (
-                                Number(IngredientsDetailsval?.total_ingredients) +
-                                  Number(IngredientsDetailsval?.diet_count) >
-                                0
-                              ) {
-                                handleStatusClickOpen()
-                              } else {
-                                handleClickOpen()
-                              }
-                            }}
-                          />
+                          <Tooltip title='Delete' placement='top'>
+                            <Box>
+                              <Icon
+                                icon='material-symbols:delete-outline'
+                                style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                onClick={() => {
+                                  if (
+                                    Number(IngredientsDetailsval?.total_ingredients) +
+                                      Number(IngredientsDetailsval?.diet_count) >
+                                    0
+                                  ) {
+                                    handleStatusClickOpen()
+                                  } else {
+                                    handleClickOpen()
+                                  }
+                                }}
+                              />
+                            </Box>
+                          </Tooltip>
                         )}
                       </Box>
                     </Box>
@@ -285,6 +301,12 @@ const RecipeDetail = () => {
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
             }
           /> */}
+          <ChangeRecipeName
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            recipename={IngredientsDetailsval.recipe_name}
+            recipeid={id}
+          />
           <ConfirmationDialog
             icon={'mdi:delete'}
             iconColor={'#ff3838'}

@@ -20,6 +20,8 @@ import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirm
 import { deleteDiet, dietStatusChange } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
+import Tooltip from '@mui/material/Tooltip'
+import ChangeDietName from 'src/components/diet/ChangeDietname'
 
 const DietDetailCard = ({ dietDetails }) => {
   const router = useRouter()
@@ -28,6 +30,7 @@ const DietDetailCard = ({ dietDetails }) => {
   const [loading, setLoading] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [activitySearchValue, setActivitySearchValue] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
 
   // const [searchValue, setSearchValue] = useState('')
 
@@ -63,6 +66,10 @@ const DietDetailCard = ({ dietDetails }) => {
 
   const handlelOpenDelete = () => {
     setDeleteDialogBox(true)
+  }
+
+  const handleDietClick = () => {
+    setIsOpen(true)
   }
 
   useEffect(() => {
@@ -214,33 +221,37 @@ const DietDetailCard = ({ dietDetails }) => {
                       label={isActive === '1' ? 'Active' : 'InActive'}
                     />
                   </Box>
-                  <Box>
-                    <Icon
-                      icon='fluent:copy-32-regular'
-                      style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-                      onClick={() =>
-                        Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'copy' } })
-                      }
-                    />
-                  </Box>
-                  <Box>
-                    <Icon
-                      icon='bx:pencil'
-                      style={{ fontSize: 24, cursor: 'pointer' }}
-                      onClick={() =>
-                        Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                      }
-                    />
-                  </Box>
-                  <Box>
-                    <Icon
-                      onClick={() => {
-                        handlelOpenDelete()
-                      }}
-                      icon='material-symbols:delete-outline'
-                      style={{ fontSize: 24, cursor: 'pointer' }}
-                    />
-                  </Box>
+                  <Tooltip title='Copy' placement='top'>
+                    <Box>
+                      <Icon
+                        icon='fluent:copy-32-regular'
+                        style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                        onClick={handleDietClick}
+                      />
+                    </Box>
+                  </Tooltip>
+                  <Tooltip title='Edit' placement='top'>
+                    <Box>
+                      <Icon
+                        icon='bx:pencil'
+                        style={{ fontSize: 24, cursor: 'pointer' }}
+                        onClick={() =>
+                          Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                        }
+                      />
+                    </Box>
+                  </Tooltip>
+                  <Tooltip title='Delete' placement='top'>
+                    <Box>
+                      <Icon
+                        onClick={() => {
+                          handlelOpenDelete()
+                        }}
+                        icon='material-symbols:delete-outline'
+                        style={{ fontSize: 24, cursor: 'pointer' }}
+                      />
+                    </Box>
+                  </Tooltip>
                 </Box>
               </Box>
               <Box>
@@ -361,6 +372,12 @@ const DietDetailCard = ({ dietDetails }) => {
               {isActive === '1' ? 'Deactivate' : 'Activate'} Diet?
             </span>
           }
+        />
+        <ChangeDietName
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          dietname={dietDetails?.diet_name}
+          dietid={dietDetails?.id}
         />
       </CardContent>
     </Card>
