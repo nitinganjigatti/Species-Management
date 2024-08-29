@@ -422,60 +422,62 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
             </Grid>
             <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='name'
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Autocomplete
-                          options={options}
-                          value={value}
-                          renderOption={(props, option) => (
-                            <li {...props}>
-                              <Box>
-                                <Typography>{option.driver_name}</Typography>
-                                <Typography variant='body2'>{option.phone_number}</Typography>
-                                <Typography variant='body2'>{option.vehicle_number}</Typography>
-                              </Box>
-                            </li>
-                          )}
-                          getOptionLabel={option => (option.driver_name ? option.driver_name : '')}
-                          isOptionEqualToValue={(option, value) => option.value === value.driver_name}
-                          onChange={(e, val) => {
-                            if (val === null) {
-                              setValue('person_shipping', '')
-                              setValue('vehicle_no', null)
-                              setValue('receiver_name', '')
-                              setValue('phone_number', '')
+                {deliveryType.Ship ? (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='name'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Autocomplete
+                            options={options}
+                            value={value}
+                            renderOption={(props, option) => (
+                              <li {...props}>
+                                <Box>
+                                  <Typography>{option.driver_name}</Typography>
+                                  <Typography variant='body2'>{option.phone_number}</Typography>
+                                  <Typography variant='body2'>{option.vehicle_number}</Typography>
+                                </Box>
+                              </li>
+                            )}
+                            getOptionLabel={option => (option.driver_name ? option.driver_name : '')}
+                            isOptionEqualToValue={(option, value) => option.value === value.driver_name}
+                            onChange={(e, val) => {
+                              if (val === null) {
+                                setValue('person_shipping', '')
+                                setValue('vehicle_no', '')
+                                setValue('receiver_name', '')
+                                setValue('phone_number', '')
 
-                              return onChange(null)
-                            } else {
-                              setValue('person_shipping', val.driver_name)
-                              setValue('vehicle_no', val.vehicle_number)
-                              setValue('receiver_name', val.driver_name)
-                              setValue('phone_number', val.phone_number)
+                                return onChange(null)
+                              } else {
+                                setValue('person_shipping', val.driver_name)
+                                setValue('vehicle_no', val.vehicle_number)
+                                setValue('receiver_name', val.driver_name)
+                                setValue('phone_number', val.phone_number)
 
-                              return onChange(val)
-                            }
-                          }}
-                          onBlur={e => {}}
-                          onKeyUp={e => {
-                            searchDriver(sort, e.target.value, sortColumn)
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Search and select'
-                              error={Boolean(errors.product)}
-                              helperText={errors.product?.message}
-                            />
-                          )}
-                        />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
+                                return onChange(val)
+                              }
+                            }}
+                            onBlur={e => {}}
+                            onKeyUp={e => {
+                              searchDriver(sort, e.target.value, sortColumn)
+                            }}
+                            renderInput={params => (
+                              <TextField
+                                {...params}
+                                label='Search and select'
+                                error={Boolean(errors.product)}
+                                helperText={errors.product?.message}
+                              />
+                            )}
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
+                ) : null}
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <SingleDatePicker
