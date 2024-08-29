@@ -259,7 +259,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const nonExistingProductRequestList = {
     title: 'New Product Request',
     icon: 'tabler:report-medical',
-    path: '/pharmacy/new-product-request/'
+    path: '/pharmacy/new-product-request'
   }
 
   const mastersParent = {
@@ -267,6 +267,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/masters/',
     icon: 'uil:setting',
     children: []
+  }
+
+  const discard = {
+    icon: 'game-icons:card-discard',
+    title: 'Discard',
+    path: '/pharmacy/discard/discard-list'
   }
 
   const pharmacyNavigationArray = []
@@ -309,6 +315,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       existingPurchase,
       stocksAdjustment,
       nonExistingProductRequestList,
+      discard,
 
       settingsParent
     )
@@ -340,7 +347,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       nonExistingProductRequestList,
       stockReport,
       stocksAdjustment,
-
+      discard,
       settingsParent
     )
     if (
