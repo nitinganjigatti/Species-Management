@@ -62,17 +62,10 @@ const AddLab = () => {
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
-  // console.log('labType', labType)
-  // const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
   const [prevTests, setPrevTests] = useState([])
-
   const [dataToUpdate, setDataToUpdate] = useState([])
-  // console.log('dataToUpdate', dataToUpdate)
-
-  const [showLabTests, setShowLabTests] = useState()
-  // console.log('showLabTests', showLabTests)
-
+  const [showLabTests, setShowLabTests] = useState([])
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   //image upload
   const [uploadedImage, setUploadedImage] = useState()
@@ -90,8 +83,7 @@ const AddLab = () => {
   const router = useRouter()
   const { id, action } = router.query
   const [isDefault, setIsDefault] = useState(0)
-  // console.log('isDefault :>> ', isDefault)
-  // console.log('isDefault', isDefault)
+
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState([])
   const [displayFile, setDisplayFile] = useState('')
@@ -105,46 +97,52 @@ const AddLab = () => {
   }
 
   const updateTestData = () => {
-    const setEditLabs = TestData?.map(testDataSample => {
-      const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
+    try {
+      console.log('first')
 
-      if (matchingPrevLab) {
-        const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
+      const setEditLabs = TestData?.map(testDataSample => {
+        const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
 
-        return {
-          ...testDataSample,
-          value: fullTestTrue,
-          tests: testDataSample.tests.map(test => {
-            const matchingPrevTest = matchingPrevLab.tests.find(
-              prevTest => prevTest.test_id.toString() === test.test_id.toString()
-            )
+        if (matchingPrevLab) {
+          const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
 
-            if (matchingPrevTest) {
-              // Update child_tests values based on matchingPrevTest
-              const updatedChildTests = test.child_tests.map(childTest => {
-                const matchingPrevChildTest = matchingPrevTest.child_tests.find(
-                  prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
-                )
+          return {
+            ...testDataSample,
+            value: fullTestTrue,
+            tests: testDataSample.tests.map(test => {
+              const matchingPrevTest = matchingPrevLab.tests.find(
+                prevTest => prevTest.test_id.toString() === test.test_id.toString()
+              )
 
-                return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
-              })
+              if (matchingPrevTest) {
+                // Update child_tests values based on matchingPrevTest
+                const updatedChildTests = test.child_tests.map(childTest => {
+                  const matchingPrevChildTest = matchingPrevTest.child_tests.find(
+                    prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
+                  )
 
-              return {
-                ...test,
-                full_test: matchingPrevTest.full_test,
-                child_tests: updatedChildTests
+                  return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
+                })
+
+                return {
+                  ...test,
+                  full_test: matchingPrevTest.full_test,
+                  child_tests: updatedChildTests
+                }
               }
-            }
 
-            return test
-          })
+              return test
+            })
+          }
         }
-      }
 
-      return testDataSample // return unmodified if no matchingPrevLab found
-    })
-
-    setTestData(setEditLabs)
+        return testDataSample // return unmodified if no matchingPrevLab found
+      })
+      console.log('setEditLabs', setEditLabs)
+      setTestData(setEditLabs)
+    } catch (error) {
+      console.log('err')
+    }
   }
 
   const labDeatilsById = async id => {
@@ -423,7 +421,9 @@ const AddLab = () => {
       console.log('response  update :>> ', response)
       if (response?.success) {
         setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-        await Router.push('/lab/lab-list')
+        setTimeout(() => {
+          Router.push('/lab/lab-list')
+        }, 1000) // Adjust delay as needed
       } else {
         setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
@@ -436,17 +436,25 @@ const AddLab = () => {
         setSubmitLoader(false)
         reset(defaultValues)
         // setDataToUpdate([])
-        Router.push('/lab/lab-list')
+        setTimeout(() => {
+          Router.push('/lab/lab-list')
+        }, 1000) // Adjust delay as needed
       })
     }
   }
 
   const handleOpen = () => {
+    // if (id != undefined && action === 'edit') {
+    //   updateTestData()
+    // }
+    setOpen(true)
+  }
+
+  useEffect(() => {
     if (id != undefined && action === 'edit') {
       updateTestData()
     }
-    setOpen(true)
-  }
+  }, [open])
 
   // const handleClose = () => {
   //   setOpen(false)
@@ -454,11 +462,9 @@ const AddLab = () => {
   // }
 
   const handleClose = () => {
-    setOpen(false)
-
-    if (!id) {
-      setShowLabTests([])
-
+    if (id && action === 'edit') {
+      // Update TestData based on prevTests
+    } else {
       // Reset TestData to its initial unselected state
       setTestData(prevData =>
         prevData.map(sample => ({
@@ -475,6 +481,10 @@ const AddLab = () => {
         }))
       )
     }
+    // if (id != undefined && action === 'edit') {
+    //   updateTestData()
+    // }
+    setOpen(false)
   }
 
   const handleCloseSnackBar = (event, reason) => {
@@ -744,8 +754,6 @@ const AddLab = () => {
     }, [])
 
     setDataToUpdate(updatedData)
-
-    console.log('updatedData :>> ', updatedData)
     setLabTestsEmpty(false)
   }, [TestData])
 
@@ -1384,46 +1392,44 @@ const AddLab = () => {
 
                     {sample?.tests?.map((parent, index) =>
                       parent?.child_tests?.length > 0 ? (
-                        <>
-                          <Card mt={2}>
-                            <Accordion>
-                              <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
-                                <Typography variant='h6'>{parent?.test_name}</Typography>
-                              </AccordionSummary>
-                              <AccordionDetails>
-                                <Stack
-                                  direction='row'
-                                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                                >
-                                  <Typography>Full Test</Typography>
-                                  <Switch
-                                    checked={parent?.full_test}
-                                    onChange={(e, v) => {
-                                      handleParentSwitch(sample, parent, v)
-                                    }}
-                                  />
-                                </Stack>
-                                {parent?.child_tests?.map((child, id) => {
-                                  return (
-                                    <Stack
-                                      direction='row'
-                                      key={child?.test_id}
-                                      sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
-                                    >
-                                      <Typography>{child?.test_name}</Typography>
-                                      <Checkbox
-                                        checked={child?.value}
-                                        onClick={(e, v) => {
-                                          handleCheckBox(sample, parent, child, e.target.checked)
-                                        }}
-                                      />
-                                    </Stack>
-                                  )
-                                })}
-                              </AccordionDetails>
-                            </Accordion>
-                          </Card>
-                        </>
+                        <Card key={index} mt={2}>
+                          <Accordion>
+                            <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
+                              <Typography variant='h6'>{parent?.test_name}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Stack
+                                direction='row'
+                                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                              >
+                                <Typography>Full Test</Typography>
+                                <Switch
+                                  checked={parent?.full_test}
+                                  onChange={(e, v) => {
+                                    handleParentSwitch(sample, parent, v)
+                                  }}
+                                />
+                              </Stack>
+                              {parent?.child_tests?.map((child, id) => {
+                                return (
+                                  <Stack
+                                    direction='row'
+                                    key={child?.test_id}
+                                    sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                                  >
+                                    <Typography>{child?.test_name}</Typography>
+                                    <Checkbox
+                                      checked={child?.value}
+                                      onClick={(e, v) => {
+                                        handleCheckBox(sample, parent, child, e.target.checked)
+                                      }}
+                                    />
+                                  </Stack>
+                                )
+                              })}
+                            </AccordionDetails>
+                          </Accordion>
+                        </Card>
                       ) : (
                         <Card>
                           <Stack

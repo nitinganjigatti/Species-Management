@@ -105,7 +105,7 @@ const UploadReports = ({
   const handleInputImageChange = file => {
     const reader = new FileReader()
     const { files } = file.target
-    console.log('files :>> ', files)
+    // console.log('files :>> ', files)
     if (files && files.length !== 0) {
       reader.onload = () => {
         setImgSrc(pre => [...pre, reader?.result])
@@ -255,7 +255,7 @@ const UploadReports = ({
                       {imgSrc?.length > 0 &&
                         imgSrc?.map((img, index) => (
                           <Box key={index} sx={{ display: 'flex', mt: 3 }}>
-                            {console.log('img :>> ', img)}
+                            {/* {console.log('img :>> ', img)} */}
                             <Box
                               sx={{
                                 position: 'relative',
