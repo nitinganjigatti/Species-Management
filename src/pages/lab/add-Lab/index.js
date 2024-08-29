@@ -975,7 +975,7 @@ const AddLab = () => {
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
                                     value={value}
-                                    label='Lab Incharge Mobile Number'
+                                    label='Lab Incharge Mobile Number*'
                                     onChange={onChange}
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
