@@ -63,10 +63,15 @@ const AddLab = () => {
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
   const [TestData, setTestData] = useState([])
+  console.log('TestData :>> ', TestData)
   const [prevTests, setPrevTests] = useState([])
+  console.log('prevTests :>> ', prevTests)
   const [dataToUpdate, setDataToUpdate] = useState([])
+  console.log('dataToUpdate :>> ', dataToUpdate)
   const [showLabTests, setShowLabTests] = useState([])
+  console.log('showLabTests :>> ', showLabTests)
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
+  const [testList, setTestList] = useState([])
   //image upload
   const [uploadedImage, setUploadedImage] = useState()
 
@@ -96,19 +101,67 @@ const AddLab = () => {
     setSeverity(severity)
   }
 
+  // const updateTestData = () => {
+  //   try {
+  //     console.log('first')
+
+  //     const setEditLabs = TestData?.map(testDataSample => {
+  //       const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
+
+  //       if (matchingPrevLab) {
+  //         const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
+
+  //         return {
+  //           ...testDataSample,
+  //           value: fullTestTrue,
+  //           tests: testDataSample.tests.map(test => {
+  //             const matchingPrevTest = matchingPrevLab.tests.find(
+  //               prevTest => prevTest.test_id.toString() === test.test_id.toString()
+  //             )
+
+  //             if (matchingPrevTest) {
+  //               // Update child_tests values based on matchingPrevTest
+  //               const updatedChildTests = test.child_tests.map(childTest => {
+  //                 const matchingPrevChildTest = matchingPrevTest.child_tests.find(
+  //                   prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
+  //                 )
+
+  //                 return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
+  //               })
+
+  //               return {
+  //                 ...test,
+  //                 full_test: matchingPrevTest.full_test,
+  //                 child_tests: updatedChildTests
+  //               }
+  //             }
+
+  //             return test
+  //           })
+  //         }
+  //       }
+
+  //       return testDataSample // return unmodified if no matchingPrevLab found
+  //     })
+  //     console.log('setEditLabs', setEditLabs)
+  //     setTestData(setEditLabs)
+  //   } catch (error) {
+  //     console.log('err')
+  //   }
+  // }
+
   const updateTestData = () => {
     try {
-      console.log('first')
-
-      const setEditLabs = TestData?.map(testDataSample => {
+      const setEditLabs = TestData.map(testDataSample => {
         const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
 
         if (matchingPrevLab) {
-          const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
+          // Check if any of the tests in prevTests has value: true
+          const hasTrueValue = matchingPrevLab.tests.some(prevTest => prevTest.value)
 
           return {
             ...testDataSample,
-            value: fullTestTrue,
+            value: hasTrueValue, // Set based on matchingPrevLab value
             tests: testDataSample.tests.map(test => {
               const matchingPrevTest = matchingPrevLab.tests.find(
                 prevTest => prevTest.test_id.toString() === test.test_id.toString()
@@ -121,27 +174,51 @@ const AddLab = () => {
                     prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
                   )
 
-                  return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
+                  return matchingPrevChildTest
+                    ? { ...childTest, value: matchingPrevChildTest.value }
+                    : { ...childTest, value: false } // Set value to false if no match
                 })
 
+                // Set the test value based on matchingPrevTest
                 return {
                   ...test,
                   full_test: matchingPrevTest.full_test,
-                  child_tests: updatedChildTests
+                  child_tests: updatedChildTests,
+                  value: matchingPrevTest.value // Directly use matchingPrevTest's value
                 }
               }
 
-              return test
+              // If no matchingPrevTest is found, set test value to false
+              return {
+                ...test,
+                value: false,
+                child_tests: test.child_tests.map(childTest => ({
+                  ...childTest,
+                  value: false
+                }))
+              }
             })
           }
         }
 
-        return testDataSample // return unmodified if no matchingPrevLab found
+        return {
+          ...testDataSample,
+          value: false, // No matching prevLab, set the overall value to false
+          tests: testDataSample.tests.map(test => ({
+            ...test,
+            value: false, // Set each test value to false
+            child_tests: test.child_tests.map(childTest => ({
+              ...childTest,
+              value: false // Set each child test value to false
+            }))
+          }))
+        }
       })
+
       console.log('setEditLabs', setEditLabs)
       setTestData(setEditLabs)
     } catch (error) {
-      console.log('err')
+      console.log('err', error)
     }
   }
 
@@ -189,6 +266,7 @@ const AddLab = () => {
       // })
 
       setTestData(response)
+      setTestList(response)
 
       setLoader(false)
     } else {
@@ -464,6 +542,9 @@ const AddLab = () => {
   const handleClose = () => {
     if (id && action === 'edit') {
       // Update TestData based on prevTests
+      updateTestData()
+      setTestData(testList)
+      setDataToUpdate(prevTests)
     } else {
       // Reset TestData to its initial unselected state
       setTestData(prevData =>
@@ -481,9 +562,7 @@ const AddLab = () => {
         }))
       )
     }
-    // if (id != undefined && action === 'edit') {
-    //   updateTestData()
-    // }
+
     setOpen(false)
   }
 
@@ -850,6 +929,123 @@ const AddLab = () => {
       })
     }
   }
+
+  // const handleCloseTest = (sampleId, parentId) => {
+  //   // Update showLabTests state
+  //   setShowLabTests(prevData => {
+  //     // Create a new array to update the state immutably
+  //     const newData = prevData
+  //       .map((sample, sIdx) => {
+  //         if (sIdx === sampleId) {
+  //           // Update tests by removing the parent test object
+  //           const updatedTests = sample.tests
+  //             .map((test, pIdx) => {
+  //               if (pIdx === parentId) {
+  //                 return {
+  //                   ...test,
+  //                   full_test: false,
+  //                   child_tests: test.child_tests.map(child => ({
+  //                     ...child,
+  //                     value: false
+  //                   }))
+  //                 }
+  //               }
+
+  //               return test
+  //             })
+  //             .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
+
+  //           // If no tests remain, remove the sample
+  //           if (updatedTests.length === 0) {
+  //             return null // Mark for removal
+  //           }
+
+  //           return {
+  //             ...sample,
+  //             tests: updatedTests
+  //           }
+  //         }
+
+  //         return sample
+  //       })
+  //       .filter(sample => sample !== null) // Remove marked samples
+
+  //     return newData
+  //   })
+
+  //   // Update TestData state
+  //   setTestData(prevData => {
+  //     // Create a new array to update the state immutably
+  //     const updatedData = prevData.map((sample, sIdx) => {
+  //       if (sIdx === sampleId) {
+  //         const updatedTests = sample.tests.map((test, pIdx) => {
+  //           if (pIdx === parentId) {
+  //             return {
+  //               ...test,
+  //               full_test: false,
+  //               child_tests: test.child_tests.map(child => ({
+  //                 ...child,
+  //                 value: false
+  //               }))
+  //             }
+  //           }
+
+  //           return test
+  //         })
+
+  //         return {
+  //           ...sample,
+  //           tests: updatedTests
+  //         }
+  //       }
+
+  //       return sample
+  //     })
+
+  //     console.log('Updated TestData:', updatedData) // Debugging log
+
+  //     return updatedData
+  //   })
+
+  //   // Optionally, update dataToUpdate state if needed
+  //   setDataToUpdate(prevData => {
+  //     const updatedData = prevData
+  //       .map((sample, sIdx) => {
+  //         if (sIdx === sampleId) {
+  //           const updatedTests = sample.tests
+  //             .map((test, pIdx) => {
+  //               if (pIdx === parentId) {
+  //                 return {
+  //                   ...test,
+  //                   full_test: false,
+  //                   child_tests: test.child_tests.map(child => ({
+  //                     ...child,
+  //                     value: false
+  //                   }))
+  //                 }
+  //               }
+
+  //               return test
+  //             })
+  //             .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
+
+  //           if (updatedTests.length === 0) {
+  //             return null // Mark for removal
+  //           }
+
+  //           return {
+  //             ...sample,
+  //             tests: updatedTests
+  //           }
+  //         }
+
+  //         return sample
+  //       })
+  //       .filter(sample => sample !== null) // Remove marked samples
+
+  //     return updatedData
+  //   })
+  // }
 
   // showing test on click add lab button
   const hanldeAddLabTests = () => {
