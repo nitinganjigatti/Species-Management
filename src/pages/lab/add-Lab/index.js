@@ -901,6 +901,47 @@ const AddLab = () => {
         return newData
       })
 
+      setShowLabTests(prevData => {
+        // Create a new array to update the state immutably
+        const newData = prevData
+          .map((sample, sIdx) => {
+            if (sIdx === sampleId) {
+              // Update tests by removing the parent test object
+              const updatedTests = sample.tests
+                .map((test, pIdx) => {
+                  if (pIdx === parentId) {
+                    return {
+                      ...test,
+                      full_test: false,
+                      child_tests: test.child_tests.map(child => ({
+                        ...child,
+                        value: false
+                      }))
+                    }
+                  }
+
+                  return test
+                })
+                .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
+
+              // If no tests remain, remove the sample
+              if (updatedTests.length === 0) {
+                return null // Mark for removal
+              }
+
+              return {
+                ...sample,
+                tests: updatedTests
+              }
+            }
+
+            return sample
+          })
+          .filter(sample => sample !== null) // Remove marked samples
+
+        return newData
+      })
+
       setTestData(prevData => {
         return prevData.map((sample, sIdx) => {
           if (sIdx === sampleId) {
@@ -929,123 +970,6 @@ const AddLab = () => {
       })
     }
   }
-
-  // const handleCloseTest = (sampleId, parentId) => {
-  //   // Update showLabTests state
-  //   setShowLabTests(prevData => {
-  //     // Create a new array to update the state immutably
-  //     const newData = prevData
-  //       .map((sample, sIdx) => {
-  //         if (sIdx === sampleId) {
-  //           // Update tests by removing the parent test object
-  //           const updatedTests = sample.tests
-  //             .map((test, pIdx) => {
-  //               if (pIdx === parentId) {
-  //                 return {
-  //                   ...test,
-  //                   full_test: false,
-  //                   child_tests: test.child_tests.map(child => ({
-  //                     ...child,
-  //                     value: false
-  //                   }))
-  //                 }
-  //               }
-
-  //               return test
-  //             })
-  //             .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
-
-  //           // If no tests remain, remove the sample
-  //           if (updatedTests.length === 0) {
-  //             return null // Mark for removal
-  //           }
-
-  //           return {
-  //             ...sample,
-  //             tests: updatedTests
-  //           }
-  //         }
-
-  //         return sample
-  //       })
-  //       .filter(sample => sample !== null) // Remove marked samples
-
-  //     return newData
-  //   })
-
-  //   // Update TestData state
-  //   setTestData(prevData => {
-  //     // Create a new array to update the state immutably
-  //     const updatedData = prevData.map((sample, sIdx) => {
-  //       if (sIdx === sampleId) {
-  //         const updatedTests = sample.tests.map((test, pIdx) => {
-  //           if (pIdx === parentId) {
-  //             return {
-  //               ...test,
-  //               full_test: false,
-  //               child_tests: test.child_tests.map(child => ({
-  //                 ...child,
-  //                 value: false
-  //               }))
-  //             }
-  //           }
-
-  //           return test
-  //         })
-
-  //         return {
-  //           ...sample,
-  //           tests: updatedTests
-  //         }
-  //       }
-
-  //       return sample
-  //     })
-
-  //     console.log('Updated TestData:', updatedData) // Debugging log
-
-  //     return updatedData
-  //   })
-
-  //   // Optionally, update dataToUpdate state if needed
-  //   setDataToUpdate(prevData => {
-  //     const updatedData = prevData
-  //       .map((sample, sIdx) => {
-  //         if (sIdx === sampleId) {
-  //           const updatedTests = sample.tests
-  //             .map((test, pIdx) => {
-  //               if (pIdx === parentId) {
-  //                 return {
-  //                   ...test,
-  //                   full_test: false,
-  //                   child_tests: test.child_tests.map(child => ({
-  //                     ...child,
-  //                     value: false
-  //                   }))
-  //                 }
-  //               }
-
-  //               return test
-  //             })
-  //             .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
-
-  //           if (updatedTests.length === 0) {
-  //             return null // Mark for removal
-  //           }
-
-  //           return {
-  //             ...sample,
-  //             tests: updatedTests
-  //           }
-  //         }
-
-  //         return sample
-  //       })
-  //       .filter(sample => sample !== null) // Remove marked samples
-
-  //     return updatedData
-  //   })
-  // }
 
   // showing test on click add lab button
   const hanldeAddLabTests = () => {
