@@ -129,8 +129,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     Router.push('/diet/recipe/')
   }
 
-  console.log(errors, 'nknn')
-  console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
 
   return (

@@ -762,7 +762,6 @@ const StepBasicDetails = ({
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
-  console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
   console.log(selectedCard, 'selectedCard')

@@ -207,8 +207,6 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }, [dietTypes, activitySidebarOpen])
 
-  console.log(dis, 'dis')
-  console.log(errors, 'nknn')
   return (
     <div>
       <Drawer

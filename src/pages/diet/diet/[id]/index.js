@@ -2369,9 +2369,11 @@ const DietDetail = () => {
                                               </>
                                             </TableRow>
                                           )}
-                                          {(itemd.notes && itemd?.ingredient?.length >= 1) ||
-                                          itemd?.ingredientwithchoice?.length >= 1 ||
-                                          itemd?.recipe?.length >= 1 ? (
+                                          {console.log(itemd.notes, 'raghu')}
+                                          {itemd.notes &&
+                                          (itemd?.ingredient?.length >= 1 ||
+                                            itemd?.ingredientwithchoice?.length >= 1 ||
+                                            itemd?.recipe?.length >= 1) ? (
                                             <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
                                               <Typography
                                                 sx={{
