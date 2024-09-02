@@ -63,13 +63,13 @@ const AddLab = () => {
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
   const [TestData, setTestData] = useState([])
-  console.log('TestData :>> ', TestData)
+
   const [prevTests, setPrevTests] = useState([])
-  // console.log('prevTests :>> ', prevTests)
+
   const [dataToUpdate, setDataToUpdate] = useState([])
-  console.log('dataToUpdate :>> ', dataToUpdate)
+
   const [showLabTests, setShowLabTests] = useState([])
-  console.log('showLabTests :>> ', showLabTests)
+
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   const [testList, setTestList] = useState([])
   //image upload
@@ -252,10 +252,6 @@ const AddLab = () => {
     }
   }, [id, action])
 
-  // edit tests
-
-  // ------------------------
-
   const getAllLabsLists = async () => {
     setLoader(true)
     const response = await getAllLabSample()
@@ -312,7 +308,7 @@ const AddLab = () => {
   }
 
   const handleSwitchChange = isChecked => {
-    setIsDefault(isChecked ? 1 : 0) // Update state based on switch status
+    setIsDefault(isChecked ? 1 : 0)
   }
 
   // Form Part
