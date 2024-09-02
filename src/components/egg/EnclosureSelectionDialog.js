@@ -151,9 +151,9 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
     handleClose(true)
   }
 
-  useEffect(() => {
-    searchSections('', '')
-  }, [])
+  // useEffect(() => {
+  //   searchSections('', '')
+  // }, [])
 
   return (
     <>
