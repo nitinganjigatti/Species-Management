@@ -2369,7 +2369,6 @@ const DietDetail = () => {
                                               </>
                                             </TableRow>
                                           )}
-                                          {console.log(itemd.notes, 'raghu')}
                                           {itemd.notes &&
                                           (itemd?.ingredient?.length >= 1 ||
                                             itemd?.ingredientwithchoice?.length >= 1 ||

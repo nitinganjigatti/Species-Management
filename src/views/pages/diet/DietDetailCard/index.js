@@ -140,7 +140,7 @@ const DietDetailCard = ({ dietDetails }) => {
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: dietDetails?.image ? '100%' : '250px',
+                  height: dietDetails?.image ? '300px' : '250px',
                   borderRadius: '8px'
                 }}
                 src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
