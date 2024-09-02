@@ -47,6 +47,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Utility from 'src/utility'
+import { downloadCsvForBatchData } from 'src/lib/api/parivesh/downloadBatchDetails'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -97,6 +98,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const [filePreviews, setFilePreviews] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [buttonEnabled, setButtonEnabled] = useState(false)
+  const [csvLoading, setCsvLoading] = useState(false)
 
   const onClose = () => {
     setDialog(false)
@@ -586,6 +588,63 @@ const BatchDetails = ({ params, searchParams }) => {
     }
   }
 
+  const downloadCsvForBatchDetails = async batchId => {
+    const payload = { batch_id: batchId }
+    setCsvLoading(true) // Start loading
+
+    try {
+      const response = await downloadCsvForBatchData(payload)
+      console.log('API Response:', response)
+
+      if (response.success && response.data) {
+        // Fetch the file content
+        const urlParts = response.data.split('/')
+        const fileName = urlParts[urlParts.length - 1]
+        const fetchResponse = await fetch(response.data)
+        const blob = await fetchResponse.blob()
+
+        // Create a Blob URL
+        const blobUrl = window.URL.createObjectURL(blob)
+
+        // Create a temporary anchor element
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.setAttribute('download', `batch_data_${batchId}.csv`) // Set the file name
+        link.style.display = 'none'
+        document.body.appendChild(link)
+
+        // Trigger download
+        if (typeof link.click === 'function') {
+          link.click()
+        } else {
+          // For browsers that don't support link.click()
+          link.dispatchEvent(
+            new MouseEvent('click', {
+              view: window,
+              bubbles: true,
+              cancelable: true
+            })
+          )
+        }
+
+        // Clean up
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(blobUrl)
+
+        // Show success toaster
+        Toaster({ type: 'success', message: response.message })
+      } else {
+        Toaster({ type: 'error', message: 'Failed to generate CSV' })
+        throw new Error('Invalid response format')
+      }
+    } catch (error) {
+      console.error('Error downloading CSV:', error)
+      Toaster({ type: 'error', message: 'Error downloading CSV' })
+    } finally {
+      setCsvLoading(false) // Stop loading
+    }
+  }
+
   return (
     <>
       <Card>
@@ -767,8 +826,27 @@ const BatchDetails = ({ params, searchParams }) => {
           <Box>
             <Grid container spacing={2}>
               <Grid item>
-                <Button size='large' variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
+                {/* <Button
+                  size='large'
+                  variant='outlined'
+                  sx={{ color: '#7A8684', mr: 3 }}
+                  onClick={() => downloadCsvForBatchDetails(id)}
+                >
                   <Icon icon='mdi:printer-outline' size={1} />
+                  &nbsp; Print
+                </Button> */}
+                <Button
+                  size='large'
+                  variant='outlined'
+                  sx={{ color: '#7A8684', mr: 3 }}
+                  onClick={() => downloadCsvForBatchDetails(id)}
+                  disabled={csvLoading} // Disable the button while loading
+                >
+                  {csvLoading ? (
+                    <CircularProgress size={24} sx={{ color: '#7A8684', mr: 1 }} /> // Loader icon
+                  ) : (
+                    <Icon icon='mdi:printer-outline' size={1} />
+                  )}
                   &nbsp; Print
                 </Button>
               </Grid>
