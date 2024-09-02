@@ -65,7 +65,7 @@ const AddLab = () => {
   const [TestData, setTestData] = useState([])
   console.log('TestData :>> ', TestData)
   const [prevTests, setPrevTests] = useState([])
-  console.log('prevTests :>> ', prevTests)
+  // console.log('prevTests :>> ', prevTests)
   const [dataToUpdate, setDataToUpdate] = useState([])
   console.log('dataToUpdate :>> ', dataToUpdate)
   const [showLabTests, setShowLabTests] = useState([])
@@ -837,39 +837,178 @@ const AddLab = () => {
   }, [TestData])
 
   // removing the data from ui
-  const handleCloseTest = (sampleId, parentId) => {
+  // const handleCloseTest = (sampleId, parentId) => {
+  //   if (id) {
+  //     setShowLabTests(prevData => {
+  //       const newData = [...prevData]
+  //       const sampleTests = newData[sampleId]?.tests
+
+  //       if (sampleTests && sampleTests[parentId]) {
+  //         // Remove the parent.test object
+  //         sampleTests.splice(parentId, 1)
+
+  //         // Check if tests array is empty, delete the current sample object
+  //         if (sampleTests.length === 0) {
+  //           newData.splice(sampleId, 1)
+  //         }
+  //       }
+
+  //       return newData
+  //     })
+
+  //     setTestData(prevData => {
+  //       return prevData.map((sample, sIdx) => {
+  //         if (sIdx === sampleId) {
+  //           return {
+  //             ...sample,
+  //             tests: sample.tests.map((test, pIdx) => {
+  //               if (pIdx === parentId) {
+  //                 // Uncheck the parent and its children without removing them
+  //                 return {
+  //                   ...test,
+  //                   full_test: false,
+  //                   child_tests: test.child_tests.map(child => ({
+  //                     ...child,
+  //                     value: false
+  //                   }))
+  //                 }
+  //               }
+
+  //               return test
+  //             })
+  //           }
+  //         }
+
+  //         return sample
+  //       })
+  //     })
+  //     setDataToUpdate(showLabTests)
+  //   } else {
+  //     setDataToUpdate(prevData => {
+  //       const newData = [...prevData]
+  //       const sampleTests = newData[sampleId]?.tests
+
+  //       if (sampleTests && sampleTests[parentId]) {
+  //         // Remove the parent.test object
+  //         sampleTests.splice(parentId, 1)
+
+  //         // Check if tests array is empty, delete the current sample object
+  //         if (sampleTests.length === 0) {
+  //           newData.splice(sampleId, 1)
+  //         }
+  //       }
+
+  //       return newData
+  //     })
+
+  //     setShowLabTests(prevData => {
+  //       // Create a new array to update the state immutably
+  //       const newData = prevData
+  //         .map((sample, sIdx) => {
+  //           if (sIdx === sampleId) {
+  //             // Update tests by removing the parent test object
+  //             const updatedTests = sample.tests
+  //               .map((test, pIdx) => {
+  //                 if (pIdx === parentId) {
+  //                   return {
+  //                     ...test,
+  //                     full_test: false,
+  //                     child_tests: test.child_tests.map(child => ({
+  //                       ...child,
+  //                       value: false
+  //                     }))
+  //                   }
+  //                 }
+
+  //                 return test
+  //               })
+  //               .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
+
+  //             // If no tests remain, remove the sample
+  //             if (updatedTests.length === 0) {
+  //               return null // Mark for removal
+  //             }
+
+  //             return {
+  //               ...sample,
+  //               tests: updatedTests
+  //             }
+  //           }
+
+  //           return sample
+  //         })
+  //         .filter(sample => sample !== null) // Remove marked samples
+
+  //       return newData
+  //     })
+
+  //     setTestData(prevData => {
+  //       return prevData.map((sample, sIdx) => {
+  //         if (sIdx === sampleId) {
+  //           return {
+  //             ...sample,
+  //             tests: sample.tests.map((test, pIdx) => {
+  //               if (pIdx === parentId) {
+  //                 // Uncheck the parent and its children without removing them
+  //                 return {
+  //                   ...test,
+  //                   full_test: false,
+  //                   child_tests: test.child_tests.map(child => ({
+  //                     ...child,
+  //                     value: false
+  //                   }))
+  //                 }
+  //               }
+
+  //               return test
+  //             })
+  //           }
+  //         }
+
+  //         return sample
+  //       })
+  //     })
+  //   }
+  // }
+
+  const handleCloseTest = (sampleId, testId) => {
+    // Remove the test from showLabTests
+
     if (id) {
       setShowLabTests(prevData => {
-        const newData = [...prevData]
-        const sampleTests = newData[sampleId]?.tests
+        return prevData
+          .map(sample => {
+            if (sample.sample_id === sampleId) {
+              const updatedTests = sample.tests.filter(test => test.test_id !== testId)
+              // Return the updated sample, or remove the sample if no tests remain
+              if (updatedTests.length > 0) {
+                return {
+                  ...sample,
+                  tests: updatedTests
+                }
+              }
 
-        if (sampleTests && sampleTests[parentId]) {
-          // Remove the parent.test object
-          sampleTests.splice(parentId, 1)
+              return null // Removing the whole sample if no tests are left
+            }
 
-          // Check if tests array is empty, delete the current sample object
-          if (sampleTests.length === 0) {
-            newData.splice(sampleId, 1)
-          }
-        }
-
-        return newData
+            return sample // No change for other samples
+          })
+          .filter(sample => sample !== null) // Removing null samples
       })
 
       setTestData(prevData => {
-        return prevData.map((sample, sIdx) => {
-          if (sIdx === sampleId) {
+        return prevData.map(sample => {
+          if (sample.sample_id === sampleId) {
             return {
               ...sample,
-              tests: sample.tests.map((test, pIdx) => {
-                if (pIdx === parentId) {
-                  // Uncheck the parent and its children without removing them
+              tests: sample.tests.map(test => {
+                if (test.test_id === testId) {
                   return {
                     ...test,
-                    full_test: false,
+                    full_test: false, // Unchecking the parent test
                     child_tests: test.child_tests.map(child => ({
                       ...child,
-                      value: false
+                      value: false // Unchecking all child tests
                     }))
                   }
                 }
@@ -882,80 +1021,44 @@ const AddLab = () => {
           return sample
         })
       })
+
       setDataToUpdate(showLabTests)
     } else {
-      setDataToUpdate(prevData => {
-        const newData = [...prevData]
-        const sampleTests = newData[sampleId]?.tests
-
-        if (sampleTests && sampleTests[parentId]) {
-          // Remove the parent.test object
-          sampleTests.splice(parentId, 1)
-
-          // Check if tests array is empty, delete the current sample object
-          if (sampleTests.length === 0) {
-            newData.splice(sampleId, 1)
-          }
-        }
-
-        return newData
-      })
-
       setShowLabTests(prevData => {
-        // Create a new array to update the state immutably
-        const newData = prevData
-          .map((sample, sIdx) => {
-            if (sIdx === sampleId) {
-              // Update tests by removing the parent test object
-              const updatedTests = sample.tests
-                .map((test, pIdx) => {
-                  if (pIdx === parentId) {
-                    return {
-                      ...test,
-                      full_test: false,
-                      child_tests: test.child_tests.map(child => ({
-                        ...child,
-                        value: false
-                      }))
-                    }
-                  }
-
-                  return test
-                })
-                .filter((_, pIdx) => pIdx !== parentId) // Remove parent test from array
-
-              // If no tests remain, remove the sample
-              if (updatedTests.length === 0) {
-                return null // Mark for removal
+        return prevData
+          .map(sample => {
+            if (sample.sample_id === sampleId) {
+              const updatedTests = sample.tests.filter(test => test.test_id !== testId)
+              // Return the updated sample, or remove the sample if no tests remain
+              if (updatedTests.length > 0) {
+                return {
+                  ...sample,
+                  tests: updatedTests
+                }
               }
 
-              return {
-                ...sample,
-                tests: updatedTests
-              }
+              return null // Removing the whole sample if no tests are left
             }
 
-            return sample
+            return sample // No change for other samples
           })
-          .filter(sample => sample !== null) // Remove marked samples
-
-        return newData
+          .filter(sample => sample !== null) // Removing null samples
       })
 
+      // Update TestData to uncheck the corresponding test and its child tests
       setTestData(prevData => {
-        return prevData.map((sample, sIdx) => {
-          if (sIdx === sampleId) {
+        return prevData.map(sample => {
+          if (sample.sample_id === sampleId) {
             return {
               ...sample,
-              tests: sample.tests.map((test, pIdx) => {
-                if (pIdx === parentId) {
-                  // Uncheck the parent and its children without removing them
+              tests: sample.tests.map(test => {
+                if (test.test_id === testId) {
                   return {
                     ...test,
-                    full_test: false,
+                    full_test: false, // Unchecking the parent test
                     child_tests: test.child_tests.map(child => ({
                       ...child,
-                      value: false
+                      value: false // Unchecking all child tests
                     }))
                   }
                 }
@@ -1171,7 +1274,7 @@ const AddLab = () => {
                                   </Typography>
                                 </Box>
 
-                                {showLabTests?.map((sample, sampleId) => (
+                                {/* {showLabTests?.map((sample, sampleId) => (
                                   <Box sx={{ p: 1, mt: 4 }}>
                                     <Box>
                                       {sample?.tests?.length > 0 ? (
@@ -1180,7 +1283,7 @@ const AddLab = () => {
 
                                       {sample?.tests?.map((parent, parentId) => (
                                         <Card sx={{ p: 2, mb: 2 }}>
-                                          {/* {parent.full_test === true ? ( */}
+                                          {/* {parent.full_test === true ? ( 
                                           <Stack
                                             gap={1}
                                             direction='row'
@@ -1197,7 +1300,7 @@ const AddLab = () => {
                                               </IconButton>
                                             </>
                                           </Stack>
-                                          {/* ) : null} */}
+                                          {/* ) : null} 
                                           <Stack>
                                             {parent.child_tests?.map((child, childId) =>
                                               child.value === true ? (
@@ -1208,6 +1311,55 @@ const AddLab = () => {
                                                 >
                                                   <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
                                                   <Typography sx>{child.test_name}</Typography>
+                                                </Stack>
+                                              ) : null
+                                            )}
+                                          </Stack>
+                                        </Card>
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                ))} */}
+
+                                {showLabTests?.map(sample => (
+                                  <Box key={sample.sample_id} sx={{ p: 1, mt: 4 }}>
+                                    <Box>
+                                      {sample?.tests?.length > 0 ? (
+                                        <Typography sx={{ mb: 2 }}>{sample?.sample_name}</Typography>
+                                      ) : null}
+
+                                      {sample?.tests?.map(parent => (
+                                        <Card key={parent.test_id} sx={{ p: 2, mb: 2 }}>
+                                          <Stack
+                                            gap={1}
+                                            direction='row'
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}
+                                          >
+                                            <>
+                                              <Typography variant='subtitle1'>{parent.test_name}</Typography>
+                                              <IconButton
+                                                onClick={() => handleCloseTest(sample.sample_id, parent.test_id)}
+                                              >
+                                                <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
+                                              </IconButton>
+                                            </>
+                                          </Stack>
+
+                                          <Stack>
+                                            {parent.child_tests?.map((child, childId) =>
+                                              child.value === true ? (
+                                                <Stack
+                                                  key={child.test_id} // Provide a unique key for each child test
+                                                  direction='row'
+                                                  gap={2}
+                                                  sx={{ display: 'flex', alignItems: 'center', p: 1 }}
+                                                >
+                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Typography>{child.test_name}</Typography>
                                                 </Stack>
                                               ) : null
                                             )}
