@@ -20,6 +20,8 @@ import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirm
 import { deleteDiet, dietStatusChange } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
+import Tooltip from '@mui/material/Tooltip'
+import ChangeDietName from 'src/components/diet/ChangeDietname'
 
 const DietDetailCard = ({ dietDetails }) => {
   const router = useRouter()
@@ -28,6 +30,7 @@ const DietDetailCard = ({ dietDetails }) => {
   const [loading, setLoading] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
   const [activitySearchValue, setActivitySearchValue] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
 
   // const [searchValue, setSearchValue] = useState('')
 
@@ -65,9 +68,22 @@ const DietDetailCard = ({ dietDetails }) => {
     setDeleteDialogBox(true)
   }
 
+  const handleDietClick = () => {
+    setIsOpen(true)
+  }
+
   useEffect(() => {
     setIsActive(dietDetails?.active)
   }, [dietDetails])
+
+  const convertToTitleCase = str => {
+    if (!str) return ''
+
+    const firstLetter = str.charAt(0).toUpperCase()
+    const restOfWord = str.slice(1).toLowerCase()
+
+    return firstLetter + restOfWord
+  }
 
   const confirmDeleteAction = async () => {
     setLoading(true)
@@ -205,57 +221,80 @@ const DietDetailCard = ({ dietDetails }) => {
                       label={isActive === '1' ? 'Active' : 'InActive'}
                     />
                   </Box>
-                  <Box>
-                    <Icon
-                      icon='fluent:copy-32-regular'
-                      style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-                      onClick={() =>
-                        Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'copy' } })
-                      }
-                    />
-                  </Box>
-                  <Box>
-                    <Icon
-                      icon='bx:pencil'
-                      style={{ fontSize: 24, cursor: 'pointer' }}
-                      onClick={() =>
-                        Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                      }
-                    />
-                  </Box>
-                  <Box>
-                    <Icon
-                      onClick={() => {
-                        handlelOpenDelete()
-                      }}
-                      icon='material-symbols:delete-outline'
-                      style={{ fontSize: 24, cursor: 'pointer' }}
-                    />
-                  </Box>
+                  <Tooltip title='Copy' placement='top'>
+                    <Box>
+                      <Icon
+                        icon='fluent:copy-32-regular'
+                        style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                        onClick={handleDietClick}
+                      />
+                    </Box>
+                  </Tooltip>
+                  <Tooltip title='Edit' placement='top'>
+                    <Box>
+                      <Icon
+                        icon='bx:pencil'
+                        style={{ fontSize: 24, cursor: 'pointer' }}
+                        onClick={() =>
+                          Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                        }
+                      />
+                    </Box>
+                  </Tooltip>
+                  <Tooltip title='Delete' placement='top'>
+                    <Box>
+                      <Icon
+                        onClick={() => {
+                          handlelOpenDelete()
+                        }}
+                        icon='material-symbols:delete-outline'
+                        style={{ fontSize: 24, cursor: 'pointer' }}
+                      />
+                    </Box>
+                  </Tooltip>
                 </Box>
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A', mb: '8px' }}>
-                  Description
-                </Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#44544A' }}>
-                  {dietDetails?.desc?.length > 400 &&
-                    (!expanded ? dietDetails?.desc?.slice(0, 400) : dietDetails?.desc)}
-                  &nbsp;
-                  <span
-                    style={{
-                      cursor: 'pointer',
-                      color: '#000',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                      lineHeight: '16.94px',
-                      textDecoration: 'underline'
-                    }}
-                    onClick={toggleExpanded}
-                  >
-                    {dietDetails?.desc?.length > 400 && (expanded ? 'View less' : '...View more')}
-                  </span>
-                </Typography>
+                {dietDetails?.desc ? (
+                  <div>
+                    <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        width: '100%',
+                        color: '#7A8684',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: expanded ? 'unset' : 3,
+                        WebkitBoxOrient: 'vertical',
+                        transition: 'max-height 2s ease-in-out',
+                        maxHeight: expanded ? '1000px' : '60px'
+                      }}
+                    >
+                      {convertToTitleCase(dietDetails.desc)}
+                    </Typography>
+                    {dietDetails.desc.length > 180 ? (
+                      <Typography
+                        onClick={toggleExpanded}
+                        sx={{
+                          fontWeight: '600',
+                          fontSize: '13px',
+
+                          textDecoration: 'underline',
+                          color: '#000',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {expanded ? 'View less' : 'View more'}
+                      </Typography>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                ) : (
+                  ''
+                )}
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -333,6 +372,12 @@ const DietDetailCard = ({ dietDetails }) => {
               {isActive === '1' ? 'Deactivate' : 'Activate'} Diet?
             </span>
           }
+        />
+        <ChangeDietName
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          dietname={dietDetails?.diet_name}
+          dietid={dietDetails?.id}
         />
       </CardContent>
     </Card>

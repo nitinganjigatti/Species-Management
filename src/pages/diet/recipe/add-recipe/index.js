@@ -39,11 +39,12 @@ const steps = [
 
 const AddRecipe = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [fullIngredientList, setFullIngredientList] = useState([])
+  const [urlType, seturlType] = useState('')
 
   const [formData, setFormData] = useState({
     recipe_name: '',
@@ -161,6 +162,11 @@ const AddRecipe = () => {
       console.log(response, 'response')
       if (response.data.success === true && response.data.data !== null) {
         const data = response.data.data
+        console.log(name, 'name')
+        // Update recipe_name based on urlType
+        if (urlType === 'copy') {
+          data.recipe_name = name
+        }
 
         const convertedData = {
           ...data,
@@ -204,11 +210,20 @@ const AddRecipe = () => {
   }
 
   useEffect(() => {
-    console.log(id, 'id')
     if (id) {
-      getIngredientsDetailval(id)
+      const url = new URL(window.location.href)
+      const action = url.searchParams.get('action')
+      console.log(action, 'action')
+      seturlType(action || '')
     }
   }, [id])
+
+  useEffect(() => {
+    console.log(id, 'id')
+    if (id && urlType) {
+      getIngredientsDetailval(id)
+    }
+  }, [id, urlType])
 
   const handleNext = data => {
     // setFormData(prevData => ({
@@ -281,13 +296,69 @@ const AddRecipe = () => {
           }))
         )
       }
-
+      console.log(numericFormData, 'numericFormData')
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
         by_quantity: numericFormData.by_quantity,
-        recipe_image: numericFormData.recipe_image[0]
+        recipe_image: numericFormData?.recipe_image?.[0] || null
+      }
+
+      console.log(updatedFormData, 'updatedFormData')
+      const apival = await addNewRecipe(updatedFormData)
+      console.log(apival, 'apival')
+      if (apival.success === true) {
+        Router.push(`/diet/recipe`)
+
+        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+      } else {
+        Toaster({
+          type: 'error',
+          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
+      }
+    } else if (id && urlType === 'copy') {
+      const numericFormData = {
+        ...formData,
+        by_percentage: JSON.stringify(
+          formData.by_percentage.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            quantity: parseFloat(item.quantity).toFixed(2),
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        ),
+        by_quantity: JSON.stringify(
+          formData.by_quantity.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            uom_id: item.uom_id,
+            quantity: item.quantity,
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        )
+      }
+
+      const updatedFormData = {
+        ...numericFormData,
+        by_percentage: numericFormData.by_percentage,
+        by_quantity: numericFormData.by_quantity
+      }
+      console.log(formData.recipe_image, 'klkl')
+      if (formData.recipe_image === null) {
+        delete updatedFormData.recipe_image
+        delete updatedFormData.remove_current_image
+      } else if (typeof formData.recipe_image === 'string') {
+        delete updatedFormData.recipe_image
+        delete updatedFormData.remove_current_image
+      } else {
+        updatedFormData.recipe_image = formData?.recipe_image?.[0] || null
+        updatedFormData.remove_current_image = '1'
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -342,7 +413,7 @@ const AddRecipe = () => {
         delete updatedFormData.recipe_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.recipe_image = formData.recipe_image[0]
+        updatedFormData.recipe_image = formData?.recipe_image?.[0] || null
         updatedFormData.remove_current_image = '1'
       }
 
