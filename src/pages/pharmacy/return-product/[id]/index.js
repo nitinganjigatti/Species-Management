@@ -866,7 +866,7 @@ const IndividualReturnRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/return-product/request-list/')
+                        Router.back()
                       }}
                       icon='ep:back'
                     />

@@ -130,7 +130,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                                 <Avatar
                                   variant='square'
                                   src={
-                                    typeof formData.recipe_image === 'string'
+                                    typeof formData.recipe_image === 'string' && formData.recipe_image !== ''
                                       ? formData.recipe_image
                                       : '/icons/recipedummy.svg'
                                   }

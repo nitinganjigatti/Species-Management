@@ -35,7 +35,7 @@ const steps = [
 
 const AddDiet = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUomList] = useState([])
   const [uomprev, setUomprev] = useState([])
@@ -53,6 +53,7 @@ const AddDiet = () => {
     child: '',
     diet_image: '',
     desc: '',
+    remarks: '',
     meal_data: [
       {
         mealid: 'meal0',
@@ -94,6 +95,13 @@ const AddDiet = () => {
     }
   }, 500)
 
+  const handleRemarksChange = newRemarks => {
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      remarks: newRemarks
+    }))
+  }
+
   // const handleDietTypeChildValuesChange = values => {
   //   // Update the parent component state with the received values
   //   setdiettypechildvalues(values)
@@ -117,6 +125,15 @@ const AddDiet = () => {
   //   }
   // }
 
+  useEffect(() => {
+    if (id) {
+      const url = new URL(window.location.href)
+      const action = url.searchParams.get('action')
+      console.log(action, 'action')
+      seturlType(action || '')
+    }
+  }, [id])
+
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
       ...prevData,
@@ -130,6 +147,14 @@ const AddDiet = () => {
     callIngredientTypeList({ status: 1, page: 1, limit: 10, q: '' })
   }
 
+  useEffect(() => {
+    console.log(id, 'id')
+    if (id && urlType) {
+      console.log(urlType, 'urlType')
+      getIngredientsDetailval(id)
+    }
+  }, [id, urlType])
+
   const getIngredientsDetailval = async id => {
     try {
       const response = await getDietDetails(id, { week_day: 0 })
@@ -141,12 +166,13 @@ const AddDiet = () => {
         // Update formData state with the values from data
         setFormData(prevFormData => ({
           ...prevFormData,
-          diet_name: data.diet_name,
+          diet_name: urlType === 'copy' ? name : data.diet_name,
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
           child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,
+          remarks: data.remarks,
           meal_data: data.meal_data.map(meal => ({
             ...meal,
             meal_from_time: formatTime(meal.meal_from_time),
@@ -203,22 +229,6 @@ const AddDiet = () => {
 
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
-
-  useEffect(() => {
-    console.log(id, 'id')
-    if (id) {
-      getIngredientsDetailval(id)
-    }
-  }, [id])
-
-  useEffect(() => {
-    if (id) {
-      const url = new URL(window.location.href)
-      const action = url.searchParams.get('action')
-      console.log(action, 'action')
-      seturlType(action)
-    }
-  }, [id])
 
   const handleNext = data => {
     // setFormData(prevData => ({
@@ -358,7 +368,7 @@ const AddDiet = () => {
       }
     } else if (id && urlType === 'copy') {
       const numericFormData = {
-        // ...formDataWithoutChild,
+        //...formDataWithoutChild,
         ...formData,
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
@@ -397,8 +407,18 @@ const AddDiet = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        meal_data: numericFormData.meal_data,
-        diet_image: numericFormData?.diet_image?.length > 0 ? numericFormData.diet_image[0] : null
+        meal_data: numericFormData.meal_data
+      }
+      console.log(formData.diet_image, 'klkl')
+      if (formData.diet_image === null) {
+        delete updatedFormData.diet_image
+        delete updatedFormData.remove_current_image
+      } else if (typeof formData.diet_image === 'string') {
+        delete updatedFormData.diet_image
+        delete updatedFormData.remove_current_image
+      } else {
+        updatedFormData.diet_image = formData.diet_image?.[0] || null
+        updatedFormData.remove_current_image = '1'
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -470,7 +490,7 @@ const AddDiet = () => {
         delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.diet_image = formData.diet_image[0]
+        updatedFormData.diet_image = formData.diet_image?.[0] || null
         updatedFormData.remove_current_image = '1'
       }
 
@@ -524,6 +544,8 @@ const AddDiet = () => {
             uomprev={uomprev}
             setFormData={setFormData}
             id={id}
+            remarks={formData.remarks}
+            onRemarksChange={handleRemarksChange}
 
             // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
             // diettypechildvalues={diettypechildvalues}

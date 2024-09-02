@@ -38,6 +38,7 @@ const defaultValues = {
   child: '',
   diet_image: '',
   desc: '',
+  remarks: '',
   meal_data: [
     {
       mealid: 'meal',
@@ -217,6 +218,10 @@ const StepBasicDetails = ({
     }
     setfinalvalueingredientchoice(fieldsIngredients)
     console.log(fieldsIngredients, 'fieldsIngredients')
+  }
+
+  function deleteCookie(name) {
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   }
 
   useEffect(() => {
@@ -450,6 +455,7 @@ const StepBasicDetails = ({
 
       // Check for time overlap
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
+      console.log(lastOverlapIndex, 'lastOverlapIndex')
       if (lastOverlapIndex !== -1) {
         toast.error(`Meal ${lastOverlapIndex + 1} time overlaps with another meal.`)
 
@@ -756,7 +762,6 @@ const StepBasicDetails = ({
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
-  console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
   console.log(selectedCard, 'selectedCard')
@@ -806,12 +811,12 @@ const StepBasicDetails = ({
                     return (
                       <Autocomplete
                         value={uomList?.find(option => option.id === value) || null}
-                        disablePortal
+                        // disablePortal
                         id='diet_type_id'
                         options={uomList || []}
                         getOptionLabel={option => option.diet_type_name}
                         isOptionEqualToValue={(option, value) => option?.id === value}
-                        disabled={id ? true : false}
+                        //disabled={id ? true : false}
                         onChange={(e, val) => {
                           console.log(val, 'val')
                           if (val === null) {
@@ -823,9 +828,11 @@ const StepBasicDetails = ({
                             setFormValue('diet_type_name', val.diet_type_name)
                             setFormValue('child', val.child)
                             trigger('diet_type_id')
+                            deleteCookie('dietTypeChildValues')
+                            deleteCookie('dietTypeChildVal')
                           }
                         }}
-                        sx={{ background: id ? '#80808021' : '' }}
+                        //sx={{ background: id ? '#80808021' : '' }}
                         renderInput={params => (
                           <TextField
                             {...params}
@@ -899,7 +906,7 @@ const StepBasicDetails = ({
                         <TextField
                           value={value}
                           type='text'
-                          label='Meal name (Optional) '
+                          label='Meal name'
                           name={`meal_data[${index}].meal_name`}
                           error={
                             errors.meal_data && errors.meal_data[index] && errors.meal_data[index].meal_name?.message
@@ -1507,7 +1514,7 @@ const StepBasicDetails = ({
               <Button
                 color='secondary'
                 variant='outlined'
-                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
                 onClick={cancelBack}
               >

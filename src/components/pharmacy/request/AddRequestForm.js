@@ -706,6 +706,12 @@ const AddRequestForm = () => {
                       <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}{' '}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}
@@ -781,6 +787,12 @@ const AddRequestForm = () => {
                       />
                     </Tooltip>
                   </Grid>
+                  {nestedRowMedicine.control_substance === true && (
+                    <CustomChip sx={{ mt: 1, mx: 1 }} label='CS' skin='light' color='success' size='small' />
+                  )}
+                  {nestedRowMedicine.prescription_required === true && (
+                    <CustomChip sx={{ mt: 1 }} label='PR' skin='light' color='success' size='small' />
+                  )}
                 </Grid>
               )}
               {itemErrors.medicine_name && (
@@ -795,6 +807,7 @@ const AddRequestForm = () => {
               )}
             </FormControl>
           </Grid>
+          {console.log('optionsMedicineList', optionsMedicineList)}
           <Grid item xs={12} sm={1}>
             <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
           </Grid>
@@ -889,6 +902,12 @@ const AddRequestForm = () => {
                       />
                     </Tooltip>
                   </Grid>
+                  {nestedRowMedicine.control_substance === true && (
+                    <CustomChip sx={{ mt: 1, mx: 1 }} label='CS' skin='light' color='success' size='small' />
+                  )}
+                  {nestedRowMedicine.prescription_required === true && (
+                    <CustomChip sx={{ mt: 1 }} label='PR' skin='light' color='success' size='small' />
+                  )}
                 </Grid>
               )}
               {itemErrors.medicine_name && (
@@ -983,8 +1002,13 @@ const AddRequestForm = () => {
 
           {/* // file uploader */}
           <Grid item xs={12} sm={1}></Grid>
+          {/* {nestedRowMedicine.control_substance === true && nestedRowMedicine.prescription_required == false && (
+            <Grid item xs={12} sm={11 / 2}>
+              <CustomChip label='CS' skin='light' color='success' size='small' />
+            </Grid>
+          )} */}
 
-          {nestedRowMedicine.control_substance === true ? (
+          {/* {nestedRowMedicine.control_substance === true ? (
             nestedRowMedicine.control_substance_file ? (
               <Grid item xs={12} sm={11 / 2}>
                 {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
@@ -1076,7 +1100,7 @@ const AddRequestForm = () => {
                 </FormControl>
               </Grid>
             )
-          ) : null}
+          ) : null} */}
           {nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
               <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
@@ -1133,7 +1157,12 @@ const AddRequestForm = () => {
               </Grid>
             ) : (
               <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
-                <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
+                <Typography sx={{ mb: 2 }}>
+                  Attach prescription details (Mandatory){' '}
+                  {nestedRowMedicine.control_substance === true && (
+                    <CustomChip label='CS' skin='light' color='success' size='small' />
+                  )}{' '}
+                </Typography>
                 <FormControl fullWidth>
                   <TextField
                     type='file'

@@ -49,7 +49,9 @@ const StepPreviewDiet = ({
   finalhandleSubmit,
   uomprev,
   setFormData,
-  id
+  id,
+  remarks,
+  onRemarksChange
 }) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
@@ -65,6 +67,7 @@ const StepPreviewDiet = ({
   const [uomId, setuomId] = useState('')
   const [uomLabel, setuomLabel] = useState('')
   const [errorpop, setErrorpop] = useState('')
+  const [expanded, setExpanded] = useState(false)
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -254,6 +257,19 @@ const StepPreviewDiet = ({
     }
 
     return null
+  }
+
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+  }
+
+  const convertToTitleCase = str => {
+    if (!str) return ''
+
+    const firstLetter = str.charAt(0).toUpperCase()
+    const restOfWord = str.slice(1).toLowerCase()
+
+    return firstLetter + restOfWord
   }
 
   useEffect(() => {
@@ -879,7 +895,7 @@ const StepPreviewDiet = ({
                           alt={file.name}
                           sx={{
                             width: '100%',
-                            height: '100%',
+                            height: file.name ? '300px' : '250px',
                             borderRadius: 1
                           }}
                           src={URL.createObjectURL(file)}
@@ -888,12 +904,10 @@ const StepPreviewDiet = ({
                     ) : (
                       <Avatar
                         variant='square'
-                        src={
-                          typeof formData.recipe_image === 'string' ? formData.recipe_image : '/icons/recipedummy.svg'
-                        }
+                        src={formData.diet_image ? formData.diet_image : '/icons/recipedummy.svg'}
                         sx={{
                           width: '100%',
-                          height: '100%',
+                          height: formData.diet_image ? '300px' : '250px',
                           borderRadius: '10px'
                         }}
                       />
@@ -915,8 +929,45 @@ const StepPreviewDiet = ({
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
-                <Typography variant='h6'>Description</Typography>
-                <Typography sx={{ pt: 1 }}>{formData.desc ? formData.desc : 'No Description to show'}</Typography>
+                <div>
+                  <Typography variant='h6' sx={{ mb: 2 }}>
+                    Description
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      width: '100%',
+                      color: '#7A8684',
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: expanded ? 'unset' : 3,
+                      WebkitBoxOrient: 'vertical',
+                      transition: 'max-height 2s ease-in-out',
+                      maxHeight: expanded ? '1000px' : '60px'
+                    }}
+                  >
+                    {formData.desc ? convertToTitleCase(formData.desc) : 'No Description to show '}
+                  </Typography>
+                  {formData.desc.length > 180 ? (
+                    <Typography
+                      onClick={toggleExpanded}
+                      sx={{
+                        fontWeight: '600',
+                        fontSize: '13px',
+
+                        textDecoration: 'underline',
+                        color: '#000',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {expanded ? 'View less' : 'View more'}
+                    </Typography>
+                  ) : (
+                    ''
+                  )}
+                </div>
               </Grid>
             </Grid>
           </Grid>
@@ -1216,13 +1267,7 @@ const StepPreviewDiet = ({
 
                         return (
                           <>
-                            <TableRow
-                              sx={{
-                                borderBottom: '1px solid #C3CEC7'
-                              }}
-                              key={index}
-                              className=''
-                            >
+                            <TableRow key={index} className=''>
                               <TableCell
                                 sx={{
                                   position: 'sticky',
@@ -1299,7 +1344,6 @@ const StepPreviewDiet = ({
                                   </Box>
                                 </span>
                               </TableCell>
-
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   console.log(formData?.child?.length, 'lll')
@@ -1317,12 +1361,14 @@ const StepPreviewDiet = ({
                                         className={
                                           formData?.diet_type_name === 'By Weight'
                                             ? formData?.child?.length === 1
-                                              ? 'cellmodule'
+                                              ? 'cellmodule9'
                                               : formData?.child?.length === 0
                                               ? 'cellmodule1'
                                               : formData?.child?.length === 2
                                               ? 'cellmodule2'
-                                              : formData?.child?.length > 2
+                                              : formData?.child?.length === 3
+                                              ? 'cellmodule22'
+                                              : formData?.child?.length > 3
                                               ? 'cellmodule3'
                                               : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
@@ -1565,6 +1611,12 @@ const StepPreviewDiet = ({
                                             className={
                                               formData?.diet_type_name === 'By Gender'
                                                 ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
                                                 : 'diet_val_cont'
                                             }
                                           >
@@ -1638,6 +1690,12 @@ const StepPreviewDiet = ({
                                                   className={
                                                     formData?.diet_type_name === 'By Gender'
                                                       ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
                                                       : 'diet_val_cont'
                                                   }
                                                 >
@@ -1722,7 +1780,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
@@ -1738,12 +1795,14 @@ const StepPreviewDiet = ({
                                         className={
                                           formData?.diet_type_name === 'By Weight'
                                             ? formData?.child?.length === 1
-                                              ? 'cellmodule'
+                                              ? 'cellmodule9'
                                               : formData?.child?.length === 0
                                               ? 'cellmodule1'
                                               : formData?.child?.length === 2
                                               ? 'cellmodule2'
-                                              : formData?.child?.length > 2
+                                              : formData?.child?.length === 3
+                                              ? 'cellmodule22'
+                                              : formData?.child?.length > 3
                                               ? 'cellmodule3'
                                               : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
@@ -2031,6 +2090,12 @@ const StepPreviewDiet = ({
                                             className={
                                               formData?.diet_type_name === 'By Gender'
                                                 ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
                                                 : 'diet_val_cont'
                                             }
                                           >
@@ -2104,6 +2169,12 @@ const StepPreviewDiet = ({
                                                   className={
                                                     formData?.diet_type_name === 'By Gender'
                                                       ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
                                                       : 'diet_val_cont'
                                                   }
                                                 >
@@ -2187,7 +2258,6 @@ const StepPreviewDiet = ({
                                   )
                                 })}
                               </>
-
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
@@ -2203,12 +2273,14 @@ const StepPreviewDiet = ({
                                         className={
                                           formData?.diet_type_name === 'By Weight'
                                             ? formData?.child?.length === 1
-                                              ? 'cellmodule'
+                                              ? 'cellmodule9'
                                               : formData?.child?.length === 0
                                               ? 'cellmodule1'
                                               : formData?.child?.length === 2
                                               ? 'cellmodule2'
-                                              : formData?.child?.length > 2
+                                              : formData?.child?.length === 3
+                                              ? 'cellmodule22'
+                                              : formData?.child?.length > 3
                                               ? 'cellmodule3'
                                               : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
@@ -2418,6 +2490,12 @@ const StepPreviewDiet = ({
                                             className={
                                               formData?.diet_type_name === 'By Gender'
                                                 ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
                                                 : 'diet_val_cont'
                                             }
                                           >
@@ -2492,6 +2570,12 @@ const StepPreviewDiet = ({
                                                   className={
                                                     formData?.diet_type_name === 'By Gender'
                                                       ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
                                                       : 'diet_val_cont'
                                                   }
                                                 >
@@ -2576,12 +2660,50 @@ const StepPreviewDiet = ({
                                 })}
                               </>
                             </TableRow>
+                            {itemd.notes ? (
+                              <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+                                <Typography
+                                  sx={{
+                                    width: '100%',
+                                    display: 'block',
+                                    pb: 3
+                                  }}
+                                >
+                                  <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>Notes :</span>{' '}
+                                  {itemd.notes}
+                                </Typography>
+                              </TableRow>
+                            ) : (
+                              ''
+                            )}
                           </>
                         )
                       })}
                     </TableBody>
                   </Table>
                 </CustomScrollbar>
+                <Grid item xs={12} sx={{ pt: 10, pb: 8 }}>
+                  <Controller
+                    name='remarks'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { onChange } }) => (
+                      <TextField
+                        multiline
+                        fullWidth
+                        value={remarks}
+                        label='Remarks (Optional)'
+                        name='remarks'
+                        onChange={e => {
+                          onChange(e) // Update react-hook-form state
+                          onRemarksChange(e.target.value) // Update formData state in AddDiet
+                        }}
+                        id='textarea-outlined'
+                        rows={5}
+                      />
+                    )}
+                  />
+                </Grid>
               </Grid>
             </Grid>
           </Card>

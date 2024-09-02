@@ -31,7 +31,7 @@ import RecipeListTabview from 'src/views/pages/ingredient/ingredient-detail/reci
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import Toaster from 'src/components/Toaster'
-
+import Tooltip from '@mui/material/Tooltip'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 
@@ -124,8 +124,9 @@ const IngredientDetail = () => {
       const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: activePayload })
       console.log(response, 'response')
       if (response.success === true) {
-        Router.push(`/diet/ingredient`)
-
+        //Router.push(`/diet/ingredient`)
+        getIngredientsDetailval(id)
+        setstatusDialog(false)
         return Toaster({ type: 'success', message: response?.data })
       } else {
         return Toaster({ type: 'error', message: response?.data })
@@ -177,30 +178,38 @@ const IngredientDetail = () => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                           {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                            <Icon
-                              icon='bx:pencil'
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => {
-                                Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
-                              }}
-                            />
+                            <Tooltip title='Edit' placement='top'>
+                              <Box sx={{ pr: 3 }}>
+                                <Icon
+                                  icon='bx:pencil'
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() => {
+                                    Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
+                                  }}
+                                />
+                              </Box>
+                            </Tooltip>
                           )}
                           {dietModuleAccess === 'DELETE' && (
-                            <Icon
-                              icon='material-symbols:delete-outline'
-                              style={{ cursor: 'pointer', marginLeft: '15px' }}
-                              onClick={() => {
-                                if (
-                                  Number(IngredientsDetailsval?.recipe_count) +
-                                    Number(IngredientsDetailsval?.diet_count) >
-                                  0
-                                ) {
-                                  handleStatusClickOpen()
-                                } else {
-                                  handleClickOpen()
-                                }
-                              }}
-                            />
+                            <Tooltip title='Delete' placement='top'>
+                              <Box>
+                                <Icon
+                                  icon='material-symbols:delete-outline'
+                                  style={{ cursor: 'pointer', marginLeft: '15px' }}
+                                  onClick={() => {
+                                    if (
+                                      Number(IngredientsDetailsval?.recipe_count) +
+                                        Number(IngredientsDetailsval?.diet_count) >
+                                      0
+                                    ) {
+                                      handleStatusClickOpen()
+                                    } else {
+                                      handleClickOpen()
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            </Tooltip>
                           )}
                         </Box>
                       </Box>
@@ -210,6 +219,7 @@ const IngredientDetail = () => {
                           setIsActive={setIsActive}
                           IngredientsDetailsval={IngredientsDetailsval}
                           permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
+                          getIngredientsDetailval={getIngredientsDetailval}
                         />
 
                         <Grid item xs={8}>

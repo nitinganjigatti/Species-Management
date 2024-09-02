@@ -30,6 +30,7 @@ import MuiTabList from '@mui/lab/TabList'
 import moment from 'moment'
 import Drawer from '@mui/material/Drawer'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import Tooltip from '@mui/material/Tooltip'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import Error404 from 'src/pages/404'
@@ -330,26 +331,37 @@ const FeedDetails = () => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                           {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                            <Icon
-                              icon='bx:pencil'
-                              style={{ cursor: 'pointer' }}
-                              onClick={() =>
-                                Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
-                              }
-                            />
+                            <Tooltip title='Edit' placement='top'>
+                              <Box sx={{ pr: 3 }}>
+                                <Icon
+                                  icon='bx:pencil'
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() =>
+                                    Router.push({
+                                      pathname: '/diet/feed/add-feed',
+                                      query: { id: FeedDetailsValue?.id }
+                                    })
+                                  }
+                                />
+                              </Box>
+                            </Tooltip>
                           )}
                           {dietModuleAccess === 'DELETE' && (
-                            <Icon
-                              icon='material-symbols:delete-outline'
-                              style={{ cursor: 'pointer', marginLeft: '15px' }}
-                              onClick={() => {
-                                if (Number(FeedDetailsValue?.ingredients) > 0) {
-                                  setstatusDialog(true)
-                                } else {
-                                  setDeleteDialogBox(true)
-                                }
-                              }}
-                            />
+                            <Tooltip title='Delete' placement='top'>
+                              <Box>
+                                <Icon
+                                  icon='material-symbols:delete-outline'
+                                  style={{ cursor: 'pointer', marginLeft: '15px' }}
+                                  onClick={() => {
+                                    if (Number(FeedDetailsValue?.ingredients) > 0) {
+                                      setstatusDialog(true)
+                                    } else {
+                                      setDeleteDialogBox(true)
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            </Tooltip>
                           )}
                         </Box>
                       </Box>
