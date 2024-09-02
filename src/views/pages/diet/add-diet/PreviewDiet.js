@@ -1363,12 +1363,14 @@ const StepPreviewDiet = ({
                                         className={
                                           formData?.diet_type_name === 'By Weight'
                                             ? formData?.child?.length === 1
-                                              ? 'cellmodule'
+                                              ? 'cellmodule9'
                                               : formData?.child?.length === 0
                                               ? 'cellmodule1'
                                               : formData?.child?.length === 2
                                               ? 'cellmodule2'
-                                              : formData?.child?.length > 2
+                                              : formData?.child?.length === 3
+                                              ? 'cellmodule22'
+                                              : formData?.child?.length > 3
                                               ? 'cellmodule3'
                                               : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
@@ -1611,6 +1613,12 @@ const StepPreviewDiet = ({
                                             className={
                                               formData?.diet_type_name === 'By Gender'
                                                 ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
                                                 : 'diet_val_cont'
                                             }
                                           >
@@ -1684,6 +1692,12 @@ const StepPreviewDiet = ({
                                                   className={
                                                     formData?.diet_type_name === 'By Gender'
                                                       ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
                                                       : 'diet_val_cont'
                                                   }
                                                 >
@@ -1783,12 +1797,14 @@ const StepPreviewDiet = ({
                                         className={
                                           formData?.diet_type_name === 'By Weight'
                                             ? formData?.child?.length === 1
-                                              ? 'cellmodule'
+                                              ? 'cellmodule9'
                                               : formData?.child?.length === 0
                                               ? 'cellmodule1'
                                               : formData?.child?.length === 2
                                               ? 'cellmodule2'
-                                              : formData?.child?.length > 2
+                                              : formData?.child?.length === 3
+                                              ? 'cellmodule22'
+                                              : formData?.child?.length > 3
                                               ? 'cellmodule3'
                                               : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
@@ -2076,6 +2092,12 @@ const StepPreviewDiet = ({
                                             className={
                                               formData?.diet_type_name === 'By Gender'
                                                 ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
                                                 : 'diet_val_cont'
                                             }
                                           >
@@ -2149,6 +2171,12 @@ const StepPreviewDiet = ({
                                                   className={
                                                     formData?.diet_type_name === 'By Gender'
                                                       ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
                                                       : 'diet_val_cont'
                                                   }
                                                 >
@@ -2247,12 +2275,14 @@ const StepPreviewDiet = ({
                                         className={
                                           formData?.diet_type_name === 'By Weight'
                                             ? formData?.child?.length === 1
-                                              ? 'cellmodule'
+                                              ? 'cellmodule9'
                                               : formData?.child?.length === 0
                                               ? 'cellmodule1'
                                               : formData?.child?.length === 2
                                               ? 'cellmodule2'
-                                              : formData?.child?.length > 2
+                                              : formData?.child?.length === 3
+                                              ? 'cellmodule22'
+                                              : formData?.child?.length > 3
                                               ? 'cellmodule3'
                                               : 'cellmodule4' // Default for By Weight if no other condition is met
                                             : formData?.diet_type_name === 'By Gender'
@@ -2462,6 +2492,12 @@ const StepPreviewDiet = ({
                                             className={
                                               formData?.diet_type_name === 'By Gender'
                                                 ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
                                                 : 'diet_val_cont'
                                             }
                                           >
@@ -2536,6 +2572,12 @@ const StepPreviewDiet = ({
                                                   className={
                                                     formData?.diet_type_name === 'By Gender'
                                                       ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
                                                       : 'diet_val_cont'
                                                   }
                                                 >
