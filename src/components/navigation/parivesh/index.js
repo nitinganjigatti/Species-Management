@@ -3,6 +3,12 @@ const composeLabNavigation = () => {
     sectionTitle: 'Parivesh'
   }
 
+  const housing = {
+    title: 'Housing' , 
+    path:'/parivesh/housing',
+    icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
+  }
+
   const parivesh = {
     title: 'Home',
     path: '/parivesh/home',
@@ -19,7 +25,7 @@ const composeLabNavigation = () => {
   const pariveshNavigationArray = []
 
   pariveshNavigationArray.push(Title)
-  pariveshNavigationArray.push(parivesh, species)
+  pariveshNavigationArray.push(housing , parivesh, species)
 
   return pariveshNavigationArray
 }
