@@ -93,6 +93,7 @@ const AddLab = () => {
   const [imgSrc, setImgSrc] = useState([])
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
+  console.log('imgArr :>> ', imgArr[0])
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -428,7 +429,7 @@ const AddLab = () => {
       // lab: JSON.stringify(dataToUpdate),
       lab: JSON.stringify(showLabTests),
       is_default: isDefault,
-      image: imgArr
+      image: imgArr[0]
       // user_id: '58'
     }
 
