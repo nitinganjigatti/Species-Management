@@ -895,7 +895,7 @@ const StepPreviewDiet = ({
                           alt={file.name}
                           sx={{
                             width: '100%',
-                            height: '100%',
+                            height: file.name ? '300px' : '250px',
                             borderRadius: 1
                           }}
                           src={URL.createObjectURL(file)}
@@ -904,12 +904,10 @@ const StepPreviewDiet = ({
                     ) : (
                       <Avatar
                         variant='square'
-                        src={
-                          typeof formData.recipe_image === 'string' ? formData.recipe_image : '/icons/recipedummy.svg'
-                        }
+                        src={formData.diet_image ? formData.diet_image : '/icons/recipedummy.svg'}
                         sx={{
                           width: '100%',
-                          height: '100%',
+                          height: formData.diet_image ? '300px' : '250px',
                           borderRadius: '10px'
                         }}
                       />
