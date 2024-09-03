@@ -175,8 +175,6 @@ const IndividualRequest = () => {
 
       responseData['request_item_details'] = mappedWithUid
 
-      // debugger
-
       // setRequestItems(response.data)
       setRequestItems(responseData)
       setLoader(false)
@@ -237,14 +235,11 @@ const IndividualRequest = () => {
   }
 
   const getShippedItems = async id => {
-    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
 
       if (response.success) {
-        // debugger
-
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
           sl_no: index + 1
@@ -1267,7 +1262,7 @@ const IndividualRequest = () => {
   }
 
   // const handleProductNotAvailableAction = (id, available) => {
-  //   // debugger
+  //
   //   setNotAvailableItemId({
   //     id: id,
   //     available: available

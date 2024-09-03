@@ -53,7 +53,6 @@ export async function updateLabById(payload, id) {
 
     return response?.data
   } catch (error) {
-    // debugger
     // console.error(url)
     if (error.response) {
       console.info('Request made and server responded')

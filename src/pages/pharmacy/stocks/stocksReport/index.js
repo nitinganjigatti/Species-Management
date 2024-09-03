@@ -125,7 +125,6 @@ const ListOfStocks = () => {
               store_id: storeId
             }
 
-            // debugger
             result = await getLocalStocksReportById(params)
           } else {
             const params = {
@@ -135,8 +134,6 @@ const ListOfStocks = () => {
               page: paginationModel.page + 1,
               limit: paginationModel.pageSize
             }
-
-            // debugger
 
             result = await getStocksReportById(storeId, params)
           }
@@ -204,7 +201,6 @@ const ListOfStocks = () => {
         }
       } else {
         try {
-          debugger
           const result = await getStocksByBatch(id, batchParams)
 
           if (result?.success === true) {

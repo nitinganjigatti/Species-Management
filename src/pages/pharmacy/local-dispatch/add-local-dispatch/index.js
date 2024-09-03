@@ -574,7 +574,7 @@ const AddLocalDispatch = () => {
     } else {
       try {
         console.log('postData', postData)
-        debugger
+
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)

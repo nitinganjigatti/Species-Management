@@ -659,7 +659,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                                       //   return onChange('')
                                       // } else {
-                                      //   debugger
+                                      //
                                       //   const expiryDate = val.expiry_date
                                       //   const quantity = parseInt(val?.qty)
                                       //   setValue(`product_batches[${index}].expiry_date`, expiryDate)

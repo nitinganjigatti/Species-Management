@@ -262,7 +262,7 @@ const AddPurchaseForm = () => {
 
   // const calculateFinalAmount = useCallback(
   //   discountValue => {
-  //     debugger
+  //
   //     let finalAmount = totalLineItemsPurchase
   //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
   //     let netAmount = 0
@@ -401,7 +401,7 @@ const AddPurchaseForm = () => {
     //   payload.purchase_batch_no !== '' &&
     //   payload.purchase_expiry_date !== ''
     // if (HasErrors === false) {
-    //   debugger
+    //
     //   setItemErrors(validate(payload))
 
     //   return
@@ -470,8 +470,6 @@ const AddPurchaseForm = () => {
     //   parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
     //   nestedRowMedicine.purchase_batch_no !== '' &&
     //   nestedRowMedicine.purchase_expiry_date !== ''
-
-    // debugger
 
     // if (HasErrors === false) {
     //   setItemErrors(validate(nestedRowMedicine))
@@ -647,7 +645,7 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
-      // debugger
+
       if (response.success && response.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
@@ -671,7 +669,6 @@ const AddPurchaseForm = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
-      // debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {

@@ -158,7 +158,7 @@ const RequestList = () => {
             search_store: filterByStoreId === 'all' ? '' : filterByStoreId
           }
         }
-        debugger
+
         await getRequestItemsList({ params: params }).then(res => {
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
@@ -180,6 +180,8 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
+    console.log('useEffect', 1)
+
     const currentStatus = filterSwitch === true ? 'completed' : status
 
     fetchTableData(
@@ -191,7 +193,7 @@ const RequestList = () => {
       filterDates.endDate,
       filterByStoreId
     )
-    debugger
+
     updateUrlParams({
       sort,
       q: searchValue,
@@ -207,7 +209,7 @@ const RequestList = () => {
     })
 
     // }
-  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId])
+  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -345,18 +347,21 @@ const RequestList = () => {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
-  useEffect(() => {
-    // setStatus(requestPageStatus ? requestPageStatus : status)
 
-    const currentStatus = filterSwitch === true ? 'completed' : status
+  // useEffect(() => {
+  //   console.log('useEffect', 2)
 
-    if (filterDates.startDate && filterDates.endDate) {
-      fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
-    } else {
-      fetchTableData(sort, searchValue, sortColumn, currentStatus)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterDates])
+  //   // setStatus(requestPageStatus ? requestPageStatus : status)
+
+  //   const currentStatus = filterSwitch === true ? 'completed' : status
+
+  //   if (filterDates.startDate && filterDates.endDate) {
+  //     fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
+  //   } else {
+  //     fetchTableData(sort, searchValue, sortColumn, currentStatus)
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [filterDates])
 
   useEffect(() => {
     getStoresLists()
@@ -644,13 +649,7 @@ const RequestList = () => {
                 {status === 'all' || status === 'completed' ? (
                   <Box sx={{ float: 'right' }}>
                     <FormControlLabel
-                      control={
-                        <Switch
-                          defaultChecked={filterSwitch}
-                          //  checked={filterSwitch}
-                          onChange={handleSwitchChange}
-                        />
-                      }
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
                     />
@@ -734,7 +733,6 @@ const RequestList = () => {
             />
             <Tab
               value={'all' ? 'all' : 'completed'}
-              // label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />}
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
             />
           </TabList>

@@ -196,8 +196,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
     const payload = []
 
-    // debugger
-
     dispatchedItems?.forEach((value, index) => {
       const payloadItem = {}
       payloadItem.dispatch_item_id = value.dispatch_item_id

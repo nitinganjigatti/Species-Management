@@ -101,7 +101,6 @@ const ReturnRequestList = () => {
     async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
-        debugger
 
         const params = {
           sort,

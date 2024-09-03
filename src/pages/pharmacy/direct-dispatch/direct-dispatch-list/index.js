@@ -190,7 +190,7 @@ const DirectDispatchList = () => {
     const currentStatus = filterSwitch === true ? 'completed' : status
 
     const tabStatus = status === 'all' ? currentStatus : status
-    debugger
+
     fetchTableData(sort, searchValue, sortColumn, tabStatus)
     updateUrlParams({
       sort,

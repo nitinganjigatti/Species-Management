@@ -59,11 +59,10 @@ const schema = yup.object().shape({
     yup.object().shape({
       batch_no: yup.string().test('unique-batch-no', 'Batch number is already selected', function (value) {
         const { product_batches } = this.options.from[1].value
-        debugger
+
         const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
-        debugger
+
         const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo === value).length
-        debugger
 
         return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
       }),
@@ -133,7 +132,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   //     tempState[index] = false
   //     setRowErrors(tempState)
   //   } else {
-  //     debugger
+  //
   //     const tempState = rowErrors
   //     tempState[index] = true
   //     setRowErrors(tempState)
@@ -164,7 +163,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onQuantityChange = (row, qty) => {
-    debugger
     if (fulfilStockItems.length > 0) {
       const tempFulfilStockItems = fulfilStockItems.slice()
       let itemExists = false
@@ -178,8 +176,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
       if (!itemExists) {
         if (!isNaN(parseInt(qty)) && parseInt(qty) > 0) {
-          debugger
-
           const medicineRow = {
             from_store_type: row.type,
             from_store_id: row.store_id,
@@ -258,7 +254,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     setLoader(true)
     const data = { stock_item_id: id }
     const response = await getAvailableMedicineByMedicineId(id, data, 'local')
-    debugger
+
     if (response.success) {
       setBatchItems(response.data)
       setLoader(false)
@@ -582,7 +578,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                                         return onChange('')
                                       } else {
-                                        debugger
                                         const expiryDate = val.expiry_date
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
 
@@ -596,7 +591,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         // )
 
                                         // if (selectedBatchCount > 0) {
-                                        //   debugger
+                                        //
                                         //   setError(`product_batches[${index}].batch_no`, {
                                         //     type: 'manual',
                                         //     message: 'Batch number is already selected'

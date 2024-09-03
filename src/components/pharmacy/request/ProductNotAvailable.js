@@ -36,7 +36,6 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
 
   const onSubmit = async params => {
     if (payload?.request_item_id) {
-      debugger
       try {
         const response = await makeProductNotAvailable(params, payload?.request_item_id)
         if (response?.success) {

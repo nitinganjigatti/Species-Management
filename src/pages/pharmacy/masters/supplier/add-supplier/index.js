@@ -150,7 +150,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     try {
       setLoader(true)
       const response = await getStates({ params: { sort: 'asc', column: 'name' } })
-      debugger
+
       console.log(response)
       if (response?.data?.list_items?.length > 0) {
         setStatesList(response?.data?.list_items)
@@ -165,7 +165,6 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       setLoader(true)
       const response = await getSupplierById(id)
 
-      // debugger
       if (response != undefined) {
         reset(response)
       }
@@ -201,7 +200,6 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       company_name
     }
     if (id !== undefined && action === 'edit' && supplierDialog !== true) {
-      debugger
       await updateSupplier(payload, id)
     } else {
       await addSupplerToList(payload)
@@ -239,7 +237,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
   const addSupplerToList = async payload => {
     try {
       const response = await addSuppliers(payload)
-      debugger
+
       if (response?.success) {
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         toast.success(response.data)
@@ -253,7 +251,6 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
           Router.push('/pharmacy/masters/supplier/supplier-list')
         }
       } else {
-        debugger
         setSubmitLoader(false)
         if (typeof response?.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)

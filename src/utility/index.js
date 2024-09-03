@@ -46,7 +46,6 @@ function formatDisplayDate(date) {
 function errorMessageExtractorFromObject(errorMessages) {
   for (const key in errorMessages) {
     if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
-      debugger
       const errorMessage = errorMessages[key]
       toast.error(errorMessage)
 

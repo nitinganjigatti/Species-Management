@@ -317,7 +317,6 @@ export async function rejectMedicine(payload, parentId) {
   try {
     const url = `${REQUEST_ITEMS}/${parentId}/${REJECT_MEDICINE}`
     const response = await axiosPost({ url, body: payload, pharmacy })
-    debugger
 
     return response?.data
   } catch (error) {
@@ -337,7 +336,6 @@ export async function makeProductNotAvailable(payload, parentId) {
   try {
     const url = `${REQUEST_ITEMS}/${parentId}/${NOT_AVAILABLE_PRODUCT}`
     const response = await axiosPost({ url, body: payload, pharmacy })
-    debugger
 
     return response?.data
   } catch (error) {
