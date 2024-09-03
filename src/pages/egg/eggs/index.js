@@ -52,8 +52,6 @@ const EggList = () => {
 
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
-  // console.log('selectedEggTab :>> ', selectedEggTab)
-
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -68,11 +66,8 @@ const EggList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
 
-  // console.log('status :>> ', status)
-
   const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_discarded')
 
-  // console.log('isDiscarded :>> ', isDiscarded)
   const [hover, setHover] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [allocationValues, setAllocationValues] = useState({})
@@ -85,22 +80,9 @@ const EggList = () => {
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
 
-  // const [defaultNursery, setDefaultNursery] = useState(
-  //   selected_nursery_id && selected_nursery_name
-  //     ? { nursery_id: selected_nursery_id, nursery_name: selected_nursery_name }
-  //     : null
-  // )
-  // const [nurseryList, setNurseryList] = useState([])
-  // const [filterByNurseryId, setFilterByNurseryId] = useState('')
-  // const [nursery_name, setNursery_name] = useState('')
-
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
-  // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
-
   const [filterList, setFilterList] = useState([])
-
-  // console.log('filterList :>> ', filterList)
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -110,39 +92,6 @@ const EggList = () => {
     setIsOpen(true)
     setEggId(eggId)
   }
-
-  // const NurseryList = async q => {
-  //   try {
-  //     const params = {
-  //       // type: ['length', 'weight'],
-  //       search: q,
-  //       page: 1,
-  //       limit: 50
-  //     }
-  //     await GetNurseryList({ params: params }).then(res => {
-  //       setNurseryList(res?.data?.result)
-  //     })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   if (egg_collection_permission) {
-  //     NurseryList()
-  //   }
-  // }, [])
-
-  // const searchNursery = useCallback(
-  //   debounce(async q => {
-  //     try {
-  //       await NurseryList(q)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
 
   const columns = [
     {
@@ -1997,14 +1946,9 @@ const EggList = () => {
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}) => {
       // debugger
-      // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
-
-      ///// console.log('search :>> ', search)
 
       try {
         setLoading(true)
-
-        // console.log('selectedFiltersOptions[Collected By] ', selectedFiltersOptions['Collected By']?.[0]?.id)
 
         // Extracting IDs from selectedFiltersOptions
         const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || ''
@@ -2015,7 +1959,6 @@ const EggList = () => {
         const collectedByIds = selectedFiltersOptions['Collected By']?.[0]?.id || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
 
-        // console.log('object :>> ', object);
         const statusId = [selectedFiltersOptions.status?.id] || ''
 
         const collectedDate = selectedFiltersOptions.collected_date
@@ -2063,8 +2006,6 @@ const EggList = () => {
         // console.log('params table data :>> ', params)
 
         await GetEggList({ params: params }).then(res => {
-          // console.log('res :>> ', res)
-
           // let listWithId = res.data.result.map((el, i) => {
           //   return { ...el, uid: i + 1 }
           // })
@@ -2370,22 +2311,29 @@ const EggList = () => {
               <TabList onChange={handleChange} sx={{ px: 2 }}>
                 <Tab
                   value='eggs_received'
-                  label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
+                  label='Received'
+
+                  // label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
                 />
                 <Tab
                   value='eggs_incubation'
-                  label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
+                  label='Incubation'
+
+                  // label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
                 />
                 <Tab
                   value='eggs_hatched'
-                  label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
+                  label='Hatched'
+
+                  // label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
                 />
                 <Tab
                   value='eggs_ready_to_be_discarded_at_nursery'
                   label={
                     <TabBadge
                       label='To Be Discarded'
-                      totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
+
+                      // totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
                     />
                   }
                 ></Tab>
@@ -2545,7 +2493,8 @@ const EggList = () => {
                       label={
                         <TabBadge
                           label='Discarded Batch'
-                          totalCount={isDiscarded === 'eggs_discarded' ? total : null}
+
+                          // totalCount={isDiscarded === 'eggs_discarded' ? total : null}
                         />
                       }
                     />
@@ -2554,7 +2503,8 @@ const EggList = () => {
                       label={
                         <TabBadge
                           label='Discarded'
-                          totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
+
+                          // totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
                         />
                       }
                     />
