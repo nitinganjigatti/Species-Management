@@ -1040,99 +1040,6 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   // flex: 0.25,
-    //   width: 220,
-    //   sortable: false,
-    //   field: 'species',
-    //   headerName: 'SPECIES',
-
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-    //       <Avatar
-    //         variant='rounded'
-    //         alt='Medicine Image'
-    //         sx={{
-    //           width: 35,
-    //           height: 35,
-
-    //           borderRadius: '50%',
-    //           background: '#E8F4F2',
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.default_icon ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-    //             src={params.row.default_icon}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-
-    //       <Box
-    //         sx={{
-    //           display: 'flex',
-    //           flexDirection: 'column',
-    //           alignItems: params.row?.default_common_name && params.row?.complete_name ? 'flex-start' : 'center',
-    //           gap: '4px'
-    //         }}
-    //       >
-    //         {params.row?.default_common_name && params.row?.complete_name ? (
-    //           <>
-    //             <Tooltip title={params.row.default_common_name}>
-    //               <Typography
-    //                 sx={{
-    //                   color: theme.palette.primary.light,
-    //                   fontSize: '16px',
-    //                   fontWeight: '500',
-    //                   lineHeight: '19.36px',
-    //                   overflow: 'hidden',
-    //                   textOverflow: 'ellipsis',
-    //                   whiteSpace: 'nowrap'
-    //                 }}
-    //               >
-    //                 {params.row.default_common_name}
-    //               </Typography>
-    //             </Tooltip>
-    //             <Tooltip title={params.row.complete_name}>
-    //               <Typography
-    //                 sx={{
-    //                   color: theme.palette.primary.light,
-    //                   fontSize: '14px',
-    //                   fontWeight: '400',
-    //                   lineHeight: '16.94px',
-    //                   overflow: 'hidden',
-    //                   textOverflow: 'ellipsis',
-    //                   whiteSpace: 'nowrap',
-    //                   width: '100%'
-    //                 }}
-    //               >
-    //                 {params.row.complete_name}
-    //               </Typography>
-    //             </Tooltip>
-    //           </>
-    //         ) : (
-    //           <Typography
-    //             sx={{
-    //               color: theme.palette.primary.light,
-    //               fontSize: '16px',
-    //               fontWeight: '500',
-    //               lineHeight: '19.36px'
-    //             }}
-    //           >
-    //             {params.row?.default_common_name || params.row?.complete_name
-    //               ? params.row?.default_common_name || params.row?.complete_name
-    //               : '-'}
-    //           </Typography>
-    //         )}
-    //       </Box>
-    //     </Box>
-    //   )
-    // },
-
     {
       width: 200,
       sortable: false,
@@ -1226,11 +1133,23 @@ const EggList = () => {
     //   sortable: false,
     //   field: 'condition',
     //   headerName: 'condition',
+    //   align: 'center',
 
     //   renderCell: params => (
     //     <Typography
     //       sx={{
-    //         color: '#000000',
+    //         color:
+    //           params.row.egg_condition === 'Intact'
+    //             ? '#006D35'
+    //             : params.row.egg_condition === 'Thin-Shelled'
+    //             ? '#1F515B'
+    //             : params.row.egg_condition === 'Broken'
+    //             ? '#E93353'
+    //             : params.row.egg_condition === 'Rotten'
+    //             ? '#FA6140'
+    //             : params.row.egg_condition === 'Cracked'
+    //             ? '#E4B819'
+    //             : '#006D35',
     //         fontSize: '16px',
     //         fontWeight: 500,
     //         lineHeight: '19.36px',
@@ -1240,7 +1159,7 @@ const EggList = () => {
     //         textTransform: 'capitalize'
     //       }}
     //     >
-    //       {params.row.egg_initial_temperature ? params.row.egg_initial_temperature : '-'}
+    //       {params.row.egg_condition ? params.row.egg_condition : '-'}
     //     </Typography>
     //   )
     // },
@@ -1384,7 +1303,7 @@ const EggList = () => {
             ml: 3
           }}
         >
-          {params.row.eno_of_eggs_in_clutch ? params.row.no_of_eggs_in_clutch : '-'}
+          {params.row.no_of_eggs_in_clutch ? params.row.no_of_eggs_in_clutch : '-'}
         </Typography>
       )
     },
@@ -1410,27 +1329,27 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   // flex: 0.15,
-    //   width: 130,
-    //   sortable: false,
-    //   field: 'enclosure_id',
-    //   headerName: 'Enclosure',
+    {
+      // flex: 0.15,
+      width: 130,
+      sortable: false,
+      field: 'enclosure_id',
+      headerName: 'Enclosure',
 
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: '#000000',
-    //         fontSize: '16px',
-    //         fontWeight: 500,
-    //         lineHeight: '19.36px',
-    //         ml: 3
-    //       }}
-    //     >
-    //       {params.row.enclosure_id ? params.row.enclosure_id : '-'}
-    //     </Typography>
-    //   )
-    // },
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: '#000000',
+            fontSize: '16px',
+            fontWeight: 500,
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.enclosure_id ? params.row.enclosure_id : '-'}
+        </Typography>
+      )
+    },
     {
       // flex: 0.16,
       width: 130,
@@ -1455,113 +1374,89 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 150,
-    //   sortable: false,
-    //   field: 'lay_date',
-    //   headerName: 'Lay Date',
+    {
+      width: 150,
+      sortable: false,
+      field: 'lay_date',
+      headerName: 'Lay Date',
 
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px',
-    //         ml: 3
-    //       }}
-    //     >
-    //       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-    //     </Typography>
-    //   )
-    // },
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
+        </Typography>
+      )
+    },
 
     {
       // flex: 0.3,
       width: 200,
       sortable: false,
-      field: 'collected_by',
-      headerName: 'Collected by',
+      field: 'allocated_by',
+      headerName: 'Allocated by',
       renderCell: params => (
         <>
-          {/* {status === 'eggs_received' && (
-            <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-              Allocate{' '}
-            </Button>
-          )} */}
-          {status === 'eggs_received' ? (
-            <>
-              <div>
-                <DiscardStatusCell
-                  customButton={status === 'eggs_received' ? 'customButton' : null}
-                  hideField='hideField'
-                  params={params}
-                  setIsOpen={setIsOpen}
-                  handleDiscard={handleDiscard}
-                  setEggId={setEggId}
-                  handleAction={handleAction}
-                  setAllocationValues={setAllocationValues}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Avatar
+              variant='square'
+              alt='Medicine Image'
+              className={status === 'eggs_received' ? 'hideField' : ''}
+              sx={{
+                width: 30,
+                height: 30,
 
-                  // hover={hover} setHover={setHover}
+                borderRadius: '50%',
+                background: '#E8F4F2',
+                overflow: 'hidden'
+              }}
+            >
+              {params.row.user_profile_pic ? (
+                <img
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  src={params.row.user_profile_pic}
+                  alt='Profile'
                 />
-              </div>
-            </>
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Avatar
-                variant='square'
-                alt='Medicine Image'
-                className={status === 'eggs_received' ? 'hideField' : ''}
+              ) : (
+                <Icon icon='mdi:user' fontSize={30} />
+              )}
+            </Avatar>
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column' }}
+              className={status === 'eggs_received' ? 'hideField' : ''}
+            >
+              <Typography
+                noWrap
                 sx={{
-                  width: 30,
-                  height: 30,
-
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  lineHeight: '16.94px'
                 }}
               >
-                {params.row.user_profile_pic ? (
-                  <img
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.user_profile_pic}
-                    alt='Profile'
-                  />
-                ) : (
-                  <Icon icon='mdi:user' fontSize={30} />
-                )}
-              </Avatar>
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column' }}
-                className={status === 'eggs_received' ? 'hideField' : ''}
+                {params.row.user_full_name ? params.row.user_full_name : '-'}
+              </Typography>
+              <Typography
+                noWrap
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: '12px',
+                  fontWeight: '400',
+                  lineHeight: '14.52px'
+                }}
               >
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  {params.row.user_full_name ? params.row.user_full_name : '-'}
-                </Typography>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: '12px',
-                    fontWeight: '400',
-                    lineHeight: '14.52px'
-                  }}
-                >
-                  {params.row.created_at
-                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
-                    : '-'}
-                </Typography>
-              </Box>
+                {params.row.allocate_date
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.allocate_date))
+                  : '-'}
+              </Typography>
             </Box>
-          )}
+          </Box>
         </>
       )
     }
