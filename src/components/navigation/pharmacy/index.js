@@ -304,28 +304,25 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       // state
     )
 
-    pharmacyNavigationArray.push(
-      dashboard,
-      stockReport,
-      requestListing,
-      returnListing,
-      directDispatchList,
-      productsList,
-      purchaseList,
-      existingPurchase,
-      stocksAdjustment,
-      nonExistingProductRequestList,
-      discard,
-
-      settingsParent
-    )
+    pharmacyNavigationArray.push(dashboard, stockReport, requestListing, returnListing, directDispatchList)
 
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy?.permission?.dispense_medicine
     ) {
-      pharmacyNavigationArray.splice(5, 0, dispense)
+      pharmacyNavigationArray.push(dispense)
     }
+
+    pharmacyNavigationArray.push(productsList, purchaseList, existingPurchase, nonExistingProductRequestList)
+
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1
+    ) {
+      pharmacyNavigationArray.push(stocksAdjustment)
+    }
+
+    pharmacyNavigationArray.push(discard, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -341,14 +338,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
 
       // directDispatchList,
-      directDispatchListForLocal,
-      localDispatchList,
-
-      nonExistingProductRequestList,
-      stockReport,
-      stocksAdjustment,
-      discard,
-      settingsParent
+      directDispatchListForLocal
     )
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
@@ -356,6 +346,20 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.splice(4, 0, dispense)
     }
+
+    pharmacyNavigationArray.push(
+      localDispatchList,
+
+      nonExistingProductRequestList,
+      stockReport
+    )
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1
+    ) {
+      pharmacyNavigationArray.push(stocksAdjustment)
+    }
+    pharmacyNavigationArray.push(discard, settingsParent)
   }
 
   if (pharmacyRole) {
