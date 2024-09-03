@@ -2655,7 +2655,7 @@ const EggList = () => {
                       value='eggs_discarded'
                       label={
                         <TabBadge
-                          label='Discarded Batch'
+                          label='Batch Discarded '
 
                           // totalCount={isDiscarded === 'eggs_discarded' ? total : null}
                         />

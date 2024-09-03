@@ -19,7 +19,7 @@ const EggTableHeader = ({
 }) => {
   const theme = useTheme()
   const router = useRouter()
-  const { search_value } = router.query
+  const { search_value, subTab_value } = router.query
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const [selectedDate, setSelectedDate] = useState(null)
@@ -79,15 +79,17 @@ const EggTableHeader = ({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 4, py: 4 }}>
         <Box>
           <Typography sx={{ fontSize: '14px', fontWeight: 300 }}>
-            Total Eggs{' '}
+            Total eggs{' '}
             {tabValue === 'eggs_received'
-              ? 'in  Received'
+              ? 'in  received'
               : tabValue === 'eggs_hatched'
-              ? 'Hatched'
+              ? 'hatched'
               : tabValue === 'eggs_incubation'
-              ? 'in Incubation'
+              ? 'in incubation'
               : tabValue === 'eggs_ready_to_be_discarded_at_nursery'
-              ? 'in Discard'
+              ? 'to be discarded'
+              : tabValue === 'eggs_discarded'
+              ? 'discarded'
               : null}{' '}
             : <span style={{ fontWeight: 500, color: '#000000' }}>{totalCount}</span>
           </Typography>
