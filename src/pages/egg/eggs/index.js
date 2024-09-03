@@ -93,6 +93,274 @@ const EggList = () => {
     setEggId(eggId)
   }
 
+  const received = [
+    {
+      width: 60,
+      field: 'uid',
+      headerName: 'NO',
+      align: 'center',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
+    {
+      width: 250,
+
+      // minWidth: 60,
+      sortable: false,
+      field: 'species',
+      headerName: 'SPECIES',
+      renderCell: params => (
+        <SpeciesImageCard
+          imgURl={params.row.default_icon}
+          eggCondition={params.row.egg_condition}
+          egg_status={params.row.egg_status}
+          eggCode={params.row.egg_code}
+          defaultName={params.row.default_common_name}
+          completeName={params.row.complete_name}
+          eggIcon={'/icons/Egg_icon.png'}
+        />
+      )
+    },
+    {
+      width: 200,
+      sortable: false,
+      field: 'id_identifier',
+      headerName: 'Id & Identifier',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: '#000000',
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+          </Typography>
+          {params.row.egg_number && (
+            <Typography
+              sx={{
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px'
+              }}
+            >
+              EID : {params.row.egg_number}
+            </Typography>
+          )}
+        </Box>
+      )
+    },
+
+    // {
+    //   width: 160,
+    //   field: 'state',
+    //   sortable: false,
+    //   headerName: 'STATE',
+
+    //   // align: 'center',
+    //   renderCell: params => (
+    //     <Box>
+    //       <TextCard egg_status={params.row.egg_status} />
+    //     </Box>
+    //   )
+    // },
+
+    {
+      width: 160,
+      field: 'condition',
+      sortable: false,
+      headerName: 'Condition',
+
+      // align: 'center',
+      renderCell: params => (
+        <Box sx={{ gap: 2 }}>
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color:
+                params.row.egg_condition === 'Intact'
+                  ? '#006D35'
+                  : params.row.egg_condition === 'Thin-Shelled'
+                  ? '#1F515B'
+                  : params.row.egg_condition === 'Broken'
+                  ? '#E93353'
+                  : params.row.egg_condition === 'Rotten'
+                  ? '#FA6140'
+                  : params.row.egg_condition === 'Cracked'
+                  ? '#E4B819'
+                  : '#006D35'
+            }}
+          >
+            {' '}
+            {params.row.egg_condition}
+          </Typography>
+          <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#44544A', textTransform: 'capitalize' }}>
+            {params.row.egg_initial_temperature}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 160,
+      sortable: false,
+      field: 'site',
+      headerName: 'SITE NAME',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 160,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            textTransform: 'capitalize'
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 150,
+      sortable: false,
+      field: 'collected_on',
+      headerName: 'COLLECTED ON',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 2
+          }}
+        >
+          {params.row.collection_date
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.collection_date))
+            : '-'}
+        </Typography>
+      )
+    },
+
+    {
+      width: 270,
+      sortable: false,
+      field: 'collected_by',
+      headerName: 'COLLECTED BY',
+      renderCell: params => (
+        <>
+          {status === 'eggs_received' ? (
+            <>
+              <div>
+                <DiscardStatusCell
+                  customButton={status === 'eggs_received' ? 'customButton' : null}
+                  hideField='hideField'
+                  params={params}
+                  setIsOpen={setIsOpen}
+                  handleDiscard={handleDiscard}
+                  setEggId={setEggId}
+                  handleAction={handleAction}
+                  setAllocationValues={setAllocationValues}
+                  condition={params.row.egg_condition}
+
+                  // hover={hover} setHover={setHover}
+                />
+              </div>
+            </>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Avatar
+                variant='square'
+                alt='Medicine Image'
+                className={status === 'eggs_received' ? 'hideField' : ''}
+                sx={{
+                  width: 30,
+                  height: 30,
+
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
+                }}
+              >
+                {params.row.user_profile_pic ? (
+                  <img
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    src={params.row.user_profile_pic}
+                    alt='Profile'
+                  />
+                ) : (
+                  <Icon icon='mdi:user' fontSize={30} />
+                )}
+              </Avatar>
+              <Box
+                sx={{ display: 'flex', flexDirection: 'column' }}
+                className={status === 'eggs_received' ? 'hideField' : ''}
+              >
+                <Typography
+                  noWrap
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    lineHeight: '16.94px'
+                  }}
+                >
+                  {params.row.user_full_name ? params.row.user_full_name : '-'}
+                </Typography>
+                <Typography
+                  noWrap
+                  sx={{
+                    color: theme.palette.customColors.neutralSecondary,
+                    fontSize: '12px',
+                    fontWeight: '400',
+                    lineHeight: '14.52px'
+                  }}
+                >
+                  {params.row.created_at
+                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                    : '-'}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </>
+      )
+    }
+  ]
+
   const columns = [
     {
       width: 60,
@@ -2181,7 +2449,7 @@ const EggList = () => {
                   pagination
                   rows={indexedRows === undefined ? [] : indexedRows}
                   rowCount={total}
-                  columns={status === 'eggs_hatched' ? hatchedColumn : columns}
+                  columns={status === 'eggs_hatched' ? hatchedColumn : status === 'eggs_received' ? received : columns}
                   sortingMode='server'
                   paginationMode='server'
                   pageSizeOptions={[7, 10, 25, 50]}
