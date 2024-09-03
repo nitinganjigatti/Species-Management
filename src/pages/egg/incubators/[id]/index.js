@@ -1,10 +1,14 @@
 import {
+  Autocomplete,
   Avatar,
   Breadcrumbs,
   Card,
   CardContent,
+  FormControl,
   FormControlLabel,
+  Grid,
   Switch,
+  TextField,
   Tooltip,
   Typography,
   debounce
@@ -33,6 +37,13 @@ import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox
 import TransferIncubator from 'src/views/pages/egg/eggs/eggDetails/TransferIncubator'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
 import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { DatePicker } from '@mui/x-date-pickers'
+import dayjs from 'dayjs'
+import moment from 'moment'
+import { getSpeciesList } from 'src/lib/api/egg/dashboard'
+// import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
@@ -67,6 +78,11 @@ const IncubatorDetails = () => {
   const [statusLoading, setStatusLoading] = useState(false)
   const [active, setActive] = useState(false)
 
+  const [allocationDate, setAllocationDate] = useState(null)
+  const [collectedDate, setCollectedDate] = useState(null)
+  const [defaultSpecie, setDefaultSpecie] = useState(null)
+  const [speciesList, setSpeciesList] = useState([])
+
   let [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
@@ -89,7 +105,7 @@ const IncubatorDetails = () => {
     const difference = numValue2 - numValue1
     const percentageChange = (difference / numValue1) * 100
 
-    return percentageChange.toFixed()
+    return percentageChange > 0 ? `+${percentageChange.toFixed()}` : percentageChange.toFixed()
   }
 
   const EditRedirectionFunc = () => {
@@ -213,45 +229,53 @@ const IncubatorDetails = () => {
       field: 'stage',
       headerName: 'STATE & STAGE',
       renderCell: params => (
-        <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography
-            sx={{
-              color:
-                params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
-                  ? theme.palette.primary.dark
-                  : params.row.egg_status === 'Discard'
-                  ? '#fa6140'
-                  : params.row.egg_status === 'Hatched'
-                  ? theme.palette.primary.main
-                  : null,
-              fontSize: '14px',
-              fontWeight: '500',
-              px: 3,
-              backgroundColor:
-                params.row.egg_status === 'Discard'
-                  ? '#FFD3D3'
-                  : params.row.egg_status === 'Fresh' ||
-                    params.row.egg_status === 'Fertile' ||
-                    params.row.egg_status === 'Hatched'
-                  ? '#EFF5F2'
-                  : '#EFF5F2',
-              textAlign: 'center',
-              borderRadius: '4px',
-              display: 'inline-block'
-            }}
-          >
-            {params.row.egg_status ? params.row.egg_status : '-'}
-          </Typography>{' '}
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.state ? params.row.state : '-'}
-          </Typography>{' '}
+        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexDirection: 'column' }}>
+          <Box>
+            <Typography
+              sx={{
+                color:
+                  params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
+                    ? theme.palette.primary.dark
+                    : params.row.egg_status === 'Discard'
+                    ? '#fa6140'
+                    : params.row.egg_status === 'Hatched'
+                    ? theme.palette.primary.main
+                    : null,
+                fontSize: '14px',
+                fontWeight: '500',
+                px: 3,
+                backgroundColor:
+                  params.row.egg_status === 'Discard'
+                    ? '#FFD3D3'
+                    : params.row.egg_status === 'Fresh' ||
+                      params.row.egg_status === 'Fertile' ||
+                      params.row.egg_status === 'Hatched'
+                    ? '#EFF5F2'
+                    : '#EFF5F2',
+                // textAlign: 'center',
+                borderRadius: '4px',
+                display: 'inline-block'
+              }}
+            >
+              {params.row.egg_status ? params.row.egg_status : '-'}
+            </Typography>{' '}
+          </Box>
+          <Tooltip title={params.row.egg_state ? params.row.egg_state : '-'}>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px',
+                width: '75%',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params.row.egg_state ? params.row.egg_state : '-'}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
@@ -535,9 +559,43 @@ const IncubatorDetails = () => {
       )
     }
   ]
+  const getspeciesFunc = q => {
+    const params = {
+      q
+    }
+    try {
+      getSpeciesList(params).then(res => {
+        if (res?.data?.success) {
+          let listWithId = res?.data?.data?.result?.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
+          setSpeciesList(loadServerRows(paginationModel.page, listWithId))
+        } else {
+          setSpeciesList([])
+        }
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const searchSpecies = useCallback(
+    debounce(async q => {
+      try {
+        await getspeciesFunc(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  useEffect(() => {
+    getspeciesFunc()
+  }, [])
 
   const fetchTableData = useCallback(
-    async (sort, q, status) => {
+    async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       try {
         setLoading(true)
 
@@ -546,10 +604,11 @@ const IncubatorDetails = () => {
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-
           nursery_id: '',
           type: 'eggs_incubation',
-
+          allocate_date: allocation_date,
+          collected_date,
+          taxonomy_id,
           // type:
           //   status === undefined
           //     ? 'eggs_received'
@@ -642,10 +701,10 @@ const IncubatorDetails = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, status, isDiscarded) => {
+    debounce(async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, status, isDiscarded)
+        await fetchTableData(sort, q, status, allocation_date, collected_date, taxonomy_id)
       } catch (error) {
         console.error(error)
       }
@@ -671,9 +730,9 @@ const IncubatorDetails = () => {
     </>
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, allocation_date, collected_date, taxonomy_id) => {
     setSearchValue(value)
-    searchTableData(sort, value, status)
+    searchTableData(sort, value, status, allocation_date, collected_date, taxonomy_id)
   }
 
   const onCellClick = params => {
@@ -858,6 +917,153 @@ const IncubatorDetails = () => {
 
               <DetailCard radius={'8px'} DetailsListData={incubatorDetailList} />
 
+              <Grid container columns={15} spacing={6}>
+                <Grid item xs={3}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search'
+                      onChange={e =>
+                        handleSearch(e.target.value, allocationDate, collectedDate, defaultSpecie?.taxonomy_id)
+                      }
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid item xs={3}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      sx={{
+                        backgroundColor: '#fff',
+                        borderRadius: '8px',
+                        width: '100%',
+                        '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                          height: '40px',
+                          borderRadius: '4px'
+                        },
+                        '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                        '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                      }}
+                      value={allocationDate}
+                      onChange={newDate => {
+                        if (newDate) {
+                          const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                          setAllocationDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                          fetchTableData(
+                            sort,
+                            searchValue,
+                            status,
+                            formattedDate,
+                            collectedDate,
+                            defaultSpecie?.taxonomy_id
+                          )
+                        }
+                      }}
+                      label={'Allocated Date'}
+                      maxDate={dayjs()}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+                <Grid item xs={3}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <DatePicker
+                      sx={{
+                        backgroundColor: '#fff',
+                        borderRadius: '8px',
+                        width: '100%',
+                        '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                          height: '40px',
+                          borderRadius: '4px'
+                        },
+                        '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                        '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                      }}
+                      value={collectedDate}
+                      onChange={newDate => {
+                        if (newDate) {
+                          const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                          setCollectedDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                          fetchTableData(
+                            sort,
+                            searchValue,
+                            status,
+                            allocationDate,
+                            formattedDate,
+                            defaultSpecie?.taxonomy_id
+                          )
+                        }
+                      }}
+                      label={'Collected Date'}
+                      maxDate={dayjs()}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+
+                <Grid item xs={3}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      name='species'
+                      value={defaultSpecie}
+                      disablePortal
+                      id='species'
+                      options={speciesList?.length > 0 ? speciesList : []}
+                      getOptionLabel={option => option.default_common_name}
+                      isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultSpecie(null)
+                          fetchTableData(sort, searchValue, status, allocationDate, collectedDate, null)
+                        } else {
+                          setDefaultSpecie(val)
+                          fetchTableData(sort, searchValue, status, allocationDate, collectedDate, val.taxonomy_id)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          sx={{
+                            backgroundColor: '#fff',
+                            borderRadius: '8px',
+                            width: '100%',
+                            '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                              height: '40px',
+                              borderRadius: '4px'
+                            },
+                            '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
+                            }
+                          }}
+                          onChange={e => {
+                            searchSpecies(e.target.value)
+                          }}
+                          {...params}
+                          label='Specie'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              </Grid>
               {egg_collection_permission && (
                 <Box>
                   <CustomDataGrid
@@ -885,7 +1091,7 @@ const IncubatorDetails = () => {
                     pageSizeOptions={[5, 10, 25, 50]}
                     paginationModel={paginationModel}
                     onSortModelChange={handleSortModel}
-                    slots={{ toolbar: ServerSideToolbarWithFilter }}
+                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
                     slotProps={{

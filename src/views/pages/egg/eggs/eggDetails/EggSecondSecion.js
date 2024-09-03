@@ -438,13 +438,15 @@ const EggSecondSecion = ({
               <Box
                 sx={{
                   display: 'flex',
-                  height: '68px',
+                  minHeight: '68px',
+                  gap: '16px',
                   borderRadius: '8px',
                   justifyContent: 'space-between',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Box sx={{ maxWidth: '150px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Box
                     sx={{
                       width: '64px',
@@ -459,31 +461,32 @@ const EggSecondSecion = ({
                     ></Avatar>
                   </Box>
                   <Box>
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: '14px',
-                          lineHeight: '16.94px',
-                          mb: '4px',
-                          color: theme.palette.customColors.neutralSecondary
-                        }}
-                      >
-                        {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
-                      </Typography>
-                    </Box>
-                    <Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: '14px',
+                        lineHeight: '16.94px',
+                        mb: '4px',
+                        color: theme.palette.customColors.neutralSecondary
+                      }}
+                    >
+                      {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
+                    </Typography>
+                    <Tooltip title={eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}>
                       <Typography
                         sx={{
                           fontWeight: 600,
                           fontSize: '16px',
                           lineHeight: '19.36px',
-                          color: theme.palette.customColors.OnSurfaceVariant
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
                         }}
                       >
                         {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
                       </Typography>
-                    </Box>
+                    </Tooltip>
                   </Box>
                 </Box>
                 {Number(eggDetails?.action_to_be_taken) != 4 ? (

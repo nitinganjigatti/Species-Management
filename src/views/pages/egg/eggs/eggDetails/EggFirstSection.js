@@ -292,13 +292,14 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
               <Box
                 sx={{
                   height: '100%',
+                  gap: 4,
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'row' },
                   justifyContent: 'space-between',
                   mb: '24px'
                 }}
               >
-                <Box sx={{ mb: { xs: 4 } }}>
+                <Box sx={{ height: '72px' }}>
                   <Typography
                     sx={{
                       textAlign: { xs: 'center', sm: 'start' },
@@ -314,7 +315,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     <Typography
                       sx={{
                         textAlign: { xs: 'center', sm: 'start' },
-                        mb: { xs: 4 },
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
