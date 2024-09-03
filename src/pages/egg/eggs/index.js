@@ -696,85 +696,27 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 150,
-    //   sortable: false,
-    //   field: 'hatch_no',
-    //   headerName: 'Hatch NO',
+    {
+      width: 150,
+      sortable: false,
+      field: 'hatch_no',
+      headerName: 'Hatch NO',
 
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px',
-    //         ml: 3
-    //       }}
-    //     >
-    //       {params.row.hatch_no ? params.row.hatch_no : '-'}
-    //     </Typography>
-    //   )
-    // },
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.hatch_no ? params.row.hatch_no : '-'}
+        </Typography>
+      )
+    },
 
-    // {
-    //   width: 140,
-    //   field: 'egg_number',
-    //   sortable: false,
-    //   headerName: 'EGG NUMBER',
-    //   renderCell: params => (
-    //     <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-    //       <Typography
-    //         style={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: '500'
-
-    //           // lineHeight: '19.36px'
-    //         }}
-    //       >
-    //         {params.row.egg_code ? params.row.egg_code : '-'}
-    //       </Typography>{' '}
-    //       <Typography
-    //         sx={{
-    //           color:
-    //             params.row.egg_condition === 'Intact'
-    //               ? theme.palette.primary.main
-    //               : params.row.egg_condition === 'Rotten'
-    //               ? '#fa6140'
-    //               : params.row.egg_condition === 'Cracked'
-    //               ? '#fa6140'
-    //               : params.row.egg_condition === 'Broken'
-    //               ? '#fa6140'
-    //               : params.row.egg_condition === 'Hatched'
-    //               ? '#32bfdd'
-    //               : params.row.egg_condition === 'Thin-Shelled'
-    //               ? '#fa6140'
-    //               : null,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           px: 3,
-
-    //           backgroundColor:
-    //             params.row.egg_condition === 'Rotten'
-    //               ? '#FFD3D3'
-    //               : params.row.egg_condition === 'Cracked'
-    //               ? '#FFD3D3'
-    //               : params.row.egg_condition === 'Broken'
-    //               ? '#FFD3D3'
-    //               : params.row.egg_condition === 'Thin-Shelled'
-    //               ? '#FFD3D3'
-    //               : '#E1F9ED',
-
-    //           textAlign: 'center',
-    //           borderRadius: '4px'
-    //         }}
-    //       >
-    //         {params.row.egg_condition ? params.row.egg_condition : '-'}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
     {
       width: 200,
       sortable: false,
