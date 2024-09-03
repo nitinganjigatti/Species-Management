@@ -396,7 +396,7 @@ const EggList = () => {
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
           completeName={params.row.complete_name}
-          eggIcon={'/icons/Egg_icon.png'}
+          eggIcon={params.row.egg_status === 'Hatched' ? '/icons/Egg_hatched.png' : '/icons/Egg_icon.png'}
         />
       )
     },
@@ -971,7 +971,7 @@ const EggList = () => {
         <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <SpeciesImageCard
             imgURl={params.row.default_icon}
-            eggCondition={params.row.egg_condition}
+            eggCondition={''}
             egg_status={params.row.egg_status}
             eggCode={params.row.egg_code}
             defaultName={params.row.default_common_name}
@@ -1036,7 +1036,8 @@ const EggList = () => {
                   lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  width: 170
 
                   // Ensures Typography doesn't exceed container width
                 }}
@@ -1434,7 +1435,7 @@ const EggList = () => {
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
-          eggCondition={params.row.egg_condition}
+          eggCondition={''}
           egg_status={params.row.egg_status}
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
@@ -1475,35 +1476,65 @@ const EggList = () => {
       )
     },
     {
-      width: 200,
+      width: 160,
       field: 'stage_state',
       sortable: false,
       headerName: ' STATE & STAGE',
+
+      // align: 'center',
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
-            <TextCard egg_status={params.row.egg_status} />
+            {params.row?.egg_condition === 'Broken' || params.row?.egg_condition === 'Rotten' ? (
+              <Box
+                sx={{
+                  borderRadius: '4px',
+                  px: 3,
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+
+                  backgroundColor: '#ffebe5'
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: params.row?.egg_condition === 'Rotten' ? '#FA6140' : '#E93353',
+
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  {params.row?.egg_condition}
+                </Typography>
+              </Box>
+            ) : (
+              <TextCard egg_status={params.row.egg_status} />
+            )}
           </Box>
 
-          <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: '400',
-                lineHeight: '19.36px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-
-                // Ensures Typography doesn't exceed container width
-              }}
-            >
-              {params.row.egg_state ? params.row.egg_state : '-'}
-            </Typography>
-          </Tooltip>
+          {params.row.egg_state && (
+            <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: 160
+                }}
+              >
+                {params.row.egg_state}
+              </Typography>
+            </Tooltip>
+          )}
         </Stack>
       )
     },
+    ,
     {
       width: 160,
       sortable: false,
@@ -1685,7 +1716,7 @@ const EggList = () => {
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
-          eggCondition={params.row.egg_condition}
+          eggCondition={''}
           egg_status={params.row.egg_status}
           eggCode={params.row.egg_code}
           defaultName={params.row.default_common_name}
@@ -1726,7 +1757,7 @@ const EggList = () => {
       )
     },
     {
-      width: 200,
+      width: 160,
       field: 'stage_state',
       sortable: false,
       headerName: ' STATE & STAGE',
@@ -1735,25 +1766,52 @@ const EggList = () => {
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
-            <TextCard egg_status={params.row.egg_status} />
+            {params.row?.egg_condition === 'Broken' || params.row?.egg_condition === 'Rotten' ? (
+              <Box
+                sx={{
+                  borderRadius: '4px',
+                  px: 3,
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+
+                  backgroundColor: '#ffebe5'
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: params.row?.egg_condition === 'Rotten' ? '#FA6140' : '#E93353',
+
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}
+                >
+                  {params.row?.egg_condition}
+                </Typography>
+              </Box>
+            ) : (
+              <TextCard egg_status={params.row.egg_status} />
+            )}
           </Box>
 
-          <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: '400',
-                lineHeight: '19.36px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-
-                // Ensures Typography doesn't exceed container width
-              }}
-            >
-              {params.row.egg_state ? params.row.egg_state : '-'}
-            </Typography>
-          </Tooltip>
+          {params.row.egg_state && (
+            <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: 160
+                }}
+              >
+                {params.row.egg_state}
+              </Typography>
+            </Tooltip>
+          )}
         </Stack>
       )
     },
@@ -1855,7 +1913,7 @@ const EggList = () => {
             : '-'}
         </Typography>
       )
-    },
+    }
 
     // {
     //   width: 140,
@@ -1876,94 +1934,94 @@ const EggList = () => {
     //   )
     // },
 
-    {
-      width: 270,
-      sortable: false,
-      field: 'collected_by',
-      headerName: 'COLLECTED BY',
-      renderCell: params => (
-        <>
-          {/* {status === 'eggs_received' && (
-            <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-              Allocate{' '}
-            </Button>
-          )} */}
-          {status === 'eggs_received' ? (
-            <>
-              <div>
-                <DiscardStatusCell
-                  customButton={status === 'eggs_received' ? 'customButton' : null}
-                  hideField='hideField'
-                  params={params}
-                  setIsOpen={setIsOpen}
-                  handleDiscard={handleDiscard}
-                  setEggId={setEggId}
-                  handleAction={handleAction}
-                  setAllocationValues={setAllocationValues}
+    // {
+    //   width: 270,
+    //   sortable: false,
+    //   field: 'collected_by',
+    //   headerName: 'COLLECTED BY',
+    //   renderCell: params => (
+    //     <>
+    //       {/* {status === 'eggs_received' && (
+    //         <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
+    //           Allocate{' '}
+    //         </Button>
+    //       )} */}
+    //       {status === 'eggs_received' ? (
+    //         <>
+    //           <div>
+    //             <DiscardStatusCell
+    //               customButton={status === 'eggs_received' ? 'customButton' : null}
+    //               hideField='hideField'
+    //               params={params}
+    //               setIsOpen={setIsOpen}
+    //               handleDiscard={handleDiscard}
+    //               setEggId={setEggId}
+    //               handleAction={handleAction}
+    //               setAllocationValues={setAllocationValues}
 
-                  // hover={hover} setHover={setHover}
-                />
-              </div>
-            </>
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Avatar
-                variant='square'
-                alt='Medicine Image'
-                className={status === 'eggs_received' ? 'hideField' : ''}
-                sx={{
-                  width: 30,
-                  height: 30,
+    //               // hover={hover} setHover={setHover}
+    //             />
+    //           </div>
+    //         </>
+    //       ) : (
+    //         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    //           <Avatar
+    //             variant='square'
+    //             alt='Medicine Image'
+    //             className={status === 'eggs_received' ? 'hideField' : ''}
+    //             sx={{
+    //               width: 30,
+    //               height: 30,
 
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
-                }}
-              >
-                {params.row.user_profile_pic ? (
-                  <img
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    src={params.row.user_profile_pic}
-                    alt='Profile'
-                  />
-                ) : (
-                  <Icon icon='mdi:user' fontSize={30} />
-                )}
-              </Avatar>
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column' }}
-                className={status === 'eggs_received' ? 'hideField' : ''}
-              >
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  {params.row.user_full_name ? params.row.user_full_name : '-'}
-                </Typography>
-                <Typography
-                  noWrap
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: '12px',
-                    fontWeight: '400',
-                    lineHeight: '14.52px'
-                  }}
-                >
-                  {params.row.created_at
-                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
-                    : '-'}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-        </>
-      )
-    }
+    //               borderRadius: '50%',
+    //               background: '#E8F4F2',
+    //               overflow: 'hidden'
+    //             }}
+    //           >
+    //             {params.row.user_profile_pic ? (
+    //               <img
+    //                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    //                 src={params.row.user_profile_pic}
+    //                 alt='Profile'
+    //               />
+    //             ) : (
+    //               <Icon icon='mdi:user' fontSize={30} />
+    //             )}
+    //           </Avatar>
+    //           <Box
+    //             sx={{ display: 'flex', flexDirection: 'column' }}
+    //             className={status === 'eggs_received' ? 'hideField' : ''}
+    //           >
+    //             <Typography
+    //               noWrap
+    //               sx={{
+    //                 color: theme.palette.customColors.OnSurfaceVariant,
+    //                 fontSize: '14px',
+    //                 fontWeight: '500',
+    //                 lineHeight: '16.94px'
+    //               }}
+    //             >
+    //               {params.row.user_full_name ? params.row.user_full_name : '-'}
+    //             </Typography>
+    //             <Typography
+    //               noWrap
+    //               sx={{
+    //                 color: theme.palette.customColors.neutralSecondary,
+    //                 fontSize: '12px',
+    //                 fontWeight: '400',
+    //                 lineHeight: '14.52px'
+    //               }}
+    //             >
+    //               {params.row.created_at
+    //                 ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+    //                 : '-'}
+    //             </Typography>
+    //           </Box>
+    //         </Box>
+    //       )}
+    //     </>
+    //   )
+    // }
   ]
 
   const handleAction = (event, params) => {

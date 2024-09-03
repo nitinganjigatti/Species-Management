@@ -20,6 +20,14 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           bgcolor:
             tab === 'hatched'
               ? '#37BD69'
+              : egg_status === 'Hatched'
+              ? '#37BD69'
+              : eggCondition === 'Broken'
+              ? '#e93353'
+              : eggCondition === 'Rotten'
+              ? '#fa6140'
+              : eggCondition === 'Cracked'
+              ? '#e4b819'
               : egg_status === 'Fresh'
               ? '#006d35'
               : egg_status === 'Fertile'
@@ -165,11 +173,11 @@ const TextCard = ({ egg_status }) => {
 
         backgroundColor:
           egg_status === 'Rotten'
-            ? '#FFD3D3'
+            ? '#ffebe5'
             : egg_status === 'Cracked'
             ? '#fdfad7'
             : egg_status === 'Discard'
-            ? '#FFD3D3'
+            ? '#ffebe5'
             : egg_status === 'Thin-Shelled'
             ? '#E8F4F2'
             : egg_status === 'Fertile'
