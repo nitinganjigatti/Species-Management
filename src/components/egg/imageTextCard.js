@@ -82,8 +82,9 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
         <Tooltip title={defaultName}>
           <Typography
             sx={{
-              color: theme.palette.primary.light,
               fontSize: '16px',
+              // color: theme.palette.primary.light,
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontWeight: '500',
               lineHeight: '19.36px',
               overflow: 'hidden',
@@ -98,7 +99,8 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
         <Tooltip title={completeName}>
           <Typography
             sx={{
-              color: theme.palette.primary.light,
+              // color: theme.palette.primary.light,
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
               fontWeight: '400',
               lineHeight: '16.94px',
