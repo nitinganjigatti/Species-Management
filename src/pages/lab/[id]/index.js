@@ -715,7 +715,7 @@ const RequestDetails = () => {
             />
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5 }}>
+              <Box sx={{ px: 5, mb: 6 }}>
                 <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
 
                 {/* <CommonMediaView /> */}
