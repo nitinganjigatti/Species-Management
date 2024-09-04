@@ -76,7 +76,8 @@ const RequestDetails = () => {
   const [popUpRow, setPopUpRow] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
 
-  const { id } = Router.query
+  const { id, lab_id } = Router.query
+
   const searchParams = useSearchParams()
   const Selectedlab_id = searchParams.get('lab_id')
 
@@ -98,7 +99,7 @@ const RequestDetails = () => {
 
   const [status, setStatus] = React.useState()
 
-  const localLabData = storedData?.modules?.lab_data.lab
+  const localLabData = storedData?.modules?.lab_data?.lab
 
   const PrvLabId = request[0]?.lab_id
 
@@ -138,12 +139,14 @@ const RequestDetails = () => {
   //...........
 
   useEffect(() => {
-    const labObject = localLabData?.find(item => item[0]?.lab_id === PrvLabId)
+    const labObject = localLabData?.find(item => item?.lab_id === lab_id)
+
+    // console.log('localLabData :>> ', localLabData)
 
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
-  }, [PrvLabId])
+  }, [])
 
   const handleChangeStatus = async (event, params) => {
     setStatus(event.target.value)

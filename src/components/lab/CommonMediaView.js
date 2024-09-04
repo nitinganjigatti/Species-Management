@@ -181,7 +181,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                     {item?.user_profile?.name}
                   </Typography>
                 </Box>
-                <Box>{moment(userData?.created_at).format('hh:mm A')}</Box>
+                <Box>{moment(item?.user_profile?.created_at).format('hh:mm A')}</Box>
               </Box>
             </Card>
           </a>
