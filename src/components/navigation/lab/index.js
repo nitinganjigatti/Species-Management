@@ -23,10 +23,10 @@ const ComposeLabNavigation = ({ labRole }) => {
     title: 'Lab Sample',
     path: '/lab/master/lab-sample'
   }
-  const labTest = {
-    title: 'Lab Test',
-    path: '/lab/master/lab-test'
-  }
+  // const labTest = {
+  //   title: 'Lab Test',
+  //   path: '/lab/master/lab-test'
+  // }
 
   const mastersLabParent = {
     title: 'Lab Master',
@@ -44,7 +44,7 @@ const ComposeLabNavigation = ({ labRole }) => {
 
   if (labList?.length > 0) {
     labNavigationArray.push(labTitle)
-    mastersLabParent.children.push(labSample, labTest)
+    mastersLabParent.children.push(labSample)
     labNavigationArray.push(lab, request, mastersLabParent)
   } else if (addlabPermission) {
     labNavigationArray.push(labTitle)

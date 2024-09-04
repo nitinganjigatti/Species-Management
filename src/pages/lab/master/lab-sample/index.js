@@ -87,7 +87,10 @@ const SampleCard = ({ sample, onEdit, onDelete, handleCardClick }) => {
         p: 3,
         cursor: 'pointer'
       }}
-      onClick={() => handleCardClick(sample?.id)}
+      onClick={e => {
+        e.stopPropagation()
+        handleCardClick(sample?.id)
+      }}
     >
       {/* Icons positioned at the top right */}
       <Box
@@ -99,10 +102,22 @@ const SampleCard = ({ sample, onEdit, onDelete, handleCardClick }) => {
           gap: 1 // Space between the icons
         }}
       >
-        <IconButton onClick={() => onEdit(sample)} size='small'>
+        <IconButton
+          onClick={e => {
+            e.stopPropagation()
+            onEdit(sample)
+          }}
+          size='small'
+        >
           <EditIcon />
         </IconButton>
-        <IconButton onClick={() => onDelete(sample)} size='small'>
+        <IconButton
+          onClick={e => {
+            e.stopPropagation()
+            onDelete(sample)
+          }}
+          size='small'
+        >
           <DeleteIcon />
         </IconButton>
       </Box>
@@ -234,8 +249,8 @@ const LabSamples = () => {
       <AddButton title='Add Samples' action={() => addEventSidebarOpen()} />
     </>
   )
-  const handleCardClick = sampleId => {
-    Router.push(`/lab/master/lab-test/ ?${sampleId}`)
+  const onCardClick = sampleId => {
+    Router.push(`/lab/master/lab-test?sample_id=${sampleId}`)
   }
 
   return (
@@ -254,12 +269,7 @@ const LabSamples = () => {
               //   <SampleCard sample={sample} onEdit={handleEdit} onDelete={handleDelete} />
               // </Grid>
               <Grid item xs={12} key={sample.id}>
-                <SampleCard
-                  sample={sample}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  handleCardClick={handleCardClick}
-                />
+                <SampleCard sample={sample} onEdit={handleEdit} onDelete={handleDelete} handleCardClick={onCardClick} />
               </Grid>
             ))}
           </Grid>
