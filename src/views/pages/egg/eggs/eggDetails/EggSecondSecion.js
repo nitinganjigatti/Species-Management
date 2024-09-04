@@ -446,7 +446,7 @@ const EggSecondSecion = ({
                   flexWrap: 'wrap'
                 }}
               >
-                <Box sx={{ maxWidth: '150px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Box
                     sx={{
                       width: '64px',
