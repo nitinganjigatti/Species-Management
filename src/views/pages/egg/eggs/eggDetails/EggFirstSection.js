@@ -369,7 +369,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         </Button>
                       </Box>
                     )}
-                    {Number(eggDetails?.action_to_be_taken) === 4 ? (
+                    {Number(eggDetails?.action_to_be_taken) === 4 &&
+                    !eggDetails?.egg_condition === ('Broken' || 'Rotten') ? (
                       <Box>
                         <Button onClick={() => setOpenAllocate(true)} variant='contained'>
                           ALLOCATE

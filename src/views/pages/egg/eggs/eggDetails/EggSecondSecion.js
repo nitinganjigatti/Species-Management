@@ -371,7 +371,7 @@ const EggSecondSecion = ({
   const series = [
     {
       name: 'Actual Value',
-      data: rowsWeight.reverse()
+      data: rowsWeight?.reverse()
     }
   ]
 
