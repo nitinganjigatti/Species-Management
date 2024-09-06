@@ -143,8 +143,10 @@ const AddIncubators = ({
   )
 
   useEffect(() => {
-    NurseryList()
-  }, [])
+    if (sidebarOpen && nurseryList.length == 0) {
+      NurseryList()
+    }
+  }, [sidebarOpen])
 
   const {
     reset,
