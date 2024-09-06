@@ -2511,7 +2511,12 @@ const EggList = () => {
                   //   />
                   // }
                 />
-                <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
+                <Tab
+                  value='all'
+                  label='All'
+
+                  //  label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />}
+                />
               </TabList>
               <TabPanel value='eggs_received' sx={{ p: 0 }}>
                 {' '}
