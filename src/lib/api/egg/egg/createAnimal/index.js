@@ -68,6 +68,7 @@ export async function createAnimal(params) {
     return error
   }
 }
+
 export async function getTaxonomyList(params) {
   try {
     const response = await axiosPost({
