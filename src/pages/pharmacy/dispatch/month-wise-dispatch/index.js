@@ -31,6 +31,7 @@ import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { height } from '@mui/system'
+import MonthWisedispatchFilter from './MonthwiseDispatchFilterDrawer'
 
 const MonthWiseDispatch = () => {
   const [loader, setLoader] = useState(false)
@@ -461,18 +462,18 @@ const MonthWiseDispatch = () => {
                   //onRowClick={handleEdit}
                 />
               </Card>
-              {/* {openFilterDrawer && (
-        <EggFilterDrawer
-          setOpenFilterDrawer={setOpenFilterDrawer}
-          openFilterDrawer={openFilterDrawer}
-          setFilterList={setFilterList}
-          setSelectedFiltersOptions={setSelectedFiltersOptions}
-          selectedOptions={selectedOptions}
-          setSelectedOptions={setSelectedOptions}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-        />
-      )} */}
+              {openFilterDrawer && (
+                <MonthWisedispatchFilter
+                  setOpenFilterDrawer={setOpenFilterDrawer}
+                  openFilterDrawer={openFilterDrawer}
+                  setFilterList={setFilterList}
+                  setSelectedFiltersOptions={setSelectedFiltersOptions}
+                  selectedOptions={selectedOptions}
+                  setSelectedOptions={setSelectedOptions}
+                  selectedDate={selectedDate}
+                  setSelectedDate={setSelectedDate}
+                />
+              )}
             </>
           )}
         </>
