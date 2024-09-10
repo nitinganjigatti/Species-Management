@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { useEffect, useState } from 'react'
 import MenuItem from '@mui/material/MenuItem'
-
+import Router from 'next/router'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
@@ -188,8 +188,15 @@ const MonthlyDispatchChart = () => {
     }
   }
 
+  const handleclick = () => {
+    Router.push({
+      // pathname: '/pharmacy/dashboard/MonthwiseDispatchData/MonthWiseDispatch'
+      pathname: '/pharmacy/dispatch/month-wise-dispatch'
+    })
+  }
+
   return (
-    <Card>
+    <Card onClick={handleclick}>
       <CardHeader
         title='Month wise dispatch'
         action={
