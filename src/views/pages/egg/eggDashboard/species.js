@@ -1,4 +1,14 @@
-import { Autocomplete, Avatar, debounce, FormControl, Grid, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Autocomplete,
+  Avatar,
+  Button,
+  debounce,
+  FormControl,
+  Grid,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -19,6 +29,9 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import Router from 'next/router'
+import DashboardSlider from '../eggs/dashboardSlider'
+import DiscardEggSlider from '../eggs/discardEggSlider'
+import EggFilterSlider from '../eggs/eggFilterSlider'
 
 const Species = () => {
   const authData = useContext(AuthContext)
@@ -40,6 +53,9 @@ const Species = () => {
   const [defaultToSite, setDefaultToSite] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [openDiscard, setOpenDiscard] = useState(false)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const NurseryList = async q => {
     try {
@@ -356,6 +372,19 @@ const Species = () => {
     }
   }
 
+  const addEventSidebarOpen = () => {
+    setOpenDrawer(true)
+    setOpenDiscard(false)
+  }
+
+  const addDiscardSidebarOpen = () => {
+    setOpenDiscard(true)
+  }
+
+  const addFilterSidebarOpen = ()=>{
+    setOpenFilterDrawer(true)
+  }
+
   const getspeciesFunc = useCallback(
     async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
       try {
@@ -449,6 +478,19 @@ const Species = () => {
       >
         Species
       </Typography>
+      <Typography sx={{ display: 'flex', justifyContent: 'end' }}>
+        <Button variant='contained' onClick={() => addEventSidebarOpen()} sx={{ mr: 2 }}>
+          Nursery
+        </Button>
+        <Button variant='contained' onClick={() => addDiscardSidebarOpen()}  sx={{ mr: 2 }}>
+          Discard
+       
+        </Button>
+        <Button variant='contained' onClick={() => addFilterSidebarOpen()}>
+          Filter
+        </Button>
+      </Typography>
+
       <Grid container columns={15} spacing={6}>
         <Grid item xs={3}>
           <Box
@@ -807,6 +849,9 @@ const Species = () => {
         // }}
         onCellClick={onCellClick}
       />
+      {openDrawer && <DashboardSlider openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />}
+      {openDiscard && <DiscardEggSlider openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />}
+      {openFilterDrawer && <EggFilterSlider openFilterDrawer={openFilterDrawer} setOpenFilterDrawer = {setOpenFilterDrawer} />}
     </Box>
   )
 }
