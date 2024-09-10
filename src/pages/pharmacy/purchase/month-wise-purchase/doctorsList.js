@@ -1,7 +1,9 @@
 import { useTheme } from '@mui/material/styles'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import {
+  Avatar,
   Box,
+  Card,
   Checkbox,
   debounce,
   Divider,
@@ -15,14 +17,14 @@ import {
 
 import Icon from 'src/@core/components/icon'
 
-const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
+const MedicineNamedoctorsList = ({ openDoctorListDrawer, setOpenDoctorListDrawer }) => {
   const handleClose = () => {
-    setOpenFilterDrawer(false)
+    setOpenDoctorListDrawer(false)
   }
   return (
     <Drawer
       anchor='right'
-      open={openFilterDrawer}
+      open={openDoctorListDrawer}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
         position: 'relative',
@@ -43,8 +45,8 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - </Typography>
+          <Icon icon='hugeicons:medicine-bottle-01' fontSize={30} />
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handleClose}>
@@ -53,6 +55,22 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
           </IconButton>
         </Box>
       </Box>
+      <Box
+        className='sidebar-header'
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: 'background.default',
+          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>18 Doctors </Typography>
+        </Box>
+        <Typography sx={{ fontSize: '20px', fontWeight: 400, fontWeight: 500 }}>110 nos.</Typography>
+      </Box>
+
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -64,8 +82,8 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
           <Grid item md={8} sm={8} xs={8}>
             <Box
               sx={{
-                bgcolor: '#FFFFFF',
-                p: '16px',
+                //bgcolor: '#FFFFFF',
+                pt: '16px',
                 borderRadius: '8px',
                 width: '525px',
                 height: '550px',
@@ -86,14 +104,15 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                     border: '1px solid #C3CEC7',
                     borderRadius: '4px',
                     padding: '0 8px',
-                    height: '40px',
-                    mb: 4
+                    height: '50px',
+                    mb: 4,
+                    bgcolor: '#FFFFFF'
                   }}
                 >
                   <Icon icon='mi:search' />
                   <TextField
                     variant='outlined'
-                    placeholder='Search'
+                    placeholder='Search by doctors'
                     //value={searchQuery}
                     //onChange={handleSearchChange}
                     InputProps={{
@@ -110,27 +129,28 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                     }}
                   />
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Checkbox
-                    //checked={selectAll}
-                    //onChange={handleSelectAllChange}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                  />
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                </Box>
-                <Divider sx={{ mb: 3 }} />
               </>
 
-              <Box sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Checkbox
-                    //checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                    //onChange={() => handleCheckboxChange(option.id, option.name)}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                  />
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>sldjljl</Typography>
+              <Card
+                sx={{
+                  mt: 2,
+                  boxShadow: 'none',
+                  border: '1px solid #C3CEC7',
+                  height: '70px',
+                  p: 5,
+                  borderRadius: '8px'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar alt='Name' sx={{ width: 30, height: 30, mr: 2 }} src={'/images/avatars/1.png'} />
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
+                      Dr.Nidhin Prathap
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A' }}>110 nos.</Typography>
                 </Box>
-              </Box>
+              </Card>
             </Box>
           </Grid>
         </Grid>
@@ -139,4 +159,4 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
   )
 }
 
-export default MonthWisedispatchFilter
+export default MedicineNamedoctorsList

@@ -15,7 +15,7 @@ import {
 
 import Icon from 'src/@core/components/icon'
 
-const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
+const MonthWisepurchaseFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
   const handleClose = () => {
     setOpenFilterDrawer(false)
   }
@@ -139,4 +139,4 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
   )
 }
 
-export default MonthWisedispatchFilter
+export default MonthWisepurchaseFilter

@@ -31,10 +31,10 @@ import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { height } from '@mui/system'
-import MonthWisepurchaseFilter from './monthwisePurchaseFilterDrawer'
+import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
 import MedicineNamedoctorsList from './doctorsList'
 
-const MonthWisePurchase = () => {
+const StoreWiseDispatch = () => {
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
@@ -339,13 +339,13 @@ const MonthWisePurchase = () => {
                     color='text.primary'
                     onClick={() => Router.push('/pharmacy/dashboard')}
                   >
-                    Month wise purchase report
+                    Month wise dispatch report
                   </Typography>
                   {/* <Typography color='text.primary'>Diet Details</Typography> */}
                 </Breadcrumbs>
               </Box>
               <Card>
-                <CardHeader title='Month wise purchase' action={headerAction} />
+                <CardHeader title='Month wise dispatch' action={headerAction} />
                 <Grid container sx={{ display: 'flex', pr: 5, pt: 2 }} className=''>
                   <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
                     <FormControl fullWidth size='small'>
@@ -372,8 +372,7 @@ const MonthWisePurchase = () => {
                         <SingleDatePicker
                           fullWidth
                           className=''
-                          width={'70%'}
-                          height='0.6rem'
+                          width={'100%'}
                           date={date}
                           value={date}
                           name={'From Date*'}
@@ -390,8 +389,7 @@ const MonthWisePurchase = () => {
                         <SingleDatePicker
                           fullWidth
                           className=''
-                          width={'70%'}
-                          height='0.6rem'
+                          width={'100%'}
                           date={date}
                           value={date}
                           name={'To Date*'}
@@ -464,7 +462,7 @@ const MonthWisePurchase = () => {
                 />
               </Card>
               {openFilterDrawer && (
-                <MonthWisepurchaseFilter
+                <MonthWisedispatchFilter
                   setOpenFilterDrawer={setOpenFilterDrawer}
                   openFilterDrawer={openFilterDrawer}
                 />
@@ -487,4 +485,4 @@ const MonthWisePurchase = () => {
   )
 }
 
-export default MonthWisePurchase
+export default StoreWiseDispatch

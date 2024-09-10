@@ -31,26 +31,24 @@ import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { height } from '@mui/system'
-import MonthWisedispatchFilter from './MonthwiseDispatchFilterDrawer'
+import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
+import MedicineNamedoctorsList from './doctorsList'
 
 const MonthWiseDispatch = () => {
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [show, setShow] = useState(false)
-  const [configureMedId, setConfigureMedId] = useState('')
+  const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
   const [date, setDate] = useState(new Date())
   const { selectedPharmacy } = usePharmacyContext()
 
-  const closeDialog = () => {
-    setShow(false)
-  }
-
-  const showDialog = () => {
-    setShow(true)
-  }
-
-  const handlecheck = val => {
-    alert(val)
+  const handlecheckcell = val => {
+    console.log(val, 'val')
+    if (val.field === 'name') {
+      return
+    } else {
+      setOpenDoctorListDrawer(true)
+      alert(val.row.name)
+    }
   }
 
   const columns = [
@@ -60,7 +58,7 @@ const MonthWiseDispatch = () => {
       field: 'name',
       headerName: 'MEDICINE NAMES',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }} onClick={() => handlecheck(params.row.name)}>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.name}
         </Typography>
       )
@@ -348,7 +346,7 @@ const MonthWiseDispatch = () => {
               </Box>
               <Card>
                 <CardHeader title='Month wise dispatch' action={headerAction} />
-                <Grid container sx={{ display: 'flex', pr: 5, pt: 2 }} className='raghus'>
+                <Grid container sx={{ display: 'flex', pr: 5, pt: 2 }} className=''>
                   <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
                     <FormControl fullWidth size='small'>
                       <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
@@ -373,14 +371,14 @@ const MonthWiseDispatch = () => {
                       <span style={{}}>
                         <SingleDatePicker
                           fullWidth
-                          className='raghu'
-                          width={'70%'}
-                          height='0.6rem'
+                          className=''
+                          width={'100%'}
                           date={date}
                           value={date}
                           name={'From Date*'}
                           label='From Date*'
                           placeholderText={'From Date*'}
+                          size='small'
                           onChangeHandler={date => {
                             setDate(date)
                           }}
@@ -390,14 +388,14 @@ const MonthWiseDispatch = () => {
                       <span style={{ paddingLeft: '15px' }}>
                         <SingleDatePicker
                           fullWidth
-                          className='raghu'
-                          width={'70%'}
-                          height='0.6rem'
+                          className=''
+                          width={'100%'}
                           date={date}
                           value={date}
                           name={'To Date*'}
                           label='To Date*'
                           placeholderText={'To Date*'}
+                          size='small'
                           onChangeHandler={date => {
                             setDate(date)
                           }}
@@ -460,18 +458,19 @@ const MonthWiseDispatch = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
+                  onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (
                 <MonthWisedispatchFilter
                   setOpenFilterDrawer={setOpenFilterDrawer}
                   openFilterDrawer={openFilterDrawer}
-                  setFilterList={setFilterList}
-                  setSelectedFiltersOptions={setSelectedFiltersOptions}
-                  selectedOptions={selectedOptions}
-                  setSelectedOptions={setSelectedOptions}
-                  selectedDate={selectedDate}
-                  setSelectedDate={setSelectedDate}
+                />
+              )}
+              {openDoctorListDrawer && (
+                <MedicineNamedoctorsList
+                  openDoctorListDrawer={openDoctorListDrawer}
+                  setOpenDoctorListDrawer={setOpenDoctorListDrawer}
                 />
               )}
             </>

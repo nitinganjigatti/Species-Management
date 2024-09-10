@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import Router from 'next/router'
 import { getMonthWisePurchaseList } from 'src/lib/api/pharmacy/dashboard'
 
 const MonthlyPurchaseChart = () => {
@@ -188,8 +189,14 @@ const MonthlyPurchaseChart = () => {
     }
   }
 
+  const handleclick = () => {
+    Router.push({
+      pathname: '/pharmacy/purchase/month-wise-purchase'
+    })
+  }
+
   return (
-    <Card>
+    <Card onClick={handleclick}>
       <CardHeader
         title='Month wise purchase'
         action={
