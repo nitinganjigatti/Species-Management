@@ -21,8 +21,6 @@ import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, TextField, Breadcrumbs } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
@@ -35,8 +33,8 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import { height } from '@mui/system'
 
 const MonthWiseDispatch = () => {
-  const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [date, setDate] = useState(new Date())
@@ -334,13 +332,6 @@ const MonthWiseDispatch = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <CommonDialogBox
-                title={'Configure Medicine'}
-                dialogBoxStatus={show}
-                formComponent={<MedicineConfigure configureMedId={configureMedId} />}
-                close={closeDialog}
-                show={showDialog}
-              />
               <Box container spacing={6}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>Pharmacy Dashboard</Typography>
@@ -424,6 +415,7 @@ const MonthWiseDispatch = () => {
                       size='medium'
                       variant='outlined'
                       startIcon={<Icon icon='bi:filter' />}
+                      onClick={() => setOpenFilterDrawer(true)}
                     >
                       Filter
                     </LoadingButton>
@@ -469,6 +461,18 @@ const MonthWiseDispatch = () => {
                   //onRowClick={handleEdit}
                 />
               </Card>
+              {/* {openFilterDrawer && (
+        <EggFilterDrawer
+          setOpenFilterDrawer={setOpenFilterDrawer}
+          openFilterDrawer={openFilterDrawer}
+          setFilterList={setFilterList}
+          setSelectedFiltersOptions={setSelectedFiltersOptions}
+          selectedOptions={selectedOptions}
+          setSelectedOptions={setSelectedOptions}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
+      )} */}
             </>
           )}
         </>
