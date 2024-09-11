@@ -18,7 +18,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField, Breadcrumbs } from '@mui/material'
+import { Box, Avatar, Badge, TextField, Breadcrumbs, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import Utility from 'src/utility'
@@ -53,20 +53,31 @@ const MonthWisePurchase = () => {
 
   const columns = [
     {
-      flex: 0.3,
-      minWidth: 150,
+      //flex: 0.3,
+      minWidth: 200,
       field: 'name',
       headerName: 'MEDICINE NAMES',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
-        </Typography>
+        <Tooltip title={params.row.name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              whiteSpace: 'nowrap',
+              width: '160px',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.name}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'jan',
       headerName: 'January ',
       renderCell: params => (
@@ -76,8 +87,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'feb',
       headerName: 'February ',
       renderCell: params => (
@@ -87,8 +98,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'mar',
       headerName: 'March ',
       renderCell: params => (
@@ -98,8 +109,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'apr',
       headerName: 'April ',
       renderCell: params => (
@@ -109,8 +120,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'may',
       headerName: 'May ',
       renderCell: params => (
@@ -120,8 +131,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'jun',
       headerName: 'June ',
       renderCell: params => (
@@ -131,8 +142,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'jul',
       headerName: 'July ',
       renderCell: params => (
@@ -142,8 +153,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 10,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'aug',
       headerName: 'August ',
       renderCell: params => (
@@ -153,8 +164,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'sep',
       headerName: 'September ',
       renderCell: params => (
@@ -164,8 +175,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'oct',
       headerName: 'October ',
       renderCell: params => (
@@ -175,8 +186,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'nov',
       headerName: 'November ',
       renderCell: params => (
@@ -186,8 +197,8 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 100,
       field: 'dec',
       headerName: 'December ',
       renderCell: params => (
