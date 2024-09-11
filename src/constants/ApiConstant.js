@@ -295,3 +295,7 @@ export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmen
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
 
 export const USERS_REPORT = '/user/report'
+
+export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
+
+export const SPECIES_REPORT = 'v1/species/report'

@@ -1,10 +1,13 @@
 import { Button, Card, CardHeader, Grid } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { ExcelExportButton } from 'src/components/Buttons'
-import { getUsersReportList } from 'src/lib/api/parivesh/housing'
+import { getHousingReport, getSpeciesReport, getUsersReportList } from 'src/lib/api/parivesh/housing'
 
 const housing = () => {
   const [userList, setUserList] = useState([])
+  const [housingList, setHousingList] = useState([])
+  const [speciesList , setSpeciesList] = useState([])
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,9 +27,51 @@ const housing = () => {
     fetchData()
   }, [])
 
-  console.log('Users >>', userList)
+  useEffect(() => {
+    const fetchHousingData = async () => {
+      try {
+        const response = await getHousingReport()
+        if (response) {
+          const csvData = jsonToCsv(response?.data)
+          setHousingList(csvData)
 
-  const downloadCSVFile = (csvContent, fileName) => {
+          const speciesresult = await getSpeciesReport()
+          if(speciesresult){
+            const speciesCsvData =jsonToCsv(speciesresult?.data) 
+            setSpeciesList(speciesCsvData)
+          }
+
+        }
+      } catch (error) {
+        console.error('Error occurred while fetching:', error)
+      }
+    }
+    fetchHousingData()
+  }, [])
+
+
+
+  const jsonToCsv = jsonData => {
+    if (!jsonData || jsonData.length === 0) return ''
+
+    const keys = Object.keys(jsonData[0]) 
+    const csvRows = jsonData.map(item => keys.map(key => item[key] || '').join(','))
+    return [keys.join(','), ...csvRows].join('\n')
+  }
+
+  function downloadCsvFile(csvData, fileName) {
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.setAttribute('href', url)
+    a.setAttribute('download', fileName)
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+
+  const downloadNewCSVFile = (csvContent, fileName) => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
 
     const url = URL.createObjectURL(blob)
@@ -43,7 +88,17 @@ const housing = () => {
 
   const getUserDataToExport = async () => {
     const fileName = 'user_data.csv'
-    downloadCSVFile(userList, fileName)
+    downloadCsvFile(userList, fileName)
+  }
+
+  const getHousingDataToExport = async () => {
+    const filename = 'housing_data.csv'
+    downloadNewCSVFile(housingList, filename)
+  }
+
+  const getSpeciesDataToExport = async () => {
+    const filename = 'species_data.csv' 
+    downloadNewCSVFile(speciesList , filename)
   }
 
   return (
@@ -54,7 +109,7 @@ const housing = () => {
           <ExcelExportButton
             disabled={userList.length > 0 ? false : true}
             action={() => {
-              getUserDataToExport()
+              getSpeciesDataToExport()
             }}
             title='Species'
           />
@@ -64,7 +119,7 @@ const housing = () => {
           <ExcelExportButton
             disabled={userList.length > 0 ? false : true}
             action={() => {
-              getUserDataToExport()
+              getHousingDataToExport()
             }}
             title='Housing'
           />
