@@ -130,3 +130,10 @@ export async function getLabTestListByParentChild(id, payload) {
   const response = await axiosGet({ url: url, payload })
   return response.data
 }
+
+export async function getLabTestDetailsById(params) {
+  const url = `masters/detail-lab-test/${params?.id}`
+  const response = await axiosGet({ url: url })
+  return response.data
+}
+// masters/detail-lab-test/666
