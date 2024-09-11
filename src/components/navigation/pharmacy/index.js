@@ -11,6 +11,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     icon: 'lets-icons:home-duotone'
   }
 
+  const dashboardnew = {
+    title: 'New Dashboard',
+    path: '/pharmacy/newdashboard',
+    icon: 'lets-icons:home-duotone'
+  }
+
   const inventoryParent = {
     title: 'Purchase Invoice',
     path: '/pharmacy/medicine/product-list',
@@ -304,7 +310,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       // state
     )
 
-    pharmacyNavigationArray.push(dashboard, stockReport, requestListing, returnListing, directDispatchList)
+    pharmacyNavigationArray.push(
+      dashboard,
+      dashboardnew,
+      stockReport,
+      requestListing,
+      returnListing,
+      directDispatchList
+    )
 
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
@@ -334,6 +347,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
       dashboard,
+      dashboardnew,
       requestListing,
       returnListing,
 

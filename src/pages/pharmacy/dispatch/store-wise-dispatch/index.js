@@ -31,8 +31,8 @@ import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { height } from '@mui/system'
-import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
-import MedicineNamedoctorsList from './doctorsList'
+import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
+import MedicineNamedoctorsList from '../month-wise-dispatch/doctorsList'
 
 const StoreWiseDispatch = () => {
   const [loader, setLoader] = useState(false)

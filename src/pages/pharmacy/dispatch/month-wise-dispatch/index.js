@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
-// import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
@@ -19,10 +15,7 @@ import { debounce } from 'lodash'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box, TextField, Breadcrumbs, Tooltip } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
-import Utility from 'src/utility'
-import { AddButton } from 'src/components/Buttons'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -30,7 +23,6 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { height } from '@mui/system'
 import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
 import MedicineNamedoctorsList from './doctorsList'
 
