@@ -7,6 +7,7 @@ import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
+import reportNavigation from 'src/components/navigation/report'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -45,10 +46,14 @@ const ComposeNavigation = () => {
   if (egg_nursery || egg_collection) {
     const eggNav = eggNavigation({ egg_nursery, egg_collection })
     navigationArray.push(...eggNav)
+   
   }
 
   const pariveshNav = pariveshNavigation()
   navigationArray.push(...pariveshNav)
+
+  const reportNav = reportNavigation()
+  navigationArray.push(...reportNav)
 
   return navigationArray
 }
