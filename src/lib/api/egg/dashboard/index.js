@@ -1,4 +1,4 @@
-import { ADD, EDIT, EGG, INCUBATOR, LIST, NURSERY } from 'src/constants/ApiConstant'
+import { ADD, EDIT, EGG, INCUBATOR, LIST, NURSERY, DASHBOARD_DISCARD, DASHBOARD_BATCH } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../../utility'
 
 export async function getAllStats(params) {
@@ -7,6 +7,7 @@ export async function getAllStats(params) {
     params: params
   })
 }
+
 export async function getTodaysCollection() {
   return await axiosGet({
     url: `${EGG}/egg-stats`
@@ -33,6 +34,21 @@ export async function getSiteList(params) {
     params: params
   })
 }
+
+export async function getDashboardDiscardList(params) {
+  return await axiosGet({
+    url: `${EGG}/${DASHBOARD_DISCARD}`,
+    params: params
+  })
+}
+
+export async function getFilterBatchList(params) {
+  return await axiosGet({
+    url: `${EGG}/${DASHBOARD_BATCH}`,
+    params: params
+  })
+}
+
 // export async function addIncubator(payload) {
 //   try {
 //     const response = await axiosPost({ url: `${EGG}/${NURSERY}/${INCUBATOR}/${ADD}`, body: payload })

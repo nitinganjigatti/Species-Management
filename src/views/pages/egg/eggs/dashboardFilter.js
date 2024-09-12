@@ -17,15 +17,11 @@ import {
 } from '@mui/material'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
-import { getCollectedByList, GetEggMaster } from 'src/lib/api/egg/egg'
+import { GetEggMaster } from 'src/lib/api/egg/egg'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
-import { AuthContext } from 'src/context/AuthContext'
-import dayjs from 'dayjs'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import moment from 'moment'
-import { DatePicker } from '@mui/x-date-pickers'
-import { useRouter } from 'next/router'
+
+import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
+import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
 
 const leftMenu = [
   { id: 1, name: 'Species' },
@@ -36,37 +32,236 @@ const leftMenu = [
   { id: 6, name: 'Reason' }
 ]
 
-const DashboardFilter = ({ isFilterOpen, setIsFilterOpen }) => {
+const DashboardFilter = ({
+  isFilterOpen,
+  setIsFilterOpen,
+  selectedOptions,
+  setSelectedOptions,
+  setFilterList,
+  setShowFilters,
+  setApplyFilters
+}) => {
   const theme = useTheme()
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
+  const [nurseryList, setNurseryList] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [eggMaster, setEggMaster] = useState(null)
+  const [selectAll, setSelectAll] = useState(false)
+  const [taxonomyList, setTaxonomyList] = useState([])
+  const [batchList, setBatchList] = useState([])
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
+    setFilterList([])
+    setSelectedOptions({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
   }
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
   }
 
+  const NurseryList = async q => {
+    try {
+      const params = {
+        // type: ['length', 'weight'],
+        search: q ? q : ''
+
+        // page: 1,
+        // limit: 50
+      }
+      await GetNurseryList({ params: params }).then(res => {
+        setNurseryList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getEggMasterData = async () => {
+    try {
+      await GetEggMaster().then(res => {
+        if (res.success) {
+          setEggMaster(res?.data)
+
+          //   setEggStage(res?.data?.egg_state)
+        }
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getTaxonomyListFunc = async q => {
+    try {
+      getTaxonomyList(q).then(res => {
+        if (res.success) {
+          setTaxonomyList(res?.data)
+        }
+      })
+    } catch (error) {}
+  }
+
+  const getBatchList = async q => {
+    try {
+      const params = {
+        q
+      }
+      await getFilterBatchList(params).then(res => {
+        if (res?.data?.data.success) {
+          setBatchList(res?.data?.data?.data?.result)
+        }
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    if (isFilterOpen) {
+      NurseryList()
+      getEggMasterData()
+      getTaxonomyListFunc()
+      getBatchList()
+    }
+  }, [isFilterOpen])
+
+  const handleCheckboxChange = (id, name) => {
+    const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
+    const isChecked = currentSelectedOptions.some(option => option.id === id)
+
+    const newSelectedOptions = isChecked
+      ? currentSelectedOptions.filter(option => option.id !== id)
+      : [...currentSelectedOptions, { id, name }]
+
+    const allOptions = getOptionsForMenu(selectedMenu)
+    const areAllSelected = newSelectedOptions.length === allOptions.length
+
+    setSelectedOptions({
+      ...selectedOptions,
+      [selectedMenu.name]: newSelectedOptions
+    })
+
+    // Always update selectAll based on the new selection state
+    setSelectAll(areAllSelected)
+  }
+
+  const handleSelectAllChange = event => {
+    const isChecked = event.target.checked
+    setSelectAll(isChecked)
+
+    if (isChecked) {
+      // Select all options for the current menu
+      const newSelectedOptions = {
+        ...selectedOptions,
+        [selectedMenu.name]: getOptionsForMenu(selectedMenu).map(item => ({ id: item.id, name: item.name }))
+      }
+      setSelectedOptions(newSelectedOptions)
+    } else {
+      // Deselect all options for the current menu
+      const newSelectedOptions = {
+        ...selectedOptions,
+        [selectedMenu.name]: []
+      }
+      setSelectedOptions(newSelectedOptions)
+    }
+  }
+
   const getOptionsForMenu = menu => {
     switch (menu.name) {
       case 'Species':
-        return []
+        return (
+          taxonomyList?.map(species => ({
+            id: species.tsn,
+            name: species.common_name
+          })) || []
+        )
         break
       case 'Batch':
-        return []
+        return (
+          batchList?.map(batch => ({
+            id: batch.egg_discard_id,
+            name: batch.request_id
+          })) || []
+        )
       case 'Nursery':
-        return []
+        return (
+          nurseryList?.map(nursery => ({
+            id: nursery.nursery_id,
+            name: nursery.nursery_name
+          })) || []
+        )
       case 'Security status':
-        return []
+        return [
+          { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
+          { id: 'CANCELED', name: 'Canceled' },
+          { id: 'COMPLETED', name: 'Security Checked' }
+        ]
       case 'Condition':
-        return []
+        return [
+          { id: 'Broken', name: 'Broken' },
+          { id: 'Rotten', name: 'Rotten' },
+          { id: 'Creaked', name: 'Creaked' }
+        ]
       case 'Reason':
-        return []
+        const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
+
+        return filteredEggStage?.map(stage => ({
+          id: stage.id,
+          name: stage.egg_state
+        }))
       default:
         return []
     }
   }
+
+  const handleSearchChange = event => {
+    const query = event.target.value.toLowerCase()
+    setSearchQuery(event.target.value)
+
+    // console.log('SearchQuery:>> ', event.target.value)
+    searchData(event.target.value)
+  }
+
+  const handleApplyFilter = () => {
+    setSearchQuery('')
+
+    const combinedSelectedOptions = [
+      ...selectedOptions.Species,
+      ...selectedOptions.Nursery,
+      ...selectedOptions.Batch,
+
+      ...selectedOptions['Security status'],
+
+      ...selectedOptions.Condition,
+      ...selectedOptions.Reason
+    ]
+
+    // setSelectedFiltersOptions(updatedSelectedOptions)
+
+    // console.log('combinedSelectedOptions :>> ', combinedSelectedOptions)
+    setFilterList(combinedSelectedOptions)
+    setApplyFilters(selectedOptions)
+    setIsFilterOpen(false)
+  }
+
+  const searchData = useCallback(
+    debounce(async search => {
+      setSearchQuery(search)
+
+      try {
+        if (selectedMenu.name === 'Nursery') {
+          await NurseryList(search)
+        } else if (selectedMenu.name === 'Batch') {
+          await getBatchList(search)
+        } else if (selectedMenu.name === 'Species') {
+          getTaxonomyListFunc(search)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [selectedMenu]
+  )
 
   return (
     <Drawer
@@ -149,41 +344,46 @@ const DashboardFilter = ({ isFilterOpen, setIsFilterOpen }) => {
               }}
             >
               <>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #C3CEC7',
-                    borderRadius: '4px',
-                    padding: '0 8px',
-                    height: '40px',
-                    mb: 4
-                  }}
-                >
-                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search'
-                    // value={searchQuery}
-                    // onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
+                {(selectedMenu.name === 'Species' ||
+                  selectedMenu.name === 'Nursery' ||
+                  selectedMenu.name === 'Batch') && (
+                  <Box
                     sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px',
+                      mb: 4
                     }}
-                  />
-                </Box>
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search'
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      InputProps={{
+                        disableUnderline: false
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                )}
+
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    // checked={selectAll}
-                    // onChange={handleSelectAllChange}
+                    checked={selectAll}
+                    onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
@@ -191,18 +391,24 @@ const DashboardFilter = ({ isFilterOpen, setIsFilterOpen }) => {
                 <Divider sx={{ mb: 3 }} />
               </>
 
-              <Box sx={{ mt: 2 }}>
-                {getOptionsForMenu(selectedMenu)?.map((option, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      //   checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                      //   onChange={() => handleCheckboxChange(option.id, option.name)}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{option.name}</Typography>
-                  </Box>
-                ))}
-              </Box>
+              {selectedMenu && (
+                <Box sx={{ mt: 2 }}>
+                  {getOptionsForMenu(selectedMenu)?.map((option, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                      <Checkbox
+                        checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
+                        onChange={() => handleCheckboxChange(option.id, option.name)}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                      />
+                      <Typography
+                        sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D', textTransform: 'capitalize' }}
+                      >
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
           </Grid>
         </Grid>
@@ -233,8 +439,11 @@ const DashboardFilter = ({ isFilterOpen, setIsFilterOpen }) => {
           fullWidth
           variant='contained'
           size='large'
+          onClick={() => {
+            handleApplyFilter()
 
-          // onClick={handleApplyFilter}
+            setShowFilters(true)
+          }}
         >
           APPLY FILTER
         </LoadingButton>

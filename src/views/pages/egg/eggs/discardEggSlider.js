@@ -12,29 +12,60 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  debounce,
+  CircularProgress
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import DashboardFilter from './dashboardFilter'
+import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
+import Utility from 'src/utility'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
-  const [tabStatus, setTabStatus] = useState('site_wise')
+  const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [discardList, setDiscardList] = useState([])
+  const [listCount, setListCount] = useState('')
+  const [search, setSearch] = useState('')
+
+  // const [loader, setLoader] = useState(false)
 
   const [selectedDropDown, setSelectedDropDown] = useState('Last 3 days')
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    Species: [],
+    Nursery: [],
+    Batch: [],
+    'Security status': [],
+    Condition: [],
+    Reason: []
+  })
+
+  const [applyFilters, setApplyFilters] = useState({
+    Species: [],
+    Nursery: [],
+    Batch: [],
+    'Security status': [],
+    Condition: [],
+    Reason: []
+  })
+
+  console.log('selectedOptions :>> ', selectedOptions)
+  const [filterList, setFilterList] = useState([])
+  console.log('filterList :>> ', filterList)
 
   const handleDropDownChange = event => {
     setSelectedDropDown(event.target.value)
   }
 
   const handleTabChange = (event, value) => {
-    console.log('value :>> ', value)
     setTabStatus(value)
   }
 
@@ -46,6 +77,31 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       ) : null}
     </div>
   )
+
+  const handleRemoveFilter = item => {
+    // Remove the filter item from the filterList
+    const updatedFilterList = filterList.filter(filter => !(filter.id === item.id && filter.name === item.name))
+    setFilterList(updatedFilterList)
+
+    const newSelectedFilters = { ...applyFilters }
+
+    // Handle specific cases like collected_date and search
+
+    // Remove the item from other filter categories (if they are arrays)
+    for (const category in newSelectedFilters) {
+      if (Array.isArray(newSelectedFilters[category])) {
+        newSelectedFilters[category] = newSelectedFilters[category].filter(
+          filter => !(filter.id === item.id && filter.name === item.name)
+        )
+      }
+    }
+
+    // Update the selected options state
+    setSelectedOptions(newSelectedFilters)
+    setApplyFilters(newSelectedFilters)
+
+    // fetchTableData();
+  }
 
   const TabHeader = () => {
     return (
@@ -80,7 +136,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              onClick={() => {
+                setSearch('')
+                setIsSearchOpen(!isSearchOpen)
+              }}
             >
               <Icon icon='bitcoin-icons:search-filled' fontSize={18} color={isSearchOpen ? '#fff' : 'Black'} />
             </Box>
@@ -101,23 +160,27 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                width: '34px',
+                gap: 2,
+                width: filterList?.length > 0 ? '50px' : '34px',
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
                 borderColor: '#c3cec7',
-
-                bgcolor: isFilterOpen ? theme?.palette.primary.dark : null,
+                bgcolor: filterList?.length > 0 ? theme?.palette.primary.dark : null,
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              onClick={() => setIsFilterOpen(true)}
             >
-              <Icon icon='mynaui:filter' fontSize={18} color={isFilterOpen ? '#fff' : 'Black'} />
+              <Icon icon='fluent:filter-16-filled' fontSize={20} color={filterList?.length > 0 ? '#fff' : 'Black'} />
+
+              {filterList?.length > 0 && (
+                <Typography sx={{ color: '#fff', fontSize: '14px', fontWeight: 400 }}>{filterList?.length}</Typography>
+              )}
             </Box>
           </Box>
         </Stack>
-        {(isFilterOpen || isSearchOpen) && (
+        {(showFilters || isSearchOpen) && (
           <Box sx={{ px: '16px' }}>
             {isSearchOpen && (
               <Box
@@ -137,16 +200,14 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 <TextField
                   variant='outlined'
                   placeholder='Search'
-                  // value={searchQuery}
+                  value={search}
                   InputProps={{
                     disableUnderline: true
                   }}
-                  // onChange={e => {
-                  //   setSearchQuery(e.target.value)
-                  //   handleSearch(e.target.value)
-
-                  //   router.push({ query: { ...router.query, search_value: e.target.value } }, undefined, { shallow: true })
-                  // }}
+                  onChange={e => {
+                    setSearch(e.target.value)
+                    handleSearch(e.target.value)
+                  }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       border: 'none',
@@ -161,7 +222,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               </Box>
             )}
 
-            {isFilterOpen && (
+            {showFilters && (
               <Box sx={{ mt: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', gap: '12px', mb: 2, overflowX: 'auto', scrollbarWidth: 'none' }}>
                   {filterList?.length > 0 &&
@@ -187,9 +248,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
                           {/* asdfgh */}
                         </Typography>{' '}
-                        {/* <IconButton onClick={() => handleRemoveFilter(item)}> */}
-                        <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
-                        {/* </IconButton> */}
+                        <IconButton onClick={() => handleRemoveFilter(item)}>
+                          <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
+                        </IconButton>
                       </Box>
                     ))}
                 </Box>
@@ -201,195 +262,262 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     )
   }
 
-  const Card = () => {
+  const Card = ({ list }) => {
     return (
-      <Box
-        sx={{
-          m: '16px',
-          mt: 3,
-          bgcolor: 'white',
-          px: '20px',
-          py: '16px',
-          borderRadius: '8px',
-          border: '1px solid #C3CEC7'
-        }}
-      >
-        <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-            <Avatar
-              variant='rounded'
-              alt='Medicine Image'
-              sx={{
-                width: 35,
-                height: 35,
-                mr: 4,
-                borderRadius: '50%',
-                background: '#E8F4F2',
-                overflow: 'hidden'
-              }}
-            >
-              {/* {params.row.default_icon ? ( */}
-              {/* <img
-                  style={{ width: '100%', height: '100%' }}
-                  src={params.row.default_icon}
-                  alt='Profile'
-                />
-              ) : ( */}
-              <Icon icon='mdi:user' />
-              {/* )} */}
-            </Avatar>
+      <>
+        <Box
+          sx={{
+            m: '16px',
+            mt: 3,
+            bgcolor: 'white',
+            px: '20px',
+            py: '16px',
+            borderRadius: '8px',
+            border: '1px solid #C3CEC7'
+          }}
+        >
+          <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <Avatar
+                variant='rounded'
+                alt='Medicine Image'
+                sx={{
+                  width: 35,
+                  height: 35,
+                  mr: 4,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
+                }}
+              >
+                {list?.default_icon ? (
+                  <img style={{ width: '100%', height: '100%' }} src={list?.default_icon} alt='Profile' />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
 
-            <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
-                <Typography
-                  sx={{
-                    color: '#000000',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    lineHeight: '19.36px',
-                    overflow: 'hidden',
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
 
-                    // textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  {/* {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'} */}{' '}
-                  0000
-                </Typography>
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    {list?.egg_code}
+                  </Typography>
 
-                <Box
-                  sx={{
-                    borderRadius: '4px',
-                    px: 3,
+                  {list?.egg_condition && (
+                    <Box
+                      sx={{
+                        borderRadius: '4px',
+                        px: 3,
 
-                    // width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: '#FFD3D3'
+                        // width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
 
-                    // backgroundColor:
-                    //   egg_status === 'Rotten'
-                    //     ? '#FFD3D3'
-                    //     : egg_status === 'Cracked'
-                    //     ? '#fdfad7'
-                    //     : egg_status === 'Discard'
-                    //     ? '#FFD3D3'
-                    //     : egg_status === 'Thin-Shelled'
-                    //     ? '#E8F4F2'
-                    //     : egg_status === 'Fertile'
-                    //     ? '#E8F4F2'
-                    //     : '#E1F9ED'
-                  }}
+                        backgroundColor:
+                          list?.egg_condition === 'Rotten'
+                            ? '#FFD3D3'
+                            : list?.egg_condition === 'Broken'
+                            ? '#FFD3D3'
+                            : list?.egg_condition === 'Cracked'
+                            ? '#fdfad7'
+                            : list?.egg_condition === 'Discard'
+                            ? '#FFD3D3'
+                            : list?.egg_condition === 'Thin-Shelled'
+                            ? '#E8F4F2'
+                            : list?.egg_condition === 'Fertile'
+                            ? '#E8F4F2'
+                            : '#E1F9ED'
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color:
+                            list?.egg_condition === 'Fresh'
+                              ? '#006D35'
+                              : list?.egg_condition === 'Rotten'
+                              ? '#FA6140'
+                              : list?.egg_condition === 'Broken'
+                              ? '#FA6140'
+                              : list?.egg_condition === 'Cracked'
+                              ? '#E4B819'
+                              : list?.egg_condition === 'Discard'
+                              ? '#fa6140'
+                              : list?.egg_condition === 'Hatched'
+                              ? '#32bfdd'
+                              : list?.egg_condition === 'Thin-Shelled'
+                              ? '#1F515B'
+                              : '#006D35',
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {list?.egg_condition}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                <Tooltip
+                  title={
+                    list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'
+                  }
                 >
                   <Typography
                     sx={{
-                      // color:
-                      //   egg_status === 'Fresh'
-                      //     ? '#006D35'
-                      //     : egg_status === 'Rotten'
-                      //     ? '#FA6140'
-                      //     : egg_status === 'Cracked'
-                      //     ? '#E4B819'
-                      //     : egg_status === 'Discard'
-                      //     ? '#fa6140'
-                      //     : egg_status === 'Hatched'
-                      //     ? '#32bfdd'
-                      //     : egg_status === 'Thin-Shelled'
-                      //     ? '#1F515B'
-                      //     : '#006D35',
-                      fontSize: '14px',
-                      fontWeight: '500'
+                      color: '#1F415B',
+                      fontSize: '16px',
+                      fontWeight: 500,
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '240px'
                     }}
                   >
-                    Rotten
+                    {list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'}
                   </Typography>
-                </Box>
+                </Tooltip>
               </Box>
-
-              <Tooltip
-
-              // title={
-              //   params.row?.default_common_name
-              //     ? Utility?.toPascalSentenceCase(params.row.default_common_name)
-              //     : '-'
-              // }
-              >
-                <Typography
-                  sx={{
-                    color: '#1F415B',
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    lineHeight: '16.94px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '240px'
-                  }}
-                >
-                  {/* {params.row?.default_common_name
-                    ? Utility?.toPascalSentenceCase(params.row.default_common_name)
-                    : '-'} */}
-                  asdfghjk
+            </Box>
+            <Box>
+              {list?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
+                <Typography sx={{ fontSize: '12px', textAlign: 'center' }}>Security check pending</Typography>
+              ) : (
+                <Typography sx={{ fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
+                  Security checked
                 </Typography>
-              </Tooltip>
+              )}
             </Box>
           </Box>
-          <Box>
-            <Typography>checked</Typography>
-          </Box>
+          <Divider />
+          <Stack sx={{ mt: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                Discarded On
+              </Typography>
+              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                {list?.discarded_date
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(list?.discarded_date))
+                  : '-'}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Batch</Typography>
+              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                : &nbsp;&nbsp;&nbsp; {list?.request_id ? list?.request_id : '-'}
+              </Typography>
+            </Box>{' '}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>AID</Typography>
+              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                : &nbsp;&nbsp;&nbsp; {list?.egg_code ? list?.egg_code : '-'}
+              </Typography>
+            </Box>{' '}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>EID</Typography>
+              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                : &nbsp;&nbsp;&nbsp; {list?.egg_number ? list?.egg_number : '-'}
+              </Typography>
+            </Box>{' '}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                {tabStatus === 'site' ? 'Site' : 'Nursery'}
+              </Typography>
+              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                : &nbsp;&nbsp;&nbsp; {tabStatus === 'site' ? list?.site_name : list?.nursery_name}
+              </Typography>
+            </Box>{' '}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Reason</Typography>
+              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                : &nbsp;&nbsp;&nbsp; {list?.egg_state ? list?.egg_state : '-'}
+              </Typography>
+            </Box>
+          </Stack>
         </Box>
-        <Divider />
-        <Stack sx={{ mt: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              Discarded On
-            </Typography>
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Date
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Batch</Typography>
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -
-            </Typography>
-          </Box>{' '}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>AID</Typography>
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -
-            </Typography>
-          </Box>{' '}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>EID</Typography>
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -
-            </Typography>
-          </Box>{' '}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              {tabStatus === 'site_wise' ? 'Site' : 'Nursery'}
-            </Typography>
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -
-            </Typography>
-          </Box>{' '}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Reason</Typography>
-            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-              : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -
-            </Typography>
-          </Box>
-        </Stack>
-      </Box>
+      </>
     )
   }
 
   const handelOnclose = () => {
     setOpenDiscard(false)
+    setSearch('')
+    setDiscardList([])
   }
+
+  const DiscardList = async q => {
+    // setLoader(true)
+    try {
+      const nurseryIds = applyFilters.Nursery?.map(option => option.id)
+      const speciesIds = applyFilters.Species?.map(option => option.id)
+      const batchIds = applyFilters.Batch?.map(option => option.id)
+      const conditionIds = applyFilters.Condition?.map(option => option.id)
+      const SecurityIds = applyFilters['Security status']?.map(option => option.id)
+      const reasonIds = applyFilters.Reason?.map(option => option.id)
+
+      const param = {
+        ref_type: tabStatus,
+        q,
+        taxonomy_id: JSON.stringify(speciesIds) || [],
+        batch_id: JSON.stringify(batchIds) || [],
+        nursery_id: JSON.stringify(nurseryIds) || [],
+        security_status: JSON.stringify(SecurityIds) || [],
+        egg_condition_id: JSON.stringify(conditionIds) || [],
+        egg_state_id: JSON.stringify(reasonIds) || []
+      }
+      await getDashboardDiscardList(param).then(res => {
+        const list = res?.data?.data?.data
+        setDiscardList(list?.result)
+        setListCount(list?.total_count)
+
+        // setLoader(false)
+      })
+    } catch (error) {
+      // setLoader(false)
+
+      console.log('error :>> ', error)
+    }
+  }
+
+  const handleSearch = value => {
+    setSearch(value)
+    searchData(value)
+  }
+
+  const searchData = useCallback(
+    debounce(async search => {
+      setSearch(search)
+
+      try {
+        await DiscardList(search)
+
+        // Add other conditions for different menus if needed
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [handleSearch]
+  )
+
+  useEffect(() => {
+    if (openDiscard) {
+      DiscardList()
+    }
+  }, [openDiscard, tabStatus, applyFilters])
 
   return (
     <>
@@ -438,29 +566,61 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             <TabList onChange={handleTabChange}>
               <Tab
                 sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
-                value='site_wise'
+                value='site'
                 label={<TabBadge label='SITE WISE (count)' />}
               />
               <Tab
                 sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
-                value='nursery_wise'
+                value='nursery'
                 label={<TabBadge label='NURSERY WISE (count)' />}
               />
             </TabList>
-            <TabPanel value='site_wise' sx={{ p: 0 }}>
+            <TabPanel value='site' sx={{ p: 0 }}>
               {' '}
               <Divider />
               {TabHeader()}
-              <Box sx={{ bgcolor: '#eff5f2', py: 1, height: 420 }}>
-                <Card />
+              <Box
+                sx={{
+                  bgcolor: '#eff5f2',
+                  py: 1,
+                  height: 'calc(100vh - 300px)',
+                  overflowY: 'auto',
+                  scrollbarWidth: 'none'
+                }}
+              >
+                {/* {loader ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 5 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : ( */}
+                {discardList?.map((item, index) => (
+                  <Card key={index} list={item} />
+                ))}
+                {/* )} */}
               </Box>
             </TabPanel>
-            <TabPanel value='nursery_wise' sx={{ p: 0 }}>
+            <TabPanel value='nursery' sx={{ p: 0 }}>
               {' '}
               <Divider />
               {TabHeader()}
-              <Box sx={{ bgcolor: '#eff5f2', py: 1, height: 420 }}>
-                <Card />
+              <Box
+                sx={{
+                  bgcolor: '#eff5f2',
+                  py: 1,
+                  height: 'calc(100vh - 300px)',
+                  overflowY: 'auto',
+                  scrollbarWidth: 'none'
+                }}
+              >
+                {/* {loader ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 5 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : ( */}
+                {discardList?.map((item, index) => (
+                  <Card key={index} list={item} />
+                ))}
+                {/* )} */}
               </Box>
             </TabPanel>
           </TabContext>
@@ -497,26 +657,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           </LoadingButton>
         </Box>
       </Drawer>
-      {isFilterOpen && <DashboardFilter isFilterOpen={isFilterOpen} setIsFilterOpen={setIsFilterOpen} />}
+      {isFilterOpen && (
+        <DashboardFilter
+          setShowFilters={setShowFilters}
+          isFilterOpen={isFilterOpen}
+          setIsFilterOpen={setIsFilterOpen}
+          selectedOptions={selectedOptions}
+          setSelectedOptions={setSelectedOptions}
+          setFilterList={setFilterList}
+          setApplyFilters={setApplyFilters}
+        />
+      )}
     </>
   )
 }
 
 export default DiscardEggSlider
-
-const filterList = [
-  { name: 'asdfgaaaaaaaaaaaaaaaaaa' },
-  { name: 'werrrrr' },
-  { name: 'asdfgh' },
-  { name: 'asdfgn' },
-  { name: 'sdfgn' },
-  { name: 'wert' },
-  { name: 'asdfg' },
-  { name: 'asdfg' },
-  { name: 'werrrrr' },
-  { name: 'asdfgh' },
-  { name: 'asdfgn' },
-  { name: 'sdfgn' },
-  { name: 'wert' },
-  { name: 'asdfg' }
-]
