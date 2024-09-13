@@ -33,13 +33,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
-  console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
   const [search, setSearch] = useState('')
   const [date, setDate] = useState({ to_date: '', from_date: '' })
   let [page, setPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
-  console.log('date :>> ', date)
 
   // const [loader, setLoader] = useState(false)
 
@@ -63,10 +61,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     Reason: []
   })
 
-  // console.log('selectedOptions :>> ', selectedOptions)
   const [filterList, setFilterList] = useState([])
-
-  // console.log('filterList :>> ', filterList)
 
   const handleDropDownChange = event => {
     setSelectedDropDown(event.target.value)
@@ -416,12 +411,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               </Box>
             </Box>
             <Box>
-              {list?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
-                <Typography sx={{ fontSize: '12px', textAlign: 'center' }}>Security check pending</Typography>
-              ) : (
+              {list?.activity_status === 'COMPLETED' ? (
                 <Typography sx={{ fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
                   Security checked
                 </Typography>
+              ) : (
+                <Typography sx={{ fontSize: '12px', textAlign: 'center' }}>Security check pending</Typography>
               )}
             </Box>
           </Box>
@@ -501,13 +496,15 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         taxonomy_id: JSON.stringify(speciesIds) || [],
         batch_id: JSON.stringify(batchIds) || [],
         nursery_id: JSON.stringify(nurseryIds) || [],
-        security_status: SecurityIds || [],
+        security_status: JSON.stringify(SecurityIds) || [],
         egg_condition_id: JSON.stringify(conditionIds) || [],
         egg_state_id: JSON.stringify(reasonIds) || []
       }
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
-        setDiscardList([...discardList, ...list?.result])
+        setDiscardList(list?.result)
+
+        // setDiscardList([...discardList, ...list?.result])
         setListCount(list?.total_count)
         setReachedEnd(false)
 
@@ -548,24 +545,15 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const handleScroll = async e => {
     const container = e.target
-    console.log('call :>> ')
-
-    // Check if the user has reached the bottom
-    console.log('container.scrollHeight ', container.scrollHeight)
-    console.log('Math.round(container.scrollTop) ', container.scrollTop)
-    console.log('container.clientHeight ', container.clientHeight)
-    if (Math.round(container.scrollHeight) - Math.floor(container.scrollTop) === Math.round(container.clientHeight)) {
+    if (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + 1) {
       setPage(++page)
       setReachedEnd(true)
 
-      // if (!reachedEnd) {
       try {
         await DiscardList()
       } catch (error) {
         console.error(error)
       }
-
-      // }
     }
   }
 
@@ -639,15 +627,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {/* {loader ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 5 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : ( */}
                 {discardList?.map((item, index) => (
                   <Card key={index} list={item} />
                 ))}
-                {/* )} */}
               </Box>
             </TabPanel>
             <TabPanel value='nursery' sx={{ p: 0 }}>
@@ -664,15 +646,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {/* {loader ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 5 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : ( */}
                 {discardList?.map((item, index) => (
                   <Card key={index} list={item} />
                 ))}
-                {/* )} */}
               </Box>
             </TabPanel>
           </TabContext>

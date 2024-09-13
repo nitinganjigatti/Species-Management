@@ -50,7 +50,6 @@ const DashboardFilter = ({
   const [taxonomyList, setTaxonomyList] = useState([])
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
-  console.log('conditionList :>> ', conditionList)
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
@@ -220,7 +219,6 @@ const DashboardFilter = ({
     const query = event.target.value.toLowerCase()
     setSearchQuery(event.target.value)
 
-    // console.log('SearchQuery:>> ', event.target.value)
     searchData(event.target.value)
   }
 
@@ -238,9 +236,6 @@ const DashboardFilter = ({
       ...selectedOptions.Reason
     ]
 
-    // setSelectedFiltersOptions(updatedSelectedOptions)
-
-    // console.log('combinedSelectedOptions :>> ', combinedSelectedOptions)
     setFilterList(combinedSelectedOptions)
     setApplyFilters(selectedOptions)
     setIsFilterOpen(false)
