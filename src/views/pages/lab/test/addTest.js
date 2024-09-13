@@ -7,12 +7,8 @@ import {
   FormControl,
   FormHelperText,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
   Typography,
-  Card,
   Autocomplete,
   Button,
   InputAdornment,
@@ -25,20 +21,16 @@ import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
-import SearchIcon from '@mui/icons-material/Search'
 
 import { getLabSampleList, getLabTestDetailsById } from 'src/lib/api/lab/master'
 
 const schema = yup.object().shape({
   test_name: yup.string().trim().required('Test name is required'),
-  // sample_ids: yup.object().nullable().required('Sample Type is required')
-  // sub_tests: yup.array().of(yup.string())
   sample_ids: yup.array().min(1, 'At least one sample type is required')
 })
 
 const defaultValues = {
   test_name: '',
-  // sample_ids: null,
   sample_ids: [],
   sub_tests: []
 }
@@ -217,7 +209,9 @@ const AddTest = props => {
                 backgroundColor: '#fff',
                 borderRadius: '8px',
                 boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                maxHeight: '79vh',
+                overflow: 'scroll'
               }}
             >
               <FormControl fullWidth sx={{ mt: 6 }}>
@@ -291,9 +285,7 @@ const AddTest = props => {
                           }}
                         />
                       )}
-                      // onChange={(_, data) => field.onChange(data)}
                       onChange={(_, data) => {
-                        // Ensure no duplicates are added
                         const uniqueSamples = Array.from(new Map(data.map(sample => [sample.id, sample])).values())
                         field.onChange(uniqueSamples)
                       }}
@@ -341,7 +333,6 @@ const AddTest = props => {
                         endAdornment: (
                           <InputAdornment position='end'>
                             <IconButton
-                              // type='submit'
                               onClick={() => addSubTest(field.value)}
                               edge='end'
                               sx={{

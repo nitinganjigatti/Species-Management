@@ -23,7 +23,7 @@ import { deleteLabTest, getLabTestDetailsById } from 'src/lib/api/lab/master'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
 
-const TestDetails = props => {
+const SampleDetails = props => {
   const theme = useTheme()
   const { addEventSidebarOpen, setOpenDetailsDrawer, setOpenDrawer, submitLoader, editParams, fetchTableData } = props
   const [testDetails, setTestDetails] = useState(null)
@@ -110,7 +110,7 @@ const TestDetails = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Typography variant='h6'>{editParams?.id !== null && 'Lab Test Details'}</Typography>
+              <Typography variant='h6'>{editParams?.id !== null && 'Lab Sample Details'}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -133,7 +133,7 @@ const TestDetails = props => {
               backgroundColor: '#fff',
               borderRadius: '8px',
               boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-              maxHeight: '79vh'
+              height: '79vh'
             }}
           >
             {loading ? (
@@ -240,10 +240,10 @@ const TestDetails = props => {
         onClose={() => setIsModalOpenDelete(false)}
         confirmLoading={btnLoader}
         onConfirm={confirmDeleteAction}
-        title='Are you sure you want to delete this lab test?'
+        title='Are you sure you want to delete this lab sample?'
       />
     </>
   )
 }
 
-export default TestDetails
+export default SampleDetails

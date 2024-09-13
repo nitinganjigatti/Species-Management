@@ -1,50 +1,243 @@
-// ** React Imports
-import { useState, useEffect, useCallback, Fragment } from 'react'
-// ** MUI Imports
-import Box from '@mui/material/Box'
-import Drawer from '@mui/material/Drawer'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
-import * as yup from 'yup'
+// // ** React Imports
+// import { useState, useEffect, useCallback, Fragment } from 'react'
+// // ** MUI Imports
+// import Box from '@mui/material/Box'
+// import Drawer from '@mui/material/Drawer'
+// import TextField from '@mui/material/TextField'
+// import IconButton from '@mui/material/IconButton'
+// import Typography from '@mui/material/Typography'
+// import FormControl from '@mui/material/FormControl'
+// import FormHelperText from '@mui/material/FormHelperText'
+// import * as yup from 'yup'
+// import { yupResolver } from '@hookform/resolvers/yup'
+// import { LoadingButton } from '@mui/lab'
+// import { useRouter } from 'next/router'
+// // ** Third Party Imports
+// import { useForm, Controller } from 'react-hook-form'
+// // ** Icon Imports
+// import Icon from 'src/@core/components/icon'
+// import { getLabSampleListById } from 'src/lib/api/lab/master'
+
+// const schema = yup.object().shape({
+//   label: yup
+//     .string()
+//     .transform(value => (value ? value.trim() : value))
+//     .required('Label is Required'),
+//   description: yup
+//     .string()
+//     .transform(value => (value ? value.trim() : value))
+//     .required('Description is Required'),
+//   active: yup.string().nullable()
+// })
+
+// const defaultValues = {
+//   label: '',
+//   description: ''
+// }
+
+// const AddSample = props => {
+//   // ** Props
+//   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+
+//   const {
+//     reset,
+//     control,
+//     setValue,
+//     clearErrors,
+//     handleSubmit,
+//     formState: { errors }
+//   } = useForm({
+//     defaultValues,
+//     resolver: yupResolver(schema),
+//     shouldUnregister: false,
+//     mode: 'onBlur',
+//     reValidateMode: 'onChange'
+//   })
+
+//   const onSubmit = async params => {
+//     const { label, description } = { ...params }
+
+//     const payload = {
+//       label: label.trim(),
+//       description: description.trim()
+//     }
+//     await handleSubmitData(payload)
+//   }
+
+//   const getLabSampleById = useCallback(
+//     async id => {
+//       const params = {
+//         id
+//       }
+//       const response = await getLabSampleListById(params)
+//       console.log('add state comp', response)
+//       if (response?.success) {
+//         reset(response.data)
+//       } else {
+//       }
+//     },
+//     [reset]
+//   )
+
+//   useEffect(() => {
+//     if (resetForm) {
+//       reset(defaultValues)
+//     }
+
+//     if (editParams?.id !== null) {
+//       getLabSampleById(editParams?.id)
+//     }
+//   }, [resetForm, editParams, reset, getLabSampleById])
+
+//   //   useEffect(() => {
+//   //     if (resetForm) {
+//   //       reset(defaultValues)
+//   //     }
+//   //     if (editParams.id !== null) {
+//   //       setValue('label', editParams.label)
+//   //       setValue('description', editParams.description)
+//   //     }
+//   //   }, [resetForm, reset, editParams])
+
+//   const RenderSidebarFooter = () => {
+//     return (
+//       <Fragment>
+//         <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
+//           Add
+//         </LoadingButton>
+//       </Fragment>
+//     )
+//   }
+
+//   return (
+//     <Drawer
+//       anchor='right'
+//       open={addEventSidebarOpen}
+//       ModalProps={{ keepMounted: true }}
+//       sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
+//     >
+//       <Box
+//         className='sidebar-header'
+//         sx={{
+//           display: 'flex',
+//           justifyContent: 'space-between',
+//           backgroundColor: 'background.default',
+//           p: theme => theme.spacing(3, 3.255, 3, 5.255)
+//         }}
+//       >
+//         <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Sample</Typography>
+//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+//             <Icon icon='mdi:close' fontSize={20} />
+//           </IconButton>
+//         </Box>
+//       </Box>
+//       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
+//         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+//           <FormControl fullWidth sx={{ mb: 6 }}>
+//             <Controller
+//               name='label'
+//               control={control}
+//               rules={{ required: true }}
+//               render={({ field: { value, onChange } }) => (
+//                 <TextField
+//                   label='Label*'
+//                   value={value}
+//                   onChange={onChange}
+//                   placeholder='Label'
+//                   error={Boolean(errors.label)}
+//                   name='label'
+//                 />
+//               )}
+//             />
+//             {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{errors.label.message}</FormHelperText>}
+//           </FormControl>
+
+//           <FormControl fullWidth sx={{ mb: 6 }}>
+//             <Controller
+//               name='description'
+//               control={control}
+//               rules={{ required: true }}
+//               render={({ field: { value, onChange } }) => (
+//                 <TextField
+//                   label='Description*'
+//                   value={value}
+//                   onChange={onChange}
+//                   placeholder='Description'
+//                   error={Boolean(errors.description)}
+//                   name='description'
+//                   multiline
+//                   rows={3}
+//                 />
+//               )}
+//             />
+//             {errors.description && (
+//               <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
+//             )}
+//           </FormControl>
+
+//           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//             <RenderSidebarFooter />
+//           </Box>
+//         </form>
+//       </Box>
+//     </Drawer>
+//   )
+// }
+
+// export default AddSample
+
+import { useCallback, useEffect, useState } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
-import { useRouter } from 'next/router'
-// ** Third Party Imports
+import {
+  Box,
+  Drawer,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  TextField,
+  Typography,
+  Autocomplete,
+  Button,
+  InputAdornment,
+  Chip,
+  debounce
+} from '@mui/material'
 import { useForm, Controller } from 'react-hook-form'
-// ** Icon Imports
+import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
+import toast from 'react-hot-toast'
+import { useTheme } from '@mui/material/styles'
+import Toaster from 'src/components/Toaster'
 import { getLabSampleListById } from 'src/lib/api/lab/master'
-
 const schema = yup.object().shape({
-  label: yup
-    .string()
-    .transform(value => (value ? value.trim() : value))
-    .required('Label is Required'),
-  description: yup
-    .string()
-    .transform(value => (value ? value.trim() : value))
-    .required('Description is Required'),
-  active: yup.string().nullable()
+  test_name: yup.string().trim().required('Test name is required')
+  // description: yup.string().trim().required('Description is required')
+  // sample_ids: yup.array().min(1, 'At least one sample type is required')
 })
 
 const defaultValues = {
-  label: '',
-  description: ''
+  test_name: ''
+  // description: ''
+  // sample_ids: [],
+  // sub_tests: []
 }
 
 const AddSample = props => {
-  // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const theme = useTheme()
+  const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const [subTests, setSubTests] = useState([])
+  const [sampleTypes, setSampleTypes] = useState([])
+  const [searchValue, setSearchValue] = useState('')
 
   const {
-    reset,
     control,
-    setValue,
-    clearErrors,
     handleSubmit,
+    getValues,
+    setValue,
+    reset,
+    watch,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -54,17 +247,9 @@ const AddSample = props => {
     reValidateMode: 'onChange'
   })
 
-  const onSubmit = async params => {
-    const { label, description } = { ...params }
+  // const selectedSampleIds = watch('sample_ids')
 
-    const payload = {
-      label: label.trim(),
-      description: description.trim()
-    }
-    await handleSubmitData(payload)
-  }
-
-  const getLabSampleById = useCallback(
+  const getLabTestById = useCallback(
     async id => {
       const params = {
         id
@@ -72,7 +257,15 @@ const AddSample = props => {
       const response = await getLabSampleListById(params)
       console.log('add state comp', response)
       if (response?.success) {
-        reset(response.data)
+        // const sampleIdsName = response?.data?.sample_types.map(sample => sample.name)
+        // const testIdsName = response?.data?.child_tests.map(test => test.name)
+        const data = {
+          ...response.data?.result,
+          test_name: response?.data?.result?.label,
+          description: response?.data?.result?.lab_test_count
+        }
+        // setSubTests(testIdsName)
+        reset(data)
       } else {
       }
     },
@@ -85,103 +278,355 @@ const AddSample = props => {
     }
 
     if (editParams?.id !== null) {
-      getLabSampleById(editParams?.id)
+      getLabTestById(editParams?.id)
     }
-  }, [resetForm, editParams, reset, getLabSampleById])
+  }, [resetForm, editParams, reset, getLabTestById])
 
-  //   useEffect(() => {
-  //     if (resetForm) {
-  //       reset(defaultValues)
-  //     }
-  //     if (editParams.id !== null) {
-  //       setValue('label', editParams.label)
-  //       setValue('description', editParams.description)
-  //     }
-  //   }, [resetForm, reset, editParams])
+  const onSubmit = async params => {
+    console.log(params, 'log')
+    // const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
+    // const payload = {
+    //   label: params?.test_name,
+    //   sample_ids: sampleIdsOnly,
+    //   sub_tests: subTests
+    // }
+    const { test_name, description } = { ...params }
+    const payload = {
+      label: test_name
+      // description: description
+    }
+    console.log(payload, 'Submission Data')
 
-  const RenderSidebarFooter = () => {
-    return (
-      <Fragment>
-        <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
-          Add
-        </LoadingButton>
-      </Fragment>
-    )
+    await handleSubmitData(payload)
   }
 
+  // const addSubTest = value => {
+  //   if (value && value.trim() !== '') {
+  //     // Add new sub-test to array
+  //     setSubTests(prevSubTests => [...prevSubTests, value.trim()])
+  //     setValue('sub_tests', '')
+  //   }
+  // }
+  // const handleRemoveSubTest = index => {
+  //   setSubTests(subTests.filter((_, i) => i !== index))
+  // }
+
+  // const handleRemoveSampleType = sampleToRemove => {
+  //   setValue(
+  //     'sample_ids',
+  //     selectedSampleIds?.filter(sample => sample?.id !== sampleToRemove?.id)
+  //   )
+  // }
+
+  const searchSampleData = useCallback(
+    debounce(async q => {
+      setSearchValue(q)
+      try {
+        await fetchSampleTypesData(q)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchSampleData(value)
+  }
+
+  // const fetchSampleTypesData = useCallback(async q => {
+  //   try {
+  //     const params = { q }
+  //     await getLabSampleList({ params: params }).then(res => {
+  //       console.log('response123', res?.data?.result)
+  //       setSampleTypes(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }, [])
+
+  // useEffect(() => {
+  //   fetchSampleTypesData()
+  // }, [fetchSampleTypesData, searchValue])
+
   return (
-    <Drawer
-      anchor='right'
-      open={addEventSidebarOpen}
-      ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
-    >
-      <Box
-        className='sidebar-header'
+    <>
+      <Drawer
+        anchor='right'
+        open={addEventSidebarOpen}
+        ModalProps={{ keepMounted: true }}
         sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '500px'] },
+          position: 'relative',
           display: 'flex',
-          justifyContent: 'space-between',
-          backgroundColor: 'background.default',
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          flexDirection: 'column',
+
+          gap: '24px'
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} Sample</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-            <Icon icon='mdi:close' fontSize={20} />
-          </IconButton>
-        </Box>
-      </Box>
-      <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-        <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='label'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Label*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Label'
-                  error={Boolean(errors.label)}
-                  name='label'
-                />
-              )}
-            />
-            {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{errors.label.message}</FormHelperText>}
-          </FormControl>
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px',
 
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='description'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Description*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Description'
-                  error={Boolean(errors.description)}
-                  name='description'
-                  multiline
-                  rows={3}
-                />
-              )}
-            />
-            {errors.description && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
-            )}
-          </FormControl>
+              bgcolor: theme.palette.customColors.lightBg
+            }}
+          >
+            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <Typography variant='h6'>
+                {editParams?.id !== null ? `Edit Lab Sample Details` : `Add New Lab Sample`}
+              </Typography>
+            </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <RenderSidebarFooter />
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
+              </IconButton>
+            </Box>
           </Box>
-        </form>
-      </Box>
-    </Drawer>
+
+          {/* drower */}
+
+          <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+            <Box
+              sx={{
+                m: 5,
+                px: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                boxShadow: '2px',
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+                maxHeight: '79vh',
+                overflow: 'scroll'
+              }}
+            >
+              <FormControl fullWidth sx={{ mt: 6 }}>
+                <Controller
+                  name='test_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Test Name*'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Test Name'
+                      error={Boolean(errors.test_name)}
+                      name='test_name'
+                    />
+                  )}
+                />
+                {errors.test_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.test_name.message}</FormHelperText>
+                )}
+              </FormControl>
+              {/* <FormControl fullWidth sx={{ mt: 6 }}>
+                <Controller
+                  name='description'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      label='Description*'
+                      value={value}
+                      onChange={onChange}
+                      placeholder='Description'
+                      error={Boolean(errors.description)}
+                      name='description'
+                    />
+                  )}
+                />
+                {errors.description && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
+                )}
+              </FormControl> */}
+
+              {/* <Box>
+                <Typography variant='body1' sx={{ mb: 2 }}>
+                  Sample Types
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {selectedSampleIds?.map(sample => (
+                    <Chip
+                      key={sample.id}
+                      label={sample.label || sample.name}
+                      onDelete={() => handleRemoveSampleType(sample)}
+                      sx={{
+                        backgroundColor: '#e8f5e9',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#4caf50'
+                        },
+                        borderRadius: '6px'
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+              <FormControl fullWidth>
+                <Controller
+                  name='sample_ids'
+                  control={control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      {...field}
+                      multiple
+                      id='sample-types'
+                      options={sampleTypes}
+                      getOptionLabel={option => option.label || option.name || ''}
+                      value={selectedSampleIds}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          variant='outlined'
+                          placeholder='Search Add Sample Type'
+                          error={Boolean(errors.sample_ids)}
+                          InputProps={{
+                            ...params.InputProps,
+                            startAdornment: (
+                              <>
+                                <Icon icon='mdi:magnify' sx={{ color: 'action.active', mr: 1 }} />
+                                {params.InputProps.startAdornment}
+                              </>
+                            )
+                          }}
+                        />
+                      )}
+                      onChange={(_, data) => {
+                        const uniqueSamples = Array.from(new Map(data.map(sample => [sample.id, sample])).values())
+                        field.onChange(uniqueSamples)
+                      }}
+                      onInputChange={(_, newInputValue) => handleSearch(newInputValue)}
+                    />
+                  )}
+                />
+                {errors.sample_ids && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.sample_ids.message}</FormHelperText>
+                )}
+              </FormControl> */}
+
+              {/* Display the sub-tests list */}
+              {/* <Box>
+                <label>Sub Tests</label>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+                  {subTests.map((test, index) => (
+                    <Chip
+                      key={index}
+                      label={test}
+                      onDelete={() => handleRemoveSubTest(index)}
+                      sx={{
+                        backgroundColor: '#e8f5e9',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#4caf50'
+                        },
+                        borderRadius: '6px'
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+
+              <FormControl fullWidth>
+                <Controller
+                  name='sub_tests'
+                  control={control}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      variant='outlined'
+                      placeholder='Enter Sub Test Type'
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position='end'>
+                            <IconButton
+                              onClick={() => addSubTest(field.value)}
+                              edge='end'
+                              sx={{
+                                backgroundColor: '#4CAF50',
+                                borderRadius: '0 8px 8px 0',
+                                '&:hover': { backgroundColor: '#45a049' },
+                                height: '52px',
+                                width: '52px'
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: 'white'
+                                }}
+                              >
+                                <Icon icon='formkit:submit' />
+                              </Box>
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                        sx: {
+                          borderRadius: '8px',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#e0e0e0'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#e0e0e0'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#e0e0e0'
+                          }
+                        }
+                      }}
+                    />
+                  )}
+                />
+              </FormControl> */}
+
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    right: 0,
+                    height: '6rem',
+                    width: '100%',
+                    maxWidth: '500px',
+                    position: 'fixed',
+                    bottom: 0,
+                    px: 4,
+                    bgcolor: 'white',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    display: 'flex',
+                    zIndex: 1234,
+                    gap: 2
+                  }}
+                >
+                  <Button
+                    fullWidth
+                    onClick={() => setOpenDrawer(false)}
+                    size='large'
+                    type='reset'
+                    color='error'
+                    variant='outlined'
+                  >
+                    Cancel
+                  </Button>
+                  <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
+                    {editParams?.id !== null ? `Update` : `Submit`}
+                  </LoadingButton>
+                </Box>
+              </Box>
+            </Box>
+          </form>
+        </Box>
+      </Drawer>
+    </>
   )
 }
 
