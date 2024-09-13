@@ -189,6 +189,7 @@ const EggsStats = ({ allStats, setOpenDiscard, openDiscard }) => {
               backgroundColor: theme.palette.background.paper,
               py: '24px',
               px: '16px',
+              cursor: 'pointer',
               display: 'flex',
               gap: '8px'
             }}

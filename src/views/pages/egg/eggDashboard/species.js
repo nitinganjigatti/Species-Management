@@ -32,7 +32,6 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import Router from 'next/router'
 import DashboardSlider from '../eggs/dashboardSlider'
 import DiscardEggSlider from '../eggs/discardEggSlider'
-import EggFilterSlider from '../eggs/eggFilterSlider'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 
@@ -62,8 +61,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const [defaultNursery, setDefaultNursery] = useState(null)
 
   const [openDrawer, setOpenDrawer] = useState(false)
-  // const [openDiscard, setOpenDiscard] = useState(false)
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const getTaxonomyListFunc = q => {
     try {
@@ -492,10 +489,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const addDiscardSidebarOpen = () => {
     setOpenDiscard(true)
-  }
-
-  const addFilterSidebarOpen = () => {
-    setOpenFilterDrawer(true)
   }
 
   const getspeciesFunc = useCallback(
@@ -929,9 +922,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       </TabContext>
       {openDrawer && <DashboardSlider openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />}
       {openDiscard && <DiscardEggSlider openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />}
-      {openFilterDrawer && (
-        <EggFilterSlider openFilterDrawer={openFilterDrawer} setOpenFilterDrawer={setOpenFilterDrawer} />
-      )}
     </Box>
   )
 }
