@@ -133,7 +133,7 @@ const ConditionSlider = ({
     animalOwnershipTerms: '',
     accessionDate: null,
     collectionType: '',
-    enclosure: '',
+    enclosure_id: '',
     sextype: '',
     mastersOrganization: '',
     institution: '',
@@ -184,9 +184,10 @@ const ConditionSlider = ({
             ),
           accessionDate: yup.string().required('Accession date is required'),
           collectionType: yup.string().required('Collection type is required'),
-          enclosure: yup.string().required('Enclosure is required'),
+          enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
           birthDate: yup.string().required('Birth date is required'),
+          enclosure_id: yup.string().required('Enclosure is required'),
           localIdentifier: yup
             .string()
             .test(
@@ -226,6 +227,7 @@ const ConditionSlider = ({
     clearErrors,
     watch,
     reset,
+    resetField,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -703,13 +705,13 @@ const ConditionSlider = ({
   }
 
   const checkAddPermission = () => {
-    debugger
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
       return true
     } else {
       return false
     }
   }
+
   useEffect(() => {
     if (eggDetails) {
       if (Number(eggDetails?.enclosure_data?.length) === 1) {
@@ -1113,6 +1115,7 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
+                  {console.log('permission check', checkAddPermission())}
                   {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
@@ -1126,7 +1129,7 @@ const ConditionSlider = ({
                   )}
                 </Box>
 
-                {isAnimal && statusID === '4' && checkAddPermission() && (
+                {statusID === '3' && (
                   <Box
                     sx={{
                       p: 4,
@@ -1208,7 +1211,7 @@ const ConditionSlider = ({
                   </Box>
                 )}
 
-                {isAnimal && statusID === '4' && (
+                {isAnimal && statusID === '4' && checkAddPermission() && (
                   <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
                     <Box
@@ -1470,7 +1473,7 @@ const ConditionSlider = ({
                             >
                               {eggDetails?.enclosure_data?.map(val => (
                                 <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-                                   {val?.user_enclosure_name}
+
                                   <Box
                                     sx={{
                                       backgroundColor: theme.palette.customColors.tableHeaderBg,
@@ -1820,7 +1823,7 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : val?.sex === 'male' ? 'M' : 'U'}
+                                        {val?.sex === 'female' ? 'F' : 'M'}
                                       </Typography>
                                     </Box>
 
@@ -1936,7 +1939,7 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : val?.sex === 'male' ? 'M' : 'U'}
+                                        {val?.sex === 'female' ? 'F' : 'M'}
                                       </Typography>
                                     </Box>
 
