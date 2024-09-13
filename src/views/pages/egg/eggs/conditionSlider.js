@@ -828,10 +828,11 @@ const ConditionSlider = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.current_state?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '100%' }}>
-                      <InputLabel id='select_stage'>Select Stage*</InputLabel>
+                      <InputLabel id='select_stage'>
+                        {statusID === '3' ? 'Select Reason* ' : 'Select Stage* '}
+                      </InputLabel>
                       <Controller
                         name='select_stage'
                         control={control}
