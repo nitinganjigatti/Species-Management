@@ -49,6 +49,8 @@ const DashboardFilter = ({
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
   const [batchList, setBatchList] = useState([])
+  const [conditionList, setConditionList] = useState([])
+  console.log('conditionList :>> ', conditionList)
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
@@ -83,7 +85,7 @@ const DashboardFilter = ({
         if (res.success) {
           setEggMaster(res?.data)
 
-          //   setEggStage(res?.data?.egg_state)
+          setConditionList(res?.data?.egg_condition)
         }
       })
     } catch (e) {
@@ -193,15 +195,15 @@ const DashboardFilter = ({
       case 'Security status':
         return [
           { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
-          { id: 'CANCELED', name: 'Canceled' },
           { id: 'COMPLETED', name: 'Security Checked' }
         ]
       case 'Condition':
-        return [
-          { id: 'Broken', name: 'Broken' },
-          { id: 'Rotten', name: 'Rotten' },
-          { id: 'Creaked', name: 'Creaked' }
-        ]
+        return (
+          conditionList?.map(condition => ({
+            id: condition.id,
+            name: condition.egg_condition
+          })) || []
+        )
       case 'Reason':
         const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
 

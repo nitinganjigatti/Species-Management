@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState } from 'react'
 import DashboardFilter from './dashboardFilter'
 import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
 import Utility from 'src/utility'
+import moment from 'moment'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
@@ -32,12 +33,17 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
+  console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
   const [search, setSearch] = useState('')
+  const [date, setDate] = useState({ to_date: '', from_date: '' })
+  let [page, setPage] = useState(1)
+  const [reachedEnd, setReachedEnd] = useState(false)
+  console.log('date :>> ', date)
 
   // const [loader, setLoader] = useState(false)
 
-  const [selectedDropDown, setSelectedDropDown] = useState('Last 3 days')
+  const [selectedDropDown, setSelectedDropDown] = useState('all')
 
   const [selectedOptions, setSelectedOptions] = useState({
     Species: [],
@@ -57,16 +63,21 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     Reason: []
   })
 
-  console.log('selectedOptions :>> ', selectedOptions)
+  // console.log('selectedOptions :>> ', selectedOptions)
   const [filterList, setFilterList] = useState([])
-  console.log('filterList :>> ', filterList)
+
+  // console.log('filterList :>> ', filterList)
 
   const handleDropDownChange = event => {
     setSelectedDropDown(event.target.value)
+    const currentDate = moment().format('YYYY-MM-DD')
+    const fromDate = moment().subtract(3, 'days').format('YYYY-MM-DD')
+    setDate({ to_date: currentDate, from_date: fromDate })
   }
 
   const handleTabChange = (event, value) => {
     setTabStatus(value)
+    setDiscardList([])
   }
 
   const TabBadge = ({ label, totalCount }) => (
@@ -118,7 +129,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           }}
         >
           <Box>
-            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#44544A' }}>Discarded eggs (Count)</Typography>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#44544A' }}>
+              Discarded eggs ({listCount})
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: '12px' }}>
             <Box
@@ -151,9 +164,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 onChange={handleDropDownChange}
                 sx={{ height: '36px' }}
               >
-                <MenuItem value='Last 3 days'>Last 3 days</MenuItem>
-                <MenuItem value='Last 7 days'>Last 7 days</MenuItem>
-                <MenuItem value='Last 30 days'>Last 30 days</MenuItem>
+                <MenuItem value='all'>All</MenuItem>
+
+                <MenuItem value='3'>Last 3 days</MenuItem>
+                <MenuItem value='7'>Last 7 days</MenuItem>
+                <MenuItem value='30'>Last 30 days</MenuItem>
               </Select>
             </FormControl>
             <Box
@@ -472,17 +487,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       const param = {
         ref_type: tabStatus,
         q,
+        page_no: page,
         taxonomy_id: JSON.stringify(speciesIds) || [],
         batch_id: JSON.stringify(batchIds) || [],
         nursery_id: JSON.stringify(nurseryIds) || [],
-        security_status: JSON.stringify(SecurityIds) || [],
+        security_status: SecurityIds || [],
         egg_condition_id: JSON.stringify(conditionIds) || [],
         egg_state_id: JSON.stringify(reasonIds) || []
       }
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
-        setDiscardList(list?.result)
+        setDiscardList([...discardList, ...list?.result])
         setListCount(list?.total_count)
+        setReachedEnd(false)
 
         // setLoader(false)
       })
@@ -518,6 +535,29 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       DiscardList()
     }
   }, [openDiscard, tabStatus, applyFilters])
+
+  const handleScroll = async e => {
+    const container = e.target
+    console.log('call :>> ')
+
+    // Check if the user has reached the bottom
+    console.log('container.scrollHeight ', container.scrollHeight)
+    console.log('Math.round(container.scrollTop) ', container.scrollTop)
+    console.log('container.clientHeight ', container.clientHeight)
+    if (Math.round(container.scrollHeight) - Math.floor(container.scrollTop) === Math.round(container.clientHeight)) {
+      setPage(++page)
+      setReachedEnd(true)
+
+      // if (!reachedEnd) {
+      try {
+        await DiscardList()
+      } catch (error) {
+        console.error(error)
+      }
+
+      // }
+    }
+  }
 
   return (
     <>
@@ -567,12 +607,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Tab
                 sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
                 value='site'
-                label={<TabBadge label='SITE WISE (count)' />}
+                label={<TabBadge label='SITE WISE ' />}
               />
               <Tab
                 sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
                 value='nursery'
-                label={<TabBadge label='NURSERY WISE (count)' />}
+                label={<TabBadge label='NURSERY WISE ' />}
               />
             </TabList>
             <TabPanel value='site' sx={{ p: 0 }}>
@@ -580,10 +620,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Divider />
               {TabHeader()}
               <Box
+                onScroll={handleScroll}
                 sx={{
                   bgcolor: '#eff5f2',
-                  py: 1,
-                  height: 'calc(100vh - 300px)',
+                  py: 2,
+                  height: 'calc(100vh - 310px)',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
@@ -604,10 +645,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Divider />
               {TabHeader()}
               <Box
+                onScroll={handleScroll}
                 sx={{
                   bgcolor: '#eff5f2',
                   py: 1,
-                  height: 'calc(100vh - 300px)',
+                  height: 'calc(100vh - 330px)',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
