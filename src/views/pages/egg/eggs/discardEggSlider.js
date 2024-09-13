@@ -71,8 +71,16 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const handleDropDownChange = event => {
     setSelectedDropDown(event.target.value)
     const currentDate = moment().format('YYYY-MM-DD')
-    const fromDate = moment().subtract(3, 'days').format('YYYY-MM-DD')
+
+    const fromDate = moment()
+      .subtract(event.target.value - 1, 'days')
+      .format('YYYY-MM-DD')
     setDate({ to_date: currentDate, from_date: fromDate })
+    if (event.target.value === 'all') {
+      DiscardList(search, '', '')
+    } else {
+      DiscardList(search, currentDate, fromDate)
+    }
   }
 
   const handleTabChange = (event, value) => {
@@ -474,7 +482,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setDiscardList([])
   }
 
-  const DiscardList = async q => {
+  const DiscardList = async (q, currentDate, fromDate) => {
     // setLoader(true)
     try {
       const nurseryIds = applyFilters.Nursery?.map(option => option.id)
@@ -488,6 +496,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         ref_type: tabStatus,
         q,
         page_no: page,
+        from_date: fromDate ? fromDate : '',
+        to_date: currentDate ? currentDate : '',
         taxonomy_id: JSON.stringify(speciesIds) || [],
         batch_id: JSON.stringify(batchIds) || [],
         nursery_id: JSON.stringify(nurseryIds) || [],
