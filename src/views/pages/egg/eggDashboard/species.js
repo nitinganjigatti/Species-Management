@@ -5,6 +5,7 @@ import {
   debounce,
   FormControl,
   Grid,
+  Tab,
   TextField,
   Tooltip,
   Typography
@@ -32,10 +33,14 @@ import Router from 'next/router'
 import DashboardSlider from '../eggs/dashboardSlider'
 import DiscardEggSlider from '../eggs/discardEggSlider'
 import EggFilterSlider from '../eggs/eggFilterSlider'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 
-const Species = () => {
+const Species = ({ openDiscard, setOpenDiscard }) => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
+
+  const [status, setStatus] = useState('species')
 
   const [speciesList, setSpeciesList] = useState([])
 
@@ -47,15 +52,39 @@ const Species = () => {
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
 
-  const [fromSiteList, setFromSiteList] = useState([])
-  const [toSiteList, setToSiteList] = useState([])
-  const [defaultFromSite, setDefaultFromSite] = useState(null)
-  const [defaultToSite, setDefaultToSite] = useState(null)
+  const [taxonomyList, setTaxonomyList] = useState([])
+  const [defaultSpecies, setDefaultSpecies] = useState(null)
+
+  const [siteList, setSiteList] = useState([])
+  const [defaultSite, setDefaultSite] = useState(null)
+
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
+
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [openDiscard, setOpenDiscard] = useState(false)
+  // const [openDiscard, setOpenDiscard] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
+  const getTaxonomyListFunc = q => {
+    try {
+      getTaxonomyList(q).then(res => {
+        if (res.success) {
+          setTaxonomyList(res?.data)
+        }
+      })
+    } catch (error) {}
+  }
+
+  const searchSpecies = useCallback(
+    debounce(async search => {
+      try {
+        await getTaxonomyListFunc({ search })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const NurseryList = async q => {
     try {
@@ -72,7 +101,7 @@ const Species = () => {
     }
   }
 
-  const FromSiteList = async q => {
+  const siteListFunc = async q => {
     try {
       const params = {
         type: 'site',
@@ -80,21 +109,7 @@ const Species = () => {
         q
       }
       await getSiteList(params).then(res => {
-        setFromSiteList(res?.data?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-  const ToSiteList = async q => {
-    try {
-      const params = {
-        type: 'site',
-        page_no: 1,
-        q
-      }
-      await getSiteList(params).then(res => {
-        setToSiteList(res?.data?.data?.result)
+        setSiteList(res?.data?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -102,25 +117,25 @@ const Species = () => {
   }
 
   useEffect(() => {
+    getTaxonomyListFunc()
     NurseryList()
-    FromSiteList()
-    ToSiteList()
+    siteListFunc()
   }, [])
 
-  const searchFromSite = useCallback(
-    debounce(async q => {
-      try {
-        await FromSiteList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  // const searchFromSite = useCallback(
+  //   debounce(async q => {
+  //     try {
+  //       await FromSiteList(q)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
   const searchToSite = useCallback(
     debounce(async q => {
       try {
-        await ToSiteList(q)
+        await siteList(q)
       } catch (error) {
         console.error(error)
       }
@@ -166,68 +181,157 @@ const Species = () => {
       sortable: false,
       disableColumnMenu: true,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName:
+        status === 'species' ? 'SPECIES' : status === 'site' ? 'SITES' : status === 'nursery' ? 'NUERSERIES' : '',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 35,
-              height: 35,
-              mr: 4,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-            ) : (
-              <Icon icon='mdi:user' />
-            )}
-          </Avatar>
+        <>
+          {status === 'species' ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <Avatar
+                variant='rounded'
+                alt='Medicine Image'
+                sx={{
+                  width: 35,
+                  height: 35,
+                  mr: 4,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
+                }}
+              >
+                {params.row.default_icon ? (
+                  <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
 
-          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
-              <Typography
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <Tooltip
+                  title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
+                >
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '240px',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
+                  </Typography>
+                </Tooltip>
+                <Tooltip
+                  title={
+                    params.row?.default_common_name
+                      ? Utility?.toPascalSentenceCase(params.row.default_common_name)
+                      : '-'
+                  }
+                >
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      width: '240px'
+                    }}
+                  >
+                    {params.row?.default_common_name
+                      ? Utility?.toPascalSentenceCase(params.row.default_common_name)
+                      : '-'}
+                  </Typography>
+                </Tooltip>
+              </Box>
+            </Box>
+          ) : status === 'site' ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <Avatar
+                variant='rounded'
+                alt='Medicine Image'
                 sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '240px',
-                  boxSizing: 'border-box'
+                  width: 35,
+                  height: 35,
+                  mr: 4,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
                 }}
               >
-                {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-              </Typography>
-            </Tooltip>
-            <Tooltip
-              title={
-                params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
-              }
-            >
-              <Typography
+                {params.row.default_icon ? (
+                  <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
+
+              <Tooltip title={params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}>
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.light,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    lineHeight: '19.36px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    width: '240px',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  {params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}
+                </Typography>
+              </Tooltip>
+            </Box>
+          ) : status === 'nursery' ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <Avatar
+                variant='rounded'
+                alt='Medicine Image'
                 sx={{
-                  color: theme.palette.primary.light,
-                  fontSize: '14px',
-                  fontWeight: '400',
-                  lineHeight: '16.94px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: '240px'
+                  width: 35,
+                  height: 35,
+                  mr: 4,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
                 }}
               >
-                {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
+                {params.row.default_icon ? (
+                  <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
+
+              <Tooltip title={params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.light,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    lineHeight: '19.36px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    width: '240px',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}
+                </Typography>
+              </Tooltip>
+            </Box>
+          ) : null}
+        </>
       )
     },
     {
@@ -238,10 +342,15 @@ const Species = () => {
       headerName: 'TOTAL EGGS',
       renderCell: params => (
         <Typography
+          onClick={e => {
+            e.stopPropagation()
+            setOpenDrawer(true)
+          }}
           style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
+            width: '80%',
+            color: theme.palette.primary.dark,
             fontSize: '16px',
-            fontWeight: '400',
+            fontWeight: '600',
             lineHeight: '19.36px'
           }}
         >
@@ -250,7 +359,7 @@ const Species = () => {
       )
     },
     {
-      width: 140,
+      width: 120,
       field: 'total_egg_in_nest',
       sortable: false,
       disableColumnMenu: true,
@@ -258,7 +367,7 @@ const Species = () => {
       renderCell: params => (
         <Typography
           style={{
-            color: '#000',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '600',
             lineHeight: '19.36px'
@@ -268,8 +377,9 @@ const Species = () => {
         </Typography>
       )
     },
+
     {
-      width: 140,
+      width: 120,
       field: 'total_eggs_in_nursery',
       sortable: false,
       disableColumnMenu: true,
@@ -277,7 +387,7 @@ const Species = () => {
       renderCell: params => (
         <Typography
           style={{
-            color: '#00AFD6',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '600',
             lineHeight: '19.36px'
@@ -288,26 +398,45 @@ const Species = () => {
       )
     },
     {
-      width: 140,
-      field: 'total_hatched_eggs',
+      width: 120,
+      field: 'hatched_percentage',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'HATCHED',
+      headerName: 'HATCHED %',
       renderCell: params => (
         <Typography
           style={{
-            color: theme.palette.primary.main,
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '600',
             lineHeight: '19.36px'
           }}
         >
-          {params.row.total_hatched_eggs ? params.row.total_hatched_eggs : '-'}
+          {params.row.hatched_percentage ? params.row.hatched_percentage : '-'}%
         </Typography>
       )
     },
     {
-      width: 140,
+      width: 120,
+      field: 'transfer',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TRANSFER',
+      renderCell: params => (
+        <Typography
+          style={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.total_egg_in_transit ? params.row.total_egg_in_transit : '-'}
+        </Typography>
+      )
+    },
+    {
+      width: 120,
       field: 'total_discarded_eggs',
       sortable: false,
       disableColumnMenu: true,
@@ -315,7 +444,7 @@ const Species = () => {
       renderCell: params => (
         <Typography
           style={{
-            color: theme.palette.formContent.tertiary,
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: '600',
             lineHeight: '19.36px'
@@ -325,28 +454,6 @@ const Species = () => {
         </Typography>
       )
     }
-
-    // {
-    //   width: 10,
-    //   sortable: false,
-    //   disableColumnMenu: true,
-    //   field: 'created_at',
-    //   headerName: 'TILL DATE',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.created_at
-    //         ? moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-    //         : '10 Apr 2024'}
-    //     </Typography>
-    //   )
-    // }
   ]
 
   function loadServerRows(currentPage, data) {
@@ -355,7 +462,13 @@ const Species = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
-    // setStatus(newValue)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setStatus(newValue)
+    setSearchValue('')
+    setTilDate(null)
+    setFromDate(null)
+    setDefaultSite(null)
+    setDefaultNursery(null)
   }
 
   const onCellClick = params => {
@@ -381,24 +494,22 @@ const Species = () => {
     setOpenDiscard(true)
   }
 
-  const addFilterSidebarOpen = ()=>{
+  const addFilterSidebarOpen = () => {
     setOpenFilterDrawer(true)
   }
 
   const getspeciesFunc = useCallback(
-    async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
+    async (statuss, q, fDate, tDate, ref_id) => {
       try {
         setLoading(true)
-
         const params = {
-          taxonomy: q,
-          from_date: fDate,
-          til_date: tDate,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          from_site_id: fromSiteId || defaultFromSite?.site_id,
-          to_site_id: toSiteId || defaultToSite?.site_id,
-          nursery_id: nurseryId || defaultNursery?.nursery_id
+          ref_type: statuss || status,
+          q,
+          from_date: fDate,
+          til_date: tDate,
+          ref_id
         }
         // console.log('params', params)
         await getSpeciesList(params).then(res => {
@@ -424,10 +535,10 @@ const Species = () => {
   )
 
   const searchTableData = useCallback(
-    debounce(async (q, fDate, tDate, fromSiteId, toSiteId, nurseryId) => {
+    debounce(async (status, q, fDate, tDate, ref_id) => {
       setSearchValue(q)
       try {
-        await getspeciesFunc(q, fDate, tDate, fromSiteId, toSiteId, nurseryId)
+        await getspeciesFunc(status, q, fDate, tDate, ref_id)
       } catch (error) {
         console.error(error)
       }
@@ -436,14 +547,7 @@ const Species = () => {
   )
 
   useEffect(() => {
-    getspeciesFunc(
-      searchValue,
-      fromDate,
-      tillDate,
-      defaultFromSite?.site_id,
-      defaultToSite?.site_id,
-      defaultNursery?.nursery_id
-    )
+    getspeciesFunc(searchValue, fromDate, tillDate, defaultSite?.site_id, defaultNursery?.nursery_id)
   }, [getspeciesFunc])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -455,44 +559,10 @@ const Species = () => {
 
   const handleSortModel = newModel => {}
 
-  return (
-    <Box
-      sx={{
-        backgroundColor: '#fff',
-        padding: '24px',
-        paddingBottom: '0px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-        boxShadow: '0px 2px 10px 0px #4C4E6438',
-        borderRadius: '10px'
-      }}
-    >
-      <Typography
-        sx={{
-          fontWeight: 500,
-          fontSize: '24px',
-          lineHeight: '29.05px',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        Species
-      </Typography>
-      <Typography sx={{ display: 'flex', justifyContent: 'end' }}>
-        <Button variant='contained' onClick={() => addEventSidebarOpen()} sx={{ mr: 2 }}>
-          Nursery
-        </Button>
-        <Button variant='contained' onClick={() => addDiscardSidebarOpen()}  sx={{ mr: 2 }}>
-          Discard
-       
-        </Button>
-        <Button variant='contained' onClick={() => addFilterSidebarOpen()}>
-          Filter
-        </Button>
-      </Typography>
-
-      <Grid container columns={15} spacing={6}>
-        <Grid item xs={3}>
+  const tableData = () => {
+    return (
+      <>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
           <Box
             sx={{
               display: 'flex',
@@ -507,19 +577,19 @@ const Species = () => {
             <TextField
               variant='outlined'
               placeholder='Search'
-              InputProps={
-                {
-                  // disableUnderline: true
-                }
-              }
               onChange={e =>
                 searchTableData(
+                  status,
                   e.target.value,
                   fromDate,
                   tillDate,
-                  defaultFromSite?.site_id,
-                  defaultToSite?.site_id,
-                  defaultNursery?.nursery_id
+                  status === 'species'
+                    ? ''
+                    : status === 'site'
+                    ? defaultSite?.site_id
+                    : status === 'nursery'
+                    ? defaultNursery?.nursery_id
+                    : ''
                 )
               }
               sx={{
@@ -533,15 +603,13 @@ const Species = () => {
               }}
             />
           </Box>
-        </Grid>
-        <Grid item xs={5}>
           <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 sx={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
-                  width: '100%',
+                  width: '155px',
                   '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
                     height: '40px',
                     borderRadius: '4px'
@@ -555,12 +623,17 @@ const Species = () => {
                     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
                     setFromDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
                     getspeciesFunc(
+                      status,
                       searchValue,
                       formattedDate,
                       tillDate,
-                      defaultFromSite?.site_id,
-                      defaultToSite?.site_id,
-                      defaultNursery?.nursery_id
+                      status === 'species'
+                        ? ''
+                        : status === 'site'
+                        ? defaultSite?.site_id
+                        : status === 'nursery'
+                        ? defaultNursery?.nursery_id
+                        : ''
                     )
                   }
                 }}
@@ -578,13 +651,17 @@ const Species = () => {
             >
               To
             </Typography>
+
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 sx={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
-                  width: '100%',
-                  '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': { height: '40px', borderRadius: '4px' },
+                  width: '155px',
+                  '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                    height: '40px',
+                    borderRadius: '4px'
+                  },
                   '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                   '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                 }}
@@ -594,12 +671,17 @@ const Species = () => {
                     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
                     setTilDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
                     getspeciesFunc(
+                      status,
                       searchValue,
                       fromDate,
                       formattedDate,
-                      defaultFromSite?.site_id,
-                      defaultToSite?.site_id,
-                      defaultNursery?.nursery_id
+                      status === 'species'
+                        ? ''
+                        : status === 'site'
+                        ? defaultSite?.site_id
+                        : status === 'nursery'
+                        ? defaultNursery?.nursery_id
+                        : ''
                     )
                   }
                 }}
@@ -607,251 +689,249 @@ const Species = () => {
                 maxDate={dayjs()}
               />
             </LocalizationProvider>
+
+            {status === 'species' ? (
+              <Box>
+                <FormControl fullWidth>
+                  <Autocomplete
+                    name='species'
+                    value={defaultSpecies}
+                    disablePortal
+                    id='species'
+                    placeholder='Species / Taxonomy'
+                    options={taxonomyList?.length > 0 ? taxonomyList : []}
+                    getOptionLabel={option => option.scientific_name}
+                    isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultSpecies(null)
+
+                        getspeciesFunc(status, searchValue, fromDate, tillDate, '')
+                      } else {
+                        setDefaultSpecies(val)
+
+                        getspeciesFunc(status, searchValue, fromDate, tillDate, val?.tsn)
+                      }
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        sx={{
+                          backgroundColor: '#fff',
+                          borderRadius: '8px',
+                          width: '176px',
+                          '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                            height: '40px',
+                            borderRadius: '4px'
+                          },
+                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                          '& input': {
+                            position: 'relative',
+                            top: -7
+                          }
+                        }}
+                        onChange={e => {
+                          searchSpecies(e.target.value)
+                        }}
+                        {...params}
+                        label='All Species'
+                        placeholder='Search & Select'
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Box>
+            ) : status === 'site' ? (
+              <Box>
+                <FormControl fullWidth>
+                  <Autocomplete
+                    name='toSite'
+                    value={defaultSite}
+                    disablePortal
+                    id='toSite'
+                    options={
+                      authData?.userData?.user?.zoos[0].sites?.length > 0 ? authData?.userData?.user?.zoos[0].sites : []
+                    }
+                    getOptionLabel={option => option.site_name}
+                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultSite(null)
+
+                        getspeciesFunc(status, searchValue, fromDate, tillDate, '')
+                      } else {
+                        setDefaultSite(val)
+                        getspeciesFunc(status, searchValue, fromDate, tillDate, val?.site_id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        sx={{
+                          backgroundColor: '#fff',
+                          borderRadius: '8px',
+                          width: '176px',
+                          '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                            height: '40px',
+                            borderRadius: '4px'
+                          },
+                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                          '& input': {
+                            position: 'relative',
+                            top: -7
+                          }
+                        }}
+                        onChange={e => {
+                          searchToSite(e.target.value)
+                        }}
+                        {...params}
+                        label='All Sites'
+                        placeholder='Search & Select'
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Box>
+            ) : status === 'nursery' ? (
+              <Box>
+                <FormControl fullWidth>
+                  <Autocomplete
+                    name='nursery'
+                    value={defaultNursery}
+                    disablePortal
+                    id='nursery'
+                    options={nurseryList?.length > 0 ? nurseryList : []}
+                    getOptionLabel={option => option.nursery_name}
+                    isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultNursery(null)
+                        getspeciesFunc(status, searchValue, fromDate, tillDate, '')
+                      } else {
+                        setDefaultNursery(val)
+                        getspeciesFunc(status, searchValue, fromDate, tillDate, val?.nursery_id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        sx={{
+                          backgroundColor: '#fff',
+                          borderRadius: '8px',
+                          width: '176px',
+                          '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
+                            height: '40px',
+                            borderRadius: '4px'
+                          },
+                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                          '& input': {
+                            position: 'relative',
+                            top: -7
+                          }
+                        }}
+                        onChange={e => {
+                          searchNursery(e.target.value)
+                        }}
+                        {...params}
+                        label='All Nurseries'
+                        placeholder='Search & Select'
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Box>
+            ) : null}
           </Box>
-        </Grid>
-        <Grid item xs={3}>
-          <FormControl fullWidth>
-            <Autocomplete
-              name='fromSite'
-              value={defaultFromSite}
-              disablePortal
-              id='fromSite'
-              sx={{
-                '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
-                  height: '40px',
-                  borderRadius: '4px'
-                },
-                '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-              }}
-              options={fromSiteList}
-              getOptionLabel={option => option.site_name}
-              isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-              onChange={(e, val) => {
-                if (val === null) {
-                  setDefaultFromSite(null)
-                  getspeciesFunc(
-                    searchValue,
-                    fromDate,
-                    tillDate,
-                    '',
-                    defaultToSite?.site_id,
-                    defaultNursery?.nursery_id
-                  )
-                } else {
-                  setDefaultFromSite(val)
-                  getspeciesFunc(
-                    searchValue,
-                    fromDate,
-                    tillDate,
-                    val?.site_id,
-                    defaultToSite?.site_id,
-                    defaultNursery?.nursery_id
-                  )
-                }
-              }}
-              renderInput={params => (
-                <TextField
-                  sx={{
-                    backgroundColor: '#fff',
-                    borderRadius: '8px',
-                    width: '100%',
-                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                      height: '40px',
-                      borderRadius: '4px'
-                    },
-                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& input': {
-                      position: 'relative',
-                      top: -7
-                    }
-                  }}
-                  onChange={e => {
-                    searchFromSite(e.target.value)
-                  }}
-                  {...params}
-                  label='From Site'
-                  placeholder='Search'
-                />
-              )}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item xs={3}>
-          <FormControl fullWidth>
-            <Autocomplete
-              name='toSite'
-              value={defaultToSite}
-              disablePortal
-              id='toSite'
-              options={toSiteList?.length > 0 ? toSiteList : []}
-              getOptionLabel={option => option.site_name}
-              isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-              onChange={(e, val) => {
-                if (val === null) {
-                  setDefaultToSite(null)
-                  getspeciesFunc(
-                    searchValue,
-                    fromDate,
-                    tillDate,
-                    defaultFromSite?.site_id,
-                    '',
-                    defaultNursery?.nursery_id
-                  )
-                } else {
-                  setDefaultToSite(val)
-                  getspeciesFunc(
-                    searchValue,
-                    fromDate,
-                    tillDate,
-                    defaultFromSite?.site_id,
-                    val?.site_id,
-                    defaultNursery?.nursery_id
-                  )
-                }
-              }}
-              renderInput={params => (
-                <TextField
-                  sx={{
-                    backgroundColor: '#fff',
-                    borderRadius: '8px',
-                    width: '100%',
-                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                      height: '40px',
-                      borderRadius: '4px'
-                    },
-                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& input': {
-                      position: 'relative',
-                      top: -7
-                    }
-                  }}
-                  onChange={e => {
-                    searchToSite(e.target.value)
-                  }}
-                  {...params}
-                  label='Receiving Site'
-                  placeholder='Search & Select'
-                />
-              )}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item xs={3}>
-          <FormControl fullWidth>
-            <Autocomplete
-              name='nursery'
-              value={defaultNursery}
-              disablePortal
-              id='nursery'
-              options={nurseryList?.length > 0 ? nurseryList : []}
-              getOptionLabel={option => option.nursery_name}
-              isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-              onChange={(e, val) => {
-                if (val === null) {
-                  setDefaultNursery(null)
-                  getspeciesFunc(searchValue, fromDate, tillDate, defaultFromSite?.site_id, defaultToSite?.site_id, '')
-                } else {
-                  setDefaultNursery(val)
-                  getspeciesFunc(
-                    searchValue,
-                    fromDate,
-                    tillDate,
-                    defaultFromSite?.site_id,
-                    defaultToSite?.site_id,
-                    val?.nursery_id
-                  )
-                }
-              }}
-              renderInput={params => (
-                <TextField
-                  sx={{
-                    backgroundColor: '#fff',
-                    borderRadius: '8px',
-                    width: '100%',
-                    '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                      height: '40px',
-                      borderRadius: '4px'
-                    },
-                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& input': {
-                      position: 'relative',
-                      top: -7
-                    }
-                  }}
-                  onChange={e => {
-                    searchNursery(e.target.value)
-                  }}
-                  {...params}
-                  label='Nursery'
-                  placeholder='Search & Select'
-                />
-              )}
-            />
-          </FormControl>
-        </Grid>
-      </Grid>
-      <DataGrid
-        sx={{
-          '.MuiDataGrid-cell:focus': {
-            outline: 'none'
-          },
-          '& .MuiDataGrid-row:hover': {
-            cursor: 'pointer'
-          },
-          '& .MuiDataGrid-row:hover .customButton': {
-            display: 'block'
-          },
-          '& .MuiDataGrid-row:hover .hideField': {
-            display: 'none'
-          },
-          '& .MuiDataGrid-row .customButton': {
-            display: 'none'
-          },
-          '& .MuiDataGrid-row .hideField': {
-            display: 'block'
-          },
-          '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeaderCheckbox)': {
-            paddingLeft: 2.5
-          },
-          '& .css-1fdlktf-MuiDataGrid-columnHeaders': {
-            borderTopLeftRadius: 0,
-            borderTopRightRadius: 0
-          }
-        }}
-        columnVisibilityModel={{
-          sl_no: false
-        }}
-        hideFooterSelectedRowCount
-        disableColumnSelector={true}
-        autoHeight
-        pagination
-        rows={indexedRows === undefined ? [] : indexedRows}
-        rowCount={total}
-        rowHeight={68}
-        columns={columns}
-        sortingMode='server'
-        paginationMode='server'
-        pageSizeOptions={[7, 10, 25, 50]}
-        paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
-        // slots={{ toolbar: ServerSideToolbarWithFilter }}
-        onPaginationModelChange={setPaginationModel}
-        loading={loading}
-        // slotProps={{
-        //   baseButton: {
-        //     variant: 'outlined'
-        //   },
-        //   toolbar: {
-        //     value: searchValue,
-        //     clearSearch: () => handleSearch(''),
-        //     onChange: event => handleSearch(event.target.value)
-        //   }
-        // }}
-        onCellClick={onCellClick}
-      />
+        </Box>
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            },
+            '& .MuiDataGrid-row:hover .customButton': {
+              display: 'block'
+            },
+            '& .MuiDataGrid-row:hover .hideField': {
+              display: 'none'
+            },
+            '& .MuiDataGrid-row .customButton': {
+              display: 'none'
+            },
+            '& .MuiDataGrid-row .hideField': {
+              display: 'block'
+            },
+            '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeaderCheckbox)': {
+              paddingLeft: 2.5
+            },
+            '& .css-1fdlktf-MuiDataGrid-columnHeaders': {
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0
+            }
+          }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          pagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          rowHeight={68}
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          onCellClick={onCellClick}
+        />
+      </>
+    )
+  }
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: '#fff',
+        padding: '24px',
+        paddingBottom: '0px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        boxShadow: '0px 2px 10px 0px #4C4E6438',
+        borderRadius: '10px'
+      }}
+    >
+      <Typography sx={{ display: 'flex', justifyContent: 'end' }}>
+        {/* <Button variant='contained' onClick={() => addEventSidebarOpen()} sx={{ mr: 2 }}>
+          Nursery
+        </Button> */}
+        {/* <Button variant='contained' onClick={() => addDiscardSidebarOpen()} sx={{ mr: 2 }}>
+          Discard
+        </Button> */}
+        {/* <Button variant='contained' onClick={() => addFilterSidebarOpen()}>
+          Filter
+        </Button> */}
+      </Typography>
+      <TabContext value={status}>
+        <TabList onChange={handleChange}>
+          <Tab value='species' label={'Eggs by species'} />
+          <Tab value='site' label={'Eggs by sites'} />
+          <Tab value='nursery' label={'Eggs by nurseries'} />
+        </TabList>
+
+        <TabPanel value='species'>{tableData()}</TabPanel>
+        <TabPanel value='site'>{tableData()}</TabPanel>
+        <TabPanel value='nursery'>{tableData()}</TabPanel>
+      </TabContext>
       {openDrawer && <DashboardSlider openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />}
       {openDiscard && <DiscardEggSlider openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />}
-      {openFilterDrawer && <EggFilterSlider openFilterDrawer={openFilterDrawer} setOpenFilterDrawer = {setOpenFilterDrawer} />}
+      {openFilterDrawer && (
+        <EggFilterSlider openFilterDrawer={openFilterDrawer} setOpenFilterDrawer={setOpenFilterDrawer} />
+      )}
     </Box>
   )
 }

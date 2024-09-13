@@ -1,141 +1,211 @@
-import { Avatar, Box, Card, Drawer, IconButton, Typography } from '@mui/material'
+import { Avatar, Box, Card, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 
 const DashboardSlider = ({ openDrawer, setOpenDrawer }) => {
   const theme = useTheme()
+  const data = [
+    {
+      name: 'Rainbow Lorikeet',
+      species: 'Trichoglossus Moluccanus',
+      eggs: 5,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Eastern Rosella',
+      species: 'Platycercus Eximius',
+      eggs: 4,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Sulphur-crested Cockatoo',
+      species: 'Cacatua Galerita',
+      eggs: 3,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Galah',
+      species: 'Eolophus Roseicapilla',
+      eggs: 2,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'King Parrot',
+      species: 'Alisterus Scapularis',
+      eggs: 6,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Crimson Rosella',
+      species: 'Platycercus Elegans',
+      eggs: 4,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Red-tailed Black Cockatoo',
+      species: 'Calyptorhynchus Banksii',
+      eggs: 1,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Superb Fairy-wren',
+      species: 'Malurus Cyaneus',
+      eggs: 3,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Kookaburra',
+      species: 'Dacelo Novaeguineae',
+      eggs: 2,
+      avatar: 'user-icon'
+    },
+    {
+      name: 'Pied Butcherbird',
+      species: 'Cracticus Nigrogularis',
+      eggs: 4,
+      avatar: 'user-icon'
+    }
+  ]
 
   return (
     <Drawer
       anchor='right'
       open={openDrawer}
-      ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-
-        gap: '24px'
+        gap: '24px',
+        backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
       }}
     >
       <Box
+        className='sidebar-header'
         sx={{
-          bgcolor: theme.palette.customColors.lightBg,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '24px',
+          position: 'fixed',
           width: '100%',
-          height: '100%'
+          zIndex: 100,
+          top: 0,
+          justifyContent: 'space-between',
+          bgcolor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
         }}
       >
-        <Box
-          className='sidebar-header'
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255),
-            px: '24px',
-            mt: 2,
-            ml: 2,
-
-            bgcolor: theme.palette.customColors.lightBg
-          }}
-        >
-          <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center', ml: -2 }}>
+        <Box sx={{ width: '514px', display: 'flex', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              gap: '12px',
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
             <img src='/icons/egg_dashboard/species_logo.png' width='32' height='32' />
-            <Typography sx={{fontSize:24, fontFamily:"Inter" , fontWeight:500 }}>Nursery A (50)</Typography>
+            <Typography sx={{ fontSize: 24, fontFamily: 'Inter', fontWeight: 500 }}>Nursery A (50)</Typography>
           </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Box>
+          <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
+            <Icon icon='mdi:close' fontSize={24} />
+          </IconButton>
         </Box>
-
-        {/* drower */}
-        <Box className='sidebar-body'>
-          <Box sx={{ width: '562px', height: '740px', gap: 12 }}>
+      </Box>
+      <Box
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
+          height: '140%',
+          px: '24px'
+        }}
+      >
+        <Box sx={{ pb: '24px', pt: '85px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {data?.map((item, index) => (
             <Box
+              key={index}
               sx={{
-                width: '510px',
-                height: '84px',
+                background: theme.palette.primary.contrastText,
+                border: '1px solid #C3CEC7',
                 borderRadius: '8px',
-                ml: 6,
-                mt: 4,
-                backgroundColor: '#FFFF',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
+                px: '20px',
+                py: '16px'
               }}
             >
-              <Box
-                sx={{
-                  width: '482px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between' // Ensures spacing between Avatar+Text and "05 eggs"
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {/* <Avatar
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <Avatar
                     variant='rounded'
                     alt='Medicine Image'
                     sx={{
                       width: 44,
                       height: 44,
+                      mr: 4,
+                      border: '1px solid #C3CEC7',
                       borderRadius: '50%',
                       background: '#E8F4F2',
                       overflow: 'hidden'
                     }}
-                  > */}
-                  <img src='/icons/egg_dashboard/nursery_species.png' sx={{ width: 44, height: 44 }} />
-                  {/* <Icon icon='mdi:user' /> */}
+                  >
+                    {/* {params.row.default_icon ? (
+                <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              ) : ( */}
+                    <Icon icon='mdi:user' />
+                    {/* )} */}
+                  </Avatar>
 
-                  {/* </Avatar> */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2, width: '300px' }}>
+                  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {/* <Tooltip title={item?.name}> */}
                     <Typography
                       sx={{
-                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         fontSize: '16px',
-                        fontWeight: 600,
+                        fontWeight: '600',
                         lineHeight: '19.36px',
-                        color: '#44544A'
-                      }}
-                    >
-                      Rainbow Lorikeet
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: 'Inter',
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        fontWeight: 400,
-                        mt: 1.2,
-                        fontStyle: 'italic',
-                        color: '#44544A',
-                        whiteSpace: 'nowrap',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        width: '240px',
+                        boxSizing: 'border-box'
                       }}
                     >
-                      Trichoglossus Moluccanus
+                      {item?.name}
                     </Typography>
+                    {/* </Tooltip> */}
+                    {/* <Tooltip title={item?.species}> */}
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontSize: '16px',
+                        fontWeight: '400',
+                        lineHeight: '19.36px',
+                        fontStyle: 'italic',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        width: '240px'
+                      }}
+                    >
+                      {item?.species}
+                    </Typography>
+                    {/* </Tooltip> */}
                   </Box>
                 </Box>
                 <Typography
                   sx={{
-                    fontFamily: 'Inter',
+                    textAlign: 'end',
+                    width: '110px',
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     fontSize: '16px',
-                    lineHeight: '19.36px',
-                    color: '#44544A',
-                    fontWeight: 600
+                    fontWeight: '600',
+                    lineHeight: '19.36px'
                   }}
                 >
-                  05 Eggs
+                  {item?.eggs} Eggs
                 </Typography>
               </Box>
             </Box>
-          </Box>
+          ))}
         </Box>
       </Box>
     </Drawer>
