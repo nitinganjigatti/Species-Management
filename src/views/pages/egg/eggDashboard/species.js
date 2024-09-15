@@ -1,15 +1,4 @@
-import {
-  Autocomplete,
-  Avatar,
-  Button,
-  debounce,
-  FormControl,
-  Grid,
-  Tab,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Autocomplete, Avatar, debounce, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -20,11 +9,9 @@ import dayjs from 'dayjs'
 import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Imports
-import OptionsMenu from 'src/@core/components/option-menu'
-import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
 import { DataGrid } from '@mui/x-data-grid'
-import { getAllStats, getSiteList, getSpeciesList } from 'src/lib/api/egg/dashboard'
+import { getSiteList, getSpeciesList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
@@ -47,6 +34,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const [total, setTotal] = useState(0)
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationDrawerModel, setPaginationDrawerModel] = useState({ page: 0, pageSize: 10 })
 
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
@@ -61,6 +49,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const [defaultNursery, setDefaultNursery] = useState(null)
 
   const [openDrawer, setOpenDrawer] = useState(false)
+  const [drawerHeading, setDrawerHeading] = useState('')
+  const [drawerHeadingCount, setDrawerHeadingCount] = useState(0)
+  const [drawerLoading, setDrawerLoading] = useState(false)
+  const [drawerList, setDrawerList] = useState([])
 
   const getTaxonomyListFunc = q => {
     try {
@@ -119,26 +111,16 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     siteListFunc()
   }, [])
 
-  // const searchFromSite = useCallback(
+  // const searchToSite = useCallback(
   //   debounce(async q => {
   //     try {
-  //       await FromSiteList(q)
+  //       await siteList(q)
   //     } catch (error) {
   //       console.error(error)
   //     }
   //   }, 1000),
   //   []
   // )
-  const searchToSite = useCallback(
-    debounce(async q => {
-      try {
-        await siteList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
 
   const searchNursery = useCallback(
     debounce(async q => {
@@ -341,10 +323,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         <Typography
           onClick={e => {
             e.stopPropagation()
-            setOpenDrawer(true)
+            getdrawerspeciesFunc(
+              status === 'site' ? params.row.site_id : status === 'nursery' ? params.row.nursery_id : ''
+            )
+            setDrawerHeading(
+              status === 'site' ? params.row.site_name : status === 'nursery' ? params.row.nursery_name : ''
+            )
+            status != 'species' && setOpenDrawer(true)
           }}
           style={{
             width: '80%',
+            cursor: status === 'species' && 'auto',
             color: theme.palette.primary.dark,
             fontSize: '16px',
             fontWeight: '600',
@@ -374,7 +363,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Typography>
       )
     },
-
     {
       width: 120,
       field: 'total_eggs_in_nursery',
@@ -482,13 +470,48 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     }
   }
 
-  const addEventSidebarOpen = () => {
-    setOpenDrawer(true)
-    setOpenDiscard(false)
-  }
+  // const addEventSidebarOpen = () => {
+  //   setOpenDrawer(true)
+  //   setOpenDiscard(false)
+  // }
 
-  const addDiscardSidebarOpen = () => {
-    setOpenDiscard(true)
+  // const addDiscardSidebarOpen = () => {
+  //   setOpenDiscard(true)
+  // }
+
+  const getdrawerspeciesFunc = async ref_id => {
+    try {
+      setDrawerLoading(true)
+      const paramsSite = {
+        page_no: paginationDrawerModel.page + 1,
+        limit: paginationDrawerModel.pageSize,
+        ref_type: 'species',
+        q: '',
+        site_id: ref_id
+      }
+      const paramsNursery = {
+        page_no: paginationDrawerModel.page + 1,
+        limit: paginationDrawerModel.pageSize,
+        ref_type: 'species',
+        q: '',
+        nursery_id: ref_id
+      }
+      // console.log('params', params)
+      await getSpeciesList(status === 'site' ? paramsSite : status === 'nursery' ? paramsNursery : null).then(res => {
+        if (res?.data?.success) {
+          setDrawerHeadingCount(parseInt(res?.data?.data?.total_count))
+          setDrawerList(res?.data?.data?.result)
+          setDrawerLoading(false)
+        } else {
+          setDrawerLoading(false)
+          setDrawerList([])
+        }
+      })
+      setDrawerLoading(false)
+    } catch (e) {
+      console.log('e', e)
+      setDrawerLoading(false)
+    }
   }
 
   const getspeciesFunc = useCallback(
@@ -540,8 +563,12 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   )
 
   useEffect(() => {
-    getspeciesFunc(searchValue, fromDate, tillDate, defaultSite?.site_id, defaultNursery?.nursery_id)
+    getspeciesFunc(status)
   }, [getspeciesFunc])
+
+  // useEffect(() => {
+  //   getspeciesFunc(searchValue, fromDate, tillDate, defaultSite?.site_id, defaultNursery?.nursery_id)
+  // }, [getspeciesFunc])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -550,7 +577,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {}
+  // const handleSortModel = newModel => {}
 
   const tableData = () => {
     return (
@@ -737,10 +764,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               <Box>
                 <FormControl fullWidth>
                   <Autocomplete
-                    name='toSite'
+                    name='site'
                     value={defaultSite}
                     disablePortal
-                    id='toSite'
+                    id='site'
                     options={
                       authData?.userData?.user?.zoos[0].sites?.length > 0 ? authData?.userData?.user?.zoos[0].sites : []
                     }
@@ -772,9 +799,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                             top: -7
                           }
                         }}
-                        onChange={e => {
-                          searchToSite(e.target.value)
-                        }}
+                        // onChange={e => {
+                        //   searchToSite(e.target.value)
+                        // }}
                         {...params}
                         label='All Sites'
                         placeholder='Search & Select'
@@ -876,7 +903,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
+          // onSortModelChange={handleSortModel}
           onPaginationModelChange={setPaginationModel}
           loading={loading}
           onCellClick={onCellClick}
@@ -898,17 +925,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         borderRadius: '10px'
       }}
     >
-      <Typography sx={{ display: 'flex', justifyContent: 'end' }}>
-        {/* <Button variant='contained' onClick={() => addEventSidebarOpen()} sx={{ mr: 2 }}>
-          Nursery
-        </Button> */}
-        {/* <Button variant='contained' onClick={() => addDiscardSidebarOpen()} sx={{ mr: 2 }}>
-          Discard
-        </Button> */}
-        {/* <Button variant='contained' onClick={() => addFilterSidebarOpen()}>
-          Filter
-        </Button> */}
-      </Typography>
       <TabContext value={status}>
         <TabList onChange={handleChange}>
           <Tab value='species' label={'Eggs by species'} />
@@ -920,7 +936,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         <TabPanel value='site'>{tableData()}</TabPanel>
         <TabPanel value='nursery'>{tableData()}</TabPanel>
       </TabContext>
-      {openDrawer && <DashboardSlider openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />}
+      {openDrawer && (
+        <DashboardSlider
+          status={status}
+          drawerHeading={drawerHeading}
+          setDrawerHeading={setDrawerHeading}
+          drawerHeadingCount={drawerHeadingCount}
+          setDrawerHeadingCount={setDrawerHeadingCount}
+          openDrawer={openDrawer}
+          setOpenDrawer={setOpenDrawer}
+          drawerLoading={drawerLoading}
+          drawerList={drawerList}
+        />
+      )}
       {openDiscard && <DiscardEggSlider openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />}
     </Box>
   )

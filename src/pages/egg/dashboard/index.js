@@ -22,7 +22,7 @@ import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
 
 const Dashboard = () => {
-  const authData = useContext(AuthContext)
+  // const authData = useContext(AuthContext)
   const theme = useTheme()
 
   const [fromDate, setFromDate] = useState(null)
@@ -54,10 +54,9 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs aria-label='breadcrumb' sx={{}}>
+      <Breadcrumbs aria-label='breadcrumb'>
         <Typography
           sx={{
-            // cursor: 'pointer',
             fontWeight: 400,
             fontSize: '16px',
             lineHeight: '24px',

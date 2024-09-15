@@ -1,71 +1,19 @@
-import { Avatar, Box, Card, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
+import { Avatar, Box, Card, CircularProgress, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 
-const DashboardSlider = ({ openDrawer, setOpenDrawer }) => {
+const DashboardSlider = ({
+  status,
+  openDrawer,
+  setOpenDrawer,
+  drawerHeading,
+  setDrawerHeading,
+  drawerHeadingCount,
+  setDrawerHeadingCount,
+  drawerList = [],
+  drawerLoading
+}) => {
   const theme = useTheme()
-  const data = [
-    {
-      name: 'Rainbow Lorikeet',
-      species: 'Trichoglossus Moluccanus',
-      eggs: 5,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Eastern Rosella',
-      species: 'Platycercus Eximius',
-      eggs: 4,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Sulphur-crested Cockatoo',
-      species: 'Cacatua Galerita',
-      eggs: 3,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Galah',
-      species: 'Eolophus Roseicapilla',
-      eggs: 2,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'King Parrot',
-      species: 'Alisterus Scapularis',
-      eggs: 6,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Crimson Rosella',
-      species: 'Platycercus Elegans',
-      eggs: 4,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Red-tailed Black Cockatoo',
-      species: 'Calyptorhynchus Banksii',
-      eggs: 1,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Superb Fairy-wren',
-      species: 'Malurus Cyaneus',
-      eggs: 3,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Kookaburra',
-      species: 'Dacelo Novaeguineae',
-      eggs: 2,
-      avatar: 'user-icon'
-    },
-    {
-      name: 'Pied Butcherbird',
-      species: 'Cracticus Nigrogularis',
-      eggs: 4,
-      avatar: 'user-icon'
-    }
-  ]
 
   return (
     <Drawer
@@ -105,7 +53,9 @@ const DashboardSlider = ({ openDrawer, setOpenDrawer }) => {
             }}
           >
             <img src='/icons/egg_dashboard/species_logo.png' width='32' height='32' />
-            <Typography sx={{ fontSize: 24, fontFamily: 'Inter', fontWeight: 500 }}>Nursery A (50)</Typography>
+            <Typography sx={{ fontSize: 24, fontFamily: 'Inter', fontWeight: 500 }}>
+              {drawerHeading} &#40;{drawerHeadingCount}&#41;
+            </Typography>
           </Box>
           <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={24} />
@@ -121,91 +71,98 @@ const DashboardSlider = ({ openDrawer, setOpenDrawer }) => {
         }}
       >
         <Box sx={{ pb: '24px', pt: '85px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {data?.map((item, index) => (
-            <Box
-              key={index}
-              sx={{
-                background: theme.palette.primary.contrastText,
-                border: '1px solid #C3CEC7',
-                borderRadius: '8px',
-                px: '20px',
-                py: '16px'
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <Avatar
-                    variant='rounded'
-                    alt='Medicine Image'
+          {drawerLoading ? (
+            <Box sx={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            drawerList.length > 0 &&
+            drawerList?.map((item, index) => (
+              <Box
+                key={index}
+                sx={{
+                  background: theme.palette.primary.contrastText,
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  px: '20px',
+                  py: '16px'
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Avatar
+                      variant='rounded'
+                      alt='Medicine Image'
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        mr: 4,
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '50%',
+                        background: '#E8F4F2',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {item?.default_icon ? (
+                        <img style={{ width: '100%', height: '100%' }} src={item?.default_icon} alt='Profile' />
+                      ) : (
+                        <Icon icon='mdi:user' />
+                      )}
+                    </Avatar>
+
+                    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <Tooltip title={item?.complete_name}>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '16px',
+                            fontWeight: '600',
+                            lineHeight: '19.36px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            width: '240px',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          {item?.complete_name}
+                        </Typography>
+                      </Tooltip>
+                      <Tooltip title={item?.default_common_name}>
+                        <Typography
+                          sx={{
+                            color: theme.palette.primary.light,
+                            fontSize: '16px',
+                            fontWeight: '400',
+                            lineHeight: '19.36px',
+                            fontStyle: 'italic',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            width: '240px'
+                          }}
+                        >
+                          {item?.default_common_name}
+                        </Typography>
+                      </Tooltip>
+                    </Box>
+                  </Box>
+                  <Typography
                     sx={{
-                      width: 44,
-                      height: 44,
-                      mr: 4,
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '50%',
-                      background: '#E8F4F2',
-                      overflow: 'hidden'
+                      textAlign: 'end',
+                      width: '110px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      lineHeight: '19.36px'
                     }}
                   >
-                    {/* {params.row.default_icon ? (
-                <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-              ) : ( */}
-                    <Icon icon='mdi:user' />
-                    {/* )} */}
-                  </Avatar>
-
-                  <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {/* <Tooltip title={item?.name}> */}
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        width: '240px',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      {item?.name}
-                    </Typography>
-                    {/* </Tooltip> */}
-                    {/* <Tooltip title={item?.species}> */}
-                    <Typography
-                      sx={{
-                        color: theme.palette.primary.light,
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        lineHeight: '19.36px',
-                        fontStyle: 'italic',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        width: '240px'
-                      }}
-                    >
-                      {item?.species}
-                    </Typography>
-                    {/* </Tooltip> */}
-                  </Box>
+                    {item?.total_eggs} Eggs
+                  </Typography>
                 </Box>
-                <Typography
-                  sx={{
-                    textAlign: 'end',
-                    width: '110px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {item?.eggs} Eggs
-                </Typography>
               </Box>
-            </Box>
-          ))}
+            ))
+          )}
         </Box>
       </Box>
     </Drawer>
