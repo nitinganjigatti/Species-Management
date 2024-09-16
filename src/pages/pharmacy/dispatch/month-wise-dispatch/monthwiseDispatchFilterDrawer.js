@@ -1,24 +1,36 @@
-import { useTheme } from '@mui/material/styles'
-import React, { useState, useEffect, useContext, useCallback } from 'react'
-import {
-  Box,
-  Checkbox,
-  debounce,
-  Divider,
-  Drawer,
-  FormControl,
-  Grid,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
-
+import React, { useState } from 'react'
+import { Box, Checkbox, Divider, Drawer, FormControl, Grid, IconButton, TextField, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
+const fruitsList = [
+  { id: 1, name: 'Banana' },
+  { id: 2, name: 'Apple' },
+  { id: 3, name: 'Orange' },
+  { id: 4, name: 'Mango' },
+  { id: 5, name: 'Grapes' },
+  { id: 6, name: 'Pineapple' },
+  { id: 7, name: 'Strawberry' },
+  { id: 8, name: 'Watermelon' },
+  { id: 9, name: 'Papaya' },
+  { id: 10, name: 'Peach' }
+]
+
 const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
+  const [selectedFruitIds, setSelectedFruitIds] = useState([])
+
   const handleClose = () => {
     setOpenFilterDrawer(false)
   }
+
+  const handleCheckboxChange = fruitId => {
+    setSelectedFruitIds(
+      prevSelected =>
+        prevSelected.includes(fruitId)
+          ? prevSelected.filter(id => id !== fruitId) // Remove if already selected
+          : [...prevSelected, fruitId] // Add if not selected
+    )
+  }
+
   return (
     <Drawer
       anchor='right'
@@ -53,6 +65,7 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
           </IconButton>
         </Box>
       </Box>
+
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -94,8 +107,6 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                   <TextField
                     variant='outlined'
                     placeholder='Search'
-                    //value={searchQuery}
-                    //onChange={handleSearchChange}
                     InputProps={{
                       disableUnderline: false
                     }}
@@ -112,9 +123,14 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    //checked={selectAll}
-                    //onChange={handleSelectAllChange}
-                    inputProps={{ 'aria-label': 'controlled' }}
+                    // Logic for "Select All" checkbox
+                    checked={selectedFruitIds.length === fruitsList.length}
+                    onChange={() =>
+                      setSelectedFruitIds(
+                        selectedFruitIds.length === fruitsList.length ? [] : fruitsList.map(f => f.id)
+                      )
+                    }
+                    inputProps={{ 'aria-label': 'select all fruits' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                 </Box>
@@ -122,14 +138,16 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
               </>
 
               <Box sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Checkbox
-                    //checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                    //onChange={() => handleCheckboxChange(option.id, option.name)}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                  />
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>sldjljl</Typography>
-                </Box>
+                {fruitsList.map(fruit => (
+                  <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Checkbox
+                      checked={selectedFruitIds.includes(fruit.id)}
+                      onChange={() => handleCheckboxChange(fruit.id)}
+                      inputProps={{ 'aria-label': fruit.name }}
+                    />
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{fruit.name}</Typography>
+                  </Box>
+                ))}
               </Box>
             </Box>
           </Grid>
