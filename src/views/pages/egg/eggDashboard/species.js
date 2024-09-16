@@ -1,79 +1,78 @@
-import { Autocomplete, Avatar, debounce, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
-import { Box } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
+import { Box } from '@mui/system'
+import { Autocomplete, Avatar, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
-import dayjs from 'dayjs'
-import Icon from 'src/@core/components/icon'
-
-// ** Custom Components Imports
-import { AuthContext } from 'src/context/AuthContext'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { DataGrid } from '@mui/x-data-grid'
-import { getSiteList, getSpeciesList } from 'src/lib/api/egg/dashboard'
+import dayjs from 'dayjs'
 import moment from 'moment'
-import Toaster from 'src/components/Toaster'
-import Utility from 'src/utility'
-import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import Router from 'next/router'
+import debounce from 'lodash/debounce'
+
+// Custom Components Imports
+import Icon from 'src/@core/components/icon'
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
 import DashboardSlider from '../eggs/dashboardSlider'
 import DiscardEggSlider from '../eggs/discardEggSlider'
-import { TabContext, TabList, TabPanel } from '@mui/lab'
+
+// API Imports
+import { getSpeciesList } from 'src/lib/api/egg/dashboard'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 
 const Species = ({ openDiscard, setOpenDiscard }) => {
+  // Context and Theme
   const authData = useContext(AuthContext)
   const theme = useTheme()
 
+  // Tab Status
   const [status, setStatus] = useState('species')
 
+  // Data Lists
   const [speciesList, setSpeciesList] = useState([])
-
-  const [loading, setLoading] = useState(false)
-  const [total, setTotal] = useState(0)
-  const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [paginationDrawerModel, setPaginationDrawerModel] = useState({ page: 0, pageSize: 10 })
-
-  const [fromDate, setFromDate] = useState(null)
-  const [tillDate, setTilDate] = useState(null)
-
   const [taxonomyList, setTaxonomyList] = useState([])
-  const [defaultSpecies, setDefaultSpecies] = useState(null)
-
-  const [siteList, setSiteList] = useState([])
-  const [defaultSite, setDefaultSite] = useState(null)
-
   const [nurseryList, setNurseryList] = useState([])
+
+  // Default Values
+  const [defaultSpecies, setDefaultSpecies] = useState(null)
+  const [defaultSite, setDefaultSite] = useState(null)
   const [defaultNursery, setDefaultNursery] = useState(null)
 
+  // Date Range
+  const [fromDate, setFromDate] = useState(null)
+  const [tillDate, setTillDate] = useState(null)
+
+  // Pagination
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
+  // Drawer State
   const [openDrawer, setOpenDrawer] = useState(false)
   const [drawerHeading, setDrawerHeading] = useState('')
   const [drawerHeadingCount, setDrawerHeadingCount] = useState(0)
   const [drawerLoading, setDrawerLoading] = useState(false)
   const [drawerList, setDrawerList] = useState([])
 
-  const getTaxonomyListFunc = q => {
-    try {
-      getTaxonomyList(q).then(res => {
-        if (res.success) {
-          setTaxonomyList(res?.data)
-        }
-      })
-    } catch (error) {}
-  }
+  // Loading and Total Count
+  const [loading, setLoading] = useState(false)
+  const [total, setTotal] = useState(0)
 
-  const searchSpecies = useCallback(
-    debounce(async search => {
-      try {
-        await getTaxonomyListFunc({ search })
-      } catch (error) {
-        console.error(error)
+  // Search Value
+  const [searchValue, setSearchValue] = useState('')
+
+  const TaxonomyList = async q => {
+    try {
+      const res = await getTaxonomyList(q)
+      if (res?.data) {
+        setTaxonomyList(res.data)
       }
-    }, 1000),
-    []
-  )
+    } catch (error) {
+      console.error('Error fetching taxonomy list:', error)
+    }
+  }
 
   const NurseryList = async q => {
     try {
@@ -82,56 +81,27 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         page: 1,
         limit: 50
       }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
+      const res = await GetNurseryList({ params })
+      if (res?.data?.result) {
+        setNurseryList(res.data.result)
+      }
+    } catch (error) {
+      console.error('Error fetching nursery list:', error)
     }
   }
 
-  const siteListFunc = async q => {
-    try {
-      const params = {
-        type: 'site',
-        page_no: 1,
-        q
-      }
-      await getSiteList(params).then(res => {
-        setSiteList(res?.data?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
+  // Debounce wrapper for API calls
+  const useDebouncedCallback = (callback, delay) => {
+    return useCallback(debounce(callback, delay), [callback, delay])
   }
 
-  useEffect(() => {
-    getTaxonomyListFunc()
-    NurseryList()
-    siteListFunc()
-  }, [])
-
-  // const searchToSite = useCallback(
-  //   debounce(async q => {
-  //     try {
-  //       await siteList(q)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
-
-  const searchNursery = useCallback(
-    debounce(async q => {
-      try {
-        await NurseryList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  // Debounced search callbacks
+  const searchSpecies = useDebouncedCallback(async search => await TaxonomyList({ search }), 1000)
+  const searchNursery = useDebouncedCallback(async q => await NurseryList(q), 1000)
+  const searchTableData = useDebouncedCallback(async (status, q, fDate, tDate, ref_id) => {
+    setSearchValue(q)
+    await getspeciesFunc(status, q, fDate, tDate, ref_id)
+  }, 1000)
 
   const columns = [
     {
@@ -441,75 +411,48 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     }
   ]
 
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
   const handleChange = (event, newValue) => {
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 10 })
     setStatus(newValue)
     setSearchValue('')
-    setTilDate(null)
+    setTillDate(null)
     setFromDate(null)
     setDefaultSite(null)
     setDefaultNursery(null)
   }
 
-  const onCellClick = params => {
-    const clickedColumn = params.field !== 'switch'
+  const onCellClick = params => Router.push(`/egg/species/${params?.row?.taxonomy_id}`)
 
-    if (clickedColumn) {
-      const data = params.row
-
-      Router.push({
-        pathname: `/egg/species/${data?.taxonomy_id}`
-      })
-    } else {
-      return
-    }
+  function loadServerRows(currentPage, data) {
+    return data
   }
 
-  // const addEventSidebarOpen = () => {
-  //   setOpenDrawer(true)
-  //   setOpenDiscard(false)
-  // }
-
-  // const addDiscardSidebarOpen = () => {
-  //   setOpenDiscard(true)
-  // }
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const indexedRows = speciesList?.map((row, index) => ({ ...row, sl_no: getSlNo(index) }))
 
   const getdrawerspeciesFunc = async ref_id => {
     try {
       setDrawerLoading(true)
-      const paramsSite = {
-        page_no: paginationDrawerModel.page + 1,
-        limit: paginationDrawerModel.pageSize,
+
+      const params = {
         ref_type: 'species',
         q: '',
-        site_id: ref_id
+        [status === 'site' ? 'site_id' : 'nursery_id']: ref_id
       }
-      const paramsNursery = {
-        page_no: paginationDrawerModel.page + 1,
-        limit: paginationDrawerModel.pageSize,
-        ref_type: 'species',
-        q: '',
-        nursery_id: ref_id
+
+      const res = await getSpeciesList(params)
+
+      if (res?.data?.success) {
+        const data = res?.data?.data
+        setDrawerHeadingCount(parseInt(data?.total_count || 0, 10))
+        setDrawerList(data?.success ? data.result : [])
+      } else {
+        setDrawerList([])
       }
-      // console.log('params', params)
-      await getSpeciesList(status === 'site' ? paramsSite : status === 'nursery' ? paramsNursery : null).then(res => {
-        if (res?.data?.success) {
-          setDrawerHeadingCount(parseInt(res?.data?.data?.total_count))
-          setDrawerList(res?.data?.data?.result)
-          setDrawerLoading(false)
-        } else {
-          setDrawerLoading(false)
-          setDrawerList([])
-        }
-      })
-      setDrawerLoading(false)
-    } catch (e) {
-      console.log('e', e)
+    } catch (error) {
+      console.error('Error fetching species:', error)
+    } finally {
       setDrawerLoading(false)
     }
   }
@@ -527,62 +470,71 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           til_date: tDate,
           ref_id
         }
-        // console.log('params', params)
-        await getSpeciesList(params).then(res => {
-          if (res?.data?.success) {
-            let listWithId = res?.data?.data?.result?.map((el, i) => {
-              return { ...el, id: i + 1 }
-            })
-            setTotal(parseInt(res?.data?.data?.total_count))
-            setSpeciesList(loadServerRows(paginationModel.page, listWithId))
-            setLoading(false)
-          } else {
-            setLoading(false)
-            setSpeciesList([])
-          }
-        })
-        setLoading(false)
+
+        const res = await getSpeciesList(params)
+        const data = res?.data?.data
+
+        if (res?.data?.success) {
+          const listWithId = data?.result?.map((el, i) => ({ ...el, id: i + 1 }))
+          setTotal(parseInt(data?.total_count, 10))
+          setSpeciesList(loadServerRows(paginationModel.page, listWithId))
+        } else {
+          setSpeciesList([])
+        }
       } catch (e) {
-        console.log(e)
+        console.error('Error fetching species:', e)
+      } finally {
         setLoading(false)
       }
     },
     [paginationModel]
   )
 
-  const searchTableData = useCallback(
-    debounce(async (status, q, fDate, tDate, ref_id) => {
-      setSearchValue(q)
-      try {
-        await getspeciesFunc(status, q, fDate, tDate, ref_id)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  useEffect(() => {
+    TaxonomyList()
+    NurseryList()
+  }, [])
 
   useEffect(() => {
     getspeciesFunc(status)
   }, [getspeciesFunc])
 
-  // useEffect(() => {
-  //   getspeciesFunc(searchValue, fromDate, tillDate, defaultSite?.site_id, defaultNursery?.nursery_id)
-  // }, [getspeciesFunc])
-
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-
-  const indexedRows = speciesList?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  // const handleSortModel = newModel => {}
-
   const tableData = () => {
+    const handleSearchChange = e => {
+      const searchValue = e.target.value
+      searchTableData(status, searchValue, fromDate, tillDate, getIdBasedOnStatus())
+    }
+
+    const handleFromDateChange = newDate => {
+      if (newDate) {
+        const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+        setFromDate(formattedDate)
+        getspeciesFunc(status, searchValue, formattedDate, tillDate, getIdBasedOnStatus())
+      }
+    }
+
+    const handleTillDateChange = newDate => {
+      if (newDate) {
+        const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+        setTillDate(formattedDate)
+        getspeciesFunc(status, searchValue, fromDate, formattedDate, getIdBasedOnStatus())
+      }
+    }
+
+    const getIdBasedOnStatus = () => {
+      return status === 'species'
+        ? ''
+        : status === 'site'
+        ? defaultSite?.site_id
+        : status === 'nursery'
+        ? defaultNursery?.nursery_id
+        : ''
+    }
+
     return (
       <>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
+          {/* Search Box */}
           <Box
             sx={{
               display: 'flex',
@@ -597,121 +549,43 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             <TextField
               variant='outlined'
               placeholder='Search'
-              onChange={e =>
-                searchTableData(
-                  status,
-                  e.target.value,
-                  fromDate,
-                  tillDate,
-                  status === 'species'
-                    ? ''
-                    : status === 'site'
-                    ? defaultSite?.site_id
-                    : status === 'nursery'
-                    ? defaultNursery?.nursery_id
-                    : ''
-                )
-              }
+              onChange={handleSearchChange}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
                   padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
+                  '& fieldset': { border: 'none' }
                 }
               }}
             />
           </Box>
+
+          {/* Date Pickers and Autocomplete */}
           <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                sx={{
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  width: '155px',
-                  '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
-                    height: '40px',
-                    borderRadius: '4px'
-                  },
-                  '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                  '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-                }}
+                sx={datePickerStyles}
                 value={fromDate}
-                onChange={newDate => {
-                  if (newDate) {
-                    const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                    setFromDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
-                    getspeciesFunc(
-                      status,
-                      searchValue,
-                      formattedDate,
-                      tillDate,
-                      status === 'species'
-                        ? ''
-                        : status === 'site'
-                        ? defaultSite?.site_id
-                        : status === 'nursery'
-                        ? defaultNursery?.nursery_id
-                        : ''
-                    )
-                  }
-                }}
+                onChange={handleFromDateChange}
                 label={'From Date'}
                 maxDate={dayjs()}
               />
             </LocalizationProvider>
-            <Typography
-              sx={{
-                color: '#839D8D',
-                fontWeight: 400,
-                fontSize: '14px',
-                lineHeight: '16.94px'
-              }}
-            >
-              To
-            </Typography>
+
+            <Typography sx={typographyStyles}>To</Typography>
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                sx={{
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  width: '155px',
-                  '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
-                    height: '40px',
-                    borderRadius: '4px'
-                  },
-                  '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                  '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-                }}
+                sx={datePickerStyles}
                 value={tillDate}
-                onChange={newDate => {
-                  if (newDate) {
-                    const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                    setTilDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
-                    getspeciesFunc(
-                      status,
-                      searchValue,
-                      fromDate,
-                      formattedDate,
-                      status === 'species'
-                        ? ''
-                        : status === 'site'
-                        ? defaultSite?.site_id
-                        : status === 'nursery'
-                        ? defaultNursery?.nursery_id
-                        : ''
-                    )
-                  }
-                }}
+                onChange={handleTillDateChange}
                 label={'Till Date'}
                 maxDate={dayjs()}
               />
             </LocalizationProvider>
 
-            {status === 'species' ? (
-              <Box>
+            <Box>
+              {status === 'species' && (
                 <FormControl fullWidth>
                   <Autocomplete
                     name='species'
@@ -725,33 +599,16 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     onChange={(e, val) => {
                       if (val === null) {
                         setDefaultSpecies(null)
-
                         getspeciesFunc(status, searchValue, fromDate, tillDate, '')
                       } else {
                         setDefaultSpecies(val)
-
                         getspeciesFunc(status, searchValue, fromDate, tillDate, val?.tsn)
                       }
                     }}
                     renderInput={params => (
                       <TextField
-                        sx={{
-                          backgroundColor: '#fff',
-                          borderRadius: '8px',
-                          width: '176px',
-                          '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                            height: '40px',
-                            borderRadius: '4px'
-                          },
-                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                          '& input': {
-                            position: 'relative',
-                            top: -7
-                          }
-                        }}
-                        onChange={e => {
-                          searchSpecies(e.target.value)
-                        }}
+                        sx={textFieldStyles}
+                        onChange={e => searchSpecies(e.target.value)}
                         {...params}
                         label='All Species'
                         placeholder='Search & Select'
@@ -759,9 +616,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     )}
                   />
                 </FormControl>
-              </Box>
-            ) : status === 'site' ? (
-              <Box>
+              )}
+              {status === 'site' && (
                 <FormControl fullWidth>
                   <Autocomplete
                     name='site'
@@ -776,7 +632,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     onChange={(e, val) => {
                       if (val === null) {
                         setDefaultSite(null)
-
                         getspeciesFunc(status, searchValue, fromDate, tillDate, '')
                       } else {
                         setDefaultSite(val)
@@ -784,34 +639,12 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                       }
                     }}
                     renderInput={params => (
-                      <TextField
-                        sx={{
-                          backgroundColor: '#fff',
-                          borderRadius: '8px',
-                          width: '176px',
-                          '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                            height: '40px',
-                            borderRadius: '4px'
-                          },
-                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                          '& input': {
-                            position: 'relative',
-                            top: -7
-                          }
-                        }}
-                        // onChange={e => {
-                        //   searchToSite(e.target.value)
-                        // }}
-                        {...params}
-                        label='All Sites'
-                        placeholder='Search & Select'
-                      />
+                      <TextField sx={textFieldStyles} {...params} label='All Sites' placeholder='Search & Select' />
                     )}
                   />
                 </FormControl>
-              </Box>
-            ) : status === 'nursery' ? (
-              <Box>
+              )}
+              {status === 'nursery' && (
                 <FormControl fullWidth>
                   <Autocomplete
                     name='nursery'
@@ -832,20 +665,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     }}
                     renderInput={params => (
                       <TextField
-                        sx={{
-                          backgroundColor: '#fff',
-                          borderRadius: '8px',
-                          width: '176px',
-                          '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                            height: '40px',
-                            borderRadius: '4px'
-                          },
-                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                          '& input': {
-                            position: 'relative',
-                            top: -7
-                          }
-                        }}
+                        sx={textFieldStyles}
                         onChange={e => {
                           searchNursery(e.target.value)
                         }}
@@ -856,46 +676,20 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     )}
                   />
                 </FormControl>
-              </Box>
-            ) : null}
+              )}
+            </Box>
           </Box>
         </Box>
+
+        {/* DataGrid */}
         <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            },
-            '& .MuiDataGrid-row:hover .customButton': {
-              display: 'block'
-            },
-            '& .MuiDataGrid-row:hover .hideField': {
-              display: 'none'
-            },
-            '& .MuiDataGrid-row .customButton': {
-              display: 'none'
-            },
-            '& .MuiDataGrid-row .hideField': {
-              display: 'block'
-            },
-            '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeaderCheckbox)': {
-              paddingLeft: 2.5
-            },
-            '& .css-1fdlktf-MuiDataGrid-columnHeaders': {
-              borderTopLeftRadius: 0,
-              borderTopRightRadius: 0
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
+          sx={dataGridStyles}
+          columnVisibilityModel={{ sl_no: false }}
           hideFooterSelectedRowCount
-          disableColumnSelector={true}
+          disableColumnSelector
           autoHeight
           pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
+          rows={indexedRows || []}
           rowCount={total}
           rowHeight={68}
           columns={columns}
@@ -903,13 +697,55 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
           paginationModel={paginationModel}
-          // onSortModelChange={handleSortModel}
           onPaginationModelChange={setPaginationModel}
           loading={loading}
           onCellClick={onCellClick}
         />
       </>
     )
+  }
+
+  // Styles for DatePicker and Typography
+  const datePickerStyles = {
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    width: '155px',
+    '& .MuiOutlinedInput-root': {
+      height: '40px',
+      borderRadius: '4px'
+    },
+    '& .MuiFormLabel-root': { top: '-7px' },
+    '& .MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+  }
+
+  const typographyStyles = {
+    color: '#839D8D',
+    fontWeight: 400,
+    fontSize: '14px',
+    lineHeight: '16.94px'
+  }
+
+  const textFieldStyles = {
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    width: '176px',
+    '& .MuiOutlinedInput-root': {
+      height: '40px',
+      borderRadius: '4px'
+    },
+    '& .MuiFormLabel-root': { top: '-7px' },
+    '& input': { position: 'relative', top: -7 }
+  }
+
+  const dataGridStyles = {
+    '.MuiDataGrid-cell:focus': { outline: 'none' },
+    '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
+    '& .MuiDataGrid-row:hover .customButton': { display: 'block' },
+    '& .MuiDataGrid-row:hover .hideField': { display: 'none' },
+    '& .MuiDataGrid-row .customButton': { display: 'none' },
+    '& .MuiDataGrid-row .hideField': { display: 'block' },
+    '& .MuiDataGrid-columnHeader:not(.MuiDataGrid-columnHeaderCheckbox)': { paddingLeft: 2.5 },
+    '& .MuiDataGrid-columnHeaders': { borderTopLeftRadius: 0, borderTopRightRadius: 0 }
   }
 
   return (
