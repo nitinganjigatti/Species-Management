@@ -19,14 +19,14 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 
-import { deleteLabTest, getLabTestDetailsById } from 'src/lib/api/lab/master'
+import { deleteLabTest, getLabSampleListById, getLabTestDetailsById } from 'src/lib/api/lab/master'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
 
 const SampleDetails = props => {
   const theme = useTheme()
   const { addEventSidebarOpen, setOpenDetailsDrawer, setOpenDrawer, submitLoader, editParams, fetchTableData } = props
-  const [testDetails, setTestDetails] = useState(null)
+  const [sampleDetails, setSampleDetails] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
@@ -37,10 +37,10 @@ const SampleDetails = props => {
       id
     }
     setLoading(true)
-    const response = await getLabTestDetailsById(params)
-    console.log('add state comp', response)
+    const response = await getLabSampleListById(params)
+    console.log('add state comp', response?.data?.result)
     if (response?.success) {
-      setTestDetails(response.data)
+      setSampleDetails(response.data?.result)
       setLoading(false)
     } else {
       setLoading(false)
@@ -79,7 +79,7 @@ const SampleDetails = props => {
   const handleDelete = sample => {
     console.log('Delete:', sample)
     setIsModalOpenDelete(true)
-    setSelectedId(testDetails?.id)
+    setSelectedId(sampleDetails?.id)
     // Add your logic to handle the delete action
   }
 
@@ -133,14 +133,14 @@ const SampleDetails = props => {
               backgroundColor: '#fff',
               borderRadius: '8px',
               boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-              height: '79vh'
+              maxHeight: '79vh'
             }}
           >
             {loading ? (
               <FallbackSpinner />
             ) : (
               <>
-                {testDetails && (
+                {sampleDetails && (
                   <Box>
                     <CardContent>
                       <Box sx={{ bgcolor: '#E1F9ED', p: 3, mb: 6, borderRadius: 1 }}>
@@ -148,15 +148,15 @@ const SampleDetails = props => {
                           Test Name
                         </Typography>
                         <Typography variant='h5' component='div'>
-                          {testDetails.label}
+                          {sampleDetails.label}
                         </Typography>
                       </Box>
 
-                      <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                      {/* <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
                         Sample Types
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mb: 6 }}>
-                        {testDetails.sample_types.map(type => (
+                        {sampleDetails?.sample_types?.map(type => (
                           <Chip
                             key={type.id}
                             label={type.name}
@@ -169,13 +169,15 @@ const SampleDetails = props => {
                             }}
                           />
                         ))}
-                      </Box>
+                      </Box> */}
 
                       <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
-                        Sub Tests
+                        No Lab Tests
                       </Typography>
+                      {sampleDetails?.lab_test_count}
+                      {/* {sampleDetails?.lab_test_count}
                       <List disablePadding>
-                        {testDetails.child_tests.map((test, index) => (
+                        {sampleDetails?.child_tests?.map((test, index) => (
                           <ListItem
                             key={test.id}
                             sx={{
@@ -189,7 +191,7 @@ const SampleDetails = props => {
                             <ListItemText primary={`${index + 1}. ${test.name}`} />
                           </ListItem>
                         ))}
-                      </List>
+                      </List> */}
                     </CardContent>
                   </Box>
                 )}
