@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
+import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Checkbox,
@@ -21,7 +22,8 @@ const MonthWisedispatchFilter = ({
   handleFruitSelection,
   selectedFruits,
   handleSelectAllChange,
-  fruitList
+  fruitList,
+  onApplyFilters
 }) => {
   const handleClose = () => {
     setOpenFilterDrawer(false)
@@ -144,6 +146,36 @@ const MonthWisedispatchFilter = ({
             </Box>
           </Grid>
         </Grid>
+      </Box>
+      {/* bottom buttons */}
+      <Box
+        sx={{
+          height: '122px',
+          width: '100%',
+          maxWidth: '562px',
+          position: 'fixed',
+          bottom: 0,
+          px: 4,
+          bgcolor: 'white',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 5,
+          display: 'flex',
+          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 123
+        }}
+      >
+        <LoadingButton
+          fullWidth
+          variant='outlined'
+          size='large'
+          //onClick={handleCloseDrawer}
+        >
+          CANCEL ALL
+        </LoadingButton>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={onApplyFilters}>
+          APPLY FILTER
+        </LoadingButton>
       </Box>
     </Drawer>
   )
