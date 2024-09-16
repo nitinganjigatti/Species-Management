@@ -44,6 +44,7 @@ import { bgcolor, color } from '@mui/system'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import StoreWiseDispatch from '../dispatch/store-wise-dispatch'
 import RequestChart from 'src/components/pharmacy/dashBoard/RequestChart'
+import { LoadingButton } from '@mui/lab'
 
 const NewDashboard = () => {
   const [totalList, setTotalList] = useState([])
@@ -107,6 +108,14 @@ const NewDashboard = () => {
   // {selectedPharmacy.type === 'central' &&
   return (
     <ApexChartWrapper>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 5 }}>
+        <Typography variant='h5' color='#44544A'>
+          Welcome to your pharmacy's control center!
+        </Typography>
+        <LoadingButton size='medium' variant='contained' endIcon={<Icon icon='material-symbols:download' />}>
+          Download Report
+        </LoadingButton>
+      </Box>
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12} md={8}>
           <AnalyticsCongratulations />
