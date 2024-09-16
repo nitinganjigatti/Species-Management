@@ -33,6 +33,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
+
+  // console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
   const [search, setSearch] = useState('')
   const [date, setDate] = useState({ to_date: '', from_date: '' })
@@ -502,9 +504,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       }
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
-        setDiscardList(list?.result)
 
-        // setDiscardList([...discardList, ...list?.result])
+        // setDiscardList(list?.result)
+
+        setDiscardList([...discardList, ...list?.result])
         setListCount(list?.total_count)
         setReachedEnd(false)
 
