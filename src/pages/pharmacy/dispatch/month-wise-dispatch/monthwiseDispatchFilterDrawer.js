@@ -1,36 +1,31 @@
-import React, { useState } from 'react'
-import { Box, Checkbox, Divider, Drawer, FormControl, Grid, IconButton, TextField, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import React, { useState, useEffect, useContext, useCallback } from 'react'
+import {
+  Box,
+  Checkbox,
+  debounce,
+  Divider,
+  Drawer,
+  FormControl,
+  Grid,
+  IconButton,
+  TextField,
+  Typography
+} from '@mui/material'
+
 import Icon from 'src/@core/components/icon'
 
-const fruitsList = [
-  { id: 1, name: 'Banana' },
-  { id: 2, name: 'Apple' },
-  { id: 3, name: 'Orange' },
-  { id: 4, name: 'Mango' },
-  { id: 5, name: 'Grapes' },
-  { id: 6, name: 'Pineapple' },
-  { id: 7, name: 'Strawberry' },
-  { id: 8, name: 'Watermelon' },
-  { id: 9, name: 'Papaya' },
-  { id: 10, name: 'Peach' }
-]
-
-const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
-  const [selectedFruitIds, setSelectedFruitIds] = useState([])
-
+const MonthWisedispatchFilter = ({
+  openFilterDrawer,
+  setOpenFilterDrawer,
+  handleFruitSelection,
+  selectedFruits,
+  handleSelectAllChange,
+  fruitList
+}) => {
   const handleClose = () => {
     setOpenFilterDrawer(false)
   }
-
-  const handleCheckboxChange = fruitId => {
-    setSelectedFruitIds(
-      prevSelected =>
-        prevSelected.includes(fruitId)
-          ? prevSelected.filter(id => id !== fruitId) // Remove if already selected
-          : [...prevSelected, fruitId] // Add if not selected
-    )
-  }
-
   return (
     <Drawer
       anchor='right'
@@ -56,7 +51,7 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - </Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - {selectedFruits.length} </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handleClose}>
@@ -65,7 +60,6 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
           </IconButton>
         </Box>
       </Box>
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -107,6 +101,8 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                   <TextField
                     variant='outlined'
                     placeholder='Search'
+                    //value={searchQuery}
+                    //onChange={handleSearchChange}
                     InputProps={{
                       disableUnderline: false
                     }}
@@ -123,14 +119,10 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    // Logic for "Select All" checkbox
-                    checked={selectedFruitIds.length === fruitsList.length}
-                    onChange={() =>
-                      setSelectedFruitIds(
-                        selectedFruitIds.length === fruitsList.length ? [] : fruitsList.map(f => f.id)
-                      )
-                    }
-                    inputProps={{ 'aria-label': 'select all fruits' }}
+                    checked={selectedFruits.length === fruitList.length}
+                    indeterminate={selectedFruits.length > 0 && selectedFruits.length < fruitList.length}
+                    onChange={handleSelectAllChange}
+                    inputProps={{ 'aria-label': 'controlled' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                 </Box>
@@ -138,12 +130,12 @@ const MonthWisedispatchFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
               </>
 
               <Box sx={{ mt: 2 }}>
-                {fruitsList.map(fruit => (
+                {fruitList.map(fruit => (
                   <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectedFruitIds.includes(fruit.id)}
-                      onChange={() => handleCheckboxChange(fruit.id)}
-                      inputProps={{ 'aria-label': fruit.name }}
+                      checked={selectedFruits.includes(fruit.id)}
+                      onChange={() => handleFruitSelection(fruit.id)}
+                      inputProps={{ 'aria-label': 'controlled' }}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{fruit.name}</Typography>
                   </Box>

@@ -26,11 +26,25 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
 import MedicineNamedoctorsList from './doctorsList'
 
+const fruitList = [
+  { id: 1, name: 'Banana' },
+  { id: 2, name: 'Apple' },
+  { id: 3, name: 'Orange' },
+  { id: 4, name: 'Mango' },
+  { id: 5, name: 'Pineapple' },
+  { id: 6, name: 'Grapes' },
+  { id: 7, name: 'Watermelon' },
+  { id: 8, name: 'Strawberry' },
+  { id: 9, name: 'Peach' },
+  { id: 10, name: 'Cherry' }
+]
+
 const MonthWiseDispatch = () => {
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
   const [date, setDate] = useState(new Date())
+  const [selectedFruits, setSelectedFruits] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
   const handlecheckcell = val => {
@@ -214,6 +228,28 @@ const MonthWiseDispatch = () => {
     return data
   }
 
+  // This function will handle the selected fruits from the child component
+  const handleFruitSelection = fruitId => {
+    setSelectedFruits(prevSelectedFruits => {
+      // If the fruit is already selected, remove it; otherwise, add it
+      if (prevSelectedFruits.includes(fruitId)) {
+        return prevSelectedFruits.filter(id => id !== fruitId)
+      } else {
+        return [...prevSelectedFruits, fruitId]
+      }
+    })
+  }
+
+  const handleSelectAllChange = event => {
+    if (event.target.checked) {
+      // If "Select All" is checked, select all fruits
+      setSelectedFruits(fruitList.map(fruit => fruit.id))
+    } else {
+      // If unchecked, clear all selections
+      setSelectedFruits([])
+    }
+  }
+
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
       let params = {}
@@ -239,6 +275,13 @@ const MonthWiseDispatch = () => {
           }
         }
 
+        // Append selected fruit ids to params if any fruits are selected
+        if (selectedFruits.length > 0) {
+          selectedFruits.forEach((fruitId, index) => {
+            params[`fruitid:${index + 1}`] = fruitId
+          })
+        }
+
         await getMedicineList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
@@ -254,7 +297,7 @@ const MonthWiseDispatch = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, selectedFruits]
   )
 
   const searchTableData = useCallback(
@@ -419,7 +462,7 @@ const MonthWiseDispatch = () => {
                       startIcon={<Icon icon='bi:filter' />}
                       onClick={() => setOpenFilterDrawer(true)}
                     >
-                      Filter
+                      {selectedFruits.length <= 0 ? 'Filter' : selectedFruits.length}
                     </LoadingButton>
                   </Grid>
                 </Grid>
@@ -468,6 +511,10 @@ const MonthWiseDispatch = () => {
                 <MonthWisedispatchFilter
                   setOpenFilterDrawer={setOpenFilterDrawer}
                   openFilterDrawer={openFilterDrawer}
+                  handleFruitSelection={handleFruitSelection}
+                  selectedFruits={selectedFruits}
+                  handleSelectAllChange={handleSelectAllChange}
+                  fruitList={fruitList}
                 />
               )}
               {openDoctorListDrawer && (
