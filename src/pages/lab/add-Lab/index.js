@@ -51,6 +51,8 @@ import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 import ErrorScreen from 'src/pages/Error'
 import { useContext } from 'react'
+import Toaster from 'src/components/Toaster'
+import geolocation from 'geolocation'
 
 const AddLab = () => {
   const theme = useTheme()
@@ -93,7 +95,7 @@ const AddLab = () => {
   const [imgSrc, setImgSrc] = useState([])
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
-  console.log('imgArr :>> ', imgArr[0])
+  // console.log('imgArr :>> ', imgArr[0])
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -167,7 +169,7 @@ const AddLab = () => {
         }
       })
 
-      console.log('Updated TestData:', updatedTestData)
+      // console.log('Updated TestData:', updatedTestData)
       setTestData(updatedTestData)
     } catch (error) {
       console.log('Error updating TestData:', error)
@@ -234,25 +236,40 @@ const AddLab = () => {
   }
 
   // location
+
+  // const handleClick = () => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       position => {
+  //         // Success callback
+  //         const { latitude, longitude } = position.coords
+  //         setLongitude({ longitude })
+  //         setLatitude({ latitude })
+  //         setValue('latitude', latitude)
+  //         setValue('longitude', longitude)
+  //       },
+  //       error => {
+  //         // Error callback
+  //         console.error('Error getting location:', error.message)
+  //       }
+  //     )
+  //   } else {
+  //     console.error('Geolocation is not supported by your browser')
+  //   }
+  // }
+
   const handleClick = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          // Success callback
-          const { latitude, longitude } = position.coords
-          setLongitude({ longitude })
-          setLatitude({ latitude })
-          setValue('latitude', latitude)
-          setValue('longitude', longitude)
-        },
-        error => {
-          // Error callback
-          console.error('Error getting location:', error.message)
-        }
-      )
-    } else {
-      console.error('Geolocation is not supported by your browser')
-    }
+    geolocation.getCurrentPosition((err, position) => {
+      if (err) {
+        console.error('Error getting location:', err.message)
+      } else {
+        const { latitude, longitude } = position.coords
+        setLongitude({ longitude })
+        setLatitude({ latitude })
+        setValue('latitude', latitude)
+        setValue('longitude', longitude)
+      }
+    })
   }
 
   const onImageUpload = async imageData => {
@@ -366,7 +383,7 @@ const AddLab = () => {
   const handleInputImageChange = file => {
     const reader = new FileReader()
     const { files } = file.target
-    console.log('files :>> ', files)
+
     if (files && files.length !== 0) {
       reader.onload = () => {
         setImgSrc(pre => [...pre, reader?.result])
@@ -437,35 +454,34 @@ const AddLab = () => {
     //   payload.image = files[0]
     // } else {
     // }
-    // console.log('payload', payload)
 
     if (id !== undefined && action === 'edit') {
-      // console.log(payload)
-
       const response = await updateLabById(payload, id)
       setSubmitLoader(false)
-      console.log('response  update :>> ', response)
+
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-        setTimeout(() => {
-          Router.push('/lab/lab-list')
-        }, 1000) // Adjust delay as needed
+        Router.push('/lab/lab-list')
+
+        Toaster({ type: 'success', message: response.message })
       } else {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        Toaster({ type: 'error', message: response.message })
       }
 
       // reset(defaultValues)
     } else {
-      console.log(payload)
+      const response = await await addLab(payload)
 
-      const res = await addLabToList(payload).then(res => {
-        setSubmitLoader(false)
-        reset(defaultValues)
-        // setDataToUpdate([])
-        setTimeout(() => {
-          Router.push('/lab/lab-list')
-        }, 1000) // Adjust delay as needed
-      })
+      setSubmitLoader(false)
+      reset(defaultValues)
+      if (response?.success) {
+        Router.push('/lab/lab-list')
+
+        Toaster({ type: 'success', message: response.message })
+      } else {
+        Toaster({ type: 'error', message: response.message })
+      }
+
+      // Adjust delay as needed
     }
   }
 
@@ -726,23 +742,23 @@ const AddLab = () => {
   //   }
 
   // api call
-  const addLabToList = async payload => {
-    try {
-      const response = await addLab(payload)
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: 'Lab Created Successfully', severity: 'success' })
+  // const addLabToList = async payload => {
+  //   try {
+  //     const response = await addLab(payload)
+  //     if (response?.success) {
+  //       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Lab Created Successfully', severity: 'success' })
 
-        reset(defaultValues)
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
+  //       reset(defaultValues)
+  //     } else {
+  //       setSubmitLoader(false)
+  //       // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+  //     }
+  //   } catch (e) {
+  //     console.log(e)
+  //     setSubmitLoader(false)
+  //     // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+  //   }
+  // }
 
   // New state to keep track of data to be added
   useEffect(() => {
@@ -905,7 +921,12 @@ const AddLab = () => {
               <Grid container spacing={6} className='match-height'>
                 <Grid item xs={12}>
                   <Card>
-                    <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <IconButton sx={{ ml: 2 }} onClick={() => router.back()}>
+                        <Icon icon='ep:back' />
+                      </IconButton>
+                      <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
+                    </Box>
                     <CardContent>
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <Grid container spacing={5}>
@@ -1019,12 +1040,14 @@ const AddLab = () => {
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
+                                    type='number'
                                     value={value}
                                     label='Lab Incharge Mobile Number*'
                                     onChange={onChange}
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
                                     name='lab_contact_number'
+                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} // Allow only numeric input
                                   />
                                 )}
                               />

@@ -104,13 +104,14 @@ const Tests = ({ labTest }) => {
 
     let newArray = [...parent, ...child]
 
+    // Sort newArray alphabetically by test_name
+    newArray.sort((a, b) => a.test_name.localeCompare(b.test_name))
+
     return newArray
   }
   useEffect(() => {
     if (labTest) {
       const extractedTestsData = extractTestsData(labTest)
-
-      // console.log('lllllllllllll', extractedTestsData)
       setRows(extractedTestsData)
     }
   }, [labTest])

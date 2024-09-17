@@ -58,6 +58,7 @@ import UserSnackbar from 'src/components/utility/snackbar'
 import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -161,12 +162,13 @@ const RequestDetails = () => {
 
     const response = await UpdateStatus(id, payload)
     if (response?.success) {
-      setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+      Toaster({ type: 'success', message: response.message })
+
       fetchRequestDetails()
     } else {
       fetchRequestDetails()
       setStatus(params?.row?.status)
-      setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+      Toaster({ type: 'success', message: response.message })
     }
   }
 
@@ -549,21 +551,21 @@ const RequestDetails = () => {
       const response = await transferLab(id, payload)
       if (response?.success) {
         handleCloseTransfer()
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+
+        Toaster({ type: 'success', message: response.message })
+
         reset()
 
         fetchRequestDetails()
       } else {
         handleCloseTransfer()
         reset()
-
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        Toaster({ type: 'error', message: response.message })
       }
     } else {
       handleCloseTransfer()
       reset()
-
-      setAlertDefaults({ status: true, message: 'Completed test can not be transferred', severity: 'error' })
+      Toaster({ type: 'error', message: 'Completed test can not be transferred' })
     }
 
     // // setSubmitLoader(false)
@@ -580,13 +582,17 @@ const RequestDetails = () => {
       const response = await DeleteLAbRequestAttachment(id)
       fetchRequestDetails()
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        Toaster({ type: 'success', message: response.message })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        Toaster({ type: 'error', message: response.message })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (error) {}
   }
