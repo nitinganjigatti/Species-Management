@@ -142,11 +142,11 @@ const ListOfDiscardProducts = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'store_name',
-      headerName: 'Store Name',
+      field: 'supplier_name',
+      headerName: 'Supplier Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.store_name}
+          {params.row.supplier_name}
         </Typography>
       )
     },
