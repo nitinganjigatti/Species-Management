@@ -1,21 +1,36 @@
-import { Button, Card, CardHeader, Grid } from '@mui/material'
+import {
+  Card,
+  CardHeader,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  Button
+} from '@mui/material'
+// import { DataGrid } from '@mui/x-data-grid'
 import { useEffect, useState } from 'react'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { getHousingReport, getSpeciesReport, getUsersReportList } from 'src/lib/api/parivesh/housing'
+import { DataGrid } from '@mui/x-data-grid'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 const ReportList = () => {
   const [userList, setUserList] = useState([])
   const [housingList, setHousingList] = useState([])
-  const [speciesList , setSpeciesList] = useState([])
-
+  const [speciesList, setSpeciesList] = useState([])
+  const [rows, setRows] = useState([])
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getUsersReportList()
-
         if (response) {
           setUserList([...userList, response])
+          // setRows(response)
         } else {
           console.error('Unexpected response format or request failed')
         }
@@ -35,12 +50,11 @@ const ReportList = () => {
           const csvData = jsonToCsv(response?.data)
           setHousingList(csvData)
 
-          const speciesresult = await getSpeciesReport()
-          if(speciesresult){
-            const speciesCsvData =jsonToCsv(speciesresult?.data) 
+          const speciesResult = await getSpeciesReport()
+          if (speciesResult) {
+            const speciesCsvData = jsonToCsv(speciesResult?.data)
             setSpeciesList(speciesCsvData)
           }
-
         }
       } catch (error) {
         console.error('Error occurred while fetching:', error)
@@ -49,12 +63,10 @@ const ReportList = () => {
     fetchHousingData()
   }, [])
 
-
-
   const jsonToCsv = jsonData => {
     if (!jsonData || jsonData.length === 0) return ''
 
-    const keys = Object.keys(jsonData[0]) 
+    const keys = Object.keys(jsonData[0])
     const csvRows = jsonData.map(item => keys.map(key => item[key] || '').join(','))
     return [keys.join(','), ...csvRows].join('\n')
   }
@@ -70,17 +82,12 @@ const ReportList = () => {
     document.body.removeChild(a)
   }
 
-
   const downloadNewCSVFile = (csvContent, fileName) => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-
     const url = URL.createObjectURL(blob)
-
     const link = document.createElement('a')
-
     link.href = url
     link.setAttribute('download', fileName)
-
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -97,45 +104,75 @@ const ReportList = () => {
   }
 
   const getSpeciesDataToExport = async () => {
-    const filename = 'species_data.csv' 
-    downloadNewCSVFile(speciesList , filename)
+    const filename = 'species_data.csv'
+    downloadNewCSVFile(speciesList, filename)
   }
 
+  // Manually set rows with titles and action buttons
+  const reportRows = [
+    { id: 1, title: 'Species', action: 'Download Species' },
+    { id: 2, title: 'Housing', action: 'Download Housing' },
+    { id: 3, title: 'Users', action: 'Download Users' }
+  ]
+
+  const columns = [
+    {
+      field: 'title',
+      headerName: 'Title',
+      flex: 0.7,
+      headerAlign: 'left',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', ml: 3 }}>
+          {params.row.title}
+        </Typography>
+      )
+    },
+    {
+      field: 'action',
+      headerName: 'Action',
+      flex: 0.7,
+
+      renderCell: params => {
+        const handleExport = () => {
+          if (params.row.title === 'Species') {
+            getSpeciesDataToExport()
+          } else if (params.row.title === 'Housing') {
+            getHousingDataToExport()
+          } else if (params.row.title === 'Users') {
+            getUserDataToExport()
+          }
+        }
+        return <ExcelExportButton variant='contained' title='download' action={handleExport}></ExcelExportButton>
+      }
+    }
+  ]
   return (
-    <Card sx={{ height: '200px' }}>
-      <CardHeader title='Housing Module' />
-      <Grid sx={{ display: 'flex', justifyContent: 'space-around', mt: 10 }}>
-        <Grid>
-          <ExcelExportButton
-            disabled={userList.length > 0 ? false : true}
-            action={() => {
-              getSpeciesDataToExport()
-            }}
-            title='Species'
-          />
-        </Grid>
-        <Grid>
-          {' '}
-          <ExcelExportButton
-            disabled={userList.length > 0 ? false : true}
-            action={() => {
-              getHousingDataToExport()
-            }}
-            title='Housing'
-          />
-        </Grid>
-        <Grid>
-          {' '}
-          <ExcelExportButton
-            disabled={userList.length > 0 ? false : true}
-            action={() => {
-              getUserDataToExport()
-            }}
-            title='Users'
-          />
-        </Grid>
-      </Grid>
-    </Card>
+    <>
+      <Card>
+        <CardHeader title='Report Section' sx={{ mb: 10 }} />
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          hideFooterPagination={true}
+          autoHeight
+          rows={reportRows}
+          // disableColumnSelector={true}
+          hideFooterSelectedRowCount={true}
+          rowHeight={70}
+          selectionModel={[]}
+          // rowCount={total}
+          columns={columns}
+        />
+      </Card>
+    </>
   )
 }
-export default ReportList 
+
+export default ReportList
