@@ -2289,41 +2289,39 @@ const IndividualRequest = () => {
                                                       mb: 4
                                                     }}
                                                   >
-                                                    <Icon
-                                                      icon='streamline:alt'
-                                                      height='50'
-                                                      style={{
-                                                        color: 'primary.error'
-                                                      }}
-                                                    />
+                                                    {/* <Icon
+                                                        icon='streamline:alt'
+                                                        height='50'
+                                                        style={{
+                                                          color: 'primary.error'
+                                                        }}
+                                                      /> */}
                                                   </Grid>
                                                 )}
                                                 {el?.alt_parent?.length > 0
-                                                  ? el.alt_parent
-                                                      .filter(item => item.request_status === 'Alternate')
-                                                      .map((el, index) => {
-                                                        return (
-                                                          <Grid
-                                                            key={index}
-                                                            sx={{
-                                                              minHeight: 124,
-                                                              maxHeight: 124,
+                                                  ? el.alt_parent.map((el, index) => {
+                                                      return (
+                                                        <Grid
+                                                          key={index}
+                                                          sx={{
+                                                            minHeight: 124,
+                                                            maxHeight: 124,
 
-                                                              alignContent: 'top',
-                                                              alignItems: 'center',
-                                                              mb: 4
+                                                            alignContent: 'top',
+                                                            alignItems: 'center',
+                                                            mb: 4
+                                                          }}
+                                                        >
+                                                          <Icon
+                                                            icon='streamline:alt'
+                                                            height='50'
+                                                            style={{
+                                                              color: 'primary.error'
                                                             }}
-                                                          >
-                                                            <Icon
-                                                              icon='streamline:alt'
-                                                              height='50'
-                                                              style={{
-                                                                color: 'primary.error'
-                                                              }}
-                                                            />
-                                                          </Grid>
-                                                        )
-                                                      })
+                                                          />
+                                                        </Grid>
+                                                      )
+                                                    })
                                                   : null}
                                               </TableCell>
                                               <TableCell
