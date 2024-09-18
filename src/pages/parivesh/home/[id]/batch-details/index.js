@@ -93,7 +93,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [attachmentLoader, setAttachmentLoader] = useState(false)
-  const [regId, setRegId] = useState('')
+  const [regId, setRegId] = useState('NA')
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
   const [selectedId, setSelectedId] = useState(null)
@@ -194,7 +194,7 @@ const BatchDetails = ({ params, searchParams }) => {
       setIsModalOpen(prevState => !prevState)
     } else {
       setIsModalOpen(false) // Close modal for other selections
-      setRegId('')
+      setRegId('NA')
       reset()
     }
   }
@@ -720,7 +720,7 @@ const BatchDetails = ({ params, searchParams }) => {
                         ? 'Approved'
                         : batchDetails.status === 'rejected'
                         ? 'Rejected'
-                        : null}
+                        : NA}
                     </Typography>
                   )}
                 </Typography>
@@ -729,7 +729,7 @@ const BatchDetails = ({ params, searchParams }) => {
           </Grid>
         </Box>
 
-        <Box
+        {/* <Box
           sx={{
             background: 'rgba(195, 206, 199, 0.3)',
             borderRadius: '10px',
@@ -773,7 +773,6 @@ const BatchDetails = ({ params, searchParams }) => {
                 {Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.created_on)) +
                   ' ' +
                   Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.created_on))}
-                {/* {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY  hh:mm A')} */}
               </span>
             </Typography>
 
@@ -793,7 +792,8 @@ const BatchDetails = ({ params, searchParams }) => {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-              marginBottom: { xs: 3, sm: 0 }
+              marginBottom: { xs: 3, sm: 0 },
+              marginRight: 20
             }}
           >
             <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
@@ -814,7 +814,96 @@ const BatchDetails = ({ params, searchParams }) => {
               </span>
             </Typography>
           </Box>
-        </Box>
+        </Box> */}
+
+        <Grid
+          container
+          spacing={3}
+          sx={{
+            background: 'rgba(195, 206, 199, 0.3)',
+            borderRadius: '10px',
+            m: { xs: 2, sm: 4, md: 6 },
+            p: { xs: 3, sm: 4, md: 6 },
+            width: 'auto'
+          }}
+        >
+          {/* First Column */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start'
+              }}
+            >
+              <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                Batch ID: <span style={{ fontWeight: '600' }}>{batchDetails?.batch_code}</span>
+              </Typography>
+              <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                Organization: <span style={{ fontWeight: '600' }}>{selectedParivesh?.organization_name}</span>
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* Second Column */}
+          <Grid item xs={12} sm={6} md={5}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start'
+              }}
+            >
+              <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                Batch Created:{' '}
+                <span style={{ fontWeight: '600' }}>
+                  {Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.created_on)) +
+                    ' ' +
+                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.created_on))}
+                </span>
+              </Typography>
+              <Typography variant='subtitle1' sx={{ color: '#44544A' }}>
+                {type === 'toBeSubmittedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+                <span style={{ fontWeight: '600' }}>
+                  {type === 'toBeSubmittedBatch'
+                    ? batchDetails?.created_by_user?.user_name
+                    : batchDetails?.submitted_by_user?.user_name}
+                </span>
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* Third Column */}
+          <Grid item xs={12} sm={6} md={4}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start' // Align items to the start (left)
+              }}
+            >
+              <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                Submitted Date:{' '}
+                <span style={{ fontWeight: '600' }}>
+                  {batchDetails?.submitted_on
+                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.submitted_on)) +
+                      ' ' +
+                      Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.submitted_on))
+                    : 'NA'}
+                </span>
+              </Typography>
+              <Typography variant='subtitle1' sx={{ color: '#44544A' }}>
+                Registration ID:{' '}
+                <span style={{ fontWeight: '600' }}>
+                  {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
+                </span>
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
 
         <Box sx={{ pl: 6, pr: 6, pb: 6 }}>
           <Grid>{tableData()}</Grid>
@@ -951,7 +1040,7 @@ const BatchDetails = ({ params, searchParams }) => {
               <Grid item>
                 {batchDetails?.status !== 'accepted' && type !== 'submittedBatch' && (
                   <Button
-                    disabled={regId !== '' ? false : true}
+                    disabled={regId !== 'NA' ? false : true}
                     variant='contained'
                     color='primary'
                     onClick={() => handleSaveBatch('save')}

@@ -268,7 +268,10 @@ const SpeciesList = () => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
         const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
         return (
-          <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
+          // <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
+          //   {org ? org.animal_count : '-'}
+          // </Typography>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {org ? org.animal_count : '-'}
           </Typography>
         )

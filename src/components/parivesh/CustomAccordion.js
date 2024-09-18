@@ -270,8 +270,8 @@ const CustomAccordion = ({
                           minHeight: '4rem', // Set a minimum height to ensure consistency
                           display: 'flex',
                           flexDirection: 'column',
-                          justifyContent: 'flex-end', // Align items to the bottom
-                          alignItems: 'center'
+                          justifyContent: 'flex-end' // Align items to the bottom
+                          // alignItems: 'center'
                         }}
                       >
                         <Box
