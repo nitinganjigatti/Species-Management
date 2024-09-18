@@ -1,5 +1,6 @@
 import { useTheme } from '@mui/material/styles'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
+import { LoadingButton } from '@mui/lab'
 import {
   Box,
   Checkbox,
@@ -15,9 +16,24 @@ import {
 
 import Icon from 'src/@core/components/icon'
 
-const MonthWisepurchaseFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
+const MonthWisepurchaseFilter = ({
+  openFilterDrawer,
+  setOpenFilterDrawer,
+  handleFruitSelection,
+  selectedFruits,
+  handleSelectAllChange,
+  fruitList,
+  onApplyFilters,
+  handleCloseDrawer,
+  setFiltersApplied
+}) => {
   const handleClose = () => {
     setOpenFilterDrawer(false)
+    if (selectedFruits.length > 0) {
+      setFiltersApplied(true)
+    } else {
+      setFiltersApplied(false)
+    }
   }
   return (
     <Drawer
@@ -44,7 +60,7 @@ const MonthWisepurchaseFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - </Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - {selectedFruits.length} </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handleClose}>
@@ -68,7 +84,7 @@ const MonthWisepurchaseFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                 p: '16px',
                 borderRadius: '8px',
                 width: '525px',
-                height: '550px',
+                height: '490px',
                 overflowY: 'auto', // Enable vertical scrolling
                 '&::-webkit-scrollbar': {
                   width: 0,
@@ -112,8 +128,9 @@ const MonthWisepurchaseFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    //checked={selectAll}
-                    //onChange={handleSelectAllChange}
+                    checked={selectedFruits.length === fruitList.length}
+                    indeterminate={selectedFruits.length > 0 && selectedFruits.length < fruitList.length}
+                    onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
@@ -122,18 +139,51 @@ const MonthWisepurchaseFilter = ({ openFilterDrawer, setOpenFilterDrawer }) => {
               </>
 
               <Box sx={{ mt: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Checkbox
-                    //checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
-                    //onChange={() => handleCheckboxChange(option.id, option.name)}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                  />
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>sldjljl</Typography>
-                </Box>
+                {fruitList.map(fruit => (
+                  <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Checkbox
+                      checked={selectedFruits.includes(fruit.id)}
+                      onChange={() => handleFruitSelection(fruit.id)}
+                      inputProps={{ 'aria-label': 'controlled' }}
+                    />
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{fruit.name}</Typography>
+                  </Box>
+                ))}
               </Box>
             </Box>
           </Grid>
         </Grid>
+      </Box>
+      {/* bottom buttons */}
+      <Box
+        sx={{
+          height: '122px',
+          width: '100%',
+          maxWidth: '562px',
+          position: 'fixed',
+          bottom: 0,
+          px: 4,
+          bgcolor: 'white',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 5,
+          display: 'flex',
+          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 123
+        }}
+      >
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
+          CANCEL ALL
+        </LoadingButton>
+        <LoadingButton
+          fullWidth
+          variant='contained'
+          size='large'
+          onClick={onApplyFilters}
+          disabled={selectedFruits.length > 0 ? false : true}
+        >
+          APPLY FILTER
+        </LoadingButton>
       </Box>
     </Drawer>
   )

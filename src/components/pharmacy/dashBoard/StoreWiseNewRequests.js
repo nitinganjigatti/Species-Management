@@ -53,7 +53,7 @@ const StoreWiseNewRequests = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'request_date',
       headerName: 'Requested on',
@@ -64,10 +64,11 @@ const StoreWiseNewRequests = () => {
       )
     },
     {
-      flex: 0.1,
+      flex: 0.2,
       minWidth: 20,
       field: 'priority',
       headerName: 'Priority',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {priorityBadge(params?.row?.priority)}
@@ -76,10 +77,10 @@ const StoreWiseNewRequests = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 20,
       field: 'total_qty',
       headerName: 'Total items',
-      align: 'right',
+      align: 'center',
 
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>

@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
-// import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import { useTheme } from '@mui/material/styles'
 
 // ** MUI Imports
-
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -18,11 +15,9 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField, Breadcrumbs } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
+import { Box, Avatar, Badge, TextField, Breadcrumbs, Tooltip } from '@mui/material'
 import Router from 'next/router'
-import Utility from 'src/utility'
-import { AddButton } from 'src/components/Buttons'
+import { useRouter } from 'next/router'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -30,16 +25,29 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { height } from '@mui/system'
 import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import MedicineNamedoctorsList from '../month-wise-dispatch/doctorsList'
 
 const StoreWiseDispatch = () => {
+  const router = useRouter()
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
   const [date, setDate] = useState(new Date())
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('desc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('')
   const { selectedPharmacy } = usePharmacyContext()
+
+  function loadServerRows(currentPage, data) {
+    return data
+  }
 
   const handlecheckcell = val => {
     console.log(val, 'val')
@@ -53,22 +61,51 @@ const StoreWiseDispatch = () => {
 
   const columns = [
     {
-      flex: 0.3,
-      minWidth: 150,
+      //flex: 0.3,
+      width: 200,
       field: 'name',
-      headerName: 'MEDICINE NAMES',
+      headerName: 'PHARMACIES',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            PHARMACIES
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>(40 Pharmacies)</Typography>
+        </Box>
+      ),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
-        </Typography>
+        <Tooltip title={params.row.name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              whiteSpace: 'nowrap',
+              width: '160px',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.name}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'jan',
       headerName: 'January ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            January
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           999
@@ -77,9 +114,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'feb',
       headerName: 'February ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            February
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           888
@@ -88,9 +135,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 100,
       field: 'mar',
       headerName: 'March ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            March
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           990
@@ -99,9 +156,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 100,
       field: 'apr',
       headerName: 'April ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            April
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           8888
@@ -110,9 +177,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 100,
       field: 'may',
       headerName: 'May ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            May
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           398
@@ -121,9 +198,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 100,
       field: 'jun',
       headerName: 'June ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            June
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           790
@@ -132,9 +219,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 100,
       field: 'jul',
       headerName: 'July ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            July
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           898
@@ -143,9 +240,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 100,
       field: 'aug',
       headerName: 'August ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            August
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           909
@@ -154,9 +261,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'sep',
       headerName: 'September ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            September
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           989
@@ -165,9 +282,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'oct',
       headerName: 'October ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            October
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           3838
@@ -176,9 +303,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'nov',
       headerName: 'November ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            November
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           9789
@@ -187,9 +324,19 @@ const StoreWiseDispatch = () => {
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'dec',
       headerName: 'December ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            December
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           898
@@ -197,20 +344,6 @@ const StoreWiseDispatch = () => {
       )
     }
   ]
-
-  /***** Serverside pagination */
-  const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState('')
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
       let params = {}
@@ -269,7 +402,7 @@ const StoreWiseDispatch = () => {
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
   }, [fetchTableData])
-
+  console.log(router.asPath, 'router')
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
       setSort(newModel[0].sort)
@@ -288,18 +421,33 @@ const StoreWiseDispatch = () => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
   }
 
+  const handleclick = () => {
+    Router.push({
+      pathname: '/pharmacy/dispatch/store-wise-dispatch'
+    })
+  }
+
   const headerAction = (
     <div>
-      <LoadingButton
-        // disabled={disabled}
-        // loading={loader}
-        // onClick={action ? action : null}
-        size='medium'
-        variant='contained'
-        endIcon={<Icon icon='material-symbols:download' />}
-      >
-        Download Report
-      </LoadingButton>
+      {router.asPath.includes('newdashboard') ? (
+        <Typography
+          onClick={handleclick}
+          sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
+        >
+          View More
+        </Typography>
+      ) : (
+        <LoadingButton
+          // disabled={disabled}
+          // loading={loader}
+          // onClick={action ? action : null}
+          size='medium'
+          variant='contained'
+          endIcon={<Icon icon='material-symbols:download' />}
+        >
+          Download Report
+        </LoadingButton>
+      )}
     </div>
   )
 
@@ -331,95 +479,103 @@ const StoreWiseDispatch = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Box container spacing={6}>
-                <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                  <Typography color='inherit'>Pharmacy Dashboard</Typography>
-                  <Typography
-                    sx={{ cursor: 'pointer' }}
-                    color='text.primary'
-                    onClick={() => Router.push('/pharmacy/dashboard')}
-                  >
-                    Month wise dispatch report
-                  </Typography>
-                  {/* <Typography color='text.primary'>Diet Details</Typography> */}
-                </Breadcrumbs>
-              </Box>
-              <Card>
-                <CardHeader title='Month wise dispatch' action={headerAction} />
-                <Grid container sx={{ display: 'flex', pr: 5, pt: 2 }} className=''>
-                  <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
-                    <FormControl fullWidth size='small'>
-                      <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
-                      <Select
-                        size='small'
-                        value={statusFilter}
-                        label='Select Days'
-                        onChange={e => {
-                          handleStatusFilterChange(e.target.value)
-                        }}
-                      >
-                        <MenuItem value='all'>Daily</MenuItem>
-                        <MenuItem value='weekly'>Weekly</MenuItem>
-                        <MenuItem value='monthly'>Monthly </MenuItem>
-                        <MenuItem value='yearly'>Yearly </MenuItem>
-                        <MenuItem value='custom'>custom Range </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  {statusFilter === 'custom' ? (
-                    <>
-                      <span style={{}}>
-                        <SingleDatePicker
-                          fullWidth
-                          className=''
-                          width={'100%'}
-                          date={date}
-                          value={date}
-                          name={'From Date*'}
-                          label='From Date*'
-                          placeholderText={'From Date*'}
-                          size='small'
-                          onChangeHandler={date => {
-                            setDate(date)
-                          }}
-                          customInput={<CustomInput label='From Date*' auto />}
-                        />
-                      </span>
-                      <span style={{ paddingLeft: '15px' }}>
-                        <SingleDatePicker
-                          fullWidth
-                          className=''
-                          width={'100%'}
-                          date={date}
-                          value={date}
-                          name={'To Date*'}
-                          label='To Date*'
-                          placeholderText={'To Date*'}
-                          size='small'
-                          onChangeHandler={date => {
-                            setDate(date)
-                          }}
-                          customInput={<CustomInput label='To Date*' auto />}
-                        />
-                      </span>
-                    </>
-                  ) : (
-                    ''
-                  )}
-                  <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
-                    <LoadingButton
-                      // disabled={disabled}
-                      // loading={loader}
-                      // onClick={action ? action : null}
-                      size='medium'
-                      variant='outlined'
-                      startIcon={<Icon icon='bi:filter' />}
-                      onClick={() => setOpenFilterDrawer(true)}
+              {router.asPath.includes('newdashboard') ? (
+                ''
+              ) : (
+                <Box container spacing={6}>
+                  <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                    <Typography color='inherit'>Pharmacy Dashboard</Typography>
+                    <Typography
+                      sx={{ cursor: 'pointer' }}
+                      color='text.primary'
+                      onClick={() => Router.push('/pharmacy/dashboard')}
                     >
-                      Filter
-                    </LoadingButton>
+                      Store wise dispatchhhhh
+                    </Typography>
+                    {/* <Typography color='text.primary'>Diet Details</Typography> */}
+                  </Breadcrumbs>
+                </Box>
+              )}
+              <Card>
+                <CardHeader title='Store wise dispatch' action={headerAction} />
+                {router.asPath.includes('newdashboard') ? (
+                  ''
+                ) : (
+                  <Grid container sx={{ display: 'flex', pr: 5, pt: 2 }} className=''>
+                    <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
+                      <FormControl fullWidth size='small'>
+                        <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
+                        <Select
+                          size='small'
+                          value={statusFilter}
+                          label='Select Days'
+                          onChange={e => {
+                            handleStatusFilterChange(e.target.value)
+                          }}
+                        >
+                          <MenuItem value='all'>Daily</MenuItem>
+                          <MenuItem value='weekly'>Weekly</MenuItem>
+                          <MenuItem value='monthly'>Monthly </MenuItem>
+                          <MenuItem value='yearly'>Yearly </MenuItem>
+                          <MenuItem value='custom'>custom Range </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    {statusFilter === 'custom' ? (
+                      <>
+                        <span style={{}}>
+                          <SingleDatePicker
+                            fullWidth
+                            className=''
+                            width={'100%'}
+                            date={date}
+                            value={date}
+                            name={'From Date*'}
+                            label='From Date*'
+                            placeholderText={'From Date*'}
+                            size='small'
+                            onChangeHandler={date => {
+                              setDate(date)
+                            }}
+                            customInput={<CustomInput label='From Date*' auto />}
+                          />
+                        </span>
+                        <span style={{ paddingLeft: '15px' }}>
+                          <SingleDatePicker
+                            fullWidth
+                            className=''
+                            width={'100%'}
+                            date={date}
+                            value={date}
+                            name={'To Date*'}
+                            label='To Date*'
+                            placeholderText={'To Date*'}
+                            size='small'
+                            onChangeHandler={date => {
+                              setDate(date)
+                            }}
+                            customInput={<CustomInput label='To Date*' auto />}
+                          />
+                        </span>
+                      </>
+                    ) : (
+                      ''
+                    )}
+                    <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
+                      <LoadingButton
+                        // disabled={disabled}
+                        // loading={loader}
+                        // onClick={action ? action : null}
+                        size='medium'
+                        variant='outlined'
+                        startIcon={<Icon icon='bi:filter' />}
+                        onClick={() => setOpenFilterDrawer(true)}
+                      >
+                        Filter
+                      </LoadingButton>
+                    </Grid>
                   </Grid>
-                </Grid>
+                )}
                 <DataGrid
                   sx={{ cursor: 'pointer' }}
                   columnVisibilityModel={{
@@ -438,10 +594,11 @@ const StoreWiseDispatch = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
+                  slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   disableColumnMenu
+                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

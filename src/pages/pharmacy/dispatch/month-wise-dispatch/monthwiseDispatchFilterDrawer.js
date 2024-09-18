@@ -23,10 +23,17 @@ const MonthWisedispatchFilter = ({
   selectedFruits,
   handleSelectAllChange,
   fruitList,
-  onApplyFilters
+  onApplyFilters,
+  handleCloseDrawer,
+  setFiltersApplied
 }) => {
   const handleClose = () => {
     setOpenFilterDrawer(false)
+    if (selectedFruits.length > 0) {
+      setFiltersApplied(true)
+    } else {
+      setFiltersApplied(false)
+    }
   }
   return (
     <Drawer
@@ -77,7 +84,7 @@ const MonthWisedispatchFilter = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '525px',
-                height: '550px',
+                height: '490px',
                 overflowY: 'auto', // Enable vertical scrolling
                 '&::-webkit-scrollbar': {
                   width: 0,
@@ -165,15 +172,16 @@ const MonthWisedispatchFilter = ({
           zIndex: 123
         }}
       >
-        <LoadingButton
-          fullWidth
-          variant='outlined'
-          size='large'
-          //onClick={handleCloseDrawer}
-        >
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
           CANCEL ALL
         </LoadingButton>
-        <LoadingButton fullWidth variant='contained' size='large' onClick={onApplyFilters}>
+        <LoadingButton
+          fullWidth
+          variant='contained'
+          size='large'
+          onClick={onApplyFilters}
+          disabled={selectedFruits.length > 0 ? false : true}
+        >
           APPLY FILTER
         </LoadingButton>
       </Box>

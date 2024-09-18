@@ -195,11 +195,17 @@ const MonthlyDispatchChart = () => {
   }
 
   return (
-    <Card onClick={handleclick}>
+    <Card>
       <CardHeader
         title='Month wise dispatch'
         action={
-          <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
+          // <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
+          <Typography
+            onClick={handleclick}
+            sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
+          >
+            View More
+          </Typography>
         }
       />
       <CardContent>

@@ -45,6 +45,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import StoreWiseDispatch from '../dispatch/store-wise-dispatch'
 import RequestChart from 'src/components/pharmacy/dashBoard/RequestChart'
 import { LoadingButton } from '@mui/lab'
+import ReceievedMedicines from 'src/components/pharmacy/dashBoard/ReceievedMedicines'
 
 const NewDashboard = () => {
   const [totalList, setTotalList] = useState([])
@@ -178,14 +179,21 @@ const NewDashboard = () => {
         ) : null}
         {selectedPharmacy.type === 'central' ? (
           <>
-            <Grid item xs={12} md={12} sx={{ mb: 11 }}>
+            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
               <RequestChart />
             </Grid>
           </>
         ) : null}
         {selectedPharmacy.type === 'central' ? (
           <>
-            <Grid item xs={12} md={12} sx={{ mb: 11 }}>
+            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+              <ReceievedMedicines />
+            </Grid>
+          </>
+        ) : null}
+        {selectedPharmacy.type === 'central' ? (
+          <>
+            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
               <StoreWiseDispatch />
             </Grid>
           </>

@@ -11,9 +11,10 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import Router from 'next/router'
 import { getMonthWisePurchaseList } from 'src/lib/api/pharmacy/dashboard'
 
-const MonthlyPurchaseChart = () => {
+const ReceievedMedicines = () => {
   // ** Hook
   const theme = useTheme()
+
   const [purchaseList, setPurchaseList] = useState([])
 
   const getMonthlyPurchases = async () => {
@@ -32,83 +33,6 @@ const MonthlyPurchaseChart = () => {
   const transactionDates = purchaseList.map(item => (item?.month ? item?.month : ''))
   const dailyCounts = purchaseList.map(item => (item?.daily_count ? parseInt(item?.daily_count) : ''))
 
-  // const options = {
-  //   chart: {
-  //     offsetY: -8,
-  //     parentHeightOffset: 0,
-  //     toolbar: { show: false }
-  //   },
-  //   tooltip: { enabled: false },
-  //   dataLabels: { enabled: false },
-  //   stroke: {
-  //     width: 5,
-  //     curve: 'smooth'
-  //   },
-  //   grid: {
-  //     show: false,
-  //     padding: {
-  //       left: 10,
-  //       top: -24,
-  //       right: 12
-  //     }
-  //   },
-  //   fill: {
-  //     type: 'gradient',
-  //     gradient: {
-  //       opacityTo: 0.7,
-  //       opacityFrom: 0.5,
-  //       shadeIntensity: 1,
-  //       stops: [0, 90, 100],
-  //       colorStops: [
-  //         [
-  //           {
-  //             offset: 0,
-  //             opacity: 0.6,
-  //             color: theme.palette.error.main
-  //           },
-  //           {
-  //             offset: 100,
-  //             opacity: 0.1,
-  //             color: theme.palette.background.paper
-  //           }
-  //         ]
-  //       ]
-  //     }
-  //   },
-  //   theme: {
-  //     monochrome: {
-  //       enabled: true,
-  //       shadeTo: 'light',
-  //       shadeIntensity: 1,
-  //       color: theme.palette.error.main
-  //     }
-  //   },
-  //   xaxis: {
-  //     type: 'numeric',
-  //     labels: { show: false },
-  //     axisTicks: { show: false },
-  //     axisBorder: { show: false }
-  //   },
-  //   yaxis: { show: false },
-  //   markers: {
-  //     size: 1,
-  //     offsetY: 1,
-  //     offsetX: -5,
-  //     strokeWidth: 4,
-  //     strokeOpacity: 1,
-  //     colors: ['transparent'],
-  //     strokeColors: 'transparent',
-  //     discrete: [
-  //       {
-  //         size: 7,
-  //         seriesIndex: 0,
-  //         dataPointIndex: 7,
-  //         strokeColor: theme.palette.error.main,
-  //         fillColor: theme.palette.background.paper
-  //       }
-  //     ]
-  //   }
-  // }
   const options = {
     chart: {
       offsetY: 1,
@@ -198,7 +122,7 @@ const MonthlyPurchaseChart = () => {
   return (
     <Card>
       <CardHeader
-        title='Month wise purchase'
+        title='Receieved Medicines'
         action={
           //<OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
           <Typography
@@ -221,4 +145,4 @@ const MonthlyPurchaseChart = () => {
   )
 }
 
-export default MonthlyPurchaseChart
+export default ReceievedMedicines

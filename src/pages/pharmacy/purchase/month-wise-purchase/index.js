@@ -26,11 +26,39 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import MonthWisepurchaseFilter from './monthwisePurchaseFilterDrawer'
 import MedicineNamedoctorsList from './doctorsList'
 
+const fruitList = [
+  { id: 1, name: 'Banana' },
+  { id: 2, name: 'Apple' },
+  { id: 3, name: 'Orange' },
+  { id: 4, name: 'Mango' },
+  { id: 5, name: 'Pineapple' },
+  { id: 6, name: 'Grapes' },
+  { id: 7, name: 'Watermelon' },
+  { id: 8, name: 'Strawberry' },
+  { id: 9, name: 'Peach' },
+  { id: 10, name: 'Cherry' },
+  { id: 11, name: 'Cherry1' },
+  { id: 12, name: 'Cherry2' },
+  { id: 13, name: 'Cherry3' },
+  { id: 14, name: 'Cherry4' }
+]
+
 const MonthWisePurchase = () => {
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
   const [date, setDate] = useState(new Date())
+  const [selectedFruits, setSelectedFruits] = useState([])
+  const [filtersApplied, setFiltersApplied] = useState(false)
+  const [filterlength, setFilterLength] = useState('')
+  const [total, setTotal] = useState(0)
+  const [sort, setSort] = useState('desc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('name')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('')
   const { selectedPharmacy } = usePharmacyContext()
 
   const handlecheckcell = val => {
@@ -45,8 +73,7 @@ const MonthWisePurchase = () => {
 
   const columns = [
     {
-      //flex: 0.3,
-      minWidth: 200,
+      width: 200,
       field: 'name',
       headerName: 'MEDICINE NAMES',
       renderCell: params => (
@@ -68,10 +95,19 @@ const MonthWisePurchase = () => {
     },
 
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'jan',
       headerName: 'January ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            January
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           999
@@ -79,10 +115,19 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'feb',
       headerName: 'February ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            February
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           888
@@ -90,21 +135,39 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'mar',
       headerName: 'March ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            March
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          990
+          9100
         </Typography>
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'apr',
       headerName: 'April ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            April
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           8888
@@ -112,10 +175,19 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'may',
       headerName: 'May ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            May
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           398
@@ -123,21 +195,39 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'jun',
       headerName: 'June ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            June
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          790
+          7100
         </Typography>
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'jul',
       headerName: 'July ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            July
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           898
@@ -145,21 +235,39 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'aug',
       headerName: 'August ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            August
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          909
+          1009
         </Typography>
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'sep',
       headerName: 'September ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            September
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           989
@@ -167,10 +275,19 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'oct',
       headerName: 'October ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            October
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           3838
@@ -178,10 +295,19 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'nov',
       headerName: 'November ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            November
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           9789
@@ -189,10 +315,19 @@ const MonthWisePurchase = () => {
       )
     },
     {
-      // flex: 0.2,
-      minWidth: 100,
+      width: 100,
       field: 'dec',
       headerName: 'December ',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+            December
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            2024
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           898
@@ -201,17 +336,45 @@ const MonthWisePurchase = () => {
     }
   ]
 
-  /***** Serverside pagination */
-  const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState('')
   function loadServerRows(currentPage, data) {
     return data
+  }
+
+  const handleCloseDrawer = () => {
+    setSelectedFruits([])
+    setOpenFilterDrawer(false)
+    setFiltersApplied(true)
+    setFilterLength('')
+  }
+
+  // This function will handle the selected fruits from the child component
+  const handleFruitSelection = fruitId => {
+    setFiltersApplied(false)
+    setSelectedFruits(prevSelectedFruits => {
+      // If the fruit is already selected, remove it; otherwise, add it
+      if (prevSelectedFruits.includes(fruitId)) {
+        return prevSelectedFruits.filter(id => id !== fruitId)
+      } else {
+        return [...prevSelectedFruits, fruitId]
+      }
+    })
+  }
+
+  const onApplyFilters = () => {
+    setFiltersApplied(true)
+    setOpenFilterDrawer(false)
+    setFilterLength(selectedFruits.length)
+    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
+  }
+
+  const handleSelectAllChange = event => {
+    if (event.target.checked) {
+      // If "Select All" is checked, select all fruits
+      setSelectedFruits(fruitList.map(fruit => fruit.id))
+    } else {
+      // If unchecked, clear all selections
+      setSelectedFruits([])
+    }
   }
 
   const fetchTableData = useCallback(
@@ -239,6 +402,12 @@ const MonthWisePurchase = () => {
           }
         }
 
+        // Append selected fruit ids to params if any fruits are selected and filters are applied
+        if (filtersApplied || selectedFruits.length > 0) {
+          // Use array notation for fruit IDs
+          params['fruitid[]'] = selectedFruits
+        }
+
         await getMedicineList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
@@ -254,7 +423,7 @@ const MonthWisePurchase = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, filtersApplied]
   )
 
   const searchTableData = useCallback(
@@ -375,8 +544,7 @@ const MonthWisePurchase = () => {
                         <SingleDatePicker
                           fullWidth
                           className=''
-                          width={'70%'}
-                          height='0.6rem'
+                          width={'100%'}
                           date={date}
                           value={date}
                           name={'From Date*'}
@@ -393,8 +561,7 @@ const MonthWisePurchase = () => {
                         <SingleDatePicker
                           fullWidth
                           className=''
-                          width={'70%'}
-                          height='0.6rem'
+                          width={'100%'}
                           date={date}
                           value={date}
                           name={'To Date*'}
@@ -419,12 +586,16 @@ const MonthWisePurchase = () => {
                       size='medium'
                       variant='outlined'
                       startIcon={<Icon icon='bi:filter' />}
-                      onClick={() => setOpenFilterDrawer(true)}
+                      onClick={() => {
+                        setFiltersApplied(false) // Reset filters state
+                        setOpenFilterDrawer(true) // Open the filter drawer
+                      }}
                     >
-                      Filter
+                      {filterlength <= 0 ? 'Filter' : filterlength}
                     </LoadingButton>
                   </Grid>
                 </Grid>
+                {console.log(indexedRows, 'indexedRows')}
                 <DataGrid
                   sx={{ cursor: 'pointer' }}
                   columnVisibilityModel={{
@@ -470,6 +641,13 @@ const MonthWisePurchase = () => {
                 <MonthWisepurchaseFilter
                   setOpenFilterDrawer={setOpenFilterDrawer}
                   openFilterDrawer={openFilterDrawer}
+                  handleFruitSelection={handleFruitSelection}
+                  selectedFruits={selectedFruits}
+                  handleSelectAllChange={handleSelectAllChange}
+                  fruitList={fruitList}
+                  onApplyFilters={onApplyFilters}
+                  handleCloseDrawer={handleCloseDrawer}
+                  setFiltersApplied={setFiltersApplied}
                 />
               )}
               {openDoctorListDrawer && (
