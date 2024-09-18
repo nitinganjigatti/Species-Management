@@ -522,13 +522,13 @@ const AddDiscardProducts = () => {
                   icon='ep:back'
                 />
               }
-              title='Discard Product'
+              title='Return To Supplier'
             />
           </Grid>
           <CardContent>
             <Grid container>
               <CommonDialogBox
-                title={'Add Discard Item'}
+                title={'Add Return Items'}
                 dialogBoxStatus={show}
                 formComponent={
                   <AddItemsForm
@@ -629,7 +629,7 @@ const AddDiscardProducts = () => {
             }}
           >
             <AddButton
-              title='Add Discard Item'
+              title='Add Return Items'
               action={() => {
                 handleSubmit()
               }}

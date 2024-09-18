@@ -270,8 +270,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const discard = {
-    icon: 'game-icons:card-discard',
-    title: 'Discard',
+    icon: 'tabler:truck-return',
+    title: 'Return To Supplier',
     path: '/pharmacy/discard/discard-list'
   }
 

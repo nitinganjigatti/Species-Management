@@ -62,7 +62,17 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
-        tableHeaderBg: '#E8F4F2'
+        tableHeaderBg: '#E8F4F2',
+        textLabel: '#00ABAB',
+        customTableCellBg: '#FCF4AE33',
+        customTableCellBg1: '#0000000D',
+        customCardBorder: '#00ABAB',
+        customTabBg: '#1F415B',
+        tabListBorder: '#0000000D',
+        customDarkBg: '#7A8684',
+        customIconBg: '#00000066',
+        customBg: '#F2FFF8',
+        customTableHeaderBg: '#C1D3D0'
       },
       primary: {
         // light: '#20DE67',

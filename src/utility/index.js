@@ -96,9 +96,9 @@ function daysFromToday(inputDate) {
 
 function renderUserAvatar(image) {
   if (image) {
-    return <CustomAvatar src={image} sx={{ mr: 3, width: 34, height: 34 }} />
+    return <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
   } else {
-    return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
+    return <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
   }
 }
 function convertUTCToLocal(date) {

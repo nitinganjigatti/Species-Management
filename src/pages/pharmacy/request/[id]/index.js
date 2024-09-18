@@ -62,7 +62,7 @@ import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Table from '@mui/material/Table'
-import { margin } from '@mui/system'
+import { color, fontSize, height, margin, width } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -75,7 +75,7 @@ const IndividualRequest = () => {
       display: 'none'
     },
     '& .Mui-selected': {
-      backgroundColor: theme.palette.primary.main,
+      backgroundColor: theme.palette.customColors.customTabBg,
       color: theme.palette.common.white
     },
     '& .MuiTab-root': {
@@ -427,6 +427,20 @@ const IndividualRequest = () => {
     init(id)
   }
 
+  const getCellBgColor = el => {
+    if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Fulfilled') {
+      return 'customColors.customBg'
+    } else if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Not Fulfilled') {
+      return 'customColors.customTableCellBg'
+    } else if (el?.alt_parent.length === 0 && el?.dispatch_status === 'Fulfilled') {
+      return 'customColors.customBg'
+    } else if (el?.request_status === 'Not Available' || el?.request_status === 'Rejected') {
+      return 'customColors.customTableCellBg1'
+    } else {
+      return 'white'
+    }
+  }
+
   const renderAttachmentIcons = status => {
     const hasControlSubstance = status.control_substance === '1'
     const hasPrescriptionRequired = status.prescription_required === '1'
@@ -449,6 +463,7 @@ const IndividualRequest = () => {
             onClick={() => {
               window.open(status.prescription_required_file, '_blank')
             }}
+            style={{ fontSize: '20px', color: '#00000066' }}
             icon='material-symbols:attachment'
           />
         )}
@@ -1435,48 +1450,57 @@ const IndividualRequest = () => {
 
                 <CardContent>
                   {/* Request Basic Info */}
-                  <Card>
+                  <Card
+                    sx={{
+                      backgroundColor: 'customColors.lightBg'
+                    }}
+                  >
                     <Grid container spacing={2} sx={{ flexGrow: 1, py: 6, px: 4 }}>
-                      <Grid item xs={3} sm={12 / 4} lg={12 / 4} alignItems={'center'}>
-                        <p sx={{ my: 2, marginBottom: '0px', marginTop: '0px' }}>
+                      <Grid
+                        item
+                        xs={3}
+                        sm={12 / 4}
+                        lg={12 / 4}
+                        sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
+                      >
+                        <Typography>
                           Requested By:<strong> {requestItems?.to_store} </strong>
-                        </p>
-                        <p sx={{ my: 2, marginBottom: '0px', marginTop: '0px' }}>
-                          Requested ID:<strong> {requestItems?.request_number} </strong>
-                        </p>
+                        </Typography>
+                        <Typography>
+                          Request ID:<strong> {requestItems?.request_number} </strong>
+                        </Typography>
                       </Grid>
-                      <Grid item xs={3} sm={12 / 4} lg={12 / 4} alignItems={'center'}>
-                        <p sx={{ my: 2, marginBottom: '0px', marginTop: '0px' }}>
+                      <Grid
+                        item
+                        xs={3}
+                        sm={12 / 4}
+                        lg={12 / 4}
+                        sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
+                      >
+                        <Typography>
                           Requested Items:<strong> {requestItems?.total_qty} </strong>
-                        </p>
-                        <p sx={{ my: 2, marginBottom: '0px', marginTop: '0px' }}>
+                        </Typography>
+                        <Typography sx={{ color: 'primary.main' }}>
                           Shipped Items:<strong> {requestItems?.shipped_qty} </strong>
-                        </p>
+                        </Typography>
                       </Grid>
-                      <Grid item xs={3} sm={12 / 4} lg={12 / 4} alignItems={'center'}>
-                        <p sx={{ my: 2, marginBottom: '0px', marginTop: '0px' }}>
+                      <Grid
+                        item
+                        xs={3}
+                        sm={12 / 4}
+                        lg={12 / 4}
+                        sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
+                      >
+                        <Typography>
                           Total Requested Value:<strong> ₹{requestItems?.requested_amount} </strong>
-                        </p>
-                        <p sx={{ my: 2, marginBottom: '0px', marginTop: '0px' }}>
+                        </Typography>
+                        <Typography sx={{ color: 'primary.main' }}>
                           Shipped Value:<strong> ₹{requestItems?.shipped_amount} </strong>
-                        </p>
+                        </Typography>
                       </Grid>
-                      {/* <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                        <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested To</h5>
-                        <p>{requestItems?.from_store}</p>
-                      </Grid>
-                      <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                        <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
-                        <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
-                      </Grid>
-                      <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                        <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
-                        <p>{requestItems?.request_number}</p>
-                      </Grid> */}
-                      <Grid item xs={3} sm={12 / 4} lg={12 / 4}>
-                        {/* <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request By</h5> */}
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', my: 4 }}>
+                      <Grid item xs={3} sm={12 / 4} lg={12 / 4}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', height: '40px', maxHeight: '40px', my: 4 }}>
                           <Box sx={{}}>{Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}</Box>
                           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                             <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
@@ -1494,12 +1518,10 @@ const IndividualRequest = () => {
                   </Card>
                   {/* Medicine Listing */}
                 </CardContent>
-                {/* {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic rowHeight={126} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-                ) : null} */}
                 <Grid sx={{ mx: 4 }}>
                   <TabContext value={detailsTab}>
                     <TabList
+                      sx={{ borderBottom: '1px solid #0000000D' }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
                       }}
@@ -1513,8 +1535,14 @@ const IndividualRequest = () => {
                         label={<TabBadge label='Shipped' totalCount={status === 'Shipped' ? 0 : null} />}
                       />
                     </TabList>
-                    <TabPanel value='Pending'>
-                      <Grid>
+                    <TabPanel
+                      value='Pending'
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-start'
+                      }}
+                    >
+                      <Grid sx={{ ml: -2, width: '100%' }}>
                         <TabContext value={status}>
                           <TabLists
                             onChange={(event, newValue) => {
@@ -1530,16 +1558,15 @@ const IndividualRequest = () => {
                               label={<TabBadge label='All' totalCount={status === 'All' ? 0 : null} />}
                             />
                           </TabLists>
-                          <TabPanel value='All'></TabPanel>
                           <TabPanel value='Pending'>
-                            <Card>
+                            <Card sx={{ ml: -3 }}>
                               <TableContainer>
                                 <Table
                                   stickyHeader
-                                  sx={{ minWidth: 650, overflowX: 'scroll' }}
+                                  sx={{ minWidth: 650, maxWidth: '100%', overflowX: 'scroll' }}
                                   aria-label='simple table'
                                 >
-                                  <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+                                  <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                                     <TableRow>
                                       <TableCell>S.NO</TableCell>
                                       <TableCell></TableCell>
@@ -1553,15 +1580,13 @@ const IndividualRequest = () => {
                                   <TableBody>
                                     {requestItems?.request_item_details.length > 0
                                       ? requestItems?.request_item_details
-                                          .filter(el => el.request_search_status === 'Pending')
+                                          .filter(el => el.dispatch_status === 'Not Fulfilled')
                                           .map((el, index) => {
-                                            console.log('el', el)
-
                                             return (
                                               <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                                                 <TableCell
                                                   sx={{
-                                                    backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                    backgroundColor: getCellBgColor(el),
                                                     verticalAlign: 'top'
                                                   }}
                                                   className='match-height'
@@ -1578,7 +1603,7 @@ const IndividualRequest = () => {
                                                 </TableCell>
                                                 <TableCell
                                                   sx={{
-                                                    backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                    backgroundColor: getCellBgColor(el),
                                                     verticalAlign: 'top'
                                                   }}
                                                   className='match-height'
@@ -1588,15 +1613,17 @@ const IndividualRequest = () => {
                                                       sx={{
                                                         color: 'error.main',
                                                         float: 'left',
-                                                        minHeight: '100%',
-                                                        width: '100%'
+                                                        minHeight: '8px',
+                                                        maxHeight: '8px',
+                                                        width: '8px'
                                                       }}
                                                     >
                                                       <Icon
                                                         icon='material-symbols-light:circle'
-                                                        height='18'
                                                         style={{
-                                                          color: 'primary.error'
+                                                          color: 'primary.error',
+                                                          minHeight: '8px',
+                                                          maxHeight: '8px'
                                                         }}
                                                       ></Icon>
                                                     </Box>
@@ -1609,15 +1636,7 @@ const IndividualRequest = () => {
                                                         alignItems: 'center',
                                                         mb: 4
                                                       }}
-                                                    >
-                                                      {/* <Icon
-                                                        icon='streamline:alt'
-                                                        height='50'
-                                                        style={{
-                                                          color: 'primary.error'
-                                                        }}
-                                                      /> */}
-                                                    </Grid>
+                                                    ></Grid>
                                                   )}
                                                   {el?.alt_parent?.length > 0
                                                     ? el.alt_parent.map((el, index) => {
@@ -1630,16 +1649,45 @@ const IndividualRequest = () => {
 
                                                               alignContent: 'top',
                                                               alignItems: 'center',
-                                                              mb: 4
+                                                              mb: 4,
+                                                              py: 1
                                                             }}
                                                           >
-                                                            <Icon
-                                                              icon='streamline:alt'
-                                                              height='50'
-                                                              style={{
-                                                                color: 'primary.error'
+                                                            <Box
+                                                              sx={{
+                                                                minHeight: '43px',
+                                                                width: '30px',
+                                                                border: '1px solid ',
+                                                                color: 'white',
+                                                                padding: '4px',
+                                                                fontSize: '12px',
+                                                                borderRadius: '4px',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                alignContent: 'center',
+                                                                backgroundColor: 'customColors.customDarkBg'
                                                               }}
-                                                            />
+                                                            >
+                                                              Alt
+                                                              <Box
+                                                                sx={{
+                                                                  color: 'white',
+                                                                  height: '16px',
+                                                                  width: '16px',
+                                                                  mx: 'auto'
+                                                                }}
+                                                              >
+                                                                <Icon
+                                                                  icon='ic:outline-subdirectory-arrow-right'
+                                                                  style={{
+                                                                    color: 'white',
+                                                                    height: '16px',
+                                                                    width: '16px',
+                                                                    mx: 'auto'
+                                                                  }}
+                                                                />
+                                                              </Box>
+                                                            </Box>
                                                           </Grid>
                                                         )
                                                       })
@@ -1647,7 +1695,7 @@ const IndividualRequest = () => {
                                                 </TableCell>
                                                 <TableCell
                                                   sx={{
-                                                    backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                    backgroundColor: getCellBgColor(el),
 
                                                     verticalAlign: 'top'
                                                   }}
@@ -1662,25 +1710,53 @@ const IndividualRequest = () => {
                                                   >
                                                     <Typography variant='body1' sx={{ fontWeight: 600 }}>
                                                       <Tooltip title={el.stock_name} placement='top'>
-                                                        <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                        <Typography
+                                                          variant='body1'
+                                                          sx={{
+                                                            fontWeight: 600,
+                                                            display: 'flex',
+                                                            alignItems: 'center'
+                                                          }}
+                                                        >
                                                           {!isNaN(el?.control_substance) &&
                                                           parseInt(el?.control_substance) == 1 ? (
-                                                            <CustomChip
-                                                              label='CS'
-                                                              skin='light'
-                                                              color='error'
-                                                              size='small'
-                                                            />
+                                                            <Typography
+                                                              sx={{
+                                                                height: '16px',
+                                                                width: '18px',
+                                                                backgroundColor: 'error.main',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '10px',
+                                                                color: 'white',
+                                                                padding: '2px',
+                                                                borderRadius: '2px',
+                                                                lineHeight: '12px',
+                                                                textAlign: 'center',
+                                                                mr: 1
+                                                              }}
+                                                            >
+                                                              CS
+                                                            </Typography>
                                                           ) : null}
                                                           {!isNaN(el?.prescription_required) &&
                                                           parseInt(el?.prescription_required) == 1 ? (
-                                                            <CustomChip
-                                                              sx={{ mx: 2 }}
-                                                              label='PR'
-                                                              skin='light'
-                                                              color='error'
-                                                              size='small'
-                                                            />
+                                                            <Typography
+                                                              sx={{
+                                                                height: '16px',
+                                                                width: '18px',
+                                                                backgroundColor: 'error.main',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '10px',
+                                                                color: 'white',
+                                                                padding: '2px',
+                                                                borderRadius: '2px',
+                                                                lineHeight: '12px',
+                                                                textAlign: 'center',
+                                                                mr: 1
+                                                              }}
+                                                            >
+                                                              PR
+                                                            </Typography>
                                                           ) : null}{' '}
                                                           {el.stock_name}
                                                         </Typography>
@@ -1710,7 +1786,7 @@ const IndividualRequest = () => {
                                                         }}
                                                         sx={{
                                                           display: 'flex',
-
+                                                          color: 'customColors.customIconBg',
                                                           width: '100%',
                                                           my: 2,
                                                           gap: 1,
@@ -1718,9 +1794,10 @@ const IndividualRequest = () => {
                                                         }}
                                                       >
                                                         <Icon
-                                                          icon={'icon-park-outline:notes'}
+                                                          icon={'material-symbols:description-outline'}
                                                           style={{
-                                                            fontSize: '20px'
+                                                            fontSize: '20px',
+                                                            color: '#00000066'
                                                           }}
                                                         ></Icon>
                                                         <Typography
@@ -1753,7 +1830,10 @@ const IndividualRequest = () => {
                                                         }}
                                                       >
                                                         <Box>{renderAttachmentIcons(el)}</Box>
-                                                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                                        <Typography
+                                                          variant='body2'
+                                                          sx={{ color: 'text.primary', opacity: 0.5 }}
+                                                        >
                                                           prescription
                                                         </Typography>
                                                       </Grid>
@@ -1771,26 +1851,54 @@ const IndividualRequest = () => {
                                                             <Box>
                                                               <Typography variant='body1' sx={{ fontWeight: 600 }}>
                                                                 <Tooltip title={el.stock_name} placement='top'>
-                                                                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{
+                                                                      fontWeight: 600,
+                                                                      display: 'flex',
+                                                                      alignItems: 'center'
+                                                                    }}
+                                                                  >
                                                                     {!isNaN(el?.control_substance) &&
                                                                     parseInt(el?.control_substance) == 1 ? (
-                                                                      <CustomChip
-                                                                        label='CS'
-                                                                        skin='light'
-                                                                        color='error'
-                                                                        size='small'
-                                                                      />
+                                                                      <Typography
+                                                                        sx={{
+                                                                          height: '16px',
+                                                                          width: '18px',
+                                                                          backgroundColor: 'error.main',
+                                                                          fontWeight: 'bold',
+                                                                          fontSize: '10px',
+                                                                          color: 'white',
+                                                                          padding: '2px',
+                                                                          borderRadius: '2px',
+                                                                          lineHeight: '12px',
+                                                                          textAlign: 'center',
+                                                                          mr: 1
+                                                                        }}
+                                                                      >
+                                                                        CS
+                                                                      </Typography>
                                                                     ) : null}
                                                                     {!isNaN(el?.prescription_required) &&
                                                                     parseInt(el?.prescription_required) == 1 ? (
-                                                                      <CustomChip
-                                                                        sx={{ mx: 2 }}
-                                                                        label='PR'
-                                                                        skin='light'
-                                                                        color='error'
-                                                                        size='small'
-                                                                      />
-                                                                    ) : null}{' '}
+                                                                      <Typography
+                                                                        sx={{
+                                                                          height: '16px',
+                                                                          width: '18px',
+                                                                          backgroundColor: 'error.main',
+                                                                          fontWeight: 'bold',
+                                                                          fontSize: '10px',
+                                                                          color: 'white',
+                                                                          padding: '2px',
+                                                                          borderRadius: '2px',
+                                                                          lineHeight: '12px',
+                                                                          textAlign: 'center',
+                                                                          mr: 1
+                                                                        }}
+                                                                      >
+                                                                        PR
+                                                                      </Typography>
+                                                                    ) : null}
                                                                     {el.stock_name}
                                                                   </Typography>
                                                                 </Tooltip>
@@ -1832,9 +1940,10 @@ const IndividualRequest = () => {
                                                                   }}
                                                                 >
                                                                   <Icon
-                                                                    icon={'icon-park-outline:notes'}
+                                                                    icon={'material-symbols:description-outline'}
                                                                     style={{
-                                                                      fontSize: '20px'
+                                                                      fontSize: '20px',
+                                                                      color: '#00000066'
                                                                     }}
                                                                   ></Icon>
                                                                   <Typography
@@ -1849,6 +1958,7 @@ const IndividualRequest = () => {
                                                                       textOverflow: 'ellipsis',
                                                                       WebkitLineClamp: 6,
                                                                       whiteSpace: 'nowrap',
+                                                                      opacity: '0.5',
                                                                       ...boxStyles(el.request_status)
                                                                     }}
                                                                   >
@@ -1870,7 +1980,7 @@ const IndividualRequest = () => {
                                                                   <Box>{renderAttachmentIcons(el)}</Box>
                                                                   <Typography
                                                                     variant='body2'
-                                                                    sx={{ color: 'text.primary' }}
+                                                                    sx={{ color: 'text.primary', opacity: '0.5' }}
                                                                   >
                                                                     prescription
                                                                   </Typography>
@@ -1884,7 +1994,7 @@ const IndividualRequest = () => {
                                                 </TableCell>
                                                 <TableCell
                                                   sx={{
-                                                    backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                    backgroundColor: getCellBgColor(el),
                                                     verticalAlign: 'top'
                                                   }}
                                                   className='match-height'
@@ -1900,7 +2010,7 @@ const IndividualRequest = () => {
                                                       Requested:{el?.requested_qty}
                                                     </Typography>
                                                     <Typography variant='body1' sx={{ color: 'text.primary' }}>
-                                                      Fulfilled:{el?.dispatch_qty}
+                                                      Fullfilled:{el?.dispatch_qty}
                                                     </Typography>{' '}
                                                     <Typography variant='body1' sx={{ color: 'text.primary' }}>
                                                       Shipped:{el?.shipped_qty}
@@ -1919,7 +2029,7 @@ const IndividualRequest = () => {
                                                               Requested:{el?.requested_qty}
                                                             </Typography>
                                                             <Typography variant='body1' sx={{ color: 'text.primary' }}>
-                                                              Fulfilled:{el?.dispatch_qty}
+                                                              Fullfilled:{el?.dispatch_qty}
                                                             </Typography>{' '}
                                                             <Typography variant='body1' sx={{ color: 'text.primary' }}>
                                                               Shipped:{el?.shipped_qty}
@@ -1931,7 +2041,7 @@ const IndividualRequest = () => {
                                                 </TableCell>
                                                 <TableCell
                                                   sx={{
-                                                    backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                    backgroundColor: getCellBgColor(el),
                                                     verticalAlign: 'top'
                                                   }}
                                                   className='match-height'
@@ -1948,12 +2058,18 @@ const IndividualRequest = () => {
                                                           verticalAlign: 'top',
                                                           minHeight: 124,
                                                           maxHeight: 124,
-                                                          mb: 4
+                                                          mb: 4,
+                                                          mx: 'auto',
+                                                          textAlign: 'center'
                                                         }}
                                                       >
                                                         <Button
                                                           size='small'
-                                                          sx={{ ...boxStyles(el.request_status) }}
+                                                          sx={{
+                                                            width: 100,
+                                                            mx: 'auto',
+                                                            ...boxStyles(el.request_status)
+                                                          }}
                                                           disabled={
                                                             parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >=
                                                               1 &&
@@ -1973,7 +2089,7 @@ const IndividualRequest = () => {
                                                             showDialog()
                                                           }}
                                                         >
-                                                          Fulfill
+                                                          Fullfill
                                                         </Button>
                                                       </Grid>
                                                     ) : (
@@ -1995,6 +2111,24 @@ const IndividualRequest = () => {
                                                             This Product was rejected
                                                           </Typography>
                                                         )}
+                                                        {el.alt_parent.length === 0 &&
+                                                          el?.dispatch_status === 'Fulfilled' && (
+                                                            <Grid
+                                                              sx={{
+                                                                color: 'success.main',
+                                                                minHeight: 124,
+                                                                maxHeight: 124,
+                                                                mb: 4,
+                                                                verticalAlign: 'top',
+                                                                textAlign: 'center'
+                                                              }}
+                                                            >
+                                                              <Icon
+                                                                icon='ion:checkmark-circle'
+                                                                style={{ color: 'primary.success' }}
+                                                              />
+                                                            </Grid>
+                                                          )}
                                                       </Grid>
                                                     )}
 
@@ -2007,7 +2141,9 @@ const IndividualRequest = () => {
                                                               sx={{
                                                                 minHeight: 124,
                                                                 maxHeight: 124,
-                                                                mb: 4
+                                                                mb: 4,
+                                                                mx: 'auto',
+                                                                textAlign: 'center'
                                                               }}
                                                             >
                                                               <Box>
@@ -2035,7 +2171,7 @@ const IndividualRequest = () => {
                                                                       showDialog()
                                                                     }}
                                                                   >
-                                                                    Fulfill
+                                                                    Fullfill
                                                                   </Button>
                                                                 ) : null}
                                                               </Box>
@@ -2074,6 +2210,23 @@ const IndividualRequest = () => {
                                                                   </Typography>
                                                                 </Grid>
                                                               )}
+                                                              {elm?.dispatch_qty === elm?.requested_qty && (
+                                                                <Box
+                                                                  sx={{
+                                                                    minHeight: 124,
+                                                                    maxHeight: 124,
+                                                                    mb: 4,
+                                                                    verticalAlign: 'top',
+                                                                    color: 'success.main',
+                                                                    textAlign: 'center'
+                                                                  }}
+                                                                >
+                                                                  <Icon
+                                                                    icon='ion:checkmark-circle'
+                                                                    style={{ color: 'primary.success' }}
+                                                                  />
+                                                                </Box>
+                                                              )}
                                                             </Grid>
                                                           )
                                                         })
@@ -2083,7 +2236,7 @@ const IndividualRequest = () => {
 
                                                 <TableCell
                                                   sx={{
-                                                    backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                    backgroundColor: getCellBgColor(el),
                                                     verticalAlign: 'top'
                                                   }}
                                                   className='match-height'
@@ -2115,44 +2268,49 @@ const IndividualRequest = () => {
                                                               >
                                                                 Added Alternative
                                                               </Typography>
-
-                                                              <Grid
-                                                                onClick={() => {
-                                                                  if (el?.alternate_comments) {
-                                                                    setExpandedText(el.alternate_comments)
-                                                                    openNotesDialog()
-                                                                  }
-                                                                }}
-                                                                sx={{
-                                                                  display: 'flex',
-                                                                  width: '100%',
-                                                                  cursor: 'pointer'
-                                                                }}
-                                                              >
-                                                                <Icon
-                                                                  icon={'icon-park-outline:notes'}
-                                                                  style={{
-                                                                    fontSize: '20px'
+                                                              {el?.alternate_comments !== '' && (
+                                                                <Grid
+                                                                  onClick={() => {
+                                                                    if (el?.alternate_comments) {
+                                                                      setExpandedText(el.alternate_comments)
+                                                                      openNotesDialog()
+                                                                    }
                                                                   }}
-                                                                ></Icon>
-                                                                <Typography
-                                                                  variant='body2'
                                                                   sx={{
-                                                                    color: 'text.primary',
-                                                                    minWidth: 30,
-                                                                    maxWidth: 80,
-                                                                    cursor: 'pointer',
-                                                                    WebkitBoxOrient: 'vertical',
-                                                                    overflow: 'hidden',
-                                                                    textOverflow: 'ellipsis',
-                                                                    WebkitLineClamp: 6,
-                                                                    whiteSpace: 'nowrap',
-                                                                    ...boxStyles(el.request_status)
+                                                                    display: 'flex',
+                                                                    width: '100%',
+                                                                    cursor: 'pointer'
                                                                   }}
                                                                 >
-                                                                  {el?.alternate_comments}
-                                                                </Typography>
-                                                              </Grid>
+                                                                  <Icon
+                                                                    icon={
+                                                                      'material-symbols:sticky-note-2-outline-sharp'
+                                                                    }
+                                                                    style={{
+                                                                      fontSize: '20px',
+                                                                      color: '#00000066'
+                                                                    }}
+                                                                  ></Icon>
+                                                                  <Typography
+                                                                    variant='body2'
+                                                                    sx={{
+                                                                      color: 'text.primary',
+                                                                      minWidth: 30,
+                                                                      maxWidth: 80,
+                                                                      cursor: 'pointer',
+                                                                      WebkitBoxOrient: 'vertical',
+                                                                      overflow: 'hidden',
+                                                                      textOverflow: 'ellipsis',
+                                                                      WebkitLineClamp: 6,
+                                                                      whiteSpace: 'nowrap',
+                                                                      opacity: '0.5',
+                                                                      ...boxStyles(el.request_status)
+                                                                    }}
+                                                                  >
+                                                                    {el?.alternate_comments}
+                                                                  </Typography>
+                                                                </Grid>
+                                                              )}
                                                             </Grid>
                                                           )
                                                         })
@@ -2213,14 +2371,14 @@ const IndividualRequest = () => {
                             </Card>
                           </TabPanel>
                           <TabPanel value='All'>
-                            <Card>
+                            <Card sx={{ ml: -3, minWidth: '100%' }}>
                               <TableContainer>
                                 <Table
                                   stickyHeader
                                   sx={{ minWidth: 650, overflowX: 'scroll' }}
                                   aria-label='simple table'
                                 >
-                                  <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+                                  <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                                     <TableRow>
                                       <TableCell>S.NO</TableCell>
                                       <TableCell></TableCell>
@@ -2234,13 +2392,11 @@ const IndividualRequest = () => {
                                   <TableBody>
                                     {requestItems?.request_item_details.length > 0
                                       ? requestItems?.request_item_details.map((el, index) => {
-                                          console.log('el', el)
-
                                           return (
                                             <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                                               <TableCell
                                                 sx={{
-                                                  backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                  backgroundColor: getCellBgColor(el),
                                                   verticalAlign: 'top'
                                                 }}
                                                 className='match-height'
@@ -2257,7 +2413,7 @@ const IndividualRequest = () => {
                                               </TableCell>
                                               <TableCell
                                                 sx={{
-                                                  backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                  backgroundColor: getCellBgColor(el),
                                                   verticalAlign: 'top'
                                                 }}
                                                 className='match-height'
@@ -2267,15 +2423,17 @@ const IndividualRequest = () => {
                                                     sx={{
                                                       color: 'error.main',
                                                       float: 'left',
-                                                      minHeight: '100%',
-                                                      width: '100%'
+                                                      minHeight: '8px',
+                                                      maxHeight: '8px',
+                                                      width: '8px'
                                                     }}
                                                   >
                                                     <Icon
                                                       icon='material-symbols-light:circle'
-                                                      height='18'
                                                       style={{
-                                                        color: 'primary.error'
+                                                        color: 'primary.error',
+                                                        minHeight: '8px',
+                                                        maxHeight: '8px'
                                                       }}
                                                     ></Icon>
                                                   </Box>
@@ -2288,15 +2446,7 @@ const IndividualRequest = () => {
                                                       alignItems: 'center',
                                                       mb: 4
                                                     }}
-                                                  >
-                                                    {/* <Icon
-                                                        icon='streamline:alt'
-                                                        height='50'
-                                                        style={{
-                                                          color: 'primary.error'
-                                                        }}
-                                                      /> */}
-                                                  </Grid>
+                                                  ></Grid>
                                                 )}
                                                 {el?.alt_parent?.length > 0
                                                   ? el.alt_parent.map((el, index) => {
@@ -2309,16 +2459,45 @@ const IndividualRequest = () => {
 
                                                             alignContent: 'top',
                                                             alignItems: 'center',
-                                                            mb: 4
+                                                            mb: 4,
+                                                            py: 1
                                                           }}
                                                         >
-                                                          <Icon
-                                                            icon='streamline:alt'
-                                                            height='50'
-                                                            style={{
-                                                              color: 'primary.error'
+                                                          <Box
+                                                            sx={{
+                                                              minHeight: '43px',
+                                                              width: '30px',
+                                                              border: '1px solid ',
+                                                              color: 'white',
+                                                              padding: '4px',
+                                                              fontSize: '12px',
+                                                              borderRadius: '4px',
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              alignContent: 'center',
+                                                              backgroundColor: 'customColors.customDarkBg'
                                                             }}
-                                                          />
+                                                          >
+                                                            Alt
+                                                            <Box
+                                                              sx={{
+                                                                color: 'white',
+                                                                height: '16px',
+                                                                width: '16px',
+                                                                mx: 'auto'
+                                                              }}
+                                                            >
+                                                              <Icon
+                                                                icon='ic:outline-subdirectory-arrow-right'
+                                                                style={{
+                                                                  color: 'white',
+                                                                  height: '16px',
+                                                                  width: '16px',
+                                                                  mx: 'auto'
+                                                                }}
+                                                              />
+                                                            </Box>
+                                                          </Box>
                                                         </Grid>
                                                       )
                                                     })
@@ -2326,7 +2505,7 @@ const IndividualRequest = () => {
                                               </TableCell>
                                               <TableCell
                                                 sx={{
-                                                  backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                  backgroundColor: getCellBgColor(el),
 
                                                   verticalAlign: 'top'
                                                 }}
@@ -2341,25 +2520,53 @@ const IndividualRequest = () => {
                                                 >
                                                   <Typography variant='body1' sx={{ fontWeight: 600 }}>
                                                     <Tooltip title={el.stock_name} placement='top'>
-                                                      <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                      <Typography
+                                                        variant='body1'
+                                                        sx={{
+                                                          fontWeight: 600,
+                                                          display: 'flex',
+                                                          alignItems: 'center'
+                                                        }}
+                                                      >
                                                         {!isNaN(el?.control_substance) &&
                                                         parseInt(el?.control_substance) == 1 ? (
-                                                          <CustomChip
-                                                            label='CS'
-                                                            skin='light'
-                                                            color='error'
-                                                            size='small'
-                                                          />
+                                                          <Typography
+                                                            sx={{
+                                                              height: '16px',
+                                                              width: '18px',
+                                                              backgroundColor: 'error.main',
+                                                              fontWeight: 'bold',
+                                                              fontSize: '10px',
+                                                              color: 'white',
+                                                              padding: '2px',
+                                                              borderRadius: '2px',
+                                                              lineHeight: '12px',
+                                                              textAlign: 'center',
+                                                              mr: 1
+                                                            }}
+                                                          >
+                                                            CS
+                                                          </Typography>
                                                         ) : null}
                                                         {!isNaN(el?.prescription_required) &&
                                                         parseInt(el?.prescription_required) == 1 ? (
-                                                          <CustomChip
-                                                            sx={{ mx: 2 }}
-                                                            label='PR'
-                                                            skin='light'
-                                                            color='error'
-                                                            size='small'
-                                                          />
+                                                          <Typography
+                                                            sx={{
+                                                              height: '16px',
+                                                              width: '18px',
+                                                              backgroundColor: 'error.main',
+                                                              fontWeight: 'bold',
+                                                              fontSize: '10px',
+                                                              color: 'white',
+                                                              padding: '2px',
+                                                              borderRadius: '2px',
+                                                              lineHeight: '12px',
+                                                              textAlign: 'center',
+                                                              mr: 1
+                                                            }}
+                                                          >
+                                                            PR
+                                                          </Typography>
                                                         ) : null}{' '}
                                                         {el.stock_name}
                                                       </Typography>
@@ -2389,7 +2596,7 @@ const IndividualRequest = () => {
                                                       }}
                                                       sx={{
                                                         display: 'flex',
-
+                                                        color: 'customColors.customIconBg',
                                                         width: '100%',
                                                         my: 2,
                                                         gap: 1,
@@ -2397,9 +2604,10 @@ const IndividualRequest = () => {
                                                       }}
                                                     >
                                                       <Icon
-                                                        icon={'icon-park-outline:notes'}
+                                                        icon={'material-symbols:description-outline'}
                                                         style={{
-                                                          fontSize: '20px'
+                                                          fontSize: '20px',
+                                                          color: '#00000066'
                                                         }}
                                                       ></Icon>
                                                       <Typography
@@ -2432,7 +2640,10 @@ const IndividualRequest = () => {
                                                       }}
                                                     >
                                                       <Box>{renderAttachmentIcons(el)}</Box>
-                                                      <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                                      <Typography
+                                                        variant='body2'
+                                                        sx={{ color: 'text.primary', opacity: '0.5' }}
+                                                      >
                                                         prescription
                                                       </Typography>
                                                     </Grid>
@@ -2450,26 +2661,54 @@ const IndividualRequest = () => {
                                                           <Box>
                                                             <Typography variant='body1' sx={{ fontWeight: 600 }}>
                                                               <Tooltip title={el.stock_name} placement='top'>
-                                                                <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                                <Typography
+                                                                  variant='body1'
+                                                                  sx={{
+                                                                    fontWeight: 600,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center'
+                                                                  }}
+                                                                >
                                                                   {!isNaN(el?.control_substance) &&
                                                                   parseInt(el?.control_substance) == 1 ? (
-                                                                    <CustomChip
-                                                                      label='CS'
-                                                                      skin='light'
-                                                                      color='error'
-                                                                      size='small'
-                                                                    />
+                                                                    <Typography
+                                                                      sx={{
+                                                                        height: '16px',
+                                                                        width: '18px',
+                                                                        backgroundColor: 'error.main',
+                                                                        fontWeight: 'bold',
+                                                                        fontSize: '10px',
+                                                                        color: 'white',
+                                                                        padding: '2px',
+                                                                        borderRadius: '2px',
+                                                                        lineHeight: '12px',
+                                                                        textAlign: 'center',
+                                                                        mr: 1
+                                                                      }}
+                                                                    >
+                                                                      CS
+                                                                    </Typography>
                                                                   ) : null}
                                                                   {!isNaN(el?.prescription_required) &&
                                                                   parseInt(el?.prescription_required) == 1 ? (
-                                                                    <CustomChip
-                                                                      sx={{ mx: 2 }}
-                                                                      label='PR'
-                                                                      skin='light'
-                                                                      color='error'
-                                                                      size='small'
-                                                                    />
-                                                                  ) : null}{' '}
+                                                                    <Typography
+                                                                      sx={{
+                                                                        height: '16px',
+                                                                        width: '18px',
+                                                                        backgroundColor: 'error.main',
+                                                                        fontWeight: 'bold',
+                                                                        fontSize: '10px',
+                                                                        color: 'white',
+                                                                        padding: '2px',
+                                                                        borderRadius: '2px',
+                                                                        lineHeight: '12px',
+                                                                        textAlign: 'center',
+                                                                        mr: 1
+                                                                      }}
+                                                                    >
+                                                                      PR
+                                                                    </Typography>
+                                                                  ) : null}
                                                                   {el.stock_name}
                                                                 </Typography>
                                                               </Tooltip>
@@ -2511,9 +2750,10 @@ const IndividualRequest = () => {
                                                                 }}
                                                               >
                                                                 <Icon
-                                                                  icon={'icon-park-outline:notes'}
+                                                                  icon={'material-symbols:description-outline'}
                                                                   style={{
-                                                                    fontSize: '20px'
+                                                                    fontSize: '20px',
+                                                                    color: '#00000066'
                                                                   }}
                                                                 ></Icon>
                                                                 <Typography
@@ -2528,6 +2768,8 @@ const IndividualRequest = () => {
                                                                     textOverflow: 'ellipsis',
                                                                     WebkitLineClamp: 6,
                                                                     whiteSpace: 'nowrap',
+                                                                    opacity: '0.5',
+
                                                                     ...boxStyles(el.request_status)
                                                                   }}
                                                                 >
@@ -2549,7 +2791,7 @@ const IndividualRequest = () => {
                                                                 <Box>{renderAttachmentIcons(el)}</Box>
                                                                 <Typography
                                                                   variant='body2'
-                                                                  sx={{ color: 'text.primary' }}
+                                                                  sx={{ color: 'text.primary', opacity: '0.5' }}
                                                                 >
                                                                   prescription
                                                                 </Typography>
@@ -2563,7 +2805,7 @@ const IndividualRequest = () => {
                                               </TableCell>
                                               <TableCell
                                                 sx={{
-                                                  backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                  backgroundColor: getCellBgColor(el),
                                                   verticalAlign: 'top'
                                                 }}
                                                 className='match-height'
@@ -2579,7 +2821,7 @@ const IndividualRequest = () => {
                                                     Requested:{el?.requested_qty}
                                                   </Typography>
                                                   <Typography variant='body1' sx={{ color: 'text.primary' }}>
-                                                    Fulfilled:{el?.dispatch_qty}
+                                                    Fullfilled:{el?.dispatch_qty}
                                                   </Typography>{' '}
                                                   <Typography variant='body1' sx={{ color: 'text.primary' }}>
                                                     Shipped:{el?.shipped_qty}
@@ -2598,7 +2840,7 @@ const IndividualRequest = () => {
                                                             Requested:{el?.requested_qty}
                                                           </Typography>
                                                           <Typography variant='body1' sx={{ color: 'text.primary' }}>
-                                                            Fulfilled:{el?.dispatch_qty}
+                                                            Fullfilled:{el?.dispatch_qty}
                                                           </Typography>{' '}
                                                           <Typography variant='body1' sx={{ color: 'text.primary' }}>
                                                             Shipped:{el?.shipped_qty}
@@ -2610,7 +2852,7 @@ const IndividualRequest = () => {
                                               </TableCell>
                                               <TableCell
                                                 sx={{
-                                                  backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                  backgroundColor: getCellBgColor(el),
                                                   verticalAlign: 'top'
                                                 }}
                                                 className='match-height'
@@ -2632,7 +2874,11 @@ const IndividualRequest = () => {
                                                     >
                                                       <Button
                                                         size='small'
-                                                        sx={{ ...boxStyles(el.request_status) }}
+                                                        sx={{
+                                                          width: 100,
+                                                          mx: 'auto',
+                                                          ...boxStyles(el.request_status)
+                                                        }}
                                                         disabled={
                                                           parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
                                                           requestItems.status !== 'Cancelled' &&
@@ -2651,7 +2897,7 @@ const IndividualRequest = () => {
                                                           showDialog()
                                                         }}
                                                       >
-                                                        Fulfill
+                                                        Fullfill
                                                       </Button>
                                                     </Grid>
                                                   ) : (
@@ -2673,6 +2919,24 @@ const IndividualRequest = () => {
                                                           This Product was rejected
                                                         </Typography>
                                                       )}
+                                                      {el.alt_parent.length === 0 &&
+                                                        el?.dispatch_status === 'Fulfilled' && (
+                                                          <Grid
+                                                            sx={{
+                                                              color: 'success.main',
+                                                              minHeight: 124,
+                                                              maxHeight: 124,
+                                                              mb: 4,
+                                                              verticalAlign: 'top',
+                                                              textAlign: 'center'
+                                                            }}
+                                                          >
+                                                            <Icon
+                                                              icon='ion:checkmark-circle'
+                                                              style={{ color: 'primary.success' }}
+                                                            />
+                                                          </Grid>
+                                                        )}
                                                     </Grid>
                                                   )}
 
@@ -2713,7 +2977,7 @@ const IndividualRequest = () => {
                                                                     showDialog()
                                                                   }}
                                                                 >
-                                                                  Fulfill
+                                                                  Fullfill
                                                                 </Button>
                                                               ) : null}
                                                             </Box>
@@ -2752,6 +3016,23 @@ const IndividualRequest = () => {
                                                                 </Typography>
                                                               </Grid>
                                                             )}
+                                                            {elm?.dispatch_qty === elm?.requested_qty && (
+                                                              <Box
+                                                                sx={{
+                                                                  minHeight: 124,
+                                                                  maxHeight: 124,
+                                                                  mb: 4,
+                                                                  verticalAlign: 'top',
+                                                                  color: 'success.main',
+                                                                  textAlign: 'center'
+                                                                }}
+                                                              >
+                                                                <Icon
+                                                                  icon='ion:checkmark-circle'
+                                                                  style={{ color: 'primary.success' }}
+                                                                />
+                                                              </Box>
+                                                            )}
                                                           </Grid>
                                                         )
                                                       })
@@ -2761,7 +3042,7 @@ const IndividualRequest = () => {
 
                                               <TableCell
                                                 sx={{
-                                                  backgroundColor: el?.alt_parent?.length > 0 ? '#FCF4AE33' : null,
+                                                  backgroundColor: getCellBgColor(el),
                                                   verticalAlign: 'top'
                                                 }}
                                                 className='match-height'
@@ -2794,43 +3075,48 @@ const IndividualRequest = () => {
                                                               Added Alternative
                                                             </Typography>
 
-                                                            <Grid
-                                                              onClick={() => {
-                                                                if (el?.alternate_comments) {
-                                                                  setExpandedText(el.alternate_comments)
-                                                                  openNotesDialog()
-                                                                }
-                                                              }}
-                                                              sx={{
-                                                                display: 'flex',
-                                                                width: '100%',
-                                                                cursor: 'pointer'
-                                                              }}
-                                                            >
-                                                              <Icon
-                                                                icon={'icon-park-outline:notes'}
-                                                                style={{
-                                                                  fontSize: '20px'
+                                                            {el?.alternate_comments !== '' && (
+                                                              <Grid
+                                                                onClick={() => {
+                                                                  if (el?.alternate_comments) {
+                                                                    setExpandedText(el.alternate_comments)
+                                                                    openNotesDialog()
+                                                                  }
                                                                 }}
-                                                              ></Icon>
-                                                              <Typography
-                                                                variant='body2'
                                                                 sx={{
-                                                                  color: 'text.primary',
-                                                                  minWidth: 30,
-                                                                  maxWidth: 80,
-                                                                  cursor: 'pointer',
-                                                                  WebkitBoxOrient: 'vertical',
-                                                                  overflow: 'hidden',
-                                                                  textOverflow: 'ellipsis',
-                                                                  WebkitLineClamp: 6,
-                                                                  whiteSpace: 'nowrap',
-                                                                  ...boxStyles(el.request_status)
+                                                                  display: 'flex',
+                                                                  width: '100%',
+                                                                  cursor: 'pointer'
                                                                 }}
                                                               >
-                                                                {el?.alternate_comments}
-                                                              </Typography>
-                                                            </Grid>
+                                                                <Icon
+                                                                  icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                                                  style={{
+                                                                    fontSize: '20px',
+                                                                    color: '#00000066'
+                                                                  }}
+                                                                ></Icon>
+                                                                <Typography
+                                                                  variant='body2'
+                                                                  sx={{
+                                                                    color: 'text.primary',
+                                                                    minWidth: 30,
+                                                                    maxWidth: 80,
+                                                                    cursor: 'pointer',
+                                                                    WebkitBoxOrient: 'vertical',
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    WebkitLineClamp: 6,
+                                                                    whiteSpace: 'nowrap',
+                                                                    opacity: '0.5',
+
+                                                                    ...boxStyles(el.request_status)
+                                                                  }}
+                                                                >
+                                                                  {el?.alternate_comments}
+                                                                </Typography>
+                                                              </Grid>
+                                                            )}
                                                           </Grid>
                                                         )
                                                       })
@@ -2897,8 +3183,14 @@ const IndividualRequest = () => {
                         </TabContext>
                       </Grid>
                     </TabPanel>
-                    <TabPanel value='Shipped'>
-                      <Grid>
+                    <TabPanel
+                      value='Shipped'
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-start'
+                      }}
+                    >
+                      <Grid sx={{ width: '100%', ml: -2, mt: -6 }}>
                         <TabContext value={shipmentTab}>
                           <TabLists
                             onChange={(event, newValue) => {
@@ -2921,7 +3213,7 @@ const IndividualRequest = () => {
                           </TabLists>
                           <TabPanel value='Ready To Ship'>
                             {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
-                              <Card sx={{ mb: 6 }}>
+                              <Card sx={{ minWidth: '100%', ml: -2 }}>
                                 <CardHeader
                                   title={``}
                                   action={
@@ -2949,7 +3241,7 @@ const IndividualRequest = () => {
                           <TabPanel value='Shipped'>
                             {shippedItems?.length > 0 ? (
                               <>
-                                <Card sx={{ mb: 6 }}>
+                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2 }}>
                                   {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic
                                     columns={shippedColumns}

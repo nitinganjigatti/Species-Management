@@ -217,7 +217,7 @@ const ListOfDiscardProducts = () => {
         }}
         title='Import Inventory'
       /> */}
-      <AddButton title='Discard Product ' action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })} />
+      <AddButton title='Return to Supplier' action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })} />
     </Grid>
   )
 
@@ -238,7 +238,7 @@ const ListOfDiscardProducts = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Discard Product List' action={headerAction} />
+              <CardHeader title='Return to Supplier List' action={headerAction} />
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
