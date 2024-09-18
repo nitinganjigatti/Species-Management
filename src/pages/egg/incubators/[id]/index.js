@@ -1,3 +1,10 @@
+import React, { useCallback, useEffect, useState, useContext } from 'react'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
+import dayjs from 'dayjs'
+import moment from 'moment'
+
+// MUI components
 import {
   Autocomplete,
   Avatar,
@@ -14,37 +21,34 @@ import {
   debounce
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useCallback, useEffect, useState, useContext } from 'react'
-import { useTheme } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon'
+import { useTheme, styled } from '@mui/material/styles'
 import { DataGrid } from '@mui/x-data-grid'
-import AddIncubators from '../../../../views/pages/egg/incubator/addIncubators'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import ActivityLogs from 'src/components/diet/activityLogs'
-import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
-import { useRouter } from 'next/router'
-import Router from 'next/router'
-import { GetEggList } from 'src/lib/api/egg/egg'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DatePicker } from '@mui/x-date-pickers'
 
-import { styled } from '@mui/material/styles'
+// Custom Components and Utility
+import Icon from 'src/@core/components/icon'
+import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
+import ActivityLogs from 'src/components/diet/activityLogs'
 import DetailCard from 'src/components/egg/DetailCard'
-import Utility from 'src/utility'
-import ErrorScreen from 'src/pages/Error'
-import { AuthContext } from 'src/context/AuthContext'
-import { hatcheryStatus } from 'src/lib/api/egg'
 import Toaster from 'src/components/Toaster'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import TransferIncubator from 'src/views/pages/egg/eggs/eggDetails/TransferIncubator'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
 import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers'
-import dayjs from 'dayjs'
-import moment from 'moment'
-import { getSpeciesList } from 'src/lib/api/egg/dashboard'
-// import { getSpeciesList } from 'src/lib/api/egg/dashboard'
+import ErrorScreen from 'src/pages/Error'
+import Utility from 'src/utility'
 
+// API calls
+import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
+import { GetEggList, getSpeciesList } from 'src/lib/api/egg/egg'
+import { hatcheryStatus } from 'src/lib/api/egg'
+
+// Context
+import { AuthContext } from 'src/context/AuthContext'
+
+// Styled DataGrid Component
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   '.MuiDataGrid-columnHeaderTitleContainer': {
     display: 'flex',
@@ -61,12 +65,11 @@ const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
     display: 'none'
   }
 }))
-
 const IncubatorDetails = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
-  const [loader, setLoader] = useState(false)
+
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -94,10 +97,12 @@ const IncubatorDetails = () => {
   const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
   const [editMessage, setEditMessage] = useState('')
 
+  // Permissions
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
+  // Utility Functions
   const calculatePercentageChange = (value1, value2) => {
     const numValue1 = parseFloat(value1)
     const numValue2 = parseFloat(value2)
@@ -138,8 +143,6 @@ const IncubatorDetails = () => {
           Toaster({ type: 'success', message: response.message })
           setOpenStatusDialog(false)
           setStatusLoading(false)
-          // setEditMessage(response?.message)
-          // setOpenRedirectionDialog(true)
           setActive(!active)
           getIncubatorDetailFunc()
         } else {
@@ -559,6 +562,7 @@ const IncubatorDetails = () => {
       )
     }
   ]
+
   const getspeciesFunc = q => {
     const params = {
       q
@@ -667,8 +671,6 @@ const IncubatorDetails = () => {
               }
             })
             setActive(Boolean(Number(res?.data?.data?.active)))
-
-            // console.log('res', res)
           }
         })
       } catch (error) {
@@ -691,15 +693,6 @@ const IncubatorDetails = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
-    // if (newModel.length) {
-    //   setSort(newModel[0].sort)
-    //   setsortColumning(newModel[0].field)
-    //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    // } else {
-    // }
-  }
-
   const searchTableData = useCallback(
     debounce(async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
       setSearchValue(q)
@@ -710,24 +703,6 @@ const IncubatorDetails = () => {
       }
     }, 1000),
     []
-  )
-
-  const headerAction = (
-    <>
-      {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
-      {/* <div>
-        <Button
-          size='small'
-          variant='contained'
-
-          // onClick={() => setDialog(true)}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; Add New
-        </Button>
-      </div> */}
-      {/* )} */}
-    </>
   )
 
   const handleSearch = (value, allocation_date, collected_date, taxonomy_id) => {
@@ -866,31 +841,7 @@ const IncubatorDetails = () => {
                       </Typography>
                     </Box>
                   </Box>
-                  {/* <Box>
-              <FormControlLabel
-                control={
-                  <Switch
-                    // checked={isActive === '1' ? true : false}
-                    //  onChange={handleSwitchChange}
-                    fontSize={2}
-                  />
-                }
-                labelPlacement='start'
-                // label={isActive === '1' ? 'Active' : 'InActive'}
-                label={'Active'}
-              />
-            </Box>
-            <Box>
-              <Icon
-                icon='ion:time-outline'
-                style={{ fontSize: 24, cursor: 'pointer' }}
-                onClick={() => setActivitySidebarOpen(true)}
 
-                // onClick={() =>
-                //   Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
-                // }
-              />
-            </Box> */}
                   {egg_nursery_permission && (
                     <Box>
                       <Icon
@@ -903,15 +854,6 @@ const IncubatorDetails = () => {
                       />
                     </Box>
                   )}
-                  {/* <Box>
-              <Icon
-                // onClick={() => {
-                //   handlelOpenDelete()
-                // }}
-                icon='material-symbols:delete-outline'
-                style={{ fontSize: 24, cursor: 'pointer' }}
-              />
-            </Box> */}
                 </Box>
               </Box>
 
@@ -949,72 +891,160 @@ const IncubatorDetails = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={3}>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                      sx={{
-                        backgroundColor: '#fff',
-                        borderRadius: '8px',
-                        width: '100%',
-                        '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
-                          height: '40px',
-                          borderRadius: '4px'
-                        },
-                        '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                        '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-                      }}
-                      value={allocationDate}
-                      onChange={newDate => {
-                        if (newDate) {
-                          const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                          setAllocationDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                  <Box sx={{ display: 'flex', position: 'relative' }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        sx={{
+                          backgroundColor: '#fff',
+                          borderRadius: '8px',
+                          width: '100%',
+                          '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                            height: '40px',
+                            borderRadius: '4px'
+                          },
+                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                          '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                        }}
+                        value={allocationDate}
+                        onChange={newDate => {
+                          if (newDate) {
+                            const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                            setAllocationDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                            fetchTableData(
+                              sort,
+                              searchValue,
+                              status,
+                              formattedDate,
+                              collectedDate != null ? moment(collectedDate).format('YYYY-MM-DD') : null,
+                              defaultSpecie?.taxonomy_id
+                            )
+                          } else {
+                            setAllocationDate(null) // If cleared, reset the state
+                            fetchTableData(
+                              sort,
+                              searchValue,
+                              status,
+                              null,
+                              collectedDate != null ? moment(collectedDate).format('YYYY-MM-DD') : null,
+                              defaultSpecie?.taxonomy_id
+                            )
+                          }
+                        }}
+                        label={'Allocated Date'}
+                        maxDate={dayjs()}
+                      />
+                    </LocalizationProvider>
+                    {/* Clear Button */}
+                    {allocationDate != null && (
+                      <Box
+                        variant='outlined'
+                        onClick={() => {
+                          setAllocationDate(null) // Clear the date
                           fetchTableData(
                             sort,
                             searchValue,
                             status,
-                            formattedDate,
-                            collectedDate,
+                            null,
+                            collectedDate != null ? moment(collectedDate).format('YYYY-MM-DD') : null,
                             defaultSpecie?.taxonomy_id
                           )
-                        }
-                      }}
-                      label={'Allocated Date'}
-                      maxDate={dayjs()}
-                    />
-                  </LocalizationProvider>
+                        }}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: '#fff',
+                          cursor: 'pointer',
+                          width: '36px',
+                          height: '36px',
+                          position: 'absolute',
+                          right: 2,
+                          top: 2
+                        }}
+                      >
+                        <Icon icon={'radix-icons:cross-1'} />
+                      </Box>
+                    )}
+                  </Box>
                 </Grid>
                 <Grid item xs={3}>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker
-                      sx={{
-                        backgroundColor: '#fff',
-                        borderRadius: '8px',
-                        width: '100%',
-                        '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
-                          height: '40px',
-                          borderRadius: '4px'
-                        },
-                        '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                        '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
-                      }}
-                      value={collectedDate}
-                      onChange={newDate => {
-                        if (newDate) {
-                          const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                          setCollectedDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                  <Box sx={{ display: 'flex', position: 'relative' }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        sx={{
+                          backgroundColor: '#fff',
+                          borderRadius: '8px',
+                          width: '100%',
+                          '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
+                            height: '40px',
+                            borderRadius: '4px'
+                          },
+                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                          '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                        }}
+                        value={collectedDate}
+                        onChange={newDate => {
+                          if (newDate) {
+                            const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+                            setCollectedDate(newDate) // Save the dayjs object
+                            fetchTableData(
+                              sort,
+                              searchValue,
+                              status,
+                              allocationDate != null ? moment(allocationDate).format('YYYY-MM-DD') : null,
+                              formattedDate,
+                              defaultSpecie?.taxonomy_id
+                            )
+                          } else {
+                            setCollectedDate(null) // If cleared, reset the state
+                            fetchTableData(
+                              sort,
+                              searchValue,
+                              status,
+                              allocationDate != null ? moment(allocationDate).format('YYYY-MM-DD') : null,
+                              null,
+                              defaultSpecie?.taxonomy_id
+                            )
+                          }
+                        }}
+                        label={'Collected Date'}
+                        maxDate={dayjs()} // Ensure the maxDate is also a dayjs object
+                      />
+                    </LocalizationProvider>
+
+                    {/* Clear Button */}
+                    {collectedDate != null && (
+                      <Box
+                        variant='outlined'
+                        onClick={() => {
+                          setCollectedDate(null) // Clear the date
+
                           fetchTableData(
                             sort,
                             searchValue,
                             status,
-                            allocationDate,
-                            formattedDate,
+                            allocationDate != null ? moment(allocationDate).format('YYYY-MM-DD') : null,
+                            null,
                             defaultSpecie?.taxonomy_id
                           )
-                        }
-                      }}
-                      label={'Collected Date'}
-                      maxDate={dayjs()}
-                    />
-                  </LocalizationProvider>
+                        }}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: '#fff',
+                          cursor: 'pointer',
+                          width: '36px',
+                          height: '36px',
+                          position: 'absolute',
+                          right: 2,
+                          top: 2
+                        }}
+                      >
+                        <Icon icon={'radix-icons:cross-1'} />
+                      </Box>
+                    )}
+                  </Box>
                 </Grid>
 
                 <Grid item xs={3}>
@@ -1090,7 +1120,7 @@ const IncubatorDetails = () => {
                     paginationMode='server'
                     pageSizeOptions={[5, 10, 25, 50]}
                     paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
+                    // onSortModelChange={handleSortModel}
                     // slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
