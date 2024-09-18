@@ -80,6 +80,7 @@ jobs:
           name: nextjs-build-output # Customize this name if needed
           path: .next # Replace with the path to your build output directory
           retention-days: 1
+          include-hidden-files: true
       - name: Trigger Deploy Script
         run: |
           chmod u+x deploy/
