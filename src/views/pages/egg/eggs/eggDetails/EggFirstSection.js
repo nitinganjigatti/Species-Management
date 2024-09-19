@@ -241,7 +241,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   >
                     <img
                       style={{
-                        objectFit: eggDetails?.default_icon.endsWith('svg') ? 'contain' : 'cover',
+                        objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover',
                         borderRadius: '8px'
                       }}
                       srcSet={eggDetails?.default_icon}
@@ -370,7 +370,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       </Box>
                     )}
                     {Number(eggDetails?.action_to_be_taken) === 4 &&
-                    !eggDetails?.egg_condition === ('Broken' || 'Rotten') ? (
+                    eggDetails?.egg_condition !== 'Rotten' &&
+                    eggDetails?.egg_condition !== 'Broken' ? (
                       <Box>
                         <Button onClick={() => setOpenAllocate(true)} variant='contained'>
                           ALLOCATE

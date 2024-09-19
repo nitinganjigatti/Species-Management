@@ -84,7 +84,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                         objectFit: item?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
                       },
                       width: 44,
-                      height: 44
+                      height: 44,
+                      border: '1px solid #C3CEC7'
                     }}
                     alt={item?.default_icon}
                     src={item?.default_icon}
@@ -94,8 +95,14 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       <Typography sx={{ fontSize: 14 }}>M</Typography>
                     ) : item?.sex === 'female' ? (
                       <Typography sx={{ fontSize: 14 }}>F</Typography>
+                    ) : item?.sex === 'undetermined' ? (
+                      <Typography sx={{ fontSize: 14 }}>UD</Typography>
+                    ) : item?.sex === 'indeterminate' ? (
+                      <Typography sx={{ fontSize: 14 }}>ID</Typography>
+                    ) : item?.sex === 'group' ? (
+                      <Typography sx={{ fontSize: 14 }}>G</Typography>
                     ) : (
-                      <Typography sx={{ fontSize: 14 }}>U</Typography>
+                      <Typography sx={{ fontSize: 14 }}>-</Typography>
                     )}
                   </Avatar>
                 </Box>
@@ -114,7 +121,19 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.common_name)}
+                    {item?.animal_id}
+                    {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {item?.common_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -124,8 +143,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {' '}
-                    {Utility?.toPascalSentenceCase(item?.scientific_name)}
+                    {item?.scientific_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.scientific_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -135,7 +154,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.site_name)}
+                    {item?.site_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.site_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -145,7 +165,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.user_enclosure_name)}
+                    {item?.user_enclosure_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.user_enclosure_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -155,7 +176,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.section_name)}
+                    {item?.section_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.section_name)} */}
                   </Typography>
                 </Box>
               </Box>

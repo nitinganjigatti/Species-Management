@@ -57,6 +57,9 @@ const AnimalDetails = ({ eggDetails }) => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      whiteSpace: 'normal', // Change this to allow wrapping
+                      wordWrap: 'break-word',
+                      wordBreak: 'break-word', // Change this to 'break-word'
                       width: '100%'
                     }}
                   >
@@ -71,6 +74,9 @@ const AnimalDetails = ({ eggDetails }) => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      whiteSpace: 'normal', // Change this to allow wrapping
+                      wordWrap: 'break-word',
+                      wordBreak: 'break-word', // Change this to 'break-word'
                       width: '100%'
                     }}
                   >
@@ -101,6 +107,9 @@ const AnimalDetails = ({ eggDetails }) => {
                       lineHeight: '19.36px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
+                      whiteSpace: 'normal', // Change this to allow wrapping
+                      wordWrap: 'break-word',
+                      wordBreak: 'break-word', // Change this to 'break-word'
                       textOverflow: 'ellipsis'
                     }}
                   >

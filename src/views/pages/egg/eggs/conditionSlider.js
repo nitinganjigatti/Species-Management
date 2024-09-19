@@ -1824,7 +1824,17 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female'
+                                          ? 'F'
+                                          : val?.sex === 'male'
+                                          ? 'M'
+                                          : val?.sex === 'undetermined'
+                                          ? 'UD'
+                                          : val?.sex === 'indeterminate'
+                                          ? 'ID'
+                                          : val?.sex === 'group'
+                                          ? 'G'
+                                          : '-'}
                                       </Typography>
                                     </Box>
 
@@ -1940,7 +1950,17 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female'
+                                          ? 'F'
+                                          : val?.sex === 'male'
+                                          ? 'M'
+                                          : val?.sex === 'undetermined'
+                                          ? 'UD'
+                                          : val?.sex === 'indeterminate'
+                                          ? 'ID'
+                                          : val?.sex === 'group'
+                                          ? 'G'
+                                          : '-'}
                                       </Typography>
                                     </Box>
 
