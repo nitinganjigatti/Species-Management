@@ -8,6 +8,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeProductNotAvailable } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { LoadingButton } from '@mui/lab'
 import { CardContent, Card } from '@mui/material'
+import Divider from '@mui/material/Divider'
 
 function ProductNotAvailable({ payload, updateRequestItems }) {
   const defaultValues = {
@@ -55,27 +56,36 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
   }
 
   return (
-    <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-      {/* <Typography variant='h6'>
-        Please confirm that you acknowledge the unavailability of the requested medicine.
-      </Typography> */}
-      <Card sx={{ mb: 10, width: { lg: '45%', xs: '100%' } }}>
+    <form style={{ width: '650px' }} autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+      <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
+      <Card
+        sx={{
+          mb: 10,
+
+          backgroundColor: 'customColors.lightBg',
+          border: '1px solid #00D6C9'
+        }}
+      >
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography>
-                <strong>Product:</strong>
-                {payload?.product}
+            <Grid
+              item
+              xs={12}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+            >
+              <Typography sx={{ color: 'customColors.textLabel' }}>
+                Product Name: <strong> {payload?.product}</strong>
               </Typography>
               <Typography>
-                <strong>Quantity requested:</strong>
-                {payload?.qty_requested}
+                Quantity requested: <strong>{payload?.qty_requested}</strong>
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
-      <Grid container spacing={2}>
+      <Divider />
+
+      <Grid>
         <Grid item xs={12} sm={12}>
           <FormControl fullWidth>
             <Controller

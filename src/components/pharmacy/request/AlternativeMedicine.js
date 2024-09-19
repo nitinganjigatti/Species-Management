@@ -15,6 +15,7 @@ import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
 import { Button, Tooltip } from '@mui/material'
 import { CardContent, Card } from '@mui/material'
+import Divider from '@mui/material/Divider'
 
 // ** React Imports
 import { useState, useEffect, useCallback } from 'react'
@@ -229,16 +230,15 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
   }
 
   return (
-    <form style={{ width: '100%' }}>
-      <Typography variant='h6' sx={{ my: 4 }}>
-        Requested Medicine
-      </Typography>
+    <form style={{ width: '650px' }}>
+      <Divider sx={{ mt: -6 }} />
+      <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
       <Card
         sx={{
           mb: 10,
           width: '100%',
           backgroundColor: 'customColors.lightBg',
-          border: '1px solid customColors.customCardBorder'
+          border: '1px solid #00D6C9'
         }}
       >
         <CardContent>
@@ -258,6 +258,8 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
           </Grid>
         </CardContent>
       </Card>
+      <Divider />
+
       <Grid sx={{ my: 6 }} xs={12}>
         <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
           <Button
@@ -693,7 +695,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
               )}
             </Grid>
           ) : (
-            <Grid item xs={12} sm={12} sx={{ ml: 'auto' }}>
+            <Grid item xs={12} sm={12}>
               <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
               <FormControl fullWidth>
                 <TextField

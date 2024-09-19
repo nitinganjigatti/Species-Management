@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 import { useForm, Controller } from 'react-hook-form'
 import { rejectMedicine } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { LoadingButton } from '@mui/lab'
+import Divider from '@mui/material/Divider'
 
 function RejectRequestItem({ parentId, updateRequestItems }) {
   const defaultValues = {
@@ -56,23 +57,36 @@ function RejectRequestItem({ parentId, updateRequestItems }) {
   }
 
   return (
-    <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-      <Card sx={{ mb: 10, width: { lg: '45%', xs: '100%' } }}>
+    <form autoComplete='off' onSubmit={handleSubmit(onSubmit)} style={{ width: '650px' }}>
+      <Divider sx={{ mt: -6 }} />
+      <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
+      <Card
+        sx={{
+          mb: 10,
+          width: '100%',
+          backgroundColor: 'customColors.lightBg',
+          border: '1px solid #00D6C9'
+        }}
+      >
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography>
-                <strong>Product:</strong>
-                {parentId?.product}
+            <Grid
+              item
+              xs={12}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+            >
+              <Typography sx={{ color: 'customColors.textLabel' }}>
+                Product Name: <strong>{parentId?.product}</strong>
               </Typography>
               <Typography>
-                <strong>Quantity requested:</strong>
-                {parentId?.qty_requested}
+                Quantity requested: <strong>{parentId?.qty_requested}</strong>
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
+      <Divider />
+
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12}>
           <FormControl fullWidth>

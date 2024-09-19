@@ -3263,7 +3263,8 @@ const IndividualRequest = () => {
 
                 <Grid container>
                   <CommonDialogBox
-                    title={'Add alternative medicine'}
+                    noWidth={'noWidth'}
+                    title={'Add Alternative Supply'}
                     dialogBoxStatus={showAlternativeMedicineDialog}
                     formComponent={
                       <AlternativeMedicine
@@ -3280,7 +3281,8 @@ const IndividualRequest = () => {
                 </Grid>
                 <Grid container>
                   <CommonDialogBox
-                    title={'Reject medicine'}
+                    noWidth={'noWidth'}
+                    title={'Decline Request'}
                     dialogBoxStatus={rejectRequestMedicineDialog}
                     formComponent={
                       <RejectRequestItem
@@ -3297,7 +3299,8 @@ const IndividualRequest = () => {
                 </Grid>
                 <Grid container>
                   <CommonDialogBox
-                    title={'Make Product Not Available'}
+                    noWidth={'noWidth'}
+                    title={'Supply Stopped'}
                     dialogBoxStatus={productNotAvailableDialog}
                     formComponent={
                       <ProductNotAvailable

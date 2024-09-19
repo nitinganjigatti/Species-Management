@@ -14,7 +14,7 @@ import Grid from '@mui/material/Grid'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 
-import { CardContent } from '@mui/material'
+import { CardContent, Card } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import { Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
@@ -578,66 +578,74 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         </CardContent>
       ) : (
         <>
-          <CardContent container>
-            <Typography variant='body2' style={{ fontWeight: 'bold' }} sx={{ color: 'text.primary' }}>
-              <span style={{ fontWeight: 'normal' }}>Requested From -</span> {storeDetails?.to_store}
-            </Typography>
-          </CardContent>
-          <CardContent>
-            <Grid container spacing={4} sx={{ flexGrow: 1 }}>
-              <Grid item xs={3}>
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px' }}>
-                  Product Name
-                </Typography>
+          <Card
+            sx={{
+              backgroundColor: 'customColors.lightBg',
+              mx: 2
+            }}
+          >
+            <CardContent>
+              <Grid container sx={{ flexGrow: 1, m: 'auto' }}>
+                <Grid item xs={12 / 5}>
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Requested From</Typography>
 
-                <Typography variant='body2' sx={{ color: 'text.primary', marginTop: '0px' }}>
-                  {fulfillMedicine?.stock_name}
-                </Typography>
-              </Grid>
-              <Grid item xs={3}>
-                <Typography
-                  variant='body2'
-                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
-                >
-                  QTY Requested
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
-                  {fulfillMedicine?.requested_qty}
-                </Typography>
-              </Grid>
-              <Grid item xs={3}>
-                <Typography
-                  variant='body2'
-                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
-                >
-                  Balance
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
-                  {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
-                </Typography>
-              </Grid>
-              <Grid item xs={3}>
-                <Typography
-                  variant='body2'
-                  sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
-                >
-                  Total Qty Available
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
-                  {totalProductCount}
-                </Typography>
-              </Grid>
-            </Grid>
-          </CardContent>
+                  <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
+                    <strong>{storeDetails?.to_store}</strong>
+                  </Typography>
+                </Grid>
+                <Grid item xs={12 / 5}>
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Product Name</Typography>
 
+                  <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
+                    <strong>{fulfillMedicine?.stock_name}</strong>{' '}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12 / 5}>
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>
+                    QTY Requested
+                  </Typography>
+                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
+                    <strong>{fulfillMedicine?.requested_qty}</strong>{' '}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12 / 5}>
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>Balance</Typography>
+                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
+                    <strong>
+                      {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
+                    </strong>
+                  </Typography>
+                </Grid>
+                <Grid item xs={12 / 5}>
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>
+                    Total Qty Available
+                  </Typography>
+                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
+                    <strong>{totalProductCount}</strong>
+                  </Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
           <CardContent>
             <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
               <Grid container spacing={5}>
                 <Grid item xs={12} sm={12}>
                   <FormGroup>
                     {fields.map((field, index) => (
-                      <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                        <Grid item xs={3}>
+                      <Grid
+                        container
+                        columnSpacing={3}
+                        key={field.id}
+                        sx={{
+                          marginTop: '0px',
+                          my: 2,
+                          py: 2,
+                          backgroundColor: 'customColors.customTableCellBg1',
+                          borderRadius: 1
+                        }}
+                      >
+                        <Grid item xs={12 / 4}>
                           <FormControl fullWidth>
                             <Controller
                               name={`product_batches[${index}].batch_no`}
@@ -684,6 +692,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                           {...params}
                                           label='Batch No'
                                           placeholder='Search'
+                                          sx={{ backgroundColor: 'white', borderRadius: 1 }}
                                           error={Boolean(errors?.product_batches?.[index]?.batch_no)}
                                         />
                                       )
@@ -701,7 +710,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           </FormControl>
                         </Grid>
                         {batchItems[index]?.stock_type === 'non_medical' ? null : (
-                          <Grid item xs={3}>
+                          <Grid item xs={12 / 4}>
                             <FormControl fullWidth>
                               <Controller
                                 name={`product_batches[${index}].expiry_date`}
@@ -714,6 +723,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     label='Expiry Date'
                                     onChange={onChange}
                                     placeholder='Expiry Date'
+                                    sx={{ backgroundColor: 'white', borderRadius: 1 }}
                                     error={Boolean(errors?.product_batches?.[index]?.expiry_date)}
                                     name={`product_batches[${index}].expiry_date`}
                                   />
@@ -727,7 +737,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             </FormControl>
                           </Grid>
                         )}
-                        <Grid item xs={3}>
+                        <Grid item xs={12 / 4}>
                           <FormControl fullWidth>
                             <Controller
                               name={`product_batches[${index}].qty`}
@@ -747,6 +757,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     onChange(e)
                                     setQuantityError(false)
                                   }}
+                                  sx={{ backgroundColor: 'white', borderRadius: 1 }}
                                   placeholder='Quantity'
                                   error={Boolean(errors?.product_batches?.[index]?.qty)}
                                   name={`product_batches[${index}].qty`}
@@ -773,7 +784,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                         <Grid
                           item
-                          xs={3}
+                          xs={12 / 4}
                           alignSelf='center'
                           sx={{
                             display: 'flex',
