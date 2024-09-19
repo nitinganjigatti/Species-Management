@@ -1967,8 +1967,8 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at
-                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                {params.row.ready_to_be_discarded_date
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.ready_to_be_discarded_date))
                   : '-'}
               </Typography>
             </Box>

@@ -958,7 +958,7 @@ const ConditionSlider = ({
                                 }
                               }}
                               InputProps={{
-                                endAdornment: <InputAdornment position='end'>MM</InputAdornment>
+                                endAdornment: <InputAdornment position='end'>mm</InputAdornment>
                               }}
                               // inputProps={{ min: 1 }}
                             />
