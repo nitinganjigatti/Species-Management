@@ -96,6 +96,8 @@ const RequestDetails = () => {
 
   const [permissions, setPermissions] = useState(null)
 
+  // console.log('permissions :>> ', permissions)
+
   const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
   const [status, setStatus] = React.useState()

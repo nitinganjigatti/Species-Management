@@ -22,7 +22,7 @@ export const GetRequestPopUpById = 'antz/request/lab-tests'
 
 export const GETLABLISTBYTESTID = 'antz/tests/list-available'
 
-export const RequestDetails = 'antz/request/tests'
+export const RequestDetails = 'antz/request/tests/v2'
 
 export const AddLAB = 'antz/labs/create-lab'
 
