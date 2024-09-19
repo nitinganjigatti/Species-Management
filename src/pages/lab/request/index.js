@@ -30,6 +30,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
 
 import moment from 'moment'
+import { callRefreshToken } from 'src/lib/api/auth'
 
 const ListOfRequest = () => {
   const router = useRouter()
@@ -40,7 +41,10 @@ const ListOfRequest = () => {
 
   // console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
+  console.log('lab :>> ', lab)
   const authData = useContext(AuthContext)
+
+  // console.log('authData :>> ', authData)
   const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
 
   const [storedData, setStoredData] = useState()
@@ -237,9 +241,20 @@ const ListOfRequest = () => {
   )
 
   useEffect(() => {
-    const options = authData?.userData?.modules?.lab_data?.lab
-    console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-    setLab(options)
+    const refreshToken = async () => {
+      const res = await callRefreshToken()
+
+      // console.log('res :>> ', res)
+      if (res?.success) {
+        setLab(res?.modules?.lab_data?.lab)
+      }
+    }
+    refreshToken()
+
+    // const options = authData?.userData?.modules?.lab_data?.lab
+
+    // console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab)
+    // setLab(options)
   }, [])
 
   const GetLabRequestStatus = async params => {
