@@ -22,7 +22,6 @@ import React, { useCallback, useEffect, useState, useContext } from 'react'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
-import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import Router from 'next/router'
 import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
@@ -35,6 +34,7 @@ import { hatcheryStatus } from 'src/lib/api/egg'
 import Toaster from 'src/components/Toaster'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
+import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -662,7 +662,7 @@ const NurseryDetails = () => {
               onCellClick={onCellClick}
             />
             {openDrawer && (
-              <NurserySlider
+              <NurseryAddComponent
                 openDrawer={openDrawer}
                 setOpenDrawer={setOpenDrawer}
                 editName={editName}
