@@ -2196,7 +2196,7 @@ const EggList = () => {
         const collectedByIds =
           tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || ''
-            : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
+            : tab_Value === 'eggs_discarded'
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id)
             : selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
@@ -2217,16 +2217,16 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryIds.length > 0 ? nurseryIds : '',
-          egg_state_id: eggStateIds ? eggStateIds : [],
-          collected_by: collectedByIds ? collectedByIds : '',
-          site_id: siteIds ? siteIds : [],
+          nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
+          egg_state_id: eggStateIds.length > 0 ? JSON.stringify(eggStateIds) : '',
+          collected_by: collectedByIds.length > 0 ? JSON.stringify(collectedByIds) : '',
+          site_id: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
 
           egg_status_id: (() => {
             if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
-              return statusId ? statusId : ''
+              return statusId.length > 0 ? JSON.stringify(statusId) : ''
             } else {
-              return eggStateIds?.length > 0 ? (statusId ? statusId : '') : ''
+              return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
             }
           })(),
 
