@@ -13,17 +13,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
-import {
-  RadioGroup,
-  FormLabel,
-  FormControlLabel,
-  Radio,
-  Button,
-  Grid,
-  InputAdornment,
-  debounce,
-  Autocomplete
-} from '@mui/material'
+import { Button, Grid, debounce, Autocomplete } from '@mui/material'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 
@@ -32,7 +22,6 @@ import { useForm, Controller } from 'react-hook-form'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { getDrugById } from 'src/lib/api/pharmacy/getDrugs'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import { getSearchLMasterListSpecies } from 'src/lib/api/parivesh/addSpecies'
 

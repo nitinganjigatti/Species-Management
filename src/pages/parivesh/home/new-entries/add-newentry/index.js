@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
-import { Box } from '@mui/system'
+import { Box, color, fontWeight } from '@mui/system'
 import { Controller, useForm } from 'react-hook-form'
 import {
   Autocomplete,
@@ -40,7 +40,10 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import Image from 'next/image'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
-import AcquisitionFields from './AcquisitionFields'
+import BirthFields from 'src/views/pages/parivesh/addNewEntries/BirthFields'
+import DeathFields from 'src/views/pages/parivesh/addNewEntries/DeathFields'
+import AcquisitionFields from 'src/views/pages/parivesh/addNewEntries/AcquisitionFields'
+import TransferFields from 'src/views/pages/parivesh/addNewEntries/TransferFields'
 
 const schema = yup.object().shape({
   specie: yup
@@ -68,9 +71,21 @@ const schema = yup.object().shape({
   possession_type: yup.string().required('Reason is Required'),
 
   // Conditional fields for Transfer
+  // where_to_transfer: yup.string().when('possession_type', {
+  //   is: 'transfer',
+  //   then: () => yup.string().required('Organization name is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
   where_to_transfer: yup.string().when('possession_type', {
     is: 'transfer',
-    then: () => yup.string().required('Organization for transfer is required'),
+    then: () =>
+      yup
+        .string()
+        .required('Organization name is required')
+        .test('not-only-spaces', 'Organization name cannot be empty or just spaces', value => {
+          // Check if the trimmed value is not empty
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
 
@@ -94,26 +109,72 @@ const schema = yup.object().shape({
       then: () => yup.date().nullable().required('Date of Death is required'),
       otherwise: () => yup.date().nullable().notRequired()
     }),
-  animal_id: yup.string().when('possession_type', {
+  // death_animal_id: yup.string().when('possession_type', {
+  //   is: 'death',
+  //   then: () => yup.string().notRequired(),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
+  death_animal_id: yup.string().when('possession_type', {
     is: 'death',
-    then: () => yup.string().notRequired(),
-    otherwise: () => yup.string().notRequired()
+    then: () =>
+      yup
+        .string()
+        .nullable() // Allow null values
+        .notRequired() // Make it optional
+        .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
+          message: 'Invalid Animal ID format.',
+          excludeEmptyString: true // Exclude empty strings from validation
+        }),
+    otherwise: () =>
+      yup
+        .string()
+        .nullable() // Allow null values
+        .notRequired() // Make it optional
+        .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
+          message: 'Invalid Animal ID format.',
+          excludeEmptyString: true // Exclude empty strings from validation
+        })
   }),
 
   // Conditional fields for Acquisition
+  // where_to_acquisition: yup
+  //   .string()
+  //   .trim()
+  //   .when('possession_type', {
+  //     is: 'acquisition',
+  //     then: () => yup.string().trim().required('Organization name is required'),
+  //     otherwise: () => yup.string().trim().notRequired()
+  //   }),
   where_to_acquisition: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('Organization to acquire from is required'),
+    then: () =>
+      yup
+        .string()
+        .required('Organization name is required')
+        .test('not-only-spaces', 'Organization name cannot be empty or just spaces', value => {
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
+  // dgft_number: yup.string().when('possession_type', {
+  //   is: 'acquisition',
+  //   then: () => yup.string().required('DGFT Number is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
   dgft_number: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('DGFT Number is required'),
+    then: () =>
+      yup
+        .string()
+        .required('DGFT Number is required')
+        .test('not-only-spaces', 'DGFT Number cannot be empty or just spaces', value => {
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
   cites_required: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('CITES required field is required'),
+    then: () => yup.string().required('CITES value is required'),
     otherwise: () => yup.string().notRequired()
   }),
   cites_appendix: yup.string().when(['possession_type', 'cites_required'], {
@@ -170,7 +231,7 @@ const AddNewEntry = () => {
     cites_required: '',
     cites_appendix: '',
     cites_numbers: '',
-    animal_id: '',
+    death_animal_id: '',
     attachments: [],
     dgft_attachments: []
   }
@@ -224,7 +285,7 @@ const AddNewEntry = () => {
       attachments,
       death_date,
       reason_for_death,
-      animal_id,
+      death_animal_id,
       where_to_transfer,
       where_to_acquisition,
       dgft_number,
@@ -265,7 +326,7 @@ const AddNewEntry = () => {
     if (possession_type === 'death') {
       payload.reason_for_death = reason_for_death
       payload.death_date = death_date ? moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss') : null
-      payload.animal_id = animal_id
+      payload.death_animal_id = death_animal_id
       payload.animal_count = 1
     } else {
       payload.animal_count = animal_count
@@ -577,330 +638,6 @@ const AddNewEntry = () => {
     return `${start}...${end}`
   }
 
-  const BirthFields = ({ control, errors }) => {
-    return (
-      <>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <Controller
-                name='gender'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                    <MenuItem value='male'>Male</MenuItem>
-                    <MenuItem value='female'>Female</MenuItem>
-                    <MenuItem value='other'>Other</MenuItem>
-                  </TextField>
-                )}
-              />
-              {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          {reasonType !== 'death' && (
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Controller
-                  name='animal_count'
-                  control={control}
-                  rules={{ required: reasonType !== 'death' }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Total Count*'
-                      value={value}
-                      type='number'
-                      onChange={onChange}
-                      placeholder='Enter Total Count'
-                      error={Boolean(errors.animal_count)}
-                      name='animal_count'
-                    />
-                  )}
-                />
-
-                {errors.animal_count && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-          )}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='transaction_date'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-                  />
-                )}
-              />
-              {errors.transaction_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.transaction_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </>
-    )
-  }
-
-  const DeathFields = ({ control, errors }) => {
-    return (
-      <>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='reason_for_death'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Reason for Death*'
-                    value={value}
-                    onChange={onChange}
-                    placeholder='Enter Reason for Death'
-                    error={Boolean(errors.reason_for_death)}
-                    name='reason_for_death'
-                  />
-                )}
-              />
-
-              {errors.reason_for_death && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.reason_for_death?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='death_date'
-                rules={{ required: possessionType === 'death' ? true : false }}
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date of Death*' error={Boolean(errors.death_date)} />}
-                  />
-                )}
-              />
-              {errors.death_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.death_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='animal_id'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Animal ID (Optional)'
-                    value={value}
-                    onChange={onChange}
-                    placeholder='Enter Animal ID (Optional)'
-                    error={Boolean(errors.animal_id)}
-                    name='animal_id'
-                  />
-                )}
-              />
-
-              {errors.animal_id && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_id?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={12}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='gender'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <TextField
-                        select
-                        label='Gender*'
-                        value={value}
-                        onChange={onChange}
-                        error={Boolean(errors.gender)}
-                      >
-                        <MenuItem value='male'>Male</MenuItem>
-                        <MenuItem value='female'>Female</MenuItem>
-                        <MenuItem value='other'>Other</MenuItem>
-                      </TextField>
-                    )}
-                  />
-                  {errors.gender && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='transaction_date'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-                  />
-                )}
-              />
-              {errors.transaction_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.transaction_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </>
-    )
-  }
-
-  const TransferFields = ({ control, errors }) => {
-    return (
-      <>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <Controller
-                name='where_to_transfer'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Which organization would you transfer?'
-                    value={value}
-                    type='text'
-                    onChange={onChange}
-                    placeholder='Which organization would you transfer?'
-                    error={Boolean(errors.where_to_transfer)}
-                    name='where_to_transfer'
-                  />
-                )}
-              />
-
-              {errors.where_to_transfer && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.where_to_transfer?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <Controller
-                name='gender'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                    <MenuItem value='male'>Male</MenuItem>
-                    <MenuItem value='female'>Female</MenuItem>
-                    <MenuItem value='other'>Other</MenuItem>
-                  </TextField>
-                )}
-              />
-              {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='animal_count'
-                control={control}
-                rules={{ required: reasonType !== 'death' }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Total Count*'
-                    value={value}
-                    type='number'
-                    onChange={onChange}
-                    placeholder='Enter Total Count'
-                    error={Boolean(errors.animal_count)}
-                    name='animal_count'
-                  />
-                )}
-              />
-
-              {errors.animal_count && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='transaction_date'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-                  />
-                )}
-              />
-              {errors.transaction_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.transaction_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </>
-    )
-  }
-
   return (
     <>
       <Box>
@@ -977,63 +714,104 @@ const AddNewEntry = () => {
                   </FormControl>
                 </Grid>
               </Grid>
-
-              <Grid container spacing={2} sx={{ mb: 6 }}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='possession_type'
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          select
-                          label='Reason*'
-                          placeholder='Reason'
-                          value={value}
-                          disabled={isEditMode}
-                          onChange={e => {
-                            const value = e.target.value
-                            onChange(e)
-                            setReasonType(value)
-                            if (!isEditMode) {
-                              setValue('animal_count', '')
-                              setValue('transaction_date', new Date())
-                              setValue('reason_for_death', '')
-                              setValue('death_date', null)
-                              setValue('where_to_transfer', '')
-                              setValue('where_to_acquisition', '')
-                              setValue('dgft_number', '')
-                              setValue('cites_required', '')
-                              setValue('cites_appendix', '')
-                              setValue('cites_numbers', '')
-                              setValue('animal_id', '')
-                              setValue('attachments', [])
-                              setValue('dgft_attachments', [])
-                              setImgSrc([])
-                              setDisplayFile([])
-                              setDgftDisplayFile([])
-                            }
-                            setValue('gender', '')
-                          }}
-                          error={Boolean(errors.possession_type)}
-                        >
-                          <MenuItem value='birth'>Birth</MenuItem>
-                          <MenuItem value='death'>Death</MenuItem>
-                          <MenuItem value='transfer'>Transfer </MenuItem>
-                          <MenuItem value='acquisition'>Acquisition </MenuItem>
-                        </TextField>
+              {(possessionType !== 'birth' || !possessionType) && (
+                <Grid container spacing={2} sx={{ mb: 6 }}>
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='possession_type'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            select
+                            label='Reason*'
+                            placeholder='Reason'
+                            value={value}
+                            disabled={isEditMode}
+                            onChange={e => {
+                              const value = e.target.value
+                              onChange(e)
+                              setReasonType(value)
+                              if (!isEditMode) {
+                                setValue('animal_count', '')
+                                setValue('transaction_date', new Date())
+                                setValue('reason_for_death', '')
+                                setValue('death_date', null)
+                                setValue('where_to_transfer', '')
+                                setValue('where_to_acquisition', '')
+                                setValue('dgft_number', '')
+                                setValue('cites_required', '')
+                                setValue('cites_appendix', '')
+                                setValue('cites_numbers', '')
+                                setValue('death_animal_id', '')
+                                setValue('attachments', [])
+                                setValue('dgft_attachments', [])
+                                setImgSrc([])
+                                setDisplayFile([])
+                                setDgftDisplayFile([])
+                              }
+                              setValue('gender', '')
+                            }}
+                            error={Boolean(errors.possession_type)}
+                          >
+                            <MenuItem value='birth'>Birth</MenuItem>
+                            <MenuItem value='death'>Death</MenuItem>
+                            <MenuItem value='transfer'>Transfer </MenuItem>
+                            <MenuItem value='acquisition'>Acquisition </MenuItem>
+                          </TextField>
+                        )}
+                      />
+                      {errors.possession_type && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
                       )}
-                    />
-                    {errors.possession_type && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  </Grid>
                 </Grid>
-              </Grid>
+              )}
 
-              {(possessionType === 'birth' || !possessionType) && <BirthFields control={control} errors={errors} />}
-              {possessionType === 'death' && <DeathFields control={control} errors={errors} />}
-              {possessionType === 'transfer' && <TransferFields control={control} errors={errors} />}
+              {(possessionType === 'birth' || !possessionType) && (
+                <BirthFields
+                  control={control}
+                  errors={errors}
+                  watch={watch}
+                  getValues={getValues}
+                  setValue={setValue}
+                  clearErrors={clearErrors}
+                  reasonType={reasonType}
+                  setReasonType={setReasonType}
+                  dgftDisplayFile={dgftDisplayFile}
+                  setDgftDisplayFile={setDgftDisplayFile}
+                  isEditMode={isEditMode}
+                  editParams={editParams}
+                />
+              )}
+              {possessionType === 'death' && (
+                <DeathFields
+                  control={control}
+                  errors={errors}
+                  watch={watch}
+                  getValues={getValues}
+                  setValue={setValue}
+                  clearErrors={clearErrors}
+                  isEditMode={isEditMode}
+                  editParams={editParams}
+                  possessionType={possessionType}
+                />
+              )}
+              {possessionType === 'transfer' && (
+                <TransferFields
+                  control={control}
+                  errors={errors}
+                  watch={watch}
+                  getValues={getValues}
+                  setValue={setValue}
+                  clearErrors={clearErrors}
+                  isEditMode={isEditMode}
+                  editParams={editParams}
+                  reasonType={reasonType}
+                  setReasonType={setReasonType}
+                />
+              )}
               {possessionType === 'acquisition' && (
                 <AcquisitionFields
                   control={control}
@@ -1055,7 +833,9 @@ const AddNewEntry = () => {
               <Divider />
 
               <>
-                <Typography sx={{ mb: 6, mt: 6 }}>Attachments</Typography>
+                <Typography sx={{ mb: 6, mt: 6 }} variant='h6'>
+                  Attachments
+                </Typography>
                 <Grid container spacing={2} sx={{ mb: 6 }}>
                   {/* {/ Add Attachments button /} */}
                   <Grid item xs={12} sm={4} md={3} lg={2.3}>
@@ -1082,7 +862,9 @@ const AddNewEntry = () => {
                               width: '100%' // Make sure it fills its grid item
                             }}
                           >
-                            <Icon icon='mdi:attachment-plus' size={1} />
+                            {/* <Icon icon='mdi:attachment-plus' size={1} /> */}
+                            <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
+
                             <Typography variant='body1' color='textPrimary'>
                               Add Attachments
                             </Typography>
@@ -1181,12 +963,12 @@ const AddNewEntry = () => {
               {/* <Button onClick={onSubmit}>save</Button> */}
 
               <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-                <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
-                  {'Save'}
-                </LoadingButton>
                 <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
                   Cancel
                 </Button>
+                <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
+                  {isEditMode ? 'Save' : 'Add Entry'}
+                </LoadingButton>
               </Box>
             </form>
           </CardContent>

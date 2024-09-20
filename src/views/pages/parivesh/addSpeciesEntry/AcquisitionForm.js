@@ -235,7 +235,8 @@ const AcquisitionForm = ({
                       width: '100%' // Make sure it fills its grid item
                     }}
                   >
-                    <Icon icon='mdi:attachment-plus' size={3} />
+                    {/* <Icon icon='mdi:attachment-plus' size={3} /> */}
+                    <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
                     <Typography variant='body1' color='textPrimary'>
                       Attachments
                     </Typography>

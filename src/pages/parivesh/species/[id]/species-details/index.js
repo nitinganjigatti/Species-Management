@@ -249,10 +249,12 @@ const SpeciesDetails = () => {
   }
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
-    // setResetForm(true)
+    setResetForm(true)
     setOpenDrawer(true)
   }
   const handleSidebarClose = () => {
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
     setOpenDrawer(false)
   }
 
