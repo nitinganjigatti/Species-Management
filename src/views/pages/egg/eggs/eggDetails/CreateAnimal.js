@@ -1006,11 +1006,32 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                     }}
                                   >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
+                                    {val?.sex === 'female'
+                                      ? 'F'
+                                      : val?.sex === 'male'
+                                      ? 'M'
+                                      : val?.sex === 'undetermined'
+                                      ? 'UD'
+                                      : val?.sex === 'indeterminate'
+                                      ? 'ID'
+                                      : val?.sex === 'group'
+                                      ? 'G'
+                                      : '-'}
                                   </Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  {/* <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: '600',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,
@@ -1126,11 +1147,32 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                     }}
                                   >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
+                                    {val?.sex === 'female'
+                                      ? 'F'
+                                      : val?.sex === 'male'
+                                      ? 'M'
+                                      : val?.sex === 'undetermined'
+                                      ? 'UD'
+                                      : val?.sex === 'indeterminate'
+                                      ? 'ID'
+                                      : val?.sex === 'group'
+                                      ? 'G'
+                                      : '-'}
                                   </Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  {/* <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: '600',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,

@@ -115,6 +115,17 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                 >
                   <Typography
                     sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      lineHeight: '19.36px'
+                    }}
+                  >
+                    <span> {item?.local_id_type ? item?.local_id_type : '-'}: </span>
+                    <span> {item?.local_identifier_value ? item?.local_identifier_value : '-'}</span>
+                  </Typography>
+                  <Typography
+                    sx={{
                       fontSize: '16px',
                       fontWeight: 600,
                       lineHeight: '19.36px',
