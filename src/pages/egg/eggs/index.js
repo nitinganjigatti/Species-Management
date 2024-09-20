@@ -2193,7 +2193,12 @@ const EggList = () => {
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
         // const collectedByIds = selectedFiltersOptions['Collected By']?.id || ''
-        const collectedByIds = selectedFiltersOptions['Collected By']?.id || ''
+        const collectedByIds =
+          tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+            ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || ''
+            : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
+            ? selectedFiltersOptions['Discarded By']?.map(option => option.id)
+            : selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
 
         const statusId = [selectedFiltersOptions.status?.id] || ''
@@ -2364,6 +2369,20 @@ const EggList = () => {
   }
 
   // const selectedRows = indexedRows?.filter(row => selectionModel.includes(row.id))
+
+  useEffect(() => {
+    setSelectedOptions({
+      Stage: [],
+      Nursery: [],
+      Site: [],
+      'Collected By': [],
+      collected_date: null,
+      status: null,
+      'Discarded By': [],
+      discarded_Date: null,
+      'Security Check': []
+    })
+  }, [status, isDiscarded])
 
   const tableData = () => {
     return (

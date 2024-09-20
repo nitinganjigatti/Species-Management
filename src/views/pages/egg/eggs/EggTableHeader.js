@@ -20,6 +20,7 @@ const EggTableHeader = ({
   setSelectedOptions
 }) => {
   // console.log('filterList :>> ', filterList)
+
   // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
 
   const theme = useTheme()

@@ -273,7 +273,7 @@ const EggFilterDrawer = ({
       ...(tab_Value === 'eggs_discarded' || tab_Value === 'eggs_discarded'
         ? updatedSelectedOptions['Security Check'] || []
         : []),
-      ...(tab_Value === 'eggs_discarded' || tab_Value === 'eggs_discarded'
+      ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded'
         ? updatedSelectedOptions['Discarded By'] || []
         : []),
 
