@@ -612,7 +612,7 @@ const EggFilterDrawer = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '345px',
-                height: '550px',
+                height: 'calc(100vh - 185px)',
                 overflowY: 'auto', // Enable vertical scrolling
                 '&::-webkit-scrollbar': {
                   width: 0,
