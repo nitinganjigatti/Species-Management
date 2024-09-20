@@ -2181,7 +2181,7 @@ const EggList = () => {
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
         // const collectedByIds = selectedFiltersOptions['Collected By']?.id || ''
-        const collectedByIds = selectedFiltersOptions['Collected By']?.[0]?.id || ''
+        const collectedByIds = selectedFiltersOptions['Collected By']?.id || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
 
         const statusId = [selectedFiltersOptions.status?.id] || ''
