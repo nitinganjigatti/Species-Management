@@ -19,7 +19,9 @@ const DiscardedTableView = ({
   filterList,
   setSelectedFiltersOptions,
   selectedFiltersOptions,
-  setTotal
+  setTotal,
+  selectedOptions,
+  setSelectedOptions
 }) => {
   const router = useRouter()
   const { search_value } = router.query
@@ -474,6 +476,8 @@ const DiscardedTableView = ({
         selectedFiltersOptions={selectedFiltersOptions}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
       />
       <DataGrid
         sx={{

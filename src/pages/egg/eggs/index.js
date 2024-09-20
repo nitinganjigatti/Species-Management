@@ -82,6 +82,18 @@ const EggList = () => {
 
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
+  const [selectedOptions, setSelectedOptions] = useState({
+    Stage: [],
+    Nursery: [],
+    Site: [],
+    'Collected By': [],
+    collected_date: null,
+    status: null,
+    'Discarded By': [],
+    discarded_Date: null,
+    'Security Check': []
+  })
+
   const [filterList, setFilterList] = useState([])
 
   const authData = useContext(AuthContext)
@@ -2375,6 +2387,8 @@ const EggList = () => {
                   selectedFiltersOptions={selectedFiltersOptions}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  selectedOptions={selectedOptions}
+                  setSelectedOptions={setSelectedOptions}
                 />
                 <DataGrid
                   sx={{
@@ -2442,6 +2456,8 @@ const EggList = () => {
                     selectedFiltersOptions={selectedFiltersOptions}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
+                    selectedOptions={selectedOptions}
+                    setSelectedOptions={setSelectedOptions}
                   />
 
                   <DataGrid
@@ -2600,6 +2616,8 @@ const EggList = () => {
                     selectedFiltersOptions={selectedFiltersOptions}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
+                    selectedOptions={selectedOptions}
+                    setSelectedOptions={setSelectedOptions}
                   />
 
                   <DataGrid
@@ -2773,6 +2791,8 @@ const EggList = () => {
                         setSelectedFiltersOptions={setSelectedFiltersOptions}
                         selectedFiltersOptions={selectedFiltersOptions}
                         setTotal={setTotal}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
                       />
                     </>
                   </TabPanel>
@@ -2798,6 +2818,8 @@ const EggList = () => {
                         selectedFiltersOptions={selectedFiltersOptions}
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
                       />
 
                       <DataGrid
