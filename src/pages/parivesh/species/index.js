@@ -442,7 +442,6 @@ const SpeciesList = () => {
       // }
       const response = await addSpecies(payload)
       if (response?.success) {
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
         toast.success(response?.message)
         setSubmitLoader(false)
         setResetForm(true)
@@ -450,9 +449,10 @@ const SpeciesList = () => {
         await fetchTableData(sortBy, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
         if (typeof response?.message === 'object') {
-          Utility.errorMessageExtractorFromObject(response.message)
+          toast.error(response.message?.cover_image || response.message?.species_image)
+          // Utility.errorMessageExtractorFromObject(response.message?.cover_image)
         } else {
           toast.error(response.message)
         }
@@ -461,7 +461,6 @@ const SpeciesList = () => {
       console.log(e)
       setSubmitLoader(false)
       toast.error(JSON.stringify(e))
-      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
     }
   }
 

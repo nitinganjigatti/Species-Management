@@ -862,6 +862,7 @@ const AddNewEntry = () => {
                               width: '100%' // Make sure it fills its grid item
                             }}
                           >
+                            <input {...getInputProps()} ref={fileInputRef} />
                             {/* <Icon icon='mdi:attachment-plus' size={1} /> */}
                             <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
 

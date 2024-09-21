@@ -71,6 +71,7 @@ const AddSpecies = props => {
   const [displayCoverFile, setDisplayCoverFile] = useState('')
   const [masterSpeciesList, setMasterSpeciesList] = useState([])
   const [isScientificNameDisabled, setIsScientificNameDisabled] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
 
   const {
     reset,
@@ -113,7 +114,7 @@ const AddSpecies = props => {
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <Button size='large' variant='outlined' sx={{ m: 2, width: '100%' }} onClick={handleSidebarClose}>
+        <Button size='large' variant='outlined' sx={{ m: 2, width: '100%' }} onClick={handleSidebarCloseWithReset}>
           &nbsp; Cancel
         </Button>
         <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader} sx={{ width: '100%' }}>
@@ -189,39 +190,85 @@ const AddSpecies = props => {
     }
   }
 
+  // const searchMasterSpeciesList = useCallback(
+  //   debounce(async q => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchSpeciesMasterList(q)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
+
+  // const fetchSpeciesMasterList = useCallback(async q => {
+  //   try {
+  //     const params = { q }
+
+  //     await getSearchLMasterListSpecies({ params: params }).then(res => {
+  //       console.log('responseSearch', res?.data?.data)
+  //       const speciesData = res?.data?.data?.map(item => ({
+  //         label: item.scientific_name,
+  //         value: item.scientific_name,
+  //         id: item.id
+  //       }))
+  //       setMasterSpeciesList(speciesData)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }, [])
+
+  // useEffect(() => {
+  //   fetchSpeciesMasterList()
+  // }, [fetchSpeciesMasterList])
+
   const searchMasterSpeciesList = useCallback(
     debounce(async q => {
-      setSearchValue(q)
-      try {
-        await fetchSpeciesMasterList(q)
-      } catch (error) {
-        console.error(error)
+      if (isOpen) {
+        try {
+          await fetchSpeciesMasterList(q)
+        } catch (error) {
+          console.error(error)
+        }
       }
     }, 1000),
-    []
+    [isOpen]
   )
 
-  const fetchSpeciesMasterList = useCallback(async q => {
-    try {
-      const params = { q }
-
-      await getSearchLMasterListSpecies({ params: params }).then(res => {
-        console.log('responseSearch', res?.data?.data)
-        const speciesData = res?.data?.data?.map(item => ({
-          label: item.scientific_name,
-          value: item.scientific_name,
-          id: item.id
-        }))
-        setMasterSpeciesList(speciesData)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }, [])
+  const fetchSpeciesMasterList = useCallback(
+    async q => {
+      if (isOpen) {
+        try {
+          const params = { q }
+          const res = await getSearchLMasterListSpecies({ params: params })
+          console.log('responseSearch', res?.data?.data)
+          const speciesData = res?.data?.data?.map(item => ({
+            label: item.scientific_name,
+            value: item.scientific_name,
+            id: item.id
+          }))
+          setMasterSpeciesList(speciesData)
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    },
+    [isOpen]
+  )
 
   useEffect(() => {
-    fetchSpeciesMasterList()
-  }, [fetchSpeciesMasterList])
+    if (addEventSidebarOpen) {
+      setIsOpen(true)
+      // Only fetch initial list if searchValue is empty
+      if (searchValue === '') {
+        fetchSpeciesMasterList('')
+      }
+    } else {
+      handleSidebarCloseWithReset()
+    }
+  }, [addEventSidebarOpen, fetchSpeciesMasterList, searchValue])
 
   const handleScientificNameChange = async (event, newValue) => {
     // console.log('Selected Scientific Name:', newValue)
@@ -243,6 +290,13 @@ const AddSpecies = props => {
     }
   }
 
+  const handleSidebarCloseWithReset = () => {
+    setMasterSpeciesList([])
+    setSearchValue('')
+    setIsOpen(false)
+    handleSidebarClose()
+  }
+
   return (
     <Drawer
       anchor='right'
@@ -261,7 +315,7 @@ const AddSpecies = props => {
       >
         <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} New Species</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+          <IconButton size='small' onClick={handleSidebarCloseWithReset} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Box>
