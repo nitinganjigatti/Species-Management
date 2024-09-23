@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { getHousingReport, getSpeciesReport, getUsersReportList } from 'src/lib/api/parivesh/housing'
 import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 const ReportList = () => {
   const [userList, setUserList] = useState([])
@@ -29,7 +28,7 @@ const ReportList = () => {
       try {
         const response = await getUsersReportList()
         if (response) {
-          setUserList([...userList, response])
+          setUserList(response)
           // setRows(response)
         } else {
           console.error('Unexpected response format or request failed')
@@ -71,16 +70,17 @@ const ReportList = () => {
     return [keys.join(','), ...csvRows].join('\n')
   }
 
-  function downloadCsvFile(csvData, fileName) {
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.setAttribute('href', url)
-    a.setAttribute('download', fileName)
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
+  // function downloadCsvFile(csvData, fileName) {
+
+  //   const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+  //   const url = window.URL.createObjectURL(blob)
+  //   const a = document.createElement('a')
+  //   a.setAttribute('href', url)
+  //   a.setAttribute('download', fileName)
+  //   document.body.appendChild(a)
+  //   a.click()
+  //   document.body.removeChild(a)
+  // }
 
   const downloadNewCSVFile = (csvContent, fileName) => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -95,7 +95,7 @@ const ReportList = () => {
 
   const getUserDataToExport = async () => {
     const fileName = 'user_data.csv'
-    downloadCsvFile(userList, fileName)
+    downloadNewCSVFile(userList, fileName)
   }
 
   const getHousingDataToExport = async () => {
@@ -166,7 +166,6 @@ const ReportList = () => {
           // disableColumnSelector={true}
           hideFooterSelectedRowCount={true}
           rowHeight={70}
-          selectionModel={[]}
           // rowCount={total}
           columns={columns}
         />
