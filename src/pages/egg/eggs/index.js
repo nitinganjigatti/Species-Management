@@ -2201,7 +2201,7 @@ const EggList = () => {
             : selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
 
-        const statusId = [selectedFiltersOptions.status?.id] || ''
+        const statusId = selectedFiltersOptions.status?.id ? [selectedFiltersOptions.status?.id] : ''
 
         const collectedDate = selectedFiltersOptions.collected_date
           ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
@@ -2224,7 +2224,7 @@ const EggList = () => {
 
           egg_status_id: (() => {
             if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
-              return statusId.length > 0 ? JSON.stringify(statusId) : ''
+              return statusId ? JSON.stringify(statusId) : ''
             } else {
               return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
             }
