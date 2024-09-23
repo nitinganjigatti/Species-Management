@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import TabList from '@mui/lab/TabList'
@@ -11,12 +11,16 @@ import Overview from './overview'
 import NewEntry from './new-entries'
 import Batches from './[id]'
 import { useRouter } from 'next/router'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const Home = ({ params, searchParams }) => {
+  const authData = useContext(AuthContext)
   const router = useRouter()
   const { tab } = router.query
   const [total, setTotal] = useState(0)
   const [status, setStatus] = useState(tab ? tab.replace(/-/g, ' ') : 'overview')
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const handleChange = (event, newValue) => {
     console.log(newValue, 'newValue')
@@ -40,37 +44,43 @@ const Home = ({ params, searchParams }) => {
     </div>
   )
 
+  //
+
   return (
     <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='overview'
-              label={<TabBadge label='overview' totalCount={status === 'overview' ? total : null} />}
-            />
+      {pariveshAccess ? (
+        <Grid>
+          <TabContext value={status}>
+            <TabList onChange={handleChange} aria-label='simple tabs example'>
+              <Tab
+                value='overview'
+                label={<TabBadge label='overview' totalCount={status === 'overview' ? total : null} />}
+              />
 
-            <Tab
-              value='new entries'
-              label={<TabBadge label='new entries' totalCount={status === 'new entries' ? total : null} />}
-            />
-            <Tab
-              value='batches'
-              label={<TabBadge label='batches' totalCount={status === 'batches' ? total : null} />}
-            />
-          </TabList>
+              <Tab
+                value='new entries'
+                label={<TabBadge label='new entries' totalCount={status === 'new entries' ? total : null} />}
+              />
+              <Tab
+                value='batches'
+                label={<TabBadge label='batches' totalCount={status === 'batches' ? total : null} />}
+              />
+            </TabList>
 
-          <TabPanel value='overview'>
-            <Overview />
-          </TabPanel>
-          <TabPanel value='new entries'>
-            <NewEntry />
-          </TabPanel>
-          <TabPanel value='batches'>
-            <Batches />
-          </TabPanel>
-        </TabContext>
-      </Grid>
+            <TabPanel value='overview'>
+              <Overview />
+            </TabPanel>
+            <TabPanel value='new entries'>
+              <NewEntry />
+            </TabPanel>
+            <TabPanel value='batches'>
+              <Batches />
+            </TabPanel>
+          </TabContext>
+        </Grid>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

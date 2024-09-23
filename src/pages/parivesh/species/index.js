@@ -9,8 +9,6 @@ import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { Avatar, Button, Tooltip, Typography, debounce } from '@mui/material'
-import { Box } from '@mui/system'
-import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -19,15 +17,14 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
-import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
-import { AddButton } from 'src/components/Buttons'
 import AddSpecies from 'src/views/pages/parivesh/addSpecies/addSpecies'
 import Router from 'next/router'
 import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh/addSpecies'
 import toast from 'react-hot-toast'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Error404 from 'src/pages/404'
 // import { addSpecies, getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesList = () => {
@@ -50,6 +47,7 @@ const SpeciesList = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
   const { selectedParivesh } = usePariveshContext()
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const onClose = () => {
     setDialog(false)
@@ -582,29 +580,35 @@ const SpeciesList = () => {
 
   return (
     <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='overview'
-              label={<TabBadge label='overview' totalCount={status === 'overview' ? total : null} />}
-            />
-          </TabList>
+      {pariveshAccess ? (
+        <>
+          <Grid>
+            <TabContext value={status}>
+              <TabList onChange={handleChange} aria-label='simple tabs example'>
+                <Tab
+                  value='overview'
+                  label={<TabBadge label='overview' totalCount={status === 'overview' ? total : null} />}
+                />
+              </TabList>
 
-          <TabPanel value='overview'>
-            <Grid>{tableData()}</Grid>
-          </TabPanel>
-        </TabContext>
-      </Grid>
-      <AddSpecies
-        drawerWidth={400}
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-      />
+              <TabPanel value='overview'>
+                <Grid>{tableData()}</Grid>
+              </TabPanel>
+            </TabContext>
+          </Grid>
+          <AddSpecies
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+          />
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }
