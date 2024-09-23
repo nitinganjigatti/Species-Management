@@ -1489,14 +1489,14 @@ const EggList = () => {
     },
     {
       width: 160,
-      field: 'stage_state',
+      field: 'reason',
       sortable: false,
-      headerName: ' STATE & STAGE',
+      headerName: 'Reason',
 
       // align: 'center',
       renderCell: params => (
         <Stack direction='column' spacing={1}>
-          <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
+          {/* <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
             {params.row?.egg_condition === 'Broken' || params.row?.egg_condition === 'Rotten' ? (
               <Box
                 sx={{
@@ -1524,7 +1524,7 @@ const EggList = () => {
             ) : (
               <TextCard egg_status={params.row.egg_status} />
             )}
-          </Box>
+          </Box> */}
 
           {params.row.egg_state && (
             <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
@@ -1540,6 +1540,25 @@ const EggList = () => {
                 }}
               >
                 {params.row.egg_state}
+              </Typography>
+            </Tooltip>
+          )}
+
+          {/* Comment to be added */}
+          {params.row.discard_reason && (
+            <Tooltip title={params.row?.discard_reason ? params.row?.discard_reason : '-'}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: 150
+                }}
+              >
+                {params.row.discard_reason}
               </Typography>
             </Tooltip>
           )}
@@ -1826,8 +1845,8 @@ const EggList = () => {
 
           {/* show comments */}
 
-          {/* {params.row.egg_state && (
-            <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+          {params.row.discard_reason && (
+            <Tooltip title={params.row?.discard_reason ? params.row?.discard_reason : '-'}>
               <Typography
                 sx={{
                   fontSize: '16px',
@@ -1836,13 +1855,13 @@ const EggList = () => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: 160
+                  width: 150
                 }}
               >
-                {params.row.egg_state}
+                {params.row.discard_reason}
               </Typography>
             </Tooltip>
-          )} */}
+          )}
         </Stack>
       )
     },
