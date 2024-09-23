@@ -159,7 +159,7 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
           {params.row.egg_number && (
             <Typography
@@ -169,7 +169,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              EID : {params.row.egg_number}
+              UEID : {params.row.egg_number}
             </Typography>
           )}
         </Box>
@@ -427,7 +427,7 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
           {params.row.egg_number && (
             <Typography
@@ -437,7 +437,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              EID : {params.row.egg_number}
+              UEID : {params.row.egg_number}
             </Typography>
           )}
         </Box>
@@ -744,7 +744,7 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
           {params.row.egg_number && (
             <Typography
@@ -754,7 +754,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              EID : {params.row.egg_number}
+              UEID : {params.row.egg_number}
             </Typography>
           )}
         </Box>
@@ -777,7 +777,7 @@ const EggList = () => {
                 // lineHeight: '19.36px'
               }}
             >
-              {params.row.animal_id ? params.row.animal_id : '-'}
+              AAID : {params.row.animal_id ? params.row.animal_id : '-'}
             </Typography>
           ) : (
             <Typography
@@ -1009,7 +1009,7 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
           {params.row.egg_number && (
             <Typography
@@ -1019,7 +1019,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              EID : {params.row.egg_number}
+              UEID : {params.row.egg_number}
             </Typography>
           )}
         </Box>
@@ -1471,7 +1471,7 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
           {params.row.egg_number && (
             <Typography
@@ -1481,7 +1481,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              EID : {params.row.egg_number}
+              UEID : {params.row.egg_number}
             </Typography>
           )}
         </Box>
@@ -1751,7 +1751,7 @@ const EggList = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>
           {params.row.egg_number && (
             <Typography
@@ -1761,7 +1761,7 @@ const EggList = () => {
                 lineHeight: '19.36px'
               }}
             >
-              EID : {params.row.egg_number}
+              UEID : {params.row.egg_number}
             </Typography>
           )}
         </Box>
@@ -1769,14 +1769,14 @@ const EggList = () => {
     },
     {
       width: 160,
-      field: 'stage_state',
+      field: 'reason',
       sortable: false,
-      headerName: ' STATE & STAGE',
+      headerName: 'Reason',
 
       // align: 'center',
       renderCell: params => (
         <Stack direction='column' spacing={1}>
-          <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
+          {/* <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
             {params.row?.egg_condition === 'Broken' || params.row?.egg_condition === 'Rotten' ? (
               <Box
                 sx={{
@@ -1804,7 +1804,7 @@ const EggList = () => {
             ) : (
               <TextCard egg_status={params.row.egg_status} />
             )}
-          </Box>
+          </Box> */}
 
           {params.row.egg_state && (
             <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
@@ -1823,6 +1823,26 @@ const EggList = () => {
               </Typography>
             </Tooltip>
           )}
+
+          {/* show comments */}
+
+          {/* {params.row.egg_state && (
+            <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: 160
+                }}
+              >
+                {params.row.egg_state}
+              </Typography>
+            </Tooltip>
+          )} */}
         </Stack>
       )
     },
@@ -2188,18 +2208,18 @@ const EggList = () => {
         setLoading(true)
 
         // Extracting IDs from selectedFiltersOptions
-        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || ''
-        const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || ''
+        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
+        const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
         // const collectedByIds = selectedFiltersOptions['Collected By']?.id || ''
         const collectedByIds =
           tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
-            ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || ''
+            ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : tab_Value === 'eggs_discarded'
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id)
-            : selectedFiltersOptions['Collected By']?.map(option => option.id) || ''
-        const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || ''
+            : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
+        const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || []
 
         const statusId = selectedFiltersOptions.status?.id ? [selectedFiltersOptions.status?.id] : ''
 
@@ -2217,10 +2237,10 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
-          egg_state_id: eggStateIds.length > 0 ? JSON.stringify(eggStateIds) : '',
-          collected_by: collectedByIds.length > 0 ? JSON.stringify(collectedByIds) : '',
-          site_id: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
+          nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
+          egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
+          collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
+          site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
 
           egg_status_id: (() => {
             if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
