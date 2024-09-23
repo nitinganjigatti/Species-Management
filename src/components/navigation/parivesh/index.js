@@ -1,4 +1,4 @@
-const composeLabNavigation = () => {
+const composePariveshNavigation = () => {
   const Title = {
     sectionTitle: 'Parivesh'
   }
@@ -24,6 +24,6 @@ const composeLabNavigation = () => {
   return pariveshNavigationArray
 }
 
-const pariveshNavigation = () => composeLabNavigation()
+const pariveshNavigation = () => composePariveshNavigation()
 
 export default pariveshNavigation
