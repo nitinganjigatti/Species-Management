@@ -26,13 +26,14 @@ export async function getRequestItemsListById(id) {
   return response.data
 }
 
-export async function getAvailableMedicineByMedicineId(id, data, store, productType) {
+export async function getAvailableMedicineByMedicineId(id, data, store, productType, params) {
   // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
   //have removed stock type--- &stock_type=${productType}
   const response = await axiosGet({
     url: `${BATCH_DETAILS}/${id}`,
     body: data,
-    pharmacy
+    pharmacy,
+    params: params ? params : null
   })
 
   return response.data

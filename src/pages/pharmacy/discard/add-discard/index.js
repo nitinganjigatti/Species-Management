@@ -39,7 +39,7 @@ import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
 import { getAvailableMedicineByMedicineId } from 'src/lib/api/pharmacy/getRequestItemsList'
 
-import { addDiscard, getDiscardItemsListById } from 'src/lib/api/pharmacy/discard'
+import { addDiscard, getDiscardItemsListById, getDiscardReasonsList } from 'src/lib/api/pharmacy/discard'
 import Utility from 'src/utility'
 import { AddItemsForm } from 'src/views/pages/pharmacy/discard/add-discard-form'
 import Error404 from 'src/pages/404'
@@ -76,7 +76,8 @@ const initialNestedRowMedicine = {
   expiry_date: '',
   medicine_name: '',
   uuid: '',
-  stock_type: ''
+  stock_type: '',
+  reason: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -102,6 +103,7 @@ const AddDiscardProducts = () => {
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
   const [batchLoading, setBatchLoading] = useState(false)
+  const [reasonsOptions, setReasonsOptions] = useState([])
 
   const router = useRouter()
   const { id, action } = router.query
@@ -123,7 +125,17 @@ const AddDiscardProducts = () => {
     setShow(true)
     setVisibleExpiryField(false)
   }
-  console.log('editParams', editParams)
+
+  const getOptionsList = async () => {
+    try {
+      const status = await getDiscardReasonsList()
+      if (status?.success) {
+        setReasonsOptions(status?.data?.reasons)
+      }
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
   const getSupplierList = async () => {
     try {
@@ -310,7 +322,7 @@ const AddDiscardProducts = () => {
       try {
         setBatchLoading(true)
         const data = { stock_item_id: id }
-        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central', productType)
+        const searchResults = await getAvailableMedicineByMedicineId(id, data, 'central', productType, { is_return: 1 })
 
         if (searchResults?.success) {
           if (searchResults?.data?.items?.length > 0) {
@@ -351,6 +363,7 @@ const AddDiscardProducts = () => {
 
   useEffect(() => {
     getSupplierList()
+    getOptionsList()
     fetchMedicineData()
   }, [])
 
@@ -380,7 +393,6 @@ const AddDiscardProducts = () => {
   const getListOfItemsById = async id => {
     try {
       const result = await getDiscardItemsListById(id)
-      console.log('result', result)
       if (result.success === true && result?.data?.item_details?.length > 0) {
         const lineItems = result?.data?.item_details?.map(el => {
           return {
@@ -402,7 +414,8 @@ const AddDiscardProducts = () => {
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer_name,
-            comments: el?.comments
+            comments: el?.comments,
+            reason: el?.reason
           }
         })
 
@@ -442,7 +455,8 @@ const AddDiscardProducts = () => {
       stock_type: getItems[0]?.stock_type,
       packageDetails: getItems[0]?.packageDetails,
       manufacture: getItems[0]?.manufacture,
-      comments: getItems[0]?.comments
+      comments: getItems[0]?.comments,
+      reason: getItems[0]?.reason
     })
     // }
   }
@@ -544,6 +558,7 @@ const AddDiscardProducts = () => {
                     error={duplicateMedError}
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
+                    reasonsOptions={reasonsOptions}
                   />
                 }
                 close={closeDialog}
@@ -643,7 +658,9 @@ const AddDiscardProducts = () => {
                   <TableCell>Product Name</TableCell>
                   <TableCell>Batch No</TableCell>
                   <TableCell>Expiry Date</TableCell>
-                  <TableCell>comment</TableCell>
+                  <TableCell>Comment</TableCell>
+                  <TableCell>Reason</TableCell>
+
                   <TableCell>Quantity</TableCell>
                   {id ? null : <TableCell>Action</TableCell>}
                 </TableRow>
@@ -675,6 +692,7 @@ const AddDiscardProducts = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>{el.comments ? el.comments : 'NA'}</TableCell>
+                          <TableCell>{el.reason ? el.reason : 'NA'}</TableCell>
 
                           <TableCell>{el.quantity}</TableCell>
                           {id ? null : (
@@ -684,12 +702,10 @@ const AddDiscardProducts = () => {
                                 sx={{ mr: 0.5 }}
                                 aria-label='Edit'
                                 onClick={() => {
-                                  //
                                   setMedicineItemId(el.stock_id)
 
                                   editTableData(el.uuid)
                                   showDialog()
-                                  // }
                                 }}
                               >
                                 <Icon icon='mdi:pencil-outline' />

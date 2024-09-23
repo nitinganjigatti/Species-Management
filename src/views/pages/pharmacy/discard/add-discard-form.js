@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import dayjs from 'dayjs'
 import {
   CardContent,
   Grid,
@@ -17,26 +18,6 @@ import {
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Chip from '@mui/material/Chip'
-
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-
-import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
-// import Table from '@mui/material/Table'
-// import TableRow from '@mui/material/TableRow'
-
-// import TableCell from '@mui/material/TableCell'
-
-// import TableHead from '@mui/material/TableHead'
-
-// import ConfirmDialog from 'src/components/ConfirmationDialog'
 
 import { LoaderIcon } from 'react-hot-toast'
 
@@ -57,28 +38,54 @@ const defaultValues = {
   expiry_date: '',
   packageDetails: '',
   manufacture: '',
-  comments: ''
+  comments: '',
+  reason: ''
 }
 
+// const schema = yup.object().shape({
+//   request_item: yup.object().shape({
+//     label: yup.string().required('Product Name is required'),
+//     value: yup.string().required('Product Name is required')
+//   }),
+
+//   // batch_no: yup.object().shape({
+//   //   label: yup.string().required('Batch no is required'),
+//   //   value: yup.string().required('Batch no is required'),
+//   //   expiry_date: yup.string().required('Batch no is required')
+//   // }),
+//   batch_no: yup
+//     .mixed()
+//     .required('Batch number is required')
+//     .test('is-object-with-properties', 'Batch number is required', value => {
+//       return (
+//         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+//       )
+//     }),
+//   quantity: yup
+//     .number()
+//     .typeError('Quantity must be a positive number')
+//     .positive('Quantity must be a positive number')
+//     .integer('Quantity must be an integer')
+//     .required('Quantity is required'),
+
+//   // available_item_qty: yup.string().required('Available Quantity is required'),
+//   expiry_date: yup.string().required('Expiry Date is required')
+// })
 const schema = yup.object().shape({
   request_item: yup.object().shape({
     label: yup.string().required('Product Name is required'),
     value: yup.string().required('Product Name is required')
   }),
 
-  // batch_no: yup.object().shape({
-  //   label: yup.string().required('Batch no is required'),
-  //   value: yup.string().required('Batch no is required'),
-  //   expiry_date: yup.string().required('Batch no is required')
-  // }),
   batch_no: yup
     .mixed()
     .required('Batch number is required')
-    .test('is-object-with-properties', 'Batch number is required', value => {
+    .test('is-valid-object', 'Batch number is required', value => {
       return (
         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
       )
     }),
+
   quantity: yup
     .number()
     .typeError('Quantity must be a positive number')
@@ -86,8 +93,35 @@ const schema = yup.object().shape({
     .integer('Quantity must be an integer')
     .required('Quantity is required'),
 
-  // available_item_qty: yup.string().required('Available Quantity is required'),
-  expiry_date: yup.string().required('Expiry Date is required')
+  expiry_date: yup.string().required('Expiry Date is required'),
+
+  reason: yup
+    .string()
+    .required('Reason is required')
+    .test('check-expiry', 'Expired must be selected for expired batches', function (value) {
+      const { expiry_date } = this.parent
+
+      if (expiry_date) {
+        const isExpired = dayjs(expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
+        if (isExpired) {
+          return value === 'Expired'
+        }
+      }
+
+      return true
+    }),
+
+  comments: yup
+    .string()
+    .test('comments-required', 'Comments are required when "Others" reason is selected', function (value) {
+      const { reason } = this.parent
+
+      if (reason === 'Others') {
+        return value !== undefined && value.trim().length > 0
+      }
+
+      return true
+    })
 })
 
 export const AddItemsForm = ({
@@ -102,7 +136,8 @@ export const AddItemsForm = ({
   nestedMedicine,
   error,
   totalQuantity,
-  editParams
+  editParams,
+  reasonsOptions
 }) => {
   const {
     reset,
@@ -121,7 +156,6 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -150,7 +184,8 @@ export const AddItemsForm = ({
       request_item,
       packageDetails,
       manufacture,
-      comments
+      comments,
+      reason
     } = {
       ...params
     }
@@ -192,7 +227,8 @@ export const AddItemsForm = ({
         stock_type,
         packageDetails,
         manufacture,
-        comments
+        comments,
+        reason
       },
       type
     )
@@ -248,9 +284,9 @@ export const AddItemsForm = ({
         stock_type: nestedMedicine?.stock_type,
         packageDetails: nestedMedicine?.packageDetails,
         manufacture: nestedMedicine?.manufacture,
-        comments: nestedMedicine?.comments
+        comments: nestedMedicine?.comments,
+        reason: nestedMedicine?.reason
       })
-      console.log('available_item_qty in nested ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
       }
@@ -380,17 +416,20 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
-                      // console.log('value', value)
-                      // setValue('request_item', value)
+                      const isExpired = dayjs(value?.expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
+                      if (isExpired) {
+                        setValue('reason', 'Expired')
+                      } else {
+                        setValue('reason', '')
+                      }
+
                       setValue('batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('batch_no')
                       setQuantityError(false)
                       checkTotalCount()
-
-                      // seValu
-                    }} // Set selected value
+                    }}
                     loading={batchLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
@@ -460,7 +499,69 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
-          <Grid item xs={12} sm={12}>
+          <Grid item xs={12} sm={6}>
+            {/* <FormControl fullWidth>
+              <InputLabel id='demo-simple-select-helper-label'>Select reason</InputLabel>
+              <Controller
+                name='reason'
+                control={control}
+                defaultValue=''
+                render={({ field }) => (
+                  <Select {...field} labelId='demo-simple-select-helper-label' label='Select reason'>
+                    <MenuItem value=''>
+                      <em>None</em>
+                    </MenuItem>
+                    {reasonsOptions.length > 0 &&
+                      reasonsOptions.map((el, index) => {
+                        return (
+                          <MenuItem key={index} value={el}>
+                            {el}
+                          </MenuItem>
+                        )
+                      })}
+                  </Select>
+                )}
+              />
+
+              {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors?.reason?.message}</FormHelperText>}
+            </FormControl> */}
+            <FormControl fullWidth>
+              <InputLabel id='demo-simple-select-helper-label'>Select reason</InputLabel>
+              <Controller
+                name='reason'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    onChange={onChange}
+                    value={value}
+                    labelId='demo-simple-select-helper-label'
+                    label='Select reason'
+                    error={Boolean(errors.reason)}
+                  >
+                    <MenuItem value=''>
+                      <em>None</em>
+                    </MenuItem>
+                    {reasonsOptions.length > 0 &&
+                      reasonsOptions.map((el, index) => (
+                        <MenuItem
+                          key={index}
+                          disabled={
+                            watch('stock_type') === 'non_medical' && (el === 'Expired' || el === 'About to expire')
+                              ? true
+                              : false
+                          }
+                          value={el}
+                        >
+                          {el}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                )}
+              />
+              {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors.reason.message}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
                 name='comments'
@@ -468,8 +569,6 @@ export const AddItemsForm = ({
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    multiline
-                    rows={2}
                     value={value}
                     label='Comments'
                     name='comments'
@@ -477,11 +576,10 @@ export const AddItemsForm = ({
                     onChange={onChange}
                   />
                 )}
-              >
-                {errors.comments && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
-                )}
-              </Controller>
+              ></Controller>
+              {errors.comments && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           {/* <Grid item xs={12}>

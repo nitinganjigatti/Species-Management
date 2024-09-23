@@ -1,8 +1,14 @@
-import { DISCARD_PRODUCT } from 'src/constants/ApiConstant'
+import { DISCARD_PRODUCT, DISCARD_REASON } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getDiscardList({ params }) {
   const response = await axiosGet({ url: `${DISCARD_PRODUCT}`, params, pharmacy: true })
+
+  return response.data
+}
+
+export async function getDiscardReasonsList() {
+  const response = await axiosGet({ url: `${DISCARD_REASON}`, pharmacy: true })
 
   return response.data
 }
