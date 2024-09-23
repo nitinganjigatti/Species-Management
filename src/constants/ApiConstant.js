@@ -169,3 +169,5 @@ export const REJECT_MEDICINE = 'reject'
 export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
 
 export const DISCARD_PRODUCT = 'discard'
+
+export const DASHBOARD_STORE_WISE_DISPATCH_REPORT = 'storewise-dispatch-report'

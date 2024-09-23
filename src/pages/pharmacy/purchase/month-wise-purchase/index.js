@@ -76,6 +76,19 @@ const MonthWisePurchase = () => {
       width: 200,
       field: 'name',
       headerName: 'MEDICINE NAMES',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+            Medicine
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+            Names
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            Purchase Value (in lac)
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Tooltip title={params.row.name}>
           <Typography
@@ -93,18 +106,20 @@ const MonthWisePurchase = () => {
         </Tooltip>
       )
     },
-
     {
       width: 100,
       field: 'jan',
       headerName: 'January ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             January
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -120,11 +135,14 @@ const MonthWisePurchase = () => {
       headerName: 'February ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             February
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -140,11 +158,14 @@ const MonthWisePurchase = () => {
       headerName: 'March ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             March
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -160,11 +181,14 @@ const MonthWisePurchase = () => {
       headerName: 'April ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             April
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -180,11 +204,14 @@ const MonthWisePurchase = () => {
       headerName: 'May ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             May
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -200,11 +227,14 @@ const MonthWisePurchase = () => {
       headerName: 'June ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             June
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -220,11 +250,14 @@ const MonthWisePurchase = () => {
       headerName: 'July ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             July
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -240,11 +273,14 @@ const MonthWisePurchase = () => {
       headerName: 'August ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             August
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -260,11 +296,14 @@ const MonthWisePurchase = () => {
       headerName: 'September ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             September
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -280,11 +319,14 @@ const MonthWisePurchase = () => {
       headerName: 'October ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             October
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -300,11 +342,14 @@ const MonthWisePurchase = () => {
       headerName: 'November ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             November
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -320,11 +365,14 @@ const MonthWisePurchase = () => {
       headerName: 'December ',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             December
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
             2024
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+            (2024)
           </Typography>
         </Box>
       ),
@@ -617,6 +665,7 @@ const MonthWisePurchase = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  columnHeaderHeight={100}
                   disableColumnMenu
                   slotProps={{
                     baseButton: {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
+import { getStoreWiseDispatchList } from 'src/lib/api/pharmacy/getAllReports'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -28,6 +29,131 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import MedicineNamedoctorsList from '../month-wise-dispatch/doctorsList'
 
+const checkvalue = {
+  success: true,
+  data: {
+    total_count: 18,
+    list_items: [
+      {
+        total_pharmacies: 2,
+        columnData: [
+          {
+            title: 'August',
+            subtitle: 2024,
+            id: 1,
+            total_purchase_value: 12000
+          },
+          {
+            title: 'July',
+            subtitle: 2024,
+            id: 2,
+            total_purchase_value: 1300
+          },
+          {
+            title: 'June',
+            subtitle: 2024,
+            id: 3,
+            total_purchase_value: 1400
+          },
+          {
+            title: 'May',
+            subtitle: 2024,
+            id: 4,
+            total_purchase_value: 120
+          },
+          {
+            title: 'April',
+            subtitle: 2024,
+            id: 5,
+            total_purchase_value: 1200
+          },
+          {
+            title: 'March',
+            subtitle: 2024,
+            id: 6,
+            total_purchase_value: 15000
+          },
+          {
+            title: 'February',
+            subtitle: 2024,
+            id: 7,
+            total_purchase_value: 1600
+          },
+          {
+            title: 'January',
+            subtitle: 2024,
+            id: 8,
+            total_purchase_value: 170
+          },
+          {
+            title: 'December',
+            subtitle: 2023,
+            id: 9,
+            total_purchase_value: 1800
+          },
+          {
+            title: 'November',
+            subtitle: 2023,
+            id: 10,
+            total_purchase_value: 1900
+          },
+          {
+            title: 'October',
+            subtitle: 2023,
+            id: 11,
+            total_purchase_value: 12000
+          },
+          {
+            title: 'September',
+            subtitle: 2023,
+            id: 12,
+            total_purchase_value: 120
+          }
+        ],
+        rowData: [
+          {
+            id: 13,
+            month_values: {
+              January: '9879',
+              February: '898',
+              March: '500',
+              April: '403',
+              May: '506',
+              June: '603',
+              July: '402',
+              August: '555',
+              September: '765',
+              October: '8886',
+              November: '3432',
+              December: '898'
+            },
+            pharmacy_name: 'Arghya Local 1'
+          },
+          {
+            id: 14,
+            month_values: {
+              January: '2000',
+              February: '1500',
+              March: '1200',
+              April: '1100',
+              May: '900',
+              June: '950',
+              July: '1300',
+              August: '1000',
+              September: '850',
+              October: '900',
+              November: '1100',
+              December: '1300'
+            },
+            pharmacy_name: 'Arghya Local 2'
+          }
+          // Add more objects
+        ]
+      }
+    ]
+  }
+}
+
 const StoreWiseDispatch = () => {
   const router = useRouter()
   const theme = useTheme()
@@ -38,6 +164,7 @@ const StoreWiseDispatch = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+  const [columns, setColumns] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -59,357 +186,126 @@ const StoreWiseDispatch = () => {
     }
   }
 
-  const columns = [
-    {
-      //flex: 0.3,
-      width: 200,
-      field: 'name',
-      headerName: 'PHARMACIES',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            PHARMACIES
-          </Typography>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>(40 Pharmacies)</Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Tooltip title={params.row.name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: 'text.primary',
-              whiteSpace: 'nowrap',
-              width: '160px',
-              textOverflow: 'ellipsis',
-              overflow: 'hidden'
-            }}
-          >
-            {params.row.name}
-          </Typography>
-        </Tooltip>
-      )
-    },
+  // const fetchTableData = useCallback(
+  //   async ({ sort, q, column, status }) => {
+  //     let params = {}
+  //     const activeStatus = status ?? statusFilter
+  //     try {
+  //       setLoading(true)
+  //       if (activeStatus === 'all') {
+  //         params = {
+  //           // sort,
+  //           // q,
+  //           // column,
+  //           page: paginationModel.page + 1,
+  //           limit: paginationModel.pageSize
+  //         }
+  //       } else {
+  //         params = {
+  //           //sort,
+  //           //q,
+  //           //column,
+  //           page: paginationModel.page + 1,
+  //           limit: paginationModel.pageSize
+  //           // active: activeStatus
+  //         }
+  //       }
 
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'jan',
-      headerName: 'January ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            January
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          999
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'feb',
-      headerName: 'February ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            February
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          888
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'mar',
-      headerName: 'March ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            March
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          990
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'apr',
-      headerName: 'April ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            April
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          8888
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'may',
-      headerName: 'May ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            May
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          398
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'jun',
-      headerName: 'June ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            June
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          790
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'jul',
-      headerName: 'July ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            July
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          898
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'aug',
-      headerName: 'August ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            August
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          909
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'sep',
-      headerName: 'September ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            September
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          989
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'oct',
-      headerName: 'October ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            October
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          3838
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'nov',
-      headerName: 'November ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            November
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          9789
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 100,
-      field: 'dec',
-      headerName: 'December ',
-      renderHeader: () => (
-        <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', pt: 3, fontWeight: 500 }}>
-            December
-          </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            2024
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          898
-        </Typography>
-      )
-    }
-  ]
-  const fetchTableData = useCallback(
-    async ({ sort, q, column, status }) => {
-      let params = {}
-      const activeStatus = status ?? statusFilter
-      try {
-        setLoading(true)
-        if (activeStatus === 'all') {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize
-          }
-        } else {
-          params = {
-            sort,
-            q,
-            column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize,
-            active: activeStatus
-          }
-        }
+  //       await getStoreWiseDispatchList({ params: params }).then(res => {
+  //         // if (res?.success === true && res?.data?.list_items?.length > 0) {
+  //         //   setTotal(parseInt(res?.data?.total_count))
+  //         //   //setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+  //         // } else {
+  //         //   setTotal(parseInt(res?.data?.total_count))
+  //         //   setRows([])
+  //         // }
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       console.log(e)
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
 
-        await getMedicineList({ params: params }).then(res => {
-          if (res?.success === true && res?.data?.list_items?.length > 0) {
-            setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-          } else {
-            setTotal(parseInt(res?.data?.total_count))
-            setRows([])
-          }
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
-      }
-    },
-    [paginationModel]
-  )
-
-  const searchTableData = useCallback(
-    debounce(async ({ sort, q, column }) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData({ sort, q, column, status: statusFilter })
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  // const searchTableData = useCallback(
+  //   debounce(async ({ sort, q, column }) => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchTableData({ sort, q, column, status: statusFilter })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
 
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
-  }, [fetchTableData])
-  console.log(router.asPath, 'router')
-  const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
-      setSort(newModel[0].sort)
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
-    } else {
+    if (checkvalue.data.list_items.length > 0) {
+      const listItem = checkvalue.data.list_items[0]
+
+      const columns = [
+        {
+          field: 'pharmacy_name',
+          headerName: `Pharmacy Name`,
+          renderHeader: () => (
+            <Box>
+              <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                Pharmacy Name
+              </Typography>
+              <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                Total: {listItem.total_pharmacies}
+              </Typography>
+              <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+                Total purchase value (in lac)
+              </Typography>
+            </Box>
+          ),
+          width: 190
+        },
+        ...listItem.columnData.map(column => ({
+          field: column.title,
+          headerName: `${column.title}\nTotal: ${column.total_purchase_value}`,
+          renderHeader: params => (
+            <Box>
+              <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                {column.title}
+              </Typography>
+              <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                {column.subtitle}
+              </Typography>
+              <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
+                {column.total_purchase_value}
+              </Typography>
+            </Box>
+          ),
+          width: 100
+        }))
+      ]
+      setColumns(columns)
+
+      const rows = listItem.rowData.map(row => ({
+        id: row.id,
+        pharmacy_name: row.pharmacy_name,
+        ...row.month_values
+      }))
+
+      setRows(rows)
     }
-  }
+  }, [])
+
+  // useEffect(() => {
+  //   fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
+  // }, [fetchTableData])
+  console.log(router.asPath, 'router')
+  // const handleSortModel = async newModel => {
+  //   if (newModel.length > 0) {
+  //     setSort(newModel[0].sort)
+  //     await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+  //   } else {
+  //   }
+  // }
 
   const handleSearch = async value => {
     setSearchValue(value)
@@ -576,7 +472,7 @@ const StoreWiseDispatch = () => {
                     </Grid>
                   </Grid>
                 )}
-                <DataGrid
+                {/* <DataGrid
                   sx={{ cursor: 'pointer' }}
                   columnVisibilityModel={{
                     id: false
@@ -586,17 +482,18 @@ const StoreWiseDispatch = () => {
                   pagination
                   hideFooterSelectedRowCount
                   disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rows={rows}
                   rowCount={total}
                   columns={columns}
                   sortingMode='server'
                   paginationMode='server'
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
+                  // onSortModelChange={handleSortModel}
                   slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  columnHeaderHeight={100}
                   disableColumnMenu
                   hideFooter={router.asPath.includes('newdashboard') ? true : false}
                   slotProps={{
@@ -616,6 +513,15 @@ const StoreWiseDispatch = () => {
                   }}
                   //onRowClick={handleEdit}
                   onCellClick={handlecheckcell}
+                /> */}
+                {console.log(rows, 'rows')}
+                <DataGrid
+                  rows={rows}
+                  columns={columns}
+                  pageSize={5}
+                  rowsPerPageOptions={[5]}
+                  autoHeight
+                  columnHeaderHeight={100}
                 />
               </Card>
               {openFilterDrawer && (
