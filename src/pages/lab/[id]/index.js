@@ -222,7 +222,7 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = async () => {
-    if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
+    if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
@@ -960,6 +960,7 @@ const RequestDetails = () => {
                     type='submit'
                     variant='contained'
                     sx={{ bgcolor: '#1F515B' }}
+                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     CONFIRM
                   </LoadingButton>
