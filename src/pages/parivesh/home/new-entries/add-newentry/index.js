@@ -917,7 +917,7 @@ const AddNewEntry = () => {
                               {...getRootProps({ className: 'dropzone' })}
                               onChange={e => {
                                 const files = Array.from(e.target.files)
-                                onChange(files) // Update form state
+                                // onChange(files) // Update form state
                                 handleFileSelect(files) // Call parent handler
                               }}
                               {...rest}
