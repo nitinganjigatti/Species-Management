@@ -51,6 +51,8 @@ import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 import ErrorScreen from 'src/pages/Error'
 import { useContext } from 'react'
+import Toaster from 'src/components/Toaster'
+import geolocation from 'geolocation'
 
 const AddLab = () => {
   const theme = useTheme()
@@ -62,18 +64,16 @@ const AddLab = () => {
   const [latitude, setLatitude] = useState('')
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
-  // console.log('labType', labType)
-  // const [markDefault, setMarkDefault] = useState(false)
   const [TestData, setTestData] = useState([])
+
   const [prevTests, setPrevTests] = useState([])
 
   const [dataToUpdate, setDataToUpdate] = useState([])
-  // console.log('dataToUpdate', dataToUpdate)
 
-  const [showLabTests, setShowLabTests] = useState()
-  // console.log('showLabTests', showLabTests)
+  const [showLabTests, setShowLabTests] = useState([])
 
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
+  const [testList, setTestList] = useState([])
   //image upload
   const [uploadedImage, setUploadedImage] = useState()
 
@@ -90,12 +90,12 @@ const AddLab = () => {
   const router = useRouter()
   const { id, action } = router.query
   const [isDefault, setIsDefault] = useState(0)
-  // console.log('isDefault :>> ', isDefault)
-  // console.log('isDefault', isDefault)
+
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState([])
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
+  // console.log('imgArr :>> ', imgArr[0])
 
   // edit call
   const setAlertDefaults = ({ message, severity, status }) => {
@@ -105,46 +105,75 @@ const AddLab = () => {
   }
 
   const updateTestData = () => {
-    const setEditLabs = TestData?.map(testDataSample => {
-      const matchingPrevLab = prevTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
+    try {
+      const updatedTestData = TestData.map(testDataSample => {
+        const matchingPrevLab = showLabTests.find(prevLab => prevLab.sample_id === testDataSample.sample_id)
 
-      if (matchingPrevLab) {
-        const fullTestTrue = matchingPrevLab.tests.some(test => test.full_test)
+        if (matchingPrevLab) {
+          return {
+            ...testDataSample,
+            tests: testDataSample.tests.map(test => {
+              const matchingPrevTest = matchingPrevLab.tests.find(
+                prevTest => prevTest.test_id.toString() === test.test_id.toString()
+              )
 
-        return {
-          ...testDataSample,
-          value: fullTestTrue,
-          tests: testDataSample.tests.map(test => {
-            const matchingPrevTest = matchingPrevLab.tests.find(
-              prevTest => prevTest.test_id.toString() === test.test_id.toString()
-            )
+              if (matchingPrevTest) {
+                const updatedChildTests = test.child_tests.map(childTest => {
+                  const matchingPrevChildTest = matchingPrevTest.child_tests.find(
+                    prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
+                  )
 
-            if (matchingPrevTest) {
-              // Update child_tests values based on matchingPrevTest
-              const updatedChildTests = test.child_tests.map(childTest => {
-                const matchingPrevChildTest = matchingPrevTest.child_tests.find(
-                  prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
-                )
+                  // If matching child test found, update its value; otherwise, set it to false
+                  return {
+                    ...childTest,
+                    value: matchingPrevChildTest ? matchingPrevChildTest.value : false
+                  }
+                })
 
-                return matchingPrevChildTest ? { ...childTest, value: matchingPrevChildTest.value } : childTest
-              })
+                // Return the updated test object, including `full_test` and `value`
+                return {
+                  ...test,
+                  full_test: matchingPrevTest.full_test, // Ensure `full_test` is correctly updated
+                  value: matchingPrevTest.value,
+                  child_tests: updatedChildTests
+                }
+              }
 
+              // If no matching test is found, set test and children values to false
               return {
                 ...test,
-                full_test: matchingPrevTest.full_test,
-                child_tests: updatedChildTests
+                value: false,
+                full_test: false, // Set `full_test` to false if no match
+                child_tests: test.child_tests.map(childTest => ({
+                  ...childTest,
+                  value: false
+                }))
               }
-            }
-
-            return test
-          })
+            })
+          }
         }
-      }
 
-      return testDataSample // return unmodified if no matchingPrevLab found
-    })
+        // If no matching sample in showLabTests, set all test values to false
+        return {
+          ...testDataSample,
+          value: false,
+          tests: testDataSample.tests.map(test => ({
+            ...test,
+            value: false,
+            full_test: false, // Set `full_test` to false if no match
+            child_tests: test.child_tests.map(childTest => ({
+              ...childTest,
+              value: false
+            }))
+          }))
+        }
+      })
 
-    setTestData(setEditLabs)
+      // console.log('Updated TestData:', updatedTestData)
+      setTestData(updatedTestData)
+    } catch (error) {
+      console.log('Error updating TestData:', error)
+    }
   }
 
   const labDeatilsById = async id => {
@@ -177,10 +206,6 @@ const AddLab = () => {
     }
   }, [id, action])
 
-  // edit tests
-
-  // ------------------------
-
   const getAllLabsLists = async () => {
     setLoader(true)
     const response = await getAllLabSample()
@@ -191,6 +216,7 @@ const AddLab = () => {
       // })
 
       setTestData(response)
+      setTestList(response)
 
       setLoader(false)
     } else {
@@ -210,25 +236,40 @@ const AddLab = () => {
   }
 
   // location
+
+  // const handleClick = () => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       position => {
+  //         // Success callback
+  //         const { latitude, longitude } = position.coords
+  //         setLongitude({ longitude })
+  //         setLatitude({ latitude })
+  //         setValue('latitude', latitude)
+  //         setValue('longitude', longitude)
+  //       },
+  //       error => {
+  //         // Error callback
+  //         console.error('Error getting location:', error.message)
+  //       }
+  //     )
+  //   } else {
+  //     console.error('Geolocation is not supported by your browser')
+  //   }
+  // }
+
   const handleClick = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          // Success callback
-          const { latitude, longitude } = position.coords
-          setLongitude({ longitude })
-          setLatitude({ latitude })
-          setValue('latitude', latitude)
-          setValue('longitude', longitude)
-        },
-        error => {
-          // Error callback
-          console.error('Error getting location:', error.message)
-        }
-      )
-    } else {
-      console.error('Geolocation is not supported by your browser')
-    }
+    geolocation.getCurrentPosition((err, position) => {
+      if (err) {
+        console.error('Error getting location:', err.message)
+      } else {
+        const { latitude, longitude } = position.coords
+        setLongitude({ longitude })
+        setLatitude({ latitude })
+        setValue('latitude', latitude)
+        setValue('longitude', longitude)
+      }
+    })
   }
 
   const onImageUpload = async imageData => {
@@ -236,7 +277,7 @@ const AddLab = () => {
   }
 
   const handleSwitchChange = isChecked => {
-    setIsDefault(isChecked ? 1 : 0) // Update state based on switch status
+    setIsDefault(isChecked ? 1 : 0)
   }
 
   // Form Part
@@ -259,7 +300,12 @@ const AddLab = () => {
     incharge_name: yup.string().trim().required('Lab Incharge name is required'),
     address: yup.string().trim().required('Address is required'),
 
-    lab_contact_number: yup.string().trim().max(10, 'Maximum of 10 digits').required('Lab incharge No is required'),
+    lab_contact_number: yup
+      .string()
+      .trim()
+      .max(10, 'Maximum of 10 digits')
+      .min(10, 'Maximum of 10 digits')
+      .required('Lab incharge No is required'),
     is_default: yup.boolean()
 
     // latitude: yup.string(),
@@ -337,7 +383,7 @@ const AddLab = () => {
   const handleInputImageChange = file => {
     const reader = new FileReader()
     const { files } = file.target
-    console.log('files :>> ', files)
+
     if (files && files.length !== 0) {
       reader.onload = () => {
         setImgSrc(pre => [...pre, reader?.result])
@@ -400,7 +446,7 @@ const AddLab = () => {
       // lab: JSON.stringify(dataToUpdate),
       lab: JSON.stringify(showLabTests),
       is_default: isDefault,
-      image: imgArr
+      image: imgArr[0]
       // user_id: '58'
     }
 
@@ -408,44 +454,80 @@ const AddLab = () => {
     //   payload.image = files[0]
     // } else {
     // }
-    // console.log('payload', payload)
 
     if (id !== undefined && action === 'edit') {
-      // console.log(payload)
-
       const response = await updateLabById(payload, id)
       setSubmitLoader(false)
-      console.log('response  update :>> ', response)
+
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-        await Router.push('/lab/lab-list')
+        Router.push('/lab/lab-list')
+
+        Toaster({ type: 'success', message: response.message })
       } else {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        Toaster({ type: 'error', message: response.message })
       }
 
       // reset(defaultValues)
     } else {
-      console.log(payload)
+      const response = await await addLab(payload)
 
-      const res = await addLabToList(payload).then(res => {
-        setSubmitLoader(false)
-        reset(defaultValues)
-        // setDataToUpdate([])
+      setSubmitLoader(false)
+      reset(defaultValues)
+      if (response?.success) {
         Router.push('/lab/lab-list')
-      })
+
+        Toaster({ type: 'success', message: response.message })
+      } else {
+        Toaster({ type: 'error', message: response.message })
+      }
+
+      // Adjust delay as needed
     }
   }
 
   const handleOpen = () => {
-    if (id != undefined && action === 'edit') {
-      updateTestData()
-    }
+    // if (id != undefined && action === 'edit') {
+    //   updateTestData()
+    // }
     setOpen(true)
   }
 
+  useEffect(() => {
+    if (id != undefined && action === 'edit') {
+      updateTestData()
+    }
+  }, [open])
+
+  // const handleClose = () => {
+  //   setOpen(false)
+  //   setShowLabTests([])
+  // }
+
   const handleClose = () => {
+    if (id && action === 'edit') {
+      // Update TestData based on prevTests
+      updateTestData()
+      setTestData(testList)
+      setDataToUpdate(prevTests)
+    } else {
+      // Reset TestData to its initial unselected state
+      setTestData(prevData =>
+        prevData.map(sample => ({
+          ...sample,
+          value: false, // Reset sample value to false
+          tests: sample.tests.map(test => ({
+            ...test,
+            full_test: false, // Reset full_test to false
+            child_tests: test.child_tests.map(childTest => ({
+              ...childTest,
+              value: false // Reset each child test value to false
+            }))
+          }))
+        }))
+      )
+    }
+
     setOpen(false)
-    setShowLabTests([])
   }
 
   const handleCloseSnackBar = (event, reason) => {
@@ -455,66 +537,6 @@ const AddLab = () => {
 
     setOpenSnackbar(false)
   }
-
-  // Add Test
-
-  // const handleCheckBox = (sample, parent, child, isChecked) => {
-  //   // console.log('sample', sample)
-  //   setTestData(prevData => {
-  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
-
-  //     if (sampleIndex === -1) {
-  //       // If the sample is not in TestData, add it with the parent and child
-  //       return [
-  //         ...prevData,
-  //         {
-  //           sample_id: sample.sample_id,
-  //           sample_name: sample.sample_name,
-  //           value: false,
-  //           tests: [
-  //             {
-  //               test_id: parent.test_id,
-  //               test_name: parent.test_name,
-  //               full_test: false,
-  //               child_tests: [
-  //                 {
-  //                   test_id: child.test_id,
-  //                   test_name: child.test_name,
-  //                   value: isChecked,
-  //                   input_type: child.input_type
-  //                 }
-  //               ]
-  //             }
-  //           ]
-  //         }
-  //       ]
-  //     } else {
-  //       // If the sample is in TestData, update the child_tests array
-  //       return prevData.map(data =>
-  //         data.sample_id === sample.sample_id
-  //           ? {
-  //               ...data,
-  //               tests: data.tests.map(test =>
-  //                 test.test_id === parent.test_id
-  //                   ? {
-  //                       ...test,
-  //                       child_tests: test.child_tests.map(ct =>
-  //                         ct.test_id === child.test_id
-  //                           ? {
-  //                               ...ct,
-  //                               value: isChecked
-  //                             }
-  //                           : ct
-  //                       )
-  //                     }
-  //                   : test
-  //               )
-  //             }
-  //           : data
-  //       )
-  //     }
-  //   })
-  // }
 
   const handleCheckBox = (sample, parent, child, isChecked) => {
     setTestData(prevData => {
@@ -574,65 +596,6 @@ const AddLab = () => {
       }
     })
   }
-
-  // Select All
-  // const handleParentSwitch = (sample, parent, isChecked) => {
-  //   setTestData(prevData => {
-  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
-
-  //     if (sampleIndex === -1) {
-  //       // If the sample is not in TestData, add it with the parent and child
-  //       if (isChecked) {
-  //         return [
-  //           ...prevData,
-  //           {
-  //             sample_id: sample.sample_id,
-  //             sample_name: sample.sample_name,
-  //             tests: [
-  //               {
-  //                 test_id: parent.test_id,
-  //                 test_name: parent.test_name,
-  //                 full_test: isChecked,
-  //                 child_tests: parent.child_tests.map(childTest => ({
-  //                   ...childTest,
-  //                   value: isChecked
-  //                 }))
-  //               }
-  //             ]
-  //           }
-  //         ]
-  //       }
-
-  //       // Handle the case when the sample is not found and isChecked is false
-  //       return prevData
-  //     }
-
-  //     return prevData.map(data =>
-  //       data.sample_id === sample.sample_id
-  //         ? {
-  //             ...data,
-  //             tests: data.tests.map(test =>
-  //               test.test_id === parent.test_id
-  //                 ? {
-  //                     ...test,
-  //                     full_test: isChecked,
-  //                     child_tests: isChecked
-  //                       ? test.child_tests.map(childTest => ({
-  //                           ...childTest,
-  //                           value: isChecked
-  //                         }))
-  //                       : test.child_tests.map(childTest => ({
-  //                           ...childTest,
-  //                           value: false
-  //                         }))
-  //                   }
-  //                 : test
-  //             )
-  //           }
-  //         : data
-  //     )
-  //   })
-  // }
 
   const handleParentSwitch = (sample, parent, isChecked) => {
     setTestData(prevData => {
@@ -695,53 +658,6 @@ const AddLab = () => {
       })
     })
   }
-
-  // const handleTestFullTestSwitch = (sample, parent, isChecked) => {
-  //   setTestData(prevData => {
-  //     const sampleIndex = prevData.findIndex(data => data.sample_id === sample.sample_id)
-
-  //     if (sampleIndex === -1) {
-  //       // If the sample is not in TestData, add it with the parent and child
-  //       if (isChecked) {
-  //         return [
-  //           ...prevData,
-  //           {
-  //             sample_id: sample.sample_id,
-  //             sample_name: sample.sample_name,
-  //             tests: [
-  //               {
-  //                 test_id: parent.test_id,
-  //                 test_name: parent.test_name,
-  //                 full_test: isChecked,
-  //                 child_tests: parent.child_tests
-  //               }
-  //             ]
-  //           }
-  //         ]
-  //       }
-
-  //       // Handle the case when the sample is not found and isChecked is false
-  //       return prevData
-  //     }
-
-  //     return prevData.map(data =>
-  //       data.sample_id === sample.sample_id
-  //         ? {
-  //             ...data,
-  //             tests: data.tests.map(test =>
-  //               test.test_id === parent.test_id
-  //                 ? {
-  //                     ...test,
-  //                     full_test: isChecked,
-  //                     child_tests: parent.child_tests
-  //                   }
-  //                 : test
-  //             )
-  //           }
-  //         : data
-  //     )
-  //   })
-  // }
 
   const handleTestFullTestSwitch = (sample, parent, isChecked) => {
     setTestData(prevData => {
@@ -826,25 +742,25 @@ const AddLab = () => {
   //   }
 
   // api call
-  const addLabToList = async payload => {
-    try {
-      const response = await addLab(payload)
-      if (response?.success) {
-        setOpenSnackbar({ ...openSnackbar, open: true, message: 'Lab Created Successfully', severity: 'success' })
+  // const addLabToList = async payload => {
+  //   try {
+  //     const response = await addLab(payload)
+  //     if (response?.success) {
+  //       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Lab Created Successfully', severity: 'success' })
 
-        reset(defaultValues)
-      } else {
-        setSubmitLoader(false)
-        setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
-      }
-    } catch (e) {
-      console.log(e)
-      setSubmitLoader(false)
-      setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-    }
-  }
+  //       reset(defaultValues)
+  //     } else {
+  //       setSubmitLoader(false)
+  //       // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
+  //     }
+  //   } catch (e) {
+  //     console.log(e)
+  //     setSubmitLoader(false)
+  //     // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
+  //   }
+  // }
 
-  // New state to keep track of data to be added or removed
+  // New state to keep track of data to be added
   useEffect(() => {
     // Logic to update data based on the value of testData
     const updatedData = TestData.reduce((acc, sample) => {
@@ -884,42 +800,106 @@ const AddLab = () => {
     setLabTestsEmpty(false)
   }, [TestData])
 
-  // deleing the data from ui
-  const handleCloseTest = (sampleId, parentId) => {
+  // removing the data from ui
+  const handleCloseTest = (sampleId, testId) => {
+    // Remove the test from showLabTests
+
     if (id) {
       setShowLabTests(prevData => {
-        const newData = [...prevData]
-        const sampleTests = newData[sampleId]?.tests
+        return prevData
+          .map(sample => {
+            if (sample.sample_id === sampleId) {
+              const updatedTests = sample.tests.filter(test => test.test_id !== testId)
+              // Return the updated sample, or remove the sample if no tests remain
+              if (updatedTests.length > 0) {
+                return {
+                  ...sample,
+                  tests: updatedTests
+                }
+              }
 
-        if (sampleTests && sampleTests[parentId]) {
-          // Remove the parent.test object
-          sampleTests.splice(parentId, 1)
+              return null // Removing the whole sample if no tests are left
+            }
 
-          // Check if tests array is empty, delete the current sample object
-          if (sampleTests.length === 0) {
-            newData.splice(sampleId, 1)
-          }
-        }
-
-        return newData
+            return sample // No change for other samples
+          })
+          .filter(sample => sample !== null) // Removing null samples
       })
+
+      setTestData(prevData => {
+        return prevData.map(sample => {
+          if (sample.sample_id === sampleId) {
+            return {
+              ...sample,
+              tests: sample.tests.map(test => {
+                if (test.test_id === testId) {
+                  return {
+                    ...test,
+                    full_test: false, // Unchecking the parent test
+                    child_tests: test.child_tests.map(child => ({
+                      ...child,
+                      value: false // Unchecking all child tests
+                    }))
+                  }
+                }
+
+                return test
+              })
+            }
+          }
+
+          return sample
+        })
+      })
+
       setDataToUpdate(showLabTests)
     } else {
-      setDataToUpdate(prevData => {
-        const newData = [...prevData]
-        const sampleTests = newData[sampleId]?.tests
+      setShowLabTests(prevData => {
+        return prevData
+          .map(sample => {
+            if (sample.sample_id === sampleId) {
+              const updatedTests = sample.tests.filter(test => test.test_id !== testId)
+              // Return the updated sample, or remove the sample if no tests remain
+              if (updatedTests.length > 0) {
+                return {
+                  ...sample,
+                  tests: updatedTests
+                }
+              }
 
-        if (sampleTests && sampleTests[parentId]) {
-          // Remove the parent.test object
-          sampleTests.splice(parentId, 1)
+              return null // Removing the whole sample if no tests are left
+            }
 
-          // Check if tests array is empty, delete the current sample object
-          if (sampleTests.length === 0) {
-            newData.splice(sampleId, 1)
+            return sample // No change for other samples
+          })
+          .filter(sample => sample !== null) // Removing null samples
+      })
+
+      // Update TestData to uncheck the corresponding test and its child tests
+      setTestData(prevData => {
+        return prevData.map(sample => {
+          if (sample.sample_id === sampleId) {
+            return {
+              ...sample,
+              tests: sample.tests.map(test => {
+                if (test.test_id === testId) {
+                  return {
+                    ...test,
+                    full_test: false, // Unchecking the parent test
+                    child_tests: test.child_tests.map(child => ({
+                      ...child,
+                      value: false // Unchecking all child tests
+                    }))
+                  }
+                }
+
+                return test
+              })
+            }
           }
-        }
 
-        return newData
+          return sample
+        })
       })
     }
   }
@@ -941,7 +921,12 @@ const AddLab = () => {
               <Grid container spacing={6} className='match-height'>
                 <Grid item xs={12}>
                   <Card>
-                    <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <IconButton sx={{ ml: 2 }} onClick={() => router.back()}>
+                        <Icon icon='ep:back' />
+                      </IconButton>
+                      <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
+                    </Box>
                     <CardContent>
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <Grid container spacing={5}>
@@ -1055,12 +1040,14 @@ const AddLab = () => {
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
+                                    type='number'
                                     value={value}
-                                    label='Lab Incharge Mobile Number'
+                                    label='Lab Incharge Mobile Number*'
                                     onChange={onChange}
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
                                     name='lab_contact_number'
+                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} // Allow only numeric input
                                   />
                                 )}
                               />
@@ -1124,7 +1111,7 @@ const AddLab = () => {
                                   </Typography>
                                 </Box>
 
-                                {showLabTests?.map((sample, sampleId) => (
+                                {/* {showLabTests?.map((sample, sampleId) => (
                                   <Box sx={{ p: 1, mt: 4 }}>
                                     <Box>
                                       {sample?.tests?.length > 0 ? (
@@ -1133,7 +1120,7 @@ const AddLab = () => {
 
                                       {sample?.tests?.map((parent, parentId) => (
                                         <Card sx={{ p: 2, mb: 2 }}>
-                                          {/* {parent.full_test === true ? ( */}
+                                          {/* {parent.full_test === true ? ( 
                                           <Stack
                                             gap={1}
                                             direction='row'
@@ -1150,7 +1137,7 @@ const AddLab = () => {
                                               </IconButton>
                                             </>
                                           </Stack>
-                                          {/* ) : null} */}
+                                          {/* ) : null} 
                                           <Stack>
                                             {parent.child_tests?.map((child, childId) =>
                                               child.value === true ? (
@@ -1161,6 +1148,55 @@ const AddLab = () => {
                                                 >
                                                   <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
                                                   <Typography sx>{child.test_name}</Typography>
+                                                </Stack>
+                                              ) : null
+                                            )}
+                                          </Stack>
+                                        </Card>
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                ))} */}
+
+                                {showLabTests?.map(sample => (
+                                  <Box key={sample.sample_id} sx={{ p: 1, mt: 4 }}>
+                                    <Box>
+                                      {sample?.tests?.length > 0 ? (
+                                        <Typography sx={{ mb: 2 }}>{sample?.sample_name}</Typography>
+                                      ) : null}
+
+                                      {sample?.tests?.map(parent => (
+                                        <Card key={parent.test_id} sx={{ p: 2, mb: 2 }}>
+                                          <Stack
+                                            gap={1}
+                                            direction='row'
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'space-between'
+                                            }}
+                                          >
+                                            <>
+                                              <Typography variant='subtitle1'>{parent.test_name}</Typography>
+                                              <IconButton
+                                                onClick={() => handleCloseTest(sample.sample_id, parent.test_id)}
+                                              >
+                                                <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
+                                              </IconButton>
+                                            </>
+                                          </Stack>
+
+                                          <Stack>
+                                            {parent.child_tests?.map((child, childId) =>
+                                              child.value === true ? (
+                                                <Stack
+                                                  key={child.test_id} // Provide a unique key for each child test
+                                                  direction='row'
+                                                  gap={2}
+                                                  sx={{ display: 'flex', alignItems: 'center', p: 1 }}
+                                                >
+                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Typography>{child.test_name}</Typography>
                                                 </Stack>
                                               ) : null
                                             )}
@@ -1465,46 +1501,44 @@ const AddLab = () => {
 
                     {sample?.tests?.map((parent, index) =>
                       parent?.child_tests?.length > 0 ? (
-                        <>
-                          <Card mt={2}>
-                            <Accordion>
-                              <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
-                                <Typography variant='h6'>{parent?.test_name}</Typography>
-                              </AccordionSummary>
-                              <AccordionDetails>
-                                <Stack
-                                  direction='row'
-                                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                                >
-                                  <Typography>Full Test</Typography>
-                                  <Switch
-                                    checked={parent?.full_test}
-                                    onChange={(e, v) => {
-                                      handleParentSwitch(sample, parent, v)
-                                    }}
-                                  />
-                                </Stack>
-                                {parent?.child_tests?.map((child, id) => {
-                                  return (
-                                    <Stack
-                                      direction='row'
-                                      key={child?.test_id}
-                                      sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
-                                    >
-                                      <Typography>{child?.test_name}</Typography>
-                                      <Checkbox
-                                        checked={child?.value}
-                                        onClick={(e, v) => {
-                                          handleCheckBox(sample, parent, child, e.target.checked)
-                                        }}
-                                      />
-                                    </Stack>
-                                  )
-                                })}
-                              </AccordionDetails>
-                            </Accordion>
-                          </Card>
-                        </>
+                        <Card key={index} mt={2}>
+                          <Accordion>
+                            <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
+                              <Typography variant='h6'>{parent?.test_name}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Stack
+                                direction='row'
+                                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                              >
+                                <Typography>Full Test</Typography>
+                                <Switch
+                                  checked={parent?.full_test}
+                                  onChange={(e, v) => {
+                                    handleParentSwitch(sample, parent, v)
+                                  }}
+                                />
+                              </Stack>
+                              {parent?.child_tests?.map((child, id) => {
+                                return (
+                                  <Stack
+                                    direction='row'
+                                    key={child?.test_id}
+                                    sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
+                                  >
+                                    <Typography>{child?.test_name}</Typography>
+                                    <Checkbox
+                                      checked={child?.value}
+                                      onClick={(e, v) => {
+                                        handleCheckBox(sample, parent, child, e.target.checked)
+                                      }}
+                                    />
+                                  </Stack>
+                                )
+                              })}
+                            </AccordionDetails>
+                          </Accordion>
+                        </Card>
                       ) : (
                         <Card>
                           <Stack
