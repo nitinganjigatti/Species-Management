@@ -20,8 +20,8 @@ const DeathFields = ({
   })
   return (
     <>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='reason_for_death'
@@ -44,7 +44,7 @@ const DeathFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='death_date'
@@ -78,8 +78,8 @@ const DeathFields = ({
           </FormControl>
         </Grid>
       </Grid>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='death_animal_id'
@@ -102,7 +102,7 @@ const DeathFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={12}>
               <FormControl fullWidth>

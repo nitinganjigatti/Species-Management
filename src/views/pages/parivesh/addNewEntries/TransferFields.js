@@ -64,8 +64,8 @@ const TransferFields = ({
           </FormControl>
         </Grid>
       </Grid>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='animal_count'
@@ -90,7 +90,7 @@ const TransferFields = ({
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'

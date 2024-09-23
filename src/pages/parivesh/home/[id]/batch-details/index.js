@@ -517,7 +517,9 @@ const BatchDetails = ({ params, searchParams }) => {
             successCount++ // Increment successful uploads count
             message = res?.message
 
-            await getBatchListById(batchDetails?.batch_id)
+            setFilePreviews(res?.data)
+
+            // await getBatchListById(batchDetails?.batch_id)
           } else {
             Toaster({ type: 'error', message: res?.message })
           }
@@ -548,7 +550,8 @@ const BatchDetails = ({ params, searchParams }) => {
       const res = await deleteAttachmentForBatch(selectedId, payload)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
-        await getBatchListById(batchDetails?.batch_id)
+        setFilePreviews(res?.data)
+        // await getBatchListById(batchDetails?.batch_id)
       } else {
         Toaster({ type: 'error', message: res?.message })
       }
@@ -967,7 +970,7 @@ const BatchDetails = ({ params, searchParams }) => {
                         borderRadius: '8px',
                         height: 42,
                         width: 'auto',
-                        padding: '8px',
+                        padding: isImage(filePreview.attachment) ? '8px' : '4px',
                         boxSizing: 'border-box'
                       }}
                     >

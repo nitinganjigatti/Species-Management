@@ -62,48 +62,48 @@ const AcquisitionFields = ({
     fileInputRef?.current?.click()
   }
 
-  const { getRootProps, getInputProps } = useDropzone({
-    multiple: true,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-    },
-    onDrop: acceptedFiles => {
-      if (acceptedFiles.length + dgftDisplayFile?.length > 2) {
-        Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
-        return
-      }
-      const filePromises = acceptedFiles.map(file => {
-        return new Promise(resolve => {
-          const reader = new FileReader()
-          reader.onloadend = () => {
-            resolve({ name: file.name, fileSrc: reader.result })
-          }
-          reader.readAsDataURL(file)
-        })
-      })
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: true,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     if (acceptedFiles.length + dgftDisplayFile?.length > 2) {
+  //       Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
+  //       return
+  //     }
+  //     const filePromises = acceptedFiles.map(file => {
+  //       return new Promise(resolve => {
+  //         const reader = new FileReader()
+  //         reader.onloadend = () => {
+  //           resolve({ name: file.name, fileSrc: reader.result })
+  //         }
+  //         reader.readAsDataURL(file)
+  //       })
+  //     })
 
-      Promise.all(filePromises)
-        .then(fileDetails => {
-          //   setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
-          setDgftDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+  //     Promise.all(filePromises)
+  //       .then(fileDetails => {
+  //         //   setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
+  //         setDgftDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
 
-          // Update attachments in the form
-          const currentFiles = getValues('dgft_attachments') || []
-          setValue('dgft_attachments', [...currentFiles, ...acceptedFiles])
+  //         // Update attachments in the form
+  //         const currentFiles = getValues('dgft_attachments') || []
+  //         setValue('dgft_attachments', [...currentFiles, ...acceptedFiles])
 
-          clearErrors('dgft_attachments')
-          setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
-        })
-        .catch(error => {
-          console.error('Error processing files:', error)
-        })
-    }
-  })
+  //         clearErrors('dgft_attachments')
+  //         setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+  //       })
+  //       .catch(error => {
+  //         console.error('Error processing files:', error)
+  //       })
+  //   }
+  // })
 
   const removeSelectedImage = (index, fileId) => {
     if (fileId) {
@@ -175,10 +175,59 @@ const AcquisitionFields = ({
     }
   }
 
+  const handleFileSelect = files => {
+    const filesArray = Array.isArray(files) ? files : Array.from(files)
+    console.log(filesArray, 'Files Array') // Debugging line
+
+    if (filesArray.length + dgftDisplayFile?.length > 2) {
+      Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
+      return
+    }
+
+    const filePromises = filesArray.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          resolve({ name: file.name, fileSrc: reader.result })
+        }
+        reader.readAsDataURL(file)
+      })
+    })
+
+    Promise.all(filePromises)
+      .then(fileDetails => {
+        setDgftDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+
+        // Update attachments in the form
+        const currentFiles = getValues('dgft_attachments') || []
+        setValue('dgft_attachments', [...currentFiles, ...filesArray])
+
+        clearErrors('dgft_attachments')
+        setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+      })
+      .catch(error => {
+        console.error('Error processing files:', error)
+      })
+  }
+
+  // Dropzone setup
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop: handleFileSelect,
+    multiple: true,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/vnd.ms-excel': ['.xls'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+    }
+  })
+
   return (
     <>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='where_to_acquisition'
@@ -198,7 +247,7 @@ const AcquisitionFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='gender'
@@ -215,9 +264,9 @@ const AcquisitionFields = ({
           </FormControl>
         </Grid>
       </Grid>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
+      <Grid container spacing={2}>
         {reasonType !== 'death' && (
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='animal_count'
@@ -277,8 +326,8 @@ const AcquisitionFields = ({
         <Typography variant='h6' sx={{ mb: 2 }}>
           DGFT
         </Typography>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='dgft_number'
@@ -305,6 +354,54 @@ const AcquisitionFields = ({
                   <Controller
                     name='dgft_attachments'
                     control={control}
+                    render={({ field: { onChange, value, ...rest } }) => (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          border: '1px solid #d3d3d3',
+                          borderRadius: 1,
+                          padding: 2,
+                          cursor: 'pointer',
+                          height: '56px',
+                          width: { xs: '100%', sm: '170px' },
+                          position: 'relative'
+                        }}
+                      >
+                        <input
+                          type='file'
+                          multiple
+                          accept='image/*,application/pdf,.doc,.docx,.xls,.xlsx'
+                          style={{
+                            opacity: 0,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            height: '100%',
+                            cursor: 'pointer'
+                          }}
+                          {...getRootProps({ className: 'dropzone' })}
+                          onChange={e => {
+                            const files = Array.from(e.target.files)
+                            // onChange(files) // Update form state
+                            handleFileSelect(files) // Call parent handler
+                          }}
+                          {...rest}
+                        />
+                        <Icon icon='material-symbols-light:attach-file-add' fontSize='34px' sx={{ flexShrink: 0 }} />
+                        <Typography variant='body1' color='textPrimary'>
+                          Attachments
+                        </Typography>
+                      </Box>
+                    )}
+                  />
+                </FormControl>
+
+                {/* <FormControl fullWidth>
+                  <Controller
+                    name='dgft_attachments'
+                    control={control}
                     render={({ field }) => (
                       <Box
                         {...field}
@@ -323,7 +420,8 @@ const AcquisitionFields = ({
                           width: '100%' // Make sure it fills its grid item
                         }}
                       >
-                        {/* <Icon icon='mdi:attachment-plus' size={3} /> */}
+                        <input {...getInputProps()} ref={fileInputRef} />
+                        
                         <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
                         <Typography variant='body1' color='textPrimary'>
                           Attachments
@@ -331,7 +429,7 @@ const AcquisitionFields = ({
                       </Box>
                     )}
                   />
-                </FormControl>
+                </FormControl> */}
               </Grid>
 
               {/* {/ Uploaded files display /} */}

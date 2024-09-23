@@ -8,21 +8,23 @@ const BirthFields = ({
   errors,
   reasonType,
   setReasonType,
-  watch,
   setDgftDisplayFile,
+  watch,
   getValues,
   setValue,
   clearErrors,
   isEditMode,
-  editParams
+  editParams,
+  setImgSrc,
+  setDisplayFile
 }) => {
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
   return (
     <>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='possession_type'
@@ -72,7 +74,7 @@ const BirthFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='gender'
@@ -89,9 +91,9 @@ const BirthFields = ({
           </FormControl>
         </Grid>
       </Grid>
-      <Grid container spacing={2} sx={{ mb: 6 }}>
+      <Grid container spacing={2}>
         {reasonType !== 'death' && (
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='animal_count'
