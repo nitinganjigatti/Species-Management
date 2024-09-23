@@ -1495,37 +1495,14 @@ const EggList = () => {
 
       // align: 'center',
       renderCell: params => (
-        <Stack direction='column' spacing={1}>
-          {/* <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
-            {params.row?.egg_condition === 'Broken' || params.row?.egg_condition === 'Rotten' ? (
-              <Box
-                sx={{
-                  borderRadius: '4px',
-                  px: 3,
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-
-                  backgroundColor: '#ffebe5'
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: params.row?.egg_condition === 'Rotten' ? '#FA6140' : '#E93353',
-
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}
-                >
-                  {params.row?.egg_condition}
-                </Typography>
-              </Box>
-            ) : (
-              <TextCard egg_status={params.row.egg_status} />
-            )}
-          </Box> */}
-
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%', // Ensures it uses the full width of the cell
+            overflow: 'hidden' // Ensures text overflow is handled
+          }}
+        >
           {params.row.egg_state && (
             <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
               <Typography
@@ -1535,34 +1512,18 @@ const EggList = () => {
                   lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 160
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2, // Limit to 2 lines
+                  WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'normal', // Ensure wrapping happens
+                  wordBreak: 'break-word' // Handle long words breaking into the next line
                 }}
               >
                 {params.row.egg_state}
               </Typography>
             </Tooltip>
           )}
-
-          {/* Comment to be added */}
-          {params.row.discard_reason && (
-            <Tooltip title={params.row?.discard_reason ? params.row?.discard_reason : '-'}>
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: '400',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 150
-                }}
-              >
-                {params.row.discard_reason}
-              </Typography>
-            </Tooltip>
-          )}
-        </Stack>
+        </Box>
       )
     },
     ,
@@ -1787,44 +1748,19 @@ const EggList = () => {
       )
     },
     {
-      width: 160,
+      width: 160, // Adjust based on desired cell width
       field: 'reason',
       sortable: false,
       headerName: 'Reason',
-
-      // align: 'center',
       renderCell: params => (
-        <Stack direction='column' spacing={1}>
-          {/* <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
-            {params.row?.egg_condition === 'Broken' || params.row?.egg_condition === 'Rotten' ? (
-              <Box
-                sx={{
-                  borderRadius: '4px',
-                  px: 3,
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-
-                  backgroundColor: '#ffebe5'
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: params.row?.egg_condition === 'Rotten' ? '#FA6140' : '#E93353',
-
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}
-                >
-                  {params.row?.egg_condition}
-                </Typography>
-              </Box>
-            ) : (
-              <TextCard egg_status={params.row.egg_status} />
-            )}
-          </Box> */}
-
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%', // Ensures it uses the full width of the cell
+            overflow: 'hidden' // Ensures text overflow is handled
+          }}
+        >
           {params.row.egg_state && (
             <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
               <Typography
@@ -1834,38 +1770,20 @@ const EggList = () => {
                   lineHeight: '19.36px',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 160
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2, // Limit to 2 lines
+                  WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'normal', // Ensure wrapping happens
+                  wordBreak: 'break-word' // Handle long words breaking into the next line
                 }}
               >
                 {params.row.egg_state}
               </Typography>
             </Tooltip>
           )}
-
-          {/* show comments */}
-
-          {params.row.discard_reason && (
-            <Tooltip title={params.row?.discard_reason ? params.row?.discard_reason : '-'}>
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: '400',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 150
-                }}
-              >
-                {params.row.discard_reason}
-              </Typography>
-            </Tooltip>
-          )}
-        </Stack>
+        </Box>
       )
     },
-
     {
       width: 160,
       sortable: false,
