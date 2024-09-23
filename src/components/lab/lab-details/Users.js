@@ -16,7 +16,7 @@ const Users = ({ labId }) => {
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.user_first_name}
+            {params?.row?.user_full_name}
           </Typography>
         </>
       )
@@ -36,7 +36,7 @@ const Users = ({ labId }) => {
     sl_no: getSlNo(index)
   }))
 
-  const getRowId = row => row?.user_first_name
+  const getRowId = row => row?.user_full_name
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
