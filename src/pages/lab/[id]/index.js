@@ -221,7 +221,7 @@ const RequestDetails = () => {
     }
   }
 
-  const handleOpenTransfer = params => {
+  const handleOpenTransfer = async () => {
     if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
       setOpenTransfer(true)
 
@@ -231,7 +231,7 @@ const RequestDetails = () => {
         test_id: transferTestId,
         lab_id: labId
       }
-      GetLabListByTestId({ params: params }).then(res => {
+      await GetLabListByTestId({ params: params }).then(res => {
         setLab(res?.data?.result)
 
         // setRows(loadServerRows(paginationModel.page, res?.data?.result))
