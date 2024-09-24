@@ -30,7 +30,7 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
       </Grid>
       <Grid item xs={7}>
         <Typography variant='body1' color={valueColor}>
-          {value || '-'}
+          {value || 'NA'}
         </Typography>
       </Grid>
     </Grid>
@@ -139,7 +139,7 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
               renderDetailRow('Acquired from', capitalizeFirstLetter(detailData?.where_to_acquisition))}
 
             {detailData?.possession_type === 'death' &&
-              renderDetailRow('Animal ID', capitalizeFirstLetter(detailData?.animal_id))}
+              renderDetailRow('Animal ID', capitalizeFirstLetter(detailData?.death_animal_id))}
 
             {detailData?.possession_type !== 'death' && renderDetailRow('Total Count', detailData?.animal_count)}
 
@@ -156,14 +156,14 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
                   'Date Of Death',
                   detailData?.death_date
                     ? `${Utility.formatDisplayDate(Utility.convertUTCToLocal(detailData?.death_date))} `
-                    : '-'
+                    : 'NA'
                 )}
                 {renderDetailRow('Reason For Death', detailData?.reason_for_death)}
               </>
             )}
             {detailData?.possession_type === 'acquisition' && (
               <>
-                {renderDetailRow('DGFT ID', capitalizeFirstLetter(detailData?.dgft_number))}
+                {renderDetailRow('DGFT Number', capitalizeFirstLetter(detailData?.dgft_number))}
                 {renderDetailRow('CITES Category', capitalizeFirstLetter(detailData?.cites_appendix))}
               </>
             )}

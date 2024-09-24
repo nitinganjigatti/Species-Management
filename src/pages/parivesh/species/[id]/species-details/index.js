@@ -26,6 +26,7 @@ import { usePariveshContext } from 'src/context/PariveshContext'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Utility from 'src/utility'
+import Error404 from 'src/pages/404'
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -53,6 +54,7 @@ const SpeciesDetails = () => {
   const { selectedParivesh } = usePariveshContext()
 
   const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const router = useRouter()
   const { id, tsn_id, tsn_relation } = router.query
@@ -249,10 +251,12 @@ const SpeciesDetails = () => {
   }
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
-    // setResetForm(true)
+    setResetForm(true)
     setOpenDrawer(true)
   }
   const handleSidebarClose = () => {
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
     setOpenDrawer(false)
   }
 
@@ -751,74 +755,80 @@ const SpeciesDetails = () => {
 
   return (
     <>
-      <Box sx={{ mb: 6 }}>
-        <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
-            Species
-          </Typography>
-          <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
-        </Breadcrumbs>
-      </Box>
-      <Box>
-        <Card>
-          {organizationCountList.length > 0 &&
-            organizationCountList.map((org, inx) => {
-              console.log(org, 'ppppp')
-              return (
-                <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <CustomAccordion
-                    title='Approved by Parivesh'
-                    summaryIcon='ion:checkmark'
-                    data={org?.approvedAccordionData?.data}
-                    cards={org?.approvedAccordionData?.cards}
-                    backgroundImage={org?.cover_image}
-                    isOrganization
-                    organizationName={org.organization_name}
-                  />
-                  <Box
-                    sx={{
-                      mt: 3
-                    }}
-                  >
-                    <CustomAccordion
-                      title='To be submitted'
-                      summaryIcon='mdi:arrow-top-right'
-                      data={org?.yetToSubmitAccordionData?.data}
-                      cards={org?.yetToSubmitAccordionData?.cards}
-                      backgroundImage={org?.cover_image}
-                    />
-                  </Box>
-                  <Box
-                    sx={{
-                      mt: 3
-                    }}
-                  >
-                    <CustomAccordion
-                      title='Submitted'
-                      summaryIcon='mdi:checkbox-marked'
-                      data={org?.submittedAccordionData?.data}
-                      cards={org?.submittedAccordionData?.cards}
-                      backgroundImage={org?.cover_image}
-                    />
-                  </Box>
-                </CardContent>
-              )
-            })}
-        </Card>
-      </Box>
+      {pariveshAccess ? (
+        <>
+          <Box sx={{ mb: 6 }}>
+            <Breadcrumbs aria-label='breadcrumb'>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
+                Species
+              </Typography>
+              <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
+            </Breadcrumbs>
+          </Box>
+          <Box>
+            <Card>
+              {organizationCountList.length > 0 &&
+                organizationCountList.map((org, inx) => {
+                  console.log(org, 'ppppp')
+                  return (
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <CustomAccordion
+                        title='Approved by Parivesh'
+                        summaryIcon='ion:checkmark'
+                        data={org?.approvedAccordionData?.data}
+                        cards={org?.approvedAccordionData?.cards}
+                        backgroundImage={org?.cover_image}
+                        isOrganization
+                        organizationName={org.organization_name}
+                      />
+                      <Box
+                        sx={{
+                          mt: 3
+                        }}
+                      >
+                        <CustomAccordion
+                          title='To be submitted'
+                          summaryIcon='mdi:arrow-top-right'
+                          data={org?.yetToSubmitAccordionData?.data}
+                          cards={org?.yetToSubmitAccordionData?.cards}
+                          backgroundImage={org?.cover_image}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          mt: 3
+                        }}
+                      >
+                        <CustomAccordion
+                          title='Submitted'
+                          summaryIcon='mdi:checkbox-marked'
+                          data={org?.submittedAccordionData?.data}
+                          cards={org?.submittedAccordionData?.cards}
+                          backgroundImage={org?.cover_image}
+                        />
+                      </Box>
+                    </CardContent>
+                  )
+                })}
+            </Card>
+          </Box>
 
-      <Grid>{tableData()}</Grid>
+          <Grid>{tableData()}</Grid>
 
-      <AddSpeciesNewEntry
-        drawerWidth={400}
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-        speciesDetails={speciesDetails}
-      />
+          <AddSpeciesNewEntry
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+            speciesDetails={speciesDetails}
+          />
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }
