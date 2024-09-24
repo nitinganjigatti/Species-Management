@@ -33,7 +33,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
-  console.log('discardList :>> ', discardList)
 
   // console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
@@ -523,11 +522,15 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         if (res?.data?.data.success) {
           // setDiscardList(list?.result)
           if (list?.result?.length > 0) {
-            console.log('list?.result?.length :>> ', list?.result?.length)
-            setDiscardList([...discardList, ...list?.result])
+            if (showFilters) {
+              setDiscardList(list?.result)
+            } else {
+              setDiscardList([...discardList, ...list?.result])
+            }
+
             setListCount(list?.total_count)
           } else {
-            setDiscardList([])
+            setDiscardList([discardList])
             setListCount('0')
           }
           setReachedEnd(false)
@@ -556,7 +559,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       setListCount('0')
 
       try {
-        await DiscardList(search, '', '')
+        await DiscardList(search, date?.to_date, date?.from_date)
 
         // Add other conditions for different menus if needed
       } catch (error) {
@@ -568,20 +571,22 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   useEffect(() => {
     if (openDiscard) {
-      DiscardList()
+      DiscardList(search, '', '')
     }
   }, [openDiscard, tabStatus, applyFilters])
 
   const handleScroll = async e => {
     const container = e.target
-    if (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + 1) {
-      setPage(++page)
-      setReachedEnd(true)
+    if (discardList?.length < listCount) {
+      if (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + 1) {
+        setPage(++page)
+        setReachedEnd(true)
 
-      try {
-        await DiscardList()
-      } catch (error) {
-        console.error(error)
+        try {
+          await DiscardList(search, date?.to_date, date?.from_date)
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
   }
@@ -651,6 +656,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 sx={{
                   bgcolor: '#eff5f2',
                   py: 2,
+                  pb: 20,
                   height: 'calc(100vh - 310px)',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
@@ -669,7 +675,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 onScroll={handleScroll}
                 sx={{
                   bgcolor: '#eff5f2',
-                  py: 1,
+                  py: 2,
+                  pb: 20,
                   height: 'calc(100vh - 310px)',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
