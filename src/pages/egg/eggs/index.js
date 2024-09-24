@@ -153,7 +153,7 @@ const EggList = () => {
         <Box>
           <Typography
             sx={{
-              color: '#000000',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -421,7 +421,7 @@ const EggList = () => {
         <Box>
           <Typography
             sx={{
-              color: '#000000',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -708,26 +708,26 @@ const EggList = () => {
       )
     },
 
-    {
-      width: 150,
-      sortable: false,
-      field: 'hatch_no',
-      headerName: 'Hatch NO',
+    // {
+    //   width: 150,
+    //   sortable: false,
+    //   field: 'hatch_no',
+    //   headerName: 'Hatch NO',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.hatch_no ? params.row.hatch_no : '-'}
-        </Typography>
-      )
-    },
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.hatch_no ? params.row.hatch_no : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       width: 200,
@@ -738,7 +738,7 @@ const EggList = () => {
         <Box>
           <Typography
             sx={{
-              color: '#000000',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -772,7 +772,7 @@ const EggList = () => {
               style={{
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
-                fontWeight: '500'
+                fontWeight: '600'
 
                 // lineHeight: '19.36px'
               }}
@@ -1003,7 +1003,7 @@ const EggList = () => {
         <Box>
           <Typography
             sx={{
-              color: '#000000',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -1067,11 +1067,21 @@ const EggList = () => {
       sortable: false,
       field: 'days_in_incubation',
       headerName: 'Days In Incubation',
-      align: 'center',
+      align: 'left',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            DAYS IN
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            INCUBATION
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography
           sx={{
-            color: '#000000',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: 500,
             lineHeight: '19.36px'
@@ -1126,6 +1136,7 @@ const EggList = () => {
       field: 'current_weight',
       headerName: 'current weight',
       align: 'center',
+
       renderCell: params => (
         <Typography
           sx={{
@@ -1247,11 +1258,20 @@ const EggList = () => {
       sortable: false,
       field: 'no_of_eggs_in_clutch',
       headerName: 'No Eggs / Clutch',
-
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            NO.EGG /
+          </Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CLUTCH
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Typography
           sx={{
-            color: '#000000',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: 500,
             lineHeight: '19.36px',
@@ -1272,7 +1292,7 @@ const EggList = () => {
       renderCell: params => (
         <Typography
           sx={{
-            color: '#000000',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
             fontWeight: 500,
             lineHeight: '19.36px',
@@ -1288,20 +1308,20 @@ const EggList = () => {
       // flex: 0.15,
       width: 130,
       sortable: false,
-      field: 'enclosure_id',
+      field: 'enclosure_name',
       headerName: 'Enclosure',
 
       renderCell: params => (
         <Typography
           sx={{
-            color: '#000000',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 500,
+            fontWeight: '400',
             lineHeight: '19.36px',
             ml: 3
           }}
         >
-          {params.row.enclosure_id ? params.row.enclosure_id : '-'}
+          {params.row.enclosure_name ? params.row.enclosure_name : '-'}
         </Typography>
       )
     },
@@ -1465,7 +1485,7 @@ const EggList = () => {
         <Box>
           <Typography
             sx={{
-              color: '#000000',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -1725,7 +1745,7 @@ const EggList = () => {
         <Box>
           <Typography
             sx={{
-              color: '#000000',
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
               fontWeight: 500,
               lineHeight: '19.36px'
@@ -1782,6 +1802,27 @@ const EggList = () => {
             </Tooltip>
           )}
         </Box>
+      )
+    },
+    {
+      width: 150,
+      sortable: false,
+      field: 'collected_on',
+      headerName: 'COLLECTED ON',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 2
+          }}
+        >
+          {params.row.collection_date
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.collection_date))
+            : '-'}
+        </Typography>
       )
     },
     {
@@ -1861,27 +1902,6 @@ const EggList = () => {
     //   )
     // },
 
-    {
-      width: 150,
-      sortable: false,
-      field: 'collected_on',
-      headerName: 'COLLECTED ON',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 2
-          }}
-        >
-          {params.row.collection_date
-            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.collection_date))
-            : '-'}
-        </Typography>
-      )
-    },
     {
       width: 200,
       sortable: false,
