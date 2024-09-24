@@ -15,8 +15,14 @@ const EggTableHeader = ({
   setSelectedFiltersOptions,
   selectedFiltersOptions,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  selectedOptions,
+  setSelectedOptions
 }) => {
+  // console.log('filterList :>> ', filterList)
+
+  // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
+
   const theme = useTheme()
   const router = useRouter()
   const { search_value, subTab_value } = router.query
@@ -24,17 +30,18 @@ const EggTableHeader = ({
 
   const [selectedDate, setSelectedDate] = useState(null)
 
-  const [selectedOptions, setSelectedOptions] = useState({
-    Stage: [],
-    Nursery: [],
-    Site: [],
-    'Collected By': [],
-    collected_date: null,
-    status: null,
-    'Discarded By': [],
-    discarded_Date: null,
-    'Security Check': []
-  })
+  // const [selectedOptions, setSelectedOptions] = useState({
+  //   Stage: [],
+  //   Nursery: [],
+  //   Site: [],
+  //   'Collected By': [],
+  //   collected_date: null,
+  //   status: null,
+  //   'Discarded By': [],
+  //   discarded_Date: null,
+  //   'Security Check': []
+  // })
+  // console.log('selectedOptions :>> ', selectedOptions)
 
   const handleRemoveFilter = item => {
     const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)

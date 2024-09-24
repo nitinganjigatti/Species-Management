@@ -41,18 +41,6 @@ const EggFilterDrawer = ({
   const router = useRouter()
   const { tab_Value = 'eggs_received', subTab_value } = router.query
 
-  // console.log('tab_Value f :>> ', tab_Value)
-
-  // const leftMenu = [
-  //   { id: 1, name: 'Stage' },
-  //   { id: 2, name: 'Site' },
-  //   { id: 3, name: 'Nursery' },
-  //   { id: 4, name: 'Collected Date' },
-  //   { id: 5, name: 'Collected By' }
-
-  //   // { id: 6, name: 'Enclosure' }
-  // ].filter(menu => (tab_Value !== 'eggs_received' && tab_Value !== 'eggs_hatched' ? true : menu.name !== 'Stage'))
-
   const leftMenu = [
     { id: 1, name: 'Stage' },
     { id: 2, name: 'Site' },
@@ -88,21 +76,12 @@ const EggFilterDrawer = ({
 
   const [selectedMenu, setSelectedMenu] = useState(tab_Value === 'eggs_discarded' ? discardMenu[0] : leftMenu[0])
 
-  // console.log('selectedMenu :>> ', selectedMenu)
-
-  // useEffect(() => {
-  //   if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
-  //     setSelectedMenu(discardMenu[0])
-  //   }
-  // }, [tab_Value, subTab_value])
-
   const authData = useContext(AuthContext)
 
   const [selectAll, setSelectAll] = useState(false)
 
   const [eggStage, setEggStage] = useState([])
 
-  // console.log('eggStage :>> ', eggStage)
   const [nurseryList, setNurseryList] = useState([])
   const [siteList, setSiteList] = useState([])
   const [collectedByList, setCollectedByList] = useState([])
@@ -111,22 +90,6 @@ const EggFilterDrawer = ({
   const [eggMaster, setEggMaster] = useState(null)
 
   const [selectedDropdownID, setSelectedDropdownId] = useState('all')
-
-  // console.log('selectedDropdownID :>> ', selectedDropdownID)
-
-  // const [selectedOptions, setSelectedOptions] = useState({
-  //   Stage: [],
-  //   Nursery: [],
-  //   Site: [],
-  //   'Collected By': [],
-  //   collected_date: null,
-  //   status: null,
-  //   'Discarded By': [],
-  //   discarded_Date: null,
-  //   'Security Check': []
-  // })
-
-  // const [selectedDate, setSelectedDate] = useState(null)
 
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -139,17 +102,18 @@ const EggFilterDrawer = ({
     }
 
     setSelectAll(false)
-    setSelectedOptions({
-      Stage: [],
-      Nursery: [],
-      Site: [],
-      'Collected By': [],
-      collected_date: null,
-      status: null,
-      'Discarded By': [],
-      discarded_Date: null,
-      'Security Check': []
-    })
+
+    // setSelectedOptions({
+    //   Stage: [],
+    //   Nursery: [],
+    //   Site: [],
+    //   'Collected By': [],
+    //   collected_date: null,
+    //   status: null,
+    //   'Discarded By': [],
+    //   discarded_Date: null,
+    //   'Security Check': []
+    // })
   }, [tab_Value, subTab_value])
 
   const getEggMasterData = async () => {
@@ -309,7 +273,7 @@ const EggFilterDrawer = ({
       ...(tab_Value === 'eggs_discarded' || tab_Value === 'eggs_discarded'
         ? updatedSelectedOptions['Security Check'] || []
         : []),
-      ...(tab_Value === 'eggs_discarded' || tab_Value === 'eggs_discarded'
+      ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' || tab_Value === 'eggs_discarded'
         ? updatedSelectedOptions['Discarded By'] || []
         : []),
 
@@ -382,13 +346,6 @@ const EggFilterDrawer = ({
     switch (menu.name) {
       case 'Stage':
         if (tab_Value === 'eggs_incubation') {
-          // const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '2')
-
-          // return filteredEggStage?.map(stage => ({
-          //   id: stage.id,
-          //   name: stage.egg_state
-          // }))
-
           const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === selectedDropdownID)
 
           return filteredEggStage?.map(stage => ({
@@ -537,6 +494,7 @@ const EggFilterDrawer = ({
         backgroundColor: 'background.default'
       }}
     >
+      {/* header */}
       <Box
         className='sidebar-header'
         sx={{
@@ -558,6 +516,8 @@ const EggFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
+
+      {/* container */}
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -612,7 +572,7 @@ const EggFilterDrawer = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '345px',
-                height: '550px',
+                height: 'calc(100vh - 185px)',
                 overflowY: 'auto', // Enable vertical scrolling
                 '&::-webkit-scrollbar': {
                   width: 0,

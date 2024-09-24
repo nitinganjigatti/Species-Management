@@ -19,7 +19,9 @@ const DiscardedTableView = ({
   filterList,
   setSelectedFiltersOptions,
   selectedFiltersOptions,
-  setTotal
+  setTotal,
+  selectedOptions,
+  setSelectedOptions
 }) => {
   const router = useRouter()
   const { search_value } = router.query
@@ -67,15 +69,15 @@ const DiscardedTableView = ({
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryIds ? nurseryIds : '',
+          nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
 
           // egg_state_id: eggStateIds,
-          discarded_by: discardedByIds,
-          site_id: siteIds,
-          activity_status: activeStatus || '',
+          discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
+          site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          activity_status: activeStatus?.length > 0 ? JSON.stringify(activeStatus) : '',
 
           // egg_status_id: eggStateIds.length > 0 ? statusId : [],
-          discarded_on: discardedDate || ''
+          discarded_on: discardedDate ? discardedDate : ''
         }
 
         const res = await DiscardedEggList({ params })
@@ -474,6 +476,8 @@ const DiscardedTableView = ({
         selectedFiltersOptions={selectedFiltersOptions}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
       />
       <DataGrid
         sx={{

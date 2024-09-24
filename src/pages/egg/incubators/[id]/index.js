@@ -65,6 +65,7 @@ const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
     display: 'none'
   }
 }))
+
 const IncubatorDetails = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -211,18 +212,20 @@ const IncubatorDetails = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID: {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID: {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>{' '}
-          <Typography
-            style={{
-              color: theme.palette.customColors.neutralSecondary,
-              fontSize: '12px',
-              fontWeight: '400',
-              lineHeight: '14.52px'
-            }}
-          >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
-          </Typography>{' '}
+          {params.row.egg_number && (
+            <Typography
+              style={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '12px',
+                fontWeight: '400',
+                lineHeight: '14.52px'
+              }}
+            >
+              UEID : {params.row.egg_number}
+            </Typography>
+          )}{' '}
         </Box>
       )
     },
@@ -255,6 +258,7 @@ const IncubatorDetails = () => {
                       params.row.egg_status === 'Hatched'
                     ? '#EFF5F2'
                     : '#EFF5F2',
+
                 // textAlign: 'center',
                 borderRadius: '4px',
                 display: 'inline-block'
@@ -263,22 +267,24 @@ const IncubatorDetails = () => {
               {params.row.egg_status ? params.row.egg_status : '-'}
             </Typography>{' '}
           </Box>
-          <Tooltip title={params.row.egg_state ? params.row.egg_state : '-'}>
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '400',
-                lineHeight: '19.36px',
-                width: '75%',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
-            >
-              {params.row.egg_state ? params.row.egg_state : '-'}
-            </Typography>
-          </Tooltip>
+          {params.row.egg_state && (
+            <Tooltip title={params.row.egg_state ? params.row.egg_state : '-'}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '16px',
+                  fontWeight: '400',
+                  lineHeight: '19.36px',
+                  width: '75%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {params.row.egg_state}
+              </Typography>
+            </Tooltip>
+          )}
         </Box>
       )
     },
@@ -305,6 +311,7 @@ const IncubatorDetails = () => {
       sortable: false,
       field: 'currentweight',
       headerName: 'CURRENT WEIGHT',
+      aline: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -317,7 +324,7 @@ const IncubatorDetails = () => {
           {params.row.current_weight ? params.row.current_weight : '-'}{' '}
           <span
             style={{
-              borderLeft: `2px solid gray`,
+              borderLeft: `1px solid #bdc7c0`,
               paddingLeft: 4,
               color:
                 calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
@@ -613,6 +620,7 @@ const IncubatorDetails = () => {
           allocate_date: allocation_date,
           collected_date,
           taxonomy_id,
+
           // type:
           //   status === undefined
           //     ? 'eggs_received'
