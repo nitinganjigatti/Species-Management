@@ -52,6 +52,7 @@ import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Utility from 'src/utility'
 import { Details } from '@mui/icons-material'
 import NewEntryDetailsDialog from './new-entry-details/index'
+import Error404 from 'src/pages/404'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -81,6 +82,8 @@ const NewEntry = ({}) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailData, setDetailData] = useState()
   const [isEditModal, setIsEditModal] = useState(false)
+
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   function loadServerRows(currentPage, data) {
     return data
@@ -931,90 +934,96 @@ const NewEntry = ({}) => {
 
   return (
     <>
-      {organizationCountList.length > 0 && (
-        <Card>
-          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-            {organizationCountList.map((org, inx) => {
-              return (
-                <CustomAccordion
-                  title='To be submitted'
-                  summaryIcon='mdi:arrow-top-right'
-                  data={org?.yetToSubmitAccordionData?.data}
-                  cards={org?.yetToSubmitAccordionData?.cards}
-                  backgroundImage={org?.cover_image !== '' && org?.cover_image}
-                  isOrganization={selectedParivesh.id !== 'all' ? true : false}
-                  organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
-                />
-              )
-            })}
-          </CardContent>
-        </Card>
-      )}
+      {pariveshAccess ? (
+        <>
+          {organizationCountList.length > 0 && (
+            <Card>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                {organizationCountList.map((org, inx) => {
+                  return (
+                    <CustomAccordion
+                      title='To be submitted'
+                      summaryIcon='mdi:arrow-top-right'
+                      data={org?.yetToSubmitAccordionData?.data}
+                      cards={org?.yetToSubmitAccordionData?.cards}
+                      backgroundImage={org?.cover_image !== '' && org?.cover_image}
+                      isOrganization={selectedParivesh.id !== 'all' ? true : false}
+                      organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
+                    />
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
 
-      <Grid>{tableData()}</Grid>
+          <Grid>{tableData()}</Grid>
 
-      <NewEntryDetailsDialog isEditModal={isEditModal} setIsEditModal={setIsEditModal} detailData={detailData} />
+          <NewEntryDetailsDialog isEditModal={isEditModal} setIsEditModal={setIsEditModal} detailData={detailData} />
 
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpen(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-
-              // padding: '40px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this species?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                disabled={btnLoader}
+          <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
                 onClick={() => setIsModalOpen(false)}
-                variant='outlined'
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
+              <Box
                 sx={{
-                  color: 'gray',
-                  width: '45%'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+
+                  // padding: '40px',
+                  alignItems: 'center'
                 }}
               >
-                Cancel
-              </Button>
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this species?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    disabled={btnLoader}
+                    onClick={() => setIsModalOpen(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
 
-              <LoadingButton
-                loading={btnLoader}
-                size='large'
-                variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
-              >
-                Delete
-              </LoadingButton>
-            </Box>
-          </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+                  <LoadingButton
+                    loading={btnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
+              </Box>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

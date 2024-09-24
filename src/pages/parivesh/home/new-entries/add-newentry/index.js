@@ -1,5 +1,5 @@
-import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
-import { Box } from '@mui/system'
+import React, { forwardRef, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { Box, color, fontWeight } from '@mui/system'
 import { Controller, useForm } from 'react-hook-form'
 import {
   Autocomplete,
@@ -40,7 +40,12 @@ import imageUploader from 'public/images/imageUploader/imageUploader.png'
 import Image from 'next/image'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
-import AcquisitionFields from './AcquisitionFields'
+import BirthFields from 'src/views/pages/parivesh/addNewEntries/BirthFields'
+import DeathFields from 'src/views/pages/parivesh/addNewEntries/DeathFields'
+import AcquisitionFields from 'src/views/pages/parivesh/addNewEntries/AcquisitionFields'
+import TransferFields from 'src/views/pages/parivesh/addNewEntries/TransferFields'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const schema = yup.object().shape({
   specie: yup
@@ -68,9 +73,21 @@ const schema = yup.object().shape({
   possession_type: yup.string().required('Reason is Required'),
 
   // Conditional fields for Transfer
+  // where_to_transfer: yup.string().when('possession_type', {
+  //   is: 'transfer',
+  //   then: () => yup.string().required('Organization name is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
   where_to_transfer: yup.string().when('possession_type', {
     is: 'transfer',
-    then: () => yup.string().required('Organization for transfer is required'),
+    then: () =>
+      yup
+        .string()
+        .required('Organization name is required')
+        .test('not-only-spaces', 'Organization name cannot be empty or just spaces', value => {
+          // Check if the trimmed value is not empty
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
 
@@ -94,26 +111,72 @@ const schema = yup.object().shape({
       then: () => yup.date().nullable().required('Date of Death is required'),
       otherwise: () => yup.date().nullable().notRequired()
     }),
-  animal_id: yup.string().when('possession_type', {
+  // death_animal_id: yup.string().when('possession_type', {
+  //   is: 'death',
+  //   then: () => yup.string().notRequired(),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
+  death_animal_id: yup.string().when('possession_type', {
     is: 'death',
-    then: () => yup.string().notRequired(),
-    otherwise: () => yup.string().notRequired()
+    then: () =>
+      yup
+        .string()
+        .nullable() // Allow null values
+        .notRequired() // Make it optional
+        .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
+          message: 'Invalid Animal ID format.',
+          excludeEmptyString: true // Exclude empty strings from validation
+        }),
+    otherwise: () =>
+      yup
+        .string()
+        .nullable() // Allow null values
+        .notRequired() // Make it optional
+        .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
+          message: 'Invalid Animal ID format.',
+          excludeEmptyString: true // Exclude empty strings from validation
+        })
   }),
 
   // Conditional fields for Acquisition
+  // where_to_acquisition: yup
+  //   .string()
+  //   .trim()
+  //   .when('possession_type', {
+  //     is: 'acquisition',
+  //     then: () => yup.string().trim().required('Organization name is required'),
+  //     otherwise: () => yup.string().trim().notRequired()
+  //   }),
   where_to_acquisition: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('Organization to acquire from is required'),
+    then: () =>
+      yup
+        .string()
+        .required('Organization name is required')
+        .test('not-only-spaces', 'Organization name cannot be empty or just spaces', value => {
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
+  // dgft_number: yup.string().when('possession_type', {
+  //   is: 'acquisition',
+  //   then: () => yup.string().required('DGFT Number is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
   dgft_number: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('DGFT Number is required'),
+    then: () =>
+      yup
+        .string()
+        .required('DGFT Number is required')
+        .test('not-only-spaces', 'DGFT Number cannot be empty or just spaces', value => {
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
   cites_required: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('CITES required field is required'),
+    then: () => yup.string().required('CITES value is required'),
     otherwise: () => yup.string().notRequired()
   }),
   cites_appendix: yup.string().when(['possession_type', 'cites_required'], {
@@ -153,6 +216,8 @@ const AddNewEntry = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [selectedFileId, setSelectedFileId] = useState(null)
   const [deleteBtnLoader, setDeleteBtnLoader] = useState(false)
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER
 
@@ -170,7 +235,7 @@ const AddNewEntry = () => {
     cites_required: '',
     cites_appendix: '',
     cites_numbers: '',
-    animal_id: '',
+    death_animal_id: '',
     attachments: [],
     dgft_attachments: []
   }
@@ -224,7 +289,7 @@ const AddNewEntry = () => {
       attachments,
       death_date,
       reason_for_death,
-      animal_id,
+      death_animal_id,
       where_to_transfer,
       where_to_acquisition,
       dgft_number,
@@ -265,7 +330,7 @@ const AddNewEntry = () => {
     if (possession_type === 'death') {
       payload.reason_for_death = reason_for_death
       payload.death_date = death_date ? moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss') : null
-      payload.animal_id = animal_id
+      payload.death_animal_id = death_animal_id
       payload.animal_count = 1
     } else {
       payload.animal_count = animal_count
@@ -434,47 +499,47 @@ const AddNewEntry = () => {
     fileInputRef?.current?.click()
   }
 
-  const { getRootProps, getInputProps } = useDropzone({
-    multiple: true,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-    },
-    onDrop: acceptedFiles => {
-      const filePromises = acceptedFiles.map(file => {
-        console.log(file, 'file')
-        return new Promise(resolve => {
-          const reader = new FileReader()
-          console.log(reader, reader.result, 'result')
-          reader.onloadend = () => {
-            resolve({ name: file.name, fileSrc: reader.result, file })
-          }
-          reader.readAsDataURL(file)
-        })
-      })
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: true,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     const filePromises = acceptedFiles.map(file => {
+  //       console.log(file, 'file')
+  //       return new Promise(resolve => {
+  //         const reader = new FileReader()
+  //         console.log(reader, reader.result, 'result')
+  //         reader.onloadend = () => {
+  //           resolve({ name: file.name, fileSrc: reader.result, file })
+  //         }
+  //         reader.readAsDataURL(file)
+  //       })
+  //     })
 
-      Promise.all(filePromises)
-        .then(fileDetails => {
-          setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
-          setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+  //     Promise.all(filePromises)
+  //       .then(fileDetails => {
+  //         setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
+  //         setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
 
-          // Update attachments in the form
-          const currentFiles = getValues('attachments') || []
-          console.log(acceptedFiles, 'currentFiles')
-          setValue('attachments', [...currentFiles, ...acceptedFiles])
+  //         // Update attachments in the form
+  //         const currentFiles = getValues('attachments') || []
+  //         console.log(acceptedFiles, 'currentFiles')
+  //         setValue('attachments', [...currentFiles, ...acceptedFiles])
 
-          clearErrors('attachments')
-          setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
-        })
-        .catch(error => {
-          console.error('Error processing files:', error)
-        })
-    }
-  })
+  //         clearErrors('attachments')
+  //         setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+  //       })
+  //       .catch(error => {
+  //         console.error('Error processing files:', error)
+  //       })
+  //   }
+  // })
 
   const removeSelectedImage = async (index, fileId) => {
     if (fileId) {
@@ -577,489 +642,307 @@ const AddNewEntry = () => {
     return `${start}...${end}`
   }
 
-  const BirthFields = ({ control, errors }) => {
-    return (
-      <>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <Controller
-                name='gender'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                    <MenuItem value='male'>Male</MenuItem>
-                    <MenuItem value='female'>Female</MenuItem>
-                    <MenuItem value='other'>Other</MenuItem>
-                  </TextField>
-                )}
-              />
-              {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          {reasonType !== 'death' && (
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Controller
-                  name='animal_count'
-                  control={control}
-                  rules={{ required: reasonType !== 'death' }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Total Count*'
-                      value={value}
-                      type='number'
-                      onChange={onChange}
-                      placeholder='Enter Total Count'
-                      error={Boolean(errors.animal_count)}
-                      name='animal_count'
-                    />
-                  )}
-                />
+  const handleFileSelect = files => {
+    const filesArray = Array.isArray(files) ? files : Array.from(files)
+    console.log(filesArray, 'Files Array') // Debugging line
 
-                {errors.animal_count && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-          )}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='transaction_date'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-                  />
-                )}
-              />
-              {errors.transaction_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.transaction_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </>
-    )
+    const filePromises = filesArray.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          resolve({ name: file.name, fileSrc: reader.result, file })
+        }
+        reader.readAsDataURL(file)
+      })
+    })
+
+    Promise.all(filePromises)
+      .then(fileDetails => {
+        console.log(fileDetails, 'File Details') // Debugging line
+        setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
+        setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+        setValue('attachments', filesArray, { shouldValidate: true })
+        clearErrors('attachments')
+      })
+      .catch(error => {
+        console.error('Error processing files:', error)
+      })
   }
 
-  const DeathFields = ({ control, errors }) => {
-    return (
-      <>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='reason_for_death'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Reason for Death*'
-                    value={value}
-                    onChange={onChange}
-                    placeholder='Enter Reason for Death'
-                    error={Boolean(errors.reason_for_death)}
-                    name='reason_for_death'
-                  />
-                )}
-              />
-
-              {errors.reason_for_death && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.reason_for_death?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='death_date'
-                rules={{ required: possessionType === 'death' ? true : false }}
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date of Death*' error={Boolean(errors.death_date)} />}
-                  />
-                )}
-              />
-              {errors.death_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.death_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='animal_id'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Animal ID (Optional)'
-                    value={value}
-                    onChange={onChange}
-                    placeholder='Enter Animal ID (Optional)'
-                    error={Boolean(errors.animal_id)}
-                    name='animal_id'
-                  />
-                )}
-              />
-
-              {errors.animal_id && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_id?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={12}>
-                <FormControl fullWidth>
-                  <Controller
-                    name='gender'
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <TextField
-                        select
-                        label='Gender*'
-                        value={value}
-                        onChange={onChange}
-                        error={Boolean(errors.gender)}
-                      >
-                        <MenuItem value='male'>Male</MenuItem>
-                        <MenuItem value='female'>Female</MenuItem>
-                        <MenuItem value='other'>Other</MenuItem>
-                      </TextField>
-                    )}
-                  />
-                  {errors.gender && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>
-                  )}
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='transaction_date'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-                  />
-                )}
-              />
-              {errors.transaction_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.transaction_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </>
-    )
-  }
-
-  const TransferFields = ({ control, errors }) => {
-    return (
-      <>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <Controller
-                name='where_to_transfer'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Which organization would you transfer?'
-                    value={value}
-                    type='text'
-                    onChange={onChange}
-                    placeholder='Which organization would you transfer?'
-                    error={Boolean(errors.where_to_transfer)}
-                    name='where_to_transfer'
-                  />
-                )}
-              />
-
-              {errors.where_to_transfer && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.where_to_transfer?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <Controller
-                name='gender'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                    <MenuItem value='male'>Male</MenuItem>
-                    <MenuItem value='female'>Female</MenuItem>
-                    <MenuItem value='other'>Other</MenuItem>
-                  </TextField>
-                )}
-              />
-              {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-            </FormControl>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} sx={{ mb: 6 }}>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='animal_count'
-                control={control}
-                rules={{ required: reasonType !== 'death' }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Total Count*'
-                    value={value}
-                    type='number'
-                    onChange={onChange}
-                    placeholder='Enter Total Count'
-                    error={Boolean(errors.animal_count)}
-                    name='animal_count'
-                  />
-                )}
-              />
-
-              {errors.animal_count && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='transaction_date'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <SingleDatePicker
-                    fullWidth
-                    date={value}
-                    width={'100%'}
-                    dateFormat='dd/MM/yyyy'
-                    // showTimeSelect
-                    // timeIntervals={15}
-                    onChangeHandler={onChange}
-                    maxDate={new Date()}
-                    customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-                  />
-                )}
-              />
-              {errors.transaction_date && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {errors.transaction_date?.message}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </>
-    )
-  }
+  // Dropzone setup
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop: handleFileSelect,
+    multiple: true,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/vnd.ms-excel': ['.xls'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+    }
+  })
 
   return (
     <>
-      <Box>
-        <Box>
-          <Breadcrumbs aria-label='breadcrumb'>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/home')}>
-              {selectedParivesh?.organization_name}
-            </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              {isEditMode ? 'New Entries' : 'New Entries'}
-            </Typography>
-            <Typography color='text.primary'>{isEditMode ? 'Edit New Entry' : 'Add New Entry'}</Typography>
-          </Breadcrumbs>
-        </Box>
+      {pariveshAccess ? (
+        <>
+          <Box>
+            <Box>
+              <Breadcrumbs aria-label='breadcrumb'>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/home')}>
+                  {selectedParivesh?.organization_name}
+                </Typography>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
+                  {isEditMode ? 'New Entries' : 'New Entries'}
+                </Typography>
+                <Typography color='text.primary'>{isEditMode ? 'Edit New Entry' : 'Add New Entry'}</Typography>
+              </Breadcrumbs>
+            </Box>
 
-        <Box sx={{ mt: 5, background: '#FFFFFF', borderRadius: '10px' }}>
-          <CardContent>
-            <Typography sx={{ mb: '20px' }} variant='h6'>
-              {isEditMode ? 'Edit New Entry' : 'Add New Entry'}
-            </Typography>
+            <Box sx={{ mt: 5, background: '#FFFFFF', borderRadius: '10px' }}>
+              <CardContent>
+                <Typography sx={{ mb: '20px' }} variant='h6'>
+                  {isEditMode ? 'Edit New Entry' : 'Add New Entry'}
+                </Typography>
 
-            <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={2} sx={{ mb: 6 }}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='specie'
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Autocomplete
-                          sx={{ width: '100%' }}
-                          options={species}
-                          id='autocomplete-clearOnEscape'
-                          value={value}
-                          getOptionLabel={option => option.scientific_name || ''}
-                          isOptionEqualToValue={(option, value) => option.id === value?.id}
-                          onChange={(event, newValue) => {
-                            onChange(newValue)
-                            if (newValue === null) {
-                              clearErrors('specie')
-                            } else {
-                              trigger('specie')
-                            }
-                          }}
-                          onInputChange={(event, newInputValue) => {
-                            searchTableData(newInputValue)
-                          }}
-                          filterOptions={(options, params) => {
-                            const filtered = options.filter(
-                              option =>
-                                option?.scientific_name?.toLowerCase().includes(params?.inputValue.toLowerCase()) ||
-                                option?.common_name?.toLowerCase().includes(params?.inputValue.toLowerCase())
-                            )
+                <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+                  <Grid container spacing={2} sx={{ mb: 6 }}>
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='specie'
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <Autocomplete
+                              sx={{ width: '100%' }}
+                              options={species}
+                              id='autocomplete-clearOnEscape'
+                              value={value}
+                              getOptionLabel={option => option.scientific_name || ''}
+                              isOptionEqualToValue={(option, value) => option.id === value?.id}
+                              onChange={(event, newValue) => {
+                                onChange(newValue)
+                                if (newValue === null) {
+                                  clearErrors('specie')
+                                } else {
+                                  trigger('specie')
+                                }
+                              }}
+                              onInputChange={(event, newInputValue) => {
+                                searchTableData(newInputValue)
+                              }}
+                              filterOptions={(options, params) => {
+                                const filtered = options.filter(
+                                  option =>
+                                    option?.scientific_name?.toLowerCase().includes(params?.inputValue.toLowerCase()) ||
+                                    option?.common_name?.toLowerCase().includes(params?.inputValue.toLowerCase())
+                                )
 
-                            return filtered
-                          }}
-                          renderInput={params => (
-                            <TextField {...params} label='Search & Select…' error={Boolean(errors.specie)} />
-                          )}
-                          renderOption={(props, option) => (
-                            <Box component='li' {...props} key={option.id}>
-                              {option.scientific_name} <br />{' '}
-                              <Typography variant='body2' color='textSecondary'>
-                                ({option.common_name})
-                              </Typography>
-                            </Box>
+                                return filtered
+                              }}
+                              renderInput={params => (
+                                <TextField {...params} label='Search & Select…' error={Boolean(errors.specie)} />
+                              )}
+                              renderOption={(props, option) => (
+                                <Box component='li' {...props} key={option.id}>
+                                  {option.scientific_name} <br />{' '}
+                                  <Typography variant='body2' color='textSecondary'>
+                                    ({option.common_name})
+                                  </Typography>
+                                </Box>
+                              )}
+                            />
                           )}
                         />
-                      )}
-                    />
-                    {errors.specie && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.specie?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
+                        {errors.specie && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.specie?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                  {(possessionType !== 'birth' || !possessionType) && (
+                    <Grid container spacing={2} sx={{ mb: 6 }}>
+                      <Grid item xs={12}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='possession_type'
+                            control={control}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                select
+                                label='Reason*'
+                                placeholder='Reason'
+                                value={value}
+                                disabled={isEditMode}
+                                onChange={e => {
+                                  const value = e.target.value
+                                  onChange(e)
+                                  setReasonType(value)
+                                  if (!isEditMode) {
+                                    setValue('animal_count', '')
+                                    setValue('transaction_date', new Date())
+                                    setValue('reason_for_death', '')
+                                    setValue('death_date', null)
+                                    setValue('where_to_transfer', '')
+                                    setValue('where_to_acquisition', '')
+                                    setValue('dgft_number', '')
+                                    setValue('cites_required', '')
+                                    setValue('cites_appendix', '')
+                                    setValue('cites_numbers', '')
+                                    setValue('death_animal_id', '')
+                                    setValue('attachments', [])
+                                    setValue('dgft_attachments', [])
+                                    setImgSrc([])
+                                    setDisplayFile([])
+                                    setDgftDisplayFile([])
+                                  }
+                                  setValue('gender', '')
+                                }}
+                                error={Boolean(errors.possession_type)}
+                              >
+                                <MenuItem value='birth'>Birth</MenuItem>
+                                <MenuItem value='death'>Death</MenuItem>
+                                <MenuItem value='transfer'>Transfer </MenuItem>
+                                <MenuItem value='acquisition'>Acquisition </MenuItem>
+                              </TextField>
+                            )}
+                          />
+                          {errors.possession_type && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.possession_type?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  )}
 
-              <Grid container spacing={2} sx={{ mb: 6 }}>
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='possession_type'
+                  {(possessionType === 'birth' || !possessionType) && (
+                    <BirthFields
                       control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          select
-                          label='Reason*'
-                          placeholder='Reason'
-                          value={value}
-                          disabled={isEditMode}
-                          onChange={e => {
-                            const value = e.target.value
-                            onChange(e)
-                            setReasonType(value)
-                            if (!isEditMode) {
-                              setValue('animal_count', '')
-                              setValue('transaction_date', new Date())
-                              setValue('reason_for_death', '')
-                              setValue('death_date', null)
-                              setValue('where_to_transfer', '')
-                              setValue('where_to_acquisition', '')
-                              setValue('dgft_number', '')
-                              setValue('cites_required', '')
-                              setValue('cites_appendix', '')
-                              setValue('cites_numbers', '')
-                              setValue('animal_id', '')
-                              setValue('attachments', [])
-                              setValue('dgft_attachments', [])
-                              setImgSrc([])
-                              setDisplayFile([])
-                              setDgftDisplayFile([])
-                            }
-                            setValue('gender', '')
-                          }}
-                          error={Boolean(errors.possession_type)}
-                        >
-                          <MenuItem value='birth'>Birth</MenuItem>
-                          <MenuItem value='death'>Death</MenuItem>
-                          <MenuItem value='transfer'>Transfer </MenuItem>
-                          <MenuItem value='acquisition'>Acquisition </MenuItem>
-                        </TextField>
-                      )}
+                      errors={errors}
+                      watch={watch}
+                      getValues={getValues}
+                      setValue={setValue}
+                      clearErrors={clearErrors}
+                      reasonType={reasonType}
+                      setReasonType={setReasonType}
+                      dgftDisplayFile={dgftDisplayFile}
+                      setDgftDisplayFile={setDgftDisplayFile}
+                      isEditMode={isEditMode}
+                      editParams={editParams}
+                      setImgSrc={setImgSrc}
+                      setDisplayFile={setDisplayFile}
                     />
-                    {errors.possession_type && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
+                  )}
+                  {possessionType === 'death' && (
+                    <DeathFields
+                      control={control}
+                      errors={errors}
+                      watch={watch}
+                      getValues={getValues}
+                      setValue={setValue}
+                      clearErrors={clearErrors}
+                      isEditMode={isEditMode}
+                      editParams={editParams}
+                      possessionType={possessionType}
+                    />
+                  )}
+                  {possessionType === 'transfer' && (
+                    <TransferFields
+                      control={control}
+                      errors={errors}
+                      watch={watch}
+                      getValues={getValues}
+                      setValue={setValue}
+                      clearErrors={clearErrors}
+                      isEditMode={isEditMode}
+                      editParams={editParams}
+                      reasonType={reasonType}
+                      setReasonType={setReasonType}
+                    />
+                  )}
+                  {possessionType === 'acquisition' && (
+                    <AcquisitionFields
+                      control={control}
+                      errors={errors}
+                      watch={watch}
+                      getValues={getValues}
+                      setValue={setValue}
+                      clearErrors={clearErrors}
+                      getIconByFileType={getIconByFileType}
+                      truncateFilename={truncateFilename}
+                      reasonType={reasonType}
+                      dgftDisplayFile={dgftDisplayFile}
+                      setDgftDisplayFile={setDgftDisplayFile}
+                      isEditMode={isEditMode}
+                      editParams={editParams}
+                    />
+                  )}
 
-              {(possessionType === 'birth' || !possessionType) && <BirthFields control={control} errors={errors} />}
-              {possessionType === 'death' && <DeathFields control={control} errors={errors} />}
-              {possessionType === 'transfer' && <TransferFields control={control} errors={errors} />}
-              {possessionType === 'acquisition' && (
-                <AcquisitionFields
-                  control={control}
-                  errors={errors}
-                  watch={watch}
-                  getValues={getValues}
-                  setValue={setValue}
-                  clearErrors={clearErrors}
-                  getIconByFileType={getIconByFileType}
-                  truncateFilename={truncateFilename}
-                  reasonType={reasonType}
-                  dgftDisplayFile={dgftDisplayFile}
-                  setDgftDisplayFile={setDgftDisplayFile}
-                  isEditMode={isEditMode}
-                  editParams={editParams}
-                />
-              )}
+                  <Divider />
 
-              <Divider />
+                  <>
+                    <Typography sx={{ mb: 6, mt: 6 }} variant='h6'>
+                      Attachments
+                    </Typography>
+                    <Grid container spacing={2} sx={{ mb: 6 }}>
+                      {/* {/ Add Attachments button /} */}
+                      <Grid item xs={12} sm={4} md={3} lg={2.3}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='attachments'
+                            control={control}
+                            render={({ field: { onChange, value, ...rest } }) => (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 2,
+                                  border: '1px solid #d3d3d3',
+                                  borderRadius: 1,
+                                  padding: 2,
+                                  cursor: 'pointer',
+                                  height: '60px',
+                                  width: '100%',
+                                  position: 'relative'
+                                }}
+                              >
+                                <input
+                                  type='file'
+                                  multiple
+                                  accept='image/*,application/pdf,.doc,.docx,.xls,.xlsx'
+                                  style={{
+                                    opacity: 0,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    cursor: 'pointer'
+                                  }}
+                                  {...getRootProps({ className: 'dropzone' })}
+                                  onChange={e => {
+                                    const files = Array.from(e.target.files)
+                                    // onChange(files) // Update form state
+                                    handleFileSelect(files) // Call parent handler
+                                  }}
+                                  {...rest}
+                                />
+                                <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                                <Typography variant='body1' color='textPrimary'>
+                                  Add Attachments
+                                </Typography>
+                              </Box>
+                            )}
+                          />
+                          {errors.attachments && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
+                          )}
+                        </FormControl>
 
-              <>
-                <Typography sx={{ mb: 6, mt: 6 }}>Attachments</Typography>
-                <Grid container spacing={2} sx={{ mb: 6 }}>
-                  {/* {/ Add Attachments button /} */}
-                  <Grid item xs={12} sm={4} md={3} lg={2.3}>
-                    <FormControl fullWidth>
+                        {/* <FormControl fullWidth>
                       <Controller
                         name='attachments'
                         control={control}
@@ -1082,7 +965,9 @@ const AddNewEntry = () => {
                               width: '100%' // Make sure it fills its grid item
                             }}
                           >
-                            <Icon icon='mdi:attachment-plus' size={1} />
+                            <input {...getInputProps()} ref={fileInputRef} />
+                            <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
+
                             <Typography variant='body1' color='textPrimary'>
                               Add Attachments
                             </Typography>
@@ -1092,167 +977,171 @@ const AddNewEntry = () => {
                       {errors.attachments && (
                         <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
                       )}
-                    </FormControl>
-                  </Grid>
+                    </FormControl> */}
+                      </Grid>
 
-                  {/* {/ Uploaded files display /} */}
-                  {displayFile.map((src, index) => {
-                    const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
-                    return (
-                      <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
-                        <FormControl fullWidth>
-                          <Box
-                            sx={{
-                              position: 'relative',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                              backgroundColor: '#f5f5f5',
-                              borderRadius: '8px',
-                              boxSizing: 'border-box',
-                              width: { xs: '100%', sm: 'auto' },
-                              height: '60px', // Fixed height for consistency
-                              bgcolor: isImage ? '#f0f0f0' : getIconByFileType(src?.name)?.bgColor
-                            }}
-                          >
-                            {isImage ? (
-                              <img
-                                style={{
-                                  height: '60px',
-                                  width: '60px',
-                                  borderRadius: '20%',
-                                  objectFit: 'cover',
-                                  padding: '8px'
-                                }}
-                                alt={`Uploaded image ${index + 1}`}
-                                src={src?.fileSrc}
-                              />
-                            ) : (
+                      {/* {/ Uploaded files display /} */}
+                      {displayFile.map((src, index) => {
+                        const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+                        return (
+                          <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+                            <FormControl fullWidth>
                               <Box
                                 sx={{
+                                  position: 'relative',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 1,
-                                  padding: '4px',
-                                  paddingRight: '16px'
+                                  backgroundColor: '#f5f5f5',
+                                  borderRadius: '8px',
+                                  boxSizing: 'border-box',
+                                  width: { xs: '100%', sm: 'auto' },
+                                  height: '60px', // Fixed height for consistency
+                                  bgcolor: isImage ? '#f0f0f0' : getIconByFileType(src?.name)?.bgColor
                                 }}
                               >
-                                <img
-                                  src={getIconByFileType(src?.name)?.icon}
-                                  alt=''
-                                  style={{
-                                    height: '40px',
-                                    width: '40px'
+                                {isImage ? (
+                                  <img
+                                    style={{
+                                      height: '60px',
+                                      width: '60px',
+                                      borderRadius: '20%',
+                                      objectFit: 'cover',
+                                      padding: '8px'
+                                    }}
+                                    alt={`Uploaded image ${index + 1}`}
+                                    src={src?.fileSrc}
+                                  />
+                                ) : (
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                      padding: '4px',
+                                      paddingRight: '16px'
+                                    }}
+                                  >
+                                    <img
+                                      src={getIconByFileType(src?.name)?.icon}
+                                      alt=''
+                                      style={{
+                                        height: '40px',
+                                        width: '40px'
+                                      }}
+                                    />
+                                    <Tooltip title={src?.name}>
+                                      <Typography variant='body2' color='textSecondary'>
+                                        {truncateFilename(src?.name)}
+                                      </Typography>
+                                    </Tooltip>
+                                  </Box>
+                                )}
+                                <Box
+                                  sx={{
+                                    cursor: 'pointer',
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 0,
+                                    zIndex: 10,
+                                    height: '20px',
+                                    width: '20px',
+                                    borderRadius: '6px',
+                                    backgroundColor: theme.palette.customColors.secondaryBg,
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
                                   }}
-                                />
-                                <Tooltip title={src?.name}>
-                                  <Typography variant='body2' color='textSecondary'>
-                                    {truncateFilename(src?.name)}
-                                  </Typography>
-                                </Tooltip>
+                                  onClick={() => removeSelectedImage(index, src?.id)}
+                                >
+                                  <Icon icon='material-symbols-light:close' color='#fff' size={16} />
+                                </Box>
                               </Box>
-                            )}
-                            <Box
-                              sx={{
-                                cursor: 'pointer',
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                                zIndex: 10,
-                                height: '20px',
-                                width: '20px',
-                                borderRadius: '6px',
-                                backgroundColor: theme.palette.customColors.secondaryBg,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                              }}
-                              onClick={() => removeSelectedImage(index, src?.id)}
-                            >
-                              <Icon icon='material-symbols-light:close' color='#fff' size={16} />
-                            </Box>
-                          </Box>
-                        </FormControl>
-                      </Grid>
-                    )
-                  })}
-                </Grid>
-              </>
-              {/* <Button onClick={onSubmit}>save</Button> */}
+                            </FormControl>
+                          </Grid>
+                        )
+                      })}
+                    </Grid>
+                  </>
+                  {/* <Button onClick={onSubmit}>save</Button> */}
 
-              <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-                <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
-                  {'Save'}
-                </LoadingButton>
-                <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
-                  Cancel
-                </Button>
-              </Box>
-            </form>
-          </CardContent>
-        </Box>
-      </Box>
-
-      <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpenDelete(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-
-              // padding: '40px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this attachment?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                disabled={deleteBtnLoader}
-                onClick={() => setIsModalOpenDelete(false)}
-                variant='outlined'
-                sx={{
-                  color: 'gray',
-                  width: '45%'
-                }}
-              >
-                Cancel
-              </Button>
-
-              <LoadingButton
-                loading={deleteBtnLoader}
-                size='large'
-                variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
-              >
-                Delete
-              </LoadingButton>
+                  <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
+                    <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
+                      Cancel
+                    </Button>
+                    <LoadingButton loading={btnLoader} size='large' variant='contained' type='submit'>
+                      {isEditMode ? 'Save' : 'Add Entry'}
+                    </LoadingButton>
+                  </Box>
+                </form>
+              </CardContent>
             </Box>
           </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+
+          <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
+                onClick={() => setIsModalOpenDelete(false)}
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+
+                  // padding: '40px',
+                  alignItems: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this attachment?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    disabled={deleteBtnLoader}
+                    onClick={() => setIsModalOpenDelete(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  <LoadingButton
+                    loading={deleteBtnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
+              </Box>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

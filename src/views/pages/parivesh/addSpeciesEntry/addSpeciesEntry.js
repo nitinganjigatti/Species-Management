@@ -29,7 +29,10 @@ import { usePariveshContext } from 'src/context/PariveshContext'
 import moment from 'moment'
 import { useDropzone } from 'react-dropzone'
 import { useAuth } from 'src/hooks/useAuth'
-import AcquisitionForm from './AcquisitionFrom'
+import AcquisitionForm from './AcquisitionForm'
+import BirthForm from './BirthForm'
+import DeathForm from './DeathForm'
+import TransferForm from './TransferForm'
 
 // ** Styled Components
 
@@ -59,9 +62,22 @@ const schema = yup.object().shape({
   transaction_date: yup.date().required('Date is Required'),
   possession_type: yup.string().required('Reason is Required'),
   // Conditional fields for Transfer
+  // organization_transfer: yup.string().when('possession_type', {
+  //   is: 'transfer',
+  //   then: () => yup.string().required('Organization name is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
+
   organization_transfer: yup.string().when('possession_type', {
     is: 'transfer',
-    then: () => yup.string().required('Organization for transfer is required'),
+    then: () =>
+      yup
+        .string()
+        .required('Organization name is required')
+        .test('not-only-spaces', 'Organization name cannot be empty or just spaces', value => {
+          // Check if the trimmed value is not empty
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
 
@@ -76,26 +92,70 @@ const schema = yup.object().shape({
     then: () => yup.date().required('Date of Death is required'),
     otherwise: () => yup.date().notRequired()
   }),
-  animal_id: yup.string().when('possession_type', {
+  // death_animal_id: yup.string().when('possession_type', {
+  //   is: 'death',
+  //   then: () => yup.string().notRequired(),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
+  death_animal_id: yup.string().when('possession_type', {
     is: 'death',
-    then: () => yup.string().notRequired(),
-    otherwise: () => yup.string().notRequired()
+    then: () =>
+      yup
+        .string()
+        .nullable() // Allow null values
+        .notRequired() // Make it optional
+        .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
+          message: 'Invalid Animal ID format.',
+          excludeEmptyString: true // Exclude empty strings from validation
+        }),
+    otherwise: () =>
+      yup
+        .string()
+        .nullable() // Allow null values
+        .notRequired() // Make it optional
+        .matches(/^[a-zA-Z0-9]+(?:[-\/][a-zA-Z0-9]+)*$/, {
+          message: 'Invalid Animal ID format.',
+          excludeEmptyString: true // Exclude empty strings from validation
+        })
   }),
 
   // Conditional fields for Acquisition
+  // organization_acquire: yup.string().when('possession_type', {
+  //   is: 'acquisition',
+  //   then: () => yup.string().required('Organization name is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
+
   organization_acquire: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('Organization to acquire from is required'),
+    then: () =>
+      yup
+        .string()
+        .required('Organization name is required')
+        .test('not-only-spaces', 'Organization name cannot be empty or just spaces', value => {
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
+  // dgft_number: yup.string().when('possession_type', {
+  //   is: 'acquisition',
+  //   then: () => yup.string().required('DGFT Number is required'),
+  //   otherwise: () => yup.string().notRequired()
+  // }),
   dgft_number: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('DGFT Number is required'),
+    then: () =>
+      yup
+        .string()
+        .required('DGFT Number is required')
+        .test('not-only-spaces', 'DGFT Number cannot be empty or just spaces', value => {
+          return value ? value.trim().length > 0 : false
+        }),
     otherwise: () => yup.string().notRequired()
   }),
   cites_required: yup.string().when('possession_type', {
     is: 'acquisition',
-    then: () => yup.string().required('CITES required field is required'),
+    then: () => yup.string().required('CITES value is required'),
     otherwise: () => yup.string().notRequired()
   }),
   select_appendix: yup.string().when(['possession_type', 'cites_required'], {
@@ -135,7 +195,7 @@ const defaultValues = {
   cites_required: '',
   select_appendix: '',
   cites_number: '',
-  animal_id: '',
+  death_animal_id: '',
   attachments: [],
   dgft_attachments: []
 }
@@ -194,7 +254,7 @@ const AddSpeciesNewEntry = props => {
       attachments,
       death_date,
       reason_for_death,
-      animal_id,
+      death_animal_id,
       organization_transfer,
       organization_acquire,
       dgft_number,
@@ -222,7 +282,7 @@ const AddSpeciesNewEntry = props => {
     if (possession_type === 'death') {
       payload.reason_for_death = reason_for_death
       payload.death_date = moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss')
-      payload.animal_id = animal_id
+      payload.death_animal_id = death_animal_id
       payload.animal_count = 1
     } else {
       payload.animal_count = animal_count
@@ -267,22 +327,31 @@ const AddSpeciesNewEntry = props => {
     setDgftDisplayFile([])
   }
 
-  useEffect(() => {
-    debugger
-    console.log(speciesDetails, 'resetForm')
-    if (resetForm) {
-      reset({
-        ...defaultValues,
-        scientific_name: values.scientific_name,
-        common_name: values.common_name,
-        transaction_date: new Date(),
-        attachments: [],
-        dgft_attachments: []
-      })
-      setDisplayFile([])
-      setDgftDisplayFile([])
-    }
-  }, [resetForm])
+  const handleClose = () => {
+    // Reset the form, but keep the preserved values
+    reset({
+      ...defaultValues,
+      scientific_name: speciesDetails.scientific_name,
+      common_name: speciesDetails.common_name
+    })
+
+    // Clear errors for all fields
+    clearErrors()
+
+    // Reset state variables
+    setShowAdditionalFields(false)
+    setDisplayFile([])
+    setCurrentImageIndex(0)
+    setReasonType(null)
+    setDgftDisplayFile([])
+
+    // Ensure the preserved values are set in the form
+    setValue('scientific_name', speciesDetails.scientific_name)
+    setValue('common_name', speciesDetails.common_name)
+
+    // Call the original handleSidebarClose from props
+    handleSidebarClose()
+  }
 
   useEffect(() => {
     console.log(speciesDetails, 'scientificName')
@@ -291,6 +360,23 @@ const AddSpeciesNewEntry = props => {
       setValue('common_name', speciesDetails.common_name)
     }
   }, [speciesDetails, setValue])
+
+  useEffect(() => {
+    // debugger
+    console.log(speciesDetails, resetForm, 'resetForm')
+    if (resetForm) {
+      reset({
+        ...defaultValues,
+        scientific_name: speciesDetails.scientific_name,
+        common_name: speciesDetails.common_name,
+        transaction_date: new Date(),
+        attachments: [],
+        dgft_attachments: []
+      })
+      setDisplayFile([])
+      setDgftDisplayFile([])
+    }
+  }, [resetForm])
 
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -310,7 +396,77 @@ const AddSpeciesNewEntry = props => {
     fileInputRef?.current?.click()
   }
 
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: true,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     const filePromises = acceptedFiles.map(file => {
+  //       return new Promise(resolve => {
+  //         const reader = new FileReader()
+  //         reader.onloadend = () => {
+  //           resolve({ name: file.name, fileSrc: reader.result })
+  //         }
+  //         reader.readAsDataURL(file)
+  //       })
+  //     })
+
+  //     Promise.all(filePromises)
+  //       .then(fileDetails => {
+  //         setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+
+  //         // Update attachments in the form
+  //         const currentFiles = getValues('attachments') || []
+  //         setValue('attachments', [...currentFiles, ...acceptedFiles])
+
+  //         clearErrors('attachments')
+  //         setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+  //       })
+  //       .catch(error => {
+  //         console.error('Error processing files:', error)
+  //       })
+  //   }
+  // })
+
+  const handleFileSelect = files => {
+    const filesArray = Array.isArray(files) ? files : Array.from(files)
+    console.log(filesArray, 'Files Array') // Debugging line
+
+    const filePromises = filesArray.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          resolve({ name: file.name, fileSrc: reader.result })
+        }
+        reader.readAsDataURL(file)
+      })
+    })
+
+    Promise.all(filePromises)
+      .then(fileDetails => {
+        setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+
+        // Update attachments in the form
+        const currentFiles = getValues('attachments') || []
+        setValue('attachments', [...currentFiles, ...filesArray])
+
+        clearErrors('attachments')
+        setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+      })
+      .catch(error => {
+        console.error('Error processing files:', error)
+      })
+  }
+
+  // Dropzone setup
   const { getRootProps, getInputProps } = useDropzone({
+    onDrop: handleFileSelect,
     multiple: true,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
@@ -319,34 +475,9 @@ const AddSpeciesNewEntry = props => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-    },
-    onDrop: acceptedFiles => {
-      const filePromises = acceptedFiles.map(file => {
-        return new Promise(resolve => {
-          const reader = new FileReader()
-          reader.onloadend = () => {
-            resolve({ name: file.name, fileSrc: reader.result })
-          }
-          reader.readAsDataURL(file)
-        })
-      })
-
-      Promise.all(filePromises)
-        .then(fileDetails => {
-          setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
-
-          // Update attachments in the form
-          const currentFiles = getValues('attachments') || []
-          setValue('attachments', [...currentFiles, ...acceptedFiles])
-
-          clearErrors('attachments')
-          setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
-        })
-        .catch(error => {
-          console.error('Error processing files:', error)
-        })
     }
   })
+
   const removeSelectedImage = index => {
     setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
 
@@ -390,265 +521,265 @@ const AddSpeciesNewEntry = props => {
     return `${start}...${end}`
   }
 
-  const BirthFields = ({ control, errors }) => {
-    return (
-      <>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='gender'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                <MenuItem value='male'>Male</MenuItem>
-                <MenuItem value='female'>Female</MenuItem>
-                <MenuItem value='other'>Other</MenuItem>
-              </TextField>
-            )}
-          />
-          {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='animal_count'
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                label='Total Count*'
-                value={value}
-                onChange={onChange}
-                placeholder='Enter Total Count'
-                error={Boolean(errors.animal_count)}
-                name='animal_count'
-              />
-            )}
-          />
-          {errors.animal_count && (
-            <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-          )}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='transaction_date'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <SingleDatePicker
-                fullWidth
-                date={value}
-                width={'100%'}
-                dateFormat='dd/MM/yyyy'
-                onChangeHandler={onChange}
-                maxDate={new Date()}
-                customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-              />
-            )}
-          />
-          {errors.transaction_date && (
-            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-              {errors.transaction_date?.message}
-            </FormHelperText>
-          )}
-        </FormControl>
-      </>
-    )
-  }
+  // const BirthFields = ({ control, errors }) => {
+  //   return (
+  //     <>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='gender'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
+  //               <MenuItem value='male'>Male</MenuItem>
+  //               <MenuItem value='female'>Female</MenuItem>
+  //               <MenuItem value='other'>Other</MenuItem>
+  //             </TextField>
+  //           )}
+  //         />
+  //         {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='animal_count'
+  //           control={control}
+  //           rules={{ required: true }}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField
+  //               label='Total Count*'
+  //               value={value}
+  //               onChange={onChange}
+  //               placeholder='Enter Total Count'
+  //               error={Boolean(errors.animal_count)}
+  //               name='animal_count'
+  //             />
+  //           )}
+  //         />
+  //         {errors.animal_count && (
+  //           <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
+  //         )}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='transaction_date'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <SingleDatePicker
+  //               fullWidth
+  //               date={value}
+  //               width={'100%'}
+  //               dateFormat='dd/MM/yyyy'
+  //               onChangeHandler={onChange}
+  //               maxDate={new Date()}
+  //               customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
+  //             />
+  //           )}
+  //         />
+  //         {errors.transaction_date && (
+  //           <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+  //             {errors.transaction_date?.message}
+  //           </FormHelperText>
+  //         )}
+  //       </FormControl>
+  //     </>
+  //   )
+  // }
 
-  const DeathFields = ({ control, errors }) => {
-    return (
-      <>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='reason_for_death'
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                label='Reason for Death*'
-                value={value}
-                onChange={onChange}
-                placeholder='Enter Reason for Death'
-                error={Boolean(errors.reason_for_death)}
-                name='reason_for_death'
-              />
-            )}
-          />
+  // const DeathFields = ({ control, errors }) => {
+  //   return (
+  //     <>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='reason_for_death'
+  //           control={control}
+  //           rules={{ required: true }}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField
+  //               label='Reason for Death*'
+  //               value={value}
+  //               onChange={onChange}
+  //               placeholder='Enter Reason for Death'
+  //               error={Boolean(errors.reason_for_death)}
+  //               name='reason_for_death'
+  //             />
+  //           )}
+  //         />
 
-          {errors.reason_for_death && (
-            <FormHelperText sx={{ color: 'error.main' }}>{errors.reason_for_death?.message}</FormHelperText>
-          )}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='death_date'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <SingleDatePicker
-                fullWidth
-                date={value}
-                width={'100%'}
-                dateFormat='dd/MM/yyyy'
-                // showTimeSelect
-                // timeIntervals={15}
+  //         {errors.reason_for_death && (
+  //           <FormHelperText sx={{ color: 'error.main' }}>{errors.reason_for_death?.message}</FormHelperText>
+  //         )}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='death_date'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <SingleDatePicker
+  //               fullWidth
+  //               date={value}
+  //               width={'100%'}
+  //               dateFormat='dd/MM/yyyy'
+  //               // showTimeSelect
+  //               // timeIntervals={15}
 
-                onChangeHandler={onChange}
-                maxDate={new Date()}
-                customInput={<CustomInput label='Date of Death*' error={Boolean(errors.death_date)} />}
-              />
-            )}
-          />
-          {errors.death_date && (
-            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-              {errors.death_date?.message}
-            </FormHelperText>
-          )}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='animal_id'
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                label='Animal ID (Optional)'
-                value={value}
-                onChange={onChange}
-                placeholder='Enter Animal ID (Optional)'
-                error={Boolean(errors.animal_id)}
-                name='animal_id'
-              />
-            )}
-          />
+  //               onChangeHandler={onChange}
+  //               maxDate={new Date()}
+  //               customInput={<CustomInput label='Date of Death*' error={Boolean(errors.death_date)} />}
+  //             />
+  //           )}
+  //         />
+  //         {errors.death_date && (
+  //           <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+  //             {errors.death_date?.message}
+  //           </FormHelperText>
+  //         )}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='death_animal_id'
+  //           control={control}
+  //           rules={{ required: true }}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField
+  //               label='Animal ID (Optional)'
+  //               value={value}
+  //               onChange={onChange}
+  //               placeholder='Enter Animal ID (Optional)'
+  //               error={Boolean(errors.death_animal_id)}
+  //               name='death_animal_id'
+  //             />
+  //           )}
+  //         />
 
-          {errors.animal_id && (
-            <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_id?.message}</FormHelperText>
-          )}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='gender'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                <MenuItem value='male'>Male</MenuItem>
-                <MenuItem value='female'>Female</MenuItem>
-                <MenuItem value='other'>Other</MenuItem>
-              </TextField>
-            )}
-          />
-          {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='transaction_date'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <SingleDatePicker
-                fullWidth
-                date={value}
-                width={'100%'}
-                dateFormat='dd/MM/yyyy'
-                // showTimeSelect
-                // timeIntervals={15}
-                onChangeHandler={onChange}
-                maxDate={new Date()}
-                customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-              />
-            )}
-          />
-          {errors.transaction_date && (
-            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-              {errors.transaction_date?.message}
-            </FormHelperText>
-          )}
-        </FormControl>
-      </>
-    )
-  }
-  const TransferFields = ({ control, errors }) => {
-    return (
-      <>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='organization_transfer'
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                label='Which organization would you transfer?'
-                value={value}
-                type='text'
-                onChange={onChange}
-                placeholder='Which organization would you transfer?'
-                error={Boolean(errors.organization_transfer)}
-                name='organization_transfer'
-              />
-            )}
-          />
+  //         {errors.death_animal_id && (
+  //           <FormHelperText sx={{ color: 'error.main' }}>{errors.death_animal_id?.message}</FormHelperText>
+  //         )}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='gender'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
+  //               <MenuItem value='male'>Male</MenuItem>
+  //               <MenuItem value='female'>Female</MenuItem>
+  //               <MenuItem value='other'>Other</MenuItem>
+  //             </TextField>
+  //           )}
+  //         />
+  //         {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='transaction_date'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <SingleDatePicker
+  //               fullWidth
+  //               date={value}
+  //               width={'100%'}
+  //               dateFormat='dd/MM/yyyy'
+  //               // showTimeSelect
+  //               // timeIntervals={15}
+  //               onChangeHandler={onChange}
+  //               maxDate={new Date()}
+  //               customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
+  //             />
+  //           )}
+  //         />
+  //         {errors.transaction_date && (
+  //           <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+  //             {errors.transaction_date?.message}
+  //           </FormHelperText>
+  //         )}
+  //       </FormControl>
+  //     </>
+  //   )
+  // }
+  // const TransferFields = ({ control, errors }) => {
+  //   return (
+  //     <>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='organization_transfer'
+  //           control={control}
+  //           rules={{ required: true }}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField
+  //               label='Which organization would you transfer?'
+  //               value={value}
+  //               type='text'
+  //               onChange={onChange}
+  //               placeholder='Which organization would you transfer?'
+  //               error={Boolean(errors.organization_transfer)}
+  //               name='organization_transfer'
+  //             />
+  //           )}
+  //         />
 
-          {errors.organization_transfer && (
-            <FormHelperText sx={{ color: 'error.main' }}>{errors.organization_transfer?.message}</FormHelperText>
-          )}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='gender'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                <MenuItem value='male'>Male</MenuItem>
-                <MenuItem value='female'>Female</MenuItem>
-                <MenuItem value='other'>Other</MenuItem>
-              </TextField>
-            )}
-          />
-          {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-        </FormControl>
+  //         {errors.organization_transfer && (
+  //           <FormHelperText sx={{ color: 'error.main' }}>{errors.organization_transfer?.message}</FormHelperText>
+  //         )}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='gender'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
+  //               <MenuItem value='male'>Male</MenuItem>
+  //               <MenuItem value='female'>Female</MenuItem>
+  //               <MenuItem value='other'>Other</MenuItem>
+  //             </TextField>
+  //           )}
+  //         />
+  //         {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
+  //       </FormControl>
 
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='animal_count'
-            control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                label='Total Count*'
-                value={value}
-                onChange={onChange}
-                placeholder='Enter Total Count'
-                error={Boolean(errors.animal_count)}
-                name='animal_count'
-              />
-            )}
-          />
-          {errors.animal_count && (
-            <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-          )}
-        </FormControl>
-        <FormControl fullWidth sx={{ mb: 6 }}>
-          <Controller
-            name='transaction_date'
-            control={control}
-            render={({ field: { value, onChange } }) => (
-              <SingleDatePicker
-                fullWidth
-                date={value}
-                width={'100%'}
-                dateFormat='dd/MM/yyyy'
-                onChangeHandler={onChange}
-                maxDate={new Date()}
-                customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
-              />
-            )}
-          />
-          {errors.transaction_date && (
-            <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-              {errors.transaction_date?.message}
-            </FormHelperText>
-          )}
-        </FormControl>
-      </>
-    )
-  }
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='animal_count'
+  //           control={control}
+  //           rules={{ required: true }}
+  //           render={({ field: { value, onChange } }) => (
+  //             <TextField
+  //               label='Total Count*'
+  //               value={value}
+  //               onChange={onChange}
+  //               placeholder='Enter Total Count'
+  //               error={Boolean(errors.animal_count)}
+  //               name='animal_count'
+  //             />
+  //           )}
+  //         />
+  //         {errors.animal_count && (
+  //           <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
+  //         )}
+  //       </FormControl>
+  //       <FormControl fullWidth sx={{ mb: 6 }}>
+  //         <Controller
+  //           name='transaction_date'
+  //           control={control}
+  //           render={({ field: { value, onChange } }) => (
+  //             <SingleDatePicker
+  //               fullWidth
+  //               date={value}
+  //               width={'100%'}
+  //               dateFormat='dd/MM/yyyy'
+  //               onChangeHandler={onChange}
+  //               maxDate={new Date()}
+  //               customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
+  //             />
+  //           )}
+  //         />
+  //         {errors.transaction_date && (
+  //           <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+  //             {errors.transaction_date?.message}
+  //           </FormHelperText>
+  //         )}
+  //       </FormControl>
+  //     </>
+  //   )
+  // }
 
   return (
     <Drawer
@@ -668,7 +799,7 @@ const AddSpeciesNewEntry = props => {
       >
         <Typography variant='h6'>{editParams?.id !== null ? 'Edit' : 'Add'} New Entry</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+          <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
           </IconButton>
         </Box>
@@ -743,7 +874,7 @@ const AddSpeciesNewEntry = props => {
                     setValue('cites_required', '')
                     setValue('select_appendix', '')
                     setValue('cites_number', '')
-                    setValue('animal_id', '')
+                    setValue('death_animal_id', '')
                     setValue('attachments', [])
                     setValue('dgft_attachments', [])
                     setDisplayFile([])
@@ -762,9 +893,9 @@ const AddSpeciesNewEntry = props => {
               <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
             )}
           </FormControl>
-          {(possessionType === 'birth' || !possessionType) && <BirthFields control={control} errors={errors} />}
-          {possessionType === 'death' && <DeathFields control={control} errors={errors} />}
-          {possessionType === 'transfer' && <TransferFields control={control} errors={errors} />}
+          {(possessionType === 'birth' || !possessionType) && <BirthForm control={control} errors={errors} />}
+          {possessionType === 'death' && <DeathForm control={control} errors={errors} />}
+          {possessionType === 'transfer' && <TransferForm control={control} errors={errors} />}
           {possessionType === 'acquisition' && (
             <AcquisitionForm
               control={control}
@@ -780,11 +911,64 @@ const AddSpeciesNewEntry = props => {
             />
           )}
           <>
-            <Typography sx={{ mb: 6, mt: 6 }}>Attachments</Typography>
+            <Typography sx={{ mb: 6, mt: 6 }} variant='h6'>
+              Attachments
+            </Typography>
             <Grid container spacing={2} sx={{ mb: 6 }}>
               {/* {/ Add Attachments button /} */}
-              <Grid item xs={12} sm={12} md={7} lg={7}>
+              <Grid item xs={12} sm={12} md={7.2} lg={7.2}>
                 <FormControl fullWidth>
+                  <Controller
+                    name='attachments'
+                    control={control}
+                    render={({ field: { onChange, value, ...rest } }) => (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          border: '1px solid #d3d3d3',
+                          borderRadius: 1,
+                          padding: 2,
+                          cursor: 'pointer',
+                          height: '60px',
+                          width: '100%',
+                          position: 'relative'
+                        }}
+                      >
+                        <input
+                          type='file'
+                          multiple
+                          accept='image/*,application/pdf,.doc,.docx,.xls,.xlsx'
+                          style={{
+                            opacity: 0,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            cursor: 'pointer'
+                          }}
+                          {...getRootProps({ className: 'dropzone' })}
+                          onChange={e => {
+                            const files = Array.from(e.target.files)
+                            // onChange(files) // Update form state
+                            handleFileSelect(files) // Call parent handler
+                          }}
+                          {...rest}
+                        />
+                        <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                        <Typography variant='body1' color='textPrimary'>
+                          Add Attachments
+                        </Typography>
+                      </Box>
+                    )}
+                  />
+                  {errors.attachments && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                {/* <FormControl fullWidth>
                   <Controller
                     name='attachments'
                     control={control}
@@ -798,7 +982,7 @@ const AddSpeciesNewEntry = props => {
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 2,
+                          gap: 1,
                           border: '1px solid #d3d3d3',
                           borderRadius: 1,
                           padding: 4,
@@ -807,7 +991,8 @@ const AddSpeciesNewEntry = props => {
                           width: '100%' // Make sure it fills its grid item
                         }}
                       >
-                        <Icon icon='mdi:attachment-plus' size={1} />
+                        <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
+
                         <Typography variant='body1' color='textPrimary'>
                           Add Attachments
                         </Typography>
@@ -817,7 +1002,7 @@ const AddSpeciesNewEntry = props => {
                   {errors.attachments && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
                   )}
-                </FormControl>
+                </FormControl> */}
               </Grid>
 
               {/* {/ Uploaded files display /} */}
@@ -944,16 +1129,17 @@ const AddSpeciesNewEntry = props => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: 'background.default',
+            // backgroundColor: 'background.default',
             p: theme => theme.spacing(3, 3.255, 3, 5.255),
             bottom: 0,
             backgroundColor: '#FFFFFF',
-            boxShadow: '0px -4px 6px rgba(0, 0, 0, 0.25)'
+            boxShadow: '0px -4px 6px rgba(0, 0, 0, 0.25)',
+            zIndex: 1000
           }}
         >
           {/* <Button onClick={onSubmit}> save</Button> */}
           <Fragment>
-            <Button size='large' variant='outlined' sx={{ mr: 2, width: '100%' }} onClick={handleSidebarClose}>
+            <Button size='large' variant='outlined' sx={{ mr: 2, width: '100%' }} onClick={handleClose}>
               &nbsp; Cancel
             </Button>
             <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader} sx={{ width: '100%' }}>
