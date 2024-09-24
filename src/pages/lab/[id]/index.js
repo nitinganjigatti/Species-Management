@@ -170,7 +170,7 @@ const RequestDetails = () => {
     } else {
       fetchRequestDetails()
       setStatus(params?.row?.status)
-      Toaster({ type: 'success', message: response.message })
+      Toaster({ type: 'error', message: response.message })
     }
   }
 
