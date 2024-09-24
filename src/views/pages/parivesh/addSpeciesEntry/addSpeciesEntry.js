@@ -396,7 +396,77 @@ const AddSpeciesNewEntry = props => {
     fileInputRef?.current?.click()
   }
 
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: true,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     const filePromises = acceptedFiles.map(file => {
+  //       return new Promise(resolve => {
+  //         const reader = new FileReader()
+  //         reader.onloadend = () => {
+  //           resolve({ name: file.name, fileSrc: reader.result })
+  //         }
+  //         reader.readAsDataURL(file)
+  //       })
+  //     })
+
+  //     Promise.all(filePromises)
+  //       .then(fileDetails => {
+  //         setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+
+  //         // Update attachments in the form
+  //         const currentFiles = getValues('attachments') || []
+  //         setValue('attachments', [...currentFiles, ...acceptedFiles])
+
+  //         clearErrors('attachments')
+  //         setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+  //       })
+  //       .catch(error => {
+  //         console.error('Error processing files:', error)
+  //       })
+  //   }
+  // })
+
+  const handleFileSelect = files => {
+    const filesArray = Array.isArray(files) ? files : Array.from(files)
+    console.log(filesArray, 'Files Array') // Debugging line
+
+    const filePromises = filesArray.map(file => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          resolve({ name: file.name, fileSrc: reader.result })
+        }
+        reader.readAsDataURL(file)
+      })
+    })
+
+    Promise.all(filePromises)
+      .then(fileDetails => {
+        setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+
+        // Update attachments in the form
+        const currentFiles = getValues('attachments') || []
+        setValue('attachments', [...currentFiles, ...filesArray])
+
+        clearErrors('attachments')
+        setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
+      })
+      .catch(error => {
+        console.error('Error processing files:', error)
+      })
+  }
+
+  // Dropzone setup
   const { getRootProps, getInputProps } = useDropzone({
+    onDrop: handleFileSelect,
     multiple: true,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
@@ -405,34 +475,9 @@ const AddSpeciesNewEntry = props => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-    },
-    onDrop: acceptedFiles => {
-      const filePromises = acceptedFiles.map(file => {
-        return new Promise(resolve => {
-          const reader = new FileReader()
-          reader.onloadend = () => {
-            resolve({ name: file.name, fileSrc: reader.result })
-          }
-          reader.readAsDataURL(file)
-        })
-      })
-
-      Promise.all(filePromises)
-        .then(fileDetails => {
-          setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
-
-          // Update attachments in the form
-          const currentFiles = getValues('attachments') || []
-          setValue('attachments', [...currentFiles, ...acceptedFiles])
-
-          clearErrors('attachments')
-          setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
-        })
-        .catch(error => {
-          console.error('Error processing files:', error)
-        })
     }
   })
+
   const removeSelectedImage = index => {
     setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
 
@@ -876,6 +921,57 @@ const AddSpeciesNewEntry = props => {
                   <Controller
                     name='attachments'
                     control={control}
+                    render={({ field: { onChange, value, ...rest } }) => (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          border: '1px solid #d3d3d3',
+                          borderRadius: 1,
+                          padding: 2,
+                          cursor: 'pointer',
+                          height: '60px',
+                          width: '100%',
+                          position: 'relative'
+                        }}
+                      >
+                        <input
+                          type='file'
+                          multiple
+                          accept='image/*,application/pdf,.doc,.docx,.xls,.xlsx'
+                          style={{
+                            opacity: 0,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            cursor: 'pointer'
+                          }}
+                          {...getRootProps({ className: 'dropzone' })}
+                          onChange={e => {
+                            const files = Array.from(e.target.files)
+                            // onChange(files) // Update form state
+                            handleFileSelect(files) // Call parent handler
+                          }}
+                          {...rest}
+                        />
+                        <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                        <Typography variant='body1' color='textPrimary'>
+                          Add Attachments
+                        </Typography>
+                      </Box>
+                    )}
+                  />
+                  {errors.attachments && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
+                  )}
+                </FormControl>
+                {/* <FormControl fullWidth>
+                  <Controller
+                    name='attachments'
+                    control={control}
                     // rules={{ required: isAttachmentRequired ? 'Attachment is required' : false }}
                     render={({ field }) => (
                       <Box
@@ -895,7 +991,6 @@ const AddSpeciesNewEntry = props => {
                           width: '100%' // Make sure it fills its grid item
                         }}
                       >
-                        {/* <Icon icon='mdi:attachment-plus' size={1} /> */}
                         <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
 
                         <Typography variant='body1' color='textPrimary'>
@@ -907,7 +1002,7 @@ const AddSpeciesNewEntry = props => {
                   {errors.attachments && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
                   )}
-                </FormControl>
+                </FormControl> */}
               </Grid>
 
               {/* {/ Uploaded files display /} */}
