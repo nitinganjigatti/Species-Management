@@ -65,6 +65,7 @@ const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
     display: 'none'
   }
 }))
+
 const IncubatorDetails = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -211,7 +212,7 @@ const IncubatorDetails = () => {
               lineHeight: '19.36px'
             }}
           >
-            AID: {params.row.egg_code ? params.row.egg_code : '-'}
+            AEID: {params.row.egg_code ? params.row.egg_code : '-'}
           </Typography>{' '}
           <Typography
             style={{
@@ -221,7 +222,7 @@ const IncubatorDetails = () => {
               lineHeight: '14.52px'
             }}
           >
-            EID : {params.row.egg_number ? params.row.egg_number : '-'}
+            UEID : {params.row.egg_number ? params.row.egg_number : '-'}
           </Typography>{' '}
         </Box>
       )
@@ -255,6 +256,7 @@ const IncubatorDetails = () => {
                       params.row.egg_status === 'Hatched'
                     ? '#EFF5F2'
                     : '#EFF5F2',
+
                 // textAlign: 'center',
                 borderRadius: '4px',
                 display: 'inline-block'
@@ -613,6 +615,7 @@ const IncubatorDetails = () => {
           allocate_date: allocation_date,
           collected_date,
           taxonomy_id,
+
           // type:
           //   status === undefined
           //     ? 'eggs_received'
