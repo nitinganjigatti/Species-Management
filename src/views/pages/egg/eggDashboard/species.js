@@ -446,7 +446,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       if (res?.data?.success) {
         const data = res?.data?.data
         setDrawerHeadingCount(parseInt(data?.total_count || 0, 10))
-        setDrawerList(data?.success ? data.result : [])
+        setDrawerList(data?.result)
       } else {
         setDrawerList([])
       }

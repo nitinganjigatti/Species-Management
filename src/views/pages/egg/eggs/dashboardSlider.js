@@ -10,7 +10,7 @@ const DashboardSlider = ({
   setDrawerHeading,
   drawerHeadingCount,
   setDrawerHeadingCount,
-  drawerList = [],
+  drawerList,
   drawerLoading
 }) => {
   const theme = useTheme()
@@ -76,7 +76,7 @@ const DashboardSlider = ({
               <CircularProgress />
             </Box>
           ) : (
-            drawerList.length > 0 &&
+            drawerList?.length > 0 &&
             drawerList?.map((item, index) => (
               <Box
                 key={index}
