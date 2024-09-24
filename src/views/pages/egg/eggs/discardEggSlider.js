@@ -295,192 +295,196 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const Card = ({ list }) => {
+    console.log('list :>> ', list)
+
     return (
       <>
-        <Box
-          sx={{
-            m: '16px',
-            mt: 3,
-            bgcolor: 'white',
-            px: '20px',
-            py: '16px',
-            borderRadius: '8px',
-            border: '1px solid #C3CEC7'
-          }}
-        >
-          <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              <Avatar
-                variant='rounded'
-                alt='Medicine Image'
-                sx={{
-                  width: 35,
-                  height: 35,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
-                }}
-              >
-                {list?.default_icon ? (
-                  <img style={{ width: '100%', height: '100%' }} src={list?.default_icon} alt='Profile' />
-                ) : (
-                  <Icon icon='mdi:user' />
-                )}
-              </Avatar>
+        {discardList?.length > 0 && (
+          <Box
+            sx={{
+              m: '16px',
+              mt: 3,
+              bgcolor: 'white',
+              px: '20px',
+              py: '16px',
+              borderRadius: '8px',
+              border: '1px solid #C3CEC7'
+            }}
+          >
+            <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                <Avatar
+                  variant='rounded'
+                  alt='Medicine Image'
+                  sx={{
+                    width: 35,
+                    height: 35,
+                    mr: 4,
+                    borderRadius: '50%',
+                    background: '#E8F4F2',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {list?.default_icon ? (
+                    <img style={{ width: '100%', height: '100%' }} src={list?.default_icon} alt='Profile' />
+                  ) : (
+                    <Icon icon='mdi:user' />
+                  )}
+                </Avatar>
 
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
-                  <Typography
-                    sx={{
-                      color: '#000000',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-
-                      // textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    {list?.egg_code}
-                  </Typography>
-
-                  {list?.egg_condition && (
-                    <Box
+                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
+                    <Typography
                       sx={{
-                        borderRadius: '4px',
-                        px: 3,
+                        color: '#000000',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
 
-                        // width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-
-                        backgroundColor:
-                          list?.egg_condition === 'Rotten'
-                            ? '#FFD3D3'
-                            : list?.egg_condition === 'Broken'
-                            ? '#FFD3D3'
-                            : list?.egg_condition === 'Cracked'
-                            ? '#fdfad7'
-                            : list?.egg_condition === 'Discard'
-                            ? '#FFD3D3'
-                            : list?.egg_condition === 'Thin-Shelled'
-                            ? '#E8F4F2'
-                            : list?.egg_condition === 'Fertile'
-                            ? '#E8F4F2'
-                            : '#E1F9ED'
+                        // textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        boxSizing: 'border-box'
                       }}
                     >
-                      <Typography
+                      {list?.egg_code}
+                    </Typography>
+
+                    {list?.egg_condition && (
+                      <Box
                         sx={{
-                          color:
-                            list?.egg_condition === 'Fresh'
-                              ? '#006D35'
-                              : list?.egg_condition === 'Rotten'
-                              ? '#FA6140'
+                          borderRadius: '4px',
+                          px: 3,
+
+                          // width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+
+                          backgroundColor:
+                            list?.egg_condition === 'Rotten'
+                              ? '#FFD3D3'
                               : list?.egg_condition === 'Broken'
-                              ? '#FA6140'
+                              ? '#FFD3D3'
                               : list?.egg_condition === 'Cracked'
-                              ? '#E4B819'
+                              ? '#fdfad7'
                               : list?.egg_condition === 'Discard'
-                              ? '#fa6140'
-                              : list?.egg_condition === 'Hatched'
-                              ? '#32bfdd'
+                              ? '#FFD3D3'
                               : list?.egg_condition === 'Thin-Shelled'
-                              ? '#1F515B'
-                              : '#006D35',
-                          fontSize: '14px',
-                          fontWeight: '500'
+                              ? '#E8F4F2'
+                              : list?.egg_condition === 'Fertile'
+                              ? '#E8F4F2'
+                              : '#E1F9ED'
                         }}
                       >
-                        {list?.egg_condition}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
+                        <Typography
+                          sx={{
+                            color:
+                              list?.egg_condition === 'Fresh'
+                                ? '#006D35'
+                                : list?.egg_condition === 'Rotten'
+                                ? '#FA6140'
+                                : list?.egg_condition === 'Broken'
+                                ? '#FA6140'
+                                : list?.egg_condition === 'Cracked'
+                                ? '#E4B819'
+                                : list?.egg_condition === 'Discard'
+                                ? '#fa6140'
+                                : list?.egg_condition === 'Hatched'
+                                ? '#32bfdd'
+                                : list?.egg_condition === 'Thin-Shelled'
+                                ? '#1F515B'
+                                : '#006D35',
+                            fontSize: '14px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {list?.egg_condition}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
 
-                <Tooltip
-                  title={
-                    list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'
-                  }
-                >
-                  <Typography
-                    sx={{
-                      color: '#1F415B',
-                      fontSize: '16px',
-                      fontWeight: 500,
-                      lineHeight: '16.94px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      width: '240px'
-                    }}
+                  <Tooltip
+                    title={
+                      list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'
+                    }
                   >
-                    {list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'}
+                    <Typography
+                      sx={{
+                        color: '#1F415B',
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        lineHeight: '16.94px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        width: '240px'
+                      }}
+                    >
+                      {list?.default_common_name ? Utility?.toPascalSentenceCase(list.default_common_name) : 'Unknown'}
+                    </Typography>
+                  </Tooltip>
+                </Box>
+              </Box>
+              <Box>
+                {list?.activity_status === 'COMPLETED' ? (
+                  <Typography sx={{ fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
+                    Security checked
                   </Typography>
-                </Tooltip>
+                ) : (
+                  <Typography sx={{ fontSize: '12px', textAlign: 'center' }}>Security check pending</Typography>
+                )}
               </Box>
             </Box>
-            <Box>
-              {list?.activity_status === 'COMPLETED' ? (
-                <Typography sx={{ fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
-                  Security checked
+            <Divider />
+            <Stack sx={{ mt: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  Discarded On
                 </Typography>
-              ) : (
-                <Typography sx={{ fontSize: '12px', textAlign: 'center' }}>Security check pending</Typography>
-              )}
-            </Box>
+                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  {list?.discarded_date
+                    ? Utility.formatDisplayDate(Utility.convertUTCToLocal(list?.discarded_date))
+                    : '-'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Batch</Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  : &nbsp;&nbsp;&nbsp; {list?.request_id ? list?.request_id : '-'}
+                </Typography>
+              </Box>{' '}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>AID</Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  : &nbsp;&nbsp;&nbsp; {list?.egg_code ? list?.egg_code : '-'}
+                </Typography>
+              </Box>{' '}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>EID</Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  : &nbsp;&nbsp;&nbsp; {list?.egg_number ? list?.egg_number : '-'}
+                </Typography>
+              </Box>{' '}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  {tabStatus === 'site' ? 'Site' : 'Nursery'}
+                </Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  : &nbsp;&nbsp;&nbsp; {tabStatus === 'site' ? list?.site_name : list?.nursery_name}
+                </Typography>
+              </Box>{' '}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Reason</Typography>
+                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                  : &nbsp;&nbsp;&nbsp; {list?.egg_state ? list?.egg_state : '-'}
+                </Typography>
+              </Box>
+            </Stack>
           </Box>
-          <Divider />
-          <Stack sx={{ mt: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                Discarded On
-              </Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                {list?.discarded_date
-                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(list?.discarded_date))
-                  : '-'}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Batch</Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                : &nbsp;&nbsp;&nbsp; {list?.request_id ? list?.request_id : '-'}
-              </Typography>
-            </Box>{' '}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>AID</Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                : &nbsp;&nbsp;&nbsp; {list?.egg_code ? list?.egg_code : '-'}
-              </Typography>
-            </Box>{' '}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>EID</Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                : &nbsp;&nbsp;&nbsp; {list?.egg_number ? list?.egg_number : '-'}
-              </Typography>
-            </Box>{' '}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                {tabStatus === 'site' ? 'Site' : 'Nursery'}
-              </Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                : &nbsp;&nbsp;&nbsp; {tabStatus === 'site' ? list?.site_name : list?.nursery_name}
-              </Typography>
-            </Box>{' '}
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Reason</Typography>
-              <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
-                : &nbsp;&nbsp;&nbsp; {list?.egg_state ? list?.egg_state : '-'}
-              </Typography>
-            </Box>
-          </Stack>
-        </Box>
+        )}
       </>
     )
   }
@@ -530,7 +534,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
             setListCount(list?.total_count)
           } else {
-            setDiscardList([discardList])
+            // setDiscardList([discardList])
             setListCount('0')
           }
           setReachedEnd(false)
