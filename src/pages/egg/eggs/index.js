@@ -147,8 +147,8 @@ const EggList = () => {
     {
       width: 200,
       sortable: false,
-      field: 'id_identifier',
-      headerName: 'Id & Identifier',
+      field: 'egg_identifier',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
           <Typography
@@ -415,8 +415,8 @@ const EggList = () => {
     {
       width: 200,
       sortable: false,
-      field: 'id_identifier',
-      headerName: 'Id & Identifier',
+      field: 'egg_identifier',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
           <Typography
@@ -732,8 +732,8 @@ const EggList = () => {
     {
       width: 200,
       sortable: false,
-      field: 'id_identifier',
-      headerName: 'Id & Identifier',
+      field: 'egg_identifier',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
           <Typography
@@ -997,8 +997,8 @@ const EggList = () => {
     {
       width: 200,
       sortable: false,
-      field: 'id_identifier',
-      headerName: 'Id & Identifier',
+      field: 'egg_identifier',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
           <Typography
@@ -1459,8 +1459,8 @@ const EggList = () => {
     {
       width: 200,
       sortable: false,
-      field: 'id_identifier',
-      headerName: 'Id & Identifier',
+      field: 'egg_identifier',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
           <Typography
@@ -1719,8 +1719,8 @@ const EggList = () => {
     {
       width: 200,
       sortable: false,
-      field: 'id_identifier',
-      headerName: 'Id & Identifier',
+      field: 'egg_identifier',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
           <Typography
