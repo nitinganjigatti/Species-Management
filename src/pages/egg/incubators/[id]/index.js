@@ -201,7 +201,7 @@ const IncubatorDetails = () => {
       width: 170,
       sortable: false,
       field: 'egg_number',
-      headerName: 'ID & IDENTIFIER',
+      headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
