@@ -51,6 +51,7 @@ const NurseryAddComponent = ({
     control,
     handleSubmit,
     getValues,
+    watch,
     setValue,
     formState: { errors }
   } = useForm({
@@ -84,7 +85,7 @@ const NurseryAddComponent = ({
         <LoadingButton
           sx={{ height: '58px' }}
           fullWidth
-          disabled={loader}
+          disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
           size='large'
