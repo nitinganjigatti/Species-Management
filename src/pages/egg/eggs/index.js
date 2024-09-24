@@ -2713,6 +2713,7 @@ const EggList = () => {
                     </Button>
                   </Box>
                 )}
+                <Divider />
                 {tableData()}
               </TabPanel>
               <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
