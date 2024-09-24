@@ -1632,17 +1632,19 @@ const IndividualRequest = () => {
                                                             ></Icon>
                                                           </Box>
                                                         ) : null}
-                                                        {/* {el?.request_status === 'Alternate' && (
-                                                  <Grid
-                                                    sx={{
-                                                      minHeight: 104,
-                                                      alignContent: 'top',
-                                                      alignItems: 'center',
-                                                      mb: 4,
-                                                      border: '1px solid red'
-                                                    }}
-                                                  ></Grid>
-                                                )} */}
+                                                        {el?.request_status === 'Alternate' && (
+                                                          <Grid
+                                                            sx={{
+                                                              minHeight: 104,
+                                                              maxHeight: 104,
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'center',
+                                                              alignContent: 'top',
+                                                              alignItems: 'center'
+                                                            }}
+                                                          ></Grid>
+                                                        )}
                                                         {el?.alt_parent?.length > 0
                                                           ? el.alt_parent.map((el, index) => {
                                                               return (
@@ -2396,22 +2398,30 @@ const IndividualRequest = () => {
                                                               })
                                                             : null}
                                                           {selectedPharmacy.type === 'central' && (
-                                                            <Box
-                                                              sx={{
-                                                                textAlign: 'left',
-
-                                                                ...boxStyles(el?.request_status)
-                                                              }}
-                                                            >
+                                                            <>
                                                               {parseInt(el?.requested_qty) -
                                                                 parseInt(el?.dispatch_qty) >=
                                                                 1 &&
                                                                 el?.request_status !== 'Alternate' &&
                                                                 el?.request_status !== 'Not Available' &&
                                                                 el?.request_status !== 'Rejected' && (
-                                                                  <MenuWithDots options={generateOptions(el)} />
+                                                                  <Grid
+                                                                    sx={{
+                                                                      textAlign: 'left',
+                                                                      minHeight: 104,
+                                                                      maxHeight: 104,
+                                                                      display: 'flex',
+                                                                      flexDirection: 'column',
+                                                                      justifyContent: 'center',
+                                                                      alignContent: 'top',
+                                                                      alignItems: 'start',
+                                                                      ...boxStyles(el?.request_status)
+                                                                    }}
+                                                                  >
+                                                                    <MenuWithDots options={generateOptions(el)} />
+                                                                  </Grid>
                                                                 )}
-                                                            </Box>
+                                                            </>
                                                           )}
                                                           {el?.alt_parent?.length > 0
                                                             ? el.alt_parent
@@ -2422,7 +2432,15 @@ const IndividualRequest = () => {
                                                                       key={index}
                                                                       container
                                                                       direction='column'
-                                                                      sx={{ minHeight: 80 }}
+                                                                      sx={{
+                                                                        minHeight: 104,
+                                                                        maxHeight: 104,
+                                                                        display: 'flex',
+                                                                        flexDirection: 'column',
+                                                                        justifyContent: 'center',
+                                                                        alignContent: 'top',
+                                                                        alignItems: 'start'
+                                                                      }}
                                                                     >
                                                                       {selectedPharmacy.type === 'central' && (
                                                                         <Box sx={{ ...boxStyles(el?.request_status) }}>
@@ -2525,17 +2543,19 @@ const IndividualRequest = () => {
                                                       ></Icon>
                                                     </Box>
                                                   ) : null}
-                                                  {/* {el?.request_status === 'Alternate' && (
-                                                  <Grid
-                                                    sx={{
-                                                      minHeight: 104,
-                                                      alignContent: 'top',
-                                                      alignItems: 'center',
-                                                      mb: 4,
-                                                      border: '1px solid red'
-                                                    }}
-                                                  ></Grid>
-                                                )} */}
+                                                  {el?.request_status === 'Alternate' && (
+                                                    <Grid
+                                                      sx={{
+                                                        minHeight: 104,
+                                                        maxHeight: 104,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'center',
+                                                        alignContent: 'top',
+                                                        alignItems: 'center'
+                                                      }}
+                                                    ></Grid>
+                                                  )}
                                                   {el?.alt_parent?.length > 0
                                                     ? el.alt_parent.map((el, index) => {
                                                         return (
@@ -3270,21 +3290,29 @@ const IndividualRequest = () => {
                                                         })
                                                       : null}
                                                     {selectedPharmacy.type === 'central' && (
-                                                      <Box
-                                                        sx={{
-                                                          textAlign: 'left',
-
-                                                          ...boxStyles(el?.request_status)
-                                                        }}
-                                                      >
+                                                      <>
                                                         {parseInt(el?.requested_qty) - parseInt(el?.dispatch_qty) >=
                                                           1 &&
                                                           el?.request_status !== 'Alternate' &&
                                                           el?.request_status !== 'Not Available' &&
                                                           el?.request_status !== 'Rejected' && (
-                                                            <MenuWithDots options={generateOptions(el)} />
+                                                            <Grid
+                                                              sx={{
+                                                                textAlign: 'left',
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'center',
+                                                                alignContent: 'top',
+                                                                alignItems: 'start',
+                                                                ...boxStyles(el?.request_status)
+                                                              }}
+                                                            >
+                                                              <MenuWithDots options={generateOptions(el)} />
+                                                            </Grid>
                                                           )}
-                                                      </Box>
+                                                      </>
                                                     )}
                                                     {el?.alt_parent?.length > 0
                                                       ? el.alt_parent
@@ -3295,7 +3323,15 @@ const IndividualRequest = () => {
                                                                 key={index}
                                                                 container
                                                                 direction='column'
-                                                                sx={{ minHeight: 80 }}
+                                                                sx={{
+                                                                  minHeight: 104,
+                                                                  maxHeight: 104,
+                                                                  display: 'flex',
+                                                                  flexDirection: 'column',
+                                                                  justifyContent: 'center',
+                                                                  alignContent: 'top',
+                                                                  alignItems: 'start'
+                                                                }}
                                                               >
                                                                 {selectedPharmacy.type === 'central' && (
                                                                   <Box sx={{ ...boxStyles(el?.request_status) }}>
