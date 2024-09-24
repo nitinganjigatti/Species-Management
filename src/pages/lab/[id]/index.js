@@ -578,10 +578,12 @@ const RequestDetails = () => {
     e.preventDefault()
     e.stopPropagation()
 
-    const id = item?.id
+    const testId = item?.id
+
     setFileId(item?.id)
     try {
-      const response = await DeleteLAbRequestAttachment(id)
+      const params = { lab_test_id: id }
+      const response = await DeleteLAbRequestAttachment(testId, params)
       fetchRequestDetails()
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })

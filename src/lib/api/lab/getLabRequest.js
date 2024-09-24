@@ -99,11 +99,11 @@ export async function GetLabRequestTestStatusById({ params }) {
   return response.data
 }
 
-export async function DeleteLAbRequestAttachment(id) {
+export async function DeleteLAbRequestAttachment(id, params) {
   try {
-    const url = `medical/${id}/${LabFileDelete}`
+    const url = `medical/${id}/${LabFileDelete}?${params?.lab_test_id}`
 
-    const response = await axiosPost({ url })
+    const response = await axiosPost({ url: url })
 
     return response?.data
   } catch (error) {
