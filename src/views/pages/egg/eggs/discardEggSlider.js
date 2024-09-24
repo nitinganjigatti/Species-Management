@@ -87,6 +87,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setTabStatus(value)
     setSearch('')
     setIsSearchOpen(false)
+    setPage(1)
     setIsFilterOpen(false)
     setDiscardList([])
     setListCount('0')
@@ -543,12 +544,14 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const handleSearch = value => {
     setSearch(value)
+    setPage(1)
     searchData(value)
   }
 
   const searchData = useCallback(
     debounce(async search => {
       // setSearch(search)
+      setPage(1)
       setDiscardList([])
       setListCount('0')
 
