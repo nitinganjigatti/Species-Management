@@ -115,7 +115,7 @@ const ReceievedMedicines = () => {
 
   const handleclick = () => {
     Router.push({
-      pathname: '/pharmacy/purchase/month-wise-purchase'
+      pathname: '/pharmacy/reports/month-wise-purchase'
     })
   }
 

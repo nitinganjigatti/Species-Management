@@ -190,7 +190,7 @@ const MonthlyDispatchChart = () => {
 
   const handleclick = () => {
     Router.push({
-      pathname: '/pharmacy/dispatch/month-wise-dispatch'
+      pathname: '/pharmacy/reports/month-wise-dispatch'
     })
   }
 
