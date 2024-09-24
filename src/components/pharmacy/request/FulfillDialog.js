@@ -849,24 +849,46 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       title='Add Item'
                     />
                   ) : (
-                    <LoadingButton
-                      size='large'
-                      variant='contained'
-                      loading={submitLoader}
-                      type='submit'
+                    <Box sx={{ float: 'right', my: 2 }}>
+                      <LoadingButton
+                        size='large'
+                        variant='outlined'
+                        sx={{ mx: 2 }}
+                        onClick={() => {
+                          close()
+                        }}
 
-                      // onClick={() => {
-                      //   const count = Object.values(rowErrors).filter(item => item.status).length
-                      //   if (
-                      //     count <= 0 &&
-                      //     totalMedicine <=
-                      //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
-                      //   )
-                      //     dispatchRequest()
-                      // }}
-                    >
-                      Submit
-                    </LoadingButton>
+                        // onClick={() => {
+                        //   const count = Object.values(rowErrors).filter(item => item.status).length
+                        //   if (
+                        //     count <= 0 &&
+                        //     totalMedicine <=
+                        //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
+                        //   )
+                        //     dispatchRequest()
+                        // }}
+                      >
+                        cancel
+                      </LoadingButton>
+                      <LoadingButton
+                        size='large'
+                        variant='contained'
+                        loading={submitLoader}
+                        type='submit'
+
+                        // onClick={() => {
+                        //   const count = Object.values(rowErrors).filter(item => item.status).length
+                        //   if (
+                        //     count <= 0 &&
+                        //     totalMedicine <=
+                        //       checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)
+                        //   )
+                        //     dispatchRequest()
+                        // }}
+                      >
+                        Save
+                      </LoadingButton>
+                    </Box>
                   )}
                   {openSnackbar.open ? (
                     <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
