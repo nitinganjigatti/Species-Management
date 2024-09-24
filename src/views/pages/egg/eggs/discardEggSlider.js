@@ -33,6 +33,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
+  console.log('discardList :>> ', discardList)
 
   // console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
@@ -67,6 +68,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const handleDropDownChange = event => {
     setSelectedDropDown(event.target.value)
+    setDiscardList([])
+    setListCount('')
     const currentDate = moment().format('YYYY-MM-DD')
 
     const fromDate = moment()
@@ -82,7 +85,16 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const handleTabChange = (event, value) => {
     setTabStatus(value)
+    setSearch('')
+    setIsSearchOpen(false)
+    setIsFilterOpen(false)
     setDiscardList([])
+    setListCount('0')
+    setSelectedDropDown('all')
+    setApplyFilters({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+
+    setSelectedOptions({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+    setFilterList([])
   }
 
   const TabBadge = ({ label, totalCount }) => (
@@ -481,6 +493,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const DiscardList = async (q, currentDate, fromDate) => {
     // setLoader(true)
+    // setDiscardList([])
     try {
       const nurseryIds = applyFilters.Nursery?.map(option => option.id)
       const speciesIds = applyFilters.Species?.map(option => option.id)
@@ -495,23 +508,31 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         page_no: page,
         from_date: fromDate ? fromDate : '',
         to_date: currentDate ? currentDate : '',
-        taxonomy_id: JSON.stringify(speciesIds) || [],
-        batch_id: JSON.stringify(batchIds) || [],
-        nursery_id: JSON.stringify(nurseryIds) || [],
-        security_status: JSON.stringify(SecurityIds) || [],
-        egg_condition_id: JSON.stringify(conditionIds) || [],
-        egg_state_id: JSON.stringify(reasonIds) || []
+        taxonomy_id: speciesIds.length > 0 ? JSON.stringify(speciesIds) : '',
+        batch_id: batchIds.length > 0 ? JSON.stringify(batchIds) : '',
+        nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
+        security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
+        egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
+        egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : ''
       }
+
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
 
-        // setDiscardList(list?.result)
+        if (res?.data?.data.success) {
+          // setDiscardList(list?.result)
+          if (list?.result?.length > 0) {
+            console.log('list?.result?.length :>> ', list?.result?.length)
+            setDiscardList([...discardList, ...list?.result])
+            setListCount(list?.total_count)
+          } else {
+            setDiscardList([])
+            setListCount('0')
+          }
+          setReachedEnd(false)
 
-        setDiscardList([...discardList, ...list?.result])
-        setListCount(list?.total_count)
-        setReachedEnd(false)
-
-        // setLoader(false)
+          // setLoader(false)
+        }
       })
     } catch (error) {
       // setLoader(false)
@@ -527,17 +548,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const searchData = useCallback(
     debounce(async search => {
-      setSearch(search)
+      // setSearch(search)
+      setDiscardList([])
+      setListCount('0')
 
       try {
-        await DiscardList(search)
+        await DiscardList(search, '', '')
 
         // Add other conditions for different menus if needed
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [handleSearch]
+    []
   )
 
   useEffect(() => {
@@ -644,7 +667,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 sx={{
                   bgcolor: '#eff5f2',
                   py: 1,
-                  height: 'calc(100vh - 330px)',
+                  height: 'calc(100vh - 310px)',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
