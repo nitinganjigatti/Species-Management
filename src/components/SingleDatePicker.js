@@ -16,6 +16,7 @@ const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, nam
     <DatePickerWrapper>
       <DatePicker
         disabled={disabled ? disabled : null}
+        isClearable
         showIcon
         selected={date}
         // dateFormat='dd/MM/yyyy'

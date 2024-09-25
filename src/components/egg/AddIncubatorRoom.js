@@ -66,7 +66,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   const NurseryList = async q => {
     try {
       const params = {
-        // type: ['length', 'weight'],
+        type: 'only_active',
         search: q,
         page: 1,
         limit: 50

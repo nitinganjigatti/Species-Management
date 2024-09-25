@@ -828,10 +828,11 @@ const ConditionSlider = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.current_state?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '100%' }}>
-                      <InputLabel id='select_stage'>Select Stage*</InputLabel>
+                      <InputLabel id='select_stage'>
+                        {statusID === '3' ? 'Select Reason* ' : 'Select Stage* '}
+                      </InputLabel>
                       <Controller
                         name='select_stage'
                         control={control}
@@ -957,7 +958,7 @@ const ConditionSlider = ({
                                 }
                               }}
                               InputProps={{
-                                endAdornment: <InputAdornment position='end'>MM</InputAdornment>
+                                endAdornment: <InputAdornment position='end'>mm</InputAdornment>
                               }}
                               // inputProps={{ min: 1 }}
                             />
@@ -1823,11 +1824,32 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female'
+                                          ? 'F'
+                                          : val?.sex === 'male'
+                                          ? 'M'
+                                          : val?.sex === 'undetermined'
+                                          ? 'UD'
+                                          : val?.sex === 'indeterminate'
+                                          ? 'ID'
+                                          : val?.sex === 'group'
+                                          ? 'G'
+                                          : '-'}
                                       </Typography>
                                     </Box>
 
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      {/* <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                        <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                      </Typography> */}
                                       <Typography
                                         sx={{
                                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -1939,11 +1961,32 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female'
+                                          ? 'F'
+                                          : val?.sex === 'male'
+                                          ? 'M'
+                                          : val?.sex === 'undetermined'
+                                          ? 'UD'
+                                          : val?.sex === 'indeterminate'
+                                          ? 'ID'
+                                          : val?.sex === 'group'
+                                          ? 'G'
+                                          : '-'}
                                       </Typography>
                                     </Box>
 
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      {/* <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                        <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                      </Typography> */}
                                       <Typography
                                         sx={{
                                           color: theme.palette.customColors.OnSurfaceVariant,

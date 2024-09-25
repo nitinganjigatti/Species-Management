@@ -75,6 +75,7 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
   const searchSections = useCallback(
     debounce(async (searchText, selected_site_id) => {
       try {
+        debugger
         setLoadingSections(true)
         await getSectionList({
           zoo_id: zoo_id.toString(),
@@ -108,7 +109,8 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
         await getEnclosures({
           section_id: section_id,
           q: searchText,
-          ignore_sys_gen: 1
+          ignore_sys_gen: 1,
+          limit: 50
         }).then(res => {
           if (res?.data?.length > 0) {
             setEnclosureList(res?.data)
@@ -149,9 +151,9 @@ const EnclosureSelectionDialog = ({ handleClose, open, getEnclosureDetails }) =>
     handleClose(true)
   }
 
-  useEffect(() => {
-    searchSections('', '')
-  }, [])
+  // useEffect(() => {
+  //   searchSections('', '')
+  // }, [])
 
   return (
     <>

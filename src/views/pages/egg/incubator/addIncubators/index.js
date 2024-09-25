@@ -1,23 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/router'
 
-// ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import React from 'react'
 import { LoadingButton } from '@mui/lab'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
-import * as yup from 'yup'
 import TextField from '@mui/material/TextField'
 import { Autocomplete, FormControl, FormHelperText, Typography, debounce } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { Controller, useForm } from 'react-hook-form'
+
+import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Controller, useForm } from 'react-hook-form'
+
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
-import { styled } from '@mui/material/styles'
 import { addIncubator, updateIncubator } from 'src/lib/api/egg/incubator'
-import { useRouter } from 'next/router'
+
 import Toaster from 'src/components/Toaster'
 
 const AddIncubators = ({
@@ -27,11 +27,11 @@ const AddIncubators = ({
   isEdit,
   sidebarOpen,
   handleSidebarClose,
-  isPreFilled,
   detailsApi
 }) => {
   const router = useRouter()
   const { id } = router.query
+
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [defaultRoom, setDefaultRoom] = useState(null)
   const [nurseryList, setNurseryList] = useState([])
@@ -52,105 +52,10 @@ const AddIncubators = ({
     maxNumberOfEggs: yup.string().required('Max number of eggs is required')
   })
 
-  useEffect(() => {
-    if (isEdit && sidebarOpen) {
-      try {
-        setValue('incubator_name', incubatorDetail?.incubator_name)
-        setValue('nursery', incubatorDetail?.nursery_id)
-        setValue('room', incubatorDetail?.room_id)
-        setValue('maxNumberOfEggs', incubatorDetail?.max_eggs)
-        RoomList(incubatorDetail?.nursery_id)
-      } catch (error) {
-        console.log('error', error)
-      }
-    }
-    if (isPreFilled) {
-      // console.log('isPreFilled :>> ', isPreFilled)
-      RoomList(isPreFilled?.nursery_id)
-      setDefaultNursery({ nursery_id: isPreFilled?.nursery_id, nursery_name: isPreFilled?.nursery_name })
-      setValue('nursery', isPreFilled?.nursery_id)
-      setDefaultRoom({ room_id: isPreFilled?.room_id, room_name: isPreFilled?.room_name })
-      setValue('room', isPreFilled?.room_id)
-    }
-  }, [sidebarOpen])
-
-  useEffect(() => {
-    if (incubatorDetail) {
-      RoomList(incubatorDetail?.nursery_id)
-      setValue('nursery', incubatorDetail?.nursery_id)
-      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
-      setValue('room', incubatorDetail?.room_id)
-      setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
-      setValue('incubator_name', incubatorDetail?.incubator_name)
-      setValue('maxNumberOfEggs', Number(incubatorDetail?.max_eggs))
-    }
-  }, [incubatorDetail])
-
-  const NurseryList = async (q, id) => {
-    try {
-      const params = {
-        page: 1,
-        limit: 50,
-        nursery_id: id,
-        search: q
-      }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  const searchNursery = useCallback(
-    debounce(async q => {
-      try {
-        await NurseryList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const RoomList = async (id, q) => {
-    try {
-      const params = {
-        page: 1,
-        limit: 50,
-        nursery_id: id,
-        search: q
-      }
-      await GetRoomList({ params: params }).then(res => {
-        setRoomList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  const searchRoom = useCallback(
-    debounce(async (id, q) => {
-      try {
-        await RoomList(id, q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  useEffect(() => {
-    NurseryList()
-  }, [])
-
   const {
     reset,
     control,
     setValue,
-    setError,
-    watch,
-    getValues,
     clearErrors,
     handleSubmit,
     formState: { errors }
@@ -162,62 +67,95 @@ const AddIncubators = ({
     reValidateMode: 'onChange'
   })
 
-  const onSubmit = val => {
-    setBtnDisabled(true)
-    if (isEdit) {
-      try {
-        updateIncubator(id, {
-          nursery_id: val?.nursery,
-          room_id: val?.room,
-          max_eggs: Number(val?.maxNumberOfEggs),
-          incubator_name: val?.incubator_name
-        }).then(res => {
-          if (res.success) {
-            reset()
-            handleSidebarClose()
-            setBtnDisabled(false)
-            Toaster({ type: 'success', message: res.message })
-            if (actionApi) {
-              actionApi(searchValue)
-            }
-          } else {
-            setBtnDisabled(false)
-            Toaster({ type: 'error', message: res.message })
-          }
-        })
-      } catch (error) {
-        setBtnDisabled(false)
-        console.log(error)
+  // Fetch nursery list with debouncing
+  const fetchNurseryList = async (q = '', nurseryId) => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        type: 'only_active',
+        nursery_id: nurseryId,
+        search: q
       }
-    } else {
-      try {
-        addIncubator({
-          nursery_id: val?.nursery,
-          room_id: val?.room,
-          max_eggs: val?.maxNumberOfEggs,
-          incubator_name: val?.incubator_name
-        }).then(res => {
-          if (res.success) {
-            reset()
-            if (actionApi) {
-              actionApi('')
-            }
-            if (detailsApi) {
-              detailsApi()
-            }
-            handleSidebarClose()
-            setBtnDisabled(false)
-            Toaster({ type: 'success', message: res.message })
-          } else {
-            setBtnDisabled(false)
-            Toaster({ type: 'error', message: res.message })
-          }
-        })
-      } catch (error) {
-        setBtnDisabled(false)
-        console.log(error)
-      }
+      const res = await GetNurseryList({ params })
+      setNurseryList(res?.data?.result || [])
+    } catch (e) {
+      console.error(e)
     }
+  }
+  const searchNursery = useCallback(debounce(fetchNurseryList, 1000), [])
+
+  // Fetch room list with debouncing
+  const fetchRoomList = async (nurseryId, q = '') => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        status: 'active',
+        nursery_id: nurseryId,
+        search: q
+      }
+      const res = await GetRoomList({ params })
+      setRoomList(res?.data?.result || [])
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  const searchRoom = useCallback(debounce(fetchRoomList, 1000), [])
+
+  // Prepopulate the form with incubator details if in edit mode
+  useEffect(() => {
+    if (isEdit && sidebarOpen && incubatorDetail) {
+      setValue('incubator_name', incubatorDetail?.incubator_name || '')
+      setValue('nursery', incubatorDetail?.nursery_id || '')
+      setValue('room', incubatorDetail?.room_id || '')
+      setValue('maxNumberOfEggs', incubatorDetail?.max_eggs || '')
+      setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
+      setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
+      fetchRoomList(incubatorDetail?.nursery_id)
+    }
+  }, [incubatorDetail])
+
+  useEffect(() => {
+    if (sidebarOpen && nurseryList?.length === 0) {
+      fetchNurseryList()
+    }
+  }, [sidebarOpen])
+
+  const handleFormSubmit = async data => {
+    setBtnDisabled(true)
+
+    const incubatorPayload = {
+      nursery_id: data.nursery,
+      room_id: data.room,
+      max_eggs: Number(data.maxNumberOfEggs),
+      incubator_name: data.incubator_name
+    }
+
+    try {
+      const res = isEdit ? await updateIncubator(id, incubatorPayload) : await addIncubator(incubatorPayload)
+
+      if (res.success) {
+        resetForm()
+        handleSidebarClose()
+        Toaster({ type: 'success', message: res.message })
+        actionApi?.(searchValue)
+        detailsApi?.()
+      } else {
+        Toaster({ type: 'error', message: res.message })
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setBtnDisabled(false)
+    }
+  }
+
+  const resetForm = () => {
+    reset()
+    setDefaultNursery(null)
+    setDefaultRoom(null)
+    setRoomList([])
   }
 
   const onError = errors => {
@@ -239,9 +177,6 @@ const AddIncubators = ({
     )
   }
 
-  // const CustomPopper = styled(props => <Popper {...props} placement='bottom-start' />)({
-  //   zIndex: 2000 // Ensure it appears above other elements
-  // })
   return (
     <Drawer
       anchor='right'
@@ -251,7 +186,7 @@ const AddIncubators = ({
         '& .MuiDrawer-paper': { width: '562px' }
       }}
     >
-      <form onSubmit={handleSubmit(onSubmit, onError)}>
+      <form onSubmit={handleSubmit(handleFormSubmit, onError)}>
         <Box
           sx={{
             height: '100vh',
@@ -284,8 +219,7 @@ const AddIncubators = ({
               size='small'
               onClick={() => {
                 handleSidebarClose()
-                reset()
-                setDefaultNursery(null)
+                resetForm()
               }}
               sx={{ color: 'text.primary' }}
             >
@@ -308,10 +242,6 @@ const AddIncubators = ({
               }}
             >
               <FormControl fullWidth>
-                {/* <InputLabel error={Boolean(errors?.nursery)} id='nursery'>
-                      Nursery *
-                    </InputLabel> */}
-
                 <Controller
                   name='nursery'
                   control={control}
@@ -320,9 +250,8 @@ const AddIncubators = ({
                     <Autocomplete
                       name='nursery'
                       value={defaultNursery}
-                      // value={value}
                       disablePortal
-                      disabled={isEdit || isPreFilled}
+                      disabled={isEdit}
                       id='nursery'
                       options={nurseryList?.length > 0 ? nurseryList : []}
                       getOptionLabel={option => option.nursery_name}
@@ -330,14 +259,14 @@ const AddIncubators = ({
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultNursery(null)
-
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
-
-                          // console.log('val', val)
                           setValue('room', '')
-                          RoomList(val.nursery_id)
+                          setDefaultRoom(null)
+                          clearErrors('room')
+
+                          fetchRoomList(val.nursery_id)
 
                           return onChange(val.nursery_id)
                         }
@@ -354,29 +283,6 @@ const AddIncubators = ({
                         />
                       )}
                     />
-
-                    // <Select
-                    //   name='nursery'
-                    //   value={value}
-                    //   label='Nursery *'
-                    //   onChange={e => {
-                    //     // onChange()
-                    //     setValue('nursery', e.target.value)
-                    //     setValue('room', '')
-                    //     RoomList(e.target.value)
-                    //   }}
-                    //   disabled={isEdit || isPreFilled}
-                    //   error={Boolean(errors?.nursery)}
-                    //   labelId='nursery'
-                    // >
-                    //   {nurseryList?.map((item, index) => {
-                    //     return (
-                    //       <MenuItem key={index} value={item?.nursery_id}>
-                    //         {item?.nursery_name}
-                    //       </MenuItem>
-                    //     )
-                    //   })}
-                    // </Select>
                   )}
                 />
                 {errors?.nursery && (
@@ -389,30 +295,11 @@ const AddIncubators = ({
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
-                    // <Select
-                    //   name='room'
-                    //   value={value}
-                    //   label='Room'
-                    //   onChange={onChange}
-                    //   error={Boolean(errors?.nursery)}
-                    //   labelId='room'
-                    //   disabled={isEdit || isPreFilled}
-                    // >
-                    //   {roomList?.map((item, index) => {
-                    //     return (
-                    //       <MenuItem key={index} value={item?.room_id}>
-                    //         {item?.room_name}
-                    //       </MenuItem>
-                    //     )
-                    //   })}
-                    // </Select>
-
                     <Autocomplete
                       name='room'
                       value={defaultRoom}
-                      // value={value}
                       disablePortal
-                      disabled={isEdit || isPreFilled}
+                      disabled={isEdit}
                       id='room'
                       options={roomList?.length > 0 ? roomList : []}
                       getOptionLabel={option => option.room_name}
@@ -420,14 +307,10 @@ const AddIncubators = ({
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultRoom(null)
-
                           return onChange('')
                         } else {
                           setDefaultRoom(val)
-
-                          // console.log('val', val)
                           setValue('room', '')
-
                           return onChange(val.room_id)
                         }
                       }}
@@ -491,7 +374,6 @@ const AddIncubators = ({
               </FormControl>
             </Box>
           </Box>
-
           <Box
             sx={{
               height: '122px',

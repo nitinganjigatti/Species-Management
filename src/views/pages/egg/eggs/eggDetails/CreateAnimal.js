@@ -15,13 +15,6 @@ import {
   TextField,
   Typography,
   debounce,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  DialogContentText,
-  Button,
-  Grid,
   InputAdornment
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
@@ -590,6 +583,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionDate?.message}</FormHelperText>
                     )}
                   </FormControl>
+
                   {Object.keys(enclosureData).length <= 0 && (
                     <div style={{ zIndex: 2, position: 'relative' }}>
                       <div
@@ -640,52 +634,52 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       ></EnclosureCard>
                     </div>
                   )}
-                  {/* <FormControl fullWidth sx={{ mb: 4 }}>
-                      <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
-                      <Controller
-                        name='enclosure'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange, onClick } }) => (
-                          <Select
-                            name='enclosure'
-                            value={value}
-                            label='Select Enclosure *'
-                            onChange={onChange}
-                            labelId='enclosure'
-                            error={Boolean(errors?.enclosure)}
-                            disabled
-                          >
-                            {eggDetails?.enclosure_data?.map(val => (
-                              <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
 
-                                <Box
-                                  sx={{
-                                    backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                    display: 'flex',
-                                    padding: '12px',
-                                    width: '100%',
-                                    alignItems: 'center',
-                                    borderRadius: '8px',
-                                    gap: '12px'
-                                  }}
-                                >
-                                  <Box sx={{ height: '44px', width: '44px' }}>
-                                    <Avatar
-                                      variant='rounded'
-                                      alt='Medicine Image'
-                                      sx={{
-                                        height: '100%',
-                                        width: '100%',
-                                        borderRadius: '50%',
-                                        border: '1px',
-                                        '& .css-1pqm26d-MuiAvatar-img': {
-                                          objectFit: 'contain'
-                                        }
-                                      }}
-                                      src={val?.enclosure_qr_image}
-                                    />
-                                  </Box>
+                  {/* <FormControl fullWidth sx={{ mb: 4 }}>
+                    <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
+                    <Controller
+                      name='enclosure'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <Select
+                          name='enclosure'
+                          value={value}
+                          label='Select Enclosure *'
+                          onChange={onChange}
+                          labelId='enclosure'
+                          error={Boolean(errors?.enclosure)}
+                        >
+                          {eggDetails?.enclosure_data?.map(val => (
+                            <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
+                              {val?.user_enclosure_name}
+                              <Box
+                                sx={{
+                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                  display: 'flex',
+                                  padding: '12px',
+                                  width: '100%',
+                                  alignItems: 'center',
+                                  borderRadius: '8px',
+                                  gap: '12px'
+                                }}
+                              >
+                                <Box sx={{ height: '44px', width: '44px' }}>
+                                  <Avatar
+                                    variant='rounded'
+                                    alt='Medicine Image'
+                                    sx={{
+                                      height: '100%',
+                                      width: '100%',
+                                      borderRadius: '50%',
+                                      border: '1px',
+                                      '& .css-1pqm26d-MuiAvatar-img': {
+                                        objectFit: 'contain'
+                                      }
+                                    }}
+                                    src={val?.enclosure_qr_image}
+                                  />
+                                </Box>
 
                                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                     <Typography
@@ -699,38 +693,37 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
                                     </Typography>
 
-                                    <Typography
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: '400',
-                                        lineHeight: '16.94px'
-                                      }}
-                                    >
-                                      Sec: {val?.section_name ? val?.section_name : '-'}
-                                    </Typography>
-                                    <Typography
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: '400',
-                                        lineHeight: '16.94px'
-                                      }}
-                                    >
-                                      Site: {val?.site_name ? val?.site_name : '-'}
-                                    </Typography>
-                                  </Box>
+                                  <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '14px',
+                                      fontWeight: '400',
+                                      lineHeight: '16.94px'
+                                    }}
+                                  >
+                                    Sec: {val?.section_name ? val?.section_name : '-'}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '14px',
+                                      fontWeight: '400',
+                                      lineHeight: '16.94px'
+                                    }}
+                                  >
+                                    Site: {val?.site_name ? val?.site_name : '-'}
+                                  </Typography>
                                 </Box>
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        )}
-                      />
-                      {errors?.enclosure && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
                       )}
-                    </FormControl> */}
-                  {/* </div> */}
+                    />
+                    {errors?.enclosure && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
+                    )}
+                  </FormControl> */}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='enclosure'>Sex Type *</InputLabel>
                     <Controller
@@ -1008,11 +1001,32 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                     }}
                                   >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
+                                    {val?.sex === 'female'
+                                      ? 'F'
+                                      : val?.sex === 'male'
+                                      ? 'M'
+                                      : val?.sex === 'undetermined'
+                                      ? 'UD'
+                                      : val?.sex === 'indeterminate'
+                                      ? 'ID'
+                                      : val?.sex === 'group'
+                                      ? 'G'
+                                      : '-'}
                                   </Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  {/* <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: '600',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,
@@ -1128,11 +1142,32 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                     }}
                                   >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
+                                    {val?.sex === 'female'
+                                      ? 'F'
+                                      : val?.sex === 'male'
+                                      ? 'M'
+                                      : val?.sex === 'undetermined'
+                                      ? 'UD'
+                                      : val?.sex === 'indeterminate'
+                                      ? 'ID'
+                                      : val?.sex === 'group'
+                                      ? 'G'
+                                      : '-'}
                                   </Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  {/* <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: '600',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,

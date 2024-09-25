@@ -11,7 +11,8 @@ const DiscardStatusCell = ({
   setEggId,
   hideField,
   customButton,
-  handleAction
+  handleAction,
+  condition
 
   //  hover, setHover
 }) => {
@@ -19,23 +20,12 @@ const DiscardStatusCell = ({
 
   const [hover, setHover] = useState(false)
 
-  // const handleDiscard = e => {
-  //   e.stopPropagation()
-  //   setIsOpen(true)
-  //   console.log('discard :>> ')
-  // }
-  // if (params?.row?.egg_id) {
-  //   console.log('egg_id :>> ', params?.row?.egg_id)
-  //   setEggId(params?.row?.egg_id)
-  // }
-
   return (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
     >
-      {/* {hover ? ( */}
       <Stack direction='row' className={customButton} spacing={2} sx={{}}>
         <Button
           variant='outlined'
@@ -45,11 +35,13 @@ const DiscardStatusCell = ({
         >
           Discard
         </Button>
-        <Button variant='contained' onClick={e => handleAction(e, params)}>
-          Allocate{' '}
-        </Button>
+        {condition !== 'Rotten' && condition !== 'Broken' && (
+          <Button variant='contained' onClick={e => handleAction(e, params)}>
+            Allocate{' '}
+          </Button>
+        )}
       </Stack>
-      {/* ) : ( */}
+
       <Box className={hideField} sx={{ display: 'flex', alignItems: 'center' }}>
         <Stack direction='row' gap={'12px'}>
           <Avatar
@@ -100,7 +92,6 @@ const DiscardStatusCell = ({
           </Box>
         </Stack>
       </Box>
-      {/* )} */}
     </div>
   )
 }
