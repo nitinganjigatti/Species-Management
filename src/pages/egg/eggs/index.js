@@ -117,6 +117,14 @@ const EggList = () => {
     return percentageChange > 0 ? `+${percentageChange.toFixed()}` : percentageChange.toFixed()
   }
 
+  const checkAddPermission = () => {
+    if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      return true
+    } else {
+      return false
+    }
+  }
+
   const received = [
     {
       width: 60,
