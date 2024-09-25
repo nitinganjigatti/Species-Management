@@ -98,6 +98,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   // Debounced search callbacks
   const searchSpecies = useDebouncedCallback(async search => await TaxonomyList({ search }), 1000)
   const searchNursery = useDebouncedCallback(async q => await NurseryList(q), 1000)
+
   const searchTableData = useDebouncedCallback(async (status, q, fDate, tDate, ref_id) => {
     setSearchValue(q)
     await getspeciesFunc(status, q, fDate, tDate, ref_id)
@@ -422,7 +423,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     setDefaultNursery(null)
   }
 
-  const onCellClick = params => Router.push(`/egg/species/${params?.row?.taxonomy_id}`)
+  // const onCellClick = params => Router.push(`/egg/species/${params?.row?.taxonomy_id}`)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -461,6 +462,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     async (statuss, q, fDate, tDate, ref_id) => {
       try {
         setLoading(true)
+
         const params = {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
@@ -699,7 +701,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           loading={loading}
-          onCellClick={onCellClick}
+
+          // onCellClick={onCellClick}
         />
       </>
     )
