@@ -2191,7 +2191,7 @@ const EggList = () => {
           sorting_by_date: 'latest_date',
 
           // sortColumn,
-          page_no: Number(paginationModel.page) + 1,
+          page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
           nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
@@ -2249,7 +2249,7 @@ const EggList = () => {
     if (egg_collection_permission) {
       fetchTableData(sort, searchQuery, status, isDiscarded, selectedFiltersOptions)
     }
-  }, [status, isDiscarded, selectedFiltersOptions])
+  }, [fetchTableData, status, isDiscarded, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
