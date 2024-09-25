@@ -787,6 +787,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          {console.log('params.row.animal_id :>> ', params.row.animal_id)}
           {params.row.animal_id ? (
             <Typography
               style={{
