@@ -61,7 +61,7 @@ const EggList = () => {
   const [openCreate, setOpenCreate] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: page_value ? page_value : 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 10 })
 
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
