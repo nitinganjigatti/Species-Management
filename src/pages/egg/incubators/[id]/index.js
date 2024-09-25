@@ -660,32 +660,35 @@ const IncubatorDetails = () => {
     }
   }, [fetchTableData, status])
 
-  const getIncubatorDetailFunc = () => {
-    if (id) {
-      try {
-        getIncubatorDetail(id).then(res => {
-          if (res.data) {
-            setIncubatorDetail(res?.data?.data)
-            setIncubatorDetailList({
-              list: {
-                'No of Sensors': '-',
-                'Slots Filled': `${res?.data?.data?.no_of_eggs || '-'} / ${res?.data?.data?.max_eggs || '-'}`,
-                Site: res?.data?.data?.site_name,
-                'Room No': res?.data?.data?.room_name,
-                Nursery: res?.data?.data?.nursery_name
-              },
-              AvatarLeft: {
-                profile_Pic: '/icons/Incubator_CON.png',
-                key: 'Incubator ID',
-                value: res?.data?.data?.incubator_code
-              }
-            })
-            setActive(Boolean(Number(res?.data?.data?.active)))
+  const getIncubatorDetailFunc = async () => {
+    if (!id) return
+
+    try {
+      const res = await getIncubatorDetail(id)
+      const data = res?.data?.data
+
+      if (data) {
+        setIncubatorDetail(data)
+
+        setIncubatorDetailList({
+          list: {
+            'No of Sensors': '-',
+            'Slots Filled': `${data.no_of_eggs || '-'} / ${data.max_eggs || '-'}`,
+            Site: data.site_name,
+            'Room No': data.room_name,
+            Nursery: data.nursery_name
+          },
+          AvatarLeft: {
+            profile_Pic: '/icons/Incubator_CON.png',
+            key: 'Incubator ID',
+            value: data.incubator_code
           }
         })
-      } catch (error) {
-        console.log('error', error)
+
+        setActive(Boolean(Number(data.active)))
       }
+    } catch (error) {
+      console.error('Error fetching incubator details:', error)
     }
   }
 
