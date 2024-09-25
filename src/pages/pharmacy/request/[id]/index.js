@@ -1807,11 +1807,13 @@ const IndividualRequest = () => {
                                                             </Typography>
                                                           </Tooltip>
 
-                                                          {el?.description ? (
+                                                          {el?.description || el.alternate_comments ? (
                                                             <Grid
                                                               onClick={() => {
-                                                                if (el?.description) {
-                                                                  setExpandedText(el.description)
+                                                                if (el?.description || el.alternate_comments) {
+                                                                  setExpandedText(
+                                                                    el?.description || el.alternate_comments
+                                                                  )
                                                                   openNotesDialog()
                                                                 }
                                                               }}
@@ -1845,7 +1847,7 @@ const IndividualRequest = () => {
                                                                   ...boxStyles(el.request_status)
                                                                 }}
                                                               >
-                                                                {el?.description}
+                                                                {el?.description || el.alternate_comments}
                                                               </Typography>
                                                             </Grid>
                                                           ) : null}
@@ -2727,11 +2729,11 @@ const IndividualRequest = () => {
                                                       </Typography>
                                                     </Tooltip>
 
-                                                    {el?.description ? (
+                                                    {el?.description || el?.alternate_comments ? (
                                                       <Grid
                                                         onClick={() => {
-                                                          if (el?.description) {
-                                                            setExpandedText(el.description)
+                                                          if (el?.description || el.alternate_comments) {
+                                                            setExpandedText(el?.description || el?.alternate_comments)
                                                             openNotesDialog()
                                                           }
                                                         }}
@@ -2765,7 +2767,7 @@ const IndividualRequest = () => {
                                                             ...boxStyles(el.request_status)
                                                           }}
                                                         >
-                                                          {el?.description}
+                                                          {el?.description || el?.alternate_comments}
                                                         </Typography>
                                                       </Grid>
                                                     ) : null}

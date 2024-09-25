@@ -29,9 +29,7 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
-
-
-function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, closeAlternativeMedicineDialog }) {
+function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
     request_item_medicine_id: '',
     medicine_name: '',
@@ -47,7 +45,8 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
     unit_price: '',
     genericName: '',
     alternate_comments: '',
-    request_alt_parent_id: parentId?.request_item_id
+    request_alt_parent_id: parentId?.request_item_id,
+    availAbleQty: ''
   }
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
@@ -115,7 +114,8 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
           status: item?.active === '0' ? 0 : 1,
           prescription_required: item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
-          genericName: item?.generic_name
+          genericName: item?.generic_name,
+          availAbleQty: item?.available_qty
         }))
         setOptionsMedicineList(optionMedListFromApi)
         setItemErrors({})
@@ -159,7 +159,8 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
             prescription_required: item?.prescription_required === '1' ? true : false,
-            unit_price: item?.unit_price ? item?.unit_price : 0
+            unit_price: item?.unit_price ? item?.unit_price : 0,
+            availAbleQty: item?.available_qty
           }))
         )
         setItemErrors({})
@@ -348,7 +349,8 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
                     package: newValue?.package,
                     manufacture: newValue?.manufacture,
                     genericName: newValue?.genericName,
-                    unit_price: newValue?.unit_price
+                    unit_price: newValue?.unit_price,
+                    availAbleQty: newValue?.available_qty
                   })
                   setDuplicateMedError('')
                   setItemErrors({})
@@ -439,7 +441,8 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
                     package: newValue?.package,
                     manufacture: newValue?.manufacture,
                     unit_price: newValue?.unit_price,
-                    genericName: newValue?.genericName
+                    genericName: newValue?.genericName,
+                    availAbleQty: newValue?.available_qty
                   })
                   setDuplicateMedError('')
                   setItemErrors({})
@@ -501,28 +504,37 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
             </FormControl>
           </Grid>
         )}
-
-        <Box
-          sx={{
-            backgroundColor: '#F2FFF8', // Light green background
-            padding: '16px',
-            borderRadius: '8px',
-            marginTop: '5px',
-            border: '0.5px solid #37BD69',
-            borderRadius: '8px'
-          }}
-        >
-          <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-            Available Packing:{' '}
-            <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>Strip of 10 Tablet</span>
-          </Typography>
-          <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-            Manufactured by: <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>zydus</span>
-          </Typography>
-          <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
-            Availability: <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>30</span>
-          </Typography>
-        </Box>
+        {nestedRowMedicine?.medicine_name && (
+          <Box
+            sx={{
+              backgroundColor: '#F2FFF8', // Light green background
+              padding: '16px',
+              borderRadius: '8px',
+              marginTop: '5px',
+              border: '0.5px solid #37BD69',
+              borderRadius: '8px'
+            }}
+          >
+            <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+              Available Packing:{' '}
+              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>{nestedRowMedicine?.package}</span>
+            </Typography>
+            <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+              Manufactured by:{' '}
+              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                {nestedRowMedicine?.manufacture}
+              </span>
+            </Typography>
+            {nestedRowMedicine?.availAbleQty && (
+              <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
+                Availability:{' '}
+                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                  {nestedRowMedicine?.availAbleQty}
+                </span>
+              </Typography>
+            )}
+          </Box>
+        )}
 
         <Grid item xs={12} sm={12} sx={{ mt: 3 }}>
           <FormControl fullWidth>
@@ -550,14 +562,14 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 12, height: '32px',borderRadius:"16px" }}
+                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
                 />
                 <Chip
                   label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 12, height: '32px',borderRadius:"16px"}}
+                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
                 />
               </Box>
             ) : null}
@@ -805,7 +817,7 @@ function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, c
           Cancel
         </LoadingButton>
         <LoadingButton
-          sx={{ my: 6,width:"100px" }} // Flex property ensures both buttons are of equal width
+          sx={{ my: 6, width: '100px' }} // Flex property ensures both buttons are of equal width
           size='large'
           onClick={() => {
             submitItems()
