@@ -788,7 +788,7 @@ const EggList = () => {
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {console.log('params.row.animal_id :>> ', params.row.animal_id)}
-          {params.row.animal_id != null ? (
+          {params.row.animal_id ? (
             <Typography
               style={{
                 color: theme.palette.customColors.OnSurfaceVariant,
