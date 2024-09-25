@@ -696,6 +696,7 @@ const RoomDetails = () => {
                         &nbsp; ADD INCUBATOR
                       </Button>
                     </Box>
+
                     // </Box>
                   )}
                 </Box>
@@ -826,20 +827,25 @@ const RoomDetails = () => {
                 </Box>
               </Card>
             </Grid>
-            <AddIncubatorRoom
-              callApi={fetchDetailsData}
-              callTableApi={fetchTableData}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
-              editParams={editParams}
-            />
-            <AddIncubators
-              actionApi={fetchTableData}
-              detailsApi={fetchDetailsData}
-              sidebarOpen={dialog}
-              handleSidebarClose={handleSidebarClose}
-              isPreFilled={isPreFilled}
-            />
+            {isOpen && (
+              <AddIncubatorRoom
+                callApi={fetchDetailsData}
+                callTableApi={fetchTableData}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                editParams={editParams}
+              />
+            )}
+
+            {dialog && (
+              <AddIncubators
+                actionApi={fetchTableData}
+                detailsApi={fetchDetailsData}
+                sidebarOpen={dialog}
+                handleSidebarClose={handleSidebarClose}
+                incubatorDetail={isPreFilled}
+              />
+            )}
             <StatusDialogBox
               active={active}
               refType={'room'}

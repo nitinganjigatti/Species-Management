@@ -36,6 +36,7 @@ const RoomsList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+
   // console.log('searchValue :>> ', searchValue)
 
   const [sortColumn, setSortColumn] = useState('nursery_name')
@@ -380,10 +381,12 @@ const RoomsList = () => {
     async (q, nurseryId, status) => {
       try {
         setLoading(true)
+
         const params = {
           sort,
           search: q || '',
           nursery_id: nurseryId,
+
           // column,
           status: status || 'all',
           page: paginationModel.page + 1,
@@ -644,12 +647,14 @@ const RoomsList = () => {
                 </Grid>
               </Grid>
             </Box>
-            <AddIncubatorRoom
-              callTableApi={fetchTableData}
-              callApi={fetchTableData}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
-            />
+            {isOpen && (
+              <AddIncubatorRoom
+                callTableApi={fetchTableData}
+                callApi={fetchTableData}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              />
+            )}
           </>
         )
       ) : (

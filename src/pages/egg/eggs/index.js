@@ -105,6 +105,17 @@ const EggList = () => {
     setEggId(eggId)
   }
 
+  // Utility Functions
+  const calculatePercentageChange = (value1, value2) => {
+    const numValue1 = parseFloat(value1)
+    const numValue2 = parseFloat(value2)
+
+    const difference = numValue2 - numValue1
+    const percentageChange = (difference / numValue1) * 100
+
+    return percentageChange > 0 ? `+${percentageChange.toFixed()}` : percentageChange.toFixed()
+  }
+
   const received = [
     {
       width: 60,
@@ -1146,7 +1157,22 @@ const EggList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.current_weight ? params.row.current_weight : '-'}
+          {params.row.current_weight ? params.row.current_weight : '-'}{' '}
+          <span
+            style={{
+              borderLeft: `1px solid #bdc7c0`,
+              paddingLeft: 4,
+              color:
+                calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                  ? theme.palette.primary.main
+                  : calculatePercentageChange(params.row.initial_weight, params.row.current_weight) < 0
+                  ? theme.palette.formContent.tertiary
+                  : theme.palette.customColors.neutralSecondary
+            }}
+          >
+            {' '}
+            {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+          </span>
         </Typography>
       )
     },
