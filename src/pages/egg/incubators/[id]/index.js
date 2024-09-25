@@ -42,11 +42,12 @@ import Utility from 'src/utility'
 
 // API calls
 import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
-import { GetEggList, getSpeciesList } from 'src/lib/api/egg/egg'
+import { GetEggList } from 'src/lib/api/egg/egg'
 import { hatcheryStatus } from 'src/lib/api/egg'
 
 // Context
 import { AuthContext } from 'src/context/AuthContext'
+import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 
 // Styled DataGrid Component
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
@@ -591,11 +592,12 @@ const IncubatorDetails = () => {
   }
 
   const searchSpecies = useCallback(
-    debounce(async q => {
+    debounce(query => {
+      if (!query) return
       try {
-        await getspeciesFunc(q)
+        getspeciesFunc(query) // No need for await if it's not asynchronous
       } catch (error) {
-        console.error(error)
+        console.error('Error fetching species:', error)
       }
     }, 1000),
     []
@@ -1144,14 +1146,16 @@ const IncubatorDetails = () => {
                     }}
                     onCellClick={onCellClick}
                   />
-                  <AddIncubators
-                    isEdit={isEdit}
-                    actionApi={getIncubatorDetailFunc}
-                    incubatorDetail={incubatorDetail}
-                    drawerWidth={400}
-                    sidebarOpen={dialog}
-                    handleSidebarClose={handleSidebarClose}
-                  />
+                  {dialog && (
+                    <AddIncubators
+                      isEdit={isEdit}
+                      actionApi={getIncubatorDetailFunc}
+                      incubatorDetail={incubatorDetail}
+                      drawerWidth={400}
+                      sidebarOpen={dialog}
+                      handleSidebarClose={handleSidebarClose}
+                    />
+                  )}
                   <ActivityLogs
                     activity_type={'sa'}
                     activitySidebarOpen={activitySidebarOpen}
@@ -1166,13 +1170,15 @@ const IncubatorDetails = () => {
                     statusLoading={statusLoading}
                     hatcheryStatusFunc={hatcheryStatusFunc}
                   />
-                  <TransferIncubator
-                    transferIncubatorSideBar={transferIncubatorSideBar}
-                    setTransferIncubatorSideBar={setTransferIncubatorSideBar}
-                    incubatorDetail={incubatorDetail}
-                    getDetails={getIncubatorDetailFunc}
-                    incubatorId={id}
-                  />
+                  {transferIncubatorSideBar && (
+                    <TransferIncubator
+                      transferIncubatorSideBar={transferIncubatorSideBar}
+                      setTransferIncubatorSideBar={setTransferIncubatorSideBar}
+                      incubatorDetail={incubatorDetail}
+                      getDetails={getIncubatorDetailFunc}
+                      incubatorId={id}
+                    />
+                  )}
                   <EditRedirectionDialog
                     refType={'incubator'}
                     message={editMessage}

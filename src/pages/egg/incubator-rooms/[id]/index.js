@@ -171,15 +171,6 @@ const RoomDetails = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
-    // if (newModel.length) {
-    //   setSort(newModel[0].sort)
-    //   setsortColumning(newModel[0].field)
-    //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    // } else {
-    // }
-  }
-
   const searchTableData = useCallback(
     debounce(async (q, status) => {
       setSearchValue(q)
@@ -277,42 +268,6 @@ const RoomDetails = () => {
         </Tooltip>
       )
     },
-
-    // {
-    //   flex: 0.3,
-    //   minWidth: 10,
-    //   field: 'sensors',
-    //   sortable: false,
-    //   headerName: 'SENSORS',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Typography
-    //         style={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: '400',
-    //           lineHeight: '19.36px'
-    //         }}
-    //       >
-    //         2
-    //       </Typography>{' '}
-    //       {params.row.sensors === 'Alert' && <div className={Styles.circle}></div>}
-    //       {params.row.sensors === 'Good' && (
-    //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
-    //       )}
-    //       <Typography
-    //         sx={{
-    //           color: params.row.sensors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           lineHeight: '16.94px'
-    //         }}
-    //       >
-    //         {params.row.sensors ? params.row.sensors : '-'}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
     {
       flex: 0.3,
       minWidth: 10,
@@ -808,7 +763,7 @@ const RoomDetails = () => {
                     rowHeight={64}
                     pageSizeOptions={[7, 10, 25, 50]}
                     paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
+                    // onSortModelChange={handleSortModel}
                     // slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
