@@ -29,9 +29,9 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
-function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }) {
-  console.log('AlternativeMedicine', parentId)
 
+
+function AlternativeMedicine({ parentId, updateRequestItems,existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
     request_item_medicine_id: '',
     medicine_name: '',
@@ -288,24 +288,30 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }
 
       <Grid sx={{ my: 6 }} xs={12}>
         <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
-          <Button
-            size='large'
-            onClick={() => {
-              setTabStatus('By product')
+          <Typography
+            variant='button' // Use the button variant for styling
+            onClick={() => setTabStatus('By product')}
+            sx={{
+              cursor: 'pointer',
+              borderBottom: tabStatus === 'By product' ? '5px solid' : '',
+              color: 'primary.main', // Ensure this matches your button's color
+              padding: '8px 16px' // Match the button padding
             }}
-            sx={{ borderBottom: tabStatus === 'By product' ? '5px solid' : '' }}
           >
             By Product Name
-          </Button>
-          <Button
-            onClick={() => {
-              setTabStatus('By generic')
+          </Typography>
+          <Typography
+            variant='button' // Use the button variant for styling
+            onClick={() => setTabStatus('By generic')}
+            sx={{
+              cursor: 'pointer',
+              borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
+              color: 'primary.main', // Ensure this matches your button's color
+              padding: '8px 16px' // Match the button padding
             }}
-            sx={{ borderBottom: tabStatus === 'By generic' ? '5px solid' : '' }}
-            size='large'
           >
             By Generic Name
-          </Button>
+          </Typography>
         </Grid>
       </Grid>
       <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} item xs={12}>
@@ -496,7 +502,29 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }
           </Grid>
         )}
 
-        <Grid item xs={12} sm={12}>
+        <Box
+          sx={{
+            backgroundColor: '#F2FFF8', // Light green background
+            padding: '16px',
+            borderRadius: '8px',
+            marginTop: '5px',
+            border: '0.5px solid #37BD69',
+            borderRadius: '8px'
+          }}
+        >
+          <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+            Available Packing:{' '}
+            <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>Strip of 10 Tablet</span>
+          </Typography>
+          <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+            Manufactured by: <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>zydus</span>
+          </Typography>
+          <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
+            Availability: <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>30</span>
+          </Typography>
+        </Box>
+
+        <Grid item xs={12} sm={12} sx={{ mt: 3 }}>
           <FormControl fullWidth>
             <TextField
               type='number'
@@ -522,19 +550,20 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  sx={{ mr: 2, fontSize: 12, height: '32px',borderRadius:"16px" }}
                 />
                 <Chip
-                  label={`Total QTY Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                  label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  sx={{ mr: 2, fontSize: 12, height: '32px',borderRadius:"16px"}}
                 />
               </Box>
             ) : null}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={1}></Grid>
         <Grid item xs={12} sm={12}>
           <FormControl fullWidth>
@@ -764,9 +793,19 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }
           )
         ) : null}
       </Grid>
-      <Grid>
+      <Grid sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
         <LoadingButton
-          sx={{ my: 6, float: 'right' }}
+          sx={{ my: 6 }} // Flex property ensures both buttons are of equal width
+          size='large'
+          onClick={() => {
+            closeAlternativeMedicineDialog()
+          }}
+          variant='outlined'
+        >
+          Cancel
+        </LoadingButton>
+        <LoadingButton
+          sx={{ my: 6,width:"100px" }} // Flex property ensures both buttons are of equal width
           size='large'
           onClick={() => {
             submitItems()
@@ -774,7 +813,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }
           variant='contained'
           loading={submitLoader}
         >
-          Save
+          Add
         </LoadingButton>
       </Grid>
     </form>

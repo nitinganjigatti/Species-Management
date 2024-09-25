@@ -11,7 +11,7 @@ import { rejectMedicine } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { LoadingButton } from '@mui/lab'
 import Divider from '@mui/material/Divider'
 
-function RejectRequestItem({ parentId, updateRequestItems }) {
+function RejectRequestItem({ parentId, updateRequestItems,closeRejectMedicineDialog }) {
   const defaultValues = {
     comments: ''
   }
@@ -107,13 +107,16 @@ function RejectRequestItem({ parentId, updateRequestItems }) {
 
         <Grid item xs={12}>
           <LoadingButton
-            sx={{ my: 6, float: 'right' }}
+            sx={{ my: 6, float: 'right', width:"100px"}}
             size='large'
             type='submit'
             variant='contained'
             loading={submitLoader}
           >
-            Save
+            Add
+          </LoadingButton>
+          <LoadingButton sx={{ my: 6, float: 'right',mr:2 }} size='large' variant='outlined' onClick={closeRejectMedicineDialog}>
+            Cancel
           </LoadingButton>
         </Grid>
       </Grid>

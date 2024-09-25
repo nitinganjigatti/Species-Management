@@ -63,6 +63,7 @@ import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Table from '@mui/material/Table'
 import { color, fontSize, height, margin, width } from '@mui/system'
+import AddComment from 'src/components/pharmacy/request/AddComment'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -3488,6 +3489,7 @@ const IndividualRequest = () => {
                       <AlternativeMedicine
                         parentId={medicineParentId}
                         existingListItems={requestItems}
+                        closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
                         updateRequestItems={() => {
                           getRequestItemLists(id)
                           closeAlternativeMedicineDialog()
@@ -3506,6 +3508,7 @@ const IndividualRequest = () => {
                     formComponent={
                       <RejectRequestItem
                         parentId={medicineParentId}
+                        closeRejectMedicineDialog={closeRejectMedicineDialog}
                         updateRequestItems={() => {
                           closeRejectMedicineDialog()
                           getRequestItemLists(id)
@@ -3524,6 +3527,7 @@ const IndividualRequest = () => {
                     formComponent={
                       <ProductNotAvailable
                         payload={medicineParentId}
+                        closeProductNotAvailableDialog={closeProductNotAvailableDialog}
                         updateRequestItems={() => {
                           closeProductNotAvailableDialog()
                           getRequestItemLists(id)
@@ -3736,22 +3740,26 @@ const IndividualRequest = () => {
           )}
           <ConfirmDialogBox
             open={notesDialog}
-            closeDialog={() => {
-              closeNotesDialog()
-            }}
-            action={() => {
-              closeNotesDialog()
-            }}
+            closeDialog={closeNotesDialog}
+            action={closeNotesDialog} // This closes the dialog when the icon button is clicked
+            title='Comment' // Add title here
             content={
               <Box>
-                <>
-                  <DialogContent>
-                    <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
-                  </DialogContent>
-                </>
+                <AddComment expandedText={expandedText} handleClose={closeNotesDialog} />
               </Box>
             }
           />
+
+          {/* <Grid container>
+            <CommonDialogBox
+              title={'Comments'}
+              // noWidth={'noWidth'}
+              dialogBoxStatus={notesDialog}
+              formComponent={<AddComment expandedText={expandedText} />}
+              close={closeNotesDialog}
+              // maxWidth='sm' // Adjust width (e.g., "xs", "sm", "md", "lg", "xl")
+            />
+          </Grid> */}
         </>
       )}
     </>

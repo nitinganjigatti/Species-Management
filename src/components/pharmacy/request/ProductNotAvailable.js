@@ -10,7 +10,7 @@ import { LoadingButton } from '@mui/lab'
 import { CardContent, Card } from '@mui/material'
 import Divider from '@mui/material/Divider'
 
-function ProductNotAvailable({ payload, updateRequestItems }) {
+function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvailableDialog }) {
   const defaultValues = {
     comments: ''
   }
@@ -57,6 +57,7 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
 
   return (
     <form style={{ width: '650px' }} autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+      <Divider sx={{ mt: -6 }} />
       <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
       <Card
         sx={{
@@ -104,14 +105,23 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
         </Grid>
 
         <Grid item xs={12}>
+        
           <LoadingButton
-            sx={{ my: 6, float: 'right' }}
+            sx={{ my: 6, float: 'right',width:"100px" }}
             size='large'
             type='submit'
             variant='contained'
             loading={submitLoader}
           >
-            Save
+            Add
+          </LoadingButton>
+          <LoadingButton
+            sx={{ my: 6, float: 'right',mr:2 }}
+            size='large'
+            variant='outlined'
+            onClick={closeProductNotAvailableDialog}
+          >
+            Cancel
           </LoadingButton>
         </Grid>
       </Grid>
