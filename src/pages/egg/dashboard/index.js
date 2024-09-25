@@ -19,13 +19,15 @@ import Toaster from 'src/components/Toaster'
 import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
 import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
 import Species from 'src/views/pages/egg/eggDashboard/species'
+import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
 
 const Dashboard = () => {
-  const authData = useContext(AuthContext)
+  // const authData = useContext(AuthContext)
   const theme = useTheme()
 
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
+  const [openDiscard, setOpenDiscard] = useState(false)
 
   const [allStats, setAllStats] = useState(null)
 
@@ -52,10 +54,9 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs aria-label='breadcrumb' sx={{}}>
+      <Breadcrumbs aria-label='breadcrumb'>
         <Typography
           sx={{
-            // cursor: 'pointer',
             fontWeight: 400,
             fontSize: '16px',
             lineHeight: '24px',
@@ -90,7 +91,7 @@ const Dashboard = () => {
                 lineHeight: '29.05px'
               }}
             >
-              Current Stats
+              Eggs Stats
             </Typography>
           </Grid>
           {/* <Grid item sm={5} md={3} xl={2}>
@@ -146,212 +147,11 @@ const Dashboard = () => {
             </Box>
           </Grid> */}
         </Grid>
-        <Grid container spacing={3} columns={5}>
-          <Grid item xs={5} sm={2.5} lg={1}>
-            <Box
-              sx={{
-                borderRadius: '8px',
-                backgroundColor: theme.palette.background.paper,
-                py: '24px',
-                px: '16px',
-                display: 'flex',
-                gap: '8px'
-              }}
-            >
-              <Avatar
-                variant='square'
-                sx={{ height: '40px', width: '40px' }}
-                src='/icons/egg_dashboard/dashboard_egg.png'
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography
-                  sx={{
-                    color: theme.palette.formContent.tertiary,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {allStats?.total_eggs}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  Total Eggs
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={5} sm={2.5} lg={1}>
-            <Box
-              sx={{
-                borderRadius: '8px',
-                backgroundColor: theme.palette.background.paper,
-                py: '24px',
-                px: '16px',
-                display: 'flex',
-                gap: '8px'
-              }}
-            >
-              <Avatar
-                variant='square'
-                sx={{ height: '40px', width: '40px' }}
-                src='/icons/egg_dashboard/dashboard_species.png'
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography
-                  sx={{
-                    color: '#00AFD6',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {allStats?.total_species}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  Total Species
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={5} sm={2.5} lg={1}>
-            <Box
-              sx={{
-                borderRadius: '8px',
-                backgroundColor: theme.palette.background.paper,
-                py: '24px',
-                px: '16px',
-                display: 'flex',
-                gap: '8px'
-              }}
-            >
-              <Avatar
-                variant='square'
-                sx={{ height: '40px', width: '40px' }}
-                src='/icons/egg_dashboard/dashboard_nest.png'
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.dark,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {allStats?.total_egg_in_nest}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  Eggs in Nest
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={5} sm={2.5} lg={1}>
-            <Box
-              sx={{
-                borderRadius: '8px',
-                backgroundColor: theme.palette.background.paper,
-                py: '24px',
-                px: '16px',
-                display: 'flex',
-                gap: '8px'
-              }}
-            >
-              <Avatar
-                variant='square'
-                sx={{ height: '40px', width: '40px' }}
-                src='/icons/egg_dashboard/dashboard_nursery.png'
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.light,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {allStats?.total_eggs_in_nursery}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  Eggs in Nursery
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={5} sm={2.5} lg={1}>
-            <Box
-              sx={{
-                borderRadius: '8px',
-                backgroundColor: theme.palette.background.paper,
-                py: '24px',
-                px: '16px',
-                display: 'flex',
-                gap: '8px'
-              }}
-            >
-              <Avatar
-                variant='square'
-                sx={{ height: '40px', width: '40px' }}
-                src='/icons/egg_dashboard/dashboard_incubator.png'
-              />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.light,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '19.36px'
-                  }}
-                >
-                  {allStats?.total_eggs_in_incubators}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '16.94px'
-                  }}
-                >
-                  Total Incubators
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
       </Box>
+      <EggsStats openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} allStats={allStats} />
       <TodaysCollection />
-      <TransferDetails />
-      <Species />
+      {/* <TransferDetails /> */}
+      <Species openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />
     </Box>
   )
 }

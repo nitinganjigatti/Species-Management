@@ -565,7 +565,7 @@ const SpeciesDetail = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography color='inherit'>Egg Module</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/dashboard')}>
                 Dashboard
               </Typography>
               <Typography color='text.primary'>Species Egg Module</Typography>

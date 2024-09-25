@@ -251,3 +251,7 @@ export const SPECIES_WISE_DETAILS = 'species-wise-details'
 export const NECROPSY_REPORTS = 'necropsy-report'
 
 export const GET_COLLECTED_BY = 'get-collected-by-list'
+
+export const DASHBOARD_DISCARD = '/discarded/list'
+
+export const DASHBOARD_BATCH = 'discard/filtered-list'
