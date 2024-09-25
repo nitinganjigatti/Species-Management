@@ -40,8 +40,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} onClick={() => setProbableParentSideBar(false)} />
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setProbableParentSideBar(false)}>
+              <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
         </Box>
@@ -84,18 +84,33 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                         objectFit: item?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
                       },
                       width: 44,
-                      height: 44
+                      height: 44,
+                      border: '1px solid #C3CEC7'
                     }}
                     alt={item?.default_icon}
                     src={item?.default_icon}
                   />
-                  <Avatar sx={{ width: 24, height: 24, bgcolor: '#AFEFEB', objectFit: 'cover' }} variant='rounded'>
-                    {item?.sex === 'male' ? (
+                  <Avatar
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      bgcolor: item?.type === 'group' ? '#00AFD6' : '#AFEFEB',
+                      objectFit: 'cover'
+                    }}
+                    variant='rounded'
+                  >
+                    {item?.type === 'group' ? (
+                      <Typography sx={{ fontSize: 14, color: '#fff' }}>G</Typography>
+                    ) : item?.sex === 'male' ? (
                       <Typography sx={{ fontSize: 14 }}>M</Typography>
                     ) : item?.sex === 'female' ? (
                       <Typography sx={{ fontSize: 14 }}>F</Typography>
+                    ) : item?.sex === 'undetermined' ? (
+                      <Typography sx={{ fontSize: 14 }}>UD</Typography>
+                    ) : item?.sex === 'indeterminate' ? (
+                      <Typography sx={{ fontSize: 14 }}>ID</Typography>
                     ) : (
-                      <Typography sx={{ fontSize: 14 }}>U</Typography>
+                      <Typography sx={{ fontSize: 14 }}>-</Typography>
                     )}
                   </Avatar>
                 </Box>
@@ -106,6 +121,20 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                     gap: '6px'
                   }}
                 >
+                  {item?.local_id_type && item?.local_identifier_value && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        lineHeight: '19.36px'
+                      }}
+                    >
+                      <span> {item?.local_id_type}: </span>
+                      <span> {item?.local_identifier_value}</span>
+                    </Typography>
+                  )}
+
                   <Typography
                     sx={{
                       fontSize: '16px',
@@ -114,7 +143,19 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.common_name)}
+                    {item?.animal_id}
+                    {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {item?.common_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -124,8 +165,36 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {' '}
-                    {Utility?.toPascalSentenceCase(item?.scientific_name)}
+                    {item?.scientific_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.scientific_name)} */}
+                  </Typography>
+                  {item?.type === 'group' && (
+                    <Typography
+                      sx={{
+                        width: '250px',
+                        paddingY: '4px',
+                        borderRadius: '5px',
+                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                        textAlign: 'center',
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        lineHeight: '19.36px',
+                        color: 'black'
+                      }}
+                    >
+                      Count {item?.total_animal}
+                    </Typography>
+                  )}
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {item?.site_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.site_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -135,7 +204,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.site_name)}
+                    {item?.user_enclosure_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.user_enclosure_name)} */}
                   </Typography>
                   <Typography
                     sx={{
@@ -145,17 +215,8 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {Utility?.toPascalSentenceCase(item?.user_enclosure_name)}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '16.94px',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    {Utility?.toPascalSentenceCase(item?.section_name)}
+                    {item?.section_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.section_name)} */}
                   </Typography>
                 </Box>
               </Box>

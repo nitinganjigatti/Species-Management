@@ -25,12 +25,18 @@ import Toaster from 'src/components/Toaster'
 import { EditEgg } from 'src/lib/api/egg/egg'
 
 const EditEggInfo = ({ egg_id, closeEditDrawer, egg_number, getDetails }) => {
-  console.log(egg_number)
+  // console.log(egg_number)
   const [loader, setLoader] = useState(false)
   const authData = useContext(AuthContext)
 
   const schema = yup.object().shape({
-    egg_number: yup.string().required('Egg number is required').trim().strict(true).min(1, 'Egg number is required')
+    egg_number: yup
+      .string()
+      .required('Egg number is required')
+      .trim()
+      .strict(true)
+      .min(1, 'Egg number is required')
+      .matches(/^[a-zA-Z0-9]*$/, 'Egg number can only contain alphabets and alphanumeric values')
   })
 
   const defaultValues = {

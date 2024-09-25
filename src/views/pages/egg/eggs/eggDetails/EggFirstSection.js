@@ -28,7 +28,8 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
-import Router from 'next/router'
+
+// import Router from 'next/router'
 import Utility from 'src/utility'
 import EditEggInfo from 'src/components/egg/EditEggInfo'
 
@@ -245,13 +246,15 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       width: '100%',
                       aspectRatio: 15 / 9,
                       height: '90%',
-
                       backgroundColor: theme.palette.background.default,
                       borderRadius: '8px'
                     }}
                   >
                     <img
-                      style={{ objectFit: 'contain' }}
+                      style={{
+                        objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover',
+                        borderRadius: '8px'
+                      }}
                       srcSet={eggDetails?.default_icon}
                       src={eggDetails?.default_icon}
                       alt='default_icon'
@@ -260,12 +263,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       // height={'100%'}
                     />
 
-                    {/* <ImageListItemBar
-
-                      sx={{ pb: 0, borderBottomRightRadius: '8px', borderBottomLeftRadius: '8px' }}
-                      title={eggDetails?.default_common_name}
-                      subtitle={eggDetails?.complete_name}
-                    /> */}
                     <Box
                       sx={{
                         borderBottomRightRadius: '8px',
@@ -293,7 +290,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
             </Grid>
             <Grid
               sx={{
-                alignSelf: 'stretch',
+                alignSelf: 'end',
                 height: '100%',
                 py: { xs: '24px', sm: '24px', md: '0px', lg: '0px', xl: '0px' }
               }}
@@ -306,13 +303,14 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
               <Box
                 sx={{
                   height: '100%',
+                  gap: 4,
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'row' },
                   justifyContent: 'space-between',
                   mb: '24px'
                 }}
               >
-                <Box sx={{ mb: { xs: 4 } }}>
+                <Box sx={{ height: '72px' }}>
                   <Typography
                     sx={{
                       textAlign: { xs: 'center', sm: 'start' },
@@ -328,14 +326,14 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     <Typography
                       sx={{
                         textAlign: { xs: 'center', sm: 'start' },
-                        mb: { xs: 4 },
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      UID: {eggDetails?.egg_number}
+                      EID: {eggDetails?.egg_number}
                     </Typography>
                   )}
                 </Box>
+
                 <Box
                   sx={{
                     display: 'flex',
@@ -369,20 +367,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
-                        {/* {moment(moment(moment.utc(eggDetails?.modified_at).toDate().toLocaleString())).format(
-                          'DD MMM YYYY'
-                        )} */}
                       </Typography>
                     </Box>
-                    {/* <Box>
-                      {' '}
-                      <Icon
-                        style={{ cursor: 'pointer' }}
-                        color={theme.palette.customColors.OnSurfaceVariant}
-                        icon='bi:pencil'
-                        fontSize={32}
-                      />
-                    </Box> */}
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: '8px' }}>
@@ -394,13 +380,23 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         </Button>
                       </Box>
                     )}
-                    {Number(eggDetails?.action_to_be_taken) === 4 ? (
+                    {Number(eggDetails?.action_to_be_taken) === 4 &&
+                    eggDetails?.egg_condition !== 'Rotten' &&
+                    eggDetails?.egg_condition !== 'Broken' ? (
                       <Box>
                         <Button onClick={() => setOpenAllocate(true)} variant='contained'>
                           ALLOCATE
                         </Button>
                       </Box>
                     ) : null}
+                    <Box sx={{ display: 'flex', alignSelf: 'center' }}>
+                      <Icon
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setOpenEditDrawer(true)}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                        icon='mdi:pencil-outline'
+                      />
+                    </Box>
                   </Box>
                 </Box>
               </Box>
@@ -428,8 +424,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 >
                   <Grid container gap={4} alignItems='center'>
                     <Box
-                      item
-                      xs={3}
                       sx={{
                         width: '64px',
                         height: '64px',
@@ -447,7 +441,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           textAlign: 'center'
                         }}
                       >
-                        {' '}
                         {formatDate(eggDetails?.created_at)?.count}
                       </Typography>
                       <Typography
@@ -459,12 +452,11 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           textAlign: 'center'
                         }}
                       >
-                        {' '}
                         {formatDate(eggDetails?.created_at)?.label}
                       </Typography>
                     </Box>
 
-                    <Box item xs={7}>
+                    <Box>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -475,9 +467,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         }}
                       >
                         {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date))}
-                        {/* {moment(moment(moment.utc(eggDetails?.collection_date).toDate().toLocaleString())).format(
-                          'DD MMM YYYY'
-                        )} */}
                       </Typography>
 
                       <Typography
@@ -491,9 +480,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         Found date
                       </Typography>
                     </Box>
-                    {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
                   </Grid>
                 </Grid>
                 <Grid
@@ -515,8 +501,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 >
                   <Grid container gap={4} alignItems='center'>
                     <Box
-                      item
-                      xs={3}
                       sx={{
                         width: '64px',
                         height: '64px',
@@ -531,7 +515,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         variant='square'
                       ></Avatar>
                     </Box>
-                    <Box item xs={7}>
+                    <Box>
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -551,7 +535,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       <Typography
                         sx={{
                           fontWeight: 600,
-                          fontSize: '14px',
+                          fontSize: { xs: '14px', md: '14px', lg: '13px', xl: '14px' },
                           lineHeight: '16.94px',
                           color:
                             eggDetails?.assessments_data?.length == 1 || eggDetails?.assessments_data?.length == 0
@@ -564,9 +548,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           : displayText}
                       </Typography>
                     </Box>
-                    {/* <Grid item xs={1.2}>
-                      <Icon style={{ cursor: 'pointer' }} color='#00AFD6' icon='fontisto:angle-right' fontSize={16} />
-                    </Grid> */}
                   </Grid>
                 </Grid>
                 <Grid
