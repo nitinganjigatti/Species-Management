@@ -122,6 +122,7 @@ const IndividualRequest = () => {
   const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
 
   const [medicineParentId, setMedicineParentId] = useState({
+    parentEndPointId: '',
     parent_id: '',
     request_item_id: '',
     qty_requested: '',
@@ -152,6 +153,8 @@ const IndividualRequest = () => {
   const closeAlternativeMedicineDialog = () => {
     setShowAlternativeMedicineDialog(false)
     setMedicineParentId({
+      parentEndPointId: '',
+
       parent_id: '',
       request_item_id: '',
       qty_requested: '',
@@ -166,6 +169,8 @@ const IndividualRequest = () => {
   const closeRejectMedicineDialog = () => {
     setRejectRequestMedicineDialog(false)
     setMedicineParentId({
+      parentEndPointId: '',
+
       parent_id: '',
       request_item_id: '',
       qty_requested: '',
@@ -179,7 +184,14 @@ const IndividualRequest = () => {
 
   const closeProductNotAvailableDialog = () => {
     setProductNotAvailableDialog(false)
-    setNotAvailableItemId([])
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
   }
 
   const openProductNotAvailableDialog = () => {
@@ -478,21 +490,25 @@ const IndividualRequest = () => {
       : {}
   }
 
-  const generateOptions = params => {
+  const generateOptions = (params, parentId) => {
     let options = []
+    console.log('params', params)
+    console.log('parentId', parentId)
 
+    // debugger
     if (selectedPharmacy.type === 'central') {
       options.push({
         label: 'Add Alternate',
         action: () => {
           openAlternativeMedicineDialog()
-          setMedicineParentId({
-            ...medicineParentId,
-            parent_id: requestItems?.id,
+          setMedicineParentId(prevState => ({
+            ...prevState,
+            parentEndPointId: params.request_item_id,
+            parent_id: parentId,
             request_item_id: params?.id,
             qty_requested: params?.qty,
             product: params?.stock_name
-          })
+          }))
         }
       })
     }
@@ -508,25 +524,28 @@ const IndividualRequest = () => {
         {
           label: 'Supply Stopped',
           action: () => {
-            setNotAvailableItemId({
-              parent_id: requestItems?.id,
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
               request_item_id: params?.id,
               qty_requested: params?.qty,
               product: params?.stock_name
-            })
+            }))
             openProductNotAvailableDialog()
           }
         },
         {
           label: 'Decline Request',
           action: () => {
-            setMedicineParentId({
-              ...medicineParentId,
-              parent_id: requestItems?.id,
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
               request_item_id: params?.id,
               qty_requested: params?.qty,
               product: params?.stock_name
-            })
+            }))
             openRejectMedicineDialog()
           }
         }
@@ -2130,6 +2149,7 @@ const IndividualRequest = () => {
                                                                 }
                                                                 variant='contained'
                                                                 onClick={() => {
+                                                                  console.log('outside el', el)
                                                                   setFulfillMedicine({
                                                                     ...el
                                                                   })
@@ -2195,7 +2215,7 @@ const IndividualRequest = () => {
                                                           )}
 
                                                           {el.alt_parent.length > 0
-                                                            ? el.alt_parent.map((elm, index) => {
+                                                            ? el.alt_parent.map((nestElm, index) => {
                                                                 return (
                                                                   <Grid
                                                                     key={index}
@@ -2212,24 +2232,27 @@ const IndividualRequest = () => {
                                                                   >
                                                                     <Box>
                                                                       {selectedPharmacy.type === 'central' &&
-                                                                      parseInt(elm.requested_qty) -
-                                                                        parseInt(elm.dispatch_qty) >=
+                                                                      parseInt(nestElm.requested_qty) -
+                                                                        parseInt(nestElm.dispatch_qty) >=
                                                                         1 &&
                                                                       requestItems.status !== 'Cancelled' &&
-                                                                      elm.request_status !== 'Alternate' &&
-                                                                      elm.request_status !== 'Not Available' &&
-                                                                      elm.request_status !== 'Rejected' ? (
+                                                                      nestElm.request_status !== 'Alternate' &&
+                                                                      nestElm.request_status !== 'Not Available' &&
+                                                                      nestElm.request_status !== 'Rejected' ? (
                                                                         <Button
                                                                           size='small'
                                                                           sx={{
                                                                             width: 100,
                                                                             mx: 'auto',
-                                                                            ...boxStyles(elm.request_status)
+                                                                            ...boxStyles(nestElm.request_status)
                                                                           }}
                                                                           variant='contained'
                                                                           onClick={() => {
+                                                                            console.log('outside el', el)
+                                                                            console.log('nested el', nestElm)
+                                                                            debugger
                                                                             setFulfillMedicine({
-                                                                              ...elm
+                                                                              ...nestElm
                                                                             })
 
                                                                             showDialog()
@@ -2239,7 +2262,7 @@ const IndividualRequest = () => {
                                                                         </Button>
                                                                       ) : null}
                                                                     </Box>
-                                                                    {elm?.request_status === 'Not Available' && (
+                                                                    {nestElm?.request_status === 'Not Available' && (
                                                                       <Grid
                                                                         sx={{
                                                                           minHeight: 104,
@@ -2261,7 +2284,7 @@ const IndividualRequest = () => {
                                                                       </Grid>
                                                                     )}
 
-                                                                    {elm?.request_status === 'Rejected' && (
+                                                                    {nestElm?.request_status === 'Rejected' && (
                                                                       <Grid
                                                                         sx={{
                                                                           minHeight: 104,
@@ -2282,7 +2305,8 @@ const IndividualRequest = () => {
                                                                         </Typography>
                                                                       </Grid>
                                                                     )}
-                                                                    {elm?.dispatch_qty === elm?.requested_qty && (
+                                                                    {nestElm?.dispatch_qty ===
+                                                                      nestElm?.requested_qty && (
                                                                       <Box
                                                                         sx={{
                                                                           minHeight: 104,
@@ -2418,7 +2442,9 @@ const IndividualRequest = () => {
                                                                       ...boxStyles(el?.request_status)
                                                                     }}
                                                                   >
-                                                                    <MenuWithDots options={generateOptions(el)} />
+                                                                    <MenuWithDots
+                                                                      options={generateOptions(el, requestItems?.id)}
+                                                                    />
                                                                   </Grid>
                                                                 )}
                                                             </>
@@ -2426,7 +2452,7 @@ const IndividualRequest = () => {
                                                           {el?.alt_parent?.length > 0
                                                             ? el.alt_parent
                                                                 .filter(item => item.request_status === 'request')
-                                                                .map((el, index) => {
+                                                                .map((nesEl, index) => {
                                                                   return (
                                                                     <Grid
                                                                       key={index}
@@ -2443,15 +2469,20 @@ const IndividualRequest = () => {
                                                                       }}
                                                                     >
                                                                       {selectedPharmacy.type === 'central' && (
-                                                                        <Box sx={{ ...boxStyles(el?.request_status) }}>
-                                                                          {parseInt(el?.requested_qty) -
-                                                                            parseInt(el?.dispatch_qty) >=
+                                                                        <Box
+                                                                          sx={{ ...boxStyles(nesEl?.request_status) }}
+                                                                        >
+                                                                          {parseInt(nesEl?.requested_qty) -
+                                                                            parseInt(nesEl?.dispatch_qty) >=
                                                                             1 &&
-                                                                            el?.request_status !== 'Alternate' &&
-                                                                            el?.request_status !== 'Not Available' &&
-                                                                            el?.request_status !== 'Rejected' && (
+                                                                            nesEl?.request_status !== 'Alternate' &&
+                                                                            nesEl?.request_status !== 'Not Available' &&
+                                                                            nesEl?.request_status !== 'Rejected' && (
                                                                               <MenuWithDots
-                                                                                options={generateOptions(el)}
+                                                                                options={generateOptions(
+                                                                                  nesEl,
+                                                                                  nesEl?.id
+                                                                                )}
                                                                               />
                                                                             )}
                                                                         </Box>
@@ -3087,7 +3118,7 @@ const IndividualRequest = () => {
                                                     )}
 
                                                     {el.alt_parent.length > 0
-                                                      ? el.alt_parent.map((elm, index) => {
+                                                      ? el.alt_parent.map((nesElm, index) => {
                                                           return (
                                                             <Grid
                                                               key={index}
@@ -3104,24 +3135,24 @@ const IndividualRequest = () => {
                                                             >
                                                               <Box>
                                                                 {selectedPharmacy.type === 'central' &&
-                                                                parseInt(elm.requested_qty) -
-                                                                  parseInt(elm.dispatch_qty) >=
+                                                                parseInt(nesElm.requested_qty) -
+                                                                  parseInt(nesElm.dispatch_qty) >=
                                                                   1 &&
                                                                 requestItems.status !== 'Cancelled' &&
-                                                                elm.request_status !== 'Alternate' &&
-                                                                elm.request_status !== 'Not Available' &&
-                                                                elm.request_status !== 'Rejected' ? (
+                                                                nesElm.request_status !== 'Alternate' &&
+                                                                nesElm.request_status !== 'Not Available' &&
+                                                                nesElm.request_status !== 'Rejected' ? (
                                                                   <Button
                                                                     size='small'
                                                                     sx={{
                                                                       width: 100,
                                                                       mx: 'auto',
-                                                                      ...boxStyles(elm.request_status)
+                                                                      ...boxStyles(nesElm.request_status)
                                                                     }}
                                                                     variant='contained'
                                                                     onClick={() => {
                                                                       setFulfillMedicine({
-                                                                        ...elm
+                                                                        ...nesElm
                                                                       })
 
                                                                       showDialog()
@@ -3131,7 +3162,7 @@ const IndividualRequest = () => {
                                                                   </Button>
                                                                 ) : null}
                                                               </Box>
-                                                              {elm?.request_status === 'Not Available' && (
+                                                              {nesElm?.request_status === 'Not Available' && (
                                                                 <Grid
                                                                   sx={{
                                                                     minHeight: 104,
@@ -3153,7 +3184,7 @@ const IndividualRequest = () => {
                                                                 </Grid>
                                                               )}
 
-                                                              {elm?.request_status === 'Rejected' && (
+                                                              {nesElm?.request_status === 'Rejected' && (
                                                                 <Grid
                                                                   sx={{
                                                                     minHeight: 104,
@@ -3174,7 +3205,7 @@ const IndividualRequest = () => {
                                                                   </Typography>
                                                                 </Grid>
                                                               )}
-                                                              {elm?.dispatch_qty === elm?.requested_qty && (
+                                                              {nesElm?.dispatch_qty === nesElm?.requested_qty && (
                                                                 <Box
                                                                   sx={{
                                                                     minHeight: 104,
@@ -3212,7 +3243,7 @@ const IndividualRequest = () => {
                                                 >
                                                   <>
                                                     {el?.alt_parent?.length > 0
-                                                      ? el.alt_parent?.map((el, index) => {
+                                                      ? el.alt_parent?.map((nestElm, index) => {
                                                           return (
                                                             <Grid
                                                               key={index}
@@ -3241,11 +3272,11 @@ const IndividualRequest = () => {
                                                                 Added Alternative
                                                               </Typography>
 
-                                                              {el?.alternate_comments !== '' && (
+                                                              {nestElm?.alternate_comments !== '' && (
                                                                 <Grid
                                                                   onClick={() => {
-                                                                    if (el?.alternate_comments) {
-                                                                      setExpandedText(el.alternate_comments)
+                                                                    if (nestElm?.alternate_comments) {
+                                                                      setExpandedText(nestElm.alternate_comments)
                                                                       openNotesDialog()
                                                                     }
                                                                   }}
@@ -3278,10 +3309,10 @@ const IndividualRequest = () => {
                                                                       whiteSpace: 'nowrap',
                                                                       opacity: '0.5',
 
-                                                                      ...boxStyles(el.request_status)
+                                                                      ...boxStyles(nestElm.request_status)
                                                                     }}
                                                                   >
-                                                                    {el?.alternate_comments}
+                                                                    {nestElm?.alternate_comments}
                                                                   </Typography>
                                                                 </Grid>
                                                               )}
@@ -3309,7 +3340,9 @@ const IndividualRequest = () => {
                                                                 ...boxStyles(el?.request_status)
                                                               }}
                                                             >
-                                                              <MenuWithDots options={generateOptions(el)} />
+                                                              <MenuWithDots
+                                                                options={generateOptions(el, requestItems?.id)}
+                                                              />
                                                             </Grid>
                                                           )}
                                                       </>
@@ -3317,7 +3350,7 @@ const IndividualRequest = () => {
                                                     {el?.alt_parent?.length > 0
                                                       ? el.alt_parent
                                                           .filter(item => item.request_status === 'request')
-                                                          .map((el, index) => {
+                                                          .map((nestEl, index) => {
                                                             return (
                                                               <Grid
                                                                 key={index}
@@ -3334,14 +3367,16 @@ const IndividualRequest = () => {
                                                                 }}
                                                               >
                                                                 {selectedPharmacy.type === 'central' && (
-                                                                  <Box sx={{ ...boxStyles(el?.request_status) }}>
-                                                                    {parseInt(el?.requested_qty) -
-                                                                      parseInt(el?.dispatch_qty) >=
+                                                                  <Box sx={{ ...boxStyles(nestEl?.request_status) }}>
+                                                                    {parseInt(nestEl?.requested_qty) -
+                                                                      parseInt(nestEl?.dispatch_qty) >=
                                                                       1 &&
-                                                                      el?.request_status !== 'Alternate' &&
-                                                                      el?.request_status !== 'Not Available' &&
-                                                                      el?.request_status !== 'Rejected' && (
-                                                                        <MenuWithDots options={generateOptions(el)} />
+                                                                      nestEl?.request_status !== 'Alternate' &&
+                                                                      nestEl?.request_status !== 'Not Available' &&
+                                                                      nestEl?.request_status !== 'Rejected' && (
+                                                                        <MenuWithDots
+                                                                          options={generateOptions(nestEl, nestEl?.id)}
+                                                                        />
                                                                       )}
                                                                   </Box>
                                                                 )}
@@ -3490,7 +3525,7 @@ const IndividualRequest = () => {
                     dialogBoxStatus={productNotAvailableDialog}
                     formComponent={
                       <ProductNotAvailable
-                        payload={notAvailableItemId}
+                        payload={medicineParentId}
                         updateRequestItems={() => {
                           closeProductNotAvailableDialog()
                           getRequestItemLists(id)

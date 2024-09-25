@@ -30,6 +30,8 @@ import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
 function AlternativeMedicine({ parentId, updateRequestItems }) {
+  console.log('AlternativeMedicine', parentId)
+
   const initialNestedRowMedicine = {
     request_item_medicine_id: '',
     medicine_name: '',
@@ -44,9 +46,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
     manufacture: '',
     unit_price: '',
     genericName: '',
-
     alternate_comments: '',
-
     request_alt_parent_id: parentId?.request_item_id
   }
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
@@ -206,10 +206,10 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
 
   const postItemsData = async () => {
     setSubmitLoader(true)
-
+    debugger
     if (parentId) {
       try {
-        const response = await addAlternativeMedicine(nestedRowMedicine, parentId?.parent_id)
+        const response = await addAlternativeMedicine(nestedRowMedicine, parentId?.parentEndPointId)
         if (response?.success) {
           toast.success(response?.message)
           setNestedRowMedicine(initialNestedRowMedicine)
