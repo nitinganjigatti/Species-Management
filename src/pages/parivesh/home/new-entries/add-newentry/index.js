@@ -761,7 +761,7 @@ const AddNewEntry = () => {
                       </FormControl>
                     </Grid>
                   </Grid>
-                  {(possessionType !== 'birth' || !possessionType) && (
+                  {possessionType !== 'birth' && possessionType && (
                     <Grid container spacing={2} sx={{ mb: 6 }}>
                       <Grid item xs={12}>
                         <FormControl fullWidth>
