@@ -175,14 +175,14 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 Egg Details
               </Typography>
             </Box>
-            <Box>
+            {/* <Box>
               <Icon
                 style={{ cursor: 'pointer' }}
                 onClick={() => setOpenEditDrawer(true)}
                 color={theme.palette.customColors.OnSurfaceVariant}
                 icon='mdi:pencil-outline'
               />
-            </Box>
+            </Box> */}
           </Box>
           <Grid container>
             <Grid
