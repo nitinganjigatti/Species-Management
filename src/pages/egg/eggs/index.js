@@ -98,6 +98,7 @@ const EggList = () => {
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()
@@ -114,6 +115,14 @@ const EggList = () => {
     const percentageChange = (difference / numValue1) * 100
 
     return percentageChange > 0 ? `+${percentageChange.toFixed()}` : percentageChange.toFixed()
+  }
+
+  const checkAddPermission = () => {
+    if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      return true
+    } else {
+      return false
+    }
   }
 
   const received = [
@@ -790,7 +799,7 @@ const EggList = () => {
             >
               AAID : {params.row.animal_id ? params.row.animal_id : '-'}
             </Typography>
-          ) : (
+          ) : checkAddPermission() ? (
             <Typography
               style={{
                 color: theme.palette?.primary?.main,
@@ -806,6 +815,16 @@ const EggList = () => {
               }}
             >
               Create Animal ID
+            </Typography>
+          ) : (
+            <Typography
+              style={{
+                textAlign: 'center'
+
+                // lineHeight: '19.36px'
+              }}
+            >
+              -
             </Typography>
           )}
         </Box>
