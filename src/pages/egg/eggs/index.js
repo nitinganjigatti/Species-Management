@@ -1158,21 +1158,22 @@ const EggList = () => {
           }}
         >
           {params.row.current_weight ? params.row.current_weight : '-'}{' '}
-          <span
-            style={{
-              borderLeft: `1px solid #bdc7c0`,
-              paddingLeft: 4,
-              color:
-                calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
-                  ? theme.palette.primary.main
-                  : calculatePercentageChange(params.row.initial_weight, params.row.current_weight) < 0
-                  ? theme.palette.formContent.tertiary
-                  : theme.palette.customColors.neutralSecondary
-            }}
-          >
-            {' '}
-            {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
-          </span>
+          {calculatePercentageChange(params.row.initial_weight, params.row.current_weight) != 0 && (
+            <span
+              style={{
+                borderLeft: `1px solid #bdc7c0`,
+                paddingLeft: 4,
+                color:
+                  calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                    ? theme.palette.primary.main
+                    : calculatePercentageChange(params.row.initial_weight, params.row.current_weight) < 0
+                    ? theme.palette.formContent.tertiary
+                    : theme.palette.customColors.neutralSecondary
+              }}
+            >
+              {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+            </span>
+          )}
         </Typography>
       )
     },
