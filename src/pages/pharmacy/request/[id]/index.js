@@ -2248,9 +2248,6 @@ const IndividualRequest = () => {
                                                                           }}
                                                                           variant='contained'
                                                                           onClick={() => {
-                                                                            console.log('outside el', el)
-                                                                            console.log('nested el', nestElm)
-                                                                            debugger
                                                                             setFulfillMedicine({
                                                                               ...nestElm
                                                                             })
@@ -3490,6 +3487,7 @@ const IndividualRequest = () => {
                     formComponent={
                       <AlternativeMedicine
                         parentId={medicineParentId}
+                        existingListItems={requestItems}
                         updateRequestItems={() => {
                           getRequestItemLists(id)
                           closeAlternativeMedicineDialog()

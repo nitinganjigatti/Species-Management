@@ -29,7 +29,7 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
-function AlternativeMedicine({ parentId, updateRequestItems }) {
+function AlternativeMedicine({ parentId, updateRequestItems, existingListItems }) {
   console.log('AlternativeMedicine', parentId)
 
   const initialNestedRowMedicine = {
@@ -55,6 +55,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [tabStatus, setTabStatus] = useState('By product')
+  const [existingMedicinesList, setExistingMedicinesList] = useState([])
 
   const validate = values => {
     const itemErrors = {}
@@ -84,6 +85,12 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
     }
 
     return itemErrors
+  }
+
+  const getOptionStyle = options => {
+    const sameMedicine = existingMedicinesList.find(item => item.stock_item_id === options)
+
+    return sameMedicine ? true : false
   }
 
   //  ****** debounce
@@ -173,6 +180,26 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
     []
   )
   useEffect(() => {
+    let requestItemsArray = []
+
+    existingListItems?.request_item_details.forEach(item => {
+      requestItemsArray.push({
+        id: item.id,
+        stock_item_id: item.stock_item_id
+      })
+
+      if (item?.alt_parent && item?.alt_parent?.length > 0) {
+        item.alt_parent.forEach(altItem => {
+          requestItemsArray.push({
+            id: altItem.id,
+            stock_item_id: altItem.stock_item_id
+          })
+        })
+      }
+    })
+
+    console.log('exixting', requestItemsArray)
+    setExistingMedicinesList(requestItemsArray)
     fetchMedicineData('')
   }, [])
 
@@ -206,7 +233,6 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
 
   const postItemsData = async () => {
     setSubmitLoader(true)
-    debugger
     if (parentId) {
       try {
         const response = await addAlternativeMedicine(nestedRowMedicine, parentId?.parentEndPointId)
@@ -292,7 +318,11 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
                 renderOption={(props, option) => (
                   <li
                     {...props}
-                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    style={{
+                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+
+                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                    }}
                   >
                     <Box>
                       <Typography>{option.name}</Typography>
@@ -377,7 +407,11 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
                 renderOption={(props, option) => (
                   <li
                     {...props}
-                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    style={{
+                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+
+                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                    }}
                   >
                     <Box>
                       <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
