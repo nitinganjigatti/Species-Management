@@ -170,7 +170,7 @@ const RequestDetails = () => {
     } else {
       fetchRequestDetails()
       setStatus(params?.row?.status)
-      Toaster({ type: 'success', message: response.message })
+      Toaster({ type: 'error', message: response.message })
     }
   }
 
@@ -222,7 +222,7 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = async () => {
-    if (permissions?.allow_full_access === true || permissions?.transfer_tests === true) {
+    if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
@@ -578,10 +578,12 @@ const RequestDetails = () => {
     e.preventDefault()
     e.stopPropagation()
 
-    const id = item?.id
+    const testId = item?.id
+
     setFileId(item?.id)
     try {
-      const response = await DeleteLAbRequestAttachment(id)
+      const params = { lab_test_id: id }
+      const response = await DeleteLAbRequestAttachment(testId, params)
       fetchRequestDetails()
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
@@ -960,6 +962,7 @@ const RequestDetails = () => {
                     type='submit'
                     variant='contained'
                     sx={{ bgcolor: '#1F515B' }}
+                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     CONFIRM
                   </LoadingButton>
