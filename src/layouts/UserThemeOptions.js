@@ -67,7 +67,20 @@ const UserThemeOptions = () => {
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
-        neutralSecondary: '##7A8684'
+        neutralSecondary: '##7A8684',
+        textLabel: '#00ABAB',
+        customTableCellBg: '#FCF4AE33',
+        customTableCellBg1: '#0000000D',
+        customCardBorder: '#00ABAB',
+        customTabBg: '#1F415B',
+        tabListBorder: '#0000000D',
+        customDarkBg: '#7A8684',
+        customIconBg: '#00000066',
+        customBg: '#F2FFF8',
+        customHeadingTextColor: '#44544A',
+        customTextColorGray1: '#7A8684',
+        customTextColorGray2: '#44544ADE',
+        customTableHeaderBg: '#C1D3D0'
       },
       primary: {
         // light: '#20DE67',

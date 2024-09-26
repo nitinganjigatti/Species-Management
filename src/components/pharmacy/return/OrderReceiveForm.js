@@ -212,7 +212,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             : response?.data?.receiver_name,
           phone_number: response?.data?.phone_number
         })
-        // debugger
 
         const disputesData = {
           shipment_id: orderId,
@@ -670,7 +669,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                   type='text'
                                   error={Boolean(rejectItemsError ? rejectItemsError : null)}
                                   onChange={e => {
-                                    debugger
                                     setRejectItemsPayload({
                                       ...rejectItemsPayload,
                                       comment: e.target.value

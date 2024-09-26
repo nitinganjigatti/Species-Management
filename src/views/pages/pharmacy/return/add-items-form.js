@@ -129,8 +129,6 @@ export const AddItemsForm = ({
   // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
-    debugger
-
     const {
       request_item_batch_no,
       request_item_qty,
@@ -220,7 +218,6 @@ export const AddItemsForm = ({
     // }
     clearErrors('request_item_batch_no')
 
-    // debugger
     if (Number(request_item_qty) > Number(available_item_qty)) {
       setQuantityError(true)
 
@@ -338,12 +335,12 @@ export const AddItemsForm = ({
 
   // const checkTotalCount = e => {
   //   console.log('nestedMedicine', nestedMedicine)
-  //   debugger
+  //
 
   //   // console.log('editParams', editParams)
   //   const productId = watch('request_item')
   //   const quantity = watch('request_item_qty')
-  //   debugger
+
   //   var totalCount = 0
   //   var enteredCount = 0
   //   var nestedItemQuantity = 0
@@ -438,7 +435,6 @@ export const AddItemsForm = ({
                       setValue('manufacture', '')
 
                       if (value !== '' && value !== null) {
-                        // debugger
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)

@@ -54,18 +54,40 @@ const ReturnRequestList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
-  const [status, setStatus] = useState(router.query.status || 'pending')
+
+  const [status, setStatus] = useState(selectedPharmacy.type === 'local' ? 'pending' : 'shipped')
+
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
 
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  useEffect(() => {
+    if (!router.query.status) {
+      if (selectedPharmacy.type === 'central') {
+        setStatus('shipped')
+      } else if (selectedPharmacy.type === 'local') {
+        setStatus('pending')
+      }
+    } else {
+      setStatus(
+        selectedPharmacy.type === 'local' && router.query.status === 'pending'
+          ? 'pending'
+          : selectedPharmacy.type === 'central' && router.query.status === 'pending'
+          ? 'shipped'
+          : router.query.status
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.type])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -79,7 +101,6 @@ const ReturnRequestList = () => {
     async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
-        debugger
 
         const params = {
           sort,
@@ -158,6 +179,7 @@ const ReturnRequestList = () => {
       limit: 10
     })
   }
+
   // useEffect(() => {
   //   setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'shipped')
   //   setPaginationModel({ page: 0, pageSize: 10 })
@@ -177,6 +199,7 @@ const ReturnRequestList = () => {
       limit: paginationModel.pageSize,
       filterSwitch
     })
+
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, fetchTableData, filterSwitch])
@@ -453,25 +476,17 @@ const ReturnRequestList = () => {
               value='cancel'
               label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
             />
-            {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}
             <Tab
               value={'all' ? 'all' : 'completed'}
-              // label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />}
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
             />
           </TabList>
-
           <TabPanel value='pending'>{tableData()}</TabPanel>
           <TabPanel value='shipped'>{tableData()}</TabPanel>
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
-
-          {/* <TabPanel value='all'>{tableData()}</TabPanel> */}
-          {status === 'all' ? (
-            <TabPanel value='all'>{tableData()}</TabPanel>
-          ) : (
-            <TabPanel value='completed'>{tableData()}</TabPanel>
-          )}
+          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
+          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
         </TabContext>
       </Grid>
     </>

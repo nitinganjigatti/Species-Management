@@ -46,7 +46,6 @@ function formatDisplayDate(date) {
 function errorMessageExtractorFromObject(errorMessages) {
   for (const key in errorMessages) {
     if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
-      debugger
       const errorMessage = errorMessages[key]
       toast.error(errorMessage)
 
@@ -95,6 +94,13 @@ function daysFromToday(inputDate) {
   }
 }
 
+function renderUserAvatar(image) {
+  if (image) {
+    return <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+  } else {
+    return <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+  }
+}
 function convertUTCToLocal(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')

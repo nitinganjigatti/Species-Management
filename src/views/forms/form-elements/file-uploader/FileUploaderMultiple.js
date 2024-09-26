@@ -113,7 +113,6 @@ const FileUploaderMultiple = props => {
   }
 
   const handleMultipleFiles = file => {
-    debugger
     const { files } = file.target
     const totalFiles = [...files]
 

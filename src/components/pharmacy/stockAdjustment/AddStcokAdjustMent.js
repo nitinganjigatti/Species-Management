@@ -138,7 +138,6 @@ const AddStockAdjustment = () => {
 
   //  ****** debounce
   const fetchBatchData = async (id, productType) => {
-    // debugger
     if (id !== '') {
       try {
         const data = { stock_item_id: id }
