@@ -862,60 +862,57 @@ const ConditionSlider = ({
 
                   {statusID === '4' && (
                     <>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-                        <FormControl>
-                          <RadioGroup
-                            aria-labelledby='demo-row-radio-buttons-group-label'
-                            name='hatched_method_Btn'
-                            sx={{ display: 'flex', justifyContent: 'center' }}
-                            value={hatched}
-                            onChange={e => setHatched(e.target.value)}
-                          >
-                            <Box sx={{ display: 'flex', gap: '24px' }}>
-                              <Box
-                                error={Boolean(errors?.hatched_method_Btn)}
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  // gap: 2,
-                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                  borderRadius: '10px',
-
-                                  // opacity: 0.6,
-                                  width: 228,
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography ml={2}>Normal Hatch</Typography>
-                                <FormControlLabel value='normal_hatch' control={<Radio />} />
-                              </Box>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  // gap: 2,
-                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                  p: 2,
-                                  borderRadius: '10px',
-                                  // opacity: 0.6,
-                                  width: 228,
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography ml={2}>Assisted Hatch</Typography>
-                                <FormControlLabel value='assisted_hatch' control={<Radio />} />
-                              </Box>
+                      <FormControl sx={{ mb: 4 }} fullWidth>
+                        <RadioGroup
+                          aria-labelledby='demo-row-radio-buttons-group-label'
+                          name='hatched_method_Btn'
+                          sx={{ display: 'flex', justifyContent: 'center' }}
+                          value={hatched}
+                          onChange={e => setHatched(e.target.value)}
+                        >
+                          <Box sx={{ display: 'flex', gap: '24px' }}>
+                            <Box
+                              error={Boolean(errors?.hatched_method_Btn)}
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 2,
+                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                borderRadius: '10px',
+                                // opacity: 0.6,
+                                width: '100%',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Typography ml={2}>Normal Hatch</Typography>
+                              <FormControlLabel value='normal_hatch' control={<Radio />} />
                             </Box>
-                          </RadioGroup>
-                          {errors?.hatched_method_Btn && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.hatched_method_Btn?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                // gap: 2,
+                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                p: 2,
+                                borderRadius: '10px',
+                                // opacity: 0.6,
+                                width: '100%',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Typography ml={2}>Assisted Hatch</Typography>
+                              <FormControlLabel value='assisted_hatch' control={<Radio />} />
+                            </Box>
+                          </Box>
+                        </RadioGroup>
+                        {errors?.hatched_method_Btn && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.hatched_method_Btn?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
 
                       <FormControl fullWidth>
                         <Controller
@@ -1317,7 +1314,7 @@ const ConditionSlider = ({
                       </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='institution'>
-                          Institution {Number(watch('accessionType')) === 4 && '*'}
+                          {Number(watch('accessionType')) === 4 ? 'Institution*' : `Institution`}
                         </InputLabel>
                         <Controller
                           name='institution'
@@ -1327,7 +1324,7 @@ const ConditionSlider = ({
                             <Select
                               name='institution'
                               value={value}
-                              label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
+                              label={Number(watch('accessionType')) === 4 ? 'Institution*' : `Institution`}
                               onChange={onChange}
                               labelId='institution'
                               error={Boolean(errors?.institution)}
@@ -1611,7 +1608,7 @@ const ConditionSlider = ({
                             <Select
                               name='mastersOrganization'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Select Organization'
                               onChange={onChange}
                               labelId='mastersOrganization'
                               error={Boolean(errors?.mastersOrganization)}
@@ -1690,7 +1687,7 @@ const ConditionSlider = ({
                               <Select
                                 name='type'
                                 value={value}
-                                label='Animal Ownership Terms'
+                                label='Type'
                                 onChange={onChange}
                                 labelId='type'
                                 error={Boolean(errors?.type)}
@@ -1775,7 +1772,7 @@ const ConditionSlider = ({
                             <Select
                               name='parentMother'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Parent Mother'
                               onChange={onChange}
                               labelId='parentMother'
                               error={Boolean(errors?.parentMother)}
@@ -1912,7 +1909,7 @@ const ConditionSlider = ({
                             <Select
                               name='parentFather'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Parent Father'
                               onChange={onChange}
                               labelId='parentFather'
                               error={Boolean(errors?.parentFather)}
