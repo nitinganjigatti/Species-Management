@@ -2270,18 +2270,18 @@ const EggList = () => {
         }
 
         // console.log('params table data :>> ', params)
-
-        await GetEggList({ params: params }).then(res => {
-          // let listWithId = res.data.result.map((el, i) => {
-          //   return { ...el, uid: i + 1 }
-          // })
-          if (res.success) {
-            setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, res.data.result))
-          } else {
-            setRows([])
-          }
-        })
+        if (isDiscarded !== 'eggs_discarded')
+          await GetEggList({ params: params }).then(res => {
+            // let listWithId = res.data.result.map((el, i) => {
+            //   return { ...el, uid: i + 1 }
+            // })
+            if (res.success) {
+              setTotal(parseInt(res?.data?.total_count))
+              setRows(loadServerRows(paginationModel.page, res.data.result))
+            } else {
+              setRows([])
+            }
+          })
         setLoading(false)
       } catch (error) {
         console.log(error)
