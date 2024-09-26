@@ -307,7 +307,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'row' },
                   justifyContent: 'space-between',
-                  mb: '24px'
+                  mb: '24px',
+                  alignItems: 'flex-start'
                 }}
               >
                 <Box sx={{ height: '72px' }}>
