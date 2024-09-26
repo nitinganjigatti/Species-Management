@@ -64,6 +64,42 @@ export async function addMedicalComplaintOrDiagnosis(type, payload) {
   }
 }
 
+export async function updateMedicalCategoryDiagnosis(id, payload) {
+  const url = `v1/master/diagnosis/${id}`
+  try {
+    const response = await axiosFormPost({ url: url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function updateMedicalCategoryComplaint(id, payload) {
+  const url = `v1/master/complaints/${id}`
+  try {
+    const response = await axiosFormPost({ url: url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 // export async function deleteMedical(id) {
 //   const url = `masters/delete-sample-types/${id}`
 

@@ -20,7 +20,8 @@ import Router from 'next/router'
 import {
   addMedicalComplaintOrDiagnosis,
   getMedicalCategoryListById,
-  updateMedicalCategory
+  updateMedicalCategory,
+  updateMedicalCategoryComplaint
 } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
@@ -129,7 +130,7 @@ const ComplaintsDetails = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.med_cat_id !== null) {
-        response = await updateMedicalCategory(editParams?.med_cat_id, payload)
+        response = await updateMedicalCategoryComplaint(editParams?.id, payload)
       } else {
         response = await addMedicalComplaintOrDiagnosis(type, payload)
       }
@@ -188,7 +189,7 @@ const ComplaintsDetails = () => {
       sortable: false,
       renderCell: params => (
         <>
-          {params.row.zoo_id === zoo_id ? ( // Show only if the zoo_id matches
+          {params.row.zoo_id === zoo_id && params?.row?.can_edit === 1 ? ( // Show only if the zoo_id matches
             <Box sx={{}}>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
