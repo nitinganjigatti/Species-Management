@@ -113,11 +113,11 @@ const EditEggInfo = ({ egg_id, closeEditDrawer, egg_number, getDetails }) => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Egg Number*'
+                  label='Egg Identifier*'
                   value={value}
                   onChange={onChange}
                   focused={value !== ''}
-                  placeholder='Egg Number'
+                  placeholder='Egg Identifier'
                   error={Boolean(errors.egg_number)}
                   name='egg_number'
                 />

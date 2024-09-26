@@ -2267,20 +2267,28 @@ const EggList = () => {
               ? discardedTab
               : statusRecived
         }
-
-        // console.log('params table data :>> ', params)
-
-        await GetEggList({ params: params }).then(res => {
-          // let listWithId = res.data.result.map((el, i) => {
-          //   return { ...el, uid: i + 1 }
-          // })
-          if (res.success) {
-            setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, res.data.result))
-          } else {
-            setRows([])
-          }
-        })
+        console.log('params table data :>> ', isDiscarded)
+        console.log('params table data :>> ', status)
+        if (
+          (status === 'eggs_discarded' && isDiscarded === 'eggs_discarded_at_nursery') ||
+          status === 'eggs_received' ||
+          status === 'eggs_incubation' ||
+          status === 'eggs_hatched' ||
+          status === 'eggs_ready_to_be_discarded_at_nursery' ||
+          status === 'all'
+        ) {
+          await GetEggList({ params: params }).then(res => {
+            // let listWithId = res.data.result.map((el, i) => {
+            //   return { ...el, uid: i + 1 }
+            // })
+            if (res.success) {
+              setTotal(parseInt(res?.data?.total_count))
+              setRows(loadServerRows(paginationModel.page, res.data.result))
+            } else {
+              setRows([])
+            }
+          })
+        }
         setLoading(false)
       } catch (error) {
         console.log(error)

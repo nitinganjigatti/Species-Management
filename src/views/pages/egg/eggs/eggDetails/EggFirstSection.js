@@ -175,14 +175,14 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                 Egg Details
               </Typography>
             </Box>
-            <Box>
+            {/* <Box>
               <Icon
                 style={{ cursor: 'pointer' }}
                 onClick={() => setOpenEditDrawer(true)}
                 color={theme.palette.customColors.OnSurfaceVariant}
                 icon='mdi:pencil-outline'
               />
-            </Box>
+            </Box> */}
           </Box>
           <Grid container>
             <Grid
@@ -307,8 +307,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'row' },
                   justifyContent: 'space-between',
-                  alignItems: 'flext-start',
-                  mb: '24px'
+                  mb: '24px',
+                  alignItems: 'flex-start'
                 }}
               >
                 <Box sx={{ height: '72px' }}>
