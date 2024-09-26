@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import moment from 'moment'
 import { Avatar, Card, CardHeader, Grid, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -13,6 +13,8 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { useTheme } from '@emotion/react'
 import { DataGrid } from '@mui/x-data-grid'
 import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const SubmittedBatches = ({ type }) => {
   const theme = useTheme()
@@ -27,6 +29,8 @@ const SubmittedBatches = ({ type }) => {
   const [sortColumn, setSortColumn] = useState('submitted_on')
   const [loader, setLoader] = useState(false)
   const { selectedParivesh } = usePariveshContext()
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -444,7 +448,7 @@ const SubmittedBatches = ({ type }) => {
     )
   }
 
-  return <Grid>{tableData()}</Grid>
+  return <>{pariveshAccess ? <Grid>{tableData()}</Grid> : <Error404></Error404>}</>
 }
 
 export default SubmittedBatches
