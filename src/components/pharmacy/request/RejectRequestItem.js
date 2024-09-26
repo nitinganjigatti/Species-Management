@@ -10,8 +10,12 @@ import { useForm, Controller } from 'react-hook-form'
 import { rejectMedicine } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { LoadingButton } from '@mui/lab'
 import Divider from '@mui/material/Divider'
+import { lighten, useTheme } from '@mui/material/styles'
 
-function RejectRequestItem({ parentId, updateRequestItems,closeRejectMedicineDialog }) {
+
+function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDialog }) {
+  const theme = useTheme()
+
   const defaultValues = {
     comments: ''
   }
@@ -85,7 +89,10 @@ function RejectRequestItem({ parentId, updateRequestItems,closeRejectMedicineDia
           </Grid>
         </CardContent>
       </Card>
-      <Divider />
+
+      <Divider sx={{ border: '0.5 solid #DAE7DF', position: 'relative', bottom: '20px' }} />
+
+      <Typography sx={{ my: 3, fontSize: '16px', fontWeight: '500' , fontFamily:"Inter",color: theme.palette.customColors.customDarkBg,mb:5 }}>Reason for Decline *</Typography>
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12}>
@@ -107,7 +114,7 @@ function RejectRequestItem({ parentId, updateRequestItems,closeRejectMedicineDia
 
         <Grid item xs={12}>
           <LoadingButton
-            sx={{ my: 6, float: 'right', width:"100px"}}
+            sx={{ my: 6, float: 'right', width: '100px' }}
             size='large'
             type='submit'
             variant='contained'
@@ -115,7 +122,12 @@ function RejectRequestItem({ parentId, updateRequestItems,closeRejectMedicineDia
           >
             Add
           </LoadingButton>
-          <LoadingButton sx={{ my: 6, float: 'right',mr:2 }} size='large' variant='outlined' onClick={closeRejectMedicineDialog}>
+          <LoadingButton
+            sx={{ my: 6, float: 'right', mr: 2 }}
+            size='large'
+            variant='outlined'
+            onClick={closeRejectMedicineDialog}
+          >
             Cancel
           </LoadingButton>
         </Grid>

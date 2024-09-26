@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { Dialog, DialogTitle, DialogActions, IconButton, DialogContent, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon' // Assuming you're using this custom icon component
 
-const ConfirmDialogBox = ({ closeDialog, open, action, content, title }) => {
+const ConfirmDialogBox = ({ closeDialog, open, action, content, title }) => { 
   return (
     <Fragment>
       <Dialog

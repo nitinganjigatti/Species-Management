@@ -3,13 +3,13 @@ import { CardContent, Grid, Typography, Button, CardActions, Divider } from '@mu
 const AddComment = ({ expandedText, handleClose }) => {
   return (
     <>
-    <Divider sx={{mb:-3}}/>
+    <Divider sx={{mb:-6}}/>
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Grid sx={{position:"relative", right:10}}>
              
-              <Typography sx={{ fontSize: '20px', fontFamily: 'inter', fontWeight: 500,mt:2 }}>Description</Typography>
+              <Typography sx={{ fontSize: '20px', fontFamily: 'inter', fontWeight: 500,mt:5 }}>Description</Typography>
             </Grid>
             <Grid sx={{mt:2,position:"relative", right:8}}>
            
