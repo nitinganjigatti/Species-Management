@@ -123,14 +123,6 @@ function toPascalSentenceCase(str) {
     .join(' ')
 }
 
-function renderUserAvatar(image) {
-  if (image) {
-    return <CustomAvatar src={image} sx={{ mr: 3, width: 34, height: 34 }} />
-  } else {
-    return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
-  }
-}
-
 const Utility = {
   formatDate,
   formatNumber,
