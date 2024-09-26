@@ -66,7 +66,19 @@ const schema = yup.object().shape({
   }),
 
   gender: yup.string().required('Gender is Required'),
-  transaction_date: yup.date().required('Date is Required'),
+  // transaction_date: yup.date().required('Date is Required'),
+
+  transaction_date: yup
+    .date()
+    .required('Date is Required')
+    .test('is-after-death-date', `Entry date can't be older than the death date`, function (value) {
+      const { death_date } = this.parent // Get death_date from form values
+      if (death_date) {
+        return new Date(value).getTime() >= new Date(death_date).getTime()
+      }
+      return true // No death date, no comparison
+    }),
+
   possession_type: yup.string().required('Reason is Required'),
 
   where_to_transfer: yup.string().when('possession_type', {
@@ -98,6 +110,7 @@ const schema = yup.object().shape({
       then: () => yup.date().nullable().required('Date of Death is required'),
       otherwise: () => yup.date().nullable().notRequired()
     }),
+
   death_animal_id: yup.string().when('possession_type', {
     is: 'death',
     then: () =>

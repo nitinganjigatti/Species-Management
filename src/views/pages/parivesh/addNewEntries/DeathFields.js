@@ -19,24 +19,24 @@ const DeathFields = ({
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
   })
 
-  const transactionDate = watch('transaction_date')
-  const deathDate = watch('death_date')
+  // const transactionDate = watch('transaction_date')
+  // const deathDate = watch('death_date')
 
-  useEffect(() => {
-    validateDates(transactionDate, deathDate)
-  }, [transactionDate, deathDate])
+  // useEffect(() => {
+  //   validateDates(transactionDate, deathDate)
+  // }, [transactionDate, deathDate])
 
-  const validateDates = (transactionDate, deathDate) => {
-    if (!transactionDate || !deathDate) return
+  // const validateDates = (transactionDate, deathDate) => {
+  //   if (!transactionDate || !deathDate) return
 
-    const transactionDateTime = new Date(transactionDate).getTime()
-    const deathDateTime = new Date(deathDate).getTime()
+  //   const transactionDateTime = new Date(transactionDate).getTime()
+  //   const deathDateTime = new Date(deathDate).getTime()
 
-    if (transactionDateTime < deathDateTime) {
-      setValue('transaction_date', null)
-      clearErrors('transaction_date')
-    }
-  }
+  //   if (transactionDateTime < deathDateTime) {
+  //     setValue('transaction_date', null)
+  //     clearErrors('transaction_date')
+  //   }
+  // }
 
   return (
     <>
@@ -151,21 +151,21 @@ const DeathFields = ({
             <Controller
               name='transaction_date'
               control={control}
-              rules={{
-                validate: {
-                  dateOrder: value => {
-                    const deathDateValue = getValues('death_date')
-                    if (deathDateValue) {
-                      const transactionDateTime = new Date(value).getTime()
-                      const deathDateTime = new Date(deathDateValue).getTime()
-                      if (transactionDateTime < deathDateTime) {
-                        return 'Entry date cant be older than the death date'
-                      }
-                    }
-                    return true
-                  }
-                }
-              }}
+              // rules={{
+              //   validate: {
+              //     dateOrder: value => {
+              //       const deathDateValue = getValues('death_date')
+              //       if (deathDateValue) {
+              //         const transactionDateTime = new Date(value).getTime()
+              //         const deathDateTime = new Date(deathDateValue).getTime()
+              //         if (transactionDateTime < deathDateTime) {
+              //           return 'Entry date cant be older than the death date'
+              //         }
+              //       }
+              //       return true
+              //     }
+              //   }
+              // }}
               render={({ field: { value, onChange } }) => (
                 <SingleDatePicker
                   fullWidth
@@ -176,7 +176,7 @@ const DeathFields = ({
                   // timeIntervals={15}
                   onChangeHandler={onChange}
                   maxDate={new Date()}
-                  minDate={(deathDate && deathDate) || new Date()}
+                  // minDate={(deathDate && deathDate) || new Date()}
                   customInput={<CustomInput label='Date*' error={Boolean(errors.transaction_date)} />}
                 />
               )}
