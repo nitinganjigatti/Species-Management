@@ -72,6 +72,9 @@ const UserThemeOptions = () => {
         customDarkBg: '#7A8684',
         customIconBg: '#00000066',
         customBg: '#F2FFF8',
+        customHeadingTextColor: '#44544A',
+        customTextColorGray1: '#7A8684',
+        customTextColorGray2: '#44544ADE',
         customTableHeaderBg: '#C1D3D0'
       },
       primary: {

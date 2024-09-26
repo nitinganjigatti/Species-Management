@@ -371,7 +371,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                   />
                 )}
               />
-              {nestedRowMedicine.medicine_name && (
+              {/* {nestedRowMedicine.medicine_name && (
                 <Grid container item sx={{ my: 2 }}>
                   <Tooltip title={nestedRowMedicine.package}>
                     <Chip
@@ -393,7 +393,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     />
                   </Tooltip>
                 </Grid>
-              )}
+              )} */}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                   This field is required
@@ -468,7 +468,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                   return option?.genericName || nestedRowMedicine?.genericName || ''
                 }}
               />
-              {nestedRowMedicine.medicine_name && (
+              {/* {nestedRowMedicine.medicine_name && (
                 <Grid container item sx={{ my: 2 }}>
                   <Tooltip title={nestedRowMedicine.package}>
                     <Chip
@@ -490,7 +490,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     />
                   </Tooltip>
                 </Grid>
-              )}
+              )} */}
               {itemErrors.medicine_name && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                   This field is required
