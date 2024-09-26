@@ -24,7 +24,6 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Router, { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
-import SingleDatePicker from 'src/components/SingleDatePicker'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import {
   addSpeciesToOrganization,
@@ -36,8 +35,6 @@ import Toaster from 'src/components/Toaster'
 import { deleteAttachment, getEntryListById } from 'src/lib/api/parivesh/entryList'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
-import Image from 'next/image'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 import BirthFields from 'src/views/pages/parivesh/addNewEntries/BirthFields'
@@ -69,15 +66,21 @@ const schema = yup.object().shape({
   }),
 
   gender: yup.string().required('Gender is Required'),
-  transaction_date: yup.date().required('Date is Required'),
+  // transaction_date: yup.date().required('Date is Required'),
+
+  transaction_date: yup
+    .date()
+    .required('Date is Required')
+    .test('is-after-death-date', `Entry date can't be older than the death date`, function (value) {
+      const { death_date } = this.parent // Get death_date from form values
+      if (death_date) {
+        return new Date(value).getTime() >= new Date(death_date).getTime()
+      }
+      return true // No death date, no comparison
+    }),
+
   possession_type: yup.string().required('Reason is Required'),
 
-  // Conditional fields for Transfer
-  // where_to_transfer: yup.string().when('possession_type', {
-  //   is: 'transfer',
-  //   then: () => yup.string().required('Organization name is required'),
-  //   otherwise: () => yup.string().notRequired()
-  // }),
   where_to_transfer: yup.string().when('possession_type', {
     is: 'transfer',
     then: () =>
@@ -97,11 +100,7 @@ const schema = yup.object().shape({
     then: () => yup.string().required('Reason for Death is required'),
     otherwise: () => yup.string().notRequired()
   }),
-  // death_date: yup.date().when('possession_type', {
-  //   is: 'death',
-  //   then: () => yup.date().required('Date of Death is required'),
-  //   otherwise: () => yup.date().notRequired()
-  // }),
+
   death_date: yup
     .date()
     .nullable()
@@ -111,11 +110,7 @@ const schema = yup.object().shape({
       then: () => yup.date().nullable().required('Date of Death is required'),
       otherwise: () => yup.date().nullable().notRequired()
     }),
-  // death_animal_id: yup.string().when('possession_type', {
-  //   is: 'death',
-  //   then: () => yup.string().notRequired(),
-  //   otherwise: () => yup.string().notRequired()
-  // }),
+
   death_animal_id: yup.string().when('possession_type', {
     is: 'death',
     then: () =>
@@ -139,14 +134,6 @@ const schema = yup.object().shape({
   }),
 
   // Conditional fields for Acquisition
-  // where_to_acquisition: yup
-  //   .string()
-  //   .trim()
-  //   .when('possession_type', {
-  //     is: 'acquisition',
-  //     then: () => yup.string().trim().required('Organization name is required'),
-  //     otherwise: () => yup.string().trim().notRequired()
-  //   }),
   where_to_acquisition: yup.string().when('possession_type', {
     is: 'acquisition',
     then: () =>
@@ -158,11 +145,7 @@ const schema = yup.object().shape({
         }),
     otherwise: () => yup.string().notRequired()
   }),
-  // dgft_number: yup.string().when('possession_type', {
-  //   is: 'acquisition',
-  //   then: () => yup.string().required('DGFT Number is required'),
-  //   otherwise: () => yup.string().notRequired()
-  // }),
+
   dgft_number: yup.string().when('possession_type', {
     is: 'acquisition',
     then: () =>
@@ -310,8 +293,6 @@ const AddNewEntry = () => {
       return
     }
 
-    console.log('Submitting data:', data)
-
     const selectedDate = new Date(transaction_date)
     const now = new Date()
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
@@ -393,8 +374,6 @@ const AddNewEntry = () => {
         org_id: selectedOrgId
       }
 
-      // console.log('Id >', id, selectedOrgId)
-
       const fetchDataById = async () => {
         const response = await getEntryListById(params)
 
@@ -435,7 +414,6 @@ const AddNewEntry = () => {
             ) {
               // Skip fields already set in specieObject
               setValue(key, response.data[key])
-              // setDisplayFile(response.data[key])
             }
           }
           // Update displayFile with existing attachments
@@ -469,13 +447,10 @@ const AddNewEntry = () => {
     }
   }, [setValue])
 
-  // console.log(editParams, 'editParams')
-
   const fetchSpeciesData = useCallback(async q => {
     try {
       const params = { q }
       await getListAllSpeciesSearch({ params: params }).then(res => {
-        // console.log('response123', res?.data?.result)
         const transformedSpecies = res?.data?.result.map(species => ({
           id: species?.tsn,
           common_name: species?.common_name,
@@ -494,63 +469,17 @@ const AddNewEntry = () => {
     fetchSpeciesData('')
   }, [fetchSpeciesData])
 
-  // const possessionType = watch('possession_type')
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
   }
-
-  // const { getRootProps, getInputProps } = useDropzone({
-  //   multiple: true,
-  //   accept: {
-  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
-  //     'application/pdf': ['.pdf'],
-  //     'application/msword': ['.doc'],
-  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-  //     'application/vnd.ms-excel': ['.xls'],
-  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-  //   },
-  //   onDrop: acceptedFiles => {
-  //     const filePromises = acceptedFiles.map(file => {
-  //       console.log(file, 'file')
-  //       return new Promise(resolve => {
-  //         const reader = new FileReader()
-  //         console.log(reader, reader.result, 'result')
-  //         reader.onloadend = () => {
-  //           resolve({ name: file.name, fileSrc: reader.result, file })
-  //         }
-  //         reader.readAsDataURL(file)
-  //       })
-  //     })
-
-  //     Promise.all(filePromises)
-  //       .then(fileDetails => {
-  //         setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
-  //         setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
-
-  //         // Update attachments in the form
-  //         const currentFiles = getValues('attachments') || []
-  //         console.log(acceptedFiles, 'currentFiles')
-  //         setValue('attachments', [...currentFiles, ...acceptedFiles])
-
-  //         clearErrors('attachments')
-  //         setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
-  //       })
-  //       .catch(error => {
-  //         console.error('Error processing files:', error)
-  //       })
-  //   }
-  // })
 
   const removeSelectedImage = async (index, fileId) => {
     if (fileId) {
       setSelectedFileId(fileId)
       setIsModalOpenDelete(true)
-      // Toaster({ type: 'error', message: 'you need to call the api here ' })
     } else {
-      // console.log(index, id)
       setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
       setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
-
       // Update the attachments in the form
       const currentFiles = getValues('attachments') || []
       const updatedFiles = currentFiles.filter((_, i) => i !== index)
@@ -570,7 +499,6 @@ const AddNewEntry = () => {
       const payload = {
         apad_id: editParams?.id,
         attachment_for: 'animal'
-        // attachment_for: 'dgft'
       }
       setDeleteBtnLoader(true)
       const response = await deleteAttachment(selectedFileId, payload)
@@ -578,14 +506,6 @@ const AddNewEntry = () => {
       if (response?.success) {
         setDeleteBtnLoader(false)
         setIsModalOpenDelete(false)
-        // const fetchedFiles = response?.data?.attachments?.map(file => ({
-        //   name: file?.attachment_name,
-        //   fileSrc: file?.attachment,
-        //   id: file?.id,
-        //   isBackendFile: true // Mark as backend file
-        // }))
-        // setDisplayFile(fetchedFiles)
-
         // Fetch the updated backend files
         const fetchedFiles = response?.data?.attachments?.map(file => ({
           name: file?.attachment_name,
@@ -761,7 +681,7 @@ const AddNewEntry = () => {
                       </FormControl>
                     </Grid>
                   </Grid>
-                  {(possessionType !== 'birth' || !possessionType) && (
+                  {possessionType !== 'birth' && possessionType && (
                     <Grid container spacing={2} sx={{ mb: 6 }}>
                       <Grid item xs={12}>
                         <FormControl fullWidth>
@@ -941,43 +861,6 @@ const AddNewEntry = () => {
                             <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
                           )}
                         </FormControl>
-
-                        {/* <FormControl fullWidth>
-                      <Controller
-                        name='attachments'
-                        control={control}
-                        // rules={{ required: isAttachmentRequired ? 'Attachment is required' : false }}
-                        render={({ field }) => (
-                          <Box
-                            {...field}
-                            onClick={handleAddImageClick}
-                            {...getRootProps()}
-                            ref={fileInputRef}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 2,
-                              border: '1px solid #d3d3d3',
-                              borderRadius: 1,
-                              padding: 4,
-                              cursor: 'pointer',
-                              height: '60px',
-                              width: '100%' // Make sure it fills its grid item
-                            }}
-                          >
-                            <input {...getInputProps()} ref={fileInputRef} />
-                            <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' size={3} />
-
-                            <Typography variant='body1' color='textPrimary'>
-                              Add Attachments
-                            </Typography>
-                          </Box>
-                        )}
-                      />
-                      {errors.attachments && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
-                      )}
-                    </FormControl> */}
                       </Grid>
 
                       {/* {/ Uploaded files display /} */}
@@ -1063,7 +946,6 @@ const AddNewEntry = () => {
                       })}
                     </Grid>
                   </>
-                  {/* <Button onClick={onSubmit}>save</Button> */}
 
                   <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
                     <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>
@@ -1092,8 +974,6 @@ const AddNewEntry = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '32px',
-
-                  // padding: '40px',
                   alignItems: 'center'
                 }}
               >
