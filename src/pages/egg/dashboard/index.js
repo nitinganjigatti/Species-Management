@@ -16,8 +16,9 @@ import { DataGrid } from '@mui/x-data-grid'
 import { getAllStats } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
-import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
-import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
+
+// import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
+// import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
 import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
 
@@ -149,7 +150,7 @@ const Dashboard = () => {
         </Grid>
       </Box>
       <EggsStats openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} allStats={allStats} />
-      <TodaysCollection />
+      {/* <TodaysCollection /> */}
       {/* <TransferDetails /> */}
       <Species openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />
     </Box>

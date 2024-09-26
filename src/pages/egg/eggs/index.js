@@ -98,6 +98,7 @@ const EggList = () => {
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const handleDiscard = (e, eggId) => {
     e.stopPropagation()
@@ -114,6 +115,14 @@ const EggList = () => {
     const percentageChange = (difference / numValue1) * 100
 
     return percentageChange > 0 ? `+${percentageChange.toFixed()}` : percentageChange.toFixed()
+  }
+
+  const checkAddPermission = () => {
+    if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      return true
+    } else {
+      return false
+    }
   }
 
   const received = [
@@ -790,7 +799,7 @@ const EggList = () => {
             >
               AAID : {params.row.animal_id ? params.row.animal_id : '-'}
             </Typography>
-          ) : (
+          ) : checkAddPermission() ? (
             <Typography
               style={{
                 color: theme.palette?.primary?.main,
@@ -806,6 +815,16 @@ const EggList = () => {
               }}
             >
               Create Animal ID
+            </Typography>
+          ) : (
+            <Typography
+              style={{
+                textAlign: 'center'
+
+                // lineHeight: '19.36px'
+              }}
+            >
+              -
             </Typography>
           )}
         </Box>
@@ -2248,20 +2267,28 @@ const EggList = () => {
               ? discardedTab
               : statusRecived
         }
-
-        // console.log('params table data :>> ', params)
-
-        await GetEggList({ params: params }).then(res => {
-          // let listWithId = res.data.result.map((el, i) => {
-          //   return { ...el, uid: i + 1 }
-          // })
-          if (res.success) {
-            setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, res.data.result))
-          } else {
-            setRows([])
-          }
-        })
+        console.log('params table data :>> ', isDiscarded)
+        console.log('params table data :>> ', status)
+        if (
+          (status === 'eggs_discarded' && isDiscarded === 'eggs_discarded_at_nursery') ||
+          status === 'eggs_received' ||
+          status === 'eggs_incubation' ||
+          status === 'eggs_hatched' ||
+          status === 'eggs_ready_to_be_discarded_at_nursery' ||
+          status === 'all'
+        ) {
+          await GetEggList({ params: params }).then(res => {
+            // let listWithId = res.data.result.map((el, i) => {
+            //   return { ...el, uid: i + 1 }
+            // })
+            if (res.success) {
+              setTotal(parseInt(res?.data?.total_count))
+              setRows(loadServerRows(paginationModel.page, res.data.result))
+            } else {
+              setRows([])
+            }
+          })
+        }
         setLoading(false)
       } catch (error) {
         console.log(error)
