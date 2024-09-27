@@ -2208,8 +2208,11 @@ const IndividualRequest = () => {
                                                                   This Product was rejected
                                                                 </Typography>
                                                               )}
+
                                                               {el.alt_parent.length === 0 &&
-                                                                el?.dispatch_status === 'Fulfilled' && (
+                                                                el?.dispatch_status === 'Fulfilled' &&
+                                                                el?.request_status !== 'Not Available' &&
+                                                                el?.request_status !== 'Rejected' && (
                                                                   <Grid
                                                                     sx={{
                                                                       color: 'success.main',
@@ -3102,7 +3105,9 @@ const IndividualRequest = () => {
                                                           </Typography>
                                                         )}
                                                         {el.alt_parent.length === 0 &&
-                                                          el?.dispatch_status === 'Fulfilled' && (
+                                                          el?.dispatch_status === 'Fulfilled' &&
+                                                          el?.request_status !== 'Not Available' &&
+                                                          el?.request_status !== 'Rejected' && (
                                                             <Grid
                                                               sx={{
                                                                 color: 'success.main',
