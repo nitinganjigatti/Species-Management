@@ -1566,11 +1566,11 @@ const IndividualRequest = () => {
                     >
                       <Tab
                         value='Pending'
-                        label={<TabBadge label='Pending' totalCount={status === 'Pending' ? 0 : null} />}
+                        label={<TabBadge label='Requested Items' totalCount={status === 'Pending' ? 0 : null} />}
                       />
                       <Tab
                         value='Shipped'
-                        label={<TabBadge label='Shipped' totalCount={status === 'Shipped' ? 0 : null} />}
+                        label={<TabBadge label='Shipment' totalCount={status === 'Shipped' ? 0 : null} />}
                       />
                     </TabList>
                     <TabPanel
