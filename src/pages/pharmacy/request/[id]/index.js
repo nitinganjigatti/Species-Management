@@ -3670,6 +3670,11 @@ const IndividualRequest = () => {
                 open={show}
                 maxWidth='md'
                 scroll='body'
+                sx={{
+                  '& .MuiDialog-paper': {
+                    backgroundColor: 'primary.contrastText'
+                  }
+                }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
                 onBackdropClick={() => closeDialog()}

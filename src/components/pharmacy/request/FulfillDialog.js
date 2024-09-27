@@ -582,13 +582,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             sx={{
               backgroundColor: 'customColors.lightBg'
             }}
-
-            // sx={{
-            //   '& .MuiDialog-paper': {
-            //     backgroundColor: 'customColors.lightBg',
-            //     padding: 8
-            //   }
-            // }}
           >
             <CardContent>
               <Grid container sx={{ flexGrow: 1, m: 'auto' }}>
