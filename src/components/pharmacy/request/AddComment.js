@@ -3,8 +3,7 @@ import { CardContent, Grid, Typography, Button, CardActions, Divider } from '@mu
 const AddComment = ({ expandedText, handleClose }) => {
   return (
     <>
-      {' '}
-      <Divider /> 
+      <Divider />
       <CardContent>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -15,8 +14,8 @@ const AddComment = ({ expandedText, handleClose }) => {
         </Grid>
       </CardContent>
       {/* Card Footer with Cancel Button */}
-      <CardActions style={{ justifyContent: 'flex-end', position: 'relative', marginTop:"-2px" }}>
-        <Button sx={{position:"relative" , bottom:"-40px", left:"25px"}} variant='contained' onClick={handleClose}>
+      <CardActions style={{ justifyContent: 'flex-end', position: 'relative', marginTop: '-2px' }}>
+        <Button sx={{ position: 'relative', bottom: '-40px', left: '25px' }} variant='contained' onClick={handleClose}>
           Cancel
         </Button>
       </CardActions>
