@@ -350,7 +350,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     manufacture: newValue?.manufacture,
                     genericName: newValue?.genericName,
                     unit_price: newValue?.unit_price,
-                    availAbleQty: newValue?.available_qty
+                    availAbleQty: newValue?.availAbleQty
                   })
                   setDuplicateMedError('')
                   setItemErrors({})
@@ -442,7 +442,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     manufacture: newValue?.manufacture,
                     unit_price: newValue?.unit_price,
                     genericName: newValue?.genericName,
-                    availAbleQty: newValue?.available_qty
+                    availAbleQty: newValue?.availAbleQty
                   })
                   setDuplicateMedError('')
                   setItemErrors({})
@@ -615,7 +615,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         </Grid>
 
         {/* // file uploader */}
-        <Grid item xs={12} sm={1}></Grid>
+        {/* <Grid item xs={12} sm={1}></Grid> */}
 
         {nestedRowMedicine.control_substance === true ? (
           nestedRowMedicine.control_substance_file ? (
@@ -714,7 +714,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         ) : null}
         {nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
-            <Grid item xs={12} sm={12} sx={{ ml: 'auto' }}>
+            <Grid item xs={12} sm={12}>
               {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
                 <Chip
                   label={nestedRowMedicine.prescription_required_file?.name}

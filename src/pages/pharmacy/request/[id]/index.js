@@ -76,7 +76,7 @@ const IndividualRequest = () => {
       display: 'none'
     },
     '& .Mui-selected': {
-      backgroundColor: theme.palette.customColors.customTabBg,
+      backgroundColor: theme.palette.customColors.OnSecondaryContainer,
       color: theme.palette.common.white
     },
     '& .MuiTab-root': {
@@ -442,13 +442,13 @@ const IndividualRequest = () => {
 
   const getCellBgColor = el => {
     if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Fulfilled') {
-      return 'customColors.customBg'
+      return 'customColors.OutlineVariant'
     } else if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Not Fulfilled') {
       return 'customColors.customTableCellBg'
     } else if (el?.alt_parent.length === 0 && el?.dispatch_status === 'Fulfilled') {
-      return 'customColors.customBg'
+      return 'customColors.OutlineVariant'
     } else if (el?.request_status === 'Not Available' || el?.request_status === 'Rejected') {
-      return 'customColors.customTableCellBg1'
+      return 'customColors.neutral05'
     } else {
       return 'white'
     }
@@ -472,13 +472,23 @@ const IndividualRequest = () => {
           </IconButton>
         )} */}
         {hasPrescriptionRequired && (
-          <Icon
+          <Box
             onClick={() => {
               window.open(status.prescription_required_file, '_blank')
             }}
-            style={{ fontSize: '20px', color: '#00000066' }}
-            icon='material-symbols:attachment'
-          />
+            sx={{ display: 'flex' }}
+          >
+            <Icon style={{ fontSize: '20px', color: '#00000066' }} icon='material-symbols:attachment' />
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary',
+                opacity: '0.5'
+              }}
+            >
+              prescription
+            </Typography>
+          </Box>
         )}
         {!(hasControlSubstance || hasPrescriptionRequired) && 'NA'}
       </>
@@ -496,7 +506,6 @@ const IndividualRequest = () => {
     console.log('params', params)
     console.log('parentId', parentId)
 
-    // debugger
     if (selectedPharmacy.type === 'central') {
       options.push({
         label: 'Add Alternate',
@@ -1500,7 +1509,7 @@ const IndividualRequest = () => {
                         <Typography>
                           Requested Items:<strong> {requestItems?.total_qty} </strong>
                         </Typography>
-                        <Typography sx={{ color: 'primary.main' }}>
+                        <Typography sx={{ color: 'primary.dark' }}>
                           Shipped Items:<strong> {requestItems?.shipped_qty} </strong>
                         </Typography>
                       </Grid>
@@ -1511,10 +1520,19 @@ const IndividualRequest = () => {
                         lg={12 / 4}
                         sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
                       >
-                        <Typography>
-                          Total Requested Value:<strong> ₹{requestItems?.requested_amount} </strong>
-                        </Typography>
-                        <Typography sx={{ color: 'primary.main' }}>
+                        <Box sx={{ display: 'flex' }}>
+                          Total Requested Value:
+                          <Typography
+                            sx={{
+                              color: 'primary.light',
+                              fontWeight: '600'
+                            }}
+                          >
+                            {' '}
+                            ₹{requestItems?.requested_amount}{' '}
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ color: 'primary.dark' }}>
                           Shipped Value:<strong> ₹{requestItems?.shipped_amount} </strong>
                         </Typography>
                       </Grid>
@@ -1580,8 +1598,11 @@ const IndividualRequest = () => {
                           </TabLists>
                           <TabPanel value='Pending'>
                             {requestItems?.request_item_details.length > 0
-                              ? requestItems?.request_item_details.filter(el => el.dispatch_status === 'Not Fulfilled')
-                                  .length > 0 && (
+                              ? requestItems?.request_item_details.filter(
+                                  el =>
+                                    el.dispatch_status === 'Not Fulfilled' &&
+                                    (el.request_status !== 'Rejected' || el.request_status !== 'Not Available')
+                                ).length > 0 && (
                                   <Card sx={{ ml: -3 }}>
                                     <TableContainer>
                                       <Table
@@ -1692,7 +1713,7 @@ const IndividualRequest = () => {
                                                                       display: 'flex',
                                                                       flexDirection: 'column',
                                                                       alignContent: 'center',
-                                                                      backgroundColor: 'customColors.customDarkBg'
+                                                                      backgroundColor: 'customColors.neutralSecondary'
                                                                     }}
                                                                   >
                                                                     Alt
@@ -1745,6 +1766,8 @@ const IndividualRequest = () => {
                                                                 variant='body1'
                                                                 sx={{
                                                                   fontWeight: 600,
+                                                                  color: 'customColors.OnSecondaryContainer',
+
                                                                   display: 'flex',
                                                                   alignItems: 'center'
                                                                 }}
@@ -1778,6 +1801,7 @@ const IndividualRequest = () => {
                                                                       backgroundColor: 'error.main',
                                                                       fontWeight: 'bold',
                                                                       fontSize: '10px',
+
                                                                       color: 'white',
                                                                       padding: '2px',
                                                                       borderRadius: '2px',
@@ -1819,7 +1843,7 @@ const IndividualRequest = () => {
                                                               }}
                                                               sx={{
                                                                 display: 'flex',
-                                                                color: 'customColors.customIconBg',
+                                                                color: 'customColors.neutralSecondary',
                                                                 width: '100%',
 
                                                                 cursor: 'pointer'
@@ -1863,12 +1887,6 @@ const IndividualRequest = () => {
                                                               }}
                                                             >
                                                               <Box>{renderAttachmentIcons(el)}</Box>
-                                                              <Typography
-                                                                variant='body2'
-                                                                sx={{ color: 'text.primary', opacity: '0.5' }}
-                                                              >
-                                                                prescription
-                                                              </Typography>
                                                             </Grid>
                                                           ) : null}
                                                         </Box>
@@ -1885,7 +1903,8 @@ const IndividualRequest = () => {
                                                                     display: 'flex',
                                                                     flexDirection: 'column',
                                                                     justifyContent: 'center',
-                                                                    flexWrap: 'nowrap'
+                                                                    flexWrap: 'nowrap',
+                                                                    my: 1
 
                                                                     // mb: 4,
                                                                   }}
@@ -1900,6 +1919,8 @@ const IndividualRequest = () => {
                                                                           variant='body1'
                                                                           sx={{
                                                                             fontWeight: 600,
+                                                                            color: 'customColors.OnSecondaryContainer',
+
                                                                             display: 'flex',
                                                                             alignItems: 'center'
                                                                           }}
@@ -2026,12 +2047,6 @@ const IndividualRequest = () => {
                                                                         }}
                                                                       >
                                                                         <Box>{renderAttachmentIcons(el)}</Box>
-                                                                        <Typography
-                                                                          variant='body2'
-                                                                          sx={{ color: 'text.primary', opacity: '0.5' }}
-                                                                        >
-                                                                          prescription
-                                                                        </Typography>
                                                                       </Grid>
                                                                     ) : null}
                                                                   </Box>
@@ -2367,7 +2382,7 @@ const IndividualRequest = () => {
                                                                         color: 'text.primary',
                                                                         textAlign: 'left',
 
-                                                                        color: '#E4B819'
+                                                                        color: 'customColors.moderateSecondary'
                                                                       }}
                                                                     >
                                                                       Added Alternative
@@ -2614,7 +2629,7 @@ const IndividualRequest = () => {
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
                                                                 alignContent: 'center',
-                                                                backgroundColor: 'customColors.customDarkBg'
+                                                                backgroundColor: 'customColors.neutralSecondary'
                                                               }}
                                                             >
                                                               Alt
@@ -2667,6 +2682,8 @@ const IndividualRequest = () => {
                                                           variant='body1'
                                                           sx={{
                                                             fontWeight: 600,
+                                                            color: 'customColors.OnSecondaryContainer',
+
                                                             display: 'flex',
                                                             alignItems: 'center'
                                                           }}
@@ -2739,7 +2756,7 @@ const IndividualRequest = () => {
                                                         }}
                                                         sx={{
                                                           display: 'flex',
-                                                          color: 'customColors.customIconBg',
+                                                          color: 'customColors.neutralSecondary',
                                                           width: '100%',
 
                                                           cursor: 'pointer'
@@ -2783,12 +2800,6 @@ const IndividualRequest = () => {
                                                         }}
                                                       >
                                                         <Box>{renderAttachmentIcons(el)}</Box>
-                                                        <Typography
-                                                          variant='body2'
-                                                          sx={{ color: 'text.primary', opacity: '0.5' }}
-                                                        >
-                                                          prescription
-                                                        </Typography>
                                                       </Grid>
                                                     ) : null}
                                                   </Box>
@@ -2805,7 +2816,8 @@ const IndividualRequest = () => {
                                                               display: 'flex',
                                                               flexDirection: 'column',
                                                               justifyContent: 'center',
-                                                              flexWrap: 'nowrap'
+                                                              flexWrap: 'nowrap',
+                                                              my: 1
 
                                                               // mb: 4,
                                                             }}
@@ -2817,6 +2829,8 @@ const IndividualRequest = () => {
                                                                     variant='body1'
                                                                     sx={{
                                                                       fontWeight: 600,
+                                                                      color: 'customColors.OnSecondaryContainer',
+
                                                                       display: 'flex',
                                                                       alignItems: 'center'
                                                                     }}
@@ -2943,12 +2957,6 @@ const IndividualRequest = () => {
                                                                   }}
                                                                 >
                                                                   <Box>{renderAttachmentIcons(el)}</Box>
-                                                                  <Typography
-                                                                    variant='body2'
-                                                                    sx={{ color: 'text.primary', opacity: '0.5' }}
-                                                                  >
-                                                                    prescription
-                                                                  </Typography>
                                                                 </Grid>
                                                               ) : null}
                                                             </Box>
@@ -3266,7 +3274,7 @@ const IndividualRequest = () => {
                                                                   color: 'text.primary',
                                                                   textAlign: 'left',
 
-                                                                  color: '#E4B819'
+                                                                  color: 'customColors.moderateSecondary'
                                                                 }}
                                                               >
                                                                 Added Alternative
@@ -3662,6 +3670,11 @@ const IndividualRequest = () => {
                 open={show}
                 maxWidth='md'
                 scroll='body'
+                sx={{
+                  '& .MuiDialog-paper': {
+                    backgroundColor: 'primary.contrastText'
+                  }
+                }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
                 onBackdropClick={() => closeDialog()}
