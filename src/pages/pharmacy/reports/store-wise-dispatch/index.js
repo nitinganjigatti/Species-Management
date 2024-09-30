@@ -127,17 +127,37 @@ const StoreWiseDispatch = () => {
                 renderHeader: () => (
                   <Box>
                     {console.log(listItem, 'listItem')}
-                    <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Pharmacies
                     </Typography>
-                    <Typography sx={{ color: 'inherit', fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
+                    <Typography sx={{ color: 'inherit', fontSize: '0.75rem', fontWeight: 400 }}>
                       {`(${listItem.total_pharmacies} ${listItem.total_pharmacies > 1 ? 'Pharmacies' : 'Pharmacy'})`}
                     </Typography>
                     <Typography
-                      sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}
+                      sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
                       Total Purchase Value (in lac)
                     </Typography>
+                  </Box>
+                ),
+                renderCell: params => (
+                  <Box>
+                    {console.log(theme, 'kkk')}
+
+                    <Tooltip title={params.row.store_name}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.87rem',
+                          color: theme.palette.primary.dark,
+                          fontWeight: 500,
+                          width: '170px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {params.row.store_name}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                 ),
                 width: 205
@@ -147,21 +167,21 @@ const StoreWiseDispatch = () => {
                 headerName: `${column.title}\nTotal: ${column.total_purchase_value}`,
                 renderHeader: params => (
                   <Box>
-                    <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       {column.title}
                     </Typography>
-                    <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
                       <Typography
-                        sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}
+                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                       >
                         {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
                       </Typography>
                     ) : (
                       <Typography
-                        sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 7 }}
+                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                       >
                         {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
                       </Typography>
@@ -174,7 +194,7 @@ const StoreWiseDispatch = () => {
                     <span>{params.value}</span>
                   ) : (
                     <Tooltip title={`Dispatch count: ${value.toFixed(2)}`}>
-                      <span>{`₹${value.toFixed(2)}`}</span>
+                      <span style={{ color: '#006D35' }}>{`₹${value.toFixed(2)}`}</span>
                     </Tooltip>
                   )
                 },
@@ -312,6 +332,16 @@ const StoreWiseDispatch = () => {
     setFiltersApplied(true)
   }
 
+  const handleEdit = params => {
+    console.log(params, 'params')
+
+    const data = params.row
+
+    Router.push({
+      pathname: `/pharmacy/reports/store-wise-dispatch/${data?.id}`
+    })
+  }
+
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return (
       <TextField
@@ -340,12 +370,12 @@ const StoreWiseDispatch = () => {
                   <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                     <Typography
                       sx={{ cursor: 'pointer' }}
-                      color='text.primary'
+                      color='inherit'
                       onClick={() => Router.push('/pharmacy/dashboard')}
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='inherit'>Store wise dispatch</Typography>
+                    <Typography color='text.primary'>Store wise dispatch</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -435,7 +465,7 @@ const StoreWiseDispatch = () => {
                   pagination
                   hideFooterSelectedRowCount
                   disableColumnSelector={true}
-                  rows={rows}
+                  rows={router.asPath.includes('newdashboard') ? rows.slice(0, 5) : rows} // Show only first 5 rows for newdashboard
                   rowCount={total}
                   columns={columns}
                   sortingMode='server'
@@ -464,8 +494,8 @@ const StoreWiseDispatch = () => {
                       }
                     }
                   }}
-                  //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  onRowClick={handleEdit}
+                  //onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (

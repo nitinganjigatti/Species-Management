@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
-import { getMonthWiseDispatchList } from 'src/lib/api/pharmacy/getAllReports'
+import { getStoreWiseDispatchDetail } from 'src/lib/api/pharmacy/getAllReports'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@mui/material/styles'
@@ -24,10 +24,8 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
-import MedicineNamedoctorsList from './doctorsList'
-import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import { Title } from 'chart.js'
+// import MedicineNamedoctorsList from '../month-wise-dispatch/doctorsList'
+import StoreWisedispatchFilter from '../storewiseDispatchFilterDrawer'
 
 const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
@@ -37,9 +35,10 @@ const dropdownOptions = [
   { value: 'custom', label: 'Custom Range' }
 ]
 
-const MonthWiseDispatch = () => {
+const StoreWiseDispatchDetail = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { id } = router.query
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
@@ -103,6 +102,7 @@ const MonthWiseDispatch = () => {
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
             filter: activeStatus,
+            store: id,
             medicine_ids: selectedFruits
           }
         } else {
@@ -113,11 +113,12 @@ const MonthWiseDispatch = () => {
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
-            filter: activeStatus
+            filter: activeStatus,
+            store: id
           }
         }
 
-        await getMonthWiseDispatchList(payload).then(res => {
+        await getStoreWiseDispatchDetail(payload).then(res => {
           if (res.data.list_items) {
             console.log(res.data.list_items, 'pppp')
             const listItem = res.data.list_items
@@ -138,7 +139,7 @@ const MonthWiseDispatch = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Total Purchase Value (in lac)
+                      Purchase Value (in lac)
                     </Typography>
                   </Box>
                 ),
@@ -170,21 +171,21 @@ const MonthWiseDispatch = () => {
                 headerName: `${column.title}\nTotal: ${column.total_purchase_value}`,
                 renderHeader: params => (
                   <Box>
-                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
+                    <Typography sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600 }}>
                       {column.title}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
+                    <Typography sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600 }}>
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
                       <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
+                        sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 3 }}
                       >
                         {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
                       </Typography>
                     ) : (
                       <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
+                        sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 7 }}
                       >
                         {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
                       </Typography>
@@ -222,7 +223,8 @@ const MonthWiseDispatch = () => {
 
             const allStores = listItem.rowData.map(store => ({
               id: store.stock_id,
-              name: store.stock_name
+              name: store.stock_name,
+              storename: store.store_name
             }))
             if (!filtersApplied) {
               setFullStoreList(allStores)
@@ -308,16 +310,25 @@ const MonthWiseDispatch = () => {
 
   const headerAction = (
     <div>
-      <LoadingButton
-        // disabled={disabled}
-        // loading={loader}
-        // onClick={action ? action : null}
-        size='medium'
-        variant='contained'
-        endIcon={<Icon icon='material-symbols:download' />}
-      >
-        Download Report
-      </LoadingButton>
+      {router.asPath.includes('newdashboard') ? (
+        <Typography
+          onClick={handleclick}
+          sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
+        >
+          View More
+        </Typography>
+      ) : (
+        <LoadingButton
+          // disabled={disabled}
+          // loading={loader}
+          // onClick={action ? action : null}
+          size='medium'
+          variant='contained'
+          endIcon={<Icon icon='material-symbols:download' />}
+        >
+          Download Report
+        </LoadingButton>
+      )}
     </div>
   )
 
@@ -359,12 +370,19 @@ const MonthWiseDispatch = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Month wise dispatch</Typography>
+                    <Typography
+                      color='inherit'
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => Router.push('/pharmacy/reports/store-wise-dispatch/')}
+                    >
+                      Store wise dispatch
+                    </Typography>
+                    <Typography color='text.primary'>{storeList.length > 0 ? storeList[0].storename : ''}</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
               <Card>
-                <CardHeader title='Month wise dispatch' action={headerAction} />
+                <CardHeader title={storeList.length > 0 ? storeList[0].storename : ''} action={headerAction} />
                 {router.asPath.includes('newdashboard') ? (
                   ''
                 ) : (
@@ -483,7 +501,7 @@ const MonthWiseDispatch = () => {
                 />
               </Card>
               {openFilterDrawer && (
-                <MonthWisedispatchFilter
+                <StoreWisedispatchFilter
                   setOpenFilterDrawer={setOpenFilterDrawer}
                   openFilterDrawer={openFilterDrawer}
                   handleFruitSelection={handleFruitSelection}
@@ -500,12 +518,12 @@ const MonthWiseDispatch = () => {
                   setSelectedStores={setSelectedStores}
                 />
               )}
-              {openDoctorListDrawer && (
+              {/* {openDoctorListDrawer && (
                 <MedicineNamedoctorsList
                   openDoctorListDrawer={openDoctorListDrawer}
                   setOpenDoctorListDrawer={setOpenDoctorListDrawer}
                 />
-              )}
+              )} */}
             </>
           )}
         </>
@@ -518,4 +536,4 @@ const MonthWiseDispatch = () => {
   )
 }
 
-export default MonthWiseDispatch
+export default StoreWiseDispatchDetail

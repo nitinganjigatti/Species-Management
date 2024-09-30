@@ -128,16 +128,37 @@ const MonthWisePurchase = () => {
                 renderHeader: () => (
                   <Box>
                     {console.log(listItem, 'listItem')}
-                    <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Medicine names
                     </Typography>
-                    <Typography sx={{ color: 'inherit', fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
+                    <Typography sx={{ color: 'inherit', fontSize: '0.75rem', fontWeight: 400 }}>
                       {`(${listItem.total_stock} ${listItem.total_stock > 1 ? 'Medicines' : 'Medicine'})`}
                     </Typography>
                     <Typography
-                      sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}
+                      sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
                       Total Purchase Value (in lac)
+                    </Typography>
+                  </Box>
+                ),
+                renderCell: params => (
+                  <Box>
+                    <Tooltip title={params.row.stock_name}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.87rem',
+                          color: theme.palette.secondary.dark,
+                          fontWeight: 500,
+                          width: '170px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {params.row.stock_name}
+                      </Typography>
+                    </Tooltip>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
+                      Stock Value - {params.row.stock_value}
                     </Typography>
                   </Box>
                 ),
@@ -148,21 +169,21 @@ const MonthWisePurchase = () => {
                 headerName: `${column.title}\nTotal: ${column.total_purchase_value}`,
                 renderHeader: params => (
                   <Box>
-                    <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       {column.title}
                     </Typography>
-                    <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
                       <Typography
-                        sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}
+                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                       >
                         {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
                       </Typography>
                     ) : (
                       <Typography
-                        sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 7 }}
+                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                       >
                         {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
                       </Typography>
@@ -175,7 +196,7 @@ const MonthWisePurchase = () => {
                     <span>{params.value}</span>
                   ) : (
                     <Tooltip title={`Purchase count: ${value.toFixed(2)}`}>
-                      <span>{`₹${value.toFixed(2)}`}</span>
+                      <span style={{ color: '#006D35' }}>{`₹${value.toFixed(2)}`}</span>
                     </Tooltip>
                   )
                 },
@@ -332,12 +353,12 @@ const MonthWisePurchase = () => {
                   <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                     <Typography
                       sx={{ cursor: 'pointer' }}
-                      color='text.primary'
+                      color='inherit'
                       onClick={() => Router.push('/pharmacy/dashboard')}
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='inherit'>Month wise purchase</Typography>
+                    <Typography color='text.primary'>Month wise purchase</Typography>
                   </Breadcrumbs>
                 </Box>
               )}

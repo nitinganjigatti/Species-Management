@@ -1,5 +1,6 @@
 import {
   DASHBOARD_STORE_WISE_DISPATCH_REPORT,
+  DASHBOARD_STORE_DISPATCH_REPORT,
   DASHBOARD_MONTH_WISE_DISPATCH_REPORT,
   DASHBOARD_MONTH_WISE_PURCHASE_REPORT
 } from '../../../constants/ApiConstant'
@@ -7,6 +8,14 @@ import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getStoreWiseDispatchList(payload) {
   const url = `${DASHBOARD_STORE_WISE_DISPATCH_REPORT}`
+  var data = payload
+  const response = await axiosPost({ url, body: data, pharmacy: true })
+
+  return response?.data
+}
+
+export async function getStoreWiseDispatchDetail(payload) {
+  const url = `${DASHBOARD_STORE_DISPATCH_REPORT}`
   var data = payload
   const response = await axiosPost({ url, body: data, pharmacy: true })
 

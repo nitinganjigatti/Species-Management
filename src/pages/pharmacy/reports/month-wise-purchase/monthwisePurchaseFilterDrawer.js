@@ -1,5 +1,5 @@
-import { useTheme } from '@mui/material/styles'
-import React, { useState, useEffect, useContext, useCallback } from 'react'
+import React from 'react'
+import CircularProgress from '@mui/material/CircularProgress'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -22,17 +22,20 @@ const MonthWisepurchaseFilter = ({
   handleFruitSelection,
   selectedFruits,
   handleSelectAllChange,
-  fruitList,
+  handleSearchChange,
+  storeList,
+  fullStoreList,
   onApplyFilters,
   handleCloseDrawer,
-  setFiltersApplied
+  loading,
+  setFiltersApplied,
+  filtersApplied,
+  setSelectedStores
 }) => {
   const handleClose = () => {
     setOpenFilterDrawer(false)
-    if (selectedFruits.length > 0) {
-      setFiltersApplied(true)
-    } else {
-      setFiltersApplied(false)
+    if (filtersApplied === false) {
+      setSelectedStores([])
     }
   }
   return (
@@ -85,13 +88,13 @@ const MonthWisepurchaseFilter = ({
                 borderRadius: '8px',
                 width: '525px',
                 height: '490px',
-                overflowY: 'auto', // Enable vertical scrolling
+                overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none', // Hide scrollbar for Internet Explorer and Edge
-                scrollbarWidth: 'none' // Hide scrollbar for Firefox
+                '-ms-overflow-style': 'none',
+                scrollbarWidth: 'none'
               }}
             >
               <>
@@ -111,7 +114,7 @@ const MonthWisepurchaseFilter = ({
                     variant='outlined'
                     placeholder='Search'
                     //value={searchQuery}
-                    //onChange={handleSearchChange}
+                    onChange={handleSearchChange}
                     InputProps={{
                       disableUnderline: false
                     }}
@@ -128,8 +131,8 @@ const MonthWisepurchaseFilter = ({
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    checked={selectedFruits.length === fruitList.length}
-                    indeterminate={selectedFruits.length > 0 && selectedFruits.length < fruitList.length}
+                    checked={selectedFruits.length === storeList.length}
+                    indeterminate={selectedFruits.length > 0 && selectedFruits.length < storeList.length}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
@@ -139,16 +142,22 @@ const MonthWisepurchaseFilter = ({
               </>
 
               <Box sx={{ mt: 2 }}>
-                {fruitList.map(fruit => (
-                  <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={selectedFruits.includes(fruit.id)}
-                      onChange={() => handleFruitSelection(fruit.id)}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{fruit.name}</Typography>
+                {!loading ? (
+                  fullStoreList.map(fruit => (
+                    <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                      <Checkbox
+                        checked={selectedFruits.includes(fruit.id)}
+                        onChange={() => handleFruitSelection(fruit.id)}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                      />
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{fruit.name}</Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6 }}>
+                    <CircularProgress disableShrink />
                   </Box>
-                ))}
+                )}
               </Box>
             </Box>
           </Grid>
