@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import { getStoreWiseDispatchList } from 'src/lib/api/pharmacy/getAllReports'
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@mui/material/styles'
@@ -25,9 +24,8 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import MedicineNamedoctorsList from '../month-wise-dispatch/doctorsList'
+import StoreWisedispatchFilter from './storewiseDispatchFilterDrawer'
 
 const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
@@ -36,13 +34,18 @@ const dropdownOptions = [
   { value: 'yearly', label: 'Yearly' },
   { value: 'custom', label: 'Custom Range' }
 ]
+
 const StoreWiseDispatch = () => {
   const router = useRouter()
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
-  const [date, setDate] = useState(new Date())
+  const [selectedFruits, setSelectedStores] = useState([])
+  const [filtersApplied, setFiltersApplied] = useState(false)
+  const [filterlength, setFilterLength] = useState('')
+  const [storeList, setStoreList] = useState([])
+  const [fullStoreList, setFullStoreList] = useState([])
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -64,21 +67,52 @@ const StoreWiseDispatch = () => {
     }
   }
 
+  const handleSelectAllChange = event => {
+    if (event.target.checked) {
+      setFiltersApplied(false)
+      setSelectedStores(fullStoreList.map(fruit => fruit.id))
+    } else {
+      setSelectedStores([])
+    }
+  }
+
+  const handleSearchChange = async e => {
+    console.log(statusFilter, 'statusFilter')
+    await searchTableData({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
+  }
+
   const fetchTableData = useCallback(
-    async ({ sort, q, column, status }) => {
+    async ({ sort, q, column }) => {
       let payload = {}
-      const activeStatus = status ?? statusFilter
+      const activeStatus = statusFilter
+      console.log(selectedFruits.length, 'raghu')
       try {
         setLoading(true)
+        if (!filtersApplied && selectedFruits.length > 0) {
+          setLoading(false)
+          return
+        }
 
-        payload = {
-          //sort,
-          //q,
-          //column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          //filter: 'monthly'
-          filter: activeStatus
+        if (filtersApplied && selectedFruits.length > 0) {
+          payload = {
+            //sort,
+            q,
+            //column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            filter: activeStatus,
+            selected_stores: selectedFruits
+          }
+        } else {
+          console.log(statusFilter, 'activeStatus')
+          payload = {
+            //sort,
+            q,
+            //column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            filter: activeStatus
+          }
         }
 
         await getStoreWiseDispatchList(payload).then(res => {
@@ -97,7 +131,7 @@ const StoreWiseDispatch = () => {
                       Pharmacies
                     </Typography>
                     <Typography sx={{ color: 'inherit', fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
-                      {`(${listItem.total_pharmacies} Pharmacies)`}
+                      {`(${listItem.total_pharmacies} ${listItem.total_pharmacies > 1 ? 'Pharmacies' : 'Pharmacy'})`}
                     </Typography>
                     <Typography
                       sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}
@@ -137,7 +171,7 @@ const StoreWiseDispatch = () => {
                 renderCell: params => {
                   const value = Number(params.value)
                   return isNaN(value) ? (
-                    <span>{params.value}</span> // Handle non-numeric values
+                    <span>{params.value}</span>
                   ) : (
                     <Tooltip title={`Dispatch count: ${value.toFixed(2)}`}>
                       <span>{`₹${value.toFixed(2)}`}</span>
@@ -155,13 +189,22 @@ const StoreWiseDispatch = () => {
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
-                acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2) // Fix to 2 decimals if it's a valid number
+                acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
                 return acc
               }, {})
             }))
 
             setRows(rows)
             setTotal(parseInt(res?.data?.total_count))
+
+            const allStores = listItem.rowData.map(store => ({
+              id: store.to_store_id,
+              name: store.store_name
+            }))
+            if (!filtersApplied) {
+              setFullStoreList(allStores)
+            }
+            setStoreList(allStores)
           }
         })
         setLoading(false)
@@ -170,79 +213,55 @@ const StoreWiseDispatch = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, filtersApplied, statusFilter]
   )
+
+  const handleStatusFilterChange = newFilter => {
+    console.log(newFilter, 'newFilter')
+    setStatusFilter(newFilter)
+    //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
+  }
+
+  const handleCloseDrawer = () => {
+    setSelectedStores([])
+    setOpenFilterDrawer(false)
+    setFiltersApplied(false)
+    setFilterLength('')
+    setStoreList(fullStoreList) //
+  }
+
+  const onApplyFilters = () => {
+    setFiltersApplied(true)
+    setOpenFilterDrawer(false)
+    setFilterLength(selectedFruits.length)
+    setSearchValue('')
+  }
+
+  const handleFruitSelection = selected_stores => {
+    setFiltersApplied(false)
+    setSelectedStores(prevSelectedFruits => {
+      if (prevSelectedFruits.includes(selected_stores)) {
+        return prevSelectedFruits.filter(id => id !== selected_stores)
+      } else {
+        return [...prevSelectedFruits, selected_stores]
+      }
+    })
+  }
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column, status: statusFilter })
+        await fetchTableData({ sort, q, column, filter: statusFilter })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    []
+    [statusFilter]
   )
 
-  // useEffect(() => {
-  //   if (checkvalue.data.list_items.length > 0) {
-  //     console.log(checkvalue.data.list_items, 'pppp')
-  //     const listItem = checkvalue.data.list_items[0]
-
-  //     const columns = [
-  //       {
-  //         field: 'pharmacy_name',
-  //         headerName: `Pharmacy Name`,
-  //         renderHeader: () => (
-  //           <Box>
-  //             <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
-  //               Pharmacies
-  //             </Typography>
-  //             <Typography sx={{ color: 'inherit', fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
-  //               {`(${listItem.total_pharmacies} Pharmacies)`}
-  //             </Typography>
-  //             <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
-  //               Total Purchase Value (in lac)
-  //             </Typography>
-  //           </Box>
-  //         ),
-  //         width: 205
-  //       },
-  //       ...listItem.columnData.map(column => ({
-  //         field: column.title,
-  //         headerName: `${column.title}\nTotal: ${column.total_purchase_value}`,
-  //         renderHeader: params => (
-  //           <Box>
-  //             <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
-  //               {column.title}
-  //             </Typography>
-  //             <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600 }}>
-  //               {column.subtitle}
-  //             </Typography>
-  //             <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 600, pt: 3 }}>
-  //               {}
-  //               {` (${'₹' + column.total_purchase_value})`}
-  //             </Typography>
-  //           </Box>
-  //         ),
-  //         width: 100
-  //       }))
-  //     ]
-  //     setColumns(columns)
-
-  //     const rows = listItem.rowData.map(row => ({
-  //       id: row.id,
-  //       pharmacy_name: row.pharmacy_name,
-  //       ...row.month_values
-  //     }))
-
-  //     setRows(rows)
-  //   }
-  // }, [])
-
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
+    fetchTableData({ sort, q: searchValue, column: sortColumn, filter: statusFilter })
   }, [fetchTableData])
 
   const handleSortModel = async newModel => {
@@ -255,12 +274,7 @@ const StoreWiseDispatch = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
-  }
-
-  const handleStatusFilterChange = newFilter => {
-    setStatusFilter(newFilter)
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
+    await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
   }
 
   const handleclick = () => {
@@ -293,6 +307,11 @@ const StoreWiseDispatch = () => {
     </div>
   )
 
+  const handlefilterButton = () => {
+    setOpenFilterDrawer(true)
+    setFiltersApplied(true)
+  }
+
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return (
       <TextField
@@ -319,15 +338,14 @@ const StoreWiseDispatch = () => {
               ) : (
                 <Box container spacing={6}>
                   <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                    <Typography color='inherit'>Pharmacy Dashboard</Typography>
                     <Typography
                       sx={{ cursor: 'pointer' }}
                       color='text.primary'
                       onClick={() => Router.push('/pharmacy/dashboard')}
                     >
-                      Store wise dispatch
+                      Pharmacy Dashboard
                     </Typography>
-                    {/* <Typography color='text.primary'>Diet Details</Typography> */}
+                    <Typography color='inherit'>Store wise dispatch</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -362,15 +380,15 @@ const StoreWiseDispatch = () => {
                         fullWidth
                         className=''
                         width={'100%'}
-                        date={date}
-                        value={date}
+                        //date={date}
+                        //value={date}
                         name={'From Date*'}
                         label='From Date*'
                         placeholderText={'From Date*'}
                         size='small'
-                        onChangeHandler={date => {
-                          setDate(date)
-                        }}
+                        // onChangeHandler={date => {
+                        //   setDate(date)
+                        // }}
                         customInput={<CustomInput label='From Date*' auto />}
                       />
                     </span>
@@ -379,15 +397,15 @@ const StoreWiseDispatch = () => {
                         fullWidth
                         className=''
                         width={'100%'}
-                        date={date}
-                        value={date}
+                        //date={date}
+                        // value={date}
                         name={'To Date*'}
                         label='To Date*'
                         placeholderText={'To Date*'}
                         size='small'
-                        onChangeHandler={date => {
-                          setDate(date)
-                        }}
+                        // onChangeHandler={date => {
+                        //   setDate(date)
+                        // }}
                         customInput={<CustomInput label='To Date*' auto />}
                       />
                     </span> */}
@@ -400,9 +418,9 @@ const StoreWiseDispatch = () => {
                         size='medium'
                         variant='outlined'
                         startIcon={<Icon icon='bi:filter' />}
-                        onClick={() => setOpenFilterDrawer(true)}
+                        onClick={handlefilterButton}
                       >
-                        Filter
+                        {filterlength <= 0 ? 'Filter' : filterlength}
                       </LoadingButton>
                     </Grid>
                   </Grid>
@@ -451,9 +469,21 @@ const StoreWiseDispatch = () => {
                 />
               </Card>
               {openFilterDrawer && (
-                <MonthWisedispatchFilter
+                <StoreWisedispatchFilter
                   setOpenFilterDrawer={setOpenFilterDrawer}
                   openFilterDrawer={openFilterDrawer}
+                  handleFruitSelection={handleFruitSelection}
+                  selectedFruits={selectedFruits}
+                  handleSelectAllChange={handleSelectAllChange}
+                  storeList={storeList}
+                  onApplyFilters={onApplyFilters}
+                  handleCloseDrawer={handleCloseDrawer}
+                  setFiltersApplied={setFiltersApplied}
+                  handleSearchChange={handleSearchChange}
+                  fullStoreList={fullStoreList}
+                  loading={loading}
+                  filtersApplied={filtersApplied}
+                  setSelectedStores={setSelectedStores}
                 />
               )}
               {openDoctorListDrawer && (

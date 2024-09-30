@@ -171,3 +171,7 @@ export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
 export const DISCARD_PRODUCT = 'discard'
 
 export const DASHBOARD_STORE_WISE_DISPATCH_REPORT = 'storewise-dispatch-report'
+
+export const DASHBOARD_MONTH_WISE_DISPATCH_REPORT = 'monthly-dispatch-report'
+
+export const DASHBOARD_MONTH_WISE_PURCHASE_REPORT = 'monthly-purchase-report'

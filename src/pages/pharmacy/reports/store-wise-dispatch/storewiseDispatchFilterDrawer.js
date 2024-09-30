@@ -16,7 +16,7 @@ import {
 
 import Icon from 'src/@core/components/icon'
 
-const MonthWisedispatchFilter = ({
+const StoreWisedispatchFilter = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   handleFruitSelection,
@@ -198,4 +198,4 @@ const MonthWisedispatchFilter = ({
   )
 }
 
-export default MonthWisedispatchFilter
+export default StoreWisedispatchFilter
