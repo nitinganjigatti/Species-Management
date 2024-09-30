@@ -8,8 +8,11 @@ import { useForm, Controller } from 'react-hook-form'
 import { makeProductNotAvailable } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { LoadingButton } from '@mui/lab'
 import { CardContent, Card } from '@mui/material'
+import { lighten, useTheme } from '@mui/material/styles'
+import Divider from '@mui/material/Divider'
 
-function ProductNotAvailable({ payload, updateRequestItems }) {
+function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvailableDialog }) {
+  const theme = useTheme()
   const defaultValues = {
     comments: ''
   }
@@ -36,7 +39,6 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
 
   const onSubmit = async params => {
     if (payload?.request_item_id) {
-      debugger
       try {
         const response = await makeProductNotAvailable(params, payload?.request_item_id)
         if (response?.success) {
@@ -56,27 +58,41 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
   }
 
   return (
-    <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-      {/* <Typography variant='h6'>
-        Please confirm that you acknowledge the unavailability of the requested medicine.
-      </Typography> */}
-      <Card sx={{ mb: 10, width: { lg: '45%', xs: '100%' } }}>
+    <form style={{ width: '650px' }} autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+      <Divider sx={{ mt: -6 }} />
+      <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
+      <Card
+        sx={{
+          mb: 10,
+
+          backgroundColor: 'customColors.lightBg',
+          border: '1px solid #00D6C9'
+        }}
+      >
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography>
-                <strong>Product:</strong>
-                {payload?.product}
+            <Grid
+              item
+              xs={12}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+            >
+              <Typography sx={{ color: 'customColors.textLabel' }}>
+                Product Name: <strong> {payload?.product}</strong>
               </Typography>
               <Typography>
-                <strong>Quantity requested:</strong>
-                {payload?.qty_requested}
+                Quantity requested: <strong>{payload?.qty_requested}</strong>
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
-      <Grid container spacing={2}>
+      <Divider sx={{ border: '0.5 solid #DAE7DF', position: 'relative', bottom: '20px' }} />
+
+      <Typography sx={{ my: 3, fontSize: '16px', fontWeight: '500', fontFamily: 'Inter', color: theme.palette.customColors.customDarkBg, mb: 5 }}>
+        Add Comments
+      </Typography>
+
+      <Grid>
         <Grid item xs={12} sm={12}>
           <FormControl fullWidth>
             <Controller
@@ -96,13 +112,21 @@ function ProductNotAvailable({ payload, updateRequestItems }) {
 
         <Grid item xs={12}>
           <LoadingButton
-            sx={{ my: 6, float: 'right' }}
+            sx={{ my: 6, float: 'right', width: '100px' }}
             size='large'
             type='submit'
             variant='contained'
             loading={submitLoader}
           >
-            Save
+            Add
+          </LoadingButton>
+          <LoadingButton
+            sx={{ my: 6, float: 'right', mr: 2 }}
+            size='large'
+            variant='outlined'
+            onClick={closeProductNotAvailableDialog}
+          >
+            Cancel
           </LoadingButton>
         </Grid>
       </Grid>

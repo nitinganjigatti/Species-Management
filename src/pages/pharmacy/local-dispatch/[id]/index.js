@@ -75,13 +75,6 @@ const IndividualRequest = () => {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, request_number } = router.query
-  console.log('first', selectedPharmacy)
-  // {
-  //   console.log(
-  //     'pharmacy',
-  //     selectedPharmacy.type === 'central' && selectedPharmacy.permission.key === 'allow_full_access'
-  //   ) || selectedPharmacy.permission.key === 'ADD'
-  // }
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
@@ -169,13 +162,10 @@ const IndividualRequest = () => {
   }
 
   const getShippedItems = async id => {
-    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
       if (response.success) {
-        // debugger
-
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
           sl_no: index + 1
@@ -772,7 +762,6 @@ const IndividualRequest = () => {
   }
 
   const handleProductNotAvailableAction = (id, available) => {
-    debugger
     setNotAvailableItemId({
       id: id,
       available: available

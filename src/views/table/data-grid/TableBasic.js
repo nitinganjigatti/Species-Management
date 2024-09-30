@@ -8,7 +8,7 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { height } from '@mui/system'
 
-const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick, rowHeight }) => {
+const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick, rowHeight, rowSpacing }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   return (

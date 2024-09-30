@@ -400,7 +400,7 @@ const AddMedicine = () => {
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
         setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
         setMedicineType(response.data.stock_type)
-        debugger
+
         setDrugsClass(
           response?.data?.drug_class
             ? [{ id: response?.data?.drug_class, label: response?.data?.drug_class_label }]

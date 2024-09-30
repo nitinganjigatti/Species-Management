@@ -9,8 +9,13 @@ import Typography from '@mui/material/Typography'
 import { useForm, Controller } from 'react-hook-form'
 import { rejectMedicine } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { LoadingButton } from '@mui/lab'
+import Divider from '@mui/material/Divider'
+import { lighten, useTheme } from '@mui/material/styles'
 
-function RejectRequestItem({ parentId, updateRequestItems }) {
+
+function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDialog }) {
+  const theme = useTheme()
+
   const defaultValues = {
     comments: ''
   }
@@ -56,23 +61,39 @@ function RejectRequestItem({ parentId, updateRequestItems }) {
   }
 
   return (
-    <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-      <Card sx={{ mb: 10, width: { lg: '45%', xs: '100%' } }}>
+    <form autoComplete='off' onSubmit={handleSubmit(onSubmit)} style={{ width: '650px' }}>
+      <Divider sx={{ mt: -6 }} />
+      <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
+      <Card
+        sx={{
+          mb: 10,
+          width: '100%',
+          backgroundColor: 'customColors.lightBg',
+          border: '1px solid #00D6C9'
+        }}
+      >
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography>
-                <strong>Product:</strong>
-                {parentId?.product}
+            <Grid
+              item
+              xs={12}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+            >
+              <Typography sx={{ color: 'customColors.textLabel' }}>
+                Product Name: <strong>{parentId?.product}</strong>
               </Typography>
               <Typography>
-                <strong>Quantity requested:</strong>
-                {parentId?.qty_requested}
+                Quantity requested: <strong>{parentId?.qty_requested}</strong>
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
+
+      <Divider sx={{ border: '0.5 solid #DAE7DF', position: 'relative', bottom: '20px' }} />
+
+      <Typography sx={{ my: 3, fontSize: '16px', fontWeight: '500' , fontFamily:"Inter",color: theme.palette.customColors.customDarkBg,mb:5 }}>Reason for Decline *</Typography>
+
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12}>
           <FormControl fullWidth>
@@ -93,13 +114,21 @@ function RejectRequestItem({ parentId, updateRequestItems }) {
 
         <Grid item xs={12}>
           <LoadingButton
-            sx={{ my: 6, float: 'right' }}
+            sx={{ my: 6, float: 'right', width: '100px' }}
             size='large'
             type='submit'
             variant='contained'
             loading={submitLoader}
           >
-            Save
+            Add
+          </LoadingButton>
+          <LoadingButton
+            sx={{ my: 6, float: 'right', mr: 2 }}
+            size='large'
+            variant='outlined'
+            onClick={closeRejectMedicineDialog}
+          >
+            Cancel
           </LoadingButton>
         </Grid>
       </Grid>

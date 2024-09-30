@@ -29,7 +29,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
+import { Box, CardContent, CardHeader, Divider, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -54,12 +54,39 @@ import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Chip from '@mui/material/Chip'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import TableContainer from '@mui/material/TableContainer'
+import TableCell from '@mui/material/TableCell'
+import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import Table from '@mui/material/Table'
+import { color, fontSize, height, margin, width } from '@mui/system'
+import AddComment from 'src/components/pharmacy/request/AddComment'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
 const IndividualRequest = () => {
+  // Styled TabList component
+  const TabLists = styled(MuiTabList)(({ theme }) => ({
+    '& .MuiTabs-indicator': {
+      display: 'none'
+    },
+    '& .Mui-selected': {
+      backgroundColor: theme.palette.customColors.OnSecondaryContainer,
+      color: theme.palette.common.white
+    },
+    '& .MuiTab-root': {
+      minHeight: 38,
+      minWidth: 110,
+      borderRadius: 8,
+      paddingTop: theme.spacing(2),
+      paddingBottom: theme.spacing(2)
+    }
+  }))
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -96,12 +123,15 @@ const IndividualRequest = () => {
   const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
 
   const [medicineParentId, setMedicineParentId] = useState({
+    parentEndPointId: '',
     parent_id: '',
     request_item_id: '',
     qty_requested: '',
     product: ''
   })
   const [status, setStatus] = useState('Pending')
+  const [detailsTab, setDetailsTab] = useState('Pending')
+  const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -124,6 +154,8 @@ const IndividualRequest = () => {
   const closeAlternativeMedicineDialog = () => {
     setShowAlternativeMedicineDialog(false)
     setMedicineParentId({
+      parentEndPointId: '',
+
       parent_id: '',
       request_item_id: '',
       qty_requested: '',
@@ -138,6 +170,8 @@ const IndividualRequest = () => {
   const closeRejectMedicineDialog = () => {
     setRejectRequestMedicineDialog(false)
     setMedicineParentId({
+      parentEndPointId: '',
+
       parent_id: '',
       request_item_id: '',
       qty_requested: '',
@@ -151,7 +185,14 @@ const IndividualRequest = () => {
 
   const closeProductNotAvailableDialog = () => {
     setProductNotAvailableDialog(false)
-    setNotAvailableItemId([])
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
   }
 
   const openProductNotAvailableDialog = () => {
@@ -174,8 +215,6 @@ const IndividualRequest = () => {
       }))
 
       responseData['request_item_details'] = mappedWithUid
-
-      // debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
@@ -237,14 +276,11 @@ const IndividualRequest = () => {
   }
 
   const getShippedItems = async id => {
-    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
 
       if (response.success) {
-        // debugger
-
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
           sl_no: index + 1
@@ -404,13 +440,27 @@ const IndividualRequest = () => {
     init(id)
   }
 
+  const getCellBgColor = el => {
+    if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Fulfilled') {
+      return 'customColors.OutlineVariant'
+    } else if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Not Fulfilled') {
+      return 'customColors.customTableCellBg'
+    } else if (el?.alt_parent.length === 0 && el?.dispatch_status === 'Fulfilled') {
+      return 'customColors.OutlineVariant'
+    } else if (el?.request_status === 'Not Available' || el?.request_status === 'Rejected') {
+      return 'customColors.neutral05'
+    } else {
+      return 'white'
+    }
+  }
+
   const renderAttachmentIcons = status => {
     const hasControlSubstance = status.control_substance === '1'
     const hasPrescriptionRequired = status.prescription_required === '1'
 
     return (
       <>
-        {hasControlSubstance && (
+        {/* {hasControlSubstance && (
           <IconButton
             size='small'
             onClick={() => {
@@ -418,19 +468,27 @@ const IndividualRequest = () => {
             }}
             aria-label='Control Substance Attachment'
           >
-            <Icon icon='mdi:link' />
+            <Icon icon='material-symbols:attachment' />
           </IconButton>
-        )}
+        )} */}
         {hasPrescriptionRequired && (
-          <IconButton
-            size='small'
+          <Box
             onClick={() => {
               window.open(status.prescription_required_file, '_blank')
             }}
-            aria-label='Prescription Attachment'
+            sx={{ display: 'flex' }}
           >
-            <Icon icon='mdi:link' />
-          </IconButton>
+            <Icon style={{ fontSize: '20px', color: '#00000066' }} icon='material-symbols:attachment' />
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary',
+                opacity: '0.5'
+              }}
+            >
+              prescription
+            </Typography>
+          </Box>
         )}
         {!(hasControlSubstance || hasPrescriptionRequired) && 'NA'}
       </>
@@ -441,6 +499,70 @@ const IndividualRequest = () => {
     return request_status === 'Alternate' || request_status === 'Not Available' || request_status === 'Rejected'
       ? { opacity: 0.5, pointerEvents: 'none' }
       : {}
+  }
+
+  const generateOptions = (params, parentId) => {
+    let options = []
+    console.log('params', params)
+    console.log('parentId', parentId)
+
+    if (selectedPharmacy.type === 'central') {
+      options.push({
+        label: 'Add Alternate',
+        action: () => {
+          openAlternativeMedicineDialog()
+          setMedicineParentId(prevState => ({
+            ...prevState,
+            parentEndPointId: params.request_item_id,
+            parent_id: parentId,
+            request_item_id: params?.id,
+            qty_requested: params?.qty,
+            product: params?.stock_name
+          }))
+        }
+      })
+    }
+
+    if (
+      (selectedPharmacy.type === 'central' &&
+        parseInt(params?.requested_qty) - parseInt(params?.dispatch_qty) > 0 &&
+        params?.request_status !== 'Alternate') ||
+      params?.request_status !== 'Not Available' ||
+      params?.request_status !== 'Rejected'
+    ) {
+      options.push(
+        {
+          label: 'Supply Stopped',
+          action: () => {
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
+              request_item_id: params?.id,
+              qty_requested: params?.qty,
+              product: params?.stock_name
+            }))
+            openProductNotAvailableDialog()
+          }
+        },
+        {
+          label: 'Decline Request',
+          action: () => {
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
+              request_item_id: params?.id,
+              qty_requested: params?.qty,
+              product: params?.stock_name
+            }))
+            openRejectMedicineDialog()
+          }
+        }
+      )
+    }
+
+    return options
   }
 
   const columns = [
@@ -826,50 +948,10 @@ const IndividualRequest = () => {
               </Typography>
             )}
 
-            {/* {selectedPharmacy.type === 'central' &&
-              parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-              params.row.request_status !== 'Not Available' && (
-                <>
-                  <MenuWithDots
-                    options={[
-                      {
-                        label: 'MAKE IT NOT AVAILABLE',
-                        action: () => handleProductNotAvailableAction(params.row.id, false)
-                      },
-                      {
-                        label: 'ALTERNATIVE PRODUCT',
-                        action: () => {
-                          openAlternativeMedicineDialog()
-                          setMedicineParentId({
-                            ...MedicineParentId,
-                            parent_id: requestItems?.id,
-                            request_item_id: params.row.id
-                          })
-
-                          console.log('line item', params.row.id)
-                          console.log('endpoint', requestItems.id)
-                        }
-                      }
-                    ]}
-                  />
-                </>
-              )}
-
-            {selectedPharmacy.type === 'central' &&
-              parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-              params.row.request_status === 'Not Available' && (
-                <MenuWithDots
-                  options={[
-                    {
-                      label: 'MAKE IT AVAILABLE',
-                      action: () => handleProductNotAvailableAction(params.row.id, true)
-                    }
-                  ]}
-                />
-              )} */}
             {selectedPharmacy.type === 'central' && (
               <Box sx={{ ...boxStyles(params.row.request_status) }}>
-                {params.row.request_status !== 'Alternate' &&
+                {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                  params.row.request_status !== 'Alternate' &&
                   params.row.request_status !== 'Not Available' &&
                   params.row.request_status !== 'Rejected' && <MenuWithDots options={options} />}
               </Box>
@@ -1307,7 +1389,7 @@ const IndividualRequest = () => {
   }
 
   // const handleProductNotAvailableAction = (id, available) => {
-  //   // debugger
+  //
   //   setNotAvailableItemId({
   //     id: id,
   //     available: available
@@ -1397,101 +1479,2032 @@ const IndividualRequest = () => {
 
                 <CardContent>
                   {/* Request Basic Info */}
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested By</h5>
-                      <p>{requestItems?.to_store}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested To</h5>
-                      <p>{requestItems?.from_store}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
-                      <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
-                      <p>{requestItems?.request_number}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request By</h5>
-
-                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
-                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                          </Typography>
-                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.created_at)}
+                  <Card
+                    sx={{
+                      backgroundColor: 'customColors.lightBg'
+                    }}
+                  >
+                    <Grid container spacing={2} sx={{ flexGrow: 1, py: 6, px: 4 }}>
+                      <Grid
+                        item
+                        xs={3}
+                        sm={12 / 4}
+                        lg={12 / 4}
+                        sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
+                      >
+                        <Typography>
+                          Requested By:<strong> {requestItems?.to_store} </strong>
+                        </Typography>
+                        <Typography>
+                          Request ID:<strong> {requestItems?.request_number} </strong>
+                        </Typography>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={3}
+                        sm={12 / 4}
+                        lg={12 / 4}
+                        sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
+                      >
+                        <Typography>
+                          Requested Items:<strong> {requestItems?.total_qty} </strong>
+                        </Typography>
+                        <Typography sx={{ color: 'primary.dark' }}>
+                          Shipped Items:<strong> {requestItems?.shipped_qty} </strong>
+                        </Typography>
+                      </Grid>
+                      <Grid
+                        item
+                        xs={3}
+                        sm={12 / 4}
+                        lg={12 / 4}
+                        sx={{ display: 'flex', flexDirection: 'column', height: '40px', maxHeight: '40px', gap: '8px' }}
+                      >
+                        <Box sx={{ display: 'flex' }}>
+                          Total Requested Value:
+                          <Typography
+                            sx={{
+                              color: 'primary.light',
+                              fontWeight: '600'
+                            }}
+                          >
+                            {' '}
+                            ₹{requestItems?.requested_amount}{' '}
                           </Typography>
                         </Box>
-                      </Box>
+                        <Typography sx={{ color: 'primary.dark' }}>
+                          Shipped Value:<strong> ₹{requestItems?.shipped_amount} </strong>
+                        </Typography>
+                      </Grid>
+
+                      <Grid item xs={3} sm={12 / 4} lg={12 / 4}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', height: '40px', maxHeight: '40px', my: 4 }}>
+                          <Box sx={{}}>{Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}</Box>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                              <strong>
+                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              </strong>
+                            </Typography>
+                            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+                              {Utility.formatDisplayDate(requestItems?.created_at)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
                     </Grid>
-                  </Grid>
+                  </Card>
                   {/* Medicine Listing */}
                 </CardContent>
-                {/* {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic rowHeight={126} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-                ) : null} */}
-
-                <Grid>
-                  <TabContext value={status}>
+                <Grid sx={{ mx: 4 }}>
+                  <TabContext value={detailsTab}>
                     <TabList
+                      sx={{ borderBottom: '1px solid #0000000D' }}
                       onChange={(event, newValue) => {
-                        setStatus(newValue)
+                        setDetailsTab(newValue)
                       }}
                     >
                       <Tab
                         value='Pending'
-                        label={<TabBadge label='Pending' totalCount={status === 'Pending' ? 0 : null} />}
+                        label={<TabBadge label='Requested Items' totalCount={status === 'Pending' ? 0 : null} />}
                       />
                       <Tab
-                        value='Completed'
-                        label={<TabBadge label='Completed' totalCount={status === 'Completed' ? 0 : null} />}
+                        value='Shipped'
+                        label={<TabBadge label='Shipment' totalCount={status === 'Shipped' ? 0 : null} />}
                       />
-
-                      <Tab value='All' label={<TabBadge label='All' totalCount={status === 'All' ? 0 : null} />} />
                     </TabList>
-                    <TabPanel value='Completed'>
-                      <TableBasic
-                        rowHeight={126}
-                        columns={columns}
-                        rows={
-                          requestItems?.request_item_details.length > 0
-                            ? requestItems?.request_item_details.filter(el => el.request_search_status === 'Completed')
-                            : []
-                        }
-                      ></TableBasic>
+                    <TabPanel
+                      value='Pending'
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-start'
+                      }}
+                    >
+                      <Grid sx={{ ml: -2, width: '100%' }}>
+                        <TabContext value={status}>
+                          <TabLists
+                            onChange={(event, newValue) => {
+                              setStatus(newValue)
+                            }}
+                          >
+                            <Tab
+                              value='Pending'
+                              label={<TabBadge label='Pending' totalCount={status === 'Pending' ? 0 : null} />}
+                            />
+                            <Tab
+                              value='All'
+                              label={<TabBadge label='All' totalCount={status === 'All' ? 0 : null} />}
+                            />
+                          </TabLists>
+                          <TabPanel value='Pending'>
+                            {requestItems?.request_item_details.length > 0
+                              ? requestItems?.request_item_details.filter(
+                                  el =>
+                                    el.dispatch_status === 'Not Fulfilled' &&
+                                    (el.request_status !== 'Rejected' || el.request_status !== 'Not Available')
+                                ).length > 0 && (
+                                  <Card sx={{ ml: -3 }}>
+                                    <TableContainer>
+                                      <Table
+                                        stickyHeader
+                                        sx={{ minWidth: 650, maxWidth: '100%', overflowX: 'scroll' }}
+                                        aria-label='simple table'
+                                      >
+                                        <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                                          <TableRow>
+                                            <TableCell>S.NO</TableCell>
+                                            <TableCell></TableCell>
+                                            <TableCell>PRODUCT NAME</TableCell>
+
+                                            <TableCell>QUANTITY</TableCell>
+                                            <TableCell>FULL FILL</TableCell>
+                                            <TableCell sx={{ minWidth: 200 }}>ACTION</TableCell>
+                                          </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                          {requestItems?.request_item_details.length > 0
+                                            ? requestItems?.request_item_details
+                                                .filter(el => el.dispatch_status === 'Not Fulfilled')
+                                                .map((el, index) => {
+                                                  return (
+                                                    <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                                                      <TableCell
+                                                        sx={{
+                                                          backgroundColor: getCellBgColor(el),
+                                                          verticalAlign: 'top'
+                                                        }}
+                                                        className='match-height'
+                                                      >
+                                                        <Typography
+                                                          variant='subtitle2'
+                                                          sx={{
+                                                            color: 'text.primary',
+                                                            minHeight: '100%'
+                                                          }}
+                                                        >
+                                                          {el.sl_no}.
+                                                        </Typography>
+                                                      </TableCell>
+                                                      <TableCell
+                                                        sx={{
+                                                          backgroundColor: getCellBgColor(el),
+                                                          verticalAlign: 'top'
+                                                        }}
+                                                        className='match-height'
+                                                      >
+                                                        {el.priority == 'high' ? (
+                                                          <Box
+                                                            sx={{
+                                                              color: 'error.main',
+
+                                                              minHeight: '8px',
+                                                              maxHeight: '8px',
+                                                              width: '100%',
+                                                              mx: 'auto'
+                                                            }}
+                                                          >
+                                                            <Icon
+                                                              icon='material-symbols-light:circle'
+                                                              style={{
+                                                                color: 'primary.error',
+                                                                minHeight: '8px',
+                                                                maxHeight: '8px'
+                                                              }}
+                                                            ></Icon>
+                                                          </Box>
+                                                        ) : null}
+                                                        {el?.request_status === 'Alternate' && (
+                                                          <Grid
+                                                            sx={{
+                                                              minHeight: 104,
+                                                              maxHeight: 104,
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'center',
+                                                              alignContent: 'top',
+                                                              alignItems: 'center'
+                                                            }}
+                                                          ></Grid>
+                                                        )}
+                                                        {el?.alt_parent?.length > 0
+                                                          ? el.alt_parent.map((el, index) => {
+                                                              return (
+                                                                <Grid
+                                                                  key={index}
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center',
+                                                                    alignContent: 'top',
+                                                                    alignItems: 'center'
+                                                                  }}
+                                                                >
+                                                                  <Box
+                                                                    sx={{
+                                                                      minHeight: '43px',
+                                                                      width: '30px',
+                                                                      border: '1px solid ',
+                                                                      color: 'white',
+                                                                      padding: '4px',
+                                                                      fontSize: '12px',
+                                                                      borderRadius: '4px',
+                                                                      display: 'flex',
+                                                                      flexDirection: 'column',
+                                                                      alignContent: 'center',
+                                                                      backgroundColor: 'customColors.neutralSecondary'
+                                                                    }}
+                                                                  >
+                                                                    Alt
+                                                                    <Box
+                                                                      sx={{
+                                                                        color: 'white',
+                                                                        height: '16px',
+                                                                        width: '16px',
+                                                                        mx: 'auto'
+                                                                      }}
+                                                                    >
+                                                                      <Icon
+                                                                        icon='ic:outline-subdirectory-arrow-right'
+                                                                        style={{
+                                                                          color: 'white',
+                                                                          height: '16px',
+                                                                          width: '16px',
+                                                                          mx: 'auto'
+                                                                        }}
+                                                                      />
+                                                                    </Box>
+                                                                  </Box>
+                                                                </Grid>
+                                                              )
+                                                            })
+                                                          : null}
+                                                      </TableCell>
+                                                      <TableCell
+                                                        sx={{
+                                                          backgroundColor: getCellBgColor(el),
+
+                                                          verticalAlign: 'top',
+
+                                                          height: 'auto'
+                                                        }}
+                                                      >
+                                                        <Box
+                                                          sx={{
+                                                            minHeight: 104,
+                                                            maxHeight: 104,
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            verticalAlign: 'top'
+                                                          }}
+                                                        >
+                                                          <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                            <Tooltip title={el.stock_name} placement='top'>
+                                                              <Typography
+                                                                variant='body1'
+                                                                sx={{
+                                                                  fontWeight: 600,
+                                                                  color: 'customColors.OnSecondaryContainer',
+
+                                                                  display: 'flex',
+                                                                  alignItems: 'center'
+                                                                }}
+                                                              >
+                                                                {!isNaN(el?.control_substance) &&
+                                                                parseInt(el?.control_substance) == 1 ? (
+                                                                  <Typography
+                                                                    sx={{
+                                                                      height: '16px',
+                                                                      width: '18px',
+                                                                      backgroundColor: 'error.main',
+                                                                      fontWeight: 'bold',
+                                                                      fontSize: '10px',
+                                                                      color: 'white',
+                                                                      padding: '2px',
+                                                                      borderRadius: '2px',
+                                                                      lineHeight: '12px',
+                                                                      textAlign: 'center',
+                                                                      mr: 1
+                                                                    }}
+                                                                  >
+                                                                    CS
+                                                                  </Typography>
+                                                                ) : null}
+                                                                {!isNaN(el?.prescription_required) &&
+                                                                parseInt(el?.prescription_required) == 1 ? (
+                                                                  <Typography
+                                                                    sx={{
+                                                                      height: '16px',
+                                                                      width: '18px',
+                                                                      backgroundColor: 'error.main',
+                                                                      fontWeight: 'bold',
+                                                                      fontSize: '10px',
+
+                                                                      color: 'white',
+                                                                      padding: '2px',
+                                                                      borderRadius: '2px',
+                                                                      lineHeight: '12px',
+                                                                      textAlign: 'center',
+                                                                      mr: 1
+                                                                    }}
+                                                                  >
+                                                                    PR
+                                                                  </Typography>
+                                                                ) : null}{' '}
+                                                                {el.stock_name}
+                                                              </Typography>
+                                                            </Tooltip>
+                                                          </Typography>
+                                                          <Tooltip
+                                                            title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                            placement='top'
+                                                          >
+                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                              {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                            </Typography>
+                                                          </Tooltip>
+                                                          <Tooltip title={el?.manufacturer} placement='top'>
+                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                              {el?.manufacturer}
+                                                            </Typography>
+                                                          </Tooltip>
+
+                                                          {el?.description || el.alternate_comments ? (
+                                                            <Grid
+                                                              onClick={() => {
+                                                                if (el?.description || el.alternate_comments) {
+                                                                  setExpandedText(
+                                                                    el?.description || el.alternate_comments
+                                                                  )
+                                                                  openNotesDialog()
+                                                                }
+                                                              }}
+                                                              sx={{
+                                                                display: 'flex',
+                                                                color: 'customColors.neutralSecondary',
+                                                                width: '100%',
+
+                                                                cursor: 'pointer'
+                                                              }}
+                                                            >
+                                                              <Icon
+                                                                icon={'material-symbols:description-outline'}
+                                                                style={{
+                                                                  fontSize: '20px',
+                                                                  color: '#00000066'
+                                                                }}
+                                                              ></Icon>
+                                                              <Typography
+                                                                variant='body2'
+                                                                sx={{
+                                                                  color: 'text.primary',
+                                                                  minWidth: 30,
+                                                                  maxWidth: 80,
+                                                                  cursor: 'pointer',
+                                                                  WebkitBoxOrient: 'vertical',
+                                                                  overflow: 'hidden',
+                                                                  textOverflow: 'ellipsis',
+                                                                  WebkitLineClamp: 6,
+                                                                  whiteSpace: 'nowrap',
+                                                                  ...boxStyles(el.request_status)
+                                                                }}
+                                                              >
+                                                                {el?.description || el.alternate_comments}
+                                                              </Typography>
+                                                            </Grid>
+                                                          ) : null}
+                                                          {parseInt(el?.prescription_required) == 1 ? (
+                                                            <Grid
+                                                              sx={{
+                                                                display: 'flex',
+                                                                width: '100%',
+
+                                                                // my: 2,
+                                                                // gap: 1,
+                                                                cursor: 'pointer'
+                                                              }}
+                                                            >
+                                                              <Box>{renderAttachmentIcons(el)}</Box>
+                                                            </Grid>
+                                                          ) : null}
+                                                        </Box>
+                                                        {el?.alt_parent?.length > 0
+                                                          ? el.alt_parent?.map((el, index) => {
+                                                              return (
+                                                                <Grid
+                                                                  key={index}
+                                                                  container
+                                                                  direction='column'
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center',
+                                                                    flexWrap: 'nowrap',
+                                                                    my: 1
+
+                                                                    // mb: 4,
+                                                                  }}
+                                                                >
+                                                                  <Box>
+                                                                    <Typography
+                                                                      variant='body1'
+                                                                      sx={{ fontWeight: 600 }}
+                                                                    >
+                                                                      <Tooltip title={el.stock_name} placement='top'>
+                                                                        <Typography
+                                                                          variant='body1'
+                                                                          sx={{
+                                                                            fontWeight: 600,
+                                                                            color: 'customColors.OnSecondaryContainer',
+
+                                                                            display: 'flex',
+                                                                            alignItems: 'center'
+                                                                          }}
+                                                                        >
+                                                                          {!isNaN(el?.control_substance) &&
+                                                                          parseInt(el?.control_substance) == 1 ? (
+                                                                            <Typography
+                                                                              sx={{
+                                                                                height: '16px',
+                                                                                width: '18px',
+                                                                                backgroundColor: 'error.main',
+                                                                                fontWeight: 'bold',
+                                                                                fontSize: '10px',
+                                                                                color: 'white',
+                                                                                padding: '2px',
+                                                                                borderRadius: '2px',
+                                                                                lineHeight: '12px',
+                                                                                textAlign: 'center',
+                                                                                mr: 1
+                                                                              }}
+                                                                            >
+                                                                              CS
+                                                                            </Typography>
+                                                                          ) : null}
+                                                                          {!isNaN(el?.prescription_required) &&
+                                                                          parseInt(el?.prescription_required) == 1 ? (
+                                                                            <Typography
+                                                                              sx={{
+                                                                                height: '16px',
+                                                                                width: '18px',
+                                                                                backgroundColor: 'error.main',
+                                                                                fontWeight: 'bold',
+                                                                                fontSize: '10px',
+                                                                                color: 'white',
+                                                                                padding: '2px',
+                                                                                borderRadius: '2px',
+                                                                                lineHeight: '12px',
+                                                                                textAlign: 'center',
+                                                                                mr: 1
+                                                                              }}
+                                                                            >
+                                                                              PR
+                                                                            </Typography>
+                                                                          ) : null}
+                                                                          {el.stock_name}
+                                                                        </Typography>
+                                                                      </Tooltip>
+                                                                    </Typography>
+                                                                    <Tooltip
+                                                                      title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                                      placement='top'
+                                                                    >
+                                                                      <Typography
+                                                                        variant='body1'
+                                                                        sx={{ color: 'text.primary' }}
+                                                                      >
+                                                                        {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                                      </Typography>
+                                                                    </Tooltip>
+                                                                    <Tooltip title={el?.manufacturer} placement='top'>
+                                                                      <Typography
+                                                                        variant='body1'
+                                                                        sx={{ color: 'text.primary' }}
+                                                                      >
+                                                                        {el?.manufacturer}
+                                                                      </Typography>
+                                                                    </Tooltip>
+
+                                                                    {el?.alternate_comments ? (
+                                                                      <Grid
+                                                                        onClick={() => {
+                                                                          if (el?.alternate_comments) {
+                                                                            setExpandedText(el.alternate_comments)
+                                                                            openNotesDialog()
+                                                                          }
+                                                                        }}
+                                                                        sx={{
+                                                                          display: 'flex',
+                                                                          width: '100%',
+
+                                                                          // mb: 2,
+                                                                          // gap: 1,
+                                                                          cursor: 'pointer'
+                                                                        }}
+                                                                      >
+                                                                        <Icon
+                                                                          icon={'material-symbols:description-outline'}
+                                                                          style={{
+                                                                            fontSize: '20px',
+                                                                            color: '#00000066'
+                                                                          }}
+                                                                        ></Icon>
+                                                                        <Typography
+                                                                          variant='body2'
+                                                                          sx={{
+                                                                            color: 'text.primary',
+                                                                            minWidth: 30,
+                                                                            maxWidth: 80,
+                                                                            cursor: 'pointer',
+                                                                            WebkitBoxOrient: 'vertical',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            WebkitLineClamp: 6,
+                                                                            whiteSpace: 'nowrap',
+                                                                            opacity: '0.5',
+
+                                                                            ...boxStyles(el.request_status)
+                                                                          }}
+                                                                        >
+                                                                          {el?.alternate_comments}
+                                                                        </Typography>
+                                                                      </Grid>
+                                                                    ) : null}
+                                                                    {parseInt(el?.prescription_required) == 1 ? (
+                                                                      <Grid
+                                                                        sx={{
+                                                                          display: 'flex',
+
+                                                                          width: '100%',
+
+                                                                          // mb: 2,
+                                                                          // gap: 1,
+                                                                          cursor: 'pointer'
+                                                                        }}
+                                                                      >
+                                                                        <Box>{renderAttachmentIcons(el)}</Box>
+                                                                      </Grid>
+                                                                    ) : null}
+                                                                  </Box>
+                                                                </Grid>
+                                                              )
+                                                            })
+                                                          : null}
+                                                      </TableCell>
+                                                      <TableCell
+                                                        sx={{
+                                                          backgroundColor: getCellBgColor(el),
+                                                          verticalAlign: 'top'
+                                                        }}
+                                                        className='match-height'
+                                                      >
+                                                        <Box
+                                                          sx={{
+                                                            minHeight: 104,
+                                                            maxHeight: 104,
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center'
+
+                                                            // mb: 4
+                                                          }}
+                                                        >
+                                                          <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            Requested:{el?.requested_qty}
+                                                          </Typography>
+                                                          <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            Fullfilled:{el?.dispatch_qty}
+                                                          </Typography>{' '}
+                                                          <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            Shipped:{el?.shipped_qty}
+                                                          </Typography>
+                                                        </Box>
+                                                        {el.alt_parent.length > 0
+                                                          ? el.alt_parent.map((el, index) => {
+                                                              return (
+                                                                <Box
+                                                                  key={index}
+                                                                  container
+                                                                  direction='column'
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center'
+
+                                                                    // mb: 4
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{ color: 'text.primary' }}
+                                                                  >
+                                                                    Requested:{el?.requested_qty}
+                                                                  </Typography>
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{ color: 'text.primary' }}
+                                                                  >
+                                                                    Fullfilled:{el?.dispatch_qty}
+                                                                  </Typography>{' '}
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{ color: 'text.primary' }}
+                                                                  >
+                                                                    Shipped:{el?.shipped_qty}
+                                                                  </Typography>
+                                                                </Box>
+                                                              )
+                                                            })
+                                                          : null}
+                                                      </TableCell>
+                                                      <TableCell
+                                                        sx={{
+                                                          backgroundColor: getCellBgColor(el),
+                                                          verticalAlign: 'top'
+                                                        }}
+                                                        className='match-height'
+                                                      >
+                                                        <>
+                                                          {selectedPharmacy.type === 'central' &&
+                                                          parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
+                                                          requestItems.status !== 'Cancelled' &&
+                                                          el.request_status !== 'Alternate' &&
+                                                          el.request_status !== 'Not Available' &&
+                                                          el.request_status !== 'Rejected' ? (
+                                                            <Grid
+                                                              sx={{
+                                                                verticalAlign: 'top',
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'center'
+                                                              }}
+                                                            >
+                                                              <Button
+                                                                size='small'
+                                                                sx={{
+                                                                  width: 100,
+                                                                  mx: 'auto',
+                                                                  ...boxStyles(el.request_status)
+                                                                }}
+                                                                disabled={
+                                                                  parseInt(el.requested_qty) -
+                                                                    parseInt(el.dispatch_qty) >=
+                                                                    1 &&
+                                                                  requestItems.status !== 'Cancelled' &&
+                                                                  el.request_status !== 'Alternate' &&
+                                                                  el.request_status !== 'Not Available' &&
+                                                                  el.request_status !== 'Rejected'
+                                                                    ? false
+                                                                    : true
+                                                                }
+                                                                variant='contained'
+                                                                onClick={() => {
+                                                                  console.log('outside el', el)
+                                                                  setFulfillMedicine({
+                                                                    ...el
+                                                                  })
+
+                                                                  showDialog()
+                                                                }}
+                                                              >
+                                                                Fullfill
+                                                              </Button>
+                                                            </Grid>
+                                                          ) : (
+                                                            <Grid
+                                                              sx={{
+                                                                verticalAlign: 'top',
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                textAlign: 'center',
+                                                                justifyContent: 'center',
+                                                                justifyItems: 'center',
+                                                                mx: 'auto'
+                                                              }}
+                                                            >
+                                                              {el.request_status === 'Not Available' && (
+                                                                <Typography
+                                                                  variant='body1'
+                                                                  sx={{ color: 'error.main' }}
+                                                                >
+                                                                  This Product is not available
+                                                                </Typography>
+                                                              )}
+                                                              {el.request_status === 'Rejected' && (
+                                                                <Typography
+                                                                  variant='body1'
+                                                                  sx={{ color: 'error.main' }}
+                                                                >
+                                                                  This Product was rejected
+                                                                </Typography>
+                                                              )}
+
+                                                              {el.alt_parent.length === 0 &&
+                                                                el?.dispatch_status === 'Fulfilled' &&
+                                                                el?.request_status !== 'Not Available' &&
+                                                                el?.request_status !== 'Rejected' && (
+                                                                  <Grid
+                                                                    sx={{
+                                                                      color: 'success.main',
+                                                                      minHeight: 104,
+                                                                      maxHeight: 104,
+                                                                      display: 'flex',
+                                                                      flexDirection: 'column',
+                                                                      justifyContent: 'center',
+                                                                      mx: 'auto',
+                                                                      verticalAlign: 'top',
+                                                                      textAlign: 'center'
+                                                                    }}
+                                                                  >
+                                                                    <Icon
+                                                                      icon='ion:checkmark-circle'
+                                                                      style={{ color: 'primary.success' }}
+                                                                    />
+                                                                  </Grid>
+                                                                )}
+                                                            </Grid>
+                                                          )}
+
+                                                          {el.alt_parent.length > 0
+                                                            ? el.alt_parent.map((nestElm, index) => {
+                                                                return (
+                                                                  <Grid
+                                                                    key={index}
+                                                                    direction='column'
+                                                                    sx={{
+                                                                      minHeight: 104,
+                                                                      maxHeight: 104,
+                                                                      display: 'flex',
+                                                                      flexDirection: 'column',
+                                                                      justifyContent: 'center',
+                                                                      mx: 'auto',
+                                                                      textAlign: 'center'
+                                                                    }}
+                                                                  >
+                                                                    <Box>
+                                                                      {selectedPharmacy.type === 'central' &&
+                                                                      parseInt(nestElm.requested_qty) -
+                                                                        parseInt(nestElm.dispatch_qty) >=
+                                                                        1 &&
+                                                                      requestItems.status !== 'Cancelled' &&
+                                                                      nestElm.request_status !== 'Alternate' &&
+                                                                      nestElm.request_status !== 'Not Available' &&
+                                                                      nestElm.request_status !== 'Rejected' ? (
+                                                                        <Button
+                                                                          size='small'
+                                                                          sx={{
+                                                                            width: 100,
+                                                                            mx: 'auto',
+                                                                            ...boxStyles(nestElm.request_status)
+                                                                          }}
+                                                                          variant='contained'
+                                                                          onClick={() => {
+                                                                            setFulfillMedicine({
+                                                                              ...nestElm
+                                                                            })
+
+                                                                            showDialog()
+                                                                          }}
+                                                                        >
+                                                                          Fullfill
+                                                                        </Button>
+                                                                      ) : null}
+                                                                    </Box>
+                                                                    {nestElm?.request_status === 'Not Available' && (
+                                                                      <Grid
+                                                                        sx={{
+                                                                          minHeight: 104,
+                                                                          maxHeight: 104,
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          justifyContent: 'center',
+
+                                                                          // mb: 4,
+                                                                          verticalAlign: 'top'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
+                                                                          variant='body1'
+                                                                          sx={{ color: 'error.main' }}
+                                                                        >
+                                                                          This Product is not available
+                                                                        </Typography>
+                                                                      </Grid>
+                                                                    )}
+
+                                                                    {nestElm?.request_status === 'Rejected' && (
+                                                                      <Grid
+                                                                        sx={{
+                                                                          minHeight: 104,
+                                                                          maxHeight: 104,
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          justifyContent: 'center',
+
+                                                                          // mb: 4,
+                                                                          verticalAlign: 'top'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
+                                                                          variant='body1'
+                                                                          sx={{ color: 'error.main' }}
+                                                                        >
+                                                                          This Product was rejected
+                                                                        </Typography>
+                                                                      </Grid>
+                                                                    )}
+                                                                    {nestElm?.dispatch_qty ===
+                                                                      nestElm?.requested_qty && (
+                                                                      <Box
+                                                                        sx={{
+                                                                          minHeight: 104,
+                                                                          maxHeight: 104,
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          justifyContent: 'center',
+
+                                                                          // mb: 4,
+                                                                          verticalAlign: 'top',
+                                                                          color: 'success.main',
+                                                                          textAlign: 'center',
+                                                                          border: '1px solid red'
+                                                                        }}
+                                                                      >
+                                                                        <Icon
+                                                                          icon='ion:checkmark-circle'
+                                                                          style={{ color: 'primary.success' }}
+                                                                        />
+                                                                      </Box>
+                                                                    )}
+                                                                  </Grid>
+                                                                )
+                                                              })
+                                                            : null}
+                                                        </>
+                                                      </TableCell>
+
+                                                      <TableCell
+                                                        sx={{
+                                                          backgroundColor: getCellBgColor(el),
+                                                          verticalAlign: 'top'
+                                                        }}
+                                                        align='right'
+                                                      >
+                                                        <>
+                                                          {el?.alt_parent?.length > 0
+                                                            ? el.alt_parent?.map((el, index) => {
+                                                                return (
+                                                                  <Grid
+                                                                    key={index}
+                                                                    container
+                                                                    direction='column'
+                                                                    sx={{
+                                                                      minHeight: 104,
+                                                                      maxHeight: 104,
+                                                                      display: 'flex',
+                                                                      flexDirection: 'column',
+                                                                      justifyContent: 'center',
+
+                                                                      // mb: 4,
+                                                                      verticalAlign: 'top'
+                                                                    }}
+                                                                  >
+                                                                    <Typography
+                                                                      variant='body1'
+                                                                      sx={{
+                                                                        color: 'text.primary',
+                                                                        textAlign: 'left',
+
+                                                                        color: 'customColors.moderateSecondary'
+                                                                      }}
+                                                                    >
+                                                                      Added Alternative
+                                                                    </Typography>
+
+                                                                    {el?.alternate_comments !== '' && (
+                                                                      <Grid
+                                                                        onClick={() => {
+                                                                          if (el?.alternate_comments) {
+                                                                            setExpandedText(el.alternate_comments)
+                                                                            openNotesDialog()
+                                                                          }
+                                                                        }}
+                                                                        sx={{
+                                                                          display: 'flex',
+                                                                          width: '100%',
+                                                                          cursor: 'pointer'
+                                                                        }}
+                                                                      >
+                                                                        <Icon
+                                                                          icon={
+                                                                            'material-symbols:sticky-note-2-outline-sharp'
+                                                                          }
+                                                                          style={{
+                                                                            fontSize: '20px',
+                                                                            color: '#00000066'
+                                                                          }}
+                                                                        ></Icon>
+                                                                        <Typography
+                                                                          variant='body2'
+                                                                          sx={{
+                                                                            color: 'text.primary',
+                                                                            minWidth: 30,
+                                                                            maxWidth: 80,
+                                                                            cursor: 'pointer',
+                                                                            WebkitBoxOrient: 'vertical',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            WebkitLineClamp: 6,
+                                                                            whiteSpace: 'nowrap',
+                                                                            opacity: '0.5',
+
+                                                                            ...boxStyles(el.request_status)
+                                                                          }}
+                                                                        >
+                                                                          {el?.alternate_comments}
+                                                                        </Typography>
+                                                                      </Grid>
+                                                                    )}
+                                                                  </Grid>
+                                                                )
+                                                              })
+                                                            : null}
+                                                          {selectedPharmacy.type === 'central' && (
+                                                            <>
+                                                              {parseInt(el?.requested_qty) -
+                                                                parseInt(el?.dispatch_qty) >=
+                                                                1 &&
+                                                                el?.request_status !== 'Alternate' &&
+                                                                el?.request_status !== 'Not Available' &&
+                                                                el?.request_status !== 'Rejected' && (
+                                                                  <Grid
+                                                                    sx={{
+                                                                      textAlign: 'left',
+                                                                      minHeight: 104,
+                                                                      maxHeight: 104,
+                                                                      display: 'flex',
+                                                                      flexDirection: 'column',
+                                                                      justifyContent: 'center',
+                                                                      alignContent: 'top',
+                                                                      alignItems: 'start',
+                                                                      ...boxStyles(el?.request_status)
+                                                                    }}
+                                                                  >
+                                                                    <MenuWithDots
+                                                                      options={generateOptions(el, requestItems?.id)}
+                                                                    />
+                                                                  </Grid>
+                                                                )}
+                                                            </>
+                                                          )}
+                                                          {el?.alt_parent?.length > 0
+                                                            ? el.alt_parent
+                                                                .filter(item => item.request_status === 'request')
+                                                                .map((nesEl, index) => {
+                                                                  return (
+                                                                    <Grid
+                                                                      key={index}
+                                                                      container
+                                                                      direction='column'
+                                                                      sx={{
+                                                                        minHeight: 104,
+                                                                        maxHeight: 104,
+                                                                        display: 'flex',
+                                                                        flexDirection: 'column',
+                                                                        justifyContent: 'center',
+                                                                        alignContent: 'top',
+                                                                        alignItems: 'start'
+                                                                      }}
+                                                                    >
+                                                                      {selectedPharmacy.type === 'central' && (
+                                                                        <Box
+                                                                          sx={{ ...boxStyles(nesEl?.request_status) }}
+                                                                        >
+                                                                          {parseInt(nesEl?.requested_qty) -
+                                                                            parseInt(nesEl?.dispatch_qty) >=
+                                                                            1 &&
+                                                                            nesEl?.request_status !== 'Alternate' &&
+                                                                            nesEl?.request_status !== 'Not Available' &&
+                                                                            nesEl?.request_status !== 'Rejected' && (
+                                                                              <MenuWithDots
+                                                                                options={generateOptions(
+                                                                                  nesEl,
+                                                                                  nesEl?.id
+                                                                                )}
+                                                                              />
+                                                                            )}
+                                                                        </Box>
+                                                                      )}
+                                                                    </Grid>
+                                                                  )
+                                                                })
+                                                            : null}
+                                                        </>
+                                                      </TableCell>
+                                                    </TableRow>
+                                                  )
+                                                })
+                                            : null}
+                                        </TableBody>
+                                      </Table>
+                                    </TableContainer>
+                                  </Card>
+                                )
+                              : null}
+                          </TabPanel>
+                          <TabPanel value='All'>
+                            {requestItems?.request_item_details.length > 0 && (
+                              <Card sx={{ ml: -3, minWidth: '100%' }}>
+                                <TableContainer>
+                                  <Table
+                                    stickyHeader
+                                    sx={{ minWidth: 650, overflowX: 'scroll' }}
+                                    aria-label='simple table'
+                                  >
+                                    <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                                      <TableRow>
+                                        <TableCell>S.NO</TableCell>
+                                        <TableCell></TableCell>
+                                        <TableCell>PRODUCT NAME</TableCell>
+
+                                        <TableCell>QUANTITY</TableCell>
+                                        <TableCell>FULL FILL</TableCell>
+                                        <TableCell sx={{ minWidth: 200 }}>ACTION</TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {requestItems?.request_item_details.length > 0
+                                        ? requestItems?.request_item_details.map((el, index) => {
+                                            return (
+                                              <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                                                <TableCell
+                                                  sx={{
+                                                    backgroundColor: getCellBgColor(el),
+                                                    verticalAlign: 'top'
+                                                  }}
+                                                  className='match-height'
+                                                >
+                                                  <Typography
+                                                    variant='subtitle2'
+                                                    sx={{
+                                                      color: 'text.primary',
+                                                      minHeight: '100%'
+                                                    }}
+                                                  >
+                                                    {el.sl_no}.
+                                                  </Typography>
+                                                </TableCell>
+                                                <TableCell
+                                                  sx={{
+                                                    backgroundColor: getCellBgColor(el),
+                                                    verticalAlign: 'top'
+                                                  }}
+                                                  className='match-height'
+                                                >
+                                                  {el.priority == 'high' ? (
+                                                    <Box
+                                                      sx={{
+                                                        color: 'error.main',
+
+                                                        minHeight: '8px',
+                                                        maxHeight: '8px',
+                                                        width: '100%',
+                                                        mx: 'auto'
+                                                      }}
+                                                    >
+                                                      <Icon
+                                                        icon='material-symbols-light:circle'
+                                                        style={{
+                                                          color: 'primary.error',
+                                                          minHeight: '8px',
+                                                          maxHeight: '8px'
+                                                        }}
+                                                      ></Icon>
+                                                    </Box>
+                                                  ) : null}
+                                                  {el?.request_status === 'Alternate' && (
+                                                    <Grid
+                                                      sx={{
+                                                        minHeight: 104,
+                                                        maxHeight: 104,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'center',
+                                                        alignContent: 'top',
+                                                        alignItems: 'center'
+                                                      }}
+                                                    ></Grid>
+                                                  )}
+                                                  {el?.alt_parent?.length > 0
+                                                    ? el.alt_parent.map((el, index) => {
+                                                        return (
+                                                          <Grid
+                                                            key={index}
+                                                            sx={{
+                                                              minHeight: 104,
+                                                              maxHeight: 104,
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'center',
+                                                              alignContent: 'top',
+                                                              alignItems: 'center'
+                                                            }}
+                                                          >
+                                                            <Box
+                                                              sx={{
+                                                                minHeight: '43px',
+                                                                width: '30px',
+                                                                border: '1px solid ',
+                                                                color: 'white',
+                                                                padding: '4px',
+                                                                fontSize: '12px',
+                                                                borderRadius: '4px',
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                alignContent: 'center',
+                                                                backgroundColor: 'customColors.neutralSecondary'
+                                                              }}
+                                                            >
+                                                              Alt
+                                                              <Box
+                                                                sx={{
+                                                                  color: 'white',
+                                                                  height: '16px',
+                                                                  width: '16px',
+                                                                  mx: 'auto'
+                                                                }}
+                                                              >
+                                                                <Icon
+                                                                  icon='ic:outline-subdirectory-arrow-right'
+                                                                  style={{
+                                                                    color: 'white',
+                                                                    height: '16px',
+                                                                    width: '16px',
+                                                                    mx: 'auto'
+                                                                  }}
+                                                                />
+                                                              </Box>
+                                                            </Box>
+                                                          </Grid>
+                                                        )
+                                                      })
+                                                    : null}
+                                                </TableCell>
+                                                <TableCell
+                                                  sx={{
+                                                    backgroundColor: getCellBgColor(el),
+
+                                                    verticalAlign: 'top',
+
+                                                    height: 'auto'
+                                                  }}
+                                                >
+                                                  <Box
+                                                    sx={{
+                                                      minHeight: 104,
+                                                      maxHeight: 104,
+                                                      display: 'flex',
+                                                      flexDirection: 'column',
+                                                      justifyContent: 'center',
+                                                      verticalAlign: 'top'
+                                                    }}
+                                                  >
+                                                    <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                      <Tooltip title={el.stock_name} placement='top'>
+                                                        <Typography
+                                                          variant='body1'
+                                                          sx={{
+                                                            fontWeight: 600,
+                                                            color: 'customColors.OnSecondaryContainer',
+
+                                                            display: 'flex',
+                                                            alignItems: 'center'
+                                                          }}
+                                                        >
+                                                          {!isNaN(el?.control_substance) &&
+                                                          parseInt(el?.control_substance) == 1 ? (
+                                                            <Typography
+                                                              sx={{
+                                                                height: '16px',
+                                                                width: '18px',
+                                                                backgroundColor: 'error.main',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '10px',
+                                                                color: 'white',
+                                                                padding: '2px',
+                                                                borderRadius: '2px',
+                                                                lineHeight: '12px',
+                                                                textAlign: 'center',
+                                                                mr: 1
+                                                              }}
+                                                            >
+                                                              CS
+                                                            </Typography>
+                                                          ) : null}
+                                                          {!isNaN(el?.prescription_required) &&
+                                                          parseInt(el?.prescription_required) == 1 ? (
+                                                            <Typography
+                                                              sx={{
+                                                                height: '16px',
+                                                                width: '18px',
+                                                                backgroundColor: 'error.main',
+                                                                fontWeight: 'bold',
+                                                                fontSize: '10px',
+                                                                color: 'white',
+                                                                padding: '2px',
+                                                                borderRadius: '2px',
+                                                                lineHeight: '12px',
+                                                                textAlign: 'center',
+                                                                mr: 1
+                                                              }}
+                                                            >
+                                                              PR
+                                                            </Typography>
+                                                          ) : null}{' '}
+                                                          {el.stock_name}
+                                                        </Typography>
+                                                      </Tooltip>
+                                                    </Typography>
+                                                    <Tooltip
+                                                      title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                      placement='top'
+                                                    >
+                                                      <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                        {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                      </Typography>
+                                                    </Tooltip>
+                                                    <Tooltip title={el?.manufacturer} placement='top'>
+                                                      <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                        {el?.manufacturer}
+                                                      </Typography>
+                                                    </Tooltip>
+
+                                                    {el?.description || el?.alternate_comments ? (
+                                                      <Grid
+                                                        onClick={() => {
+                                                          if (el?.description || el.alternate_comments) {
+                                                            setExpandedText(el?.description || el?.alternate_comments)
+                                                            openNotesDialog()
+                                                          }
+                                                        }}
+                                                        sx={{
+                                                          display: 'flex',
+                                                          color: 'customColors.neutralSecondary',
+                                                          width: '100%',
+
+                                                          cursor: 'pointer'
+                                                        }}
+                                                      >
+                                                        <Icon
+                                                          icon={'material-symbols:description-outline'}
+                                                          style={{
+                                                            fontSize: '20px',
+                                                            color: '#00000066'
+                                                          }}
+                                                        ></Icon>
+                                                        <Typography
+                                                          variant='body2'
+                                                          sx={{
+                                                            color: 'text.primary',
+                                                            minWidth: 30,
+                                                            maxWidth: 80,
+                                                            cursor: 'pointer',
+                                                            WebkitBoxOrient: 'vertical',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            WebkitLineClamp: 6,
+                                                            whiteSpace: 'nowrap',
+                                                            ...boxStyles(el.request_status)
+                                                          }}
+                                                        >
+                                                          {el?.description || el?.alternate_comments}
+                                                        </Typography>
+                                                      </Grid>
+                                                    ) : null}
+                                                    {parseInt(el?.prescription_required) == 1 ? (
+                                                      <Grid
+                                                        sx={{
+                                                          display: 'flex',
+                                                          width: '100%',
+
+                                                          // my: 2,
+                                                          // gap: 1,
+                                                          cursor: 'pointer'
+                                                        }}
+                                                      >
+                                                        <Box>{renderAttachmentIcons(el)}</Box>
+                                                      </Grid>
+                                                    ) : null}
+                                                  </Box>
+                                                  {el?.alt_parent?.length > 0
+                                                    ? el.alt_parent?.map((el, index) => {
+                                                        return (
+                                                          <Grid
+                                                            key={index}
+                                                            container
+                                                            direction='column'
+                                                            sx={{
+                                                              minHeight: 104,
+                                                              maxHeight: 104,
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'center',
+                                                              flexWrap: 'nowrap',
+                                                              my: 1
+
+                                                              // mb: 4,
+                                                            }}
+                                                          >
+                                                            <Box>
+                                                              <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                                                                <Tooltip title={el.stock_name} placement='top'>
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{
+                                                                      fontWeight: 600,
+                                                                      color: 'customColors.OnSecondaryContainer',
+
+                                                                      display: 'flex',
+                                                                      alignItems: 'center'
+                                                                    }}
+                                                                  >
+                                                                    {!isNaN(el?.control_substance) &&
+                                                                    parseInt(el?.control_substance) == 1 ? (
+                                                                      <Typography
+                                                                        sx={{
+                                                                          height: '16px',
+                                                                          width: '18px',
+                                                                          backgroundColor: 'error.main',
+                                                                          fontWeight: 'bold',
+                                                                          fontSize: '10px',
+                                                                          color: 'white',
+                                                                          padding: '2px',
+                                                                          borderRadius: '2px',
+                                                                          lineHeight: '12px',
+                                                                          textAlign: 'center',
+                                                                          mr: 1
+                                                                        }}
+                                                                      >
+                                                                        CS
+                                                                      </Typography>
+                                                                    ) : null}
+                                                                    {!isNaN(el?.prescription_required) &&
+                                                                    parseInt(el?.prescription_required) == 1 ? (
+                                                                      <Typography
+                                                                        sx={{
+                                                                          height: '16px',
+                                                                          width: '18px',
+                                                                          backgroundColor: 'error.main',
+                                                                          fontWeight: 'bold',
+                                                                          fontSize: '10px',
+                                                                          color: 'white',
+                                                                          padding: '2px',
+                                                                          borderRadius: '2px',
+                                                                          lineHeight: '12px',
+                                                                          textAlign: 'center',
+                                                                          mr: 1
+                                                                        }}
+                                                                      >
+                                                                        PR
+                                                                      </Typography>
+                                                                    ) : null}
+                                                                    {el.stock_name}
+                                                                  </Typography>
+                                                                </Tooltip>
+                                                              </Typography>
+                                                              <Tooltip
+                                                                title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                                placement='top'
+                                                              >
+                                                                <Typography
+                                                                  variant='body1'
+                                                                  sx={{ color: 'text.primary' }}
+                                                                >
+                                                                  {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
+                                                                </Typography>
+                                                              </Tooltip>
+                                                              <Tooltip title={el?.manufacturer} placement='top'>
+                                                                <Typography
+                                                                  variant='body1'
+                                                                  sx={{ color: 'text.primary' }}
+                                                                >
+                                                                  {el?.manufacturer}
+                                                                </Typography>
+                                                              </Tooltip>
+
+                                                              {el?.alternate_comments ? (
+                                                                <Grid
+                                                                  onClick={() => {
+                                                                    if (el?.alternate_comments) {
+                                                                      setExpandedText(el.alternate_comments)
+                                                                      openNotesDialog()
+                                                                    }
+                                                                  }}
+                                                                  sx={{
+                                                                    display: 'flex',
+                                                                    width: '100%',
+
+                                                                    // mb: 2,
+                                                                    // gap: 1,
+                                                                    cursor: 'pointer'
+                                                                  }}
+                                                                >
+                                                                  <Icon
+                                                                    icon={'material-symbols:description-outline'}
+                                                                    style={{
+                                                                      fontSize: '20px',
+                                                                      color: '#00000066'
+                                                                    }}
+                                                                  ></Icon>
+                                                                  <Typography
+                                                                    variant='body2'
+                                                                    sx={{
+                                                                      color: 'text.primary',
+                                                                      minWidth: 30,
+                                                                      maxWidth: 80,
+                                                                      cursor: 'pointer',
+                                                                      WebkitBoxOrient: 'vertical',
+                                                                      overflow: 'hidden',
+                                                                      textOverflow: 'ellipsis',
+                                                                      WebkitLineClamp: 6,
+                                                                      whiteSpace: 'nowrap',
+                                                                      opacity: '0.5',
+
+                                                                      ...boxStyles(el.request_status)
+                                                                    }}
+                                                                  >
+                                                                    {el?.alternate_comments}
+                                                                  </Typography>
+                                                                </Grid>
+                                                              ) : null}
+                                                              {parseInt(el?.prescription_required) == 1 ? (
+                                                                <Grid
+                                                                  sx={{
+                                                                    display: 'flex',
+
+                                                                    width: '100%',
+
+                                                                    // mb: 2,
+                                                                    // gap: 1,
+                                                                    cursor: 'pointer'
+                                                                  }}
+                                                                >
+                                                                  <Box>{renderAttachmentIcons(el)}</Box>
+                                                                </Grid>
+                                                              ) : null}
+                                                            </Box>
+                                                          </Grid>
+                                                        )
+                                                      })
+                                                    : null}
+                                                </TableCell>
+                                                <TableCell
+                                                  sx={{
+                                                    backgroundColor: getCellBgColor(el),
+                                                    verticalAlign: 'top'
+                                                  }}
+                                                  className='match-height'
+                                                >
+                                                  <Box
+                                                    sx={{
+                                                      minHeight: 104,
+                                                      maxHeight: 104,
+                                                      display: 'flex',
+                                                      flexDirection: 'column',
+                                                      justifyContent: 'center'
+
+                                                      // mb: 4
+                                                    }}
+                                                  >
+                                                    <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                      Requested:{el?.requested_qty}
+                                                    </Typography>
+                                                    <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                      Fullfilled:{el?.dispatch_qty}
+                                                    </Typography>{' '}
+                                                    <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                      Shipped:{el?.shipped_qty}
+                                                    </Typography>
+                                                  </Box>
+                                                  {el.alt_parent.length > 0
+                                                    ? el.alt_parent.map((el, index) => {
+                                                        return (
+                                                          <Box
+                                                            key={index}
+                                                            container
+                                                            direction='column'
+                                                            sx={{
+                                                              minHeight: 104,
+                                                              maxHeight: 104,
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'center'
+
+                                                              // mb: 4
+                                                            }}
+                                                          >
+                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                              Requested:{el?.requested_qty}
+                                                            </Typography>
+                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                              Fullfilled:{el?.dispatch_qty}
+                                                            </Typography>{' '}
+                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                              Shipped:{el?.shipped_qty}
+                                                            </Typography>
+                                                          </Box>
+                                                        )
+                                                      })
+                                                    : null}
+                                                </TableCell>
+                                                <TableCell
+                                                  sx={{
+                                                    backgroundColor: getCellBgColor(el),
+                                                    verticalAlign: 'top'
+                                                  }}
+                                                  className='match-height'
+                                                >
+                                                  <>
+                                                    {selectedPharmacy.type === 'central' &&
+                                                    parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
+                                                    requestItems.status !== 'Cancelled' &&
+                                                    el.request_status !== 'Alternate' &&
+                                                    el.request_status !== 'Not Available' &&
+                                                    el.request_status !== 'Rejected' ? (
+                                                      <Grid
+                                                        sx={{
+                                                          verticalAlign: 'top',
+                                                          minHeight: 104,
+                                                          maxHeight: 104,
+                                                          display: 'flex',
+                                                          flexDirection: 'column',
+                                                          justifyContent: 'center'
+                                                        }}
+                                                      >
+                                                        <Button
+                                                          size='small'
+                                                          sx={{
+                                                            width: 100,
+                                                            mx: 'auto',
+                                                            ...boxStyles(el.request_status)
+                                                          }}
+                                                          disabled={
+                                                            parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >=
+                                                              1 &&
+                                                            requestItems.status !== 'Cancelled' &&
+                                                            el.request_status !== 'Alternate' &&
+                                                            el.request_status !== 'Not Available' &&
+                                                            el.request_status !== 'Rejected'
+                                                              ? false
+                                                              : true
+                                                          }
+                                                          variant='contained'
+                                                          onClick={() => {
+                                                            setFulfillMedicine({
+                                                              ...el
+                                                            })
+
+                                                            showDialog()
+                                                          }}
+                                                        >
+                                                          Fullfill
+                                                        </Button>
+                                                      </Grid>
+                                                    ) : (
+                                                      <Grid
+                                                        sx={{
+                                                          verticalAlign: 'top',
+                                                          minHeight: 104,
+                                                          maxHeight: 104,
+                                                          display: 'flex',
+                                                          flexDirection: 'column',
+                                                          textAlign: 'center',
+                                                          justifyContent: 'center',
+                                                          justifyItems: 'center',
+                                                          mx: 'auto'
+                                                        }}
+                                                      >
+                                                        {el.request_status === 'Not Available' && (
+                                                          <Typography variant='body1' sx={{ color: 'error.main' }}>
+                                                            This Product is not available
+                                                          </Typography>
+                                                        )}
+                                                        {el.request_status === 'Rejected' && (
+                                                          <Typography variant='body1' sx={{ color: 'error.main' }}>
+                                                            This Product was rejected
+                                                          </Typography>
+                                                        )}
+                                                        {el.alt_parent.length === 0 &&
+                                                          el?.dispatch_status === 'Fulfilled' &&
+                                                          el?.request_status !== 'Not Available' &&
+                                                          el?.request_status !== 'Rejected' && (
+                                                            <Grid
+                                                              sx={{
+                                                                color: 'success.main',
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'center',
+                                                                mx: 'auto',
+                                                                verticalAlign: 'top',
+                                                                textAlign: 'center'
+                                                              }}
+                                                            >
+                                                              <Icon
+                                                                icon='ion:checkmark-circle'
+                                                                style={{ color: 'primary.success' }}
+                                                              />
+                                                            </Grid>
+                                                          )}
+                                                      </Grid>
+                                                    )}
+
+                                                    {el.alt_parent.length > 0
+                                                      ? el.alt_parent.map((nesElm, index) => {
+                                                          return (
+                                                            <Grid
+                                                              key={index}
+                                                              direction='column'
+                                                              sx={{
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'center',
+                                                                mx: 'auto',
+                                                                textAlign: 'center'
+                                                              }}
+                                                            >
+                                                              <Box>
+                                                                {selectedPharmacy.type === 'central' &&
+                                                                parseInt(nesElm.requested_qty) -
+                                                                  parseInt(nesElm.dispatch_qty) >=
+                                                                  1 &&
+                                                                requestItems.status !== 'Cancelled' &&
+                                                                nesElm.request_status !== 'Alternate' &&
+                                                                nesElm.request_status !== 'Not Available' &&
+                                                                nesElm.request_status !== 'Rejected' ? (
+                                                                  <Button
+                                                                    size='small'
+                                                                    sx={{
+                                                                      width: 100,
+                                                                      mx: 'auto',
+                                                                      ...boxStyles(nesElm.request_status)
+                                                                    }}
+                                                                    variant='contained'
+                                                                    onClick={() => {
+                                                                      setFulfillMedicine({
+                                                                        ...nesElm
+                                                                      })
+
+                                                                      showDialog()
+                                                                    }}
+                                                                  >
+                                                                    Fullfill
+                                                                  </Button>
+                                                                ) : null}
+                                                              </Box>
+                                                              {nesElm?.request_status === 'Not Available' && (
+                                                                <Grid
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center',
+
+                                                                    // mb: 4,
+                                                                    verticalAlign: 'top'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{ color: 'error.main' }}
+                                                                  >
+                                                                    This Product is not available
+                                                                  </Typography>
+                                                                </Grid>
+                                                              )}
+
+                                                              {nesElm?.request_status === 'Rejected' && (
+                                                                <Grid
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center',
+
+                                                                    // mb: 4,
+                                                                    verticalAlign: 'top'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{ color: 'error.main' }}
+                                                                  >
+                                                                    This Product was rejected
+                                                                  </Typography>
+                                                                </Grid>
+                                                              )}
+                                                              {nesElm?.dispatch_qty === nesElm?.requested_qty && (
+                                                                <Box
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center',
+
+                                                                    // mb: 4,
+                                                                    verticalAlign: 'top',
+                                                                    color: 'success.main',
+                                                                    textAlign: 'center',
+                                                                    mx: 'auto'
+                                                                  }}
+                                                                >
+                                                                  <Icon
+                                                                    icon='ion:checkmark-circle'
+                                                                    style={{ color: 'primary.success' }}
+                                                                  />
+                                                                </Box>
+                                                              )}
+                                                            </Grid>
+                                                          )
+                                                        })
+                                                      : null}
+                                                  </>
+                                                </TableCell>
+
+                                                <TableCell
+                                                  sx={{
+                                                    backgroundColor: getCellBgColor(el),
+                                                    verticalAlign: 'top'
+                                                  }}
+                                                  align='right'
+                                                >
+                                                  <>
+                                                    {el?.alt_parent?.length > 0
+                                                      ? el.alt_parent?.map((nestElm, index) => {
+                                                          return (
+                                                            <Grid
+                                                              key={index}
+                                                              container
+                                                              direction='column'
+                                                              sx={{
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'center',
+
+                                                                // mb: 4,
+                                                                verticalAlign: 'top'
+                                                              }}
+                                                            >
+                                                              <Typography
+                                                                variant='body1'
+                                                                sx={{
+                                                                  color: 'text.primary',
+                                                                  textAlign: 'left',
+
+                                                                  color: 'customColors.moderateSecondary'
+                                                                }}
+                                                              >
+                                                                Added Alternative
+                                                              </Typography>
+
+                                                              {nestElm?.alternate_comments !== '' && (
+                                                                <Grid
+                                                                  onClick={() => {
+                                                                    if (nestElm?.alternate_comments) {
+                                                                      setExpandedText(nestElm.alternate_comments)
+                                                                      openNotesDialog()
+                                                                    }
+                                                                  }}
+                                                                  sx={{
+                                                                    display: 'flex',
+                                                                    width: '100%',
+                                                                    cursor: 'pointer'
+                                                                  }}
+                                                                >
+                                                                  <Icon
+                                                                    icon={
+                                                                      'material-symbols:sticky-note-2-outline-sharp'
+                                                                    }
+                                                                    style={{
+                                                                      fontSize: '20px',
+                                                                      color: '#00000066'
+                                                                    }}
+                                                                  ></Icon>
+                                                                  <Typography
+                                                                    variant='body2'
+                                                                    sx={{
+                                                                      color: 'text.primary',
+                                                                      minWidth: 30,
+                                                                      maxWidth: 80,
+                                                                      cursor: 'pointer',
+                                                                      WebkitBoxOrient: 'vertical',
+                                                                      overflow: 'hidden',
+                                                                      textOverflow: 'ellipsis',
+                                                                      WebkitLineClamp: 6,
+                                                                      whiteSpace: 'nowrap',
+                                                                      opacity: '0.5',
+
+                                                                      ...boxStyles(nestElm.request_status)
+                                                                    }}
+                                                                  >
+                                                                    {nestElm?.alternate_comments}
+                                                                  </Typography>
+                                                                </Grid>
+                                                              )}
+                                                            </Grid>
+                                                          )
+                                                        })
+                                                      : null}
+                                                    {selectedPharmacy.type === 'central' && (
+                                                      <>
+                                                        {parseInt(el?.requested_qty) - parseInt(el?.dispatch_qty) >=
+                                                          1 &&
+                                                          el?.request_status !== 'Alternate' &&
+                                                          el?.request_status !== 'Not Available' &&
+                                                          el?.request_status !== 'Rejected' && (
+                                                            <Grid
+                                                              sx={{
+                                                                textAlign: 'left',
+                                                                minHeight: 104,
+                                                                maxHeight: 104,
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                justifyContent: 'center',
+                                                                alignContent: 'top',
+                                                                alignItems: 'start',
+                                                                ...boxStyles(el?.request_status)
+                                                              }}
+                                                            >
+                                                              <MenuWithDots
+                                                                options={generateOptions(el, requestItems?.id)}
+                                                              />
+                                                            </Grid>
+                                                          )}
+                                                      </>
+                                                    )}
+                                                    {el?.alt_parent?.length > 0
+                                                      ? el.alt_parent
+                                                          .filter(item => item.request_status === 'request')
+                                                          .map((nestEl, index) => {
+                                                            return (
+                                                              <Grid
+                                                                key={index}
+                                                                container
+                                                                direction='column'
+                                                                sx={{
+                                                                  minHeight: 104,
+                                                                  maxHeight: 104,
+                                                                  display: 'flex',
+                                                                  flexDirection: 'column',
+                                                                  justifyContent: 'center',
+                                                                  alignContent: 'top',
+                                                                  alignItems: 'start'
+                                                                }}
+                                                              >
+                                                                {selectedPharmacy.type === 'central' && (
+                                                                  <Box sx={{ ...boxStyles(nestEl?.request_status) }}>
+                                                                    {parseInt(nestEl?.requested_qty) -
+                                                                      parseInt(nestEl?.dispatch_qty) >=
+                                                                      1 &&
+                                                                      nestEl?.request_status !== 'Alternate' &&
+                                                                      nestEl?.request_status !== 'Not Available' &&
+                                                                      nestEl?.request_status !== 'Rejected' && (
+                                                                        <MenuWithDots
+                                                                          options={generateOptions(nestEl, nestEl?.id)}
+                                                                        />
+                                                                      )}
+                                                                  </Box>
+                                                                )}
+                                                              </Grid>
+                                                            )
+                                                          })
+                                                      : null}
+                                                  </>
+                                                </TableCell>
+                                              </TableRow>
+                                            )
+                                          })
+                                        : null}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Card>
+                            )}
+                            {/* <TableBasic
+                              rowHeight={126}
+                              columns={columns}
+                              rows={requestItems?.request_item_details}
+                            ></TableBasic> */}
+                          </TabPanel>
+                        </TabContext>
+                      </Grid>
                     </TabPanel>
-                    <TabPanel value='Pending'>
-                      <TableBasic
-                        rowHeight={126}
-                        columns={columns}
-                        rows={
-                          requestItems?.request_item_details.length > 0
-                            ? requestItems?.request_item_details.filter(el => el.request_search_status === 'Pending')
-                            : []
-                        }
-                      ></TableBasic>
-                    </TabPanel>
-                    <TabPanel value='All'>
-                      <TableBasic
-                        rowHeight={126}
-                        columns={columns}
-                        rows={requestItems?.request_item_details}
-                      ></TableBasic>
+                    <TabPanel
+                      value='Shipped'
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-start'
+                      }}
+                    >
+                      <Grid sx={{ width: '100%', ml: -2, mt: -6 }}>
+                        <TabContext value={shipmentTab}>
+                          <TabLists
+                            onChange={(event, newValue) => {
+                              setShipmentTab(newValue)
+                            }}
+                          >
+                            <Tab
+                              value='Ready To Ship'
+                              label={
+                                <TabBadge
+                                  label='Ready To Ship'
+                                  totalCount={shipmentTab === 'Ready To Ship' ? 0 : null}
+                                />
+                              }
+                            />
+                            <Tab
+                              value='Shipped'
+                              label={<TabBadge label='Shipped' totalCount={shipmentTab === 'Shipped' ? 0 : null} />}
+                            />
+                          </TabLists>
+                          <TabPanel value='Ready To Ship'>
+                            {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
+                              <Card sx={{ minWidth: '100%', ml: -2 }}>
+                                <CardHeader
+                                  title={``}
+                                  action={
+                                    (selectedPharmacy.permission.key === 'ADD' ||
+                                      selectedPharmacy.permission.key === 'allow_full_access') &&
+                                    requestItems.status !== 'Cancelled' ? (
+                                      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                        <Button
+                                          size='big'
+                                          variant='contained'
+                                          onClick={() => {
+                                            openShipDialog()
+                                          }}
+                                        >
+                                          Ship
+                                        </Button>
+                                      </Grid>
+                                    ) : null
+                                  }
+                                ></CardHeader>
+                                <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
+                              </Card>
+                            )}
+                          </TabPanel>
+                          <TabPanel value='Shipped'>
+                            {shippedItems?.length > 0 ? (
+                              <>
+                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2 }}>
+                                  {/* <CardHeader title={`Shipments`}></CardHeader> */}
+                                  <TableBasic
+                                    columns={shippedColumns}
+                                    rows={shippedItems}
+                                    onRowClick={e => {
+                                      setOrderId(e.id)
+                                      showOrderFormDialog()
+                                    }}
+                                  ></TableBasic>
+                                </Card>
+                              </>
+                            ) : null}
+                          </TabPanel>
+                        </TabContext>
+                      </Grid>
                     </TabPanel>
                   </TabContext>
                 </Grid>
+
                 <Grid container>
                   <CommonDialogBox
-                    title={'Add alternative medicine'}
+                    noWidth={'noWidth'}
+                    title={'Add Alternative Supply'}
                     dialogBoxStatus={showAlternativeMedicineDialog}
                     formComponent={
                       <AlternativeMedicine
                         parentId={medicineParentId}
+                        existingListItems={requestItems}
+                        closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
                         updateRequestItems={() => {
                           getRequestItemLists(id)
                           closeAlternativeMedicineDialog()
@@ -1504,11 +3517,13 @@ const IndividualRequest = () => {
                 </Grid>
                 <Grid container>
                   <CommonDialogBox
-                    title={'Reject medicine'}
+                    noWidth={'noWidth'}
+                    title={'Decline Request'}
                     dialogBoxStatus={rejectRequestMedicineDialog}
                     formComponent={
                       <RejectRequestItem
                         parentId={medicineParentId}
+                        closeRejectMedicineDialog={closeRejectMedicineDialog}
                         updateRequestItems={() => {
                           closeRejectMedicineDialog()
                           getRequestItemLists(id)
@@ -1521,11 +3536,13 @@ const IndividualRequest = () => {
                 </Grid>
                 <Grid container>
                   <CommonDialogBox
-                    title={'Make Product Not Available'}
+                    noWidth={'noWidth'}
+                    title={'Supply Stopped'}
                     dialogBoxStatus={productNotAvailableDialog}
                     formComponent={
                       <ProductNotAvailable
-                        payload={notAvailableItemId}
+                        payload={medicineParentId}
+                        closeProductNotAvailableDialog={closeProductNotAvailableDialog}
                         updateRequestItems={() => {
                           closeProductNotAvailableDialog()
                           getRequestItemLists(id)
@@ -1540,7 +3557,7 @@ const IndividualRequest = () => {
               {/* Dispatch list */}
               {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
                 <>
-                  <Card sx={{ mb: 6 }}>
+                  {/* <Card sx={{ mb: 6 }}>
                     <CardHeader
                       title={`Fulfillment`}
                       action={
@@ -1562,7 +3579,7 @@ const IndividualRequest = () => {
                       }
                     ></CardHeader>
                     <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-                  </Card>
+                  </Card> */}
                   <ConfirmDialogBox
                     open={deleteDialog}
                     closeDialog={() => {
@@ -1611,21 +3628,7 @@ const IndividualRequest = () => {
                 </>
               )}
               {/* Shipped list        */}
-              {shippedItems?.length > 0 ? (
-                <>
-                  <Card sx={{ mb: 6 }}>
-                    <CardHeader title={`Shipments`}></CardHeader>
-                    <TableBasic
-                      columns={shippedColumns}
-                      rows={shippedItems}
-                      onRowClick={e => {
-                        setOrderId(e.id)
-                        showOrderFormDialog()
-                      }}
-                    ></TableBasic>
-                  </Card>
-                </>
-              ) : null}
+
               {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
@@ -1672,6 +3675,11 @@ const IndividualRequest = () => {
                 open={show}
                 maxWidth='md'
                 scroll='body'
+                sx={{
+                  '& .MuiDialog-paper': {
+                    backgroundColor: 'primary.contrastText'
+                  }
+                }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
                 onBackdropClick={() => closeDialog()}
@@ -1752,22 +3760,26 @@ const IndividualRequest = () => {
           )}
           <ConfirmDialogBox
             open={notesDialog}
-            closeDialog={() => {
-              closeNotesDialog()
-            }}
-            action={() => {
-              closeNotesDialog()
-            }}
+            closeDialog={closeNotesDialog}
+            action={closeNotesDialog} // This closes the dialog when the icon button is clicked
+            title='Comment' // Add title here
             content={
               <Box>
-                <>
-                  <DialogContent>
-                    <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
-                  </DialogContent>
-                </>
+                <AddComment expandedText={expandedText} handleClose={closeNotesDialog} />
               </Box>
             }
           />
+
+          {/* <Grid container>
+            <CommonDialogBox
+              title={'Comments'}
+              // noWidth={'noWidth'}
+              dialogBoxStatus={notesDialog}
+              formComponent={<AddComment expandedText={expandedText} />}
+              close={closeNotesDialog}
+              // maxWidth='sm' // Adjust width (e.g., "xs", "sm", "md", "lg", "xl")
+            />
+          </Grid> */}
         </>
       )}
     </>

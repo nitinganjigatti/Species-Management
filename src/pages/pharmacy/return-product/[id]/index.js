@@ -156,7 +156,6 @@ const IndividualReturnRequest = () => {
   }
 
   const getShippedItems = async id => {
-    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)

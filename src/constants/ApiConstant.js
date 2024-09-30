@@ -170,6 +170,10 @@ export const REJECT_MEDICINE = 'reject'
 
 export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
 
+export const DISCARD_PRODUCT = 'discard'
+
+export const DISCARD_REASON = 'discard-reason'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'

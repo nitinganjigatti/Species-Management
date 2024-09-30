@@ -218,8 +218,10 @@ const PurchaseItemForm = props => {
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
+
     // mode: 'onBlur',
     mode: 'onSubmit',
+
     // reValidateMode: 'onSubmit',
     reValidateMode: 'onChange',
     context: {

@@ -13,8 +13,9 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
-import { Tooltip } from '@mui/material'
+import { Button, Tooltip } from '@mui/material'
 import { CardContent, Card } from '@mui/material'
+import Divider from '@mui/material/Divider'
 
 // ** React Imports
 import { useState, useEffect, useCallback } from 'react'
@@ -28,7 +29,7 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 
-function AlternativeMedicine({ parentId, updateRequestItems }) {
+function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
     request_item_medicine_id: '',
     medicine_name: '',
@@ -43,16 +44,17 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
     manufacture: '',
     unit_price: '',
     genericName: '',
-
     alternate_comments: '',
-
-    request_alt_parent_id: parentId?.request_item_id
+    request_alt_parent_id: parentId?.request_item_id,
+    availAbleQty: ''
   }
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [itemErrors, setItemErrors] = useState({})
   const [duplicateMedError, setDuplicateMedError] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [tabStatus, setTabStatus] = useState('By product')
+  const [existingMedicinesList, setExistingMedicinesList] = useState([])
 
   const validate = values => {
     const itemErrors = {}
@@ -84,6 +86,12 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
     return itemErrors
   }
 
+  const getOptionStyle = options => {
+    const sameMedicine = existingMedicinesList.find(item => item.stock_item_id === options)
+
+    return sameMedicine ? true : false
+  }
+
   //  ****** debounce
   const fetchMedicineData = async searchText => {
     try {
@@ -106,7 +114,8 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
           status: item?.active === '0' ? 0 : 1,
           prescription_required: item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
-          genericName: item?.generic_name
+          genericName: item?.generic_name,
+          availAbleQty: item?.available_qty
         }))
         setOptionsMedicineList(optionMedListFromApi)
         setItemErrors({})
@@ -150,7 +159,8 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
             prescription_required: item?.prescription_required === '1' ? true : false,
-            unit_price: item?.unit_price ? item?.unit_price : 0
+            unit_price: item?.unit_price ? item?.unit_price : 0,
+            availAbleQty: item?.available_qty
           }))
         )
         setItemErrors({})
@@ -171,6 +181,26 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
     []
   )
   useEffect(() => {
+    let requestItemsArray = []
+
+    existingListItems?.request_item_details.forEach(item => {
+      requestItemsArray.push({
+        id: item.id,
+        stock_item_id: item.stock_item_id
+      })
+
+      if (item?.alt_parent && item?.alt_parent?.length > 0) {
+        item.alt_parent.forEach(altItem => {
+          requestItemsArray.push({
+            id: altItem.id,
+            stock_item_id: altItem.stock_item_id
+          })
+        })
+      }
+    })
+
+    console.log('exixting', requestItemsArray)
+    setExistingMedicinesList(requestItemsArray)
     fetchMedicineData('')
   }, [])
 
@@ -204,10 +234,9 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
 
   const postItemsData = async () => {
     setSubmitLoader(true)
-
     if (parentId) {
       try {
-        const response = await addAlternativeMedicine(nestedRowMedicine, parentId?.parent_id)
+        const response = await addAlternativeMedicine(nestedRowMedicine, parentId?.parentEndPointId)
         if (response?.success) {
           toast.success(response?.message)
           setNestedRowMedicine(initialNestedRowMedicine)
@@ -228,76 +257,122 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
   }
 
   return (
-    <form style={{ width: '100%' }}>
-      <Card sx={{ mb: 10, width: { lg: '45%', xs: '100%' } }}>
+    <form style={{ width: '650px' }}>
+      <Divider sx={{ mt: -6 }} />
+      <Typography sx={{ my: 4, fontSize: '16px', fontWeight: '500' }}>Requested Medicine</Typography>
+      <Card
+        sx={{
+          mb: 10,
+          width: '100%',
+          backgroundColor: 'customColors.lightBg',
+          border: '1px solid #00D6C9'
+        }}
+      >
         <CardContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography>
-                <strong>Product:</strong>
-                {parentId?.product}
+            <Grid
+              item
+              xs={12}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+            >
+              <Typography sx={{ color: 'customColors.textLabel' }}>
+                Product Name: <strong>{parentId?.product}</strong>
               </Typography>
               <Typography>
-                <strong>Quantity requested:</strong>
-                {parentId?.qty_requested}
+                Quantity requested: <strong>{parentId?.qty_requested}</strong>
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
-      <Grid container item spacing={5} xs={12}>
-        <Grid item xs={12} sm={11 / 2}>
-          <FormControl fullWidth>
-            <Autocomplete
-              id='autocomplete-controlled'
-              options={optionsMedicineList}
-              renderOption={(props, option) => (
-                <li
-                  {...props}
-                  style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                >
-                  <Box>
-                    <Typography>{option.name}</Typography>
-                    <Typography variant='body2'>{option.package}</Typography>
-                    <Typography variant='body2'>{option.manufacture}</Typography>
-                  </Box>
-                </li>
-              )}
-              value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
-              onChange={(event, newValue) => {
-                setNestedRowMedicine({
-                  ...nestedRowMedicine,
-                  medicine_name: newValue?.name,
-                  request_item_medicine_id: newValue?.value,
-                  control_substance: newValue?.control_substance,
-                  prescription_required: newValue?.prescription_required,
-                  package: newValue?.package,
-                  manufacture: newValue?.manufacture,
-                  genericName: newValue?.genericName,
-                  unit_price: newValue?.unit_price
-                })
-                setDuplicateMedError('')
-                setItemErrors({})
-              }}
-              onKeyUp={e => {
-                searchMedicineData(e.target.value)
-                setItemErrors({})
-              }}
-              onBlur={() => {
-                fetchMedicineData('')
-              }}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  placeholder='Search by product name'
-                  label='Search by Product Name*'
-                  error={Boolean(itemErrors.medicine_name)}
-                />
-              )}
-            />
-            {nestedRowMedicine.medicine_name && (
-              <Grid container item sx={{ my: 2 }}>
-                <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+      <Divider />
+
+      <Grid sx={{ my: 6 }} xs={12}>
+        <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
+          <Typography
+            variant='button' // Use the button variant for styling
+            onClick={() => setTabStatus('By product')}
+            sx={{
+              cursor: 'pointer',
+              borderBottom: tabStatus === 'By product' ? '5px solid' : '',
+              color: 'primary.main', // Ensure this matches your button's color
+              padding: '8px 16px' // Match the button padding
+            }}
+          >
+            By Product Name
+          </Typography>
+          <Typography
+            variant='button' // Use the button variant for styling
+            onClick={() => setTabStatus('By generic')}
+            sx={{
+              cursor: 'pointer',
+              borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
+              color: 'primary.main', // Ensure this matches your button's color
+              padding: '8px 16px' // Match the button padding
+            }}
+          >
+            By Generic Name
+          </Typography>
+        </Grid>
+      </Grid>
+      <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} item xs={12}>
+        {tabStatus === 'By product' ? (
+          <Grid item xs={12} sm={12}>
+            <FormControl fullWidth>
+              <Autocomplete
+                id='autocomplete-controlled'
+                options={optionsMedicineList}
+                renderOption={(props, option) => (
+                  <li
+                    {...props}
+                    style={{
+                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+
+                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                    }}
+                  >
+                    <Box>
+                      <Typography>{option.name}</Typography>
+                      <Typography variant='body2'>{option.package}</Typography>
+                      <Typography variant='body2'>{option.manufacture}</Typography>
+                    </Box>
+                  </li>
+                )}
+                value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
+                onChange={(event, newValue) => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    medicine_name: newValue?.name,
+                    request_item_medicine_id: newValue?.value,
+                    control_substance: newValue?.control_substance,
+                    prescription_required: newValue?.prescription_required,
+                    package: newValue?.package,
+                    manufacture: newValue?.manufacture,
+                    genericName: newValue?.genericName,
+                    unit_price: newValue?.unit_price,
+                    availAbleQty: newValue?.availAbleQty
+                  })
+                  setDuplicateMedError('')
+                  setItemErrors({})
+                }}
+                onKeyUp={e => {
+                  searchMedicineData(e.target.value)
+                  setItemErrors({})
+                }}
+                onBlur={() => {
+                  fetchMedicineData('')
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    placeholder='Search by product name'
+                    label='Search by Product Name*'
+                    error={Boolean(itemErrors.medicine_name)}
+                  />
+                )}
+              />
+              {/* {nestedRowMedicine.medicine_name && (
+                <Grid container item sx={{ my: 2 }}>
                   <Tooltip title={nestedRowMedicine.package}>
                     <Chip
                       label={nestedRowMedicine.package}
@@ -307,8 +382,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
                       sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
                     />
                   </Tooltip>
-                </Grid>
-                <Grid item xs={12} md={6}>
+
                   <Tooltip title={nestedRowMedicine.manufacture}>
                     <Chip
                       label={nestedRowMedicine.manufacture}
@@ -319,82 +393,83 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
                     />
                   </Tooltip>
                 </Grid>
-              </Grid>
-            )}
-            {itemErrors.medicine_name && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                This field is required
-              </FormHelperText>
-            )}
-            {duplicateMedError && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                {duplicateMedError}
-              </FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={1}>
-          <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
-        </Grid>
-        <Grid item xs={12} sm={11 / 2}>
-          <FormControl fullWidth>
-            <Autocomplete
-              id='autocomplete-controlled'
-              options={optionsMedicineList}
-              renderOption={(props, option) => (
-                <li
-                  {...props}
-                  style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                >
-                  <Box>
-                    <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
-                    <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-
-                    <Typography variant='body2'>{option.package}</Typography>
-                    <Typography variant='body2'>{option.manufacture}</Typography>
-                  </Box>
-                </li>
+              )} */}
+              {itemErrors.medicine_name && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
               )}
-              value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
-              onChange={(event, newValue) => {
-                setNestedRowMedicine({
-                  ...nestedRowMedicine,
-                  medicine_name: newValue?.name,
-                  request_item_medicine_id: newValue?.value,
-                  control_substance: newValue?.control_substance,
-                  prescription_required: newValue?.prescription_required,
-                  package: newValue?.package,
-                  manufacture: newValue?.manufacture,
-                  unit_price: newValue?.unit_price,
-                  genericName: newValue?.genericName
-                })
-                setDuplicateMedError('')
-                setItemErrors({})
-              }}
-              onKeyUp={e => {
-                searchGenericMedicineData(e.target.value)
-
-                setItemErrors({})
-              }}
-              onBlur={() => {}}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  placeholder='Search by Generic name'
-                  label='Search by Generic Name*'
-                  error={Boolean(itemErrors.medicine_name)}
-                />
+              {duplicateMedError && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {duplicateMedError}
+                </FormHelperText>
               )}
-              isOptionEqualToValue={(option, value) => {
-                return option?.genericName === value
-              }}
-              getOptionLabel={option => {
-                return option?.genericName || nestedRowMedicine?.genericName || ''
-              }}
-            />
-            {nestedRowMedicine.medicine_name && (
-              <Grid container item sx={{ my: 2 }}>
-                <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+            </FormControl>
+          </Grid>
+        ) : (
+          <Grid item xs={12} sm={12}>
+            <FormControl fullWidth>
+              <Autocomplete
+                id='autocomplete-controlled'
+                options={optionsMedicineList}
+                renderOption={(props, option) => (
+                  <li
+                    {...props}
+                    style={{
+                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+
+                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                    }}
+                  >
+                    <Box>
+                      <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
+                      <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+
+                      <Typography variant='body2'>{option.package}</Typography>
+                      <Typography variant='body2'>{option.manufacture}</Typography>
+                    </Box>
+                  </li>
+                )}
+                value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
+                onChange={(event, newValue) => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    medicine_name: newValue?.name,
+                    request_item_medicine_id: newValue?.value,
+                    control_substance: newValue?.control_substance,
+                    prescription_required: newValue?.prescription_required,
+                    package: newValue?.package,
+                    manufacture: newValue?.manufacture,
+                    unit_price: newValue?.unit_price,
+                    genericName: newValue?.genericName,
+                    availAbleQty: newValue?.availAbleQty
+                  })
+                  setDuplicateMedError('')
+                  setItemErrors({})
+                }}
+                onKeyUp={e => {
+                  searchGenericMedicineData(e.target.value)
+
+                  setItemErrors({})
+                }}
+                onBlur={() => {}}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    placeholder='Search by Generic name'
+                    label='Search by Generic Name*'
+                    error={Boolean(itemErrors.medicine_name)}
+                  />
+                )}
+                isOptionEqualToValue={(option, value) => {
+                  return option?.genericName === value
+                }}
+                getOptionLabel={option => {
+                  return option?.genericName || nestedRowMedicine?.genericName || ''
+                }}
+              />
+              {/* {nestedRowMedicine.medicine_name && (
+                <Grid container item sx={{ my: 2 }}>
                   <Tooltip title={nestedRowMedicine.package}>
                     <Chip
                       label={nestedRowMedicine.package}
@@ -404,8 +479,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
                       sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
                     />
                   </Tooltip>
-                </Grid>
-                <Grid item xs={12} md={6}>
+
                   <Tooltip title={nestedRowMedicine.manufacture}>
                     <Chip
                       label={nestedRowMedicine.manufacture}
@@ -416,22 +490,53 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
                     />
                   </Tooltip>
                 </Grid>
-              </Grid>
+              )} */}
+              {itemErrors.medicine_name && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  This field is required
+                </FormHelperText>
+              )}
+              {duplicateMedError && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {duplicateMedError}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+        )}
+        {nestedRowMedicine?.medicine_name && (
+          <Box
+            sx={{
+              backgroundColor: '#F2FFF8', // Light green background
+              padding: '16px',
+              borderRadius: '8px',
+              marginTop: '5px',
+              border: '0.5px solid #37BD69',
+              borderRadius: '8px'
+            }}
+          >
+            <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+              Available Packing:{' '}
+              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>{nestedRowMedicine?.package}</span>
+            </Typography>
+            <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+              Manufactured by:{' '}
+              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                {nestedRowMedicine?.manufacture}
+              </span>
+            </Typography>
+            {nestedRowMedicine?.availAbleQty && (
+              <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
+                Availability:{' '}
+                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                  {nestedRowMedicine?.availAbleQty}
+                </span>
+              </Typography>
             )}
-            {itemErrors.medicine_name && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                This field is required
-              </FormHelperText>
-            )}
-            {duplicateMedError && (
-              <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                {duplicateMedError}
-              </FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
+          </Box>
+        )}
 
-        <Grid item xs={12} sm={11 / 2}>
+        <Grid item xs={12} sm={12} sx={{ mt: 3 }}>
           <FormControl fullWidth>
             <TextField
               type='number'
@@ -451,27 +556,28 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
             )}
 
             {nestedRowMedicine.unit_price > 0 ? (
-              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+              <Box sx={{ mx: 1, my: 2, display: 'flex', gap: 2 }}>
                 <Chip
                   label={`Unit Price - ${nestedRowMedicine.unit_price}`}
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
                 />
                 <Chip
-                  label={`Total QTY Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                  label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
                 />
               </Box>
             ) : null}
           </FormControl>
         </Grid>
+
         <Grid item xs={12} sm={1}></Grid>
-        <Grid item xs={12} sm={11 / 2}>
+        <Grid item xs={12} sm={12}>
           <FormControl fullWidth>
             <TextField
               type='text'
@@ -492,7 +598,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={11 / 2}>
+        <Grid item xs={12} sm={12}>
           <Typography>Priority</Typography>
           <RadioGroup
             row
@@ -509,11 +615,11 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
         </Grid>
 
         {/* // file uploader */}
-        <Grid item xs={12} sm={1}></Grid>
+        {/* <Grid item xs={12} sm={1}></Grid> */}
 
         {nestedRowMedicine.control_substance === true ? (
           nestedRowMedicine.control_substance_file ? (
-            <Grid item xs={12} sm={11 / 2}>
+            <Grid item xs={12} sm={12}>
               {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
                 <Chip
                   label={nestedRowMedicine.control_substance_file?.name}
@@ -569,7 +675,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
               )}
             </Grid>
           ) : (
-            <Grid item xs={12} sm={11 / 2}>
+            <Grid item xs={12} sm={12}>
               <Typography sx={{ mb: 2 }}>Attach details (Mandatory for controlled substances)</Typography>
               <FormControl fullWidth>
                 <TextField
@@ -608,7 +714,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
         ) : null}
         {nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
-            <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
+            <Grid item xs={12} sm={12}>
               {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
                 <Chip
                   label={nestedRowMedicine.prescription_required_file?.name}
@@ -664,7 +770,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
               )}
             </Grid>
           ) : (
-            <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
+            <Grid item xs={12} sm={12}>
               <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
               <FormControl fullWidth>
                 <TextField
@@ -699,9 +805,19 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
           )
         ) : null}
       </Grid>
-      <Grid>
+      <Grid sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
         <LoadingButton
-          sx={{ my: 6, float: 'right' }}
+          sx={{ my: 6 }} // Flex property ensures both buttons are of equal width
+          size='large'
+          onClick={() => {
+            closeAlternativeMedicineDialog()
+          }}
+          variant='outlined'
+        >
+          Cancel
+        </LoadingButton>
+        <LoadingButton
+          sx={{ my: 6, width: '100px' }} // Flex property ensures both buttons are of equal width
           size='large'
           onClick={() => {
             submitItems()
@@ -709,7 +825,7 @@ function AlternativeMedicine({ parentId, updateRequestItems }) {
           variant='contained'
           loading={submitLoader}
         >
-          Save
+          Add
         </LoadingButton>
       </Grid>
     </form>

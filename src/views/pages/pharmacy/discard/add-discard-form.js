@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import dayjs from 'dayjs'
 import {
   CardContent,
   Grid,
@@ -18,76 +19,109 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Chip from '@mui/material/Chip'
 
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-
-import TableCell from '@mui/material/TableCell'
-import UserSnackbar from 'src/components/utility/snackbar'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-
-// import Table from '@mui/material/Table'
-// import TableRow from '@mui/material/TableRow'
-
-// import TableCell from '@mui/material/TableCell'
-
-// import TableHead from '@mui/material/TableHead'
-
-// import ConfirmDialog from 'src/components/ConfirmationDialog'
-
 import { LoaderIcon } from 'react-hot-toast'
 
 const defaultValues = {
   request_item: {
     label: '',
-    value: '',
-    control_substance: false
+    value: ''
   },
-  request_item_batch_no: {
+  batch_no: {
     label: '',
     value: '',
     expiry_date: ''
   },
-  request_item_qty: '',
+  quantity: '',
   stock_type: '',
 
   available_item_qty: '',
   expiry_date: '',
   packageDetails: '',
-  manufacture: ''
+  manufacture: '',
+  comments: '',
+  reason: ''
 }
 
+// const schema = yup.object().shape({
+//   request_item: yup.object().shape({
+//     label: yup.string().required('Product Name is required'),
+//     value: yup.string().required('Product Name is required')
+//   }),
+
+//   // batch_no: yup.object().shape({
+//   //   label: yup.string().required('Batch no is required'),
+//   //   value: yup.string().required('Batch no is required'),
+//   //   expiry_date: yup.string().required('Batch no is required')
+//   // }),
+//   batch_no: yup
+//     .mixed()
+//     .required('Batch number is required')
+//     .test('is-object-with-properties', 'Batch number is required', value => {
+//       return (
+//         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+//       )
+//     }),
+//   quantity: yup
+//     .number()
+//     .typeError('Quantity must be a positive number')
+//     .positive('Quantity must be a positive number')
+//     .integer('Quantity must be an integer')
+//     .required('Quantity is required'),
+
+//   // available_item_qty: yup.string().required('Available Quantity is required'),
+//   expiry_date: yup.string().required('Expiry Date is required')
+// })
 const schema = yup.object().shape({
   request_item: yup.object().shape({
     label: yup.string().required('Product Name is required'),
     value: yup.string().required('Product Name is required')
   }),
 
-  // request_item_batch_no: yup.object().shape({
-  //   label: yup.string().required('Batch no is required'),
-  //   value: yup.string().required('Batch no is required'),
-  //   expiry_date: yup.string().required('Batch no is required')
-  // }),
-  request_item_batch_no: yup
+  batch_no: yup
     .mixed()
     .required('Batch number is required')
-    .test('is-object-with-properties', 'Batch number is required', value => {
+    .test('is-valid-object', 'Batch number is required', value => {
       return (
         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
       )
     }),
-  request_item_qty: yup
+
+  quantity: yup
     .number()
     .typeError('Quantity must be a positive number')
     .positive('Quantity must be a positive number')
     .integer('Quantity must be an integer')
     .required('Quantity is required'),
 
-  // available_item_qty: yup.string().required('Available Quantity is required'),
-  expiry_date: yup.string().required('Expiry Date is required')
+  expiry_date: yup.string().required('Expiry Date is required'),
+
+  reason: yup
+    .string()
+    .required('Reason is required')
+    .test('check-expiry', 'Expired must be selected for expired batches', function (value) {
+      const { expiry_date } = this.parent
+
+      if (expiry_date) {
+        const isExpired = dayjs(expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
+        if (isExpired) {
+          return value === 'Expired'
+        }
+      }
+
+      return true
+    }),
+
+  comments: yup
+    .string()
+    .test('comments-required', 'Comments are required when "Others" reason is selected', function (value) {
+      const { reason } = this.parent
+
+      if (reason === 'Others') {
+        return value !== undefined && value.trim().length > 0
+      }
+
+      return true
+    })
 })
 
 export const AddItemsForm = ({
@@ -102,7 +136,8 @@ export const AddItemsForm = ({
   nestedMedicine,
   error,
   totalQuantity,
-  editParams
+  editParams,
+  reasonsOptions
 }) => {
   const {
     reset,
@@ -121,7 +156,6 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -138,46 +172,33 @@ export const AddItemsForm = ({
   }
   const [totalQtyLoader, setTotalQtyLoader] = useState(false)
 
-  // confirm dialogbox validation
-  // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
-  // const [invalidQty, setInvalidQty] = useState([])
-
-  // const showConfirmationDialog = () => {
-  //   setInvalidQtyDialog(true)
-  // }
-
-  // const closeConfirmationDialog = () => {
-  //   setInvalidQtyDialog(false)
-  //   setInvalidQty([])
-  // }
-
   const onSubmit = async params => {
     setBatchError(false)
 
     const {
-      request_item_batch_no,
-      request_item_qty,
+      stock_type,
+      batch_no,
+      quantity,
       available_item_qty,
       expiry_date,
       request_item,
-      stock_type,
       packageDetails,
-      manufacture
+      manufacture,
+      comments,
+      reason
     } = {
       ...params
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
-    const isMedicineAlreadyExists = editParams?.request_item_details?.some(
+    const isMedicineAlreadyExists = editParams?.items?.some(
       item =>
-        item.request_item_medicine_id === request_item.value &&
-        item.request_item_batch_no === request_item_batch_no.value &&
-        nestedMedicine?.uuid !== item.uuid
+        item.stock_id === request_item.value && item.batch_no === batch_no.value && nestedMedicine?.uuid !== item.uuid
     )
 
     if (isMedicineAlreadyExists) {
       setBatchError(true)
-      setError('request_item_batch_no', {
+      setError('batch_no', {
         type: 'manual',
         message: 'Batch already exists'
       })
@@ -186,85 +207,36 @@ export const AddItemsForm = ({
       return
     }
 
-    // if (request_item_qty > available_item_qty) {
-    //   const invalidItems = [
-    //     {
-    //       request_item_batch_no: request_item_batch_no?.value,
-    //       request_item_qty,
-    //       available_item_qty,
-    //       expiry_date,
-    //       request_item_medicine_id: request_item?.value,
-    //       product_name: request_item?.label,
-    //       priority_item: 'Normal',
-    //       uuid: nestedMedicine?.uuid
-    //     }
-    //   ]
-
-    //   setInvalidQty(invalidItems)
-
-    //   setInvalidQtyDialog(true)
-
-    //   return
-    // }
-    if (Number(request_item_qty) > Number(available_item_qty)) {
+    if (Number(quantity) > Number(available_item_qty)) {
       setQuantityError(true)
 
       return
     }
 
-    // if (request_item_qty > available_item_qty) {
-    //   const invalidItems = [
-    //     {
-    //       request_item_batch_no: request_item_batch_no?.value,
-    //       request_item_qty,
-    //       available_item_qty,
-    //       expiry_date,
-    //       request_item_medicine_id: request_item?.value,
-    //       product_name: request_item?.label,
-    //       priority_item: 'Normal',
-    //       uuid: nestedMedicine?.uuid
-    //     }
-    //   ]
-
-    //   setInvalidQty(invalidItems)
-
-    //   setInvalidQtyDialog(true)
-
-    //   return
-    // }
-    clearErrors('request_item_batch_no')
-
-    // if (totalAvailableCount < 0) {
-    //   setQuantityError(true)
-
-    //   return
-    // }
+    clearErrors('batch_no')
 
     onSubmitData(
       {
-        request_item_batch_no: request_item_batch_no.value,
-        request_item_qty,
+        batch_no: batch_no.value,
+        quantity,
         available_item_qty,
         expiry_date,
-        request_item_medicine_id: request_item.value,
-        product_name: request_item.label,
-        priority_item: 'Normal',
+        stock_id: request_item.value,
+        medicine_name: request_item.label,
         uuid: nestedMedicine?.uuid,
         stock_type,
         packageDetails,
-        manufacture
-
-        // to_store_id: '14'
+        manufacture,
+        comments,
+        reason
       },
       type
     )
   }
 
   const checkTotalCount = async e => {
-    // console.log('nestedMedicine', nestedMedicine)
-
     const productId = watch('request_item')
-    const quantity = watch('request_item_qty')
+    const quantity = watch('quantity')
 
     var totalCount = 0
     var enteredCount = 0
@@ -277,14 +249,12 @@ export const AddItemsForm = ({
     }
 
     if (productId !== undefined) {
-      const filteredList = editParams?.request_item_details?.filter(
-        item => item.request_item_medicine_id === productId?.value
-      )
-      totalCount = filteredList.reduce((acc, item) => acc + parseInt(item.request_item_qty), 0)
+      const filteredList = editParams?.items?.filter(item => item.stock_id === productId?.value)
+      totalCount = filteredList?.reduce((acc, item) => acc + parseInt(item.quantity), 0)
     }
 
-    if (nestedMedicine.request_item_qty !== '') {
-      nestedItemQuantity = nestedMedicine?.request_item_qty
+    if (nestedMedicine.quantity !== '') {
+      nestedItemQuantity = nestedMedicine?.quantity
     }
 
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
@@ -296,48 +266,33 @@ export const AddItemsForm = ({
     checkTotalCount()
   }, [totalQuantity])
 
-  // const confirmDataSubmit = () => {
-  //   const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
-  //   onSubmitData(
-  //     {
-  //       request_item_batch_no: invalidQty[0]?.request_item_batch_no,
-  //       request_item_qty: invalidQty[0]?.request_item_qty,
-  //       available_item_qty: invalidQty[0]?.available_item_qty,
-  //       expiry_date: invalidQty[0]?.expiry_date,
-  //       request_item_medicine_id: invalidQty[0]?.request_item_medicine_id,
-  //       product_name: invalidQty[0]?.product_name,
-  //       priority_item: invalidQty[0]?.priority_item,
-  //       uuid: invalidQty[0]?.uuid
-  //     },
-  //     type
-  //   )
-  // }
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
-          value: nestedMedicine?.request_item_medicine_id
+          value: nestedMedicine?.stock_id
         },
-        request_item_batch_no: {
-          label: nestedMedicine?.request_item_batch_no,
-          value: nestedMedicine?.request_item_batch_no,
+        batch_no: {
+          label: nestedMedicine?.batch_no,
+          value: nestedMedicine?.batch_no,
           expiry_date: nestedMedicine?.expiry_date
         },
-        request_item_qty: nestedMedicine?.request_item_qty,
+        quantity: nestedMedicine?.quantity,
         expiry_date: nestedMedicine?.expiry_date,
         available_item_qty: nestedMedicine?.available_item_qty,
         stock_type: nestedMedicine?.stock_type,
         packageDetails: nestedMedicine?.packageDetails,
-        manufacture: nestedMedicine?.manufacture
+        manufacture: nestedMedicine?.manufacture,
+        comments: nestedMedicine?.comments,
+        reason: nestedMedicine?.reason
       })
-      console.log('available_item_qty in nested ', nestedMedicine?.available_item_qty)
       async function searchMedicine() {
-        await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+        await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
       }
 
       async function searchBatch() {
-        await searchBatchData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+        await searchBatchData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
       }
 
       searchMedicine()
@@ -374,7 +329,7 @@ export const AddItemsForm = ({
                     }}
                     onChange={(e, value) => {
                       setValue('request_item', value)
-                      setValue('request_item_batch_no', '')
+                      setValue('batch_no', '')
                       setValue('expiry_date', '')
                       setValue('available_item_qty', '')
                       setValue('stock_type', '')
@@ -391,7 +346,7 @@ export const AddItemsForm = ({
                       checkTotalCount()
                     }} // Set selected value
                     onBlur={async () => {
-                      await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+                      await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
                     }}
                     renderOption={(props, option) => (
                       <li
@@ -449,44 +404,42 @@ export const AddItemsForm = ({
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
-                name='request_item_batch_no'
+                name='batch_no'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <Autocomplete
                     {...field}
-                    id='request_item_batch_no'
+                    id='batch_no'
                     options={batchList === undefined ? [] : batchList}
                     getOptionLabel={option => option.label || ''}
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
-                      // console.log('value', value)
-                      // setValue('request_item', value)
-                      setValue('request_item_batch_no', value)
+                      const isExpired = dayjs(value?.expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
+                      if (isExpired) {
+                        setValue('reason', 'Expired')
+                      } else {
+                        setValue('reason', '')
+                      }
+
+                      setValue('batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
-                      clearErrors('request_item_batch_no')
+                      clearErrors('batch_no')
                       setQuantityError(false)
                       checkTotalCount()
-
-                      // seValu
-                    }} // Set selected value
+                    }}
                     loading={batchLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
-                      <TextField
-                        {...params}
-                        label='Batch No*'
-                        placeholder='Search'
-                        error={Boolean(errors.request_item_batch_no)}
-                      />
+                      <TextField {...params} label='Batch No*' placeholder='Search' error={Boolean(errors.batch_no)} />
                     )}
                   />
                 )}
               />
-              {errors?.request_item_batch_no && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
+              {errors?.batch_no && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
                 <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
@@ -498,15 +451,15 @@ export const AddItemsForm = ({
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
-                name='request_item_qty'
+                name='quantity'
                 control={control}
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
                     value={value}
                     label='Quantity*'
-                    name='request_item_qty'
-                    error={Boolean(errors.request_item_qty)}
+                    name='quantity'
+                    error={Boolean(errors.quantity)}
                     onChange={onChange}
                     onKeyDown={checkTotalCount}
                     onPaste={checkTotalCount}
@@ -514,35 +467,13 @@ export const AddItemsForm = ({
                   />
                 )}
               >
-                {errors.request_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
+                {errors.quantity && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
                 )}
               </Controller>
             </FormControl>
           </Grid>
-          {/* <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <Controller
-                name='available_item_qty'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Available Quantity*'
-                    name='available_item_qty'
-                    error={Boolean(errors.available_item_qty)}
-                    onChange={onChange}
-                    disabled
-                  />
-                )}
-              >
-                {errors.available_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.available_item_qty?.message}</FormHelperText>
-                )}
-              </Controller>
-            </FormControl>
-          </Grid> */}
+
           {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -568,6 +499,89 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
+          <Grid item xs={12} sm={6}>
+            {/* <FormControl fullWidth>
+              <InputLabel id='demo-simple-select-helper-label'>Select reason</InputLabel>
+              <Controller
+                name='reason'
+                control={control}
+                defaultValue=''
+                render={({ field }) => (
+                  <Select {...field} labelId='demo-simple-select-helper-label' label='Select reason'>
+                    <MenuItem value=''>
+                      <em>None</em>
+                    </MenuItem>
+                    {reasonsOptions.length > 0 &&
+                      reasonsOptions.map((el, index) => {
+                        return (
+                          <MenuItem key={index} value={el}>
+                            {el}
+                          </MenuItem>
+                        )
+                      })}
+                  </Select>
+                )}
+              />
+
+              {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors?.reason?.message}</FormHelperText>}
+            </FormControl> */}
+            <FormControl fullWidth>
+              <InputLabel id='demo-simple-select-helper-label'>Select reason</InputLabel>
+              <Controller
+                name='reason'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    onChange={onChange}
+                    value={value}
+                    labelId='demo-simple-select-helper-label'
+                    label='Select reason'
+                    error={Boolean(errors.reason)}
+                  >
+                    <MenuItem value=''>
+                      <em>None</em>
+                    </MenuItem>
+                    {reasonsOptions.length > 0 &&
+                      reasonsOptions.map((el, index) => (
+                        <MenuItem
+                          key={index}
+                          disabled={
+                            watch('stock_type') === 'non_medical' && (el === 'Expired' || el === 'About to expire')
+                              ? true
+                              : false
+                          }
+                          value={el}
+                        >
+                          {el}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                )}
+              />
+              {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors.reason.message}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='comments'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Comments'
+                    name='comments'
+                    error={Boolean(errors.comments)}
+                    onChange={onChange}
+                  />
+                )}
+              ></Controller>
+              {errors.comments && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
           {/* <Grid item xs={12}>
             <Typography sx={{ mx: 2 }}>
               {batchLoading ? <LoaderIcon /> : `Available Quantity:${totalAvailableCount}`}
@@ -585,72 +599,6 @@ export const AddItemsForm = ({
           </Grid>
         </Grid>
       </form>
-
-      {/* <ConfirmDialog
-        open={invalidQtyDialog}
-        title={'Your quantity exceeds the batch limit'}
-        closeDialog={() => {
-          closeConfirmationDialog()
-        }}
-        action={() => {
-          confirmDataSubmit()
-        }}
-        content={
-          <>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: '#e3e3e3' }}>
-                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Product</TableCell>
-                  <TableCell sx={{ py: 1, borderRight: '1px solid #ccc' }}>Batch no</TableCell>
-                  <TableCell sx={{ borderRight: '1px solid #ccc' }}>Available qty</TableCell>
-                  <TableCell>Requested qty</TableCell>
-                </TableRow>
-              </TableHead>
-              {invalidQty?.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell
-                    sx={{
-                      py: 1,
-                      borderRight: '1px solid #ccc',
-                      borderBottom: index === invalidQty.length - 1 && 'none'
-                    }}
-                  >
-                    {item?.product_name}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      py: 1,
-                      borderRight: '1px solid #ccc',
-                      borderBottom: index === invalidQty.length - 1 && 'none'
-                    }}
-                  >
-                    {item?.request_item_batch_no}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      py: 1,
-                      borderRight: '1px solid #ccc',
-                      borderBottom: index === invalidQty.length - 1 && 'none'
-                    }}
-                  >
-                    {item?.available_item_qty}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      py: 1,
-                      borderRight: '1px solid #ccc',
-                      borderBottom: index === invalidQty.length - 1 && 'none'
-                    }}
-                  >
-                    {item?.request_item_qty}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </Table>
-          </>
-        }
-      /> */}
-      {/* </CardContent> */}
     </>
   )
 }
