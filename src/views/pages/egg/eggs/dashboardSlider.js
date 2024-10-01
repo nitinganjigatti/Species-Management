@@ -54,10 +54,18 @@ const DashboardSlider = ({
           >
             <img src='/icons/egg_dashboard/species_logo.png' width='32' height='32' />
             <Typography sx={{ fontSize: 24, fontFamily: 'Inter', fontWeight: 500 }}>
-              {drawerHeading} &#40;{drawerHeadingCount}&#41;
+              {drawerHeading}
+              {drawerHeadingCount > 0 ? <span> &#40;{drawerHeadingCount}&#41;</span> : ''}
             </Typography>
           </Box>
-          <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
+          <IconButton
+            size='small'
+            onClick={() => {
+              setOpenDrawer(false)
+              setDrawerHeadingCount(0)
+            }}
+            sx={{ color: 'text.primary' }}
+          >
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
