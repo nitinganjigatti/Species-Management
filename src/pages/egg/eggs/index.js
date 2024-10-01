@@ -2761,13 +2761,13 @@ const EggList = () => {
               </TabPanel>
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                 {selectionEggModel?.length > 0 && (
-                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2 }}>
+                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -12, mb: 2 }}>
                     <Button sx={{ p: 5 }} size='medium' variant='contained' onClick={() => setOpenDiscardDialog(true)}>
                       &nbsp;{selectionEggModel?.length}&nbsp;Discard
                     </Button>
                   </Box>
                 )}
-                <Divider />
+                <Divider sx={{ mt: 4 }} />
                 {tableData()}
               </TabPanel>
               <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
