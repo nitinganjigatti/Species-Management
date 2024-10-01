@@ -85,7 +85,7 @@ const StoreWiseDispatch = () => {
     async ({ sort, q, column }) => {
       let payload = {}
       const activeStatus = statusFilter
-      console.log(selectedFruits.length, 'raghu')
+
       try {
         setLoading(true)
         if (!filtersApplied && selectedFruits.length > 0) {
@@ -456,7 +456,32 @@ const StoreWiseDispatch = () => {
                   </Grid>
                 )}
                 <DataGrid
-                  sx={{ cursor: 'pointer' }}
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    },
+                    '.MuiDataGrid-main': {
+                      margin: '0px 20px 20px 20px',
+                      borderLeft: '1px solid #0000000D',
+                      borderRight: '1px solid #0000000D',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(233, 233, 236, 1)'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      borderTop: 'none'
+                    },
+
+                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                      borderBottom: 'none'
+                    }
+                  }}
                   columnVisibilityModel={{
                     id: false
                   }}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import { getMonthWiseDispatchList } from 'src/lib/api/pharmacy/getAllReports'
+import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@mui/material/styles'
@@ -80,22 +81,50 @@ const MonthWiseDispatch = () => {
 
   const handleSearchChange = async e => {
     console.log(statusFilter, 'statusFilter')
-    await searchTableData({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
+    await searchTableDatafilter({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
   }
+
+  const fetchfilterValues = useCallback(async ({ q }) => {
+    try {
+      let params = {
+        page: 1,
+        limit: 10,
+        q
+      }
+      const medicineListResponse = await getMedicineList({
+        params
+      })
+
+      if (medicineListResponse.data && medicineListResponse.data.list_items) {
+        const medicineList = medicineListResponse.data.list_items
+
+        // Step 2: Set the medicine list to fullStoreList
+        const allStores = medicineList.map(store => ({
+          id: store.id,
+          name: store.name
+        }))
+        setFullStoreList(allStores)
+      }
+    } catch (e) {}
+  })
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
       let payload = {}
       const activeStatus = statusFilter
-      console.log(selectedFruits.length, 'raghu')
+
       try {
         setLoading(true)
+
         if (!filtersApplied && selectedFruits.length > 0) {
+          alert('ooo')
           setLoading(false)
           return
         }
-
+        console.log(filtersApplied, 'ppppp')
+        console.log(selectedFruits.length, 'ppppppp')
         if (filtersApplied && selectedFruits.length > 0) {
+          alert('kkk')
           payload = {
             //sort,
             q,
@@ -106,6 +135,7 @@ const MonthWiseDispatch = () => {
             medicine_ids: selectedFruits
           }
         } else {
+          alert('ppp')
           console.log(statusFilter, 'activeStatus')
           payload = {
             //sort,
@@ -220,14 +250,14 @@ const MonthWiseDispatch = () => {
             setRows(rows)
             setTotal(parseInt(res?.data?.total_count))
 
-            const allStores = listItem.rowData.map(store => ({
-              id: store.stock_id,
-              name: store.stock_name
-            }))
-            if (!filtersApplied) {
-              setFullStoreList(allStores)
-            }
-            setStoreList(allStores)
+            // const allStores = listItem.rowData.map(store => ({
+            //   id: store.stock_id,
+            //   name: store.stock_name
+            // }))
+            // if (!filtersApplied) {
+            //   setFullStoreList(allStores)
+            // }
+            // setStoreList(allStores)
           }
         })
         setLoading(false)
@@ -271,6 +301,18 @@ const MonthWiseDispatch = () => {
     })
   }
 
+  const searchTableDatafilter = useCallback(
+    debounce(async ({ q }) => {
+      setSearchValue(q)
+      try {
+        await fetchfilterValues({ q })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [statusFilter]
+  )
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -286,6 +328,10 @@ const MonthWiseDispatch = () => {
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, filter: statusFilter })
   }, [fetchTableData])
+
+  useEffect(() => {
+    fetchfilterValues({ q: searchValue })
+  }, [])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -440,7 +486,32 @@ const MonthWiseDispatch = () => {
                   </Grid>
                 )}
                 <DataGrid
-                  sx={{ cursor: 'pointer' }}
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    },
+                    '.MuiDataGrid-main': {
+                      margin: '0px 20px 20px 20px',
+                      borderLeft: '1px solid #0000000D',
+                      borderRight: '1px solid #0000000D',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(233, 233, 236, 1)'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      borderTop: 'none'
+                    },
+
+                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                      borderBottom: 'none'
+                    }
+                  }}
                   columnVisibilityModel={{
                     id: false
                   }}

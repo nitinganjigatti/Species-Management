@@ -116,7 +116,6 @@ const RequestChart = () => {
   }
 
   const handlechange = e => {
-    console.log(e.target.value, 'raghu')
     setTimeperiod(e.target.value)
   }
 

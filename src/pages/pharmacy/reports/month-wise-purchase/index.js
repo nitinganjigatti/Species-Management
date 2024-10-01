@@ -86,7 +86,7 @@ const MonthWisePurchase = () => {
     async ({ sort, q, column }) => {
       let payload = {}
       const activeStatus = statusFilter
-      console.log(selectedFruits.length, 'raghu')
+
       try {
         setLoading(true)
         if (!filtersApplied && selectedFruits.length > 0) {
@@ -438,48 +438,75 @@ const MonthWisePurchase = () => {
                     </Grid>
                   </Grid>
                 )}
-                <DataGrid
-                  sx={{ cursor: 'pointer' }}
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  className=''
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={rows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  columnHeaderHeight={100}
-                  disableColumnMenu
-                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
+                <span>
+                  <DataGrid
+                    sx={{
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
 
-                      onChange: event => {
-                        setSearchValue(event.target.value)
+                      '& .MuiDataGrid-columnHeaders': {
+                        backgroundColor: theme.palette.customColors.customTableHeaderBg
+                      },
+                      '& .MuiDataGrid-row:hover': {
+                        cursor: 'pointer'
+                      },
+                      '.MuiDataGrid-main': {
+                        margin: '0px 20px 20px 20px',
+                        borderLeft: '1px solid #0000000D',
+                        borderRight: '1px solid #0000000D',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(233, 233, 236, 1)'
+                      },
+                      '& .MuiDataGrid-footerContainer': {
+                        borderTop: 'none'
+                      },
 
-                        return handleSearch(event.target.value)
+                      '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                        borderBottom: 'none'
                       }
-                    }
-                  }}
-                  //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
-                />
+                    }}
+                    columnVisibilityModel={{
+                      id: false
+                    }}
+                    className=''
+                    autoHeight
+                    pagination
+                    hideFooterSelectedRowCount
+                    disableColumnSelector={true}
+                    rows={rows}
+                    rowCount={total}
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onSortModelChange={handleSortModel}
+                    slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={loading}
+                    columnHeaderHeight={100}
+                    disableColumnMenu
+                    hideFooter={router.asPath.includes('newdashboard') ? true : false}
+                    slotProps={{
+                      baseButton: {
+                        variant: 'outlined'
+                      },
+                      toolbar: {
+                        value: searchValue,
+                        clearSearch: () => handleSearch(''),
+
+                        onChange: event => {
+                          setSearchValue(event.target.value)
+
+                          return handleSearch(event.target.value)
+                        }
+                      }
+                    }}
+                    //onRowClick={handleEdit}
+                    onCellClick={handlecheckcell}
+                  />
+                </span>
               </Card>
               {openFilterDrawer && (
                 <MonthWisepurchaseFilter
