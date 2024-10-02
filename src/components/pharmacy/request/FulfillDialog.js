@@ -73,7 +73,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           .required('Quantity is required')
           .typeError('Quantity should be a number')
           .positive('Quantity must be a positive number')
-          .moreThan(0, 'Quantity must be greater than zero')
+          .moreThan(0, 'Quantity must be greater than 0')
       })
     )
   })
@@ -88,7 +88,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     getValues,
     watch,
 
-    setError
+    setError,
+    clearErrors
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -627,7 +628,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             </CardContent>
           </Card>
           <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-            <Grid sx={{ my: '24px' }}>
+            <Grid sx={{ my: '28px' }}>
               <Grid item xs={12} sm={12}>
                 <FormGroup>
                   {fields.map((field, index) => (
@@ -636,20 +637,20 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       key={field.id}
                       sx={{
                         marginTop: '0px',
-
-                        // my: 2,
-                        py: '12px',
+                        mb: 4,
                         backgroundColor: 'customColors.neutral05',
                         borderRadius: 1,
                         display: 'flex',
                         flexDirection: 'row',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        gap: 4
+                        justifyItems: 'center',
+                        gap: 4,
+                        minHeight: '136px'
                       }}
                     >
-                      <Grid item xs={2.7}>
-                        <FormControl fullWidth>
+                      <Grid item xs={2.6}>
+                        <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].batch_no`}
                             control={control}
@@ -687,6 +688,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       setValue(`product_batches[${index}].expiry_date`, expiry_date)
                                       setValue(`product_batches[${index}].quantityAvailable`, parseInt(qty))
                                       onChange(val.batch_no)
+                                      clearErrors()
                                     }
                                   }}
                                   renderInput={params => {
@@ -706,15 +708,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           />
 
                           {errors?.product_batches?.[index]?.batch_no && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
+                            <FormHelperText
+                              sx={{
+                                color: 'error.main',
+                                position: 'absolute',
+
+                                bottom: '-30px',
+                                left: 0,
+                                width: '100%'
+                              }}
+                            >
                               {errors?.product_batches?.[index]?.batch_no?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
                       {batchItems[index]?.stock_type === 'non_medical' ? null : (
-                        <Grid item xs={2.7}>
-                          <FormControl fullWidth>
+                        <Grid item xs={2.6}>
+                          <FormControl fullWidth sx={{ position: 'relative' }}>
                             <Controller
                               name={`product_batches[${index}].expiry_date`}
                               control={control}
@@ -733,15 +744,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               )}
                             />
                             {errors?.product_batches?.[index]?.expiry_date && (
-                              <FormHelperText sx={{ color: 'error.main' }}>
+                              <FormHelperText
+                                sx={{
+                                  color: 'error.main',
+                                  position: 'absolute',
+
+                                  bottom: '-16px',
+                                  left: 0,
+                                  width: '100%'
+                                }}
+                              >
                                 {errors?.product_batches?.[index]?.expiry_date?.message}
                               </FormHelperText>
                             )}
                           </FormControl>
                         </Grid>
                       )}
-                      <Grid item xs={2.7}>
-                        <FormControl fullWidth>
+                      <Grid item xs={2.6}>
+                        <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].qty`}
                             control={control}
@@ -770,24 +790,45 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               />
                             )}
                           />
-                          {errors?.product_batches?.[index]?.qty && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.product_batches?.[index]?.qty?.message}
-                            </FormHelperText>
-                          )}
-                          {}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: '55px',
+                              left: 0,
+                              width: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start'
+                            }}
+                          >
+                            {errors?.product_batches?.[index]?.qty && (
+                              <FormHelperText
+                                sx={{
+                                  color: 'error.main',
+                                  width: '100%'
+                                }}
+                              >
+                                {errors?.product_batches?.[index]?.qty?.message}
+                              </FormHelperText>
+                            )}
 
-                          {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
-                            <FormHelperText sx={{ color: 'primary.main' }}>
-                              Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
-                            </FormHelperText>
-                          ) : null}
+                            {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
+                              <FormHelperText
+                                sx={{
+                                  color: 'primary.main',
+                                  width: '100%'
+                                }}
+                              >
+                                Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
+                              </FormHelperText>
+                            ) : null}
+                          </Box>
                         </FormControl>
                       </Grid>
 
                       <Grid
                         item
-                        xs={2.7}
+                        xs={2.6}
                         alignSelf='center'
                         sx={{
                           display: 'flex',
