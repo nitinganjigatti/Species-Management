@@ -132,7 +132,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       field: 'species',
       headerName:
-        status === 'species' ? 'SPECIES' : status === 'site' ? 'SITES' : status === 'nursery' ? 'NUERSERIES' : '',
+        status === 'species' ? 'SPECIES' : status === 'site' ? 'SITES' : status === 'nursery' ? 'NURSERIES' : '',
       renderCell: params => (
         <>
           {status === 'species' ? (
@@ -469,7 +469,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           ref_type: statuss || status,
           q,
           from_date: fDate,
-          til_date: tDate,
+          till_date: tDate,
           ref_id
         }
 
@@ -537,7 +537,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       <>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
           {/* Search Box */}
-          <Box
+          {/* <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -560,6 +560,101 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 }
               }}
             />
+          </Box> */}
+
+          <Box>
+            {status === 'species' && (
+              <FormControl fullWidth>
+                <Autocomplete
+                  name='species'
+                  value={defaultSpecies}
+                  disablePortal
+                  id='species'
+                  placeholder='Species / Taxonomy'
+                  options={taxonomyList?.length > 0 ? taxonomyList : []}
+                  getOptionLabel={option => option.scientific_name}
+                  isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
+                  onChange={(e, val) => {
+                    if (val === null) {
+                      setDefaultSpecies(null)
+                      getspeciesFunc(status, searchValue, fromDate, tillDate, '')
+                    } else {
+                      setDefaultSpecies(val)
+                      getspeciesFunc(status, searchValue, fromDate, tillDate, val?.tsn)
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      sx={textFieldStyles}
+                      onChange={e => searchSpecies(e.target.value)}
+                      {...params}
+                      label='All Species'
+                      placeholder='Search & Select'
+                    />
+                  )}
+                />
+              </FormControl>
+            )}
+            {status === 'site' && (
+              <FormControl fullWidth>
+                <Autocomplete
+                  name='site'
+                  value={defaultSite}
+                  disablePortal
+                  id='site'
+                  options={
+                    authData?.userData?.user?.zoos[0].sites?.length > 0 ? authData?.userData?.user?.zoos[0].sites : []
+                  }
+                  getOptionLabel={option => option.site_name}
+                  isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                  onChange={(e, val) => {
+                    if (val === null) {
+                      setDefaultSite(null)
+                      getspeciesFunc(status, searchValue, fromDate, tillDate, '')
+                    } else {
+                      setDefaultSite(val)
+                      getspeciesFunc(status, searchValue, fromDate, tillDate, val?.site_id)
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField sx={textFieldStyles} {...params} label='All Sites' placeholder='Search & Select' />
+                  )}
+                />
+              </FormControl>
+            )}
+            {status === 'nursery' && (
+              <FormControl fullWidth>
+                <Autocomplete
+                  name='nursery'
+                  value={defaultNursery}
+                  disablePortal
+                  id='nursery'
+                  options={nurseryList?.length > 0 ? nurseryList : []}
+                  getOptionLabel={option => option.nursery_name}
+                  isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                  onChange={(e, val) => {
+                    if (val === null) {
+                      setDefaultNursery(null)
+                      getspeciesFunc(status, searchValue, fromDate, tillDate, '')
+                    } else {
+                      setDefaultNursery(val)
+                      getspeciesFunc(status, searchValue, fromDate, tillDate, val?.nursery_id)
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      sx={textFieldStyles}
+                      onChange={e => {
+                        searchNursery(e.target.value)
+                      }}
+                      {...params}
+                      label='All Nurseries'
+                      placeholder='Search & Select'
+                    />
+                  )}
+                />
+              </FormControl>
+            )}
           </Box>
 
           {/* Date Pickers and Autocomplete */}
@@ -571,6 +666,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 onChange={handleFromDateChange}
                 label={'From Date'}
                 maxDate={dayjs()}
+                format='DD/MM/YYY'
               />
             </LocalizationProvider>
 
@@ -583,103 +679,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 onChange={handleTillDateChange}
                 label={'Till Date'}
                 maxDate={dayjs()}
+                format='DD/MM/YYY'
               />
             </LocalizationProvider>
-
-            <Box>
-              {status === 'species' && (
-                <FormControl fullWidth>
-                  <Autocomplete
-                    name='species'
-                    value={defaultSpecies}
-                    disablePortal
-                    id='species'
-                    placeholder='Species / Taxonomy'
-                    options={taxonomyList?.length > 0 ? taxonomyList : []}
-                    getOptionLabel={option => option.scientific_name}
-                    isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultSpecies(null)
-                        getspeciesFunc(status, searchValue, fromDate, tillDate, '')
-                      } else {
-                        setDefaultSpecies(val)
-                        getspeciesFunc(status, searchValue, fromDate, tillDate, val?.tsn)
-                      }
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        sx={textFieldStyles}
-                        onChange={e => searchSpecies(e.target.value)}
-                        {...params}
-                        label='All Species'
-                        placeholder='Search & Select'
-                      />
-                    )}
-                  />
-                </FormControl>
-              )}
-              {status === 'site' && (
-                <FormControl fullWidth>
-                  <Autocomplete
-                    name='site'
-                    value={defaultSite}
-                    disablePortal
-                    id='site'
-                    options={
-                      authData?.userData?.user?.zoos[0].sites?.length > 0 ? authData?.userData?.user?.zoos[0].sites : []
-                    }
-                    getOptionLabel={option => option.site_name}
-                    isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultSite(null)
-                        getspeciesFunc(status, searchValue, fromDate, tillDate, '')
-                      } else {
-                        setDefaultSite(val)
-                        getspeciesFunc(status, searchValue, fromDate, tillDate, val?.site_id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <TextField sx={textFieldStyles} {...params} label='All Sites' placeholder='Search & Select' />
-                    )}
-                  />
-                </FormControl>
-              )}
-              {status === 'nursery' && (
-                <FormControl fullWidth>
-                  <Autocomplete
-                    name='nursery'
-                    value={defaultNursery}
-                    disablePortal
-                    id='nursery'
-                    options={nurseryList?.length > 0 ? nurseryList : []}
-                    getOptionLabel={option => option.nursery_name}
-                    isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultNursery(null)
-                        getspeciesFunc(status, searchValue, fromDate, tillDate, '')
-                      } else {
-                        setDefaultNursery(val)
-                        getspeciesFunc(status, searchValue, fromDate, tillDate, val?.nursery_id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        sx={textFieldStyles}
-                        onChange={e => {
-                          searchNursery(e.target.value)
-                        }}
-                        {...params}
-                        label='All Nurseries'
-                        placeholder='Search & Select'
-                      />
-                    )}
-                  />
-                </FormControl>
-              )}
-            </Box>
           </Box>
         </Box>
 
@@ -731,7 +733,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const textFieldStyles = {
     backgroundColor: '#fff',
     borderRadius: '8px',
-    width: '176px',
+    width: '200px',
     '& .MuiOutlinedInput-root': {
       height: '40px',
       borderRadius: '4px'

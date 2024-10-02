@@ -39,7 +39,8 @@ const DashboardFilter = ({
   setSelectedOptions,
   setFilterList,
   setShowFilters,
-  setApplyFilters
+  setApplyFilters,
+  filterList
 }) => {
   const theme = useTheme()
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
@@ -50,6 +51,8 @@ const DashboardFilter = ({
   const [taxonomyList, setTaxonomyList] = useState([])
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
+
+  // console.log('filterList :>> ', filterList?.length)
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
@@ -285,7 +288,9 @@ const DashboardFilter = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - </Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
+            Filter {filterList?.length > 0 && -filterList?.length}{' '}
+          </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -352,7 +357,8 @@ const DashboardFilter = ({
                       borderRadius: '4px',
                       padding: '0 8px',
                       height: '40px',
-                      mb: 4
+                      mb: 4,
+                      marginLeft: 3
                     }}
                   >
                     <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />

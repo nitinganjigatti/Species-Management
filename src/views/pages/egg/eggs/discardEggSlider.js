@@ -147,7 +147,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         >
           <Box>
             <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#44544A' }}>
-              Discarded eggs ({listCount})
+              Discarded eggs {listCount && <span>({listCount})</span>}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: '12px' }}>
@@ -168,6 +168,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               }}
               onClick={() => {
                 setSearch('')
+                handleSearch('')
                 setIsSearchOpen(!isSearchOpen)
               }}
             >
@@ -295,7 +296,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const Card = ({ list }) => {
-    console.log('list :>> ', list)
+    // console.log('list :>> ', list)
 
     return (
       <>
@@ -734,6 +735,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setSelectedOptions={setSelectedOptions}
           setFilterList={setFilterList}
           setApplyFilters={setApplyFilters}
+          filterList={filterList}
         />
       )}
     </>
