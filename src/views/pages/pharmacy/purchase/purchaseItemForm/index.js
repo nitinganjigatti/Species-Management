@@ -1043,6 +1043,7 @@ const PurchaseItemForm = props => {
                   }}
                   size='large'
                   variant='outlined'
+                  git
                 >
                   Reset
                 </Button>
