@@ -20,15 +20,12 @@ import { Box, Avatar, Badge, TextField, Breadcrumbs, Tooltip } from '@mui/materi
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import MedicineNamedoctorsList from './doctorsList'
 import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { Title } from 'chart.js'
 
 const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
@@ -57,7 +54,10 @@ const MonthWiseDispatch = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [totalMedicineCount, setTotalmedicineCount] = useState('')
+  const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState(dropdownOptions[0].value)
+  const [isFetching, setisFetching] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
 
   const handlecheckcell = val => {
@@ -71,6 +71,8 @@ const MonthWiseDispatch = () => {
   }
 
   const handleSelectAllChange = event => {
+    console.log(fullStoreList, 'fullStoreList')
+
     if (event.target.checked) {
       setFiltersApplied(false)
       setSelectedStores(fullStoreList.map(fruit => fruit.id))
@@ -81,14 +83,16 @@ const MonthWiseDispatch = () => {
 
   const handleSearchChange = async e => {
     console.log(statusFilter, 'statusFilter')
+    setLoading(true)
     await searchTableDatafilter({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
   }
 
-  const fetchfilterValues = useCallback(async ({ q }) => {
+  const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
     try {
+      setisFetching(true)
       let params = {
-        page: 1,
-        limit: 10,
+        page,
+        limit: 10, // You can also make this dynamic if needed
         q
       }
       const medicineListResponse = await getMedicineList({
@@ -97,15 +101,20 @@ const MonthWiseDispatch = () => {
 
       if (medicineListResponse.data && medicineListResponse.data.list_items) {
         const medicineList = medicineListResponse.data.list_items
-
-        // Step 2: Set the medicine list to fullStoreList
         const allStores = medicineList.map(store => ({
           id: store.id,
           name: store.name
         }))
-        setFullStoreList(allStores)
+        setisFetching(false)
+        // Append new data to existing list
+        setFullStoreList(prevStores => [...prevStores, ...allStores])
+        setTotalmedicineCount(medicineListResponse.data.total_count)
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setisFetching(false) // Ensure loading is set to false after the API call
+    }
   })
 
   const fetchTableData = useCallback(
@@ -117,14 +126,12 @@ const MonthWiseDispatch = () => {
         setLoading(true)
 
         if (!filtersApplied && selectedFruits.length > 0) {
-          alert('ooo')
           setLoading(false)
           return
         }
         console.log(filtersApplied, 'ppppp')
         console.log(selectedFruits.length, 'ppppppp')
         if (filtersApplied && selectedFruits.length > 0) {
-          alert('kkk')
           payload = {
             //sort,
             q,
@@ -135,7 +142,6 @@ const MonthWiseDispatch = () => {
             medicine_ids: selectedFruits
           }
         } else {
-          alert('ppp')
           console.log(statusFilter, 'activeStatus')
           payload = {
             //sort,
@@ -249,15 +255,6 @@ const MonthWiseDispatch = () => {
 
             setRows(rows)
             setTotal(parseInt(res?.data?.total_count))
-
-            // const allStores = listItem.rowData.map(store => ({
-            //   id: store.stock_id,
-            //   name: store.stock_name
-            // }))
-            // if (!filtersApplied) {
-            //   setFullStoreList(allStores)
-            // }
-            // setStoreList(allStores)
           }
         })
         setLoading(false)
@@ -268,6 +265,20 @@ const MonthWiseDispatch = () => {
     },
     [paginationModel, filtersApplied, statusFilter]
   )
+
+  const onApplyFilters = () => {
+    setFiltersApplied(true)
+    setOpenFilterDrawer(false)
+    setFilterLength(selectedFruits.length)
+    setSearchValue('')
+  }
+
+  const handleSearch = async value => {
+    console.log(filtersApplied, 'raghu')
+    setSearchValue(value)
+
+    await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
+  }
 
   const handleStatusFilterChange = newFilter => {
     console.log(newFilter, 'newFilter')
@@ -281,13 +292,6 @@ const MonthWiseDispatch = () => {
     setFiltersApplied(false)
     setFilterLength('')
     setStoreList(fullStoreList) //
-  }
-
-  const onApplyFilters = () => {
-    setFiltersApplied(true)
-    setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
-    setSearchValue('')
   }
 
   const handleFruitSelection = medicine_ids => {
@@ -322,7 +326,7 @@ const MonthWiseDispatch = () => {
         console.error(error)
       }
     }, 1000),
-    [statusFilter]
+    [statusFilter, filtersApplied, statusFilter]
   )
 
   useEffect(() => {
@@ -330,8 +334,15 @@ const MonthWiseDispatch = () => {
   }, [fetchTableData])
 
   useEffect(() => {
-    fetchfilterValues({ q: searchValue })
-  }, [])
+    fetchfilterValues({ q: searchValue, page })
+  }, [searchValue, page])
+
+  // Function to load more data
+  const loadMoreData = () => {
+    if (!isFetching && fullStoreList.length < totalMedicineCount) {
+      setPage(prevPage => prevPage + 1)
+    }
+  }
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -339,11 +350,6 @@ const MonthWiseDispatch = () => {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
-  }
-
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
   }
 
   const handleclick = () => {
@@ -435,46 +441,8 @@ const MonthWiseDispatch = () => {
                       </FormControl>
                     </Grid>
 
-                    {/* <span style={{}}>
-                      <SingleDatePicker
-                        fullWidth
-                        className=''
-                        width={'100%'}
-                        //date={date}
-                        //value={date}
-                        name={'From Date*'}
-                        label='From Date*'
-                        placeholderText={'From Date*'}
-                        size='small'
-                        // onChangeHandler={date => {
-                        //   setDate(date)
-                        // }}
-                        customInput={<CustomInput label='From Date*' auto />}
-                      />
-                    </span>
-                    <span style={{ paddingLeft: '15px' }}>
-                      <SingleDatePicker
-                        fullWidth
-                        className=''
-                        width={'100%'}
-                        //date={date}
-                        // value={date}
-                        name={'To Date*'}
-                        label='To Date*'
-                        placeholderText={'To Date*'}
-                        size='small'
-                        // onChangeHandler={date => {
-                        //   setDate(date)
-                        // }}
-                        customInput={<CustomInput label='To Date*' auto />}
-                      />
-                    </span> */}
-
                     <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
                       <LoadingButton
-                        // disabled={disabled}
-                        // loading={loader}
-                        // onClick={action ? action : null}
                         size='medium'
                         variant='outlined'
                         startIcon={<Icon icon='bi:filter' />}
@@ -569,6 +537,11 @@ const MonthWiseDispatch = () => {
                   loading={loading}
                   filtersApplied={filtersApplied}
                   setSelectedStores={setSelectedStores}
+                  setSearchValue={setSearchValue}
+                  fetchfilterValues={fetchfilterValues}
+                  totalMedicineCount={totalMedicineCount}
+                  loadMoreData={loadMoreData}
+                  isFetching={isFetching}
                 />
               )}
               {openDoctorListDrawer && (
