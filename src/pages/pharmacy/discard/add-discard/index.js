@@ -477,38 +477,38 @@ const AddDiscardProducts = () => {
     const postData = editParams
     // postData.total_qty = totalQty
 
-    if (id) {
-      try {
-        const response = await updateDirectDispatchItems(id, postData)
+    // if (id) {
+    //   try {
+    //     const response = await updateDirectDispatchItems(id, postData)
 
-        if (response?.success) {
-          toast.success(response?.msg)
-          setSubmitLoader(false)
-          getListOfItemsById(id)
-          Router.push(`/pharmacy/discard/discard-list`)
-        } else {
-          setSubmitLoader(false)
-          toast.error(response?.msg)
-        }
-      } catch (error) {
-        console.log('error', error)
+    //     if (response?.success) {
+    //       toast.success(response?.msg)
+    //       setSubmitLoader(false)
+    //       getListOfItemsById(id)
+    //       Router.push(`/pharmacy/discard/discard-list`)
+    //     } else {
+    //       setSubmitLoader(false)
+    //       toast.error(response?.msg)
+    //     }
+    //   } catch (error) {
+    //     console.log('error', error)
+    //   }
+    // } else {
+    try {
+      const response = await addDiscard(editParams)
+      if (response?.success) {
+        toast.success(response?.msg)
+        setEditParams(editParamsInitialState)
+        setSubmitLoader(false)
+        Router.push(`/pharmacy/discard/discard-list`)
+      } else {
+        setSubmitLoader(false)
+        toast.error(response?.message)
       }
-    } else {
-      try {
-        const response = await addDiscard(editParams)
-        if (response?.success) {
-          toast.success(response?.msg)
-          setEditParams(editParamsInitialState)
-          setSubmitLoader(false)
-          Router.push(`/pharmacy/discard/discard-list`)
-        } else {
-          setSubmitLoader(false)
-          toast.error(response?.message)
-        }
-      } catch (error) {
-        console.log('error', error)
-      }
+    } catch (error) {
+      console.log('error', error)
     }
+    // }
   }
 
   return (
@@ -763,28 +763,30 @@ const AddDiscardProducts = () => {
           </CardContent>
           <Grid item xs={12}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
-              <LoadingButton
-                disabled={editParams?.items?.length < 0 || id ? true : false}
-                sx={{ marginRight: '8px' }}
-                size='large'
-                onClick={() => {
-                  postItemsData()
-                }}
-                variant='contained'
-                loading={submitLoader}
-              >
-                Save
-              </LoadingButton>
               {id ? null : (
-                <Button
-                  onClick={() => {
-                    setEditParams(editParamsInitialState)
-                  }}
-                  size='large'
-                  variant='outlined'
-                >
-                  Reset
-                </Button>
+                <>
+                  <LoadingButton
+                    disabled={editParams?.items?.length > 0 ? false : true}
+                    sx={{ marginRight: '8px' }}
+                    size='large'
+                    onClick={() => {
+                      postItemsData()
+                    }}
+                    variant='contained'
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
+                  <Button
+                    onClick={() => {
+                      setEditParams(editParamsInitialState)
+                    }}
+                    size='large'
+                    variant='outlined'
+                  >
+                    Reset
+                  </Button>
+                </>
               )}
             </Box>
           </Grid>
