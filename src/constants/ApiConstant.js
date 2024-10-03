@@ -255,3 +255,5 @@ export const GET_COLLECTED_BY = 'get-collected-by-list'
 export const DASHBOARD_DISCARD = '/discarded/list'
 
 export const DASHBOARD_BATCH = 'discard/filtered-list'
+
+export const SPECIES_LIST = 'species-list-egg-wise'
