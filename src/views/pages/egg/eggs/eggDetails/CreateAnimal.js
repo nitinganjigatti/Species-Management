@@ -350,11 +350,12 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
       const hatchedDate = dayjs(eggDetails.hatched_date)
       setValue('birthDate', hatchedDate)
     }
-    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.father_list.length === 1) {
       if (
         eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
       ) {
         setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+        setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
 
@@ -416,33 +417,16 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
               <Box mb={35}>
                 <Card fullWidth sx={{ py: '20px', px: '16px' }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    {/* <InputLabel id='species'>Species / Taxonomy</InputLabel> */}
                     <Controller
                       name='species'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
-                        //   <Select
-                        //     name='species'
-                        //     value={value}
-                        //     label='Add Species'
-                        //     onChange={onChange}
-                        //     labelId='species'
-                        //     error={Boolean(errors?.species)}
-                        //   >
-                        //     {taxonomyList?.map(val => (
-                        //       <MenuItem key={val?.taxonomy_id} value={val?.taxonomy_id}>
-                        //         {val?.scientific_name}
-                        //       </MenuItem>
-                        //     ))}
-                        //   </Select>
                         <Autocomplete
                           name='species'
                           value={defaultSpecies}
-                          // value={value}
                           disablePortal
                           placeholder='Species / Taxonomy'
-                          // disabled={isEdit || isPreFilled}
                           id='species'
                           options={taxonomyList?.length > 0 ? taxonomyList : []}
                           getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}

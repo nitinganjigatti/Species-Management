@@ -727,11 +727,12 @@ const ConditionSlider = ({
     const currentDate = dayjs()
     setValue('accessionDate', currentDate)
     setValue('birthDate', currentDate)
-    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.father_list.length === 1) {
       if (
         eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
       ) {
         setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+        setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
     // eggDetails?.enclosure_data
