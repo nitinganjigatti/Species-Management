@@ -457,7 +457,7 @@ const StepBasicDetails = ({
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
       console.log(lastOverlapIndex, 'lastOverlapIndex')
       if (lastOverlapIndex !== -1) {
-        toast.error(`Meal ${lastOverlapIndex + 1} time overlaps with another meal.`)
+        toast.error(`Meal ${lastOverlapIndex + 1} Start time cannot be later than end time.`)
 
         return
       } else {
@@ -486,22 +486,22 @@ const StepBasicDetails = ({
         return
       }
 
-      // Check for overlap with other meals
-      for (let i = 0; i < mealData.length; i++) {
-        if (i !== index) {
-          const currentFromTime = new Date(mealData[i].meal_from_time).getTime()
-          const currentToTime = new Date(mealData[i].meal_to_time).getTime()
+      //Check for overlap with other meals
+      // for (let i = 0; i < mealData.length; i++) {
+      //   if (i !== index) {
+      //     const currentFromTime = new Date(mealData[i].meal_from_time).getTime()
+      //     const currentToTime = new Date(mealData[i].meal_to_time).getTime()
 
-          // Check for overlap
-          if (
-            (fromTime >= currentFromTime && fromTime < currentToTime) ||
-            (toTime > currentFromTime && toTime <= currentToTime)
-          ) {
-            lastOverlapIndex = index
-            break
-          }
-        }
-      }
+      //     // Check for overlap
+      //     if (
+      //       (fromTime >= currentFromTime && fromTime < currentToTime) ||
+      //       (toTime > currentFromTime && toTime <= currentToTime)
+      //     ) {
+      //       lastOverlapIndex = index
+      //       break
+      //     }
+      //   }
+      // }
     })
 
     return lastOverlapIndex
