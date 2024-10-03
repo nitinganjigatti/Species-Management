@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import { getMonthWisePurchaseList } from 'src/lib/api/pharmacy/getAllReports'
-import Button from '@mui/material/Button'
+import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@mui/material/styles'
 
@@ -55,7 +55,10 @@ const MonthWisePurchase = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
+  const [totalMedicineCount, setTotalmedicineCount] = useState('')
+  const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState(dropdownOptions[0].value)
+  const [isFetching, setisFetching] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
 
   const handlecheckcell = val => {
@@ -79,8 +82,39 @@ const MonthWisePurchase = () => {
 
   const handleSearchChange = async e => {
     console.log(statusFilter, 'statusFilter')
-    await searchTableData({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
+    setLoading(true)
+    await searchTableDatafilter({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
   }
+
+  const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
+    try {
+      setisFetching(true)
+      let params = {
+        page,
+        limit: 10, // You can also make this dynamic if needed
+        q
+      }
+      const medicineListResponse = await getMedicineList({
+        params
+      })
+
+      if (medicineListResponse.data && medicineListResponse.data.list_items) {
+        const medicineList = medicineListResponse.data.list_items
+        const allStores = medicineList.map(store => ({
+          id: store.id,
+          name: store.name
+        }))
+        setisFetching(false)
+        // Append new data to existing list
+        setFullStoreList(prevStores => [...prevStores, ...allStores])
+        setTotalmedicineCount(medicineListResponse.data.total_count)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setisFetching(false) // Ensure loading is set to false after the API call
+    }
+  })
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
@@ -218,15 +252,6 @@ const MonthWisePurchase = () => {
 
             setRows(rows)
             setTotal(parseInt(res?.data?.total_count))
-
-            const allStores = listItem.rowData.map(store => ({
-              id: store.stock_item_id,
-              name: store.stock_name
-            }))
-            if (!filtersApplied) {
-              setFullStoreList(allStores)
-            }
-            setStoreList(allStores)
           }
         })
         setLoading(false)
@@ -237,6 +262,18 @@ const MonthWisePurchase = () => {
     },
     [paginationModel, filtersApplied, statusFilter]
   )
+
+  const onApplyFilters = () => {
+    setFiltersApplied(true)
+    setOpenFilterDrawer(false)
+    setFilterLength(selectedFruits.length)
+    setSearchValue('')
+  }
+
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
+  }
 
   const handleStatusFilterChange = newFilter => {
     console.log(newFilter, 'newFilter')
@@ -252,13 +289,6 @@ const MonthWisePurchase = () => {
     setStoreList(fullStoreList) //
   }
 
-  const onApplyFilters = () => {
-    setFiltersApplied(true)
-    setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
-    setSearchValue('')
-  }
-
   const handleFruitSelection = medicine_ids => {
     setFiltersApplied(false)
     setSelectedStores(prevSelectedFruits => {
@@ -270,6 +300,18 @@ const MonthWisePurchase = () => {
     })
   }
 
+  const searchTableDatafilter = useCallback(
+    debounce(async ({ q }) => {
+      setSearchValue(q)
+      try {
+        await fetchfilterValues({ q })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [statusFilter]
+  )
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -279,12 +321,23 @@ const MonthWisePurchase = () => {
         console.error(error)
       }
     }, 1000),
-    [statusFilter]
+    [statusFilter, filtersApplied, statusFilter]
   )
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, filter: statusFilter })
   }, [fetchTableData])
+
+  useEffect(() => {
+    fetchfilterValues({ q: searchValue, page })
+  }, [searchValue, page])
+
+  // Function to load more data
+  const loadMoreData = () => {
+    if (!isFetching && fullStoreList.length < totalMedicineCount) {
+      setPage(prevPage => prevPage + 1)
+    }
+  }
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -292,17 +345,6 @@ const MonthWisePurchase = () => {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
-  }
-
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
-  }
-
-  const handleclick = () => {
-    Router.push({
-      pathname: '/pharmacy/reports/store-wise-dispatch'
-    })
   }
 
   const headerAction = (
@@ -438,75 +480,74 @@ const MonthWisePurchase = () => {
                     </Grid>
                   </Grid>
                 )}
-                <span>
-                  <DataGrid
-                    sx={{
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
 
-                      '& .MuiDataGrid-columnHeaders': {
-                        backgroundColor: theme.palette.customColors.customTableHeaderBg
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      },
-                      '.MuiDataGrid-main': {
-                        margin: '0px 20px 20px 20px',
-                        borderLeft: '1px solid #0000000D',
-                        borderRight: '1px solid #0000000D',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(233, 233, 236, 1)'
-                      },
-                      '& .MuiDataGrid-footerContainer': {
-                        borderTop: 'none'
-                      },
+                <DataGrid
+                  sx={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
 
-                      '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                        borderBottom: 'none'
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    },
+                    '.MuiDataGrid-main': {
+                      margin: '0px 20px 20px 20px',
+                      borderLeft: '1px solid #0000000D',
+                      borderRight: '1px solid #0000000D',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(233, 233, 236, 1)'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      borderTop: 'none'
+                    },
+
+                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                      borderBottom: 'none'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    id: false
+                  }}
+                  className=''
+                  autoHeight
+                  pagination
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  rows={rows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  columnHeaderHeight={100}
+                  disableColumnMenu
+                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+
+                      onChange: event => {
+                        setSearchValue(event.target.value)
+
+                        return handleSearch(event.target.value)
                       }
-                    }}
-                    columnVisibilityModel={{
-                      id: false
-                    }}
-                    className=''
-                    autoHeight
-                    pagination
-                    hideFooterSelectedRowCount
-                    disableColumnSelector={true}
-                    rows={rows}
-                    rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    columnHeaderHeight={100}
-                    disableColumnMenu
-                    hideFooter={router.asPath.includes('newdashboard') ? true : false}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-
-                        onChange: event => {
-                          setSearchValue(event.target.value)
-
-                          return handleSearch(event.target.value)
-                        }
-                      }
-                    }}
-                    //onRowClick={handleEdit}
-                    onCellClick={handlecheckcell}
-                  />
-                </span>
+                    }
+                  }}
+                  //onRowClick={handleEdit}
+                  onCellClick={handlecheckcell}
+                />
               </Card>
               {openFilterDrawer && (
                 <MonthWisepurchaseFilter
@@ -518,12 +559,16 @@ const MonthWisePurchase = () => {
                   storeList={storeList}
                   onApplyFilters={onApplyFilters}
                   handleCloseDrawer={handleCloseDrawer}
-                  setFiltersApplied={setFiltersApplied}
                   handleSearchChange={handleSearchChange}
                   fullStoreList={fullStoreList}
                   loading={loading}
                   filtersApplied={filtersApplied}
                   setSelectedStores={setSelectedStores}
+                  setSearchValue={setSearchValue}
+                  fetchfilterValues={fetchfilterValues}
+                  totalMedicineCount={totalMedicineCount}
+                  loadMoreData={loadMoreData}
+                  isFetching={isFetching}
                 />
               )}
               {openDoctorListDrawer && (

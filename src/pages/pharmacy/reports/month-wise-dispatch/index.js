@@ -335,7 +335,7 @@ const MonthWiseDispatch = () => {
 
   useEffect(() => {
     fetchfilterValues({ q: searchValue, page })
-  }, [searchValue, page])
+  }, [searchValue, page, filtersApplied])
 
   // Function to load more data
   const loadMoreData = () => {
@@ -350,12 +350,6 @@ const MonthWiseDispatch = () => {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
-  }
-
-  const handleclick = () => {
-    Router.push({
-      pathname: '/pharmacy/reports/store-wise-dispatch'
-    })
   }
 
   const headerAction = (
@@ -531,7 +525,6 @@ const MonthWiseDispatch = () => {
                   storeList={storeList}
                   onApplyFilters={onApplyFilters}
                   handleCloseDrawer={handleCloseDrawer}
-                  setFiltersApplied={setFiltersApplied}
                   handleSearchChange={handleSearchChange}
                   fullStoreList={fullStoreList}
                   loading={loading}

@@ -1,18 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import CircularProgress from '@mui/material/CircularProgress'
 import { LoadingButton } from '@mui/lab'
-import {
-  Box,
-  Checkbox,
-  debounce,
-  Divider,
-  Drawer,
-  FormControl,
-  Grid,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
 
@@ -29,7 +18,6 @@ const MonthWisedispatchFilter = ({
   handleCloseDrawer,
   loading,
   setSearchValue,
-  setFiltersApplied,
   filtersApplied,
   setSelectedStores,
   loadMoreData,
