@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box } from '@mui/system'
-import { Autocomplete, Avatar, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
+import { Autocomplete, Avatar, Fade, FormControl, Tab, TextField, Tooltip, Typography } from '@mui/material'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
@@ -104,184 +104,156 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     await getspeciesFunc(status, q, fDate, tDate, ref_id)
   }, 1000)
 
-  const columns = [
-    {
-      width: 60,
-      field: 'uid',
-      headerName: 'NO',
-      disableColumnMenu: true,
-      sortable: false,
-      align: 'center',
-      renderCell: params => (
-        <Typography
+  const CustomTooltip = ({ title, children, placement = 'bottom' }) => (
+    <Tooltip
+      TransitionComponent={Fade}
+      title={
+        <Box
           sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: '400',
-            lineHeight: '14.52px'
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            paddingX: '12px',
+            paddingY: '8px',
+            borderRadius: '4px'
           }}
         >
-          {params.row.sl_no}
-        </Typography>
-      )
-    },
+          {title.map((item, index) => (
+            <Typography
+              key={index}
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '12px',
+                fontWeight: '400',
+                lineHeight: '14.52px'
+              }}
+            >
+              {item.label}{' '}
+              <span
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  lineHeight: '14.52px'
+                }}
+              >
+                {item.value || '-'}
+              </span>
+            </Typography>
+          ))}
+        </Box>
+      }
+      arrow
+      placement={placement}
+      componentsProps={{
+        tooltip: {
+          sx: {
+            border: '0.1px solid #C3CEC7',
+            bgcolor: '#EFF5F2',
+            color: 'rgba(0, 0, 0, 0.87)',
+            boxShadow: 1
+          }
+        },
+        arrow: {
+          sx: {
+            color: '#eff5f2'
+          }
+        }
+      }}
+    >
+      {children}
+    </Tooltip>
+  )
+
+  const columnSpecies = [
+    // {
+    //   width: 60,
+    //   field: 'uid',
+    //   headerName: 'NO',
+    //   disableColumnMenu: true,
+    //   sortable: false,
+    //   align: 'center',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '12px',
+    //         fontWeight: '400',
+    //         lineHeight: '14.52px'
+    //       }}
+    //     >
+    //       {params.row.sl_no}
+    //     </Typography>
+    //   )
+    // },
 
     {
       width: 320,
       sortable: false,
       disableColumnMenu: true,
       field: 'species',
-      headerName:
-        status === 'species' ? 'SPECIES' : status === 'site' ? 'SITES' : status === 'nursery' ? 'NURSERIES' : '',
+      headerName: 'SPECIES',
       renderCell: params => (
-        <>
-          {status === 'species' ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              <Avatar
-                variant='rounded'
-                alt='Medicine Image'
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+          <Avatar
+            variant='rounded'
+            alt='Medicine Image'
+            sx={{
+              width: 35,
+              height: 35,
+              mr: 4,
+              borderRadius: '50%',
+              background: '#E8F4F2',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.default_icon ? (
+              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <Tooltip title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}>
+              <Typography
                 sx={{
-                  width: 35,
-                  height: 35,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
+                  color: theme.palette.primary.light,
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: '240px',
+                  boxSizing: 'border-box'
                 }}
               >
-                {params.row.default_icon ? (
-                  <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-                ) : (
-                  <Icon icon='mdi:user' />
-                )}
-              </Avatar>
-
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <Tooltip
-                  title={params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-                >
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      width: '240px',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
-                  </Typography>
-                </Tooltip>
-                <Tooltip
-                  title={
-                    params.row?.default_common_name
-                      ? Utility?.toPascalSentenceCase(params.row.default_common_name)
-                      : '-'
-                  }
-                >
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      lineHeight: '16.94px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      width: '240px'
-                    }}
-                  >
-                    {params.row?.default_common_name
-                      ? Utility?.toPascalSentenceCase(params.row.default_common_name)
-                      : '-'}
-                  </Typography>
-                </Tooltip>
-              </Box>
-            </Box>
-          ) : status === 'site' ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              <Avatar
-                variant='rounded'
-                alt='Medicine Image'
+                {params.row.complete_name ? Utility?.toPascalSentenceCase(params.row.complete_name) : '-'}
+              </Typography>
+            </Tooltip>
+            <Tooltip
+              title={
+                params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'
+              }
+            >
+              <Typography
                 sx={{
-                  width: 35,
-                  height: 35,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
+                  color: theme.palette.primary.light,
+                  fontSize: '14px',
+                  fontWeight: '400',
+                  lineHeight: '16.94px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: '240px'
                 }}
               >
-                {params.row.default_icon ? (
-                  <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-                ) : (
-                  <Icon icon='mdi:user' />
-                )}
-              </Avatar>
-
-              <Tooltip title={params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.light,
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    lineHeight: '19.36px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '240px',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  {params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}
-                </Typography>
-              </Tooltip>
-            </Box>
-          ) : status === 'nursery' ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              <Avatar
-                variant='rounded'
-                alt='Medicine Image'
-                sx={{
-                  width: 35,
-                  height: 35,
-                  mr: 4,
-                  borderRadius: '50%',
-                  background: '#E8F4F2',
-                  overflow: 'hidden'
-                }}
-              >
-                {params.row.default_icon ? (
-                  <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
-                ) : (
-                  <Icon icon='mdi:user' />
-                )}
-              </Avatar>
-
-              <Tooltip title={params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.light,
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    lineHeight: '19.36px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: '240px',
-                    boxSizing: 'border-box'
-                  }}
-                >
-                  {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}
-                </Typography>
-              </Tooltip>
-            </Box>
-          ) : null}
-        </>
+                {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
+              </Typography>
+            </Tooltip>
+          </Box>
+        </Box>
       )
     },
     {
@@ -297,27 +269,23 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
-
-            // transition: 'background-color 0.5s ease',
-
             alignContent: 'center',
-
             '&:hover': {
               backgroundColor: '#0000000D'
             }
           }}
         >
           <Typography
-            onClick={e => {
-              e.stopPropagation()
-              getdrawerspeciesFunc(
-                status === 'site' ? params.row.site_id : status === 'nursery' ? params.row.nursery_id : ''
-              )
-              setDrawerHeading(
-                status === 'site' ? params.row.site_name : status === 'nursery' ? params.row.nursery_name : ''
-              )
-              status != 'species' && setOpenDrawer(true)
-            }}
+            // onClick={e => {
+            //   e.stopPropagation()
+            //   getdrawerspeciesFunc(
+            //     status === 'site' ? params.row.site_id : status === 'nursery' ? params.row.nursery_id : ''
+            //   )
+            //   setDrawerHeading(
+            //     status === 'site' ? params.row.site_name : status === 'nursery' ? params.row.nursery_name : ''
+            //   )
+            //   status != 'species' && setOpenDrawer(true)
+            // }}
             style={{
               width: '80%',
               cursor: status === 'species' && 'auto',
@@ -345,11 +313,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
-
-            // transition: 'background-color 0.5s ease',
-
             alignContent: 'center',
-
             '&:hover': {
               backgroundColor: '#0000000D'
             }
@@ -369,6 +333,46 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     },
     {
+      width: 160,
+      field: 'eggs_to_nursery',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'EGGS TO NURSERY',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'In transit:', value: params.row.in_transit },
+              { label: 'Marked for transfer:', value: params.row.marked_for_transfer }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.eggs_to_nursery ? params.row.eggs_to_nursery : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    },
+    {
       width: 120,
       field: 'total_eggs_in_nursery',
       sortable: false,
@@ -381,26 +385,31 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
-
-            // transition: 'background-color 0.5s ease',
-
             alignContent: 'center',
-
             '&:hover': {
               backgroundColor: '#37BD691A'
             }
           }}
         >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
+          <CustomTooltip
+            title={[
+              { label: 'Nursery A:', value: params.row.nursery_a },
+              { label: 'Nursery B:', value: params.row.nursery_b }
+            ]}
           >
-            {params.row.total_eggs_in_nursery ? params.row.total_eggs_in_nursery : '-'}
-          </Typography>
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.in_transit && params.row.marked_for_transfer
+                ? Number(params.row.in_transit) + Number(params.row.marked_for_transfer)
+                : '-'}
+            </Typography>
+          </CustomTooltip>
         </Box>
       )
     },
@@ -417,11 +426,174 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
-
-            // transition: 'background-color 0.5s ease',
-
             alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {Math.round(
+              Number(params.row.total_hatched_eggs) > 0 && Number(params.row.discarded) >= 0
+                ? (Number(params.row.total_hatched_eggs) /
+                    (Number(params.row.total_hatched_eggs) + Number(params.row.discarded))) *
+                    100
+                : 0 // Fallback to 0 if values are not valid numbers
+            )}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 120,
+      field: 'total_discard',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'Ready to discard:', value: params.row.ready_to_discard },
+              { label: 'Discarded:', value: params.row.discarded }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.total_discard ? params.row.total_discard : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    }
+  ]
 
+  const columnSites = [
+    {
+      width: 320,
+      sortable: false,
+      disableColumnMenu: true,
+      field: 'species',
+      headerName: 'SITES',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+          <Avatar
+            variant='rounded'
+            alt='Medicine Image'
+            sx={{
+              width: 35,
+              height: 35,
+              mr: 4,
+              borderRadius: '50%',
+              background: '#E8F4F2',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.default_icon ? (
+              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+
+          <Tooltip title={params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}>
+            <Typography
+              sx={{
+                color: theme.palette.primary.light,
+                fontSize: '16px',
+                fontWeight: '500',
+                lineHeight: '19.36px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                width: '240px',
+                boxSizing: 'border-box'
+              }}
+            >
+              {params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}
+            </Typography>
+          </Tooltip>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'total_eggs',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL EGGS',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#0000000D'
+            }
+          }}
+        >
+          <Typography
+            onClick={e => {
+              e.stopPropagation()
+              getdrawerspeciesFunc(params.row.site_id)
+              setDrawerHeading(params.row.site_name)
+              status != 'species' && setOpenDrawer(true)
+            }}
+            style={{
+              width: '80%',
+              cursor: status === 'species' && 'auto',
+              color: theme.palette.primary.dark,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_eggs ? params.row.total_eggs : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'total_egg_in_nest',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'IN NEST',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
             '&:hover': {
               backgroundColor: '#0000000D'
             }
@@ -435,36 +607,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.hatched_percentage ? params.row.hatched_percentage : '-'}%
+            {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'}
           </Typography>
         </Box>
       )
     },
     {
-      width: 120,
-      field: 'transfer',
+      width: 160,
+      field: 'eggs_to_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'TRANSFER',
-      renderCell: params => (
-        <Typography
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '600',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.total_egg_in_transit ? params.row.total_egg_in_transit : '-'}
-        </Typography>
-      )
-    },
-    {
-      width: 120,
-      field: 'total_discarded_eggs',
-      sortable: false,
-      disableColumnMenu: true,
-      headerName: 'DISCARDED',
+      headerName: 'EGGS TO NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -472,13 +625,49 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
-
-            // transition: 'background-color 0.5s ease',
-
             alignContent: 'center',
-
             '&:hover': {
-              backgroundColor: '#FA61401A'
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'In transit:', value: params.row.in_transit },
+              { label: 'Marked for transfer:', value: params.row.marked_for_transfer },
+              { label: 'Transferred:', value: params.row.transferred }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.eggs_to_nursery ? params.row.eggs_to_nursery : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'hatched_percentage',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'HATCHED %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
             }
           }}
         >
@@ -490,8 +679,255 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.total_discarded_eggs ? params.row.total_discarded_eggs : '-'}
+            {Math.round(
+              Number(params.row.total_hatched_eggs) > 0 && Number(params.row.discarded) >= 0
+                ? (Number(params.row.total_hatched_eggs) /
+                    (Number(params.row.total_hatched_eggs) + Number(params.row.discarded))) *
+                    100
+                : 0 // Fallback to 0 if values are not valid numbers
+            )}
           </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 140,
+      field: 'discarded',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'Ready to discard:', value: params.row.ready_to_discard },
+              { label: 'Discarded:', value: params.row.discarded }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.discarded ? params.row.discarded : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    }
+  ]
+
+  const columnNurseries = [
+    {
+      width: 340,
+      sortable: false,
+      disableColumnMenu: true,
+      field: 'nursery',
+      headerName: 'NURSERIES',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+          <Avatar
+            variant='rounded'
+            alt='Medicine Image'
+            sx={{
+              width: 35,
+              height: 35,
+              mr: 4,
+              borderRadius: '50%',
+              background: '#E8F4F2',
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.default_icon ? (
+              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+
+          <Tooltip title={params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
+            <Typography
+              sx={{
+                color: theme.palette.primary.light,
+                fontSize: '16px',
+                fontWeight: '500',
+                lineHeight: '19.36px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                width: '240px',
+                boxSizing: 'border-box'
+              }}
+            >
+              {params.row.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}
+            </Typography>
+          </Tooltip>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'total_eggs',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL EGGS',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#0000000D'
+            }
+          }}
+        >
+          <Typography
+            onClick={e => {
+              e.stopPropagation()
+              getdrawerspeciesFunc(params.row.nursery_id)
+              setDrawerHeading(params.row.nursery_name)
+              status != 'species' && setOpenDrawer(true)
+            }}
+            style={{
+              width: '80%',
+              cursor: status === 'species' && 'auto',
+              color: theme.palette.primary.dark,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_eggs ? params.row.total_eggs : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 180,
+      field: 'incubation_count',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'INCUBATION',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#0000000D'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.incubation_count ? params.row.incubation_count : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'hatched_percentage',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'HATCHED %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {Math.round(
+              Number(params.row.total_hatched_eggs) > 0 && Number(params.row.discarded) >= 0
+                ? (Number(params.row.total_hatched_eggs) /
+                    (Number(params.row.total_hatched_eggs) + Number(params.row.discarded))) *
+                    100
+                : 0 // Fallback to 0 if values are not valid numbers
+            )}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 180,
+      field: 'discarded',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'Ready to discard:', value: params.row.ready_to_discard },
+              { label: 'Discarded:', value: params.row.discarded }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.discarded ? params.row.discarded : '-'}
+            </Typography>
+          </CustomTooltip>
         </Box>
       )
     }
@@ -743,7 +1179,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           </Box>
 
           {/* Date Pickers and Autocomplete */}
-          <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {/* <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 sx={datePickerStyles}
@@ -767,7 +1203,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 format='DD/MM/YYY'
               />
             </LocalizationProvider>
-          </Box>
+          </Box> */}
         </Box>
 
         {/* DataGrid */}
@@ -781,7 +1217,15 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           rows={indexedRows || []}
           rowCount={total}
           rowHeight={68}
-          columns={columns}
+          columns={
+            status === 'species'
+              ? columnSpecies
+              : status === 'site'
+              ? columnSites
+              : status === 'nursery'
+              ? columnNurseries
+              : columnSpecies
+          }
           sortingMode='server'
           paginationMode='server'
           pageSizeOptions={[7, 10, 25, 50]}
@@ -829,7 +1273,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const dataGridStyles = {
     '.MuiDataGrid-cell:focus': { outline: 'none' },
-    '& .MuiDataGrid-row:hover': { cursor: 'pointer' },
+    '& .MuiDataGrid-row:hover': { cursor: 'pointer', backgroundColor: 'transparent' },
     '& .MuiDataGrid-row:hover .customButton': { display: 'block' },
     '& .MuiDataGrid-row:hover .hideField': { display: 'none' },
     '& .MuiDataGrid-row .customButton': { display: 'none' },
