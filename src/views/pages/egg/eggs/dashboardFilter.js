@@ -20,7 +20,7 @@ import Icon from 'src/@core/components/icon'
 import { GetEggMaster } from 'src/lib/api/egg/egg'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
-import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
+import { getSpecieList, getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
 
 const leftMenu = [
@@ -49,6 +49,7 @@ const DashboardFilter = ({
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
+  console.log('taxonomyList :>> ', taxonomyList)
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
 
@@ -97,9 +98,11 @@ const DashboardFilter = ({
 
   const getTaxonomyListFunc = async q => {
     try {
-      getTaxonomyList(q).then(res => {
-        if (res.success) {
-          setTaxonomyList(res?.data)
+      getSpecieList(q).then(res => {
+        // console.log('res :>> ', res.result.length > 0)
+        if (res.result.length > 0) {
+          console.log('res :>> ', res)
+          setTaxonomyList(res?.result)
         }
       })
     } catch (error) {}

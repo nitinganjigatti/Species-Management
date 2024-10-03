@@ -198,6 +198,7 @@ const EggTableHeader = ({
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
           setFilterList={setFilterList}
+          filterLi={filterList}
           setSelectedFiltersOptions={setSelectedFiltersOptions}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
