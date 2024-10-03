@@ -1007,8 +1007,8 @@ const EggList = () => {
 
       // minWidth: 60,
       sortable: false,
-      field: 'egg_number',
-      headerName: 'EGG NUMBER',
+      field: 'species',
+      headerName: 'SPECIES',
       renderCell: params => (
         <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <SpeciesImageCard
