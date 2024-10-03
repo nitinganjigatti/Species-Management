@@ -22,6 +22,14 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
 
             '& .MuiDataGrid-row:hover': {
               cursor: 'pointer'
+            },
+            '& .MuiDataGrid-main': {
+              // margin: '16px', // Apply margin to the main container
+              borderRadius: '8px', // Apply border-radius to the main container
+              border: '1px solid rgba(233, 233, 236, 1)' // Apply border to the main container
+            },
+            '& .MuiDataGrid-footerContainer': {
+              borderTop: 'none' // Remove the border-top from footer container
             }
           }}
           columnVisibilityModel={{
