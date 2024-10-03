@@ -254,6 +254,25 @@ const IngredientsList = () => {
       )
     },
     {
+      flex: 0.5,
+      minWidth: 30,
+      field: 'ingredient_alias',
+      headerName: 'Ingredient alias',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500', pl: 3 }}
+            >
+              {params.row.ingredient_alias ? params.row.ingredient_alias : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
       flex: 0.3,
       minWidth: 10,
       field: 'id',
