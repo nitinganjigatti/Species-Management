@@ -291,28 +291,45 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
-        <Typography
-          onClick={e => {
-            e.stopPropagation()
-            getdrawerspeciesFunc(
-              status === 'site' ? params.row.site_id : status === 'nursery' ? params.row.nursery_id : ''
-            )
-            setDrawerHeading(
-              status === 'site' ? params.row.site_name : status === 'nursery' ? params.row.nursery_name : ''
-            )
-            status != 'species' && setOpenDrawer(true)
-          }}
-          style={{
-            width: '80%',
-            cursor: status === 'species' && 'auto',
-            color: theme.palette.primary.dark,
-            fontSize: '16px',
-            fontWeight: '600',
-            lineHeight: '19.36px'
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            // transition: 'background-color 0.5s ease',
+
+            alignContent: 'center',
+
+            '&:hover': {
+              backgroundColor: '#0000000D'
+            }
           }}
         >
-          {params.row.total_eggs ? params.row.total_eggs : '-'}
-        </Typography>
+          <Typography
+            onClick={e => {
+              e.stopPropagation()
+              getdrawerspeciesFunc(
+                status === 'site' ? params.row.site_id : status === 'nursery' ? params.row.nursery_id : ''
+              )
+              setDrawerHeading(
+                status === 'site' ? params.row.site_name : status === 'nursery' ? params.row.nursery_name : ''
+              )
+              status != 'species' && setOpenDrawer(true)
+            }}
+            style={{
+              width: '80%',
+              cursor: status === 'species' && 'auto',
+              color: theme.palette.primary.dark,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_eggs ? params.row.total_eggs : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -322,16 +339,33 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       headerName: 'IN NEST',
       renderCell: params => (
-        <Typography
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '600',
-            lineHeight: '19.36px'
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            // transition: 'background-color 0.5s ease',
+
+            alignContent: 'center',
+
+            '&:hover': {
+              backgroundColor: '#0000000D'
+            }
           }}
         >
-          {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'}
-        </Typography>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -341,16 +375,33 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       headerName: 'IN NURSERY',
       renderCell: params => (
-        <Typography
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '600',
-            lineHeight: '19.36px'
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            // transition: 'background-color 0.5s ease',
+
+            alignContent: 'center',
+
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
           }}
         >
-          {params.row.total_eggs_in_nursery ? params.row.total_eggs_in_nursery : '-'}
-        </Typography>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_eggs_in_nursery ? params.row.total_eggs_in_nursery : '-'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -360,16 +411,33 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       headerName: 'HATCHED %',
       renderCell: params => (
-        <Typography
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '600',
-            lineHeight: '19.36px'
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            // transition: 'background-color 0.5s ease',
+
+            alignContent: 'center',
+
+            '&:hover': {
+              backgroundColor: '#0000000D'
+            }
           }}
         >
-          {params.row.hatched_percentage ? params.row.hatched_percentage : '-'}%
-        </Typography>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_percentage ? params.row.hatched_percentage : '-'}%
+          </Typography>
+        </Box>
       )
     },
     {
@@ -398,16 +466,33 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       disableColumnMenu: true,
       headerName: 'DISCARDED',
       renderCell: params => (
-        <Typography
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '600',
-            lineHeight: '19.36px'
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            // transition: 'background-color 0.5s ease',
+
+            alignContent: 'center',
+
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
           }}
         >
-          {params.row.total_discarded_eggs ? params.row.total_discarded_eggs : '-'}
-        </Typography>
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_discarded_eggs ? params.row.total_discarded_eggs : '-'}
+          </Typography>
+        </Box>
       )
     }
   ]
