@@ -63,6 +63,10 @@ const DashboardFilter = ({
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
+    setSearchQuery('')
+    searchData('')
+
+    setSelectAll(false)
   }
 
   const NurseryList = async q => {
