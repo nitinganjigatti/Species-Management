@@ -1952,10 +1952,14 @@ const IndividualRequest = () => {
                                                           <Box
                                                             sx={{
                                                               color: 'error.main',
-                                                              minHeight: '8px',
-                                                              maxHeight: '8px',
-                                                              width: '100%',
-                                                              mx: 'auto'
+
+                                                              minHeight: 104,
+                                                              maxHeight: 104,
+                                                              display: 'flex',
+                                                              flexDirection: 'column',
+                                                              justifyContent: 'center',
+                                                              alignContent: 'top',
+                                                              alignItems: 'center'
                                                             }}
                                                           >
                                                             <Icon
@@ -1968,19 +1972,7 @@ const IndividualRequest = () => {
                                                             ></Icon>
                                                           </Box>
                                                         ) : null}
-                                                        {el?.request_status === 'Alternate' && (
-                                                          <Grid
-                                                            sx={{
-                                                              minHeight: 104,
-                                                              maxHeight: 104,
-                                                              display: 'flex',
-                                                              flexDirection: 'column',
-                                                              justifyContent: 'center',
-                                                              alignContent: 'top',
-                                                              alignItems: 'center'
-                                                            }}
-                                                          ></Grid>
-                                                        )}
+
                                                         {el?.alt_parent?.length > 0
                                                           ? el.alt_parent.map((el, index) => {
                                                               return (
@@ -2981,10 +2973,13 @@ const IndividualRequest = () => {
                                                       sx={{
                                                         color: 'error.main',
 
-                                                        minHeight: '8px',
-                                                        maxHeight: '8px',
-                                                        width: '100%',
-                                                        mx: 'auto'
+                                                        minHeight: 104,
+                                                        maxHeight: 104,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'center',
+                                                        alignContent: 'top',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
                                                       <Icon
@@ -2997,19 +2992,7 @@ const IndividualRequest = () => {
                                                       ></Icon>
                                                     </Box>
                                                   ) : null}
-                                                  {el?.request_status === 'Alternate' && (
-                                                    <Grid
-                                                      sx={{
-                                                        minHeight: 104,
-                                                        maxHeight: 104,
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        justifyContent: 'center',
-                                                        alignContent: 'top',
-                                                        alignItems: 'center'
-                                                      }}
-                                                    ></Grid>
-                                                  )}
+
                                                   {el?.alt_parent?.length > 0
                                                     ? el.alt_parent.map((el, index) => {
                                                         return (
@@ -3713,7 +3696,7 @@ const IndividualRequest = () => {
                                                                     verticalAlign: 'top'
                                                                   }}
                                                                 >
-                                                                  <Typography
+                                                                  {/* <Typography
                                                                     variant='body1'
                                                                     sx={{
                                                                       color: 'error.main',
@@ -3722,7 +3705,36 @@ const IndividualRequest = () => {
                                                                     }}
                                                                   >
                                                                     This Product is not available
-                                                                  </Typography>
+                                                                  </Typography> */}
+                                                                  <Button
+                                                                    size='small'
+                                                                    sx={{
+                                                                      width: 100,
+                                                                      mx: 'auto',
+                                                                      ...boxStyles(nesElm?.request_status)
+                                                                    }}
+                                                                    disabled={
+                                                                      parseInt(nesElm?.requested_qty) -
+                                                                        parseInt(nesElm?.dispatch_qty) >=
+                                                                        1 &&
+                                                                      requestItems.status !== 'Cancelled' &&
+                                                                      nesElm?.request_status !== 'Alternate' &&
+                                                                      nesElm?.request_status !== 'Not Available' &&
+                                                                      nesElm?.request_status !== 'Rejected'
+                                                                        ? false
+                                                                        : true
+                                                                    }
+                                                                    variant='contained'
+                                                                    onClick={() => {
+                                                                      setFulfillMedicine({
+                                                                        ...nesElm
+                                                                      })
+
+                                                                      showDialog()
+                                                                    }}
+                                                                  >
+                                                                    Fulfill
+                                                                  </Button>
                                                                 </Grid>
                                                               )}
 
@@ -3739,7 +3751,7 @@ const IndividualRequest = () => {
                                                                     verticalAlign: 'top'
                                                                   }}
                                                                 >
-                                                                  <Typography
+                                                                  {/* <Typography
                                                                     variant='body1'
                                                                     sx={{
                                                                       color: 'error.main',
@@ -3748,7 +3760,36 @@ const IndividualRequest = () => {
                                                                     }}
                                                                   >
                                                                     This Product was rejected
-                                                                  </Typography>
+                                                                  </Typography> */}
+                                                                  <Button
+                                                                    size='small'
+                                                                    sx={{
+                                                                      width: 100,
+                                                                      mx: 'auto',
+                                                                      ...boxStyles(nesElm?.request_status)
+                                                                    }}
+                                                                    disabled={
+                                                                      parseInt(nesElm?.requested_qty) -
+                                                                        parseInt(nesElm?.dispatch_qty) >=
+                                                                        1 &&
+                                                                      requestItems.status !== 'Cancelled' &&
+                                                                      nesElm?.request_status !== 'Alternate' &&
+                                                                      nesElm?.request_status !== 'Not Available' &&
+                                                                      nesElm?.request_status !== 'Rejected'
+                                                                        ? false
+                                                                        : true
+                                                                    }
+                                                                    variant='contained'
+                                                                    onClick={() => {
+                                                                      setFulfillMedicine({
+                                                                        ...nesElm
+                                                                      })
+
+                                                                      showDialog()
+                                                                    }}
+                                                                  >
+                                                                    Fulfill
+                                                                  </Button>
                                                                 </Grid>
                                                               )}
                                                               {nesElm?.dispatch_qty === nesElm?.requested_qty && (
