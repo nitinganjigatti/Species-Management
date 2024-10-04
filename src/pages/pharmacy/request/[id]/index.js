@@ -1523,6 +1523,7 @@ const IndividualRequest = () => {
                             fontSize: '14px',
                             fontWeight: '400',
                             lineHeight: '16.94px',
+                            gpa: '4px',
                             color: 'customColors.neutralSecondary'
                           }}
                         >
@@ -1533,7 +1534,8 @@ const IndividualRequest = () => {
                               fontWeight: '500',
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px'
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
                             {requestItems?.to_store}
@@ -1554,7 +1556,8 @@ const IndividualRequest = () => {
                               fontWeight: '500',
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px'
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
                             {requestItems?.request_number}
@@ -1603,7 +1606,8 @@ const IndividualRequest = () => {
                               fontWeight: '500',
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px'
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
                             {requestItems?.total_qty}
@@ -1624,7 +1628,8 @@ const IndividualRequest = () => {
                               fontWeight: '500',
                               fontSize: '16px',
                               color: 'primary.OnSurface',
-                              lineHeight: '19.36px'
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
                             {requestItems?.shipped_qty}
@@ -1641,7 +1646,6 @@ const IndividualRequest = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
-
                           gap: '4px',
                           height: '46px',
                           mb: {
@@ -1667,7 +1671,8 @@ const IndividualRequest = () => {
                               fontWeight: '500',
                               fontSize: '16px',
                               color: 'primary.light',
-                              lineHeight: '19.36px'
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
                             ₹{requestItems?.requested_amount}
@@ -1689,7 +1694,8 @@ const IndividualRequest = () => {
                               fontWeight: '500',
                               fontSize: '16px',
                               color: 'primary.main',
-                              lineHeight: '19.36px'
+                              lineHeight: '19.36px',
+                              mx: 2
                             }}
                           >
                             ₹{requestItems?.shipped_amount}
@@ -1701,7 +1707,6 @@ const IndividualRequest = () => {
                         <Box
                           sx={{
                             display: 'flex',
-
                             height: '46px',
                             justifyContent: {
                               xs: 'start',
