@@ -88,7 +88,8 @@ const UserThemeOptions = () => {
         customTableHeaderBg: '#C1D3D0',
 
         // **
-        moderateSecondary: '#E4B819'
+        moderateSecondary: '#E4B819',
+        neutral_50: '#00000066'
       },
       primary: {
         // light: '#20DE67',

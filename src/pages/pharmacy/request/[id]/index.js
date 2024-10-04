@@ -1888,7 +1888,20 @@ const IndividualRequest = () => {
                                                       ></Icon>
                                                     </Box>
                                                   ) : null}
-
+                                                  {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                                                    <Grid
+                                                      key={index}
+                                                      sx={{
+                                                        minHeight: 104,
+                                                        maxHeight: 104,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'center',
+                                                        alignContent: 'top',
+                                                        alignItems: 'center'
+                                                      }}
+                                                    ></Grid>
+                                                  )}
                                                   {el?.alt_parent?.length > 0
                                                     ? el.alt_parent.map((el, index) => {
                                                         return (
@@ -3312,6 +3325,20 @@ const IndividualRequest = () => {
                                                                 ></Icon>
                                                               </Box>
                                                             ) : null}
+                                                            {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                                                              <Grid
+                                                                key={index}
+                                                                sx={{
+                                                                  minHeight: 104,
+                                                                  maxHeight: 104,
+                                                                  display: 'flex',
+                                                                  flexDirection: 'column',
+                                                                  justifyContent: 'center',
+                                                                  alignContent: 'top',
+                                                                  alignItems: 'center'
+                                                                }}
+                                                              ></Grid>
+                                                            )}
 
                                                             {el?.alt_parent?.length > 0
                                                               ? el.alt_parent.map((el, index) => {
@@ -3765,7 +3792,7 @@ const IndividualRequest = () => {
                                                                   fontWeight: 400
                                                                 }}
                                                               >
-                                                                Fullfilled:{el?.dispatch_qty}
+                                                                Fulfilled:{el?.dispatch_qty}
                                                               </Typography>{' '}
                                                               <Typography
                                                                 variant='body1'
@@ -3813,7 +3840,7 @@ const IndividualRequest = () => {
                                                                           fontWeight: 400
                                                                         }}
                                                                       >
-                                                                        Fullfilled:{el?.dispatch_qty}
+                                                                        Fulfilled:{el?.dispatch_qty}
                                                                       </Typography>{' '}
                                                                       <Typography
                                                                         variant='body1'
@@ -3882,7 +3909,7 @@ const IndividualRequest = () => {
                                                                       showDialog()
                                                                     }}
                                                                   >
-                                                                    Fullfill
+                                                                    Fulfill
                                                                   </Button>
                                                                 </Grid>
                                                               ) : (
@@ -3991,7 +4018,7 @@ const IndividualRequest = () => {
                                                                                 showDialog()
                                                                               }}
                                                                             >
-                                                                              Fullfill
+                                                                              Fulfill
                                                                             </Button>
                                                                           ) : null}
                                                                         </Box>
@@ -4351,7 +4378,20 @@ const IndividualRequest = () => {
                                                           ></Icon>
                                                         </Box>
                                                       ) : null}
-
+                                                      {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                                                        <Grid
+                                                          key={index}
+                                                          sx={{
+                                                            minHeight: 104,
+                                                            maxHeight: 104,
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            alignContent: 'top',
+                                                            alignItems: 'center'
+                                                          }}
+                                                        ></Grid>
+                                                      )}
                                                       {el?.alt_parent?.length > 0
                                                         ? el.alt_parent.map((el, index) => {
                                                             return (
@@ -4412,7 +4452,6 @@ const IndividualRequest = () => {
                                                         backgroundColor: getCellBgColor(el),
 
                                                         verticalAlign: 'top',
-
                                                         height: 'auto'
                                                       }}
                                                     >
@@ -4789,7 +4828,7 @@ const IndividualRequest = () => {
                                                             fontWeight: 400
                                                           }}
                                                         >
-                                                          Fullfilled:{el?.dispatch_qty}
+                                                          Fulfilled:{el?.dispatch_qty}
                                                         </Typography>{' '}
                                                         <Typography
                                                           variant='body1'
@@ -4837,7 +4876,7 @@ const IndividualRequest = () => {
                                                                     fontWeight: 400
                                                                   }}
                                                                 >
-                                                                  Fullfilled:{el?.dispatch_qty}
+                                                                  Fulfilled:{el?.dispatch_qty}
                                                                 </Typography>{' '}
                                                                 <Typography
                                                                   variant='body1'
