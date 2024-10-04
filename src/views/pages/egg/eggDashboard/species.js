@@ -698,7 +698,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 140,
-      field: 'discarded',
+      field: 'total_discard',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'DISCARDED',
@@ -729,7 +729,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded ? params.row.discarded : '-'}
+              {params.row.total_discard ? params.row.total_discard : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -900,7 +900,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 180,
-      field: 'discarded',
+      field: 'total_discard',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'DISCARDED',
