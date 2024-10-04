@@ -946,7 +946,7 @@ const IncubatorDetails = () => {
                         }}
                         label={'Allocated Date'}
                         maxDate={dayjs()}
-                        format='DD/MM/YYY'
+                        format='DD/MM/YYYY'
                       />
                     </LocalizationProvider>
                     {/* Clear Button */}
@@ -997,7 +997,7 @@ const IncubatorDetails = () => {
                           '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
                           '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
                         }}
-                        format='DD/MM/YYY'
+                        format='DD/MM/YYYY'
                         value={collectedDate}
                         onChange={newDate => {
                           if (newDate) {
