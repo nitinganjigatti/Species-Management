@@ -619,10 +619,10 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          toast.error(response?.message)
+          toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('error', error)
+        toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     } else {
       try {
@@ -634,10 +634,12 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          toast.error(response?.message)
+          console.log(JSON.stringify(response))
+          toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('error', error)
+        console.log('error', JSON.stringify(error))
+        toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     }
   }
