@@ -367,6 +367,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   })
 
   const handleAddRemoveSalts = (fields, index) => {
+    if (fields.length === 1) {
+      return <>{addSaltButton()}</>
+    }
     if (fields.length - 1 === index && index > 0) {
       return (
         <>
@@ -392,6 +395,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     return (
       <Button
         variant='outlined'
+        startIcon={<Icon icon='material-symbols-light:add' />}
         onClick={() => {
           //setSalts([])
           append({
@@ -400,9 +404,26 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             qty: 0
           })
         }}
-        sx={{ marginRight: '4px', borderRadius: 6 }}
+        sx={{
+          marginRight: '4px',
+          borderRadius: '8px',
+          height: '50px',
+          padding: '8px',
+
+          width: '100%',
+          backgroundColor: '#FFFFFF !important',
+
+          color: 'customColors.Secondary',
+
+          // border: '1px solid customColors.Secondary'
+          border: '1px solid #00D6C9',
+          '&:hover': {
+            backgroundColor: '#FFFFFF !important',
+            border: '1px solid #00D6C9'
+          }
+        }}
       >
-        Add Another
+        Add
       </Button>
     )
   }
@@ -581,7 +602,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         <Box sx={{ padding: '24px' }}>
           <Card
             sx={{
-              backgroundColor: 'customColors.lightBg'
+              backgroundColor: 'customColors.lightBg',
+              minWidth: '100% !important',
+              boxShadow: 'none !important'
             }}
           >
             <CardContent>
@@ -649,7 +672,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         minHeight: '136px'
                       }}
                     >
-                      <Grid item xs={2.6}>
+                      <Grid item xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2.6}>
                         <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].batch_no`}
@@ -666,19 +689,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     parseInt(option?.batch_no) === parseInt(value?.batch_no)
                                   }
                                   onChange={(e, val) => {
-                                    // if (val === null) {
-                                    //   setValue(`product_batches[${index}].expiry_date`, '')
-
-                                    //   return onChange('')
-                                    // } else {
-                                    //
-                                    //   const expiryDate = val.expiry_date
-                                    //   const quantity = parseInt(val?.qty)
-                                    //   setValue(`product_batches[${index}].expiry_date`, expiryDate)
-                                    //   setValue(`product_batches[${index}].quantityAvailable`, quantity)
-
-                                    //   return onChange(val.batch_no)
-                                    // }
                                     if (val === null) {
                                       setValue(`product_batches[${index}].expiry_date`, '')
                                       setValue(`product_batches[${index}].quantityAvailable`, '')
@@ -702,6 +712,86 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       />
                                     )
                                   }}
+                                  renderOption={(props, option) => (
+                                    <li
+                                      {...props}
+                                      style={{
+                                        minWidth: '212px !important',
+                                        padding: '0px',
+                                        margin: '5px',
+                                        background: 'white'
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          backgroundColor: '#0000000D',
+                                          minWidth: '196px !important',
+                                          height: '71px !important',
+                                          padding: '8px !important',
+                                          borderRadius: '4px',
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          justifyContent: 'start',
+                                          items: 'start',
+                                          gap: '8px'
+                                        }}
+                                      >
+                                        <Typography
+                                          sx={{
+                                            color: 'customColors.OnSurfaceVariant',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            lineHeight: '16.94px'
+                                          }}
+                                        >
+                                          {option?.batch_no}
+                                        </Typography>
+                                        <Typography
+                                          sx={{
+                                            fontSize: '12px',
+                                            fontWeight: '400',
+                                            lineHeight: '14.52px',
+                                            color: 'customColors.neutralSecondary'
+                                          }}
+                                        >
+                                          Expiry Date:
+                                          <Box
+                                            component='span'
+                                            sx={{
+                                              fontWeight: '600',
+                                              fontSize: '12px',
+                                              color: 'customColors.neutralSecondary',
+                                              lineHeight: '14.52px'
+                                            }}
+                                          >
+                                            {option?.expiry_date}
+                                          </Box>
+                                        </Typography>
+                                        <Typography
+                                          sx={{
+                                            fontSize: '12px',
+                                            fontWeight: '400',
+                                            lineHeight: '14.52px',
+                                            color: 'error.main'
+                                          }}
+                                        >
+                                          Availability:
+                                          <Box
+                                            component='span'
+                                            sx={{
+                                              fontSize: '12px',
+
+                                              fontWeight: '600',
+                                              color: 'error.main',
+                                              lineHeight: '14.52px'
+                                            }}
+                                          >
+                                            {option?.qty}
+                                          </Box>
+                                        </Typography>
+                                      </Box>
+                                    </li>
+                                  )}
                                 />
                               )
                             }}
@@ -760,7 +850,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           </FormControl>
                         </Grid>
                       )}
-                      <Grid item xs={2.6}>
+                      <Grid item xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2.6}>
                         <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].qty`}
@@ -812,7 +902,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               </FormHelperText>
                             )}
 
-                            {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
+                            {/* {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
                               <FormHelperText
                                 sx={{
                                   color: 'primary.main',
@@ -821,14 +911,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               >
                                 Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
                               </FormHelperText>
-                            ) : null}
+                            ) : null} */}
                           </Box>
                         </FormControl>
                       </Grid>
 
                       <Grid
                         item
-                        xs={2.6}
+                        xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2}
                         alignSelf='center'
                         sx={{
                           display: 'flex',

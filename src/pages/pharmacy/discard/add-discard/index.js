@@ -591,7 +591,7 @@ const AddDiscardProducts = () => {
                       >
                         {supplierList?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
+                            {item?.company_name}
                           </MenuItem>
                         ))}
                       </Select>

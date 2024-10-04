@@ -13,6 +13,7 @@ import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -441,12 +442,10 @@ const IndividualRequest = () => {
   }
 
   const getCellBgColor = el => {
-    if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Fulfilled') {
-      return 'customColors.OutlineVariant'
-    } else if (el?.alt_parent.length > 0 && el?.dispatch_status === 'Not Fulfilled') {
+    if (el?.alt_parent.length === 0 && el?.dispatch_qty === el?.requested_qty) {
+      return 'customColors.Surface'
+    } else if (el?.alt_parent.length > 0) {
       return 'customColors.customTableCellBg'
-    } else if (el?.alt_parent.length === 0 && el?.dispatch_status === 'Fulfilled') {
-      return 'customColors.OutlineVariant'
     } else if (el?.request_status === 'Not Available' || el?.request_status === 'Rejected') {
       return 'customColors.neutral05'
     } else {
@@ -1446,7 +1445,7 @@ const IndividualRequest = () => {
                 close={closeOrderFormDialog}
                 show={showOrderFormDialog}
               />
-              <Card sx={{ mb: 6 }}>
+              <Card sx={{ mb: 6, boxShadow: 'none !important' }}>
                 <CardHeader
                   avatar={
                     <Icon
@@ -1479,7 +1478,7 @@ const IndividualRequest = () => {
 
                 <CardContent>
                   {/* Request Basic Info */}
-                  <Card
+                  {/* <Card
                     sx={{
                       backgroundColor: 'customColors.lightBg'
                     }}
@@ -1553,10 +1552,277 @@ const IndividualRequest = () => {
                         </Box>
                       </Grid>
                     </Grid>
+                  </Card> */}
+                  <Card
+                    sx={{
+                      backgroundColor: 'customColors.lightBg',
+                      boxShadow: 'none !important',
+                      minHeight: '84px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+
+                        display: 'flex',
+
+                        padding: '16px',
+                        alignItems: 'center',
+
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          height: '46px'
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Requested By:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px'
+                            }}
+                          >
+                            {requestItems?.to_store}
+                          </Box>
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Request ID:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px'
+                            }}
+                          >
+                            {requestItems?.request_number}
+                          </Box>
+                        </Typography>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          height: '46px',
+
+                          textAlign: {
+                            xs: 'left',
+                            sm: 'right',
+                            md: 'right',
+                            lg: 'left'
+                          }
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Requested Items:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px'
+                            }}
+                          >
+                            {requestItems?.total_qty}
+                          </Box>
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface'
+                          }}
+                        >
+                          Shipped Items:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.OnSurface',
+                              lineHeight: '19.36px'
+                            }}
+                          >
+                            {requestItems?.shipped_qty}
+                          </Box>
+                        </Typography>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+
+                          gap: '8px',
+                          height: '46px'
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Total Requested Value:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.light',
+                              lineHeight: '19.36px'
+                            }}
+                          >
+                            ₹{requestItems?.requested_amount}
+                          </Box>
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface'
+                          }}
+                        >
+                          Shipped Value:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.main',
+                              lineHeight: '19.36px'
+                            }}
+                          >
+                            ₹{requestItems?.shipped_amount}
+                          </Box>
+                        </Typography>
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={6} lg={3}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+
+                            height: '46px',
+                            justifyContent: {
+                              xs: 'start',
+                              sm: 'flex-end',
+                              md: 'flex-end',
+                              lg: 'start'
+                            }
+                          }}
+                        >
+                          <Box sx={{ width: '56px' }}>
+                            <CustomAvatar
+                              src={requestItems?.user_created_profile_pic}
+                              sx={{ radius: '64px', width: '40px', height: '40px' }}
+                            />
+                          </Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              height: '36px',
+                              gap: '4px'
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                lineHeight: '16.94px',
+                                color: 'customColors.OnSurfaceVariant'
+                              }}
+                            >
+                              {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                lineHeight: '14.52px',
+                                color: 'customColors.OnSurfaceVariant'
+                              }}
+                            >
+                              {Utility.formatDisplayDate(requestItems?.created_at)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    </Grid>
                   </Card>
                   {/* Medicine Listing */}
                 </CardContent>
-                <Grid sx={{ mx: 4 }}>
+                <Grid
+                  spacing={2}
+                  sx={{
+                    px: 6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    mb: 4
+                  }}
+                >
                   <TabContext value={detailsTab}>
                     <TabList
                       sx={{ borderBottom: '1px solid #0000000D' }}
@@ -1576,16 +1842,23 @@ const IndividualRequest = () => {
                     <TabPanel
                       value='Pending'
                       sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-start'
+                        // display: 'flex',
+                        // justifyContent: 'flex-start',
+                        padding: '0 !important'
                       }}
                     >
-                      <Grid sx={{ ml: -2, width: '100%' }}>
+                      <Grid
+                        sx={{
+                          width: '100%',
+                          px: '0 !important'
+                        }}
+                      >
                         <TabContext value={status}>
                           <TabLists
                             onChange={(event, newValue) => {
                               setStatus(newValue)
                             }}
+                            sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
                           >
                             <Tab
                               value='Pending'
@@ -1596,14 +1869,24 @@ const IndividualRequest = () => {
                               label={<TabBadge label='All' totalCount={status === 'All' ? 0 : null} />}
                             />
                           </TabLists>
-                          <TabPanel value='Pending'>
-                            {requestItems?.request_item_details.length > 0
-                              ? requestItems?.request_item_details.filter(
+                          <TabPanel
+                            value='Pending'
+                            sx={{
+                              padding: '0px !important'
+                            }}
+                          >
+                            {requestItems?.request_item_details?.length > 0
+                              ? requestItems?.request_item_details?.filter(
                                   el =>
-                                    el.dispatch_status === 'Not Fulfilled' &&
-                                    (el.request_status !== 'Rejected' || el.request_status !== 'Not Available')
-                                ).length > 0 && (
-                                  <Card sx={{ ml: -3 }}>
+                                    el?.dispatch_status === 'Not Fulfilled' &&
+                                    (el?.request_status !== 'Rejected' || el?.request_status !== 'Not Available')
+                                )?.length > 0 && (
+                                  <Card
+                                    sx={{
+                                      minWidth: '100% !important',
+                                      boxShadow: 'none !important'
+                                    }}
+                                  >
                                     <TableContainer>
                                       <Table
                                         stickyHeader
@@ -1611,14 +1894,20 @@ const IndividualRequest = () => {
                                         aria-label='simple table'
                                       >
                                         <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
-                                          <TableRow>
+                                          <TableRow sx={{ width: '100%' }}>
                                             <TableCell>S.NO</TableCell>
                                             <TableCell></TableCell>
                                             <TableCell>PRODUCT NAME</TableCell>
 
                                             <TableCell>QUANTITY</TableCell>
-                                            <TableCell>FULL FILL</TableCell>
-                                            <TableCell sx={{ minWidth: 200 }}>ACTION</TableCell>
+                                            <TableCell
+                                              sx={{
+                                                minWidth: 100
+                                              }}
+                                            >
+                                              FULL FILL
+                                            </TableCell>
+                                            <TableCell>ACTION</TableCell>
                                           </TableRow>
                                         </TableHead>
                                         <TableBody>
@@ -1639,7 +1928,14 @@ const IndividualRequest = () => {
                                                           variant='subtitle2'
                                                           sx={{
                                                             color: 'text.primary',
-                                                            minHeight: '100%'
+
+                                                            minHeight: 104,
+                                                            maxHeight: 104,
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            alignContent: 'top',
+                                                            alignItems: 'center'
                                                           }}
                                                         >
                                                           {el.sl_no}.
@@ -1656,7 +1952,6 @@ const IndividualRequest = () => {
                                                           <Box
                                                             sx={{
                                                               color: 'error.main',
-
                                                               minHeight: '8px',
                                                               maxHeight: '8px',
                                                               width: '100%',
@@ -1769,7 +2064,9 @@ const IndividualRequest = () => {
                                                                   color: 'customColors.OnSecondaryContainer',
 
                                                                   display: 'flex',
-                                                                  alignItems: 'center'
+                                                                  alignItems: 'center',
+                                                                  fontSize: '16px !important',
+                                                                  fontWeight: 600
                                                                 }}
                                                               >
                                                                 {!isNaN(el?.control_substance) &&
@@ -1821,12 +2118,28 @@ const IndividualRequest = () => {
                                                             title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
                                                             placement='top'
                                                           >
-                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            <Typography
+                                                              variant='body1'
+                                                              sx={{
+                                                                color: 'text.primary',
+                                                                display: { xs: 'none', md: 'none', lg: 'block' },
+                                                                fontSize: '14px !important',
+                                                                fontWeight: 400
+                                                              }}
+                                                            >
                                                               {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
                                                             </Typography>
                                                           </Tooltip>
                                                           <Tooltip title={el?.manufacturer} placement='top'>
-                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            <Typography
+                                                              variant='body1'
+                                                              sx={{
+                                                                color: 'text.primary',
+                                                                display: { xs: 'none', md: 'none', lg: 'block' },
+                                                                fontSize: '14px !important',
+                                                                fontWeight: 400
+                                                              }}
+                                                            >
                                                               {el?.manufacturer}
                                                             </Typography>
                                                           </Tooltip>
@@ -1922,7 +2235,9 @@ const IndividualRequest = () => {
                                                                             color: 'customColors.OnSecondaryContainer',
 
                                                                             display: 'flex',
-                                                                            alignItems: 'center'
+                                                                            alignItems: 'center',
+                                                                            fontSize: '16px !important',
+                                                                            fontWeight: 600
                                                                           }}
                                                                         >
                                                                           {!isNaN(el?.control_substance) &&
@@ -1975,7 +2290,16 @@ const IndividualRequest = () => {
                                                                     >
                                                                       <Typography
                                                                         variant='body1'
-                                                                        sx={{ color: 'text.primary' }}
+                                                                        sx={{
+                                                                          color: 'text.primary',
+                                                                          display: {
+                                                                            xs: 'none',
+                                                                            md: 'none',
+                                                                            lg: 'block'
+                                                                          },
+                                                                          fontSize: '14px !important',
+                                                                          fontWeight: 400
+                                                                        }}
                                                                       >
                                                                         {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
                                                                       </Typography>
@@ -1983,7 +2307,16 @@ const IndividualRequest = () => {
                                                                     <Tooltip title={el?.manufacturer} placement='top'>
                                                                       <Typography
                                                                         variant='body1'
-                                                                        sx={{ color: 'text.primary' }}
+                                                                        sx={{
+                                                                          color: 'text.primary',
+                                                                          display: {
+                                                                            xs: 'none',
+                                                                            md: 'none',
+                                                                            lg: 'block'
+                                                                          },
+                                                                          fontSize: '14px !important',
+                                                                          fontWeight: 400
+                                                                        }}
                                                                       >
                                                                         {el?.manufacturer}
                                                                       </Typography>
@@ -2001,8 +2334,6 @@ const IndividualRequest = () => {
                                                                           display: 'flex',
                                                                           width: '100%',
 
-                                                                          // mb: 2,
-                                                                          // gap: 1,
                                                                           cursor: 'pointer'
                                                                         }}
                                                                       >
@@ -2073,13 +2404,34 @@ const IndividualRequest = () => {
                                                             // mb: 4
                                                           }}
                                                         >
-                                                          <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                          <Typography
+                                                            variant='body1'
+                                                            sx={{
+                                                              color: 'text.primary',
+                                                              fontSize: '14px !important',
+                                                              fontWeight: 400
+                                                            }}
+                                                          >
                                                             Requested:{el?.requested_qty}
                                                           </Typography>
-                                                          <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                          <Typography
+                                                            variant='body1'
+                                                            sx={{
+                                                              color: 'text.primary',
+                                                              fontSize: '14px !important',
+                                                              fontWeight: 400
+                                                            }}
+                                                          >
                                                             Fullfilled:{el?.dispatch_qty}
                                                           </Typography>{' '}
-                                                          <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                          <Typography
+                                                            variant='body1'
+                                                            sx={{
+                                                              color: 'text.primary',
+                                                              fontSize: '14px !important',
+                                                              fontWeight: 400
+                                                            }}
+                                                          >
                                                             Shipped:{el?.shipped_qty}
                                                           </Typography>
                                                         </Box>
@@ -2102,19 +2454,31 @@ const IndividualRequest = () => {
                                                                 >
                                                                   <Typography
                                                                     variant='body1'
-                                                                    sx={{ color: 'text.primary' }}
+                                                                    sx={{
+                                                                      color: 'text.primary',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
                                                                   >
                                                                     Requested:{el?.requested_qty}
                                                                   </Typography>
                                                                   <Typography
                                                                     variant='body1'
-                                                                    sx={{ color: 'text.primary' }}
+                                                                    sx={{
+                                                                      color: 'text.primary',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
                                                                   >
                                                                     Fullfilled:{el?.dispatch_qty}
                                                                   </Typography>{' '}
                                                                   <Typography
                                                                     variant='body1'
-                                                                    sx={{ color: 'text.primary' }}
+                                                                    sx={{
+                                                                      color: 'text.primary',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
                                                                   >
                                                                     Shipped:{el?.shipped_qty}
                                                                   </Typography>
@@ -2195,7 +2559,11 @@ const IndividualRequest = () => {
                                                               {el.request_status === 'Not Available' && (
                                                                 <Typography
                                                                   variant='body1'
-                                                                  sx={{ color: 'error.main' }}
+                                                                  sx={{
+                                                                    color: 'error.main',
+                                                                    fontSize: '14px !important',
+                                                                    fontWeight: 400
+                                                                  }}
                                                                 >
                                                                   This Product is not available
                                                                 </Typography>
@@ -2203,7 +2571,11 @@ const IndividualRequest = () => {
                                                               {el.request_status === 'Rejected' && (
                                                                 <Typography
                                                                   variant='body1'
-                                                                  sx={{ color: 'error.main' }}
+                                                                  sx={{
+                                                                    color: 'error.main',
+                                                                    fontSize: '14px !important',
+                                                                    fontWeight: 400
+                                                                  }}
                                                                 >
                                                                   This Product was rejected
                                                                 </Typography>
@@ -2295,7 +2667,11 @@ const IndividualRequest = () => {
                                                                       >
                                                                         <Typography
                                                                           variant='body1'
-                                                                          sx={{ color: 'error.main' }}
+                                                                          sx={{
+                                                                            color: 'error.main',
+                                                                            fontSize: '14px !important',
+                                                                            fontWeight: 400
+                                                                          }}
                                                                         >
                                                                           This Product is not available
                                                                         </Typography>
@@ -2317,7 +2693,11 @@ const IndividualRequest = () => {
                                                                       >
                                                                         <Typography
                                                                           variant='body1'
-                                                                          sx={{ color: 'error.main' }}
+                                                                          sx={{
+                                                                            color: 'error.main',
+                                                                            fontSize: '14px !important',
+                                                                            fontWeight: 400
+                                                                          }}
                                                                         >
                                                                           This Product was rejected
                                                                         </Typography>
@@ -2384,7 +2764,8 @@ const IndividualRequest = () => {
                                                                       sx={{
                                                                         color: 'text.primary',
                                                                         textAlign: 'left',
-
+                                                                        fontSize: '14px !important',
+                                                                        fontWeight: 400,
                                                                         color: 'customColors.moderateSecondary'
                                                                       }}
                                                                     >
@@ -2522,9 +2903,20 @@ const IndividualRequest = () => {
                                 )
                               : null}
                           </TabPanel>
-                          <TabPanel value='All'>
+                          <TabPanel
+                            value='All'
+                            sx={{
+                              padding: '0px !important'
+                            }}
+                          >
                             {requestItems?.request_item_details.length > 0 && (
-                              <Card sx={{ ml: -3, minWidth: '100%' }}>
+                              <Card
+                                sx={{
+                                  // ml: -3,
+                                  minWidth: '100% !important',
+                                  boxShadow: 'none !important'
+                                }}
+                              >
                                 <TableContainer>
                                   <Table
                                     stickyHeader
@@ -2538,8 +2930,14 @@ const IndividualRequest = () => {
                                         <TableCell>PRODUCT NAME</TableCell>
 
                                         <TableCell>QUANTITY</TableCell>
-                                        <TableCell>FULL FILL</TableCell>
-                                        <TableCell sx={{ minWidth: 200 }}>ACTION</TableCell>
+                                        <TableCell
+                                          sx={{
+                                            minWidth: 100
+                                          }}
+                                        >
+                                          FULL FILL
+                                        </TableCell>
+                                        <TableCell>ACTION</TableCell>
                                       </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -2558,7 +2956,14 @@ const IndividualRequest = () => {
                                                     variant='subtitle2'
                                                     sx={{
                                                       color: 'text.primary',
-                                                      minHeight: '100%'
+
+                                                      minHeight: 104,
+                                                      maxHeight: 104,
+                                                      display: 'flex',
+                                                      flexDirection: 'column',
+                                                      justifyContent: 'center',
+                                                      alignContent: 'top',
+                                                      alignItems: 'center'
                                                     }}
                                                   >
                                                     {el.sl_no}.
@@ -2684,6 +3089,8 @@ const IndividualRequest = () => {
                                                         <Typography
                                                           variant='body1'
                                                           sx={{
+                                                            fontSize: '16px !important',
+
                                                             fontWeight: 600,
                                                             color: 'customColors.OnSecondaryContainer',
 
@@ -2739,12 +3146,29 @@ const IndividualRequest = () => {
                                                       title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
                                                       placement='top'
                                                     >
-                                                      <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                      <Typography
+                                                        variant='body1'
+                                                        sx={{
+                                                          color: 'text.primary',
+                                                          display: { xs: 'none', md: 'none', lg: 'block' },
+                                                          fontSize: '14px !important',
+
+                                                          fontWeight: 400
+                                                        }}
+                                                      >
                                                         {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
                                                       </Typography>
                                                     </Tooltip>
                                                     <Tooltip title={el?.manufacturer} placement='top'>
-                                                      <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                      <Typography
+                                                        variant='body1'
+                                                        sx={{
+                                                          color: 'text.primary',
+                                                          display: { xs: 'none', md: 'none', lg: 'block' },
+                                                          fontSize: '14px !important',
+                                                          fontWeight: 400
+                                                        }}
+                                                      >
                                                         {el?.manufacturer}
                                                       </Typography>
                                                     </Tooltip>
@@ -2831,6 +3255,8 @@ const IndividualRequest = () => {
                                                                   <Typography
                                                                     variant='body1'
                                                                     sx={{
+                                                                      fontSize: '16px !important',
+
                                                                       fontWeight: 600,
                                                                       color: 'customColors.OnSecondaryContainer',
 
@@ -2888,7 +3314,12 @@ const IndividualRequest = () => {
                                                               >
                                                                 <Typography
                                                                   variant='body1'
-                                                                  sx={{ color: 'text.primary' }}
+                                                                  sx={{
+                                                                    color: 'text.primary',
+                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
+                                                                    fontSize: '14px !important',
+                                                                    fontWeight: 400
+                                                                  }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
                                                                 </Typography>
@@ -2896,7 +3327,12 @@ const IndividualRequest = () => {
                                                               <Tooltip title={el?.manufacturer} placement='top'>
                                                                 <Typography
                                                                   variant='body1'
-                                                                  sx={{ color: 'text.primary' }}
+                                                                  sx={{
+                                                                    color: 'text.primary',
+                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
+                                                                    fontSize: '14px !important',
+                                                                    fontWeight: 400
+                                                                  }}
                                                                 >
                                                                   {el?.manufacturer}
                                                                 </Typography>
@@ -2913,9 +3349,6 @@ const IndividualRequest = () => {
                                                                   sx={{
                                                                     display: 'flex',
                                                                     width: '100%',
-
-                                                                    // mb: 2,
-                                                                    // gap: 1,
                                                                     cursor: 'pointer'
                                                                   }}
                                                                 >
@@ -2986,13 +3419,34 @@ const IndividualRequest = () => {
                                                       // mb: 4
                                                     }}
                                                   >
-                                                    <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                    <Typography
+                                                      variant='body1'
+                                                      sx={{
+                                                        color: 'text.primary',
+                                                        fontSize: '14px !important',
+                                                        fontWeight: 400
+                                                      }}
+                                                    >
                                                       Requested:{el?.requested_qty}
                                                     </Typography>
-                                                    <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                    <Typography
+                                                      variant='body1'
+                                                      sx={{
+                                                        color: 'text.primary',
+                                                        fontSize: '14px !important',
+                                                        fontWeight: 400
+                                                      }}
+                                                    >
                                                       Fullfilled:{el?.dispatch_qty}
                                                     </Typography>{' '}
-                                                    <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                    <Typography
+                                                      variant='body1'
+                                                      sx={{
+                                                        color: 'text.primary',
+                                                        fontSize: '14px !important',
+                                                        fontWeight: 400
+                                                      }}
+                                                    >
                                                       Shipped:{el?.shipped_qty}
                                                     </Typography>
                                                   </Box>
@@ -3013,13 +3467,34 @@ const IndividualRequest = () => {
                                                               // mb: 4
                                                             }}
                                                           >
-                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            <Typography
+                                                              variant='body1'
+                                                              sx={{
+                                                                color: 'text.primary',
+                                                                fontSize: '14px !important',
+                                                                fontWeight: 400
+                                                              }}
+                                                            >
                                                               Requested:{el?.requested_qty}
                                                             </Typography>
-                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            <Typography
+                                                              variant='body1'
+                                                              sx={{
+                                                                color: 'text.primary',
+                                                                fontSize: '14px !important',
+                                                                fontWeight: 400
+                                                              }}
+                                                            >
                                                               Fullfilled:{el?.dispatch_qty}
                                                             </Typography>{' '}
-                                                            <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                                                            <Typography
+                                                              variant='body1'
+                                                              sx={{
+                                                                color: 'text.primary',
+                                                                fontSize: '14px !important',
+                                                                fontWeight: 400
+                                                              }}
+                                                            >
                                                               Shipped:{el?.shipped_qty}
                                                             </Typography>
                                                           </Box>
@@ -3077,7 +3552,7 @@ const IndividualRequest = () => {
                                                             showDialog()
                                                           }}
                                                         >
-                                                          Fullfill
+                                                          Fulfill
                                                         </Button>
                                                       </Grid>
                                                     ) : (
@@ -3095,14 +3570,64 @@ const IndividualRequest = () => {
                                                         }}
                                                       >
                                                         {el.request_status === 'Not Available' && (
-                                                          <Typography variant='body1' sx={{ color: 'error.main' }}>
-                                                            This Product is not available
-                                                          </Typography>
+                                                          <Button
+                                                            size='small'
+                                                            sx={{
+                                                              width: 100,
+                                                              mx: 'auto',
+                                                              ...boxStyles(el.request_status)
+                                                            }}
+                                                            disabled={
+                                                              parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >=
+                                                                1 &&
+                                                              requestItems.status !== 'Cancelled' &&
+                                                              el.request_status !== 'Alternate' &&
+                                                              el.request_status !== 'Not Available' &&
+                                                              el.request_status !== 'Rejected'
+                                                                ? false
+                                                                : true
+                                                            }
+                                                            variant='contained'
+                                                            onClick={() => {
+                                                              setFulfillMedicine({
+                                                                ...el
+                                                              })
+
+                                                              showDialog()
+                                                            }}
+                                                          >
+                                                            Fulfill
+                                                          </Button>
                                                         )}
                                                         {el.request_status === 'Rejected' && (
-                                                          <Typography variant='body1' sx={{ color: 'error.main' }}>
-                                                            This Product was rejected
-                                                          </Typography>
+                                                          <Button
+                                                            size='small'
+                                                            sx={{
+                                                              width: 100,
+                                                              mx: 'auto',
+                                                              ...boxStyles(el.request_status)
+                                                            }}
+                                                            disabled={
+                                                              parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >=
+                                                                1 &&
+                                                              requestItems.status !== 'Cancelled' &&
+                                                              el.request_status !== 'Alternate' &&
+                                                              el.request_status !== 'Not Available' &&
+                                                              el.request_status !== 'Rejected'
+                                                                ? false
+                                                                : true
+                                                            }
+                                                            variant='contained'
+                                                            onClick={() => {
+                                                              setFulfillMedicine({
+                                                                ...el
+                                                              })
+
+                                                              showDialog()
+                                                            }}
+                                                          >
+                                                            Fulfill
+                                                          </Button>
                                                         )}
                                                         {el.alt_parent.length === 0 &&
                                                           el?.dispatch_status === 'Fulfilled' &&
@@ -3171,7 +3696,7 @@ const IndividualRequest = () => {
                                                                       showDialog()
                                                                     }}
                                                                   >
-                                                                    Fullfill
+                                                                    Fulfill
                                                                   </Button>
                                                                 ) : null}
                                                               </Box>
@@ -3190,7 +3715,11 @@ const IndividualRequest = () => {
                                                                 >
                                                                   <Typography
                                                                     variant='body1'
-                                                                    sx={{ color: 'error.main' }}
+                                                                    sx={{
+                                                                      color: 'error.main',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
                                                                   >
                                                                     This Product is not available
                                                                   </Typography>
@@ -3212,7 +3741,11 @@ const IndividualRequest = () => {
                                                                 >
                                                                   <Typography
                                                                     variant='body1'
-                                                                    sx={{ color: 'error.main' }}
+                                                                    sx={{
+                                                                      color: 'error.main',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
                                                                   >
                                                                     This Product was rejected
                                                                   </Typography>
@@ -3276,10 +3809,10 @@ const IndividualRequest = () => {
                                                               <Typography
                                                                 variant='body1'
                                                                 sx={{
-                                                                  color: 'text.primary',
+                                                                  color: 'customColors.moderateSecondary',
                                                                   textAlign: 'left',
-
-                                                                  color: 'customColors.moderateSecondary'
+                                                                  fontSize: '14px !important',
+                                                                  fontWeight: 400
                                                                 }}
                                                               >
                                                                 Added Alternative
@@ -3397,6 +3930,288 @@ const IndividualRequest = () => {
                                                             )
                                                           })
                                                       : null}
+                                                    {el?.alt_parent?.length > 0
+                                                      ? el.alt_parent?.map(nestElt => {
+                                                          return (
+                                                            <>
+                                                              {nestElt?.request_status === 'Not Available' && (
+                                                                <Grid
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{
+                                                                      color: 'error.main',
+                                                                      textAlign: 'left',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
+                                                                  >
+                                                                    {/* This Product is not available */}
+                                                                    Stock Stopped
+                                                                  </Typography>
+                                                                  {nestElt?.alternate_comments && (
+                                                                    <Grid
+                                                                      onClick={() => {
+                                                                        if (nestElt?.alternate_comments) {
+                                                                          setExpandedText(nestElt.alternate_comments)
+                                                                          openNotesDialog()
+                                                                        }
+                                                                      }}
+                                                                      sx={{
+                                                                        display: 'flex',
+                                                                        width: '100%',
+                                                                        cursor: 'pointer'
+                                                                      }}
+                                                                    >
+                                                                      <Icon
+                                                                        icon={
+                                                                          'material-symbols:sticky-note-2-outline-sharp'
+                                                                        }
+                                                                        style={{
+                                                                          fontSize: '20px',
+                                                                          color: '#00000066'
+                                                                        }}
+                                                                      ></Icon>
+                                                                      <Typography
+                                                                        variant='body2'
+                                                                        sx={{
+                                                                          color: 'text.primary',
+                                                                          minWidth: 30,
+                                                                          maxWidth: 80,
+                                                                          cursor: 'pointer',
+                                                                          WebkitBoxOrient: 'vertical',
+                                                                          overflow: 'hidden',
+                                                                          textOverflow: 'ellipsis',
+                                                                          WebkitLineClamp: 6,
+                                                                          whiteSpace: 'nowrap',
+                                                                          opacity: '0.5',
+
+                                                                          ...boxStyles(nestElt.request_status)
+                                                                        }}
+                                                                      >
+                                                                        {nestElt?.alternate_comments}
+                                                                      </Typography>
+                                                                    </Grid>
+                                                                  )}
+                                                                </Grid>
+                                                              )}
+                                                              {nestElt?.request_status === 'Rejected' && (
+                                                                <Grid
+                                                                  sx={{
+                                                                    minHeight: 104,
+                                                                    maxHeight: 104,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center'
+                                                                  }}
+                                                                >
+                                                                  <Typography
+                                                                    variant='body1'
+                                                                    sx={{
+                                                                      color: 'error.main',
+                                                                      textAlign: 'left',
+                                                                      fontSize: '14px !important',
+                                                                      fontWeight: 400
+                                                                    }}
+                                                                  >
+                                                                    {/* This Product was rejected */}
+                                                                    Request Declined
+                                                                  </Typography>
+                                                                  {nestElt?.alternate_comments && (
+                                                                    <Grid
+                                                                      onClick={() => {
+                                                                        if (nestElt?.alternate_comments) {
+                                                                          setExpandedText(nestElt.alternate_comments)
+                                                                          openNotesDialog()
+                                                                        }
+                                                                      }}
+                                                                      sx={{
+                                                                        display: 'flex',
+                                                                        width: '100%',
+                                                                        cursor: 'pointer'
+                                                                      }}
+                                                                    >
+                                                                      <Icon
+                                                                        icon={
+                                                                          'material-symbols:sticky-note-2-outline-sharp'
+                                                                        }
+                                                                        style={{
+                                                                          fontSize: '20px',
+                                                                          color: '#00000066'
+                                                                        }}
+                                                                      ></Icon>
+                                                                      <Typography
+                                                                        variant='body2'
+                                                                        sx={{
+                                                                          color: 'text.primary',
+                                                                          minWidth: 30,
+                                                                          maxWidth: 80,
+                                                                          cursor: 'pointer',
+                                                                          WebkitBoxOrient: 'vertical',
+                                                                          overflow: 'hidden',
+                                                                          textOverflow: 'ellipsis',
+                                                                          WebkitLineClamp: 6,
+                                                                          whiteSpace: 'nowrap',
+                                                                          opacity: '0.5',
+
+                                                                          ...boxStyles(nestElt.request_status)
+                                                                        }}
+                                                                      >
+                                                                        {nestElt?.alternate_comments}
+                                                                      </Typography>
+                                                                    </Grid>
+                                                                  )}
+                                                                </Grid>
+                                                              )}
+                                                            </>
+                                                          )
+                                                        })
+                                                      : null}
+                                                    {el?.request_status === 'Not Available' && (
+                                                      <Grid
+                                                        sx={{
+                                                          minHeight: 104,
+                                                          maxHeight: 104,
+                                                          display: 'flex',
+                                                          flexDirection: 'column',
+                                                          justifyContent: 'center'
+                                                        }}
+                                                      >
+                                                        <Typography
+                                                          variant='body1'
+                                                          sx={{
+                                                            color: 'error.main',
+                                                            textAlign: 'left',
+                                                            fontSize: '14px !important',
+                                                            fontWeight: 400
+                                                          }}
+                                                        >
+                                                          {/* This Product is not available */}
+                                                          Stock Stopped
+                                                        </Typography>
+                                                        {el?.description ||
+                                                          (el?.alternate_comments && (
+                                                            <Grid
+                                                              onClick={() => {
+                                                                if (el?.description || el?.alternate_comments) {
+                                                                  setExpandedText(
+                                                                    el?.description || el?.alternate_comments
+                                                                  )
+                                                                  openNotesDialog()
+                                                                }
+                                                              }}
+                                                              sx={{
+                                                                display: 'flex',
+                                                                width: '100%',
+                                                                cursor: 'pointer'
+                                                              }}
+                                                            >
+                                                              <Icon
+                                                                icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                                                style={{
+                                                                  fontSize: '20px',
+                                                                  color: '#00000066'
+                                                                }}
+                                                              ></Icon>
+                                                              <Typography
+                                                                variant='body2'
+                                                                sx={{
+                                                                  color: 'text.primary',
+                                                                  minWidth: 30,
+                                                                  maxWidth: 80,
+                                                                  cursor: 'pointer',
+                                                                  WebkitBoxOrient: 'vertical',
+                                                                  overflow: 'hidden',
+                                                                  textOverflow: 'ellipsis',
+                                                                  WebkitLineClamp: 6,
+                                                                  whiteSpace: 'nowrap',
+                                                                  opacity: '0.5',
+
+                                                                  ...boxStyles(el.request_status)
+                                                                }}
+                                                              >
+                                                                {el?.description || el?.alternate_comments}
+                                                              </Typography>
+                                                            </Grid>
+                                                          ))}
+                                                      </Grid>
+                                                    )}
+                                                    {el?.request_status === 'Rejected' && (
+                                                      <Grid
+                                                        sx={{
+                                                          minHeight: 104,
+                                                          maxHeight: 104,
+                                                          display: 'flex',
+                                                          flexDirection: 'column',
+                                                          justifyContent: 'center'
+                                                        }}
+                                                      >
+                                                        <Typography
+                                                          variant='body1'
+                                                          sx={{
+                                                            color: 'error.main',
+                                                            textAlign: 'left',
+                                                            fontSize: '14px !important',
+                                                            fontWeight: 400
+                                                          }}
+                                                        >
+                                                          {/* This Product was rejected */}
+                                                          Request Declined
+                                                        </Typography>
+                                                        {el?.description ||
+                                                          (el?.alternate_comments && (
+                                                            <Grid
+                                                              onClick={() => {
+                                                                if (el?.description || el?.alternate_comments) {
+                                                                  setExpandedText(
+                                                                    el?.description || el?.alternate_comments
+                                                                  )
+                                                                  openNotesDialog()
+                                                                }
+                                                              }}
+                                                              sx={{
+                                                                display: 'flex',
+                                                                width: '100%',
+                                                                cursor: 'pointer'
+                                                              }}
+                                                            >
+                                                              <Icon
+                                                                icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                                                style={{
+                                                                  fontSize: '20px',
+                                                                  color: '#00000066'
+                                                                }}
+                                                              ></Icon>
+                                                              <Typography
+                                                                variant='body2'
+                                                                sx={{
+                                                                  color: 'text.primary',
+                                                                  minWidth: 30,
+                                                                  maxWidth: 80,
+                                                                  cursor: 'pointer',
+                                                                  WebkitBoxOrient: 'vertical',
+                                                                  overflow: 'hidden',
+                                                                  textOverflow: 'ellipsis',
+                                                                  WebkitLineClamp: 6,
+                                                                  whiteSpace: 'nowrap',
+                                                                  opacity: '0.5',
+
+                                                                  ...boxStyles(el.request_status)
+                                                                }}
+                                                              >
+                                                                {el?.description || el?.alternate_comments}
+                                                              </Typography>
+                                                            </Grid>
+                                                          ))}
+                                                      </Grid>
+                                                    )}
                                                   </>
                                                 </TableCell>
                                               </TableRow>
@@ -3420,16 +4235,23 @@ const IndividualRequest = () => {
                     <TabPanel
                       value='Shipped'
                       sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-start'
+                        // display: 'flex',
+                        // justifyContent: 'flex-start'
+                        padding: '0 !important'
                       }}
                     >
-                      <Grid sx={{ width: '100%', ml: -2, mt: -6 }}>
+                      <Grid
+                        sx={{
+                          width: '100%',
+                          px: '0 !important'
+                        }}
+                      >
                         <TabContext value={shipmentTab}>
                           <TabLists
                             onChange={(event, newValue) => {
                               setShipmentTab(newValue)
                             }}
+                            sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
                           >
                             <Tab
                               value='Ready To Ship'
@@ -3445,9 +4267,14 @@ const IndividualRequest = () => {
                               label={<TabBadge label='Shipped' totalCount={shipmentTab === 'Shipped' ? 0 : null} />}
                             />
                           </TabLists>
-                          <TabPanel value='Ready To Ship'>
+                          <TabPanel
+                            value='Ready To Ship'
+                            sx={{
+                              padding: '0px !important'
+                            }}
+                          >
                             {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
-                              <Card sx={{ minWidth: '100%', ml: -2 }}>
+                              <Card sx={{ minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                 <CardHeader
                                   title={``}
                                   action={
@@ -3462,7 +4289,7 @@ const IndividualRequest = () => {
                                             openShipDialog()
                                           }}
                                         >
-                                          Ship
+                                          Ship All Items
                                         </Button>
                                       </Grid>
                                     ) : null
@@ -3472,10 +4299,15 @@ const IndividualRequest = () => {
                               </Card>
                             )}
                           </TabPanel>
-                          <TabPanel value='Shipped'>
+                          <TabPanel
+                            value='Shipped'
+                            sx={{
+                              padding: '0px !important'
+                            }}
+                          >
                             {shippedItems?.length > 0 ? (
                               <>
-                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2 }}>
+                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                   {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic
                                     columns={shippedColumns}
@@ -3495,7 +4327,7 @@ const IndividualRequest = () => {
                   </TabContext>
                 </Grid>
 
-                <Grid container>
+                <Grid container sx>
                   <CommonDialogBox
                     noWidth={'noWidth'}
                     title={'Add Alternative Supply'}
