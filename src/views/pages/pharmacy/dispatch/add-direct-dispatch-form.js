@@ -79,7 +79,12 @@ const schema = yup.object().shape({
         value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
       )
     }),
-  request_item_qty: yup.string().required('Quantity is required'),
+  request_item_qty: yup
+    .number()
+    .typeError('Quantity must be a positive number')
+    .positive('Quantity must be a positive number')
+    .integer('Quantity must be an integer')
+    .required('Quantity is required'),
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
   expiry_date: yup.string().required('Expiry Date is required')
@@ -116,10 +121,6 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-
-  // console.log('nestedMedicine', nestedMedicine)
-  // console.log('productList', productList)
-  // console.log('batchList', batchList)
 
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
@@ -167,7 +168,7 @@ export const AddItemsForm = ({
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
-    const isMedicineAlreadyExists = editParams.request_item_details.some(
+    const isMedicineAlreadyExists = editParams?.request_item_details?.some(
       item =>
         item.request_item_medicine_id === request_item.value &&
         item.request_item_batch_no === request_item_batch_no.value &&
@@ -261,12 +262,10 @@ export const AddItemsForm = ({
 
   const checkTotalCount = async e => {
     // console.log('nestedMedicine', nestedMedicine)
-    // debugger
 
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
 
-    // debugger
     var totalCount = 0
     var enteredCount = 0
     var nestedItemQuantity = 0
@@ -289,8 +288,6 @@ export const AddItemsForm = ({
     }
 
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
-
-    // debugger
 
     setTotalAvailableCount(available_qty)
   }
@@ -316,8 +313,6 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
-    // debugger
-
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
@@ -399,7 +394,10 @@ export const AddItemsForm = ({
                       await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
                     }}
                     renderOption={(props, option) => (
-                      <li {...props}>
+                      <li
+                        {...props}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
                         <Box>
                           <Typography>{option.label}</Typography>
                           <Typography variant='body2'>{option.packageDetails}</Typography>
@@ -442,9 +440,11 @@ export const AddItemsForm = ({
                 </Box>
               )}
             </FormControl>
-            <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
-              {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
-            </Typography>
+            {watch('packageDetails') && (
+              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
+              </Typography>
+            )}
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>

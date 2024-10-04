@@ -400,7 +400,7 @@ const AddMedicine = () => {
         setProductForm([{ id: response?.data?.product_form, label: response?.data?.product_form_label }])
         setSalts(tempSalts !== null && tempSalts.length > 0 ? tempSalts : [])
         setMedicineType(response.data.stock_type)
-        debugger
+
         setDrugsClass(
           response?.data?.drug_class
             ? [{ id: response?.data?.drug_class, label: response?.data?.drug_class_label }]
@@ -1878,7 +1878,7 @@ const AddMedicine = () => {
                             <Card>
                               <CardHeader title='Upload Product Picture' />
                               <CardContent>
-                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} />
+                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} files={files} />
                               </CardContent>
                             </Card>
                           </Grid>
@@ -1893,15 +1893,30 @@ const AddMedicine = () => {
                               >
                                 Submit
                               </LoadingButton>
-                              <Button
-                                onClick={() => {
-                                  reset(defaultValues)
-                                }}
-                                size='large'
-                                variant='outlined'
-                              >
-                                Reset
-                              </Button>
+
+                              {id === undefined && action !== 'edit' && (
+                                <Button
+                                  onClick={() => {
+                                    reset(defaultValues)
+                                    setDefaultManufacturer(null)
+                                    setDefaultGenericName(null)
+                                    setDefaultPackage(null)
+                                    setDefaultUom(null)
+                                    setDefaultProductForm(null)
+                                    setDefaultSaltName(null)
+                                    setDefaultDrugClass(null)
+                                    setDefaultStorage(null)
+                                    setDefaultSalts([])
+                                    setShouldClearFields(false)
+                                    setFiles([])
+                                    setUploadedImage(null)
+                                  }}
+                                  size='large'
+                                  variant='outlined'
+                                >
+                                  Reset
+                                </Button>
+                              )}
                             </Box>
 
                             {/* {id === undefined && (

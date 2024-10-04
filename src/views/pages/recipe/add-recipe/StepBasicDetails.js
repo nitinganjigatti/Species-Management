@@ -26,6 +26,7 @@ const defaultValues = {
   recipe_name: '',
   portion_size: '',
   portion_uom_id: '',
+  portion_uom_name: '',
   nutrional_value: '',
   nutrional_uom_id: '',
   kcal: ''
@@ -52,6 +53,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     handleSubmit,
     clearErrors,
     watch,
+    setValue,
     formState: { errors }
   } = useForm({
     mode: 'all',
@@ -127,8 +129,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
     Router.push('/diet/recipe/')
   }
 
-  console.log(errors, 'nknn')
-  console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
 
   return (
@@ -156,11 +156,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                   />
                 )}
               />
+
               {errors.recipe_name && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.recipe_name?.message}</FormHelperText>
               )}
             </FormControl>
           </Grid>
+
           <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
             <Grid item xs={12} sm={3}>
               <FormControl fullWidth>
@@ -208,9 +210,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       isOptionEqualToValue={(option, value) => option?._id === value?._id}
                       onChange={(e, val) => {
                         if (val === null) {
-                          return onChange('')
+                          onChange('')
+                          setValue('portion_uom_name', '')
                         } else {
-                          return onChange(val._id)
+                          onChange(val._id)
+                          setValue('portion_uom_name', val.name)
                         }
                       }}
                       renderInput={params => (
@@ -351,7 +355,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
               <Button
                 color='secondary'
                 variant='outlined'
-                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                // startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
                 onClick={cancelBack}
               >

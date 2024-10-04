@@ -18,6 +18,7 @@ import { FormControlLabel, Switch } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
+import { Tooltip } from '@mui/material'
 
 const StockOut = () => {
   const [loader, setLoader] = useState(false)
@@ -46,8 +47,6 @@ const StockOut = () => {
       try {
         setLoading(true)
 
-        // debugger
-
         const params = {
           sort,
           q,
@@ -58,11 +57,18 @@ const StockOut = () => {
         }
 
         await getStockOutItems({ params: params }).then(res => {
-          setTotal(parseInt(res?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.list_items))
+          if (res?.list_items.length > 0) {
+            setTotal(parseInt(res?.total_count))
+            setRows(loadServerRows(paginationModel.page, res?.list_items))
+          } else {
+            setTotal(0)
+            setRows([])
+          }
         })
         setLoading(false)
       } catch (error) {
+        setTotal(0)
+        setRows([])
         console.log('error', error)
         setLoading(false)
       }
@@ -131,9 +137,11 @@ const StockOut = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_item_name}
-        </Typography>
+        <Tooltip title={params.row.stock_item_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_item_name}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -248,7 +256,7 @@ const StockOut = () => {
   }
 
   // const handleChange = (event, newValue) => {
-  //   // debugger
+  //
   //   setStatus(newValue)
   // }
 
@@ -414,6 +422,7 @@ const StockOut = () => {
             slots={{ toolbar: ServerSideToolbar }}
             onPaginationModelChange={setPaginationModel}
             loading={loading}
+            disableColumnMenu
             slotProps={{
               baseButton: {
                 variant: 'outlined'

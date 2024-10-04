@@ -1,9 +1,12 @@
 import { Icon } from '@iconify/react'
-import { Avatar, Box, Card, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Card, IconButton, Stack, Typography } from '@mui/material'
 import React from 'react'
+import { useRouter } from 'next/navigation'
 
 const ShowLabCard = ({ data }) => {
-  // console.log('data?.image', data?.image)
+  const router = useRouter()
+
+  console.log('data?.image', data)
 
   // console.log('process.env.NEXT_PUBLIC_BASE_URL', process.env.NEXT_PUBLIC_BASE_URL + 'uploads/')
 
@@ -11,7 +14,19 @@ const ShowLabCard = ({ data }) => {
     <>
       <Card sx={{ px: 5, py: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 2 }}>
-          <Typography sx={{ fontWeight: 'bold', pb: 4 }}>{data?.lab_name}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <IconButton
+              sx={{ mr: 1, alignItems: 'flex-start' }}
+              onClick={() =>
+                router.push({
+                  pathname: '/lab/lab-list'
+                })
+              }
+            >
+              <Icon icon='ep:back' fontSize={25} />
+            </IconButton>
+            <Typography sx={{ fontWeight: 'bold', ml: 2 }}>{data?.lab_name}</Typography>
+          </Box>
           <Box sx={{ maxWidth: 130, height: 100 }}>
             {/* <img
               src={}

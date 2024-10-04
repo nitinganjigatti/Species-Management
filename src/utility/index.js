@@ -2,6 +2,7 @@ import moment from 'moment'
 import toast from 'react-hot-toast'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -45,7 +46,6 @@ function formatDisplayDate(date) {
 function errorMessageExtractorFromObject(errorMessages) {
   for (const key in errorMessages) {
     if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
-      debugger
       const errorMessage = errorMessages[key]
       toast.error(errorMessage)
 
@@ -73,6 +73,13 @@ function getPreviousDaysDate(todayDate, days) {
 
   return previousDate
 }
+function getFeaturesDates(todayDate, days) {
+  const date = new Date(todayDate.getTime())
+  date.setDate(date.getDate() + days)
+  const featureDate = moment(date).format('YYYY-MM-DD')
+
+  return featureDate
+}
 function daysFromToday(inputDate) {
   const today = moment()
   const targetDate = moment(inputDate, 'YYYY-MM-DD')
@@ -80,11 +87,20 @@ function daysFromToday(inputDate) {
   const differenceInDays = targetDate.diff(today, 'days')
   if (Math.abs(differenceInDays) === 0) {
     return 'Today'
+  } else if (Math.abs(differenceInDays) === 1) {
+    return `${Math.abs(differenceInDays)} Day`
   } else {
     return `${Math.abs(differenceInDays)} Days`
   }
 }
 
+function renderUserAvatar(image) {
+  if (image) {
+    return <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+  } else {
+    return <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+  }
+}
 function convertUTCToLocal(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
@@ -114,11 +130,13 @@ const Utility = {
   formatDisplayDate,
   errorMessageExtractorFromObject,
   exportToCSV,
+  getFeaturesDates,
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
   extractHoursAndMinutes,
-  toPascalSentenceCase
+  toPascalSentenceCase,
+  renderUserAvatar
 }
 
 export default Utility

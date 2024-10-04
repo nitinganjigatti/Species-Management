@@ -391,8 +391,8 @@ function ProductForm({
   useEffect(() => {
     if (!editMode) {
       try {
-        getProductList({ params: { sort: 'asc', q: '', limit: 20 } }).then(res => {
-          if (res?.data?.list_items.length > 0) {
+        getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
+          if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
@@ -411,8 +411,8 @@ function ProductForm({
   const searchProductData = useCallback(
     debounce(async searchText => {
       try {
-        await getProductList({ params: { sort: 'asc', q: searchText, limit: 20 } }).then(res => {
-          if (res?.data?.list_items.length > 0) {
+        await getProductList({ params: { sort: 'asc', q: searchText, limit: 20, is_specific: 1 } }).then(res => {
+          if (res?.data?.list_items?.length > 0) {
             // console.log('first', res?.data)
             setProducts(
               res?.data?.list_items?.map(item => ({

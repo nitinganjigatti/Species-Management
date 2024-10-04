@@ -111,7 +111,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     localIdentifier: '',
     sexingType: '',
     lifeStage: '',
-    contraceptionType: ''
+    contraceptionType: '',
+    enclosure_id: ''
   }
 
   const schema = yup.object().shape({
@@ -149,7 +150,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
 
           return true // Otherwise, always pass validation
         }
-      )
+      ),
+    enclosure_id: yup.string().required('Enclosure is required')
   })
 
   const {
@@ -678,17 +680,17 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                   />
                                 </Box>
 
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
+                                    </Typography>
 
                                   <Typography
                                     sx={{
@@ -936,7 +938,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
                     )}
                   </FormControl>
-                  {/* } */}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='parentMother'>Parent Mother</InputLabel>
                     <Controller

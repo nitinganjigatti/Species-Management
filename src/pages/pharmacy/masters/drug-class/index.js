@@ -158,7 +158,6 @@ const ListOfDrugs = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
-      debugger
       try {
         setLoading(true)
 
@@ -197,7 +196,6 @@ const ListOfDrugs = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
-      debugger
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
@@ -296,6 +294,7 @@ const ListOfDrugs = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  disableColumnMenu
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

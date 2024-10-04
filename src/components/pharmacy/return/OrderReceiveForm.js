@@ -132,10 +132,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const handleStatusChange = (itemId, event) => {
-    console.log('eventsss', event)
     const { name, value } = event.target
-    console.log('name', name)
-    console.log('value', value)
 
     const updatedData = {
       ...disputeItemDetails,
@@ -144,22 +141,18 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
-    // debugger
-    console.log('updatedData', updatedData)
+
     setDisputeItemDetails(updatedData)
   }
 
   const clearStatus = (itemId, event) => {
-    console.log('event', event)
-
     const updatedData = {
       ...disputeItemDetails,
       item_details: disputeItemDetails.item_details.map(item =>
         item.id === itemId ? { ...item, status: '', wrong_count_type: '', wrong_count_number: '' } : item
       )
     }
-    // debugger
-    console.log('updatedData', updatedData)
+
     setDisputeItemDetails(updatedData)
   }
 
@@ -168,7 +161,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const getStatusList = async () => {
     try {
       const status = await getShipmentStatusList()
-      // console.log('status', status)
       if (status?.success) {
         setStatusOptions(status?.data)
       }
@@ -180,7 +172,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const getOrderDetails = async orderId => {
     try {
       const response = await getShipmentOrderDetails(orderId)
-      console.log('getOrderDetails', response?.data)
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
@@ -221,8 +212,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             : response?.data?.receiver_name,
           phone_number: response?.data?.phone_number
         })
-        // debugger
-        console.log('orderData datta', orderData)
 
         const disputesData = {
           shipment_id: orderId,
@@ -255,7 +244,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
   function disableButton() {
-    console.log('buttons', orderData?.item_details)
     if (disputeItemDetails?.item_details) {
       const allReceived = disputeItemDetails?.item_details.every(item => item.status === '')
 
@@ -289,14 +277,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     const items = disputeItemDetails
     items['item_details'] = updatedItemDetails
     setDisputeItemDetails({ ...disputeItemDetails, items })
-    console.log('after update', disputeItemDetails)
-    // debugger
     updateStatus()
   }
 
   const resolveItems = async payload => {
     var itemsToResolve
-    console.log('line data', payload)
     if (payload?.status === 'Missing') {
       itemsToResolve = {
         from_store: payload.from_store,
@@ -343,12 +328,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       }
     }
 
-    console.log('payload', itemsToResolve)
     try {
       setResolveLoader(true)
 
       const resolved = await resolveDisputeItems(itemsToResolve)
-      console.log('resolve response ', resolved)
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
@@ -364,7 +347,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
 
   const rejectItems = async payload => {
-    console.log('row datta', payload)
     if (payload?.status === 'Missing') {
       setRejectItemsPayload({
         ...rejectItemsPayload,
@@ -417,7 +399,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       })
     }
 
-    console.log('params', payload)
     openDisputeDialog()
   }
 
@@ -432,7 +413,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     try {
       setResolveLoader(true)
       const resolved = await resolveDisputeItems(rejectItemsPayload)
-      console.log('rejected response', resolved)
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
@@ -441,8 +421,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       } else {
         setResolveLoader(false)
       }
-
-      console.log('resolve response ', resolved)
     } catch (error) {
       setResolveLoader(false)
 
@@ -458,7 +436,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         setListComments(comments)
         openCommentDialog()
       }
-      console.log('comments', comments)
     } catch (error) {
       console.log('comments error', error)
     }
@@ -692,7 +669,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                   type='text'
                                   error={Boolean(rejectItemsError ? rejectItemsError : null)}
                                   onChange={e => {
-                                    debugger
                                     setRejectItemsPayload({
                                       ...rejectItemsPayload,
                                       comment: e.target.value
@@ -723,8 +699,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                 variant='contained'
                                 color='primary'
                                 onClick={() => {
-                                  // action()
-                                  console.log('rejectItemsPayload', rejectItemsPayload)
                                   submitRejectItems()
                                 }}
                               >
@@ -1083,7 +1057,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   ]
 
   async function updateStatus() {
-    console.log('error', wrongCountErr)
     if (Object.keys(wrongCountErr).length > 0) {
       console.error('Cannot submit form due to errors.')
 
@@ -1101,10 +1074,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
     // const receivedItems = disputeItemDetails?.item_details?.filter(item => item.status === 'Received')
     // const notReceivedItems = disputeItemDetails?.item_details?.filter(item => item.status !== 'Received')
-
-    console.log('receivedItems: ', receivedItems)
-    // console.log('notReceivedItems: ', notReceivedItems)
-    console.log('disputeItemDetails3: ', disputeItemDetails)
 
     if (receivedItems.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
@@ -1150,13 +1119,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         return true
       })
-      console.log('finalReceivedItemssssss', finalReceivedItems)
-      console.log('verifyCount', verifyCount)
+
       if (verifyCount) {
         try {
           setSubmitLoader(true)
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
-          console.log('in block', finalReceivedItems)
 
           if (result?.success) {
             toast.success(result?.msg)
@@ -1276,7 +1243,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
             />
           )}
-          {console.log('disputeItemDetails?.delivery_status ', disputeItemDetails?.delivery_status)}
           {disputeItemDetails?.item_details?.length > 0 ? (
             <>
               {disputeItemDetails?.delivery_status !== 'Delivered'

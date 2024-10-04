@@ -26,6 +26,7 @@ import Tooltip from '@mui/material/Tooltip'
 import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
 
 const FeedTypes = () => {
   const [rows, setRows] = useState([])
@@ -68,42 +69,14 @@ const FeedTypes = () => {
 
         await getFeedTypeList(params).then(res => {
           if (res?.success) {
+            const startingIndex = paginationModel.page * paginationModel.pageSize
             let listWithId = res.data.result.map((el, i) => {
-              return { ...el, uid: i + 1 }
+              return { ...el, uid: startingIndex + i + 1 }
             })
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, listWithId))
           } else {
-            return toast(
-              t => (
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
-                    <div>
-                      <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                        Success!
-                      </Typography>
-                      <Divider sx={{ my: 2 }} />
-                      <Typography variant='body2' sx={{ color: '#44544A' }}>
-                        {res?.message}
-                      </Typography>
-                    </div>
-                  </Box>
-                  <IconButton
-                    onClick={() => toast.dismiss(t.id)}
-                    style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-                  >
-                    <Icon icon='mdi:close' fontSize={24} />
-                  </IconButton>
-                </Box>
-              ),
-              {
-                style: {
-                  minWidth: '450px',
-                  minHeight: '130px'
-                }
-              }
-            )
+            Toaster({ type: 'success', message: res?.message })
           }
         })
         setLoading(false)
@@ -126,7 +99,7 @@ const FeedTypes = () => {
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
       )
@@ -137,12 +110,18 @@ const FeedTypes = () => {
       field: 'feed_type_name',
       headerName: 'FEEDS',
       renderCell: params => (
-        <Tooltip title={params.row.feed_type_name} placement='right'>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
-            {params.row.feed_type_name}
-          </Box>
-        </Tooltip>
+        <>
+          <Avatar variant='square' src={params?.row?.image} alt={params.row.id} />
+          <Tooltip title={params.row.feed_type_name} placement='right'>
+            <Typography
+              variant='body2'
+              sx={{ ml: 2, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {' '}
+              {params.row.feed_type_name}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
@@ -152,7 +131,7 @@ const FeedTypes = () => {
       headerName: 'DESCRIPTION',
       renderCell: params => (
         <Tooltip title={params.row.desc} placement='bottom'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {params.row.desc}
           </Typography>
         </Tooltip>

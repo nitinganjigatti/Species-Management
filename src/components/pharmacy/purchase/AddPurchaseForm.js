@@ -48,6 +48,9 @@ import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
+import moment from 'moment'
+import { AuthContext } from 'src/context/AuthContext'
+import { useContext } from 'react'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -130,6 +133,7 @@ const AddPurchaseForm = () => {
   const { id, action } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -258,7 +262,7 @@ const AddPurchaseForm = () => {
 
   // const calculateFinalAmount = useCallback(
   //   discountValue => {
-  //     debugger
+  //
   //     let finalAmount = totalLineItemsPurchase
   //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
   //     let netAmount = 0
@@ -397,7 +401,7 @@ const AddPurchaseForm = () => {
     //   payload.purchase_batch_no !== '' &&
     //   payload.purchase_expiry_date !== ''
     // if (HasErrors === false) {
-    //   debugger
+    //
     //   setItemErrors(validate(payload))
 
     //   return
@@ -467,8 +471,6 @@ const AddPurchaseForm = () => {
     //   nestedRowMedicine.purchase_batch_no !== '' &&
     //   nestedRowMedicine.purchase_expiry_date !== ''
 
-    // debugger
-
     // if (HasErrors === false) {
     //   setItemErrors(validate(nestedRowMedicine))
 
@@ -507,7 +509,7 @@ const AddPurchaseForm = () => {
     postData.discount_amount = totalLineItemsDiscount
     postData.taxable_amount = totalLineItemsTaxableAmount
     // postData.discount_percentage = calculate_lineItem_discount_percentage
-
+    // console.log('postData', postData)
     if (id) {
       postData.antz_pharmacy_purchase_id = id
       const response = await updatePurchase(id, postData)
@@ -530,7 +532,6 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -622,6 +623,8 @@ const AddPurchaseForm = () => {
           searchResults?.data?.list_items?.map(item => ({
             value: item.id,
             label: item.name,
+            status: item?.active === '0' ? 0 : 1,
+
             purchase_unit_price: item?.price,
             tax_type: item.gst_value ? item.gst_value : '',
             stock_type: item.stock_type,
@@ -642,12 +645,19 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+
       if (response.success && response.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
           purchase_expiry_date: response.data.expiry_date
         }))
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: ''
+        }))
+        setProductExpiryDate('')
       }
     } catch (error) {
       console.log('supplier error', error)
@@ -659,7 +669,6 @@ const AddPurchaseForm = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
-      debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {
@@ -686,7 +695,7 @@ const AddPurchaseForm = () => {
     try {
       const result = await getPurchaseListById(id)
       if (result.success === true && result.data !== '') {
-        const lineItems = result.data.purchase_detailss.map(el => {
+        const lineItems = result?.data?.purchase_detailss?.map(el => {
           return {
             ...el,
             medicine_name: el?.stock_item_name,
@@ -789,7 +798,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -829,6 +838,8 @@ const AddPurchaseForm = () => {
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
+        id: getItems[0]?.id,
+
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
         index,
@@ -837,7 +848,7 @@ const AddPurchaseForm = () => {
           ? getItems[0].purchase_stock_item_id
           : getItems[0].purchase_unit_id,
         purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: getItems[0].purchase_expiry_date,
+        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
         purchase_unit_price: getItems[0].purchase_unit_price,
         purchase_qty: getItems[0].purchase_qty,
         purchase_free_quantity: getItems[0].purchase_free_quantity,
@@ -879,7 +890,6 @@ const AddPurchaseForm = () => {
     //     return
     //   }
     // }
-
     setSubmitLoader(true)
 
     const postData = editParams
@@ -907,7 +917,6 @@ const AddPurchaseForm = () => {
         Router.push('/pharmacy/purchase/purchase-list/')
       } else {
         setSubmitLoader(false)
-        console.log('response catch purchase', response)
         if (response.data?.po_no) {
           toast.error('Purchase number already exist ')
         }
@@ -946,6 +955,7 @@ const AddPurchaseForm = () => {
   return (
     <Card>
       <Grid
+        item
         container
         sm={12}
         xs={12}
@@ -968,14 +978,15 @@ const AddPurchaseForm = () => {
           }
           title={id ? 'Edit Inventory List' : 'Add Inventory'}
         />
-
-        <AddButton
-          styles={{ marginRight: 20 }}
-          title='Add Supplier'
-          action={() => {
-            setSupplierDialog(true)
-          }}
-        />
+        {authData?.userData?.roles?.settings?.add_pharmacy && (
+          <AddButton
+            styles={{ marginRight: 20 }}
+            title='Add Supplier'
+            action={() => {
+              setSupplierDialog(true)
+            }}
+          />
+        )}
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -1023,13 +1034,14 @@ const AddPurchaseForm = () => {
                     <SingleDatePicker
                       name='Purchase Date*'
                       fullWidth
+                      maxDate={new Date()}
                       date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
                         let formatted = formatDate(date)
                         onChange(formatted)
                       }}
-                      customInput={<CustomInput label='Another Date' error={Boolean(errors.po_date)} />}
+                      customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
                     />
                   )}
                 />

@@ -44,12 +44,13 @@ const AddFeedType = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
+  const [btnLoader, setBtnLoader] = useState(false)
 
-  const [openSnackbar, setOpenSnackbar] = useState({
-    open: false,
-    severity: '',
-    message: ''
-  })
+  // const [openSnackbar, setOpenSnackbar] = useState({
+  //   open: false,
+  //   severity: '',
+  //   message: ''
+  // })
 
   const schema = yup.object().shape({
     status: yup.string().required('Status is Required'),
@@ -120,7 +121,7 @@ const AddFeedType = () => {
     const { status, name, description, feedImg } = { ...params }
 
     const payload = {
-      active: status == 'inactive' ? 0 : 1,
+      status: status == 'inactive' ? 0 : 1,
       feed_type_name: name,
       desc: description,
       feed_type_key: name,
@@ -129,12 +130,21 @@ const AddFeedType = () => {
 
     if (id) {
       try {
+        setBtnLoader(true)
         await updateFeedType({ ...payload }, id).then(res => {
-          Router.push('/diet/feed')
+          console.log(res, 'res')
           if (res?.success) {
-            Toaster({ type: 'success', message: res?.data })
+            setBtnLoader(false)
+
+            Router.push('/diet/feed')
+
+            Toaster({ type: 'success', message: 'Feed Type' + ' ' + res?.data })
           } else {
-            Toaster({ type: 'error', message: res?.data })
+            setBtnLoader(false)
+            Toaster({
+              type: 'error',
+              message: res?.message?.feed_type_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
           }
         })
       } catch (error) {
@@ -142,73 +152,19 @@ const AddFeedType = () => {
       }
     } else {
       try {
+        setBtnLoader(true)
         await addFeedType(payload).then(res => {
           if (res?.success) {
             Router.push('/diet/feed')
+            setBtnLoader(false)
 
-            // return toast(
-            //   t => (
-            //     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            //         <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-            //         <div>
-            //           <Typography sx={{ fontWeight: 500 }} variant='h5'>
-            //             Success!
-            //           </Typography>
-            //           <Divider sx={{ my: 2 }} />
-            //           <Typography sx={{ fontWeight: 500 }} variant='body2'>
-            //             {res?.message}
-            //           </Typography>
-            //         </div>
-            //       </Box>
-            //       <IconButton
-            //         onClick={() => toast.dismiss(t.id)}
-            //         style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-            //       >
-            //         <Icon icon='mdi:close' fontSize={24} />
-            //       </IconButton>
-            //     </Box>
-            //   ),
-            //   {
-            //     style: {
-            //       minWidth: '450px',
-            //       minHeight: '130px'
-            //     }
-            //   }
-            // )
-            Toaster({ type: 'success', message: res?.data })
+            Toaster({ type: 'success', message: 'Feed Type' + ' ' + res?.data })
           } else {
-            // return toast(
-            //   t => (
-            //     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            //         <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
-            //         <div>
-            //           <Typography sx={{ fontWeight: 500 }} variant='h5'>
-            //             Error!
-            //           </Typography>
-            //           <Divider sx={{ my: 2 }} />
-            //           <Typography sx={{ fontWeight: 500 }} variant='body2'>
-            //             {res?.message}
-            //           </Typography>
-            //         </div>
-            //       </Box>
-            //       <IconButton
-            //         onClick={() => toast.dismiss(t.id)}
-            //         style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-            //       >
-            //         <Icon icon='mdi:close' fontSize={24} />
-            //       </IconButton>
-            //     </Box>
-            //   ),
-            //   {
-            //     style: {
-            //       minWidth: '450px',
-            //       minHeight: '130px'
-            //     }
-            //   }
-            // )
-            Toaster({ type: 'error', message: res?.message })
+            setBtnLoader(false)
+            Toaster({
+              type: 'error',
+              message: res?.message?.feed_type_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
           }
         })
       } catch (error) {
@@ -220,7 +176,13 @@ const AddFeedType = () => {
   const RenderSidebarFooter = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
-        <LoadingButton size='large' type='submit' variant='contained' disabled={watch('name') === ''}>
+        <LoadingButton
+          loading={btnLoader}
+          size='large'
+          type='submit'
+          variant='contained'
+          disabled={watch('name') === '' || btnLoader}
+        >
           {id ? 'Update' : 'Save'}
         </LoadingButton>
         <Button onClick={() => Router.push('/diet/feed')} size='large' type='reset' color='error' variant='outlined'>
@@ -372,9 +334,9 @@ const AddFeedType = () => {
                 )}
 
                 <RenderSidebarFooter />
-                {openSnackbar.open ? (
+                {/* {openSnackbar.open ? (
                   <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
-                ) : null}
+                ) : null} */}
               </form>
             </CardContent>
           </Card>

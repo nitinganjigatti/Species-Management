@@ -11,7 +11,7 @@ import TabContext from '@mui/lab/TabContext'
 
 import TabList from '@mui/lab/TabList'
 import moment from 'moment'
-import { Avatar, Button, Box, Divider, Select, MenuItem } from '@mui/material'
+import { Avatar, Button, Box, Divider, Select, MenuItem, Tooltip } from '@mui/material'
 import toast from 'react-hot-toast'
 import NotesIcon from '@mui/icons-material/Notes'
 
@@ -78,24 +78,6 @@ const Diet = () => {
     setTotal(0)
     setStatus(newValue)
   }
-
-  // const handleStatusChange = (event, newValue) => {
-  //   debugger
-  //   setStatus(newValue)
-
-  //   const newData = [...Dietdata]
-  //   if (newValue === '2') {
-  //     setFilterStatusData(newData)
-  //   } else {
-  //     const filterList = newData?.filter(item => item.active === newValue)
-  //     setFilterStatusData(filterList)
-  //   }
-  // }
-
-  // const onClose = () => {
-  //   setDialog(false)
-  // }
-
   // const addEventSidebarOpen = () => {
   //   setOpenDrawer(true)
   //   setSelectedCard([])
@@ -114,9 +96,7 @@ const Diet = () => {
         const params = {
           sort,
           q,
-
           sortColumn,
-
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           status
@@ -124,18 +104,12 @@ const Diet = () => {
 
         await getDietList({ params: params }).then(res => {
           console.log('response', res)
-
-          // setDietData(res?.data?.result)
-
-          // Generate uid field based on the index
+          const startingIndex = paginationModel.page * paginationModel.pageSize
           let listWithId = res.data.result.map((el, i) => {
-            return { ...el, uid: i + 1 }
+            return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
-
           setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
         setLoading(false)
       } catch (e) {
@@ -257,9 +231,8 @@ const Diet = () => {
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
-          {console.log(params.row)}
         </Typography>
       )
     },
@@ -273,13 +246,26 @@ const Diet = () => {
           <Avatar
             variant='square'
             alt='Diet Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '50%' }}
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
             src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.diet_name ? params.row.diet_name : '-'}
-            </Typography>
+            <Tooltip title={params.row.diet_name} placement='right'>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '150px'
+                }}
+              >
+                {params.row.diet_name ? params.row.diet_name : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )
@@ -290,7 +276,7 @@ const Diet = () => {
       field: 'no_meals',
       headerName: 'No meals',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.num_meals ? params.row.num_meals : '-'}
         </Typography>
       )
@@ -301,7 +287,7 @@ const Diet = () => {
       field: 'no_recipe',
       headerName: 'No Recipe',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
         </Typography>
       )
@@ -368,7 +354,7 @@ const Diet = () => {
               {params.row.user_name ? params.row.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_at ? 'Created on' + ' ' + moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
             </Typography>
           </Box>
         </Box>

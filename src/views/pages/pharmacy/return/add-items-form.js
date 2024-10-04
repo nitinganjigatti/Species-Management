@@ -84,6 +84,7 @@ export const AddItemsForm = ({
   searchBatchData,
   batchLoading,
   batchList,
+  setBatchList,
   nestedMedicine,
   error,
   totalQuantity,
@@ -128,8 +129,6 @@ export const AddItemsForm = ({
   // console.log('batchLoading', batchLoading)
 
   const onSubmit = async params => {
-    debugger
-
     const {
       request_item_batch_no,
       request_item_qty,
@@ -219,7 +218,6 @@ export const AddItemsForm = ({
     // }
     clearErrors('request_item_batch_no')
 
-    // debugger
     if (Number(request_item_qty) > Number(available_item_qty)) {
       setQuantityError(true)
 
@@ -337,12 +335,12 @@ export const AddItemsForm = ({
 
   // const checkTotalCount = e => {
   //   console.log('nestedMedicine', nestedMedicine)
-  //   debugger
+  //
 
   //   // console.log('editParams', editParams)
   //   const productId = watch('request_item')
   //   const quantity = watch('request_item_qty')
-  //   debugger
+
   //   var totalCount = 0
   //   var enteredCount = 0
   //   var nestedItemQuantity = 0
@@ -370,8 +368,6 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
-      console.log('Please', nestedMedicine)
-
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
@@ -389,7 +385,6 @@ export const AddItemsForm = ({
         packageDetails: nestedMedicine?.packageDetails,
         manufacture: nestedMedicine?.manufacture
       })
-      console.log('nested medicine in form', nestedMedicine)
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
       }
@@ -431,7 +426,6 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
-                      debugger
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
@@ -441,12 +435,12 @@ export const AddItemsForm = ({
                       setValue('manufacture', '')
 
                       if (value !== '' && value !== null) {
-                        // debugger
-                        console.log('values', value)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
                         setValue('manufacture', value.manufacture)
+                      } else {
+                        setBatchList([])
                       }
 
                       checkTotalCount()
@@ -498,11 +492,11 @@ export const AddItemsForm = ({
                 </Box>
               )}
             </FormControl>
-            {/* {totalAvailableCount ? ( */}
-            <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
-              {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
-            </Typography>
-            {/* ) : null} */}
+            {totalAvailableCount ? (
+              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
+              </Typography>
+            ) : null}
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
@@ -519,16 +513,13 @@ export const AddItemsForm = ({
                     value={field.value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
-                      // console.log('batch values', value)
-
-                      // setValue('request_item', value)
                       setValue('request_item_batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
                       clearErrors('request_item_batch_no')
                       checkTotalCount()
                       setQuantityError(false)
-                    }} // Set selected value
+                    }}
                     loading={batchLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (

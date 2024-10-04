@@ -38,7 +38,6 @@ const ListOfMedicine = () => {
   const [configureMedId, setConfigureMedId] = useState('')
 
   const { selectedPharmacy } = usePharmacyContext()
-  console.log(selectedPharmacy)
 
   const closeDialog = () => {
     setShow(false)
@@ -49,8 +48,6 @@ const ListOfMedicine = () => {
   }
 
   const handleEdit = async row => {
-    console.log('row', row)
-    debugger
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
@@ -284,6 +281,7 @@ const ListOfMedicine = () => {
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
+      setSort(newModel[0].sort)
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
@@ -366,6 +364,7 @@ const ListOfMedicine = () => {
                   </Grid>
                 </Grid>
                 <DataGrid
+                  sx={{ cursor: 'pointer' }}
                   columnVisibilityModel={{
                     id: false
                   }}
@@ -384,6 +383,7 @@ const ListOfMedicine = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  disableColumnMenu
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

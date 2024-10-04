@@ -64,45 +64,51 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
 
   return (
     <>
-      <Box
-        {...getRootProps({ className: 'dropzone' })}
-        sx={uploadedImage.length ? { position: 'absolute', width: '34%' } : {}}
-      >
-        <input {...getInputProps()} />
+      {!uploadedImage.length > 0 ? (
         <Box
-          sx={{
-            alignItems: 'center',
-            flexDirection: ['column', 'column', 'row'],
-            alignSelf: 'left',
-            border: '1px solid #D8D8DD',
-            padding: '20px',
-            borderRadius: '12px'
-          }}
-          className='wwwr'
+          {...getRootProps({ className: 'dropzone' })}
+          sx={uploadedImage.length ? { position: 'absolute', width: '34%' } : {}}
         >
-          {/* <Img width={300} alt='Upload img' src='/images/misc/upload.png' /> */}
+          <input {...getInputProps()} />
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'left',
-              flex: 1,
-              textAlign: ['left', 'left', 'inherit']
+              alignItems: 'center',
+              flexDirection: ['column', 'column', 'row'],
+              alignSelf: 'left',
+              border: '1px solid #D8D8DD',
+              padding: '20px',
+              borderRadius: '12px'
             }}
-            className='ppp'
+            className='wwwr'
           >
-            <div className='' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
-              <div style={{ border: '2px dotted #D8D8DD', padding: '20px', borderRadius: '4px', marginRight: '14px' }}>
-                <Icon icon='fluent:image-add-20-regular' style={{ fontSize: '40px' }} />
+            {/* <Img width={300} alt='Upload img' src='/images/misc/upload.png' /> */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'left',
+                flex: 1,
+                textAlign: ['left', 'left', 'inherit']
+              }}
+              className='ppp'
+            >
+              <div className='' style={{ alignContent: 'left', display: 'flex', alignItems: 'center' }}>
+                <div
+                  style={{ border: '2px dotted #D8D8DD', padding: '20px', borderRadius: '4px', marginRight: '14px' }}
+                >
+                  <Icon icon='fluent:image-add-20-regular' style={{ fontSize: '40px' }} />
+                </div>
+                <Typography color='textSecondary' sx={{ '& a': { color: 'primary.main', textDecoration: 'none' } }}>
+                  <span>Drop your image here</span>
+                  <Link href='/' onClick={e => e.preventDefault()}></Link>{' '}
+                </Typography>
               </div>
-              <Typography color='textSecondary' sx={{ '& a': { color: 'primary.main', textDecoration: 'none' } }}>
-                <span>Drop your image here</span>
-                <Link href='/' onClick={e => e.preventDefault()}></Link>{' '}
-              </Typography>
-            </div>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      ) : (
+        ''
+      )}
       {console.log(uploadedImage, 'uploadedImage')}
       {uploadedImage.length > 0 ? (
         <div
@@ -111,7 +117,7 @@ const CustomFileUploaderSingle = ({ onImageUpload, imageData, props, uploadedIma
             width: '135px',
             height: '135px',
             position: 'relative',
-            left: '96%',
+            left: '0%',
             background: '#E8F4F2',
             padding: '20px'
           }}

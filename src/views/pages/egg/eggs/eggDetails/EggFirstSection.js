@@ -28,6 +28,7 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import moment from 'moment'
 import AllocationSlider from '../allocationSlider'
 import DiscardForm from 'src/components/egg/DiscardForm'
+
 // import Router from 'next/router'
 import Utility from 'src/utility'
 import EditEggInfo from 'src/components/egg/EditEggInfo'
@@ -155,23 +156,33 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
     <>
       <Card>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => handleBackButton()}
-              color={theme.palette.customColors.OnSurfaceVariant}
-              icon='material-symbols:arrow-back'
-            />
-            <Typography
-              sx={{
-                color: theme.palette.secondary.dark,
-                fontWeight: 500,
-                fontSize: '24px',
-                lineHeight: '29.05px'
-              }}
-            >
-              Egg Details
-            </Typography>
+          <Box sx={{ flexDirection: 'row', display: 'flex', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleBackButton()}
+                color={theme.palette.customColors.OnSurfaceVariant}
+                icon='material-symbols:arrow-back'
+              />
+              <Typography
+                sx={{
+                  color: theme.palette.secondary.dark,
+                  fontWeight: 500,
+                  fontSize: '24px',
+                  lineHeight: '29.05px'
+                }}
+              >
+                Egg Details
+              </Typography>
+            </Box>
+            {/* <Box>
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => setOpenEditDrawer(true)}
+                color={theme.palette.customColors.OnSurfaceVariant}
+                icon='mdi:pencil-outline'
+              />
+            </Box> */}
           </Box>
           <Grid container>
             <Grid
@@ -296,7 +307,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'column', md: 'column', lg: 'row' },
                   justifyContent: 'space-between',
-                  mb: '24px'
+                  mb: '24px',
+                  alignItems: 'flex-start'
                 }}
               >
                 <Box sx={{ height: '72px' }}>

@@ -243,7 +243,6 @@ const StorageList = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        debugger
 
         // setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
         if (typeof response?.message === 'object') {
@@ -295,6 +294,7 @@ const StorageList = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  disableColumnMenu
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

@@ -10,9 +10,9 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
+import { Tooltip } from '@mui/material'
 
 const ExpiredMedicine = () => {
   const [loader, setLoader] = useState(false)
@@ -49,7 +49,6 @@ const ExpiredMedicine = () => {
         }
 
         await getExpiredMedicine({ params: params }).then(res => {
-          console.log('responsess', res)
           if (res?.list_items?.length > 0) {
             setTotal(parseInt(res?.total_count))
             setRows(
@@ -58,12 +57,17 @@ const ExpiredMedicine = () => {
                 res?.list_items?.sort((a, b) => a?.stock_item_name?.localeCompare(b?.stock_item_name))
               )
             )
+          } else {
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
       } catch (error) {
         console.log('error', error)
         setLoading(false)
+        setTotal(0)
+        setRows([])
       }
     },
     [paginationModel]
@@ -130,9 +134,11 @@ const ExpiredMedicine = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_item_name}
-        </Typography>
+        <Tooltip title={params.row.stock_item_name} placement='top'>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.stock_item_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -226,7 +232,7 @@ const ExpiredMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='Expired products'
+              title='Expired Products'
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton
@@ -270,6 +276,7 @@ const ExpiredMedicine = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+              disableColumnMenu
               slotProps={{
                 baseButton: {
                   variant: 'outlined'

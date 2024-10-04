@@ -130,7 +130,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                                 <Avatar
                                   variant='square'
                                   src={
-                                    typeof formData.recipe_image === 'string'
+                                    typeof formData.recipe_image === 'string' && formData.recipe_image !== ''
                                       ? formData.recipe_image
                                       : '/icons/recipedummy.svg'
                                   }
@@ -160,7 +160,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                                {formData.portion_size ? formData.portion_size + ' ' + 'g' : '0 g'}
+                                {formData.portion_size
+                                  ? formData.portion_size + ' ' + formData.portion_uom_name
+                                  : '0' + formData.portion_uom_name}
                               </Typography>
                             </Box>
                           </Box>

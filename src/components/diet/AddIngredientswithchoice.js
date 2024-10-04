@@ -12,9 +12,11 @@ import {
   debounce,
   CircularProgress,
   Avatar,
-  Card
+  Card,
+  InputAdornment
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import ClearIcon from '@mui/icons-material/Clear'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
@@ -25,6 +27,7 @@ import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredientswithChoice = props => {
   const {
@@ -35,7 +38,6 @@ const AddIngredientswithChoice = props => {
     allIngredientchoiceSelectedValues,
     checkid,
     formData,
-    childIngredeintchoiceStateValue,
     ingType,
     setingType,
     ingredientChoiceIndex
@@ -45,12 +47,17 @@ const AddIngredientswithChoice = props => {
   const [selectFeed, setSelectFeed] = useState({})
 
   const [searchValue, setSearchValue] = useState('')
+
   const [remarks, setRemarks] = useState('')
+
   const [cutSize, setCutSize] = useState({})
   const [size, setSize] = useState({})
   const [visibility, setVisibility] = useState([])
 
   const [ingredientList, setIngredientList] = useState([])
+  console.log('ingredientList :>> ', ingredientList)
+  const [totalCount, setTotalCount] = useState('')
+  console.log('totalCount :>> ', totalCount)
 
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
@@ -86,7 +93,28 @@ const AddIngredientswithChoice = props => {
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value }
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
+      await getIngredientList({ params }).then(res => {
+        console.log(res, 'rest')
+        if (res?.data?.result?.length > 0) {
+          setIngredientList(res?.data?.result)
+          setReachedEnd(false)
+        } else {
+          setReachedEnd(false)
+          setIngredientList([])
+        }
+      })
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleClearFeed = async () => {
+    setFeed('')
+    setReachedEnd(true)
+
+    try {
+      const params = { page: ingredientPage, q: searchValue, sort, feed_type: '', status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
@@ -120,18 +148,20 @@ const AddIngredientswithChoice = props => {
   }
 
   const handleChangeSize = (event, item) => {
+    console.log(event, 'event')
+    console.log(item, 'item')
     event.stopPropagation()
-    const newUom = event.target.value
+    // const newUom = event.target.value
+    const newUom = uom.find(type => Number(type._id) === Number(item.uom_id))
 
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
+        id: event.target.value,
+        name: newUom?.name
       }
     }))
 
-    // setSize(event.target.value)
     if (size) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
     }
@@ -169,6 +199,7 @@ const AddIngredientswithChoice = props => {
         return
       }
     }
+    console.log(item, 'item')
 
     // Prepare the object to store values
     const boxValues = {
@@ -178,17 +209,20 @@ const AddIngredientswithChoice = props => {
       preparation_type: feed_type,
       // days_of_week: selectedDaysForItem?.flatMap(dayObj => dayObj.days.map(day => day.dayId)),
       // remarks: remarksData,
-      mealid: checkid
+      mealid: checkid,
+      ingredient_image: item.image
     }
 
     if (feed_type === 'Chopped') {
       // Include cut size and its dropdown only if feedType is "Chopped"
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom : size[item.id]?.id || ''
+      const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
+      const sizeName = newUom ? newUom?.name : size[item.id]?.name || ''
 
       // Update boxValues with cut size and size
       boxValues.feed_cut_size = cutSizeValue
       boxValues.feed_uom_id = sizeValue
+      boxValues.feed_uom_name = sizeName
     }
 
     // Check if the boxValues already exist in selectedCardIngchoice
@@ -220,10 +254,11 @@ const AddIngredientswithChoice = props => {
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort }
+      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -236,9 +271,9 @@ const AddIngredientswithChoice = props => {
 
   // Top Feed Type
   const fetchData = async () => {
-    const params = {}
+    const params = { page: 1, limit: 50, status: 1 }
     try {
-      const response = await getPreparationTypeList()
+      const response = await getFeedTypeList(params)
 
       setFeedType(response?.data?.result)
     } catch (error) {
@@ -271,35 +306,36 @@ const AddIngredientswithChoice = props => {
     const container = e.target
 
     // Check if the user has reached the bottom
-    if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
-      // User has reached the bottom, perform your action here
+    if (totalCount > ingredientList.length) {
+      console.log('api :>> ')
+      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+        // User has reached the bottom, perform your action here
 
-      setIngredientPage(++ingredientPage)
-      setReachedEnd(true)
-      try {
-        const params = { page: ingredientPage, q: searchValue, sort }
-        await getIngredientList({ params }).then(res => {
-          if (res?.data?.result?.length > 0) {
-            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-            setReachedEnd(false)
-          } else {
-            setReachedEnd(false)
-          }
-        })
-      } catch (error) {
-        console.error(error)
+        setIngredientPage(++ingredientPage)
+        setReachedEnd(true)
+        try {
+          const params = { page: ingredientPage, q: searchValue, sort, feed_type: feed, limit: 20, status: 1 }
+          await getIngredientList({ params }).then(res => {
+            if (res?.data?.result?.length > 0) {
+              setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+              setReachedEnd(false)
+            } else {
+              setReachedEnd(false)
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
       }
     }
   }
 
   useEffect(() => {
-    // Filter selected values based on checkid
     if (ingType === 'addingIndex') {
       const selectedValuesWithCheckId = allIngredientchoiceSelectedValues?.filter((item, index) => {
         return index === ingredientChoiceIndex && item?.mealid === checkid
       })
-
-      // Check if selectedValuesWithCheckId is not empty
+      console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
       if (selectedValuesWithCheckId?.length > 0) {
         // Extract ingredientList from selectedValuesWithCheckId
         const ingredientLists = selectedValuesWithCheckId.flatMap(item => item.ingredientList)
@@ -319,7 +355,7 @@ const AddIngredientswithChoice = props => {
         let newRemarks = ''
         const newVisibility = []
 
-        selectedValuesWithCheckId.forEach(item => {
+        selectedValuesWithCheckId.forEach((item, itemIndex) => {
           item.ingredientList.forEach(ingredient => {
             selectFeedObj[ingredient.ingredient_id] = {
               id: ingredient.preparation_type_id,
@@ -331,19 +367,12 @@ const AddIngredientswithChoice = props => {
             newCutSize[ingredient.ingredient_id] = {
               id: ingredient.feed_cut_size
             }
-            newRemarks = item.remarks
-
-            // const newVisibility = [
-            //   {
-            //     id: String(ingredient.ingredient_id),
-            //     isVisible: true
-            //   }
-            // ]
-            // console.log('newVisibility :>> ', newVisibility)
-            // setVisibility(newVisibility)
+            if (ingredient.ingredient_id) {
+              newRemarks = item?.remarks
+            }
           })
         })
-        setShowDays(false)
+
         setSelectFeed(selectFeedObj)
         setSize(newUom)
         setCutSize(newCutSize)
@@ -359,23 +388,26 @@ const AddIngredientswithChoice = props => {
       setSelectFeed({})
       setSize({})
       setCutSize({})
+      setRemarks('')
     }
-  }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex])
+  }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex, open])
 
   const searchData = useCallback(
     debounce(async search => {
       if (searchValue != ' ') {
+        console.log('search ingwc :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: ingredientPage, q: search, sort }
+          const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
+            } else {
+              setIngredientList([])
             }
           })
         } catch (error) {
-          // console.error(error)
           setIngredientPage(1)
         }
       }
@@ -694,8 +726,6 @@ const AddIngredientswithChoice = props => {
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
-
-      // Show success toast message
       toast.success('Ingredient added successfully!')
     }
   }
@@ -767,10 +797,28 @@ const AddIngredientswithChoice = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300
+                      }
+                    }
+                  }}
+                  endAdornment={
+                    feed ? (
+                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
+                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : (
+                      ''
+                    )
+                  }
                 >
                   {feedType?.map(feedList => (
                     <MenuItem key={feedList?.key} value={feedList?.id}>
-                      {feedList?.label}
+                      {feedList?.feed_type_name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -850,10 +898,8 @@ const AddIngredientswithChoice = props => {
                       variant='square'
                       alt='Medicine Image'
                       sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : null}
-                    >
-                      {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
-                    </Avatar>
+                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                    ></Avatar>
                   </Box>
                 )}
                 <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
@@ -948,6 +994,13 @@ const AddIngredientswithChoice = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              MenuProps={{
+                                PaperProps: {
+                                  style: {
+                                    maxHeight: 300
+                                  }
+                                }
+                              }}
                             >
                               <MenuItem value='' disabled>
                                 Select
@@ -1038,15 +1091,15 @@ const AddIngredientswithChoice = props => {
                       sx={{
                         fontSize: 11,
                         fontWeight: 'bold',
-                        bgcolor: selectedDays.includes(day.id) ? '#203e56' : '#dedede',
+                        bgcolor: selectedDays.includes(day.id) ? '#203e56' : '#dedede66',
                         borderRadius: 5,
                         p: 2,
                         justifyContent: 'center',
                         alignItems: 'center',
                         cursor: 'pointer',
                         '&:hover': {
-                          bgcolor: '#203e56',
-                          color: 'white'
+                          backgroundColor: selectedDays.includes(day.id) ? '#203e56' : '#dedede',
+                          color: selectedDays.includes(day.id) ? 'white' : 'black'
                         },
                         color: selectedDays.includes(day.id) ? 'white' : 'black'
                       }}

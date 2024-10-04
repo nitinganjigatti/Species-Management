@@ -4,6 +4,7 @@ import { read, readAsync, write } from '../lib/windows/utils'
 import { callRefreshToken } from 'src/lib/api/auth'
 
 import { usePharmacyContext } from './PharmacyContext'
+import { usePariveshContext } from './PariveshContext'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -36,7 +37,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(defaultProvider.user)
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
-
+  const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
 
   // ** Hooks
@@ -162,10 +163,14 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
+    localStorage.removeItem('selectedParivesh')
+
     debugger
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
+    setSelectedParivesh('')
+    setOrganizationList([])
     setLoading(false)
   }
 
@@ -272,12 +277,15 @@ const AuthProvider = ({ children }) => {
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
+    setSelectedParivesh('')
+    setOrganizationList([])
     localStorage.removeItem('userData')
     localStorage.removeItem('userDetails')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('accessToken')
     localStorage.removeItem('provider')
     localStorage.removeItem('selectedStore')
+    localStorage.removeItem('selectedParivesh')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
     router.push('/login')
   }

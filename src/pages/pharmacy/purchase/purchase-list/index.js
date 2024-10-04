@@ -178,6 +178,17 @@ const ListOfPurchase = () => {
     {
       flex: 0.2,
       minWidth: 20,
+      field: 'created_at',
+      headerName: 'Entry Date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.created_at)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
       field: 'net_amount',
       headerName: 'Purchase Amount',
       type: 'number',
@@ -258,6 +269,7 @@ const ListOfPurchase = () => {
                 slots={{ toolbar: ServerSideToolbar }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
+                disableColumnMenu
                 slotProps={{
                   baseButton: {
                     variant: 'outlined'

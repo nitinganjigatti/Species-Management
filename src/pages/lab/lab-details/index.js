@@ -27,7 +27,7 @@ const LabDetails = () => {
     try {
       const res = await getLabDeatilsById(id)
       if (res) {
-        console.log('res show', res?.data[0])
+        // console.log('res show', res?.data[0])
         setShowLabDetails(res?.data[0])
         setLabTests(res?.data[0]?.lab_details)
         setLoader(false)
@@ -54,15 +54,11 @@ const LabDetails = () => {
           <Grid item md={9}>
             <TabContext value={status}>
               <TabList onChange={handleChange}>
-                {/* <Tab value='overview' label='OVERVIEW' /> */}
-                <Tab value='site' label='SITE' />
+                <Tab value='site' label='SITES' sx={{ ml: 5 }} />
                 <Tab value='tests' label='TESTS' />
                 <Tab value='users' label='USERS' />
-                {/* <Tab value='equipments' label='EQUIPMENTS' /> */}
               </TabList>
-              {/* <TabPanel value='overview'>
-                <OverView />
-              </TabPanel> */}
+
               <TabPanel value='site'>
                 <Site labId={id} />
               </TabPanel>
@@ -72,9 +68,6 @@ const LabDetails = () => {
               <TabPanel value='users'>
                 <Users labId={id} />
               </TabPanel>
-              {/* <TabPanel value='equipments'>
-                <Equipments />
-              </TabPanel> */}
             </TabContext>
           </Grid>
         </Grid>

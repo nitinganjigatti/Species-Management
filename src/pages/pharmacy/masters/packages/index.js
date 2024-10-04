@@ -63,7 +63,6 @@ const ManufacturerList = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -297,6 +296,7 @@ const ManufacturerList = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  disableColumnMenu
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

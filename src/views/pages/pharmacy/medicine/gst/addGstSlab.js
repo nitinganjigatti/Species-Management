@@ -80,7 +80,6 @@ const AddGstSlabs = props => {
       active
     }
     console.log(payload)
-    debugger
 
     await handleSubmitData(payload)
   }
@@ -89,7 +88,7 @@ const AddGstSlabs = props => {
     async id => {
       try {
         const response = await getTaxById(id)
-        debugger
+
         if (response?.success) {
           reset({
             id: response.data.id,
@@ -110,7 +109,7 @@ const AddGstSlabs = props => {
     if (resetForm) {
       reset(defaultValues)
     }
-    debugger
+
     if (editParams?.id !== null) {
       getTax(editParams?.id)
     }

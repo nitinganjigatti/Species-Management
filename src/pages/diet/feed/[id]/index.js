@@ -30,10 +30,13 @@ import MuiTabList from '@mui/lab/TabList'
 import moment from 'moment'
 import Drawer from '@mui/material/Drawer'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import Tooltip from '@mui/material/Tooltip'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
+import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -99,38 +102,9 @@ const FeedDetails = () => {
         setstatusDialog(false)
         setIsActive(isActive == '1' ? '0' : '1')
 
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response.message}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({ type: 'success', message: response.message })
       } else {
-        alert('something went wrong')
+        Toaster({ type: 'error', message: 'something went wrong' })
       }
     } catch (error) {}
   }
@@ -142,69 +116,11 @@ const FeedDetails = () => {
         setDeleteDialogBox(false)
         Router.push('/diet/feed')
 
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 50, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response.message}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({ type: 'success', message: response.message })
       } else {
         setDeleteDialogBox(false)
 
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:error' style={{ marginRight: '20px', fontSize: 50, color: 'red' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Error!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    {response.message}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
+        Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {
       console.log('dfghj', error)
@@ -415,26 +331,37 @@ const FeedDetails = () => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                           {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                            <Icon
-                              icon='bx:pencil'
-                              style={{ cursor: 'pointer' }}
-                              onClick={() =>
-                                Router.push({ pathname: '/diet/feed/add-feed', query: { id: FeedDetailsValue?.id } })
-                              }
-                            />
+                            <Tooltip title='Edit' placement='top'>
+                              <Box sx={{ pr: 3 }}>
+                                <Icon
+                                  icon='bx:pencil'
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() =>
+                                    Router.push({
+                                      pathname: '/diet/feed/add-feed',
+                                      query: { id: FeedDetailsValue?.id }
+                                    })
+                                  }
+                                />
+                              </Box>
+                            </Tooltip>
                           )}
                           {dietModuleAccess === 'DELETE' && (
-                            <Icon
-                              icon='material-symbols:delete-outline'
-                              style={{ cursor: 'pointer', marginLeft: '15px' }}
-                              onClick={() => {
-                                if (Number(FeedDetailsValue?.ingredients) > 0) {
-                                  setstatusDialog(true)
-                                } else {
-                                  setDeleteDialogBox(true)
-                                }
-                              }}
-                            />
+                            <Tooltip title='Delete' placement='top'>
+                              <Box>
+                                <Icon
+                                  icon='material-symbols:delete-outline'
+                                  style={{ cursor: 'pointer', marginLeft: '15px' }}
+                                  onClick={() => {
+                                    if (Number(FeedDetailsValue?.ingredients) > 0) {
+                                      setstatusDialog(true)
+                                    } else {
+                                      setDeleteDialogBox(true)
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            </Tooltip>
                           )}
                         </Box>
                       </Box>
@@ -443,6 +370,7 @@ const FeedDetails = () => {
                           isActive={isActive}
                           setIsActive={setIsActive}
                           FeedDetailsValue={FeedDetailsValue}
+                          permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
                         <Grid item xs={8}>
                           <TabContext value={value}>
@@ -642,7 +570,7 @@ const FeedDetails = () => {
                         </Grid>
                       </Grid>
 
-                      <ModuleDeleteDialogConfirmation
+                      {/* <ModuleDeleteDialogConfirmation
                         handleClosenew={handleClosenew}
                         action={confirmStatusAction}
                         open={statusDialog}
@@ -650,6 +578,22 @@ const FeedDetails = () => {
                         active={isActive == '1'}
                         message={
                           <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                            Deletion isn't possible!
+                          </span>
+                        }
+                      /> */}
+                      <DeleteDialogConfirmation
+                        handleClosenew={handleClosenew}
+                        action={confirmStatusAction}
+                        open={statusDialog}
+                        typeCount={FeedDetailsValue?.ingredients}
+                        type='feed'
+                        active={isActive == '1'}
+                        dietCount={FeedDetailsValue.ingredients}
+                        actionType={'confirm'}
+                        message={
+                          <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
+                            {/* {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type? */}
                             Deletion isn't possible!
                           </span>
                         }

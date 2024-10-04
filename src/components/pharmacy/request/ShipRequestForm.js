@@ -1,5 +1,5 @@
-import React, { useState, forwardRef } from 'react'
-import DatePicker from 'react-datepicker'
+import React, { useState, forwardRef, useEffect, useCallback } from 'react'
+import { debounce } from 'lodash'
 
 // ** MUI Imports
 
@@ -11,7 +11,9 @@ import {
   FormControl,
   FormHelperText,
   FormControlLabel,
-  Tooltip
+  Tooltip,
+  Autocomplete,
+  Box
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -28,6 +30,7 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import Utility from 'src/utility'
 import { shipRequestedItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { getDrivers } from 'src/lib/api/pharmacy/driver'
 
 // import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
@@ -37,7 +40,8 @@ const defaultValues = {
   delivery_mode: 'Shipped',
   vehicle_no: null,
   receiver_name: null,
-  phone_number: null
+  phone_number: null,
+  name: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -46,10 +50,14 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 
 const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   // ** Hooks
-  // console.log('dispatchedItems', dispatchedItems)
-  const [statesList, setStatesList] = useState([])
-  const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [total, setTotal] = useState(0)
+  const [options, setOptions] = useState([])
+  const [sort, setSort] = useState('desc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('id')
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   const [deliveryType, setDeliveryType] = useState({
     pickUp: false,
@@ -106,20 +114,48 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
-  {
-    // console.log('dispatchedItems', dispatchedItems)
-  }
 
   const router = useRouter()
   const { id, action } = router.query
 
-  const shipRequest = async payload => {
-    // console.log(JSON.stringify(payload))
+  const getDriverList = useCallback(
+    async (sort, q, column) => {
+      try {
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
 
+        await getDrivers({ params: params }).then(res => {
+          setTotal(parseInt(res?.data?.total_count))
+          setOptions(res?.data?.list_items)
+          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+        })
+      } catch (e) {
+        console.error(e)
+      }
+    },
+    [paginationModel]
+  )
+
+  const searchDriver = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await getDriverList(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const shipRequest = async payload => {
     try {
       setSubmitLoader(true)
-
-      // console.log(JSON.stringify(payload))
 
       const response = await shipRequestedItems(payload)
       if (response?.success) {
@@ -132,18 +168,16 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
       }
     } catch (e) {
-      // console.log(e)
+      console.log(e)
       setSubmitLoader(false)
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
 
-  // useEffect(() => {
-  //   getStatesList()
-  //   if (id != undefined && action === 'edit') {
-  //     getSupplier(id)
-  //   }
-  // }, [id, action])
+  useEffect(() => {
+    getDriverList(sort, searchValue, sortColumn)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getDriverList])
 
   const onSubmit = async params => {
     setSubmitLoader(true)
@@ -334,11 +368,16 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       setDeliveryType({ ...deliveryType, Ship: true, pickUp: false })
       setValue('receiver_name', '')
       setValue('delivery_mode', 'Shipped')
+      setValue('name', '')
+      setValue('phone_number', '')
+      setValue('vehicle_no', '')
     } else {
       setDeliveryType({ ...deliveryType, Ship: false, pickUp: true })
       setValue('vehicle_no', '')
       setValue('person_shipping', '')
       setValue('delivery_mode', 'PickedUp')
+      setValue('name', '')
+      setValue('phone_number', '')
     }
   }
 
@@ -352,6 +391,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 <TableBasic columns={columns} rows={dispatchedItems}></TableBasic>
               </Grid>
             ) : null}
+
             <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
               <FormControlLabel
                 value={deliveryType.Ship}
@@ -382,6 +422,62 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
             </Grid>
             <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
               <Grid container spacing={5}>
+                {deliveryType.Ship ? (
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='name'
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Autocomplete
+                            options={options}
+                            value={value}
+                            renderOption={(props, option) => (
+                              <li {...props}>
+                                <Box>
+                                  <Typography>{option.driver_name}</Typography>
+                                  <Typography variant='body2'>{option.phone_number}</Typography>
+                                  <Typography variant='body2'>{option.vehicle_number}</Typography>
+                                </Box>
+                              </li>
+                            )}
+                            getOptionLabel={option => (option.driver_name ? option.driver_name : '')}
+                            isOptionEqualToValue={(option, value) => option.value === value.driver_name}
+                            onChange={(e, val) => {
+                              if (val === null) {
+                                setValue('person_shipping', '')
+                                setValue('vehicle_no', '')
+                                setValue('receiver_name', '')
+                                setValue('phone_number', '')
+
+                                return onChange(null)
+                              } else {
+                                setValue('person_shipping', val.driver_name)
+                                setValue('vehicle_no', val.vehicle_number)
+                                setValue('receiver_name', val.driver_name)
+                                setValue('phone_number', val.phone_number)
+
+                                return onChange(val)
+                              }
+                            }}
+                            onBlur={e => {}}
+                            onKeyUp={e => {
+                              searchDriver(sort, e.target.value, sortColumn)
+                            }}
+                            renderInput={params => (
+                              <TextField
+                                {...params}
+                                label='Search and select'
+                                error={Boolean(errors.product)}
+                                helperText={errors.product?.message}
+                              />
+                            )}
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
+                ) : null}
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <SingleDatePicker
@@ -389,6 +485,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       width={'100%'}
                       date={date}
                       value={date}
+                      maxDate={new Date()}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
                       placeholderText={'Shipment Date*'}
@@ -419,6 +516,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                               placeholder=''
                               error={Boolean(errors.vehicle_no)}
                               name='vehicle_no'
+                              InputLabelProps={{ shrink: true }}
                             />
                           )}
                         />
@@ -442,6 +540,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                               placeholder=''
                               error={Boolean(errors.person_shipping)}
                               name='person_shipping'
+                              InputLabelProps={{ shrink: true }}
                             />
                           )}
                         />
@@ -466,6 +565,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                             placeholder=''
                             error={Boolean(errors.receiver_name)}
                             name='receiver_name'
+                            InputLabelProps={{ shrink: true }}
                           />
                         )}
                       />
@@ -513,6 +613,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           placeholder=''
                           error={Boolean(errors.phone_number)}
                           name='phone_number'
+                          InputLabelProps={{ shrink: true }}
                         />
                       )}
                     />

@@ -44,8 +44,7 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-
+import { getLocalMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import { getAvailableMedicineByMedicineIdToReturn } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import {
@@ -262,7 +261,6 @@ const AddReturnRequest = () => {
     //   }
     // }
 
-    // debugger
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -291,7 +289,6 @@ const AddReturnRequest = () => {
   }
 
   const updateTableItems = params => {
-    // debugger
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
@@ -377,16 +374,19 @@ const AddReturnRequest = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        page: 1,
+        column: 'stock_items_name',
+        store_id: selectedPharmacy.id
       }
 
-      const searchResults = await getMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length > 0) {
-        console.log('searchResults', searchResults)
+      const searchResults = await getLocalMedicineList({ params: params })
+      console.log('searchResults', searchResults)
+      if (searchResults?.data?.length > 0) {
         setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
-            value: item.id,
-            label: item.name,
+          searchResults?.data?.map(item => ({
+            value: item.stock_item_id,
+            label: item.stock_items_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item?.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
@@ -402,7 +402,6 @@ const AddReturnRequest = () => {
   }
 
   const fetchBatchData = async (id, productType) => {
-    // debugger
     if (id !== '') {
       try {
         setBatchLoading(true)
@@ -410,7 +409,7 @@ const AddReturnRequest = () => {
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
-            console.log('data of batch', searchResults?.data?.items)
+            // console.log('data of batch', searchResults?.data?.items)
             setOptionsBatchList(
               searchResults?.data?.items?.map(item => ({
                 value: item?.batch_no,
@@ -452,7 +451,6 @@ const AddReturnRequest = () => {
 
   useEffect(() => {
     if (id != undefined && action === 'edit') {
-      // console.log('id', id, action)
       getListOfItemsById(id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -480,8 +478,6 @@ const AddReturnRequest = () => {
       const result = await getReturnItemsListById(id)
 
       if (result?.success === true && result?.data?.request_item_details?.length > 0) {
-        console.log('details', result?.data?.request_item_details)
-
         const lineItems = result?.data?.request_item_details.map(el => {
           return {
             request_item_medicine_id: el.stock_item_id,
@@ -504,7 +500,7 @@ const AddReturnRequest = () => {
             manufacture: el?.manufacturer
           }
         })
-        debugger
+
         setEditParams({
           ...editParams,
           id: result?.data?.id,
@@ -523,14 +519,9 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = async itemId => {
-    // debugger
-
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
-    console.log('params', editParams)
-
-    console.log('get items in edit table', getItems)
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -596,7 +587,7 @@ const AddReturnRequest = () => {
   }
 
   // const deleteLineItemFromDb = async lineItemId => {
-  //   debugger
+  //
   //   console.log('lineItemId', lineItemId)
   //   if (lineItemId) {
   //     try {
@@ -618,12 +609,9 @@ const AddReturnRequest = () => {
   // }
 
   const cancelReturnRequest = async id => {
-    // debugger
-    console.log('id', id)
     if (id) {
       try {
         const result = await cancelReturnItemsRequest(id)
-        console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/return-product/request-list/`)
@@ -638,7 +626,7 @@ const AddReturnRequest = () => {
   }
 
   // const cancelReturnRequest = async id => {
-  //   debugger
+  //
   //   console.log('id', id)
   //   if (id) {
   //     try {
@@ -668,6 +656,7 @@ const AddReturnRequest = () => {
         batchLoading={batchLoading}
         onSubmitData={submitItems}
         batchList={optionsBatchList}
+        setBatchList={setOptionsBatchList}
         nestedMedicine={nestedRowMedicine}
         error={duplicateMedError}
         totalQuantity={totalBatchQuantity}
@@ -828,7 +817,6 @@ const AddReturnRequest = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {console.log('edit params', editParams.request_item_details)}
                 {editParams.request_item_details
                   ? editParams.request_item_details.map((el, index) => {
                       return (

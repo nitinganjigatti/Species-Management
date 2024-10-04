@@ -1,20 +1,14 @@
-// ** React Imports
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
+import { Dialog, DialogTitle, DialogActions, IconButton, DialogContent, Typography } from '@mui/material'
+import Icon from 'src/@core/components/icon' // Assuming you're using this custom icon component
 
-// ** MUI Imports
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogActions from '@mui/material/DialogActions'
-import IconButton from '@mui/material/IconButton'
-import Icon from 'src/@core/components/icon'
-import DialogContent from '@mui/material/DialogContent'
-
-const ConfirmDialogBox = ({ closeDialog, open, action, content }) => {
+const ConfirmDialogBox = ({ closeDialog, open, action, content, title }) => { 
   return (
     <Fragment>
       <Dialog
         open={open}
+        // Adjust the width to medium
+        fullWidth // Make the dialog take full width
         disableEscapeKeyDown
         onClose={(event, reason) => {
           if (reason !== 'backdropClick') {
@@ -22,7 +16,13 @@ const ConfirmDialogBox = ({ closeDialog, open, action, content }) => {
           }
         }}
       >
-        <DialogTitle id='customized-dialog-title' sx={{ p: 4, mb: 2 }}>
+        <DialogTitle sx={{ p: 4, mb: 2,ml:3 }}>
+          {/* Dialog Title */}
+          <Typography variant='h6' component='div'>
+            {title}
+          </Typography>
+
+          {/* Close Button */}
           <IconButton
             aria-label='close'
             onClick={action}
@@ -31,7 +31,13 @@ const ConfirmDialogBox = ({ closeDialog, open, action, content }) => {
             <Icon icon='mdi:close' />
           </IconButton>
         </DialogTitle>
-        <DialogContent>{content}</DialogContent>
+
+        <DialogContent>
+          {/* The content is passed here */}
+          {content}
+        </DialogContent>
+
+        <DialogActions>{/* Add footer buttons here if needed */}</DialogActions>
       </Dialog>
     </Fragment>
   )

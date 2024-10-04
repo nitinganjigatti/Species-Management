@@ -20,7 +20,9 @@ export const GetTestsStatusById = 'lab-report-stats'
 
 export const GetRequestPopUpById = 'antz/request/lab-tests'
 
-export const RequestDetails = 'antz/request/tests'
+export const GETLABLISTBYTESTID = 'antz/tests/list-available'
+
+export const RequestDetails = 'antz/request/tests/v2'
 
 export const AddLAB = 'antz/labs/create-lab'
 
@@ -108,6 +110,8 @@ export const SALTS = 'salts'
 
 export const STORAGE = 'storage'
 
+export const DRIVER = 'driver'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
@@ -153,6 +157,22 @@ export const DASHBOARD_STORE_WISE_PENDING_REQUEST = 'storewise-pending-request'
 export const DASHBOARD_MONTHLY_DISPATCH = 'monthly-dispatch'
 
 export const DASHBOARD_MONTHLY_PURCHASE = 'monthly-purchase'
+
+export const STOCK_ADJUSTMENT = 'stock-adjustment'
+
+export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
+
+export const LOCAL_TO_LOCAL_DISPATCH = 'direct-dispatch-local'
+
+export const AlTERNATIVE_MEDICINE = 'alternate'
+
+export const REJECT_MEDICINE = 'reject'
+
+export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
+
+export const DISCARD_PRODUCT = 'discard'
+
+export const DISCARD_REASON = 'discard-reason'
 
 export const FEED_DETAILS = 'details'
 
@@ -255,5 +275,45 @@ export const GET_COLLECTED_BY = 'get-collected-by-list'
 export const DASHBOARD_DISCARD = 'discarded/list'
 
 export const DASHBOARD_BATCH = 'discard/filtered-list'
+
+export const ADD_SPECIES = 'v1/parivesh/species/add'
+
+export const LIST_ALL_SPECIES_SEARCH = 'v1/parivesh/species/listall'
+
+export const ORGANIZATION_LIST = 'masters/organization'
+
+export const SPECIES_LIST_BY_ORG = 'v1/parivesh/species/listsitewise'
+
+export const ADD_SPECIES_TO_ORG = 'v1/parivesh/species/org/add'
+
+export const UPDATE_SPECIES_TO_ORG = 'v1/parivesh/species/org/editentry'
+
+export const DELETE_SPECIES_TO_ORG = 'v1/parivesh/species/org/deleteentry'
+
+export const ADD_BATCH = 'v1/parivesh/species/site/createbatch'
+
+export const UPDATE_BATCH = ''
+
+export const DELETE_BATCH = 'v1/parivesh/species/org/deletebatch'
+
+export const BATCH_LIST_SPECIES = 'v1/parivesh/species/site/batchlist'
+
+export const BATCH_LIST_SPECIES_BY_ID = 'v1/parivesh/species/site/batchentrieslist'
+
+export const ENTRY_LIST_SPECIES = 'v1/parivesh/species/site/entrieslist'
+
+export const ORG_COUNT_LIST = 'v1/parivesh/species/site/stats'
+
+export const UPDATE_BATCH_STATUS = 'v1/parivesh/species/site/batchstatusupdate'
+
+export const UPLOAD_ATTACHMENT_BATCH = 'v1/parivesh/species/site/uploadattachmentforbatch'
+
+export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmentforbatch'
+
+export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
+
+export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
+
+export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'

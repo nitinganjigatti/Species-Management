@@ -179,6 +179,8 @@ const DeleteDialogConfirmation = ({
   recipeCount,
   message,
   action,
+  actionType,
+  ingredientCount,
   type
 }) => {
   const [checked, setChecked] = useState(false)
@@ -239,10 +241,22 @@ const DeleteDialogConfirmation = ({
         <DialogTitle id='alert-dialog-title'>
           {message}
 
-          <Typography sx={{ mt: 2 }}>
-            This {type === 'ingredient' ? 'ingredient' : 'ingredient'} has been used in {dietCount} , <br /> so deletion
-            isn't allowed.
-          </Typography>
+          {type === 'diet' ? null : (
+            <Typography sx={{ mt: 2 }}>
+              This{' '}
+              {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : type === 'diet' ? 'diet' : 'recipe'}{' '}
+              has been used in{' '}
+              {type === 'ingredient'
+                ? `${recipeCount} recipes and ${dietCount} diets.`
+                : type === 'feed'
+                ? `${typeCount}  Ingredients`
+                : type === 'diet'
+                ? `${dietCount} diets and ${ingredientCount} ingredients`
+                : `${dietCount} diets and ${ingredientCount} ingredients`}
+              <br />
+              {actionType === 'confirm' ? `so deletion isn't allowed.` : ''}
+            </Typography>
+          )}
         </DialogTitle>
 
         <Card
@@ -253,31 +267,41 @@ const DeleteDialogConfirmation = ({
             textAlign: 'left',
             pl: 5,
             borderRadius: '5px',
-            height: 120
+            height: type === 'diet' ? 42 : 120
           }}
         >
-          <Typography sx={{ pt: 6, fontSize: 14, fontWeight: 600 }}>
-            This {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is part of{' '}
-            {type === 'ingredient'
-              ? `${recipeCount} recipes and ${dietCount} diets.`
-              : type === 'feed'
-              ? `${typeCount}  Ingredients`
-              : `${dietCount} diets`}
-          </Typography>
+          {type === 'diet' ? null : (
+            <Typography sx={{ pt: 6, fontSize: 14, fontWeight: 600 }}>
+              This {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is part of{' '}
+              {type === 'ingredient'
+                ? `${recipeCount} recipes and ${dietCount} diets.`
+                : type === 'feed'
+                ? `${typeCount}  Ingredients`
+                : `${dietCount} diets and ${ingredientCount} ingredients`}
+            </Typography>
+          )}
           <Grid>
+            {console.log(active, 'active')}
             <Typography sx={{ fontSize: 15 }}>
               <FormControlLabel
                 label={
                   <span style={{ fontSize: '15px', color: '#000', fontWeight: 500 }}>
-                    {active === '1' ? 'Deactivate' : 'Activate'} this{' '}
-                    {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} in all records
+                    {Number(active) === 1 ? 'Deactivate' : 'Activate'} this{' '}
+                    {type === 'ingredient'
+                      ? 'ingredient'
+                      : type === 'feed'
+                      ? 'feed'
+                      : type === 'diet'
+                      ? 'diet'
+                      : 'recipe'}{' '}
+                    in all records
                   </span>
                 }
                 control={<Checkbox name='controlled' checked={checked} onChange={handleChange} />}
               />
             </Typography>
-            {type !== 'feed' && (
-              <Grid item>
+            {type === 'feed' || type === 'diet' ? null : (
+              <Grid sx={{ alignItems: 'center' }} item>
                 <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
                   Option to swap it with another{' '}
                   {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is still possible
@@ -304,7 +328,7 @@ const DeleteDialogConfirmation = ({
             }}
             disabled={checked === true ? false : true}
           >
-            {active === '1' ? 'Deactivate' : 'Activate'}
+            {Number(active) === 1 ? 'Deactivate' : 'Activate'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -85,7 +85,7 @@ const ListOfStates = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        debugger
+
         if (typeof response.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -238,7 +238,6 @@ const ListOfStates = () => {
         }
 
         await getStates({ params: params }).then(res => {
-          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -334,6 +333,7 @@ const ListOfStates = () => {
                   slots={{ toolbar: ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
+                  disableColumnMenu
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

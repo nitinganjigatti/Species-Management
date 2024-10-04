@@ -5,7 +5,10 @@ import {
   DISPATCH_ITEM,
   SHIPMENT,
   REQUEST_ITEMS_NOT_AVAILABLE,
-  REQUEST_ITEMS_NOT_AVAILABLE_REVERT
+  REQUEST_ITEMS_NOT_AVAILABLE_REVERT,
+  AlTERNATIVE_MEDICINE,
+  REJECT_MEDICINE,
+  NOT_AVAILABLE_PRODUCT
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
@@ -23,13 +26,14 @@ export async function getRequestItemsListById(id) {
   return response.data
 }
 
-export async function getAvailableMedicineByMedicineId(id, data, store, productType) {
+export async function getAvailableMedicineByMedicineId(id, data, store, productType, params) {
   // const response = await axiosGet({ url: `${BATCH_DETAILS}/${id}/${store}`, body: data, pharmacy })
   //have removed stock type--- &stock_type=${productType}
   const response = await axiosGet({
     url: `${BATCH_DETAILS}/${id}`,
     body: data,
-    pharmacy
+    pharmacy,
+    params: params ? params : null
   })
 
   return response.data
@@ -289,4 +293,61 @@ export async function getAvailableMedicineByMedicineIdToReturn(id, data, store, 
   })
 
   return response.data
+}
+
+export async function addAlternativeMedicine(payload, parentId) {
+  try {
+    const url = `${REQUEST_ITEMS}/${parentId}/${AlTERNATIVE_MEDICINE}`
+    const response = await axiosFormPost({ url, body: payload, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function rejectMedicine(payload, parentId) {
+  try {
+    const url = `${REQUEST_ITEMS}/${parentId}/${REJECT_MEDICINE}`
+    const response = await axiosPost({ url, body: payload, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function makeProductNotAvailable(payload, parentId) {
+  try {
+    const url = `${REQUEST_ITEMS}/${parentId}/${NOT_AVAILABLE_PRODUCT}`
+    const response = await axiosPost({ url, body: payload, pharmacy })
+
+    return response?.data
+  } catch (error) {
+    console.error(url)
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
 }

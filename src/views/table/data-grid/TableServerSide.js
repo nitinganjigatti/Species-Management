@@ -135,15 +135,11 @@ const TableServerSide = ({ columns, getCall }) => {
   const [sortColumn, setSortColumn] = useState('full_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   function loadServerRows(currentPage, data) {
-    debugger
-
     return data
   }
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
-      debugger
-
       const params = {
         sort,
         q,
@@ -153,7 +149,6 @@ const TableServerSide = ({ columns, getCall }) => {
       }
 
       await getCall().then(res => {
-        debugger
         setTotal(res?.data?.total_count)
         setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
       })
@@ -162,7 +157,7 @@ const TableServerSide = ({ columns, getCall }) => {
 
       // await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${MANUFACTURER}/list`, params: params }).then(res => {
       //   console.log(res)
-      //   debugger
+      //
       //   setTotal(parseInt(res.data.data.total_count))
       //   setRows(loadServerRows(paginationModel.page, res?.data?.data?.list_items))
       // })
@@ -172,7 +167,6 @@ const TableServerSide = ({ columns, getCall }) => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn)
-    debugger
   }, [fetchTableData, searchValue, sort, sortColumn])
 
   const handleSortModel = newModel => {

@@ -59,11 +59,10 @@ const schema = yup.object().shape({
     yup.object().shape({
       batch_no: yup.string().test('unique-batch-no', 'Batch number is already selected', function (value) {
         const { product_batches } = this.options.from[1].value
-        debugger
+
         const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
-        debugger
+
         const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo === value).length
-        debugger
 
         return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
       }),
@@ -133,7 +132,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   //     tempState[index] = false
   //     setRowErrors(tempState)
   //   } else {
-  //     debugger
+  //
   //     const tempState = rowErrors
   //     tempState[index] = true
   //     setRowErrors(tempState)
@@ -160,14 +159,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
     setRowErrors(tempRowErrors)
 
-    console.log('tempRowErrors', tempRowErrors)
-
-    console.log('rowErrors', rowErrors)
     onQuantityChange(row, enteredQuantity)
   }
 
   const onQuantityChange = (row, qty) => {
-    debugger
     if (fulfilStockItems.length > 0) {
       const tempFulfilStockItems = fulfilStockItems.slice()
       let itemExists = false
@@ -181,8 +176,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
       if (!itemExists) {
         if (!isNaN(parseInt(qty)) && parseInt(qty) > 0) {
-          debugger
-
           const medicineRow = {
             from_store_type: row.type,
             from_store_id: row.store_id,
@@ -206,9 +199,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       } else {
         if (isNaN(parseInt(qty)) || parseInt(qty) <= 0) {
           const index = tempFulfilStockItems.findIndex(item => {
-            console.log('item.batch_no', item.batch_no)
-            console.log('row.batch_no', row.batch_no)
-
             return item.request_item_batch_no === row.batch_no
           })
           if (index !== -1) {
@@ -216,8 +206,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           }
         }
       }
-
-      console.log('tempFulfilStockItems', tempFulfilStockItems)
 
       // }
 
@@ -243,7 +231,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setTotalMedicine(getMedicineTotal([medicineRow]))
       }
     }
-    console.log('fulfilStockItems', fulfilStockItems)
   }
 
   const getMedicineTotal = data => {
@@ -260,8 +247,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       })
     }
 
-    console.log(total)
-
     return total
   }
 
@@ -269,10 +254,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     setLoader(true)
     const data = { stock_item_id: id }
     const response = await getAvailableMedicineByMedicineId(id, data, 'local')
-    debugger
+
     if (response.success) {
       setBatchItems(response.data)
-      console.log(response.data)
       setLoader(false)
     } else {
       setLoader(false)
@@ -299,8 +283,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       dispatch_items: fulfilStockItems,
       request_number: storeDetails.id
     }
-    debugger
-    console.log('payload', JSON.stringify(payload))
 
     try {
       setErrors(false)
@@ -324,9 +306,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   useEffect(() => {
     if (fulfillMedicine?.stock_item_id !== undefined && fulfillMedicine?.stock_item_id !== null) {
-      console.log(fulfillMedicine)
-      console.log(storeDetails)
-
       getMedicineByMedicineId(fulfillMedicine?.stock_item_id)
 
       // getMedicineByMedicineIdLocalStore(fulfillMedicine?.stock_item_id)
@@ -477,8 +456,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   }
 
   const onSubmit = async params => {
-    console.log(params)
-
     const totalQuantity = getTotalMedicineQuantity(params)
 
     if (checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty) - totalQuantity < 0) {
@@ -503,11 +480,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       dispatch_items: payload_list,
       request_number: storeDetails.id
     }
-
-    console.log(payload)
-
-    // debugger
-    // console.log('payload', JSON.stringify(payload))
 
     try {
       setErrors(false)
@@ -606,7 +578,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                                         return onChange('')
                                       } else {
-                                        debugger
                                         const expiryDate = val.expiry_date
                                         setValue(`product_batches[${index}].expiry_date`, expiryDate)
 
@@ -620,7 +591,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         // )
 
                                         // if (selectedBatchCount > 0) {
-                                        //   debugger
+                                        //
                                         //   setError(`product_batches[${index}].batch_no`, {
                                         //     type: 'manual',
                                         //     message: 'Batch number is already selected'

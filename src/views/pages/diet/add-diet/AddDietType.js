@@ -166,21 +166,16 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   }
 
   const checkDisabled = () => {
-    setDis(
-      getValues('diet_types').some(
-        item =>
-          item?.weight === '' ||
-          item?.weight === undefined ||
-          item?.weight === null ||
-          item?.unit?.value?._id === '' ||
-          item?.unit?.value?._id === undefined ||
-          item?.unit?.value?._id === null
-      )
-    )
+    const dietTypes = getValues('diet_types')
+    const isDisabled = dietTypes.some(item => {
+      return !item?.weight || item?.weight === '' || !item?.unit?.value || item?.unit?.value === ''
+    })
+    setDis(isDisabled)
   }
 
   const submitItems = () => {
     const dietTypesData = getValues('diet_types')
+    console.log(dietTypesData, 'dietTypesData')
     sendDietTypesToParent(dietTypesData)
   }
 
@@ -200,62 +195,15 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         type: 'manual',
         message: 'same weight not be allowed'
       })
-
-      // } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
-      //   if (item.maxWeight > 0) {
-      //     setError(`diet_types[${index}].weight`, {
-      //       type: 'manual',
-      //       message: 'Min Weight should be lower'
-      //     })
-      //   }
     } else {
       clearErrors(`diet_types[${index}]`, 'weight')
     }
   }
 
-  // const handleKeyUp2 = index => {
-  //   const values = getValues('diet_types')
-  //   const item = values[index]
-  //   const duplicateMin = values
-  //     ?.map(value => Number(value?.weight))
-  //     ?.some((value, idx) => idx !== index && value === Number(item?.weight))
-  //   const duplicateMax = values
-  //     ?.map(value => Number(value?.maxWeight))
-  //     ?.some((value, idx) => idx !== index && value === Number(item?.maxWeight))
-  //   if (duplicateMin && duplicateMax) {
-  //     setError(`diet_types[${index}].maxWeight`, {
-  //       type: 'manual',
-  //       message: 'same range value be not allowed'
-  //     })
-  //   } else if (item && Number(item.weight) >= Number(item.maxWeight)) {
-  //     setError(`diet_types[${index}].maxWeight`, {
-  //       type: 'manual',
-  //       message: 'Max Weight should be greater'
-  //     })
-  //   } else {
-  //     clearErrors(`diet_types[${index}]`, 'maxWeight')
-  //   }
-  // }
-
-  // const handleUnitKeyUp = index => {
-  //   if (
-  //     getValues('diet_types')?.filter(
-  //       (val, i) => val?.unit?.value?._id == getValues('diet_types')[index]?.unit?.value?._id
-  //     ).length > 1
-  //   ) {
-  //     setError(`diet_types[${index}].unit`, {
-  //       type: 'manual',
-  //       message: 'Unit already selected'
-  //     })
-  //   } else {
-  //     clearErrors(`diet_types[${index}].unit`)
-  //   }
-  // }
-
   useEffect(() => {
     if (dietTypes?.length > 0 && activitySidebarOpen) {
       setValue('diet_types', dietTypes)
-      setDis(false)
+      checkDisabled()
     }
   }, [dietTypes, activitySidebarOpen])
 
@@ -329,6 +277,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     // setValue(`diet_types[${index}].weight`, e.target.value)
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
+                                    //setDis(false)
                                   }}
                                   error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
@@ -394,22 +343,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                   options={uomList?.length > 0 ? uomList : []}
                                   getOptionLabel={option => option.name}
                                   onChange={(e, val) => {
-                                    if (val === null || undefined || '') {
-                                      onChange('')
-
-                                      // handleUnitKeyUp(index)
-                                      checkDisabled()
-                                    } else if (!val) {
-                                      checkDisabled()
-
-                                      // handleUnitKeyUp(index)
-                                    } else {
-                                      // onChange(val?._id)
-                                      onChange(val)
-
-                                      // handleUnitKeyUp(index)
-                                      checkDisabled()
-                                    }
+                                    onChange(val || '')
+                                    checkDisabled()
                                   }}
                                   renderInput={params => (
                                     <TextField {...params} label='Select unit*' placeholder='Search & Select' />

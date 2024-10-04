@@ -13,8 +13,6 @@ import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredi
 import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-import IconButton from '@mui/material/IconButton'
-import toast from 'react-hot-toast'
 
 // ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
@@ -22,7 +20,7 @@ import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import AddToasterforSuccess from 'src/components/AddSuccessToaster'
+import Toaster from 'src/components/Toaster'
 
 const steps = [
   {
@@ -41,15 +39,18 @@ const steps = [
 
 const AddRecipe = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
+  const [fullIngredientList, setFullIngredientList] = useState([])
+  const [urlType, seturlType] = useState('')
 
   const [formData, setFormData] = useState({
     recipe_name: '',
     portion_size: '',
     portion_uom_id: '',
+    portion_uom_name: '',
     nutrional_value: '',
     nutrional_uom_id: '',
     kcal: '',
@@ -77,6 +78,11 @@ const AddRecipe = () => {
     ],
     desc: ''
   })
+
+  useEffect(() => {
+    getUnitsList()
+    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
+  }, [])
 
   const getUnitsList = async () => {
     try {
@@ -106,18 +112,36 @@ const AddRecipe = () => {
       const params = {
         //status,
         q,
-
         //active: 1,
         page,
-        limit
+        limit,
+        status: 1
       }
+
       await getIngredientList({ params: params }).then(res => {
         setIngredientTypeList(res?.data?.result)
+        setFullIngredientList(prevList => [
+          ...prevList,
+          ...res?.data?.result.filter(newItem => !prevList.some(item => item.id === newItem.id))
+        ])
       })
     } catch (e) {
       console.log(e)
     }
   }
+  // const IngredientTypeListSearch = debounce(value => {
+  //   console.log(value, 'value')
+  //   if (value) {
+  //     const filteredList = fullIngredientList.filter(ingredient =>
+  //       ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
+  //     )
+  //     console.log(filteredList, 'filteredList')
+  //     setIngredientTypeList(filteredList)
+  //   } else {
+  //     // If no search value, show the full list
+  //     setIngredientTypeList(fullIngredientList)
+  //   }
+  // }, 500)
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
@@ -138,6 +162,11 @@ const AddRecipe = () => {
       console.log(response, 'response')
       if (response.data.success === true && response.data.data !== null) {
         const data = response.data.data
+        console.log(name, 'name')
+        // Update recipe_name based on urlType
+        if (urlType === 'copy') {
+          data.recipe_name = name
+        }
 
         const convertedData = {
           ...data,
@@ -167,22 +196,34 @@ const AddRecipe = () => {
           ...prevData,
           ...updatedData
         }))
+
+        const ingredientList = data.by_percentage.map(item => ({
+          id: item.ingredient_id,
+          ingredient_name: item.ingredient_name
+        }))
+        console.log(ingredientList, 'ingredientList')
+        setFullIngredientList(ingredientList)
       }
     } catch (error) {
       console.log('Feed list', error)
     }
   }
+
   useEffect(() => {
-    getUnitsList()
-    callIngredientTypeList({ status: 1, page: 1, limit: 10 })
-  }, [])
+    if (id) {
+      const url = new URL(window.location.href)
+      const action = url.searchParams.get('action')
+      console.log(action, 'action')
+      seturlType(action || '')
+    }
+  }, [id])
 
   useEffect(() => {
     console.log(id, 'id')
-    if (id) {
+    if (id && urlType) {
       getIngredientsDetailval(id)
     }
-  }, [id])
+  }, [id, urlType])
 
   const handleNext = data => {
     // setFormData(prevData => ({
@@ -255,13 +296,13 @@ const AddRecipe = () => {
           }))
         )
       }
-
+      console.log(numericFormData, 'numericFormData')
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
         by_quantity: numericFormData.by_quantity,
-        recipe_image: numericFormData.recipe_image[0]
+        recipe_image: numericFormData?.recipe_image?.[0] || null
       }
 
       console.log(updatedFormData, 'updatedFormData')
@@ -270,7 +311,68 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' t={t} />)
+        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+      } else {
+        Toaster({
+          type: 'error',
+          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
+      }
+    } else if (id && urlType === 'copy') {
+      const numericFormData = {
+        ...formData,
+        by_percentage: JSON.stringify(
+          formData.by_percentage.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            quantity: parseFloat(item.quantity).toFixed(2),
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        ),
+        by_quantity: JSON.stringify(
+          formData.by_quantity.map(item => ({
+            ingredient_id: item.ingredient_id,
+            ingredient_name: item.ingredient_name,
+            feed_type_label: item.feed_type_label,
+            uom_id: item.uom_id,
+            quantity: item.quantity,
+            preparation_type_id: parseInt(item.preparation_type_id),
+            preparation_type: item.preparation_type
+          }))
+        )
+      }
+
+      const updatedFormData = {
+        ...numericFormData,
+        by_percentage: numericFormData.by_percentage,
+        by_quantity: numericFormData.by_quantity
+      }
+      console.log(formData.recipe_image, 'klkl')
+      if (formData.recipe_image === null) {
+        delete updatedFormData.recipe_image
+        delete updatedFormData.remove_current_image
+      } else if (typeof formData.recipe_image === 'string') {
+        delete updatedFormData.recipe_image
+        delete updatedFormData.remove_current_image
+      } else {
+        updatedFormData.recipe_image = formData?.recipe_image?.[0] || null
+        updatedFormData.remove_current_image = '1'
+      }
+
+      console.log(updatedFormData, 'updatedFormData')
+      const apival = await addNewRecipe(updatedFormData)
+      console.log(apival, 'apival')
+      if (apival.success === true) {
+        Router.push(`/diet/recipe`)
+
+        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+      } else {
+        Toaster({
+          type: 'error',
+          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     } else {
       const numericFormData = {
@@ -311,7 +413,7 @@ const AddRecipe = () => {
         delete updatedFormData.recipe_image
         delete updatedFormData.remove_current_image
       } else {
-        updatedFormData.recipe_image = formData.recipe_image[0]
+        updatedFormData.recipe_image = formData?.recipe_image?.[0] || null
         updatedFormData.remove_current_image = '1'
       }
 
@@ -321,7 +423,12 @@ const AddRecipe = () => {
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
-        return toast(t => <AddToasterforSuccess type='Recipe' id={id} t={t} />)
+        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+      } else {
+        Toaster({
+          type: 'error',
+          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+        })
       }
     }
   }
@@ -346,7 +453,8 @@ const AddRecipe = () => {
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
-            IngredientTypeList={IngredientTypeList}
+            fullIngredientList={fullIngredientList}
+            setFullIngredientList={setFullIngredientList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
           />
@@ -367,7 +475,6 @@ const AddRecipe = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Diet</Typography>
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
           Recipe
         </Link>

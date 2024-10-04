@@ -44,6 +44,7 @@ import { useDropzone } from 'react-dropzone'
 import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
 
 const AddIngredient = () => {
   const theme = useTheme()
@@ -86,6 +87,7 @@ const AddIngredient = () => {
   const defaultValues = {
     active: 1,
     ingredientName: '',
+    ingredientAlias: '',
     feedType: '',
     waterPercentage: '',
     dryMatterPercentage: '',
@@ -140,6 +142,7 @@ const AddIngredient = () => {
         // console.log('res', res?.data)
         if (res?.success) {
           setValue('ingredientName', res?.data?.ingredient_name)
+          setValue('ingredientAlias', res?.data?.ingredient_alias)
           setValue('active', Number(res?.data?.active) === 0 ? 0 : 1)
           setValue('feedType', res?.data?.feed_type)
           setDefaultFeedType({
@@ -269,7 +272,7 @@ const AddIngredient = () => {
 
   const getPreparationList = useCallback(async (sort, q, column) => {
     try {
-      await getPreparationTypeList({ sort, q, limit: 10, column }).then(res => {
+      await getPreparationTypeList({ sort, q, limit: 10, column, status: 1 }).then(res => {
         setOptions(res?.data?.result)
       })
     } catch (e) {
@@ -303,6 +306,7 @@ const AddIngredient = () => {
     const {
       active,
       ingredientName,
+      ingredientAlias,
       description,
       feedType,
       uom,
@@ -317,6 +321,7 @@ const AddIngredient = () => {
     const payload = {
       active,
       ingredient_name: ingredientName,
+      ingredient_alias: ingredientAlias,
       feed_type: feedType,
       water_percentage: waterPercentage,
       water_dry_matter: dryMatterPercentage,
@@ -336,21 +341,14 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'success'
-            })
+            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
 
             // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'warning'
+            Toaster({
+              type: 'error',
+              message: res?.message?.ingredient_image ? 'Image type only PNG and JPG is allowed' : res?.message
             })
           }
         })
@@ -364,23 +362,25 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'success'
-            })
+            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
 
-            // Router.push('/diet/ingredient')
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
             reset()
           } else {
             setSubmitLoader(false)
-            setOpenSnackbar({
-              ...openSnackbar,
-              open: true,
-              message: JSON?.stringify(res?.message),
-              severity: 'warning'
+
+            // Object.entries(res?.message).map(([key, value]) => {
+            //   Toaster({
+            //     type: 'error',
+            //     message: value
+            //   })
+            // })
+
+            Toaster({
+              type: 'error',
+
+              // message: JSON?.stringify(res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message)
+              message: res?.message?.ingredient_image ? 'Image type only PNG and JPG is allowed' : res?.message
             })
           }
         })
@@ -391,10 +391,6 @@ const AddIngredient = () => {
     }
   }
 
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar({ ...openSnackbar, open: status, message: JSON?.stringify(message), severity: severity })
-  }
-
   const handlePreparationSubmitData = async payload => {
     try {
       setPreparationTypeSubmitLoader(true)
@@ -403,7 +399,7 @@ const AddIngredient = () => {
       response = await addPreparationType(payload)
 
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        Toaster({ type: 'success', message: JSON?.stringify(response?.message) })
 
         setPreparationTypeSubmitLoader(false)
         handleSidebarClose()
@@ -413,11 +409,11 @@ const AddIngredient = () => {
         setPreparationTypeSubmitLoader(false)
         handleSidebarClose()
 
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        Toaster({ type: 'error', message: JSON?.stringify(response?.message) })
       }
     } catch (e) {
       setPreparationTypeSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      Toaster({ type: 'error', message: JSON?.stringify(e) })
     }
   }
 
@@ -512,7 +508,7 @@ const AddIngredient = () => {
                       1. Ingredient details
                     </Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid item xs={12} sm={3.9} md={3.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientName'
@@ -537,7 +533,26 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid item xs={12} sm={3.9} md={3.9}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='ingredientAlias'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                label='Ingredient Alias'
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Ingredient Alias'
+                                name='ingredientAlias'
+                              />
+                            )}
+                          />
+                        </FormControl>
+                      </Grid>
+
+                      <Grid item xs={12} sm={3.9} md={3.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='feedType'
@@ -661,7 +676,7 @@ const AddIngredient = () => {
                               <TextField
                                 inputProps={{ min: 0 }}
                                 type='number'
-                                label='Enter nutritional values per *'
+                                label='Enter nutritional values per'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter nutritional values per'
@@ -705,7 +720,7 @@ const AddIngredient = () => {
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select unit of measurement (UOM) *'
+                                    label='Select unit of measurement (UOM) '
                                     placeholder='Search & Select'
                                     error={Boolean(errors.uom)}
                                   />

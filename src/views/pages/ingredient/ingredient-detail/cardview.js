@@ -20,7 +20,13 @@ import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirm
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
 
-const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval }) => {
+const IngredientDetailCardview = ({
+  isActive,
+  setIsActive,
+  IngredientsDetailsval,
+  permission,
+  getIngredientsDetailval
+}) => {
   const router = useRouter()
   const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
@@ -52,7 +58,7 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
       const response = await updateIngredientStatus(IngredientsDetailsval?.id, { status: activePayload })
       console.log(response, 'response')
       if (response.success === true) {
-        Router.push(`/diet/ingredient`)
+        getIngredientsDetailval(IngredientsDetailsval?.id)
 
         return Toaster({ type: 'success', message: response?.data })
 
@@ -111,7 +117,13 @@ const IngredientDetailCardview = ({ isActive, setIsActive, IngredientsDetailsval
           <Grid item>
             <Typography sx={{ mb: 1, color: '#000', fontWeight: 500 }}>{'ING' + IngredientsDetailsval.id}</Typography>
             <FormControlLabel
-              control={<Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />}
+              control={
+                <Switch
+                  checked={isActive === '1' ? true : false}
+                  onChange={permission ? handleSwitchChange : null}
+                  fontSize={2}
+                />
+              }
               labelPlacement='start'
               label={isActive === '1' ? 'Active' : 'InActive'}
             />
