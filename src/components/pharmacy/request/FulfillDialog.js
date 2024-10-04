@@ -609,41 +609,68 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           >
             <CardContent>
               <Grid container sx={{ flexGrow: 1, m: 'auto' }}>
-                <Grid item xs={12 / 5}>
+                <Grid item xs={12 / 1} sm={12 / 3} md={12 / 5} lg={12 / 5}>
                   <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Requested From</Typography>
 
                   <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
                     <strong>{storeDetails?.to_store}</strong>
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{ mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } }}
+                >
                   <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Product Name</Typography>
 
                   <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
                     <strong>{fulfillMedicine?.stock_name}</strong>{' '}
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>
-                    QTY Requested
-                  </Typography>
-                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{
+                    textAlign: { xs: 'left', sx: 'right' },
+                    mt: { mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } }
+                  }}
+                >
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>QTY Requested</Typography>
+                  <Typography sx={{ color: 'primary.light' }}>
                     <strong>{fulfillMedicine?.requested_qty}</strong>{' '}
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>Balance</Typography>
-                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{ textAlign: { sm: 'left', sx: 'right' }, mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' } }}
+                >
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Balance</Typography>
+                  <Typography sx={{ color: 'primary.light' }}>
                     <strong>
                       {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
                     </strong>
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>
-                    Total Qty Available
-                  </Typography>
-                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{ textAlign: { sm: 'left', sx: 'right' }, mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' } }}
+                >
+                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Total Qty Available</Typography>
+                  <Typography sx={{ color: 'primary.light' }}>
                     <strong>{totalProductCount}</strong>
                   </Typography>
                 </Grid>
@@ -668,8 +695,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         justifyContent: 'center',
                         alignItems: 'center',
                         justifyItems: 'center',
-                        gap: 4,
-                        minHeight: '136px'
+
+                        // gap: 1,
+                        padding: '16px',
+                        justifyContent: 'space-between'
+
+                        // minHeight: '136px'
                       }}
                     >
                       <Grid item xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2.6}>
@@ -716,7 +747,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     <li
                                       {...props}
                                       style={{
-                                        minWidth: '212px !important',
+                                        Width: '100%!important',
                                         padding: '0px',
                                         margin: '5px',
                                         background: 'white'
@@ -725,8 +756,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       <Box
                                         sx={{
                                           backgroundColor: '#0000000D',
-                                          minWidth: '196px !important',
-                                          height: '71px !important',
+                                          width: '100%',
+
+                                          // minWidth: '196px !important',
+                                          // height: '71px !important',
                                           padding: '8px !important',
                                           borderRadius: '4px',
                                           display: 'flex',
@@ -746,27 +779,29 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         >
                                           {option?.batch_no}
                                         </Typography>
-                                        <Typography
-                                          sx={{
-                                            fontSize: '12px',
-                                            fontWeight: '400',
-                                            lineHeight: '14.52px',
-                                            color: 'customColors.neutralSecondary'
-                                          }}
-                                        >
-                                          Expiry Date:
-                                          <Box
-                                            component='span'
+                                        {batchItems[index]?.stock_type !== 'non_medical' && (
+                                          <Typography
                                             sx={{
-                                              fontWeight: '600',
                                               fontSize: '12px',
-                                              color: 'customColors.neutralSecondary',
-                                              lineHeight: '14.52px'
+                                              fontWeight: '400',
+                                              lineHeight: '14.52px',
+                                              color: 'customColors.neutralSecondary'
                                             }}
                                           >
-                                            {option?.expiry_date}
-                                          </Box>
-                                        </Typography>
+                                            Expiry Date:
+                                            <Box
+                                              component='span'
+                                              sx={{
+                                                fontWeight: '600',
+                                                fontSize: '12px',
+                                                color: 'customColors.neutralSecondary',
+                                                lineHeight: '14.52px'
+                                              }}
+                                            >
+                                              {Utility.formatDisplayDate(option?.expiry_date)}
+                                            </Box>
+                                          </Typography>
+                                        )}
                                         <Typography
                                           sx={{
                                             fontSize: '12px',
@@ -918,7 +953,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                       <Grid
                         item
-                        xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2}
+                        xs={batchItems[index]?.stock_type === 'non_medical' ? 2.5 : 2}
                         alignSelf='center'
                         sx={{
                           display: 'flex',
