@@ -1482,6 +1482,7 @@ const IndividualRequest = () => {
                       display: 'flex',
                       padding: '16px',
                       borderRadius: '8px',
+                      alignItems: 'center',
 
                       justifyContent: 'space-between'
                     }}
@@ -1493,6 +1494,7 @@ const IndividualRequest = () => {
                         height: '100%',
 
                         display: 'flex',
+                        alignItems: 'center',
 
                         justifyContent: 'space-between'
                       }}
