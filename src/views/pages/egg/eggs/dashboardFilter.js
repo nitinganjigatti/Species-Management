@@ -28,7 +28,8 @@ const leftMenu = [
   { id: 2, name: 'Batch' },
   { id: 3, name: 'Nursery' },
   { id: 4, name: 'Security status' },
-  { id: 5, name: 'Condition' },
+
+  // { id: 5, name: 'Condition' },
   { id: 6, name: 'Reason' }
 ]
 
@@ -206,13 +207,14 @@ const DashboardFilter = ({
           { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
           { id: 'COMPLETED', name: 'Security Checked' }
         ]
-      case 'Condition':
-        return (
-          conditionList?.map(condition => ({
-            id: condition.id,
-            name: condition.egg_condition
-          })) || []
-        )
+
+      // case 'Condition':
+      //   return (
+      //     conditionList?.map(condition => ({
+      //       id: condition.id,
+      //       name: condition.egg_condition
+      //     })) || []
+      //   )
       case 'Reason':
         const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
 

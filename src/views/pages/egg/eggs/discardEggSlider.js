@@ -124,6 +124,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         )
       }
     }
+    setPage(1)
 
     // Update the selected options state
     setSelectedOptions(newSelectedFilters)
@@ -504,7 +505,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       const nurseryIds = applyFilters.Nursery?.map(option => option.id)
       const speciesIds = applyFilters.Species?.map(option => option.id)
       const batchIds = applyFilters.Batch?.map(option => option.id)
-      const conditionIds = applyFilters.Condition?.map(option => option.id)
+
+      // const conditionIds = applyFilters.Condition?.map(option => option.id)
       const SecurityIds = applyFilters['Security status']?.map(option => option.id)
       const reasonIds = applyFilters.Reason?.map(option => option.id)
 
@@ -518,7 +520,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         batch_id: batchIds.length > 0 ? JSON.stringify(batchIds) : '',
         nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
         security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
-        egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
+
+        // egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
         egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : ''
       }
 
