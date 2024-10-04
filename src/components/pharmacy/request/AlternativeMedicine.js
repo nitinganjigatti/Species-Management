@@ -598,7 +598,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={12}>
+        {/* <Grid item xs={12} sm={12}>
           <Typography>Priority</Typography>
           <RadioGroup
             row
@@ -612,7 +612,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             <FormControlLabel value='high' control={<Radio />} label='High' />
             <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
           </RadioGroup>
-        </Grid>
+        </Grid> */}
 
         {/* // file uploader */}
         {/* <Grid item xs={12} sm={1}></Grid> */}
