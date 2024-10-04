@@ -708,7 +708,7 @@ const EggList = () => {
       )
     },
     {
-      width: 300,
+      width: 250,
 
       // minWidth: 60,
       sortable: false,
@@ -1003,7 +1003,7 @@ const EggList = () => {
       )
     },
     {
-      width: 300,
+      width: 250,
 
       // minWidth: 60,
       sortable: false,
