@@ -169,8 +169,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
-          debugger
-
           const data = {
             uid: index + 1,
             id: el?.id,

@@ -28,8 +28,9 @@ import FormControl from '@mui/material/FormControl'
 import { useRouter } from 'next/router'
 import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
-import { jsx } from '@emotion/react'
+
 import moment from 'moment'
+import { callRefreshToken } from 'src/lib/api/auth'
 
 const ListOfRequest = () => {
   const router = useRouter()
@@ -37,9 +38,13 @@ const ListOfRequest = () => {
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
-  console.log('labSelected', labSelected)
+
+  // console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
+  console.log('lab :>> ', lab)
   const authData = useContext(AuthContext)
+
+  // console.log('authData :>> ', authData)
   const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
 
   const [storedData, setStoredData] = useState()
@@ -82,20 +87,19 @@ const ListOfRequest = () => {
     //   )
     // },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 200,
       field: 'lab_test_id',
       headerName: 'REQUEST ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer', ml: 3 }}>
           {params.row.lab_test_id}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 200,
+
       field: 'site_name',
       headerName: 'Site',
       renderCell: params => (
@@ -106,8 +110,7 @@ const ListOfRequest = () => {
     },
 
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 200,
       field: 'created_at',
       headerName: 'Date',
       renderCell: params => (
@@ -117,10 +120,10 @@ const ListOfRequest = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
+      width: 200,
       field: 'total_test',
       headerName: 'No. of Tests ',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <span alt={params.row.total_test}>{params.row.total_lab_tests}</span>
@@ -128,20 +131,8 @@ const ListOfRequest = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'sample_count',
-    //   headerName: 'No. Of Samples',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       <span alt={params.row.sample_count}>{params.row.sample_count}</span>
-    //     </Typography>
-    //   )
-    // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 200,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
@@ -201,10 +192,10 @@ const ListOfRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 200,
       field: 'Action',
       headerName: 'Action',
+      align: 'center',
 
       renderCell: params => (
         <>
@@ -250,9 +241,20 @@ const ListOfRequest = () => {
   )
 
   useEffect(() => {
-    const options = authData?.userData?.modules?.lab_data?.lab
-    console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-    setLab(options)
+    const refreshToken = async () => {
+      const res = await callRefreshToken()
+
+      // console.log('res :>> ', res)
+      if (res?.success) {
+        setLab(res?.modules?.lab_data?.lab)
+      }
+    }
+    refreshToken()
+
+    // const options = authData?.userData?.modules?.lab_data?.lab
+
+    // console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab)
+    // setLab(options)
   }, [])
 
   const GetLabRequestStatus = async params => {
@@ -268,7 +270,8 @@ const ListOfRequest = () => {
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
-    console.log('Data :>> ', Data)
+
+    // console.log('Data :>> ', Data)
 
     setLabSelected(Data)
     if (Data) {

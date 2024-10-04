@@ -727,11 +727,12 @@ const ConditionSlider = ({
     const currentDate = dayjs()
     setValue('accessionDate', currentDate)
     setValue('birthDate', currentDate)
-    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.father_list.length === 1) {
       if (
         eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
       ) {
         setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+        setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
     // eggDetails?.enclosure_data
@@ -828,10 +829,11 @@ const ConditionSlider = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.current_state?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '100%' }}>
-                      <InputLabel id='select_stage'>Select Stage*</InputLabel>
+                      <InputLabel id='select_stage'>
+                        {statusID === '3' ? 'Select Reason* ' : 'Select Stage* '}
+                      </InputLabel>
                       <Controller
                         name='select_stage'
                         control={control}
@@ -861,60 +863,57 @@ const ConditionSlider = ({
 
                   {statusID === '4' && (
                     <>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-                        <FormControl>
-                          <RadioGroup
-                            aria-labelledby='demo-row-radio-buttons-group-label'
-                            name='hatched_method_Btn'
-                            sx={{ display: 'flex', justifyContent: 'center' }}
-                            value={hatched}
-                            onChange={e => setHatched(e.target.value)}
-                          >
-                            <Box sx={{ display: 'flex', gap: '24px' }}>
-                              <Box
-                                error={Boolean(errors?.hatched_method_Btn)}
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  // gap: 2,
-                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                  borderRadius: '10px',
-
-                                  // opacity: 0.6,
-                                  width: 228,
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography ml={2}>Normal Hatch</Typography>
-                                <FormControlLabel value='normal_hatch' control={<Radio />} />
-                              </Box>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  // gap: 2,
-                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                  p: 2,
-                                  borderRadius: '10px',
-                                  // opacity: 0.6,
-                                  width: 228,
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography ml={2}>Assisted Hatch</Typography>
-                                <FormControlLabel value='assisted_hatch' control={<Radio />} />
-                              </Box>
+                      <FormControl sx={{ mb: 4 }} fullWidth>
+                        <RadioGroup
+                          aria-labelledby='demo-row-radio-buttons-group-label'
+                          name='hatched_method_Btn'
+                          sx={{ display: 'flex', justifyContent: 'center' }}
+                          value={hatched}
+                          onChange={e => setHatched(e.target.value)}
+                        >
+                          <Box sx={{ display: 'flex', gap: '24px' }}>
+                            <Box
+                              error={Boolean(errors?.hatched_method_Btn)}
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 2,
+                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                borderRadius: '10px',
+                                // opacity: 0.6,
+                                width: '100%',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Typography ml={2}>Normal Hatch</Typography>
+                              <FormControlLabel value='normal_hatch' control={<Radio />} />
                             </Box>
-                          </RadioGroup>
-                          {errors?.hatched_method_Btn && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.hatched_method_Btn?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                // gap: 2,
+                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                p: 2,
+                                borderRadius: '10px',
+                                // opacity: 0.6,
+                                width: '100%',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Typography ml={2}>Assisted Hatch</Typography>
+                              <FormControlLabel value='assisted_hatch' control={<Radio />} />
+                            </Box>
+                          </Box>
+                        </RadioGroup>
+                        {errors?.hatched_method_Btn && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.hatched_method_Btn?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
 
                       <FormControl fullWidth>
                         <Controller
@@ -957,7 +956,7 @@ const ConditionSlider = ({
                                 }
                               }}
                               InputProps={{
-                                endAdornment: <InputAdornment position='end'>MM</InputAdornment>
+                                endAdornment: <InputAdornment position='end'>mm</InputAdornment>
                               }}
                               // inputProps={{ min: 1 }}
                             />
@@ -1247,12 +1246,19 @@ const ConditionSlider = ({
                             //   ))}
                             // </Select>
                             <Autocomplete
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderColor: Boolean(errors.species) && 'red',
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                },
+                                '& .MuiAutocomplete-input': {
+                                  color: 'rgba(76, 78, 100, 0.87)'
+                                }
+                              }}
                               name='species'
                               value={defaultSpecies}
-                              // value={value}
                               disablePortal
                               placeholder='Species / Taxonomy'
-                              // disabled={isEdit || isPreFilled}
                               id='species'
                               options={taxonomyList?.length > 0 ? taxonomyList : []}
                               getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
@@ -1277,6 +1283,11 @@ const ConditionSlider = ({
                                   label='Select Species *'
                                   placeholder='Search & Select'
                                   error={Boolean(errors.species)}
+                                  sx={{
+                                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                      color: 'rgba(76, 78, 100, 0.6)'
+                                    }
+                                  }}
                                 />
                               )}
                             />
@@ -1316,7 +1327,7 @@ const ConditionSlider = ({
                       </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='institution'>
-                          Institution {Number(watch('accessionType')) === 4 && '*'}
+                          {Number(watch('accessionType')) === 4 ? 'Institution*' : `Institution`}
                         </InputLabel>
                         <Controller
                           name='institution'
@@ -1326,7 +1337,7 @@ const ConditionSlider = ({
                             <Select
                               name='institution'
                               value={value}
-                              label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
+                              label={Number(watch('accessionType')) === 4 ? 'Institution*' : `Institution`}
                               onChange={onChange}
                               labelId='institution'
                               error={Boolean(errors?.institution)}
@@ -1433,6 +1444,14 @@ const ConditionSlider = ({
                                         ></Icon>
                                       </InputAdornment>
                                     )
+                                  }}
+                                  sx={{
+                                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                      color: 'rgba(76, 78, 100, 0.6)'
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: Boolean(errors.enclosure_id) && 'red'
+                                    }
                                   }}
                                 />
                               )}
@@ -1610,7 +1629,7 @@ const ConditionSlider = ({
                             <Select
                               name='mastersOrganization'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Select Organization'
                               onChange={onChange}
                               labelId='mastersOrganization'
                               error={Boolean(errors?.mastersOrganization)}
@@ -1689,7 +1708,7 @@ const ConditionSlider = ({
                               <Select
                                 name='type'
                                 value={value}
-                                label='Animal Ownership Terms'
+                                label='Type'
                                 onChange={onChange}
                                 labelId='type'
                                 error={Boolean(errors?.type)}
@@ -1774,7 +1793,7 @@ const ConditionSlider = ({
                             <Select
                               name='parentMother'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Parent Mother'
                               onChange={onChange}
                               labelId='parentMother'
                               error={Boolean(errors?.parentMother)}
@@ -1823,11 +1842,32 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female'
+                                          ? 'F'
+                                          : val?.sex === 'male'
+                                          ? 'M'
+                                          : val?.sex === 'undetermined'
+                                          ? 'UD'
+                                          : val?.sex === 'indeterminate'
+                                          ? 'ID'
+                                          : val?.sex === 'group'
+                                          ? 'G'
+                                          : '-'}
                                       </Typography>
                                     </Box>
 
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      {/* <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                        <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                      </Typography> */}
                                       <Typography
                                         sx={{
                                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -1890,7 +1930,7 @@ const ConditionSlider = ({
                             <Select
                               name='parentFather'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Parent Father'
                               onChange={onChange}
                               labelId='parentFather'
                               error={Boolean(errors?.parentFather)}
@@ -1939,11 +1979,32 @@ const ConditionSlider = ({
                                           backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                         }}
                                       >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
+                                        {val?.sex === 'female'
+                                          ? 'F'
+                                          : val?.sex === 'male'
+                                          ? 'M'
+                                          : val?.sex === 'undetermined'
+                                          ? 'UD'
+                                          : val?.sex === 'indeterminate'
+                                          ? 'ID'
+                                          : val?.sex === 'group'
+                                          ? 'G'
+                                          : '-'}
                                       </Typography>
                                     </Box>
 
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                      {/* <Typography
+                                        sx={{
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: '600',
+                                          lineHeight: '19.36px'
+                                        }}
+                                      >
+                                        <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                        <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                      </Typography> */}
                                       <Typography
                                         sx={{
                                           color: theme.palette.customColors.OnSurfaceVariant,

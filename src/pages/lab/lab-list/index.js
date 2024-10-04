@@ -31,7 +31,7 @@ const ListOfLab = () => {
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) || {}
 
   // console.log('authData :>> ', authData?.userData?.roles?.settings?.add_lab)
 
@@ -139,7 +139,7 @@ const ListOfLab = () => {
           )
         }
       : null
-  ]
+  ].filter(column => column !== null)
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)

@@ -22,7 +22,7 @@ export const GetRequestPopUpById = 'antz/request/lab-tests'
 
 export const GETLABLISTBYTESTID = 'antz/tests/list-available'
 
-export const RequestDetails = 'antz/request/tests'
+export const RequestDetails = 'antz/request/tests/v2'
 
 export const AddLAB = 'antz/labs/create-lab'
 
@@ -110,6 +110,8 @@ export const SALTS = 'salts'
 
 export const STORAGE = 'storage'
 
+export const DRIVER = 'driver'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
@@ -161,6 +163,16 @@ export const STOCK_ADJUSTMENT = 'stock-adjustment'
 export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
 
 export const LOCAL_TO_LOCAL_DISPATCH = 'direct-dispatch-local'
+
+export const AlTERNATIVE_MEDICINE = 'alternate'
+
+export const REJECT_MEDICINE = 'reject'
+
+export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
+
+export const DISCARD_PRODUCT = 'discard'
+
+export const DISCARD_REASON = 'discard-reason'
 
 export const FEED_DETAILS = 'details'
 
@@ -248,7 +260,21 @@ export const DISCARD_LIST_BY_ID = 'discard-list-by-id'
 
 export const DISCARD_DELETE = 'discard-delete'
 
+export const COUNT_GET_BY_SPECIES = 'count-get-by-species'
+
+export const LIST_GET_BY_SPECIES = 'list-get-by-species'
+
+export const EGG_STATUS_LIST = 'master/data/all'
+
+export const SPECIES_WISE_DETAILS = 'species-wise-details'
+
 export const NECROPSY_REPORTS = 'necropsy-report'
+
+export const GET_COLLECTED_BY = 'get-collected-by-list'
+
+export const DASHBOARD_DISCARD = 'discarded/list'
+
+export const DASHBOARD_BATCH = 'discard/filtered-list'
 
 export const ADD_SPECIES = 'v1/parivesh/species/add'
 
@@ -285,3 +311,9 @@ export const UPLOAD_ATTACHMENT_BATCH = 'v1/parivesh/species/site/uploadattachmen
 export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmentforbatch'
 
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
+
+export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
+
+export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
+
+export const SPECIES_LIST = 'species-list-egg-wise'

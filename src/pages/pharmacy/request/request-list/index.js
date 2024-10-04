@@ -10,35 +10,25 @@ import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
-import CustomChip from 'src/@core/components/mui/chip'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
-import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box, Tooltip } from '@mui/material'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
-import Badge from '@mui/material/Badge'
 import Utility from 'src/utility'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-import moment from 'moment'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { write, read, remove } from 'src/lib/windows/utils'
-
-// Styled TabList component
+import { useRouter } from 'next/router'
 
 const RequestList = () => {
   const [loader, setLoader] = useState(false)
@@ -51,26 +41,53 @@ const RequestList = () => {
       query: { id: id, action: 'edit' }
     })
   }
+  const router = useRouter()
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   /***** Server side pagination */
 
+  // const [total, setTotal] = useState(0)
+  // const [sort, setSort] = useState('desc')
+  // const [rows, setRows] = useState([])
+  // const [searchValue, setSearchValue] = useState('')
+  // const [sortColumn, setSortColumn] = useState('label')
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  // const [loading, setLoading] = useState(false)
+  // const [stores, setStores] = useState([])
+  // const [status, setStatus] = useState('pending')
+  // const [filterByStoreId, setFilterByStoreId] = useState('all')
+  // const [filterSwitch, setFilterSwitch] = useState(false)
+
+  // const [selectDays, setSelectDays] = useState('all')
+
+  // const [filterDates, setFilterDates] = useState({
+  //   startDate: '',
+  //   endDate: ''
+  // })
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
-  const [status, setStatus] = useState('pending')
-  const [filterByStoreId, setFilterByStoreId] = useState('all')
-  const [filterSwitch, setFilterSwitch] = useState(false)
-
-  const [selectDays, setSelectDays] = useState('all')
+  const [status, setStatus] = useState(router.query.status || 'pending')
+  const [filterByStoreId, setFilterByStoreId] = useState(router.query.store || 'all')
+  const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
+  const [selectDays, setSelectDays] = useState(router.query.days || 'all')
 
   const [filterDates, setFilterDates] = useState({
-    startDate: '',
-    endDate: ''
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
   })
 
   function loadServerRows(currentPage, data) {
@@ -85,7 +102,6 @@ const RequestList = () => {
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setSearchValue('')
-
     setStatus(newValue)
   }
 
@@ -138,7 +154,8 @@ const RequestList = () => {
             column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
-            status: filterSwitch === true ? 'completed' : status
+            status: filterSwitch === true ? 'completed' : status,
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
           }
         }
 
@@ -146,11 +163,9 @@ const RequestList = () => {
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-            remove('requestPageStatus')
           } else {
             setTotal(0)
             setRows([])
-            remove('requestPageStatus')
           }
         })
         setLoading(false)
@@ -165,39 +180,36 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    const statusIsThere = read('requestPageStatus')
-    if (statusIsThere) {
-      debugger
-      setStatus(statusIsThere?.currentStatus)
-      setFilterSwitch(statusIsThere?.filterSwitch)
+    console.log('useEffect', 1)
 
-      setSearchValue(statusIsThere?.searchValue ? statusIsThere?.searchValue : '')
-      fetchTableData(
-        statusIsThere.sort,
-        statusIsThere.searchValue,
-        statusIsThere.sortColumn,
-        statusIsThere.currentStatus,
-        statusIsThere.startDate,
-        statusIsThere.endDate,
-        statusIsThere.filterByStoreId,
-        statusIsThere.page,
-        statusIsThere.limit
-      )
-    } else {
-      // setStatus(requestPageStatus ? requestPageStatus : status)
-      const currentStatus = filterSwitch ? 'completed' : status
+    const currentStatus = filterSwitch === true ? 'completed' : status
 
-      fetchTableData(
-        sort,
-        searchValue,
-        sortColumn,
-        currentStatus,
-        filterDates.startDate,
-        filterDates.endDate,
-        filterByStoreId
-      )
-    }
-  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId])
+    fetchTableData(
+      sort,
+      searchValue,
+      sortColumn,
+      currentStatus,
+      filterDates.startDate,
+      filterDates.endDate,
+      filterByStoreId
+    )
+
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: currentStatus,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      store: filterByStoreId,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize,
+      filterSwitch,
+      days: selectDays
+    })
+
+    // }
+  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -225,6 +237,8 @@ const RequestList = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
+      setTotal(0)
+      setPaginationModel({ page: 0, pageSize: 10 })
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
@@ -236,26 +250,9 @@ const RequestList = () => {
   )
 
   const onRowClick = params => {
-    var data = params.row
-
     Router.push({
-      pathname: `/pharmacy/request/${data?.id}`
+      pathname: `/pharmacy/request/${params.row?.id}`
     })
-
-    const currentPageData = {
-      sort: sort,
-      searchValue: searchValue,
-      sortColumn: sortColumn,
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
-      currentStatus: status,
-      startDate: filterDates.startDate,
-      endDate: filterDates.endDate,
-      filterByStoreId: filterByStoreId,
-      filterSwitch: filterSwitch
-    }
-
-    write('requestPageStatus', currentPageData)
   }
 
   const headerAction = (
@@ -286,11 +283,32 @@ const RequestList = () => {
   }
 
   const handleSwitchChange = event => {
-    setFilterSwitch(event.target.checked)
+    console.log('event', event.target.checked)
+    setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterSwitch(prev => event.target.checked)
+
+    if (event.target.checked === false) {
+      setStatus(prev => 'all')
+    }
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: status,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      store: filterByStoreId,
+      page: 0,
+      limit: 10,
+      days: selectDays
+    })
   }
 
   const filterByDays = days => {
     if (days !== 'all') {
+      setTotal(0)
+      setPaginationModel({ page: 0, pageSize: 10 })
       const currentDate = new Date()
       const selectedDays = parseInt(days)
       let startDate
@@ -329,20 +347,21 @@ const RequestList = () => {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
-  useEffect(() => {
-    // setStatus(requestPageStatus ? requestPageStatus : status)
 
-    const currentStatus = filterSwitch ? 'completed' : status
+  // useEffect(() => {
+  //   console.log('useEffect', 2)
 
-    // const currentStatus = filterSwitch ? 'completed' : status
+  //   // setStatus(requestPageStatus ? requestPageStatus : status)
 
-    if (filterDates.startDate && filterDates.endDate) {
-      fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
-    } else {
-      fetchTableData(sort, searchValue, sortColumn, currentStatus)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterDates])
+  //   const currentStatus = filterSwitch === true ? 'completed' : status
+
+  //   if (filterDates.startDate && filterDates.endDate) {
+  //     fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
+  //   } else {
+  //     fetchTableData(sort, searchValue, sortColumn, currentStatus)
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [filterDates])
 
   useEffect(() => {
     getStoresLists()
@@ -391,18 +410,6 @@ const RequestList = () => {
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.request_number}
-            {/* {params.row.priority === 'high' && (
-              <Chip
-                sx={{ ml: '6px', fontSize: '12px' }}
-                size='small'
-                label='HP'
-                color='error'
-                icon={<Icon icon='mdi:arrow-up-circle' />}
-              />
-            )} */}
-            {/* {params.row.control_substance === '1' && (
-              <CustomChip label='CS' skin='light' color='success' size='small' sx={{ ml: '6px', fontSize: '12px' }} />
-            )} */}
           </Typography>
         </>
       )
@@ -453,18 +460,6 @@ const RequestList = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'to_store',
-    //   headerName: getRequestedText,
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.to_store}
-    //     </Typography>
-    //   )
-    // },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -479,20 +474,20 @@ const RequestList = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'fulfilled_qty',
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'fulfilled_qty',
 
-      headerName: 'Balance',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
-        </Typography>
-      )
-    },
+    //   headerName: 'Balance',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -575,44 +570,6 @@ const RequestList = () => {
         </Box>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <>
-    //       {selectedPharmacy.type === 'local' &&
-    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-    //           <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //             {params.row.status === 'Fully Dispatched' ? (
-    //               <IconButton size='small' sx={{ mr: 0.5 }}>
-    //                 <Icon icon='mdi:package-delivered' />
-    //               </IconButton>
-    //             ) : params.row.status === 'Partial Dispatched' ? (
-    //               <></>
-    //             ) : (
-    //               <>
-    //                 {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-    //             <Icon icon='fluent-mdl2:message-friend-request' />
-    //           </IconButton>
-    //           <IconButton
-    //             size='small'
-    //             sx={{ mr: 0.5 }}
-    //             onClick={() => {
-    //               handleEdit(params.row.id)
-    //             }}
-    //           >
-    //             <Icon icon='mdi:pencil-outline' />
-    //           </IconButton> */}
-    //               </>
-    //             )}
-    //           </Box>
-    //         )}
-    //     </>
-    //   )
-    // }
   ]
 
   const handleHeaderAction = () => {
@@ -667,6 +624,8 @@ const RequestList = () => {
                       value={filterByStoreId}
                       label='Filter by Stores'
                       onChange={e => {
+                        setTotal(0)
+                        setPaginationModel({ page: 0, pageSize: 10 })
                         setFilterByStoreId(e.target.value)
                       }}
                     >
@@ -687,10 +646,10 @@ const RequestList = () => {
 
               {/* <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid> */}
               <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                {status === 'all' ? (
+                {status === 'all' || status === 'completed' ? (
                   <Box sx={{ float: 'right' }}>
                     <FormControlLabel
-                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
                     />
@@ -772,7 +731,10 @@ const RequestList = () => {
               value='cancel'
               label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
             />
-            <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} />
+            <Tab
+              value={'all' ? 'all' : 'completed'}
+              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+            />
           </TabList>
           <TabPanel value='pending'>{tableData()}</TabPanel>
           {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
@@ -780,7 +742,11 @@ const RequestList = () => {
 
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
-          <TabPanel value='all'>{tableData()}</TabPanel>
+          {status === 'all' ? (
+            <TabPanel value='all'>{tableData()}</TabPanel>
+          ) : (
+            <TabPanel value='completed'>{tableData()}</TabPanel>
+          )}
         </TabContext>
       </Grid>
     </>

@@ -156,7 +156,6 @@ const IndividualReturnRequest = () => {
   }
 
   const getShippedItems = async id => {
-    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
@@ -866,7 +865,7 @@ const IndividualReturnRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/return-product/request-list/')
+                        Router.back()
                       }}
                       icon='ep:back'
                     />

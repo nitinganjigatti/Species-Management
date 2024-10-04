@@ -62,7 +62,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const requestParent = {
     title: 'Request',
     icon: 'material-symbols:request-quote-outline',
+
     path: '/pharmacy/request/request-list',
+
     children: []
   }
 
@@ -75,7 +77,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const returnParent = {
     title: 'Return',
     icon: 'material-symbols:assignment-returned-outline-sharp',
+
     path: '/pharmacy/return-product/request-list',
+
     children: []
   }
 
@@ -95,6 +99,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Dispatch without request',
 
     path: '/pharmacy/direct-dispatch',
+
     icon: 'iconamoon:delivery-light',
     children: []
   }
@@ -102,6 +107,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const directDispatchList = {
     title: `Dispatch without request`,
     icon: 'iconamoon:delivery-light',
+
     path: '/pharmacy/direct-dispatch/direct-dispatch-list'
   }
 
@@ -209,6 +215,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/masters/state'
   }
 
+  const driver = {
+    title: 'Driver List',
+    path: '/pharmacy/masters/driver'
+  }
+
   const storeList = {
     title: 'Pharmacy List',
     path: '/pharmacy/masters/store-list'
@@ -248,7 +259,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const nonExistingProductRequestList = {
     title: 'New Product Request',
     icon: 'tabler:report-medical',
-    path: '/pharmacy/new-product-request/'
+    path: '/pharmacy/new-product-request'
   }
 
   const mastersParent = {
@@ -256,6 +267,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/masters/',
     icon: 'uil:setting',
     children: []
+  }
+
+  const discard = {
+    icon: 'tabler:truck-return',
+    title: 'Return To Supplier',
+    path: '/pharmacy/discard/discard-list'
   }
 
   const pharmacyNavigationArray = []
@@ -287,26 +304,25 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       // state
     )
 
-    pharmacyNavigationArray.push(
-      stockReport,
-      requestListing,
-      returnListing,
-      directDispatchList,
-      productsList,
-      purchaseList,
-      existingPurchase,
-      stocksAdjustment,
-      nonExistingProductRequestList,
-
-      settingsParent
-    )
+    pharmacyNavigationArray.push(stockReport, requestListing, returnListing, directDispatchList)
 
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy?.permission?.dispense_medicine
     ) {
-      pharmacyNavigationArray.splice(5, 0, dispense)
+      pharmacyNavigationArray.push(dispense)
     }
+
+    pharmacyNavigationArray.push(productsList, purchaseList, existingPurchase, nonExistingProductRequestList)
+
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1
+    ) {
+      pharmacyNavigationArray.push(stocksAdjustment)
+    }
+
+    pharmacyNavigationArray.push(discard, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -321,14 +337,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       returnListing,
 
       // directDispatchList,
-      directDispatchListForLocal,
-      localDispatchList,
-
-      nonExistingProductRequestList,
-      stockReport,
-      stocksAdjustment,
-
-      settingsParent
+      directDispatchListForLocal
     )
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
@@ -336,6 +345,20 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.splice(4, 0, dispense)
     }
+
+    pharmacyNavigationArray.push(
+      localDispatchList,
+
+      nonExistingProductRequestList,
+      stockReport
+    )
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy.permission.stock_adjustment === 1
+    ) {
+      pharmacyNavigationArray.push(stocksAdjustment)
+    }
+    pharmacyNavigationArray.push(settingsParent)
   }
 
   if (pharmacyRole) {
@@ -350,7 +373,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       salts,
       storage,
       supplierList,
-      state
+      state,
+      driver
     )
     pharmacyNavigationArray.push(mastersParent)
   }

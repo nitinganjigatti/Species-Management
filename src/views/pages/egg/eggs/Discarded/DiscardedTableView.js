@@ -9,8 +9,22 @@ import moment from 'moment'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import DiscardDetail from './DiscardDetail'
 import Utility from 'src/utility'
+import EggTableHeader from '../EggTableHeader'
+import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
 
-const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
+const DiscardedTableView = ({
+  tabValue,
+  setFilterList,
+  filterList,
+  setSelectedFiltersOptions,
+  selectedFiltersOptions,
+  setTotal,
+  selectedOptions,
+  setSelectedOptions
+}) => {
+  const router = useRouter()
+  const { search_value } = router.query
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -21,29 +35,52 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   const [loading, setLoading] = useState(false)
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [eggDiscardedId, setEggDiscardedId] = useState('')
+  const [searchQuery, setSearchQuery] = useState(search_value || '')
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, nurseryId) => {
+    async (sort, q, selectedFiltersOptions = {}) => {
+      // console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
+
+      // debugger
       try {
         setLoading(true)
+
+        // Extracting IDs from selectedFiltersOptions, with a fallback to empty arrays
+        const nurseryIds = selectedFiltersOptions?.Nursery?.map(option => option.id)
+
+        // const eggStateIds = selectedFiltersOptions?.Stage?.map(option => option.id) || []
+        const discardedByIds = selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
+        const activeStatus = selectedFiltersOptions['Security Check']?.map(option => option.id) || []
+
+        const siteIds = selectedFiltersOptions?.Site?.map(option => option.id) || []
+
+        // const statusId = selectedFiltersOptions?.status ? [selectedFiltersOptions.status] : []
+
+        const discardedDate = selectedFiltersOptions?.collected_date
+          ? dayjs(selectedFiltersOptions?.collected_date).format('YYYY-MM-DD')
+          : ''
 
         const params = {
           sort,
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryId ? nurseryId : filterByNurseryId
+          nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
+
+          // egg_state_id: eggStateIds,
+          discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
+          site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          activity_status: activeStatus?.length > 0 ? JSON.stringify(activeStatus) : '',
+
+          // egg_status_id: eggStateIds.length > 0 ? statusId : [],
+          discarded_on: discardedDate ? discardedDate : ''
         }
 
-        const res = await DiscardedEggList({ params: params })
-
-        // let listWithId = res.data.result.map((el, i) => {
-        //   return { ...el, uid: i + 1 }
-        // })
+        const res = await DiscardedEggList({ params })
 
         if (res.data.success) {
           setTotal(Number(res?.data?.data?.total_count))
@@ -65,8 +102,8 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   useEffect(() => {
     // debugger
 
-    fetchTableData(sort, searchValue, filterByNurseryId)
-  }, [fetchTableData, filterByNurseryId])
+    fetchTableData(sort, searchValue, selectedFiltersOptions)
+  }, [fetchTableData, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -80,12 +117,12 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     debounce(async (sort, q) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, filterByNurseryId)
+        await fetchTableData(sort, q, selectedFiltersOptions)
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    []
+    [fetchTableData, selectedFiltersOptions]
   )
 
   const handleSortModel = newModel => {
@@ -164,7 +201,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 width: '100%'
               }}
             >
-              {params.row?.egg_count ? params.row?.egg_count : '-'} Egg
+              {params.row?.egg_count ? params.row?.egg_count : '-'} {params.row?.egg_count > '1' ? 'Eggs' : 'Egg'}
             </Typography>
           </Box>
         </Box>
@@ -429,6 +466,19 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
 
   return (
     <Box>
+      <EggTableHeader
+        tabValue={tabValue}
+        totalCount={totalpage}
+        setFilterList={setFilterList}
+        filterList={filterList}
+        handleSearch={handleSearch}
+        setSelectedFiltersOptions={setSelectedFiltersOptions}
+        selectedFiltersOptions={selectedFiltersOptions}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
+      />
       <DataGrid
         sx={{
           '.MuiDataGrid-cell:focus': {
@@ -465,7 +515,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
         pageSizeOptions={[7, 10, 25, 50]}
         paginationModel={paginationModel}
         onSortModelChange={handleSortModel}
-        slots={{ toolbar: ServerSideToolbarWithFilter }}
+        // slots={{ toolbar: ServerSideToolbarWithFilter }}
         rowHeight={72}
         onPaginationModelChange={setPaginationModel}
         onCellClick={onCellClick}

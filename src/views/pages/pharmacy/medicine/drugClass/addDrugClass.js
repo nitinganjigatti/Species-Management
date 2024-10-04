@@ -81,9 +81,8 @@ const AddDrugClass = props => {
   const getDrugClass = useCallback(
     async id => {
       const response = await getDrugById(id)
-      debugger
+
       if (response?.success) {
-        debugger
         reset({ name: response.data.label, active: response.data.active, id: response.data.id })
       } else {
       }

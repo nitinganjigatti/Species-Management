@@ -166,17 +166,11 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   }
 
   const checkDisabled = () => {
-    setDis(
-      getValues('diet_types').some(
-        item =>
-          item?.weight === '' ||
-          item?.weight === undefined ||
-          item?.weight === null ||
-          item?.unit?.value?._id === '' ||
-          item?.unit?.value?._id === undefined ||
-          item?.unit?.value?._id === null
-      )
-    )
+    const dietTypes = getValues('diet_types')
+    const isDisabled = dietTypes.some(item => {
+      return !item?.weight || item?.weight === '' || !item?.unit?.value || item?.unit?.value === ''
+    })
+    setDis(isDisabled)
   }
 
   const submitItems = () => {
@@ -209,12 +203,10 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   useEffect(() => {
     if (dietTypes?.length > 0 && activitySidebarOpen) {
       setValue('diet_types', dietTypes)
-      setDis(false)
+      checkDisabled()
     }
   }, [dietTypes, activitySidebarOpen])
 
-  console.log(dis, 'dis')
-  console.log(errors, 'nknn')
   return (
     <div>
       <Drawer
@@ -285,7 +277,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                     // setValue(`diet_types[${index}].weight`, e.target.value)
                                     onChange(e?.target?.value || '')
                                     checkDisabled()
-                                    setDis(false)
+                                    //setDis(false)
                                   }}
                                   error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
@@ -351,22 +343,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                   options={uomList?.length > 0 ? uomList : []}
                                   getOptionLabel={option => option.name}
                                   onChange={(e, val) => {
-                                    if (val === null || undefined || '') {
-                                      onChange('')
-
-                                      // handleUnitKeyUp(index)
-                                      checkDisabled()
-                                    } else if (!val) {
-                                      checkDisabled()
-                                      setDis(false)
-                                      // handleUnitKeyUp(index)
-                                    } else {
-                                      // onChange(val?._id)
-                                      onChange(val)
-                                      setDis(false)
-                                      // handleUnitKeyUp(index)
-                                      checkDisabled()
-                                    }
+                                    onChange(val || '')
+                                    checkDisabled()
                                   }}
                                   renderInput={params => (
                                     <TextField {...params} label='Select unit*' placeholder='Search & Select' />

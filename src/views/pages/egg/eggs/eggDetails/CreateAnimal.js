@@ -15,13 +15,6 @@ import {
   TextField,
   Typography,
   debounce,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  DialogContentText,
-  Button,
-  Grid,
   InputAdornment
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
@@ -105,6 +98,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     animalOwnershipTerms: '',
     accessionDate: null,
     collectionType: '',
+    enclosure_id: '',
     enclosure: '',
     sextype: '',
     mastersOrganization: '',
@@ -359,11 +353,12 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
       const hatchedDate = dayjs(eggDetails.hatched_date)
       setValue('birthDate', hatchedDate)
     }
-    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.father_list.length === 1) {
       if (
         eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
       ) {
         setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+        setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
 
@@ -425,33 +420,25 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
               <Box mb={35}>
                 <Card fullWidth sx={{ py: '20px', px: '16px' }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    {/* <InputLabel id='species'>Species / Taxonomy</InputLabel> */}
                     <Controller
                       name='species'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
-                        //   <Select
-                        //     name='species'
-                        //     value={value}
-                        //     label='Add Species'
-                        //     onChange={onChange}
-                        //     labelId='species'
-                        //     error={Boolean(errors?.species)}
-                        //   >
-                        //     {taxonomyList?.map(val => (
-                        //       <MenuItem key={val?.taxonomy_id} value={val?.taxonomy_id}>
-                        //         {val?.scientific_name}
-                        //       </MenuItem>
-                        //     ))}
-                        //   </Select>
                         <Autocomplete
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderColor: Boolean(errors.species) && 'red',
+                              color: 'rgba(76, 78, 100, 0.6)'
+                            },
+                            '& .MuiAutocomplete-input': {
+                              color: 'rgba(76, 78, 100, 0.87)'
+                            }
+                          }}
                           name='species'
                           value={defaultSpecies}
-                          // value={value}
                           disablePortal
                           placeholder='Species / Taxonomy'
-                          // disabled={isEdit || isPreFilled}
                           id='species'
                           options={taxonomyList?.length > 0 ? taxonomyList : []}
                           getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
@@ -476,6 +463,11 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                               label='Select Species *'
                               placeholder='Search & Select'
                               error={Boolean(errors.species)}
+                              sx={{
+                                '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                }
+                              }}
                             />
                           )}
                         />
@@ -513,7 +505,9 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='institution'>Institution {Number(watch('accessionType')) === 4 && '*'}</InputLabel>
+                    <InputLabel id='institution'>
+                      Institution {Number(watch('accessionType')) === 4 ? '*' : ''}
+                    </InputLabel>
                     <Controller
                       name='institution'
                       control={control}
@@ -522,7 +516,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='institution'
                           value={value}
-                          label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
+                          label={`Institution${Number(watch('accessionType')) === 4 ? '*' : ''}`}
                           onChange={onChange}
                           labelId='institution'
                           error={Boolean(errors?.institution)}
@@ -641,51 +635,50 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     </div>
                   )}
                   {/* <FormControl fullWidth sx={{ mb: 4 }}>
-                      <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
-                      <Controller
-                        name='enclosure'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange, onClick } }) => (
-                          <Select
-                            name='enclosure'
-                            value={value}
-                            label='Select Enclosure *'
-                            onChange={onChange}
-                            labelId='enclosure'
-                            error={Boolean(errors?.enclosure)}
-                            disabled
-                          >
-                            {eggDetails?.enclosure_data?.map(val => (
-                              <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-
-                                <Box
-                                  sx={{
-                                    backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                    display: 'flex',
-                                    padding: '12px',
-                                    width: '100%',
-                                    alignItems: 'center',
-                                    borderRadius: '8px',
-                                    gap: '12px'
-                                  }}
-                                >
-                                  <Box sx={{ height: '44px', width: '44px' }}>
-                                    <Avatar
-                                      variant='rounded'
-                                      alt='Medicine Image'
-                                      sx={{
-                                        height: '100%',
-                                        width: '100%',
-                                        borderRadius: '50%',
-                                        border: '1px',
-                                        '& .css-1pqm26d-MuiAvatar-img': {
-                                          objectFit: 'contain'
-                                        }
-                                      }}
-                                      src={val?.enclosure_qr_image}
-                                    />
-                                  </Box>
+                    <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
+                    <Controller
+                      name='enclosure'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <Select
+                          name='enclosure'
+                          value={value}
+                          label='Select Enclosure *'
+                          onChange={onChange}
+                          labelId='enclosure'
+                          error={Boolean(errors?.enclosure)}
+                        >
+                          {eggDetails?.enclosure_data?.map(val => (
+                            <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
+                              {val?.user_enclosure_name}
+                              <Box
+                                sx={{
+                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                  display: 'flex',
+                                  padding: '12px',
+                                  width: '100%',
+                                  alignItems: 'center',
+                                  borderRadius: '8px',
+                                  gap: '12px'
+                                }}
+                              >
+                                <Box sx={{ height: '44px', width: '44px' }}>
+                                  <Avatar
+                                    variant='rounded'
+                                    alt='Medicine Image'
+                                    sx={{
+                                      height: '100%',
+                                      width: '100%',
+                                      borderRadius: '50%',
+                                      border: '1px',
+                                      '& .css-1pqm26d-MuiAvatar-img': {
+                                        objectFit: 'contain'
+                                      }
+                                    }}
+                                    src={val?.enclosure_qr_image}
+                                  />
+                                </Box>
 
                                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                     <Typography
@@ -699,38 +692,37 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
                                     </Typography>
 
-                                    <Typography
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: '400',
-                                        lineHeight: '16.94px'
-                                      }}
-                                    >
-                                      Sec: {val?.section_name ? val?.section_name : '-'}
-                                    </Typography>
-                                    <Typography
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: '400',
-                                        lineHeight: '16.94px'
-                                      }}
-                                    >
-                                      Site: {val?.site_name ? val?.site_name : '-'}
-                                    </Typography>
-                                  </Box>
+                                  <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '14px',
+                                      fontWeight: '400',
+                                      lineHeight: '16.94px'
+                                    }}
+                                  >
+                                    Sec: {val?.section_name ? val?.section_name : '-'}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '14px',
+                                      fontWeight: '400',
+                                      lineHeight: '16.94px'
+                                    }}
+                                  >
+                                    Site: {val?.site_name ? val?.site_name : '-'}
+                                  </Typography>
                                 </Box>
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        )}
-                      />
-                      {errors?.enclosure && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
+                              </Box>
+                            </MenuItem>
+                          ))}
+                        </Select>
                       )}
-                    </FormControl> */}
-                  {/* </div> */}
+                    />
+                    {errors?.enclosure && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
+                    )}
+                  </FormControl> */}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='enclosure'>Sex Type *</InputLabel>
                     <Controller
@@ -800,7 +792,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='mastersOrganization'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Select Organization'
                           onChange={onChange}
                           labelId='mastersOrganization'
                           error={Boolean(errors?.mastersOrganization)}
@@ -874,7 +866,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           <Select
                             name='type'
                             value={value}
-                            label='Animal Ownership Terms'
+                            label='Type'
                             onChange={onChange}
                             labelId='type'
                             error={Boolean(errors?.type)}
@@ -906,7 +898,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='local IdentifierType'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Local Identifier Type'
                           onChange={onChange}
                           labelId='localIdentifierType'
                           error={Boolean(errors?.localIdentifierType)}
@@ -925,6 +917,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
+                  {/* {watch('localIdentifierType')!=''&& */}
                   <FormControl sx={{ mb: 4 }} fullWidth>
                     <Controller
                       name='localIdentifier'
@@ -934,7 +927,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <TextField
                           error={Boolean(errors?.comment)}
                           value={value}
-                          label={`Local Identifier ${watch('localIdentifierType') != '' && '*'}`}
+                          label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
                           name='localIdentifier'
                           onChange={onChange}
                           placeholder=''
@@ -955,7 +948,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentMother'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Parent Mother'
                           onChange={onChange}
                           labelId='parentMother'
                           error={Boolean(errors?.parentMother)}
@@ -1008,11 +1001,32 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                     }}
                                   >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
+                                    {val?.sex === 'female'
+                                      ? 'F'
+                                      : val?.sex === 'male'
+                                      ? 'M'
+                                      : val?.sex === 'undetermined'
+                                      ? 'UD'
+                                      : val?.sex === 'indeterminate'
+                                      ? 'ID'
+                                      : val?.sex === 'group'
+                                      ? 'G'
+                                      : '-'}
                                   </Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  {/* <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: '600',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,
@@ -1075,7 +1089,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentFather'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Parent Father'
                           onChange={onChange}
                           labelId='parentFather'
                           error={Boolean(errors?.parentFather)}
@@ -1128,11 +1142,32 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                       backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
                                     }}
                                   >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
+                                    {val?.sex === 'female'
+                                      ? 'F'
+                                      : val?.sex === 'male'
+                                      ? 'M'
+                                      : val?.sex === 'undetermined'
+                                      ? 'UD'
+                                      : val?.sex === 'indeterminate'
+                                      ? 'ID'
+                                      : val?.sex === 'group'
+                                      ? 'G'
+                                      : '-'}
                                   </Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  {/* <Typography
+                                    sx={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '16px',
+                                      fontWeight: '600',
+                                      lineHeight: '19.36px'
+                                    }}
+                                  >
+                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
+                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
+                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,

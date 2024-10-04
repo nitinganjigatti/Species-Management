@@ -87,6 +87,7 @@ const AddIngredient = () => {
   const defaultValues = {
     active: 1,
     ingredientName: '',
+    ingredientAlias: '',
     feedType: '',
     waterPercentage: '',
     dryMatterPercentage: '',
@@ -141,6 +142,7 @@ const AddIngredient = () => {
         // console.log('res', res?.data)
         if (res?.success) {
           setValue('ingredientName', res?.data?.ingredient_name)
+          setValue('ingredientAlias', res?.data?.ingredient_alias)
           setValue('active', Number(res?.data?.active) === 0 ? 0 : 1)
           setValue('feedType', res?.data?.feed_type)
           setDefaultFeedType({
@@ -304,6 +306,7 @@ const AddIngredient = () => {
     const {
       active,
       ingredientName,
+      ingredientAlias,
       description,
       feedType,
       uom,
@@ -318,6 +321,7 @@ const AddIngredient = () => {
     const payload = {
       active,
       ingredient_name: ingredientName,
+      ingredient_alias: ingredientAlias,
       feed_type: feedType,
       water_percentage: waterPercentage,
       water_dry_matter: dryMatterPercentage,
@@ -504,7 +508,7 @@ const AddIngredient = () => {
                       1. Ingredient details
                     </Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid item xs={12} sm={3.9} md={3.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientName'
@@ -529,7 +533,26 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid item xs={12} sm={3.9} md={3.9}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='ingredientAlias'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                label='Ingredient Alias'
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Ingredient Alias'
+                                name='ingredientAlias'
+                              />
+                            )}
+                          />
+                        </FormControl>
+                      </Grid>
+
+                      <Grid item xs={12} sm={3.9} md={3.9}>
                         <FormControl fullWidth>
                           <Controller
                             name='feedType'

@@ -499,7 +499,6 @@ const AddExistingPurchase = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
-      debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {

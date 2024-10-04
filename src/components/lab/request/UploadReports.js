@@ -12,6 +12,7 @@ import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
+import Toaster from 'src/components/Toaster'
 
 const UploadReports = ({
   animalID,
@@ -105,7 +106,7 @@ const UploadReports = ({
   const handleInputImageChange = file => {
     const reader = new FileReader()
     const { files } = file.target
-    console.log('files :>> ', files)
+    // console.log('files :>> ', files)
     if (files && files.length !== 0) {
       reader.onload = () => {
         setImgSrc(pre => [...pre, reader?.result])
@@ -155,7 +156,9 @@ const UploadReports = ({
     const lab_test_files = []
 
     if (!imgArr?.length) {
-      setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
+      Toaster({ type: 'error', message: 'File is Required' })
+
+      // setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
       setSubmitting(false)
     } else {
       const payload = {
@@ -179,13 +182,15 @@ const UploadReports = ({
           reset()
           setImgArr([])
 
-          setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+          // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+          Toaster({ type: 'success', message: response.message })
 
           fetchRequestDetails()
           setKey(key + 1)
         } else {
           reset(defaultValues)
-          setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+          // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+          Toaster({ type: 'error', message: response.message })
         }
         // Reset the form after successful submission
       } catch (error) {
@@ -255,7 +260,7 @@ const UploadReports = ({
                       {imgSrc?.length > 0 &&
                         imgSrc?.map((img, index) => (
                           <Box key={index} sx={{ display: 'flex', mt: 3 }}>
-                            {console.log('img :>> ', img)}
+                            {/* {console.log('img :>> ', img)} */}
                             <Box
                               sx={{
                                 position: 'relative',

@@ -190,7 +190,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const fetchIncubatorData = async (id, q) => {
     const params = {
       room_id: id,
-      q
+      q,
+      type: 'only_active'
     }
     const incubatorName = await getIncubatorList({ params: params })
 
@@ -593,6 +594,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                   }*`}
                                   value={value}
                                   onChange={e => {
+                                    // debugger
                                     const inputValue = e.target.value
                                     if (inputValue === '' || parseFloat(inputValue) >= 1) {
                                       onChange(e)

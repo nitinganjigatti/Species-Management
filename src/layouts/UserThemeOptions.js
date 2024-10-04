@@ -64,16 +64,44 @@ const UserThemeOptions = () => {
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
         tableHeaderBg: '#E8F4F2',
+        Secondary: '#00D6C9',
+        Surface: '#F2FFF8',
+
+        // *** name required
+
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
-        neutralSecondary: '##7A8684'
+        neutralSecondary: '##7A8684',
+        textLabel: '#00ABAB',
+
+        // **
+        OnSurfaceVariant: '#44544A',
+
+        // *** name required
+        customTableCellBg: '#FCF4AE33',
+
+        // **
+        neutral05: '#0000000D',
+        customCardBorder: '#00ABAB',
+        OnSecondaryContainer: '#1F415B',
+        neutralSecondary: '#7A8684',
+        customHeadingTextColor: '#44544A',
+        customTextColorGray2: '#44544ADE',
+
+        // *** name required
+        customTableHeaderBg: '#C1D3D0',
+
+        // **
+        moderateSecondary: '#E4B819',
+        neutral_50: '#00000066'
       },
       primary: {
         // light: '#20DE67',
         light: '#1F515B',
         main: '#37BD69',
         dark: '#006D35',
+        OnSurface: '#006D35',
         contrastText: '#FFF'
       },
       formContent: {

@@ -261,7 +261,6 @@ const AddReturnRequest = () => {
     //   }
     // }
 
-    // debugger
     setDuplicateMedError(false)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
@@ -290,7 +289,6 @@ const AddReturnRequest = () => {
   }
 
   const updateTableItems = params => {
-    // debugger
     const itemId = medicineItemId
     const updatedState = { ...editParams }
 
@@ -404,7 +402,6 @@ const AddReturnRequest = () => {
   }
 
   const fetchBatchData = async (id, productType) => {
-    // debugger
     if (id !== '') {
       try {
         setBatchLoading(true)
@@ -503,7 +500,7 @@ const AddReturnRequest = () => {
             manufacture: el?.manufacturer
           }
         })
-        debugger
+
         setEditParams({
           ...editParams,
           id: result?.data?.id,
@@ -522,8 +519,6 @@ const AddReturnRequest = () => {
 
   // ****** edit section //////
   const editTableData = async itemId => {
-    // debugger
-
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
@@ -592,7 +587,7 @@ const AddReturnRequest = () => {
   }
 
   // const deleteLineItemFromDb = async lineItemId => {
-  //   debugger
+  //
   //   console.log('lineItemId', lineItemId)
   //   if (lineItemId) {
   //     try {
@@ -631,7 +626,7 @@ const AddReturnRequest = () => {
   }
 
   // const cancelReturnRequest = async id => {
-  //   debugger
+  //
   //   console.log('id', id)
   //   if (id) {
   //     try {

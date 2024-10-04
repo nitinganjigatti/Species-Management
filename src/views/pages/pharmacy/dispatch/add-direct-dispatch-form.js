@@ -168,7 +168,7 @@ export const AddItemsForm = ({
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
-    const isMedicineAlreadyExists = editParams.request_item_details.some(
+    const isMedicineAlreadyExists = editParams?.request_item_details?.some(
       item =>
         item.request_item_medicine_id === request_item.value &&
         item.request_item_batch_no === request_item_batch_no.value &&
@@ -262,12 +262,10 @@ export const AddItemsForm = ({
 
   const checkTotalCount = async e => {
     // console.log('nestedMedicine', nestedMedicine)
-    // debugger
 
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
 
-    // debugger
     var totalCount = 0
     var enteredCount = 0
     var nestedItemQuantity = 0
@@ -290,8 +288,6 @@ export const AddItemsForm = ({
     }
 
     const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
-
-    // debugger
 
     setTotalAvailableCount(available_qty)
   }
@@ -317,8 +313,6 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
-    // debugger
-
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {

@@ -38,6 +38,7 @@ const defaultValues = {
   child: '',
   diet_image: '',
   desc: '',
+  remarks: '',
   meal_data: [
     {
       mealid: 'meal',
@@ -217,6 +218,10 @@ const StepBasicDetails = ({
     }
     setfinalvalueingredientchoice(fieldsIngredients)
     console.log(fieldsIngredients, 'fieldsIngredients')
+  }
+
+  function deleteCookie(name) {
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   }
 
   useEffect(() => {
@@ -450,8 +455,9 @@ const StepBasicDetails = ({
 
       // Check for time overlap
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
+      console.log(lastOverlapIndex, 'lastOverlapIndex')
       if (lastOverlapIndex !== -1) {
-        toast.error(`Meal ${lastOverlapIndex + 1} time overlaps with another meal.`)
+        toast.error(`Meal ${lastOverlapIndex + 1} Start time cannot be later than end time.`)
 
         return
       } else {
@@ -480,22 +486,22 @@ const StepBasicDetails = ({
         return
       }
 
-      // Check for overlap with other meals
-      for (let i = 0; i < mealData.length; i++) {
-        if (i !== index) {
-          const currentFromTime = new Date(mealData[i].meal_from_time).getTime()
-          const currentToTime = new Date(mealData[i].meal_to_time).getTime()
+      //Check for overlap with other meals
+      // for (let i = 0; i < mealData.length; i++) {
+      //   if (i !== index) {
+      //     const currentFromTime = new Date(mealData[i].meal_from_time).getTime()
+      //     const currentToTime = new Date(mealData[i].meal_to_time).getTime()
 
-          // Check for overlap
-          if (
-            (fromTime >= currentFromTime && fromTime < currentToTime) ||
-            (toTime > currentFromTime && toTime <= currentToTime)
-          ) {
-            lastOverlapIndex = index
-            break
-          }
-        }
-      }
+      //     // Check for overlap
+      //     if (
+      //       (fromTime >= currentFromTime && fromTime < currentToTime) ||
+      //       (toTime > currentFromTime && toTime <= currentToTime)
+      //     ) {
+      //       lastOverlapIndex = index
+      //       break
+      //     }
+      //   }
+      // }
     })
 
     return lastOverlapIndex
@@ -578,13 +584,13 @@ const StepBasicDetails = ({
     console.log(ingredientIdToRemove, 'ingredientIdToRemove')
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(
-        ingredient => ingredient.ingredient_id !== ingredientIdToRemove
+        ingredient => ingredient?.ingredient_id !== ingredientIdToRemove
       )
 
       setAllSelectedValues(prevAllSelectedValues => {
         // Filter out objects based on conditions
         return prevAllSelectedValues.filter(ingredient => {
-          return !(ingredient.mealid === val && ingredient.ingredient_id === ingredientIdToRemove)
+          return !(ingredient?.mealid === val && ingredient?.ingredient_id === ingredientIdToRemove)
         })
       })
 
@@ -612,7 +618,7 @@ const StepBasicDetails = ({
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
         const updatedAllSelectedValues = prevAllSelectedValues.filter((ingredient, index) => {
-          return index !== indexToRemove || ingredient.mealid !== val
+          return index !== indexToRemove || ingredient?.mealid !== val
         })
 
         return updatedAllSelectedValues
@@ -620,7 +626,7 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by removing the ingredient based on the indexToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        if (field.mealid === val) {
+        if (field?.mealid === val) {
           field.ingredientwithchoice = field.ingredientwithchoice?.filter((_, ingIndex) => ingIndex !== indexToRemove)
         }
 
@@ -642,7 +648,7 @@ const StepBasicDetails = ({
       setAllRecipeSelectedValues(prevAllSelectedValues => {
         // Filter out objects based on conditions
         return prevAllSelectedValues.filter(recipe => {
-          return !(recipe.mealid === val && recipe.recipe_id === recipeIdToRemove)
+          return !(recipe?.mealid === val && recipe?.recipe_id === recipeIdToRemove)
         })
       })
 
@@ -720,9 +726,9 @@ const StepBasicDetails = ({
 
         const updatedAllSelectedValues = prevAllSelectedValues
           .map(ingredient => {
-            if (ingredient.mealid === val) {
+            if (ingredient?.mealid === val) {
               ingredient.ingredientList = ingredient.ingredientList.filter(
-                ing => ing.ingredient_id !== ingredientIdToRemove
+                ing => ing?.ingredient_id !== ingredientIdToRemove
               )
             }
             return ingredient
@@ -736,14 +742,14 @@ const StepBasicDetails = ({
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredientwithchoice = field.ingredientwithchoice
           ?.map(ing => {
-            if (ing.mealid === val) {
+            if (ing?.mealid === val) {
               ing.ingredientList = ing?.ingredientList?.filter(
                 item => String(item.ingredient_id) !== ingredientIdToRemove
               )
             }
             return ing
           })
-          .filter(ing => ing.ingredientList && ing.ingredientList.length > 0)
+          .filter(ing => ing?.ingredientList && ing?.ingredientList.length > 0)
 
         return field
       })
@@ -756,7 +762,6 @@ const StepBasicDetails = ({
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
-  console.log(errors, 'nknn')
   console.log(uploadedImage, 'uploadedImage')
   console.log(formData, 'formdata')
   console.log(selectedCard, 'selectedCard')
@@ -806,12 +811,12 @@ const StepBasicDetails = ({
                     return (
                       <Autocomplete
                         value={uomList?.find(option => option.id === value) || null}
-                        disablePortal
+                        // disablePortal
                         id='diet_type_id'
                         options={uomList || []}
                         getOptionLabel={option => option.diet_type_name}
                         isOptionEqualToValue={(option, value) => option?.id === value}
-                        disabled={id ? true : false}
+                        //disabled={id ? true : false}
                         onChange={(e, val) => {
                           console.log(val, 'val')
                           if (val === null) {
@@ -823,9 +828,11 @@ const StepBasicDetails = ({
                             setFormValue('diet_type_name', val.diet_type_name)
                             setFormValue('child', val.child)
                             trigger('diet_type_id')
+                            deleteCookie('dietTypeChildValues')
+                            deleteCookie('dietTypeChildVal')
                           }
                         }}
-                        sx={{ background: id ? '#80808021' : '' }}
+                        //sx={{ background: id ? '#80808021' : '' }}
                         renderInput={params => (
                           <TextField
                             {...params}
@@ -899,7 +906,7 @@ const StepBasicDetails = ({
                         <TextField
                           value={value}
                           type='text'
-                          label='Meal name (Optional) '
+                          label='Meal name'
                           name={`meal_data[${index}].meal_name`}
                           error={
                             errors.meal_data && errors.meal_data[index] && errors.meal_data[index].meal_name?.message
@@ -1507,7 +1514,7 @@ const StepBasicDetails = ({
               <Button
                 color='secondary'
                 variant='outlined'
-                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
                 onClick={cancelBack}
               >

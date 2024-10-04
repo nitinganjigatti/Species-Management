@@ -3,9 +3,23 @@ import Icon from 'src/@core/components/icon'
 
 import React from 'react'
 import moment from 'moment'
+import Utility from 'src/utility'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, userData, fileViews }) => {
-  console.log('fileViews :>> ', fileViews)
+const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) => {
+  // console.log('image :>> ', image)
+  // console.log('document :>> ', document)
+
+  function extractHoursAndMinutes(date) {
+    //9:21 PM
+    return moment(date).format('hh:mm A')
+  }
+
+  function convertUTCToLocal(date) {
+    var stillUtc = moment.utc(date).toDate()
+    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+    return local
+  }
 
   return (
     <>
@@ -80,7 +94,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData, fil
                     {item?.user_profile?.name}
                   </Typography>
                 </Box>
-                <Box>{moment(userData?.created_at).format('hh:MM A')}</Box>
+                <Box>{extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))} </Box>
               </Box>
             </Card>
           </a>
@@ -135,7 +149,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData, fil
                   mt: -2
                 }}
               >
-                {console.log('item?.file_original_name :>> ', item?.file_type)}
+                {/* {console.log('item?.file_original_name :>> ', item?.file_type)} */}
                 <img
                   src={
                     item?.file_type === 'application/pdf'
@@ -167,7 +181,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, userData, fil
                     {item?.user_profile?.name}
                   </Typography>
                 </Box>
-                <Box>{moment(userData?.created_at).format('hh:mm A')}</Box>
+                <Box>{moment(item?.user_profile?.created_at).format('hh:mm A')}</Box>
               </Box>
             </Card>
           </a>

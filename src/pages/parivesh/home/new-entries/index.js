@@ -50,6 +50,9 @@ import Image from 'next/image'
 import { display } from '@mui/system'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Utility from 'src/utility'
+import { Details } from '@mui/icons-material'
+import NewEntryDetailsDialog from './new-entry-details/index'
+import Error404 from 'src/pages/404'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -79,6 +82,8 @@ const NewEntry = ({}) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailData, setDetailData] = useState()
   const [isEditModal, setIsEditModal] = useState(false)
+
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   function loadServerRows(currentPage, data) {
     return data
@@ -527,35 +532,29 @@ const NewEntry = ({}) => {
 
   const headerAction = (
     <>
-      <div>
-        <Button
-          size='medium'
-          variant='contained'
-          onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD ENTRY
-        </Button>
+      <Button size='medium' variant='contained' onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; ADD ENTRY
+      </Button>
 
-        <LoadingButton
-          loading={btnLoader}
-          size='medium'
-          variant='contained'
-          sx={{
-            m: 2,
-            backgroundColor: '#1F415B',
-            color: '#FFFFFF',
-            '&:hover': {
-              // CSS pseudo-class for hover effect
-              backgroundColor: '#0D2B3E' // Darker shade for hover background color
-            }
-          }}
-          onClick={handleCreateBatch}
-          disabled={selectedRows.length > 0 ? false : true}
-        >
-          {'CREATE BATCH'}
-        </LoadingButton>
-      </div>
+      <LoadingButton
+        loading={btnLoader}
+        size='medium'
+        variant='contained'
+        sx={{
+          m: 2,
+          backgroundColor: '#1F415B',
+          color: '#FFFFFF',
+          '&:hover': {
+            // CSS pseudo-class for hover effect
+            backgroundColor: '#0D2B3E' // Darker shade for hover background color
+          }
+        }}
+        onClick={handleCreateBatch}
+        disabled={selectedRows.length > 0 ? false : true}
+      >
+        {'CREATE BATCH'}
+      </LoadingButton>
     </>
   )
 
@@ -927,178 +926,104 @@ const NewEntry = ({}) => {
     fetchOrgCountData(selectedParivesh?.id)
   }, [fetchOrgCountData])
 
-  // console.log(organizationCountList, 'organizationCountList')
+  console.log('Details', detailData)
+  const capitalizeFirstLetter = str => {
+    if (!str) return ''
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
 
   return (
     <>
-      {organizationCountList.length > 0 && (
-        <Card>
-          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-            {organizationCountList.map((org, inx) => {
-              return (
-                <CustomAccordion
-                  title='To be submitted'
-                  summaryIcon='mdi:arrow-top-right'
-                  data={org?.yetToSubmitAccordionData?.data}
-                  cards={org?.yetToSubmitAccordionData?.cards}
-                  backgroundImage={org?.cover_image !== '' && org?.cover_image}
-                  isOrganization={selectedParivesh.id !== 'all' ? true : false}
-                  organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
-                />
-              )
-            })}
-          </CardContent>
-        </Card>
-      )}
+      {pariveshAccess ? (
+        <>
+          {organizationCountList.length > 0 && (
+            <Card>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                {organizationCountList.map((org, inx) => {
+                  return (
+                    <CustomAccordion
+                      title='To be submitted'
+                      summaryIcon='mdi:arrow-top-right'
+                      data={org?.yetToSubmitAccordionData?.data}
+                      cards={org?.yetToSubmitAccordionData?.cards}
+                      backgroundImage={org?.cover_image !== '' && org?.cover_image}
+                      isOrganization={selectedParivesh.id !== 'all' ? true : false}
+                      organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
+                    />
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
 
-      <Grid>{tableData()}</Grid>
+          <Grid>{tableData()}</Grid>
 
-      <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
-        <DialogTitle>
-          <Grid container direction='column'>
-            {/* Close button */}
-            <IconButton
-              aria-label='close'
-              onClick={() => setIsEditModal(false)}
-              sx={{ top: 10, right: 6, position: 'absolute', color: 'grey.500' }}
-            >
-              <Icon icon='mdi:close' />
-            </IconButton>
+          <NewEntryDetailsDialog isEditModal={isEditModal} setIsEditModal={setIsEditModal} detailData={detailData} />
 
-            {/* Header with Avatar and details */}
-            <Grid item container alignItems='center' mt={6}>
-              <Avatar variant='circular' src={detailData?.created_by_user?.profile_pic} />
-              <Typography sx={{ ml: 2 }}>Created By: {detailData?.created_by_user?.user_name}</Typography>
-            </Grid>
-
-            {/* Media details */}
-            <Box sx={{ display: 'flex', mt: 2, alignItems: 'center', mb: 2 }}>
+          <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
+                onClick={() => setIsModalOpen(false)}
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
               <Box
                 sx={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
                   display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+
+                  // padding: '40px',
                   alignItems: 'center'
                 }}
               >
-                <Avatar src={detailData?.species_image} alt={''} variant='square' sx={{ height: 'auto' }} />
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this species?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    disabled={btnLoader}
+                    onClick={() => setIsModalOpen(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  <LoadingButton
+                    loading={btnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
               </Box>
-              <Box sx={{ ml: 2 }}>
-                <Typography variant='h6' sx={{ color: '#00afd6' }}>
-                  {detailData?.scientific_name}
-                </Typography>
-                <Typography variant='h6'>({detailData?.common_name})</Typography>
-              </Box>
-            </Box>
-
-            {/* Divider */}
-            <Divider />
-
-            {/* Details */}
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Gender
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 58 }} color={'#1F515B'}>
-                {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Reason for Entry
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 36 }} color={'#1F515B'}>
-                {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Total Count
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
-                {detailData?.animal_count}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Entry Date
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
-                {detailData?.transaction_date
-                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(detailData?.transaction_date)) +
-                    ' ' +
-                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(detailData?.transaction_date))
-                  : ''}
-              </Typography>
-            </Grid>
-          </Grid>
-        </DialogTitle>
-      </Dialog>
-
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpen(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-
-              // padding: '40px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this species?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                disabled={btnLoader}
-                onClick={() => setIsModalOpen(false)}
-                variant='outlined'
-                sx={{
-                  color: 'gray',
-                  width: '45%'
-                }}
-              >
-                Cancel
-              </Button>
-
-              <LoadingButton
-                loading={btnLoader}
-                size='large'
-                variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
-              >
-                Delete
-              </LoadingButton>
-            </Box>
-          </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

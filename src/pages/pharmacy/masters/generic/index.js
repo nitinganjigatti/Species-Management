@@ -175,7 +175,6 @@ const GenericNamesList = () => {
         }
 
         await getGenericsForMaster({ params: params }).then(res => {
-          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -191,7 +190,6 @@ const GenericNamesList = () => {
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
-    debugger
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -246,7 +244,6 @@ const GenericNamesList = () => {
 
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
-        debugger
         setSubmitLoader(false)
 
         // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })

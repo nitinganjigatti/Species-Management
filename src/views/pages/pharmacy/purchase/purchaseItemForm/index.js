@@ -43,10 +43,10 @@ const defaultValues = {
   purchase_unit_price: '',
   purchase_qty: '',
   purchase_free_quantity: 0,
-  purchase_discount: '',
-  purchase_cgst: '',
-  purchase_sgst: '',
-  purchase_igst: '',
+  purchase_discount: 0,
+  purchase_cgst: 0,
+  purchase_sgst: 0,
+  purchase_igst: 0,
   purchase_gst: 0,
   purchase_cgst_amount: 0,
   purchase_sgst_amount: 0,
@@ -218,8 +218,10 @@ const PurchaseItemForm = props => {
     defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
+
     // mode: 'onBlur',
     mode: 'onSubmit',
+
     // reValidateMode: 'onSubmit',
     reValidateMode: 'onChange',
     context: {
@@ -355,7 +357,7 @@ const PurchaseItemForm = props => {
     const taxableAmount = calculateAmountAfterDiscount(grossAmount, purchase_discount)
 
     let netAmount
-    if (purchase_igst_amount === 0 || purchase_igst_amount === '0') {
+    if (purchase_igst_amount === 0 || purchase_igst_amount === 0) {
       netAmount = taxableAmount + purchase_gst_amount
     } else {
       netAmount = taxableAmount + purchase_igst_amount
@@ -716,7 +718,14 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  value={field.value === 0 ? '' : field.value}
                   onKeyUp={e => {
+                    const inputValue = e.target.value
+                    if (inputValue === '') {
+                      field.onChange(0)
+                    } else {
+                      field.onChange(inputValue)
+                    }
                     calculateStuff()
                   }}
                   label='Discount in %'
@@ -740,10 +749,18 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label='Central GST in %'
+                  value={field.value === 0 ? '' : field.value}
+                  label='Central GST in %*'
                   onKeyUp={e => {
+                    const inputValue = e.target.value
+                    if (inputValue === '') {
+                      field.onChange(0)
+                    } else {
+                      field.onChange(inputValue)
+                    }
                     calculateStuff()
-                    field.onChange(e)
+
+                    // field.onChange(e)
                     if (field.value && !isNaN(field.value)) {
                       setUserInteracted(false)
                     }
@@ -768,8 +785,15 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label='State GST in %'
+                  label='State GST in %*'
+                  value={field.value === 0 ? '' : field.value}
                   onKeyUp={e => {
+                    const inputValue = e.target.value
+                    if (inputValue === '') {
+                      field.onChange(0)
+                    } else {
+                      field.onChange(inputValue)
+                    }
                     calculateStuff()
                     if (field.value && !isNaN(field.value)) {
                       setError('purchase_cgst', '')
@@ -796,9 +820,17 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='IGST in %*'
+                  value={field.value === 0 ? '' : field.value}
                   onKeyUp={e => {
+                    const inputValue = e.target.value
+                    if (inputValue === '') {
+                      field.onChange(0)
+                    } else {
+                      field.onChange(inputValue)
+                    }
                     calculateStuff()
-                    field.onChange(e)
+
+                    // field.onChange(e)
                   }}
                   error={Boolean(errors.purchase_igst)}
 
@@ -820,6 +852,7 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  value={field.value === '0' ? '' : field.value}
                   disabled={true}
                   label='Central GST Amount*'
                   onKeyUp={e => {
@@ -1010,6 +1043,7 @@ const PurchaseItemForm = props => {
                   }}
                   size='large'
                   variant='outlined'
+                  git
                 >
                   Reset
                 </Button>

@@ -448,7 +448,7 @@ const AddRequestForm = () => {
         }
 
         const searchResults = await getGenericMedicineList({ params: params })
-        // debugger
+
         if (searchResults?.data?.list_items.length > 0) {
           setOptionsMedicineList(
             searchResults?.data?.list_items?.map(item => ({
