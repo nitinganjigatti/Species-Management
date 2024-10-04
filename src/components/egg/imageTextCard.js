@@ -91,8 +91,10 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           <Typography
             sx={{
               fontSize: '16px',
+
               // color: theme.palette.primary.light,
               color: theme.palette.customColors.OnSurfaceVariant,
+              width: 250,
               fontWeight: '500',
               lineHeight: '19.36px',
               overflow: 'hidden',
@@ -109,6 +111,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             sx={{
               // color: theme.palette.primary.light,
               color: theme.palette.customColors.OnSurfaceVariant,
+              width: 250,
               fontSize: '14px',
               fontWeight: '400',
               lineHeight: '16.94px',
