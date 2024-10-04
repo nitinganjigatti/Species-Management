@@ -512,6 +512,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
       const param = {
         ref_type: tabStatus,
+        sort: 'desc',
         q,
         page_no: page,
         from_date: fromDate ? fromDate : '',

@@ -2181,6 +2181,7 @@ const EggList = () => {
     setFilterList([])
     setSelectedFiltersOptions({})
     setPaginationModel({ page: 0, pageSize: 10 })
+    setSelectionEggModel([])
     setSearchQuery('')
     router.push({ query: { ...router.query, tab_Value: newValue, search_value: '', page_value: 0 } }, undefined, {
       shallow: true
@@ -2196,6 +2197,7 @@ const EggList = () => {
     setSelectedFiltersOptions({})
     setPaginationModel({ page: 0, pageSize: 10 })
     setSearchQuery('')
+    setSelectionEggModel([])
 
     router.push({ query: { ...router.query, subTab_value: newValue, search_value: '', page_value: 0 } }, undefined, {
       shallow: true
@@ -2760,13 +2762,20 @@ const EggList = () => {
               </TabPanel>
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                 {selectionEggModel?.length > 0 && (
-                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -12, mb: 2 }}>
-                    <Button sx={{ p: 5 }} size='medium' variant='contained' onClick={() => setOpenDiscardDialog(true)}>
+                  <Box
+                    sx={{ display: 'flex', height: '30px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2, pb: 2 }}
+                  >
+                    <Button
+                      sx={{ p: 5, mt: -2 }}
+                      size='medium'
+                      variant='contained'
+                      onClick={() => setOpenDiscardDialog(true)}
+                    >
                       &nbsp;{selectionEggModel?.length}&nbsp;Discard
                     </Button>
                   </Box>
                 )}
-                <Divider sx={{ mt: 4 }} />
+                <Divider />
                 {tableData()}
               </TabPanel>
               <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
