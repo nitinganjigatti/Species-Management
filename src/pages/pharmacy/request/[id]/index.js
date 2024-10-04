@@ -1987,7 +1987,11 @@ const IndividualRequest = () => {
                                                             color: 'customColors.OnSecondaryContainer',
 
                                                             display: 'flex',
-                                                            alignItems: 'center'
+                                                            alignItems: 'center',
+                                                            whiteSpace: 'nowrap',
+                                                            textOverflow: 'ellipsis',
+                                                            overflow: 'hidden',
+                                                            maxWidth: '250px'
                                                           }}
                                                         >
                                                           {!isNaN(el?.control_substance) &&
@@ -2042,26 +2046,17 @@ const IndividualRequest = () => {
                                                         variant='body1'
                                                         sx={{
                                                           color: 'text.primary',
-                                                          display: { xs: 'none', md: 'none', lg: 'block' },
+
                                                           fontSize: '14px !important',
 
-                                                          fontWeight: 400
+                                                          fontWeight: 400,
+                                                          whiteSpace: 'nowrap',
+                                                          textOverflow: 'ellipsis',
+                                                          overflow: 'hidden',
+                                                          maxWidth: '250px'
                                                         }}
                                                       >
                                                         {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                      </Typography>
-                                                    </Tooltip>
-                                                    <Tooltip title={el?.manufacturer} placement='top'>
-                                                      <Typography
-                                                        variant='body1'
-                                                        sx={{
-                                                          color: 'text.primary',
-                                                          display: { xs: 'none', md: 'none', lg: 'block' },
-                                                          fontSize: '14px !important',
-                                                          fontWeight: 400
-                                                        }}
-                                                      >
-                                                        {el?.manufacturer}
                                                       </Typography>
                                                     </Tooltip>
 
@@ -2133,8 +2128,7 @@ const IndividualRequest = () => {
                                                               display: 'flex',
                                                               flexDirection: 'column',
                                                               justifyContent: 'center',
-                                                              flexWrap: 'nowrap',
-                                                              my: 1
+                                                              flexWrap: 'nowrap'
                                                             }}
                                                           >
                                                             <Box>
@@ -2149,7 +2143,11 @@ const IndividualRequest = () => {
                                                                       color: 'customColors.OnSecondaryContainer',
 
                                                                       display: 'flex',
-                                                                      alignItems: 'center'
+                                                                      alignItems: 'center',
+                                                                      whiteSpace: 'nowrap',
+                                                                      textOverflow: 'ellipsis',
+                                                                      overflow: 'hidden',
+                                                                      maxWidth: '250px'
                                                                     }}
                                                                   >
                                                                     {!isNaN(el?.control_substance) &&
@@ -2204,25 +2202,16 @@ const IndividualRequest = () => {
                                                                   variant='body1'
                                                                   sx={{
                                                                     color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
+
                                                                     fontSize: '14px !important',
-                                                                    fontWeight: 400
+                                                                    fontWeight: 400,
+                                                                    whiteSpace: 'nowrap',
+                                                                    textOverflow: 'ellipsis',
+                                                                    overflow: 'hidden',
+                                                                    maxWidth: '250px'
                                                                   }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                </Typography>
-                                                              </Tooltip>
-                                                              <Tooltip title={el?.manufacturer} placement='top'>
-                                                                <Typography
-                                                                  variant='body1'
-                                                                  sx={{
-                                                                    color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
-                                                                    fontSize: '14px !important',
-                                                                    fontWeight: 400
-                                                                  }}
-                                                                >
-                                                                  {el?.manufacturer}
                                                                 </Typography>
                                                               </Tooltip>
 
@@ -2255,8 +2244,10 @@ const IndividualRequest = () => {
                                                                       maxWidth: 80,
                                                                       cursor: 'pointer',
                                                                       WebkitBoxOrient: 'vertical',
-                                                                      overflow: 'hidden',
+
                                                                       textOverflow: 'ellipsis',
+                                                                      overflow: 'hidden',
+                                                                      maxWidth: '250px',
                                                                       WebkitLineClamp: 6,
                                                                       whiteSpace: 'nowrap',
                                                                       opacity: '0.5',
@@ -2791,6 +2782,7 @@ const IndividualRequest = () => {
                                                                       WebkitBoxOrient: 'vertical',
                                                                       overflow: 'hidden',
                                                                       textOverflow: 'ellipsis',
+
                                                                       WebkitLineClamp: 6,
                                                                       whiteSpace: 'nowrap',
                                                                       opacity: '0.5',
@@ -3426,7 +3418,11 @@ const IndividualRequest = () => {
                                                                       display: 'flex',
                                                                       alignItems: 'center',
                                                                       fontSize: '16px !important',
-                                                                      fontWeight: 600
+                                                                      fontWeight: 600,
+                                                                      whiteSpace: 'nowrap',
+                                                                      textOverflow: 'ellipsis',
+                                                                      overflow: 'hidden',
+                                                                      maxWidth: '250px'
                                                                     }}
                                                                   >
                                                                     {!isNaN(el?.control_substance) &&
@@ -3482,25 +3478,15 @@ const IndividualRequest = () => {
                                                                   variant='body1'
                                                                   sx={{
                                                                     color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
+                                                                    whiteSpace: 'nowrap',
+                                                                    textOverflow: 'ellipsis',
+                                                                    overflow: 'hidden',
+                                                                    maxWidth: '250px',
                                                                     fontSize: '14px !important',
                                                                     fontWeight: 400
                                                                   }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                </Typography>
-                                                              </Tooltip>
-                                                              <Tooltip title={el?.manufacturer} placement='top'>
-                                                                <Typography
-                                                                  variant='body1'
-                                                                  sx={{
-                                                                    color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
-                                                                    fontSize: '14px !important',
-                                                                    fontWeight: 400
-                                                                  }}
-                                                                >
-                                                                  {el?.manufacturer}
                                                                 </Typography>
                                                               </Tooltip>
 
@@ -3576,10 +3562,7 @@ const IndividualRequest = () => {
                                                                         display: 'flex',
                                                                         flexDirection: 'column',
                                                                         justifyContent: 'center',
-                                                                        flexWrap: 'nowrap',
-                                                                        my: 1
-
-                                                                        // mb: 4,
+                                                                        flexWrap: 'nowrap'
                                                                       }}
                                                                     >
                                                                       <Box>
@@ -3601,7 +3584,11 @@ const IndividualRequest = () => {
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
                                                                                 fontSize: '16px !important',
-                                                                                fontWeight: 600
+                                                                                fontWeight: 600,
+                                                                                whiteSpace: 'nowrap',
+                                                                                textOverflow: 'ellipsis',
+                                                                                overflow: 'hidden',
+                                                                                maxWidth: '250px'
                                                                               }}
                                                                             >
                                                                               {!isNaN(el?.control_substance) &&
@@ -3657,36 +3644,15 @@ const IndividualRequest = () => {
                                                                             variant='body1'
                                                                             sx={{
                                                                               color: 'text.primary',
-                                                                              display: {
-                                                                                xs: 'none',
-                                                                                md: 'none',
-                                                                                lg: 'block'
-                                                                              },
+                                                                              whiteSpace: 'nowrap',
+                                                                              textOverflow: 'ellipsis',
+                                                                              overflow: 'hidden',
+                                                                              maxWidth: '250px',
                                                                               fontSize: '14px !important',
                                                                               fontWeight: 400
                                                                             }}
                                                                           >
                                                                             {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                          </Typography>
-                                                                        </Tooltip>
-                                                                        <Tooltip
-                                                                          title={el?.manufacturer}
-                                                                          placement='top'
-                                                                        >
-                                                                          <Typography
-                                                                            variant='body1'
-                                                                            sx={{
-                                                                              color: 'text.primary',
-                                                                              display: {
-                                                                                xs: 'none',
-                                                                                md: 'none',
-                                                                                lg: 'block'
-                                                                              },
-                                                                              fontSize: '14px !important',
-                                                                              fontWeight: 400
-                                                                            }}
-                                                                          >
-                                                                            {el?.manufacturer}
                                                                           </Typography>
                                                                         </Tooltip>
 
@@ -4476,7 +4442,11 @@ const IndividualRequest = () => {
                                                                 color: 'customColors.OnSecondaryContainer',
 
                                                                 display: 'flex',
-                                                                alignItems: 'center'
+                                                                alignItems: 'center',
+                                                                whiteSpace: 'nowrap',
+                                                                textOverflow: 'ellipsis',
+                                                                overflow: 'hidden',
+                                                                maxWidth: '250px'
                                                               }}
                                                             >
                                                               {!isNaN(el?.control_substance) &&
@@ -4531,26 +4501,16 @@ const IndividualRequest = () => {
                                                             variant='body1'
                                                             sx={{
                                                               color: 'text.primary',
-                                                              display: { xs: 'none', md: 'none', lg: 'block' },
-                                                              fontSize: '14px !important',
 
-                                                              fontWeight: 400
+                                                              fontSize: '14px !important',
+                                                              fontWeight: 400,
+                                                              whiteSpace: 'nowrap',
+                                                              textOverflow: 'ellipsis',
+                                                              overflow: 'hidden',
+                                                              maxWidth: '250px'
                                                             }}
                                                           >
                                                             {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                          </Typography>
-                                                        </Tooltip>
-                                                        <Tooltip title={el?.manufacturer} placement='top'>
-                                                          <Typography
-                                                            variant='body1'
-                                                            sx={{
-                                                              color: 'text.primary',
-                                                              display: { xs: 'none', md: 'none', lg: 'block' },
-                                                              fontSize: '14px !important',
-                                                              fontWeight: 400
-                                                            }}
-                                                          >
-                                                            {el?.manufacturer}
                                                           </Typography>
                                                         </Tooltip>
 
@@ -4626,8 +4586,7 @@ const IndividualRequest = () => {
                                                                   display: 'flex',
                                                                   flexDirection: 'column',
                                                                   justifyContent: 'center',
-                                                                  flexWrap: 'nowrap',
-                                                                  my: 1
+                                                                  flexWrap: 'nowrap'
 
                                                                   // mb: 4,
                                                                 }}
@@ -4644,7 +4603,11 @@ const IndividualRequest = () => {
                                                                           color: 'customColors.OnSecondaryContainer',
 
                                                                           display: 'flex',
-                                                                          alignItems: 'center'
+                                                                          alignItems: 'center',
+                                                                          whiteSpace: 'nowrap',
+                                                                          textOverflow: 'ellipsis',
+                                                                          overflow: 'hidden',
+                                                                          maxWidth: '250px'
                                                                         }}
                                                                       >
                                                                         {!isNaN(el?.control_substance) &&
@@ -4699,33 +4662,16 @@ const IndividualRequest = () => {
                                                                       variant='body1'
                                                                       sx={{
                                                                         color: 'text.primary',
-                                                                        display: {
-                                                                          xs: 'none',
-                                                                          md: 'none',
-                                                                          lg: 'block'
-                                                                        },
+
                                                                         fontSize: '14px !important',
-                                                                        fontWeight: 400
+                                                                        fontWeight: 400,
+                                                                        whiteSpace: 'nowrap',
+                                                                        textOverflow: 'ellipsis',
+                                                                        overflow: 'hidden',
+                                                                        maxWidth: '250px'
                                                                       }}
                                                                     >
                                                                       {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                    </Typography>
-                                                                  </Tooltip>
-                                                                  <Tooltip title={el?.manufacturer} placement='top'>
-                                                                    <Typography
-                                                                      variant='body1'
-                                                                      sx={{
-                                                                        color: 'text.primary',
-                                                                        display: {
-                                                                          xs: 'none',
-                                                                          md: 'none',
-                                                                          lg: 'block'
-                                                                        },
-                                                                        fontSize: '14px !important',
-                                                                        fontWeight: 400
-                                                                      }}
-                                                                    >
-                                                                      {el?.manufacturer}
                                                                     </Typography>
                                                                   </Tooltip>
 
