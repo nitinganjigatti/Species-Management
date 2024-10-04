@@ -272,7 +272,7 @@ export const NECROPSY_REPORTS = 'necropsy-report'
 
 export const GET_COLLECTED_BY = 'get-collected-by-list'
 
-export const DASHBOARD_DISCARD = '/discarded/list'
+export const DASHBOARD_DISCARD = 'discarded/list'
 
 export const DASHBOARD_BATCH = 'discard/filtered-list'
 
@@ -315,3 +315,5 @@ export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
 
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
+
+export const SPECIES_LIST = 'species-list-egg-wise'

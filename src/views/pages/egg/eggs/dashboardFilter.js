@@ -20,7 +20,7 @@ import Icon from 'src/@core/components/icon'
 import { GetEggMaster } from 'src/lib/api/egg/egg'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
-import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
+import { getSpecieList, getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
 
 const leftMenu = [
@@ -28,7 +28,8 @@ const leftMenu = [
   { id: 2, name: 'Batch' },
   { id: 3, name: 'Nursery' },
   { id: 4, name: 'Security status' },
-  { id: 5, name: 'Condition' },
+
+  // { id: 5, name: 'Condition' },
   { id: 6, name: 'Reason' }
 ]
 
@@ -49,6 +50,7 @@ const DashboardFilter = ({
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
+  console.log('taxonomyList :>> ', taxonomyList)
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
 
@@ -62,6 +64,10 @@ const DashboardFilter = ({
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
+    setSearchQuery('')
+    searchData('')
+
+    setSelectAll(false)
   }
 
   const NurseryList = async q => {
@@ -97,9 +103,11 @@ const DashboardFilter = ({
 
   const getTaxonomyListFunc = async q => {
     try {
-      getTaxonomyList(q).then(res => {
-        if (res.success) {
-          setTaxonomyList(res?.data)
+      getSpecieList(q).then(res => {
+        // console.log('res :>> ', res.result.length > 0)
+        if (res.result.length > 0) {
+          console.log('res :>> ', res)
+          setTaxonomyList(res?.result)
         }
       })
     } catch (error) {}
@@ -199,13 +207,14 @@ const DashboardFilter = ({
           { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
           { id: 'COMPLETED', name: 'Security Checked' }
         ]
-      case 'Condition':
-        return (
-          conditionList?.map(condition => ({
-            id: condition.id,
-            name: condition.egg_condition
-          })) || []
-        )
+
+      // case 'Condition':
+      //   return (
+      //     conditionList?.map(condition => ({
+      //       id: condition.id,
+      //       name: condition.egg_condition
+      //     })) || []
+      //   )
       case 'Reason':
         const filteredEggStage = eggMaster?.egg_state?.filter(stage => stage.egg_status_id === '3')
 

@@ -25,6 +25,7 @@ import DashboardFilter from './dashboardFilter'
 import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
 import Utility from 'src/utility'
 import moment from 'moment'
+import { lightBlue } from '@mui/material/colors'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
@@ -123,6 +124,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         )
       }
     }
+    setPage(1)
 
     // Update the selected options state
     setSelectedOptions(newSelectedFilters)
@@ -300,7 +302,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
     return (
       <>
-        {discardList?.length > 0 && (
+        {listCount > 0 && discardList?.length > 0 && (
           <Box
             sx={{
               m: '16px',
@@ -503,12 +505,14 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       const nurseryIds = applyFilters.Nursery?.map(option => option.id)
       const speciesIds = applyFilters.Species?.map(option => option.id)
       const batchIds = applyFilters.Batch?.map(option => option.id)
-      const conditionIds = applyFilters.Condition?.map(option => option.id)
+
+      // const conditionIds = applyFilters.Condition?.map(option => option.id)
       const SecurityIds = applyFilters['Security status']?.map(option => option.id)
       const reasonIds = applyFilters.Reason?.map(option => option.id)
 
       const param = {
         ref_type: tabStatus,
+        sort: 'desc',
         q,
         page_no: page,
         from_date: fromDate ? fromDate : '',
@@ -517,7 +521,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         batch_id: batchIds.length > 0 ? JSON.stringify(batchIds) : '',
         nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
         security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
-        egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
+
+        // egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
         egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : ''
       }
 
@@ -667,9 +672,27 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {discardList?.map((item, index) => (
-                  <Card key={index} list={item} />
-                ))}
+                {listCount > 0 ? (
+                  discardList?.map((item, index) => <Card key={index} list={item} />)
+                ) : (
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textAlign: 'center',
+                      mt: 5,
+
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    No records
+                  </Typography>
+                )}
               </Box>
             </TabPanel>
             <TabPanel value='nursery' sx={{ p: 0 }}>
@@ -687,9 +710,27 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {discardList?.map((item, index) => (
-                  <Card key={index} list={item} />
-                ))}
+                {listCount > 0 ? (
+                  discardList?.map((item, index) => <Card key={index} list={item} />)
+                ) : (
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textAlign: 'center',
+                      mt: 5,
+
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    No records
+                  </Typography>
+                )}
               </Box>
             </TabPanel>
           </TabContext>

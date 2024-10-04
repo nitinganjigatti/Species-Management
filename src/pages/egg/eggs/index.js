@@ -708,7 +708,7 @@ const EggList = () => {
       )
     },
     {
-      width: 300,
+      width: 250,
 
       // minWidth: 60,
       sortable: false,
@@ -1003,12 +1003,12 @@ const EggList = () => {
       )
     },
     {
-      width: 300,
+      width: 250,
 
       // minWidth: 60,
       sortable: false,
-      field: 'egg_number',
-      headerName: 'EGG NUMBER',
+      field: 'species',
+      headerName: 'SPECIES',
       renderCell: params => (
         <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <SpeciesImageCard
@@ -1177,22 +1177,21 @@ const EggList = () => {
           }}
         >
           {params.row.current_weight ? params.row.current_weight : '-'}{' '}
-          {calculatePercentageChange(params.row.initial_weight, params.row.current_weight) != 0 && (
-            <span
-              style={{
-                borderLeft: `1px solid #bdc7c0`,
-                paddingLeft: 4,
-                color:
-                  calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
-                    ? theme.palette.primary.main
-                    : calculatePercentageChange(params.row.initial_weight, params.row.current_weight) < 0
-                    ? theme.palette.formContent.tertiary
-                    : theme.palette.customColors.neutralSecondary
-              }}
-            >
-              {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
-            </span>
-          )}
+          {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
+            calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
+              <span
+                style={{
+                  borderLeft: `1px solid #bdc7c0`,
+                  paddingLeft: 4,
+                  color:
+                    calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                      ? theme.palette.primary.main
+                      : theme.palette.formContent.tertiary
+                }}
+              >
+                {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+              </span>
+            )}
         </Typography>
       )
     },
@@ -2182,6 +2181,7 @@ const EggList = () => {
     setFilterList([])
     setSelectedFiltersOptions({})
     setPaginationModel({ page: 0, pageSize: 10 })
+    setSelectionEggModel([])
     setSearchQuery('')
     router.push({ query: { ...router.query, tab_Value: newValue, search_value: '', page_value: 0 } }, undefined, {
       shallow: true
@@ -2197,6 +2197,7 @@ const EggList = () => {
     setSelectedFiltersOptions({})
     setPaginationModel({ page: 0, pageSize: 10 })
     setSearchQuery('')
+    setSelectionEggModel([])
 
     router.push({ query: { ...router.query, subTab_value: newValue, search_value: '', page_value: 0 } }, undefined, {
       shallow: true
@@ -2761,13 +2762,20 @@ const EggList = () => {
               </TabPanel>
               <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
                 {selectionEggModel?.length > 0 && (
-                  <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -12, mb: 2 }}>
-                    <Button sx={{ p: 5 }} size='medium' variant='contained' onClick={() => setOpenDiscardDialog(true)}>
+                  <Box
+                    sx={{ display: 'flex', height: '30px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2, pb: 2 }}
+                  >
+                    <Button
+                      sx={{ p: 5, mt: -2 }}
+                      size='medium'
+                      variant='contained'
+                      onClick={() => setOpenDiscardDialog(true)}
+                    >
                       &nbsp;{selectionEggModel?.length}&nbsp;Discard
                     </Button>
                   </Box>
                 )}
-                <Divider sx={{ mt: 4 }} />
+                <Divider />
                 {tableData()}
               </TabPanel>
               <TabPanel value='eggs_discarded' sx={{ p: 0 }}>

@@ -31,12 +31,14 @@ const EggFilterDrawer = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   setFilterList,
+  filterList,
   setSelectedFiltersOptions,
   selectedOptions,
   setSelectedOptions,
   selectedDate,
   setSelectedDate
 }) => {
+  // console.log('filterList :>> ', filterList)
   const theme = useTheme()
   const router = useRouter()
   const { tab_Value = 'eggs_received', subTab_value } = router.query
@@ -507,7 +509,7 @@ const EggFilterDrawer = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - </Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>

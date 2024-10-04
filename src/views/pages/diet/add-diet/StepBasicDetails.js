@@ -584,13 +584,13 @@ const StepBasicDetails = ({
     console.log(ingredientIdToRemove, 'ingredientIdToRemove')
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(
-        ingredient => ingredient.ingredient_id !== ingredientIdToRemove
+        ingredient => ingredient?.ingredient_id !== ingredientIdToRemove
       )
 
       setAllSelectedValues(prevAllSelectedValues => {
         // Filter out objects based on conditions
         return prevAllSelectedValues.filter(ingredient => {
-          return !(ingredient.mealid === val && ingredient.ingredient_id === ingredientIdToRemove)
+          return !(ingredient?.mealid === val && ingredient?.ingredient_id === ingredientIdToRemove)
         })
       })
 
@@ -618,7 +618,7 @@ const StepBasicDetails = ({
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
         const updatedAllSelectedValues = prevAllSelectedValues.filter((ingredient, index) => {
-          return index !== indexToRemove || ingredient.mealid !== val
+          return index !== indexToRemove || ingredient?.mealid !== val
         })
 
         return updatedAllSelectedValues
@@ -626,7 +626,7 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by removing the ingredient based on the indexToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        if (field.mealid === val) {
+        if (field?.mealid === val) {
           field.ingredientwithchoice = field.ingredientwithchoice?.filter((_, ingIndex) => ingIndex !== indexToRemove)
         }
 
@@ -648,7 +648,7 @@ const StepBasicDetails = ({
       setAllRecipeSelectedValues(prevAllSelectedValues => {
         // Filter out objects based on conditions
         return prevAllSelectedValues.filter(recipe => {
-          return !(recipe.mealid === val && recipe.recipe_id === recipeIdToRemove)
+          return !(recipe?.mealid === val && recipe?.recipe_id === recipeIdToRemove)
         })
       })
 
@@ -726,9 +726,9 @@ const StepBasicDetails = ({
 
         const updatedAllSelectedValues = prevAllSelectedValues
           .map(ingredient => {
-            if (ingredient.mealid === val) {
+            if (ingredient?.mealid === val) {
               ingredient.ingredientList = ingredient.ingredientList.filter(
-                ing => ing.ingredient_id !== ingredientIdToRemove
+                ing => ing?.ingredient_id !== ingredientIdToRemove
               )
             }
             return ingredient
@@ -742,14 +742,14 @@ const StepBasicDetails = ({
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredientwithchoice = field.ingredientwithchoice
           ?.map(ing => {
-            if (ing.mealid === val) {
+            if (ing?.mealid === val) {
               ing.ingredientList = ing?.ingredientList?.filter(
                 item => String(item.ingredient_id) !== ingredientIdToRemove
               )
             }
             return ing
           })
-          .filter(ing => ing.ingredientList && ing.ingredientList.length > 0)
+          .filter(ing => ing?.ingredientList && ing?.ingredientList.length > 0)
 
         return field
       })

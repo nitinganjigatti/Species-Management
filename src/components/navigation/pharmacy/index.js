@@ -359,7 +359,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.push(stocksAdjustment)
     }
-    pharmacyNavigationArray.push(discard, settingsParent)
+    pharmacyNavigationArray.push(settingsParent)
   }
 
   if (pharmacyRole) {
