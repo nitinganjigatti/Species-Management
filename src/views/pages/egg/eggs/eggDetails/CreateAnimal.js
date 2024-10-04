@@ -504,35 +504,35 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionType?.message}</FormHelperText>
                     )}
                   </FormControl>
-                  <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='institution'>
-                      Institution {Number(watch('accessionType')) === 4 ? '*' : ''}
-                    </InputLabel>
-                    <Controller
-                      name='institution'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='institution'
-                          value={value}
-                          label={`Institution${Number(watch('accessionType')) === 4 ? '*' : ''}`}
-                          onChange={onChange}
-                          labelId='institution'
-                          error={Boolean(errors?.institution)}
-                        >
-                          {institutesList?.map(val => (
-                            <MenuItem key={val?.id} value={val?.id}>
-                              {val?.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                  {Number(watch('accessionType')) === 2 && (
+                    <FormControl fullWidth sx={{ mb: 4 }}>
+                      <InputLabel id='institution'>Institution*</InputLabel>
+                      <Controller
+                        name='institution'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='institution'
+                            value={value}
+                            label={`Institution*`}
+                            onChange={onChange}
+                            labelId='institution'
+                            error={Boolean(errors?.institution)}
+                          >
+                            {institutesList?.map(val => (
+                              <MenuItem key={val?.id} value={val?.id}>
+                                {val?.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors?.institution && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
                       )}
-                    />
-                    {errors?.institution && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='animalOwnershipTerms'>Ownership Term</InputLabel>
                     <Controller
@@ -543,7 +543,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='animalOwnershipTerms'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Ownership Terms'
                           onChange={onChange}
                           labelId='animalOwnershipTerms'
                           error={Boolean(errors?.animalOwnershipTerms)}
@@ -614,6 +614,15 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                     ></Icon>
                                   </InputAdornment>
                                 )
+                              }}
+                              sx={{
+                                '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                },
+                                '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline':
+                                  {
+                                    borderColor: Boolean(errors.enclosure_id) && 'red'
+                                  }
                               }}
                             />
                           )}
