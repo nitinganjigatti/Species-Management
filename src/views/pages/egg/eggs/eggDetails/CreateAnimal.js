@@ -98,6 +98,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     animalOwnershipTerms: '',
     accessionDate: null,
     collectionType: '',
+    enclosure_id: '',
     enclosure: '',
     sextype: '',
     mastersOrganization: '',
@@ -423,6 +424,15 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Autocomplete
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderColor: Boolean(errors.species) && 'red',
+                              color: 'rgba(76, 78, 100, 0.6)'
+                            },
+                            '& .MuiAutocomplete-input': {
+                              color: 'rgba(76, 78, 100, 0.87)'
+                            }
+                          }}
                           name='species'
                           value={defaultSpecies}
                           disablePortal
@@ -451,6 +461,11 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                               label='Select Species *'
                               placeholder='Search & Select'
                               error={Boolean(errors.species)}
+                              sx={{
+                                '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                }
+                              }}
                             />
                           )}
                         />
@@ -460,7 +475,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.species?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='accessionType'>Accession Type *</InputLabel>
                     <Controller
@@ -489,7 +503,9 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='institution'>Institution {Number(watch('accessionType')) === 4 && '*'}</InputLabel>
+                    <InputLabel id='institution'>
+                      Institution {Number(watch('accessionType')) === 4 ? '*' : ''}
+                    </InputLabel>
                     <Controller
                       name='institution'
                       control={control}
@@ -498,7 +514,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='institution'
                           value={value}
-                          label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
+                          label={`Institution${Number(watch('accessionType')) === 4 ? '*' : ''}`}
                           onChange={onChange}
                           labelId='institution'
                           error={Boolean(errors?.institution)}
@@ -544,7 +560,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
                       name='accessionDate'
@@ -567,7 +582,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionDate?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   {Object.keys(enclosureData).length <= 0 && (
                     <div style={{ zIndex: 2, position: 'relative' }}>
                       <div
@@ -618,7 +632,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       ></EnclosureCard>
                     </div>
                   )}
-
                   {/* <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
                     <Controller
@@ -777,7 +790,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='mastersOrganization'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Select Organization'
                           onChange={onChange}
                           labelId='mastersOrganization'
                           error={Boolean(errors?.mastersOrganization)}
@@ -796,7 +809,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth>
                     <Controller
                       name='birthDate'
@@ -818,9 +830,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.birthDate?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <Typography sx={{ textAlign: 'center', fontSize: 20, fontWeight: 500, my: 4 }}>Or</Typography>
-
                   <Box sx={{ mb: 4, display: 'flex', flex: '1/2', gap: 4 }}>
                     <FormControl fullWidth>
                       <Controller
@@ -854,7 +864,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           <Select
                             name='type'
                             value={value}
-                            label='Animal Ownership Terms'
+                            label='Type'
                             onChange={onChange}
                             labelId='type'
                             error={Boolean(errors?.type)}
@@ -876,7 +886,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       )}
                     </FormControl>
                   </Box>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='localIdentifierType'>Local Identifier Type</InputLabel>
                     <Controller
@@ -887,7 +896,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='local IdentifierType'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Local Identifier Type'
                           onChange={onChange}
                           labelId='localIdentifierType'
                           error={Boolean(errors?.localIdentifierType)}
@@ -906,6 +915,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
+                  {/* {watch('localIdentifierType')!=''&& */}
                   <FormControl sx={{ mb: 4 }} fullWidth>
                     <Controller
                       name='localIdentifier'
@@ -915,7 +925,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <TextField
                           error={Boolean(errors?.comment)}
                           value={value}
-                          label={`Local Identifier ${watch('localIdentifierType') != '' && '*'}`}
+                          label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
                           name='localIdentifier'
                           onChange={onChange}
                           placeholder=''
@@ -926,7 +936,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
                     )}
                   </FormControl>
-
+                  {/* } */}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='parentMother'>Parent Mother</InputLabel>
                     <Controller
@@ -937,7 +947,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentMother'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Parent Mother'
                           onChange={onChange}
                           labelId='parentMother'
                           error={Boolean(errors?.parentMother)}
@@ -1078,7 +1088,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentFather'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Parent Father'
                           onChange={onChange}
                           labelId='parentFather'
                           error={Boolean(errors?.parentFather)}
@@ -1209,7 +1219,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.parentFather?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='sexingType'>Sexing Type</InputLabel>
                     <Controller

@@ -1246,12 +1246,19 @@ const ConditionSlider = ({
                             //   ))}
                             // </Select>
                             <Autocomplete
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderColor: Boolean(errors.species) && 'red',
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                },
+                                '& .MuiAutocomplete-input': {
+                                  color: 'rgba(76, 78, 100, 0.87)'
+                                }
+                              }}
                               name='species'
                               value={defaultSpecies}
-                              // value={value}
                               disablePortal
                               placeholder='Species / Taxonomy'
-                              // disabled={isEdit || isPreFilled}
                               id='species'
                               options={taxonomyList?.length > 0 ? taxonomyList : []}
                               getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
@@ -1276,6 +1283,11 @@ const ConditionSlider = ({
                                   label='Select Species *'
                                   placeholder='Search & Select'
                                   error={Boolean(errors.species)}
+                                  sx={{
+                                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                      color: 'rgba(76, 78, 100, 0.6)'
+                                    }
+                                  }}
                                 />
                               )}
                             />
@@ -1432,6 +1444,14 @@ const ConditionSlider = ({
                                         ></Icon>
                                       </InputAdornment>
                                     )
+                                  }}
+                                  sx={{
+                                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                      color: 'rgba(76, 78, 100, 0.6)'
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: Boolean(errors.enclosure_id) && 'red'
+                                    }
                                   }}
                                 />
                               )}

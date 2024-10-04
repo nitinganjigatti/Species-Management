@@ -104,8 +104,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     await getspeciesFunc(status, q, fDate, tDate, ref_id)
   }, 1000)
 
-  const CustomTooltip = ({ title, children, placement = 'bottom' }) => (
+  const CustomTooltip = ({ title, children, placement = 'bottom', disableHoverListener }) => (
     <Tooltip
+      disableHoverListener={disableHoverListener || false}
       TransitionComponent={Fade}
       title={
         <Box
@@ -118,7 +119,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             borderRadius: '4px'
           }}
         >
-          {title.map((item, index) => (
+          {title?.map((item, index) => (
             <Typography
               key={index}
               sx={{
@@ -392,10 +393,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           }}
         >
           <CustomTooltip
-            title={[
-              { label: 'Nursery A:', value: params.row.nursery_a },
-              { label: 'Nursery B:', value: params.row.nursery_b }
-            ]}
+            disableHoverListener={!params?.row?.nursery_wise_breakdown?.length}
+            title={params?.row?.nursery_wise_breakdown?.map(item => ({
+              label: `${item?.nursery_name}: `,
+              value: `${item?.total_eggs}`
+            }))}
           >
             <Typography
               style={{
@@ -413,6 +415,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
       )
     },
+
     {
       width: 120,
       field: 'hatched_percentage',
@@ -447,6 +450,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 : 0 // Fallback to 0 if values are not valid numbers
             )}
+            % {` (${params?.row?.total_hatched_eggs})`}
           </Typography>
         </Box>
       )
@@ -686,6 +690,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 : 0 // Fallback to 0 if values are not valid numbers
             )}
+            %{` (${params?.row?.total_hatched_eggs})`}
           </Typography>
         </Box>
       )
@@ -887,6 +892,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 : 0 // Fallback to 0 if values are not valid numbers
             )}
+            % {` (${params?.row?.total_hatched_eggs})`}{' '}
           </Typography>
         </Box>
       )

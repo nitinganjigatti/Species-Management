@@ -105,13 +105,15 @@ const AddIncubators = ({
 
   // Prepopulate the form with incubator details if in edit mode
   useEffect(() => {
-    if (isEdit && sidebarOpen && incubatorDetail) {
-      setValue('incubator_name', incubatorDetail?.incubator_name || '')
+    if (sidebarOpen && incubatorDetail) {
       setValue('nursery', incubatorDetail?.nursery_id || '')
       setValue('room', incubatorDetail?.room_id || '')
-      setValue('maxNumberOfEggs', incubatorDetail?.max_eggs || '')
       setDefaultNursery({ nursery_id: incubatorDetail?.nursery_id, nursery_name: incubatorDetail?.nursery_name })
       setDefaultRoom({ room_id: incubatorDetail?.room_id, room_name: incubatorDetail?.room_name })
+      if (isEdit) {
+        setValue('incubator_name', incubatorDetail?.incubator_name || '')
+        setValue('maxNumberOfEggs', incubatorDetail?.max_eggs || '')
+      }
       fetchRoomList(incubatorDetail?.nursery_id)
     }
   }, [incubatorDetail])
@@ -251,7 +253,7 @@ const AddIncubators = ({
                       name='nursery'
                       value={defaultNursery}
                       disablePortal
-                      disabled={isEdit}
+                      disabled={isEdit || incubatorDetail}
                       id='nursery'
                       options={nurseryList?.length > 0 ? nurseryList : []}
                       getOptionLabel={option => option.nursery_name}
@@ -299,7 +301,7 @@ const AddIncubators = ({
                       name='room'
                       value={defaultRoom}
                       disablePortal
-                      disabled={isEdit}
+                      disabled={isEdit || incubatorDetail}
                       id='room'
                       options={roomList?.length > 0 ? roomList : []}
                       getOptionLabel={option => option.room_name}

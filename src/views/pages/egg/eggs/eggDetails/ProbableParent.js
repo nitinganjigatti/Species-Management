@@ -193,6 +193,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
+                    <span style={{ fontWeight: 600 }}>Site: </span>
                     {item?.site_name}
                     {/* {Utility?.toPascalSentenceCase(item?.site_name)} */}
                   </Typography>
@@ -204,6 +205,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
+                    <span style={{ fontWeight: 600 }}> Enclosure: </span>
                     {item?.user_enclosure_name}
                     {/* {Utility?.toPascalSentenceCase(item?.user_enclosure_name)} */}
                   </Typography>
@@ -215,7 +217,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {item?.section_name}
+                    <span style={{ fontWeight: 600 }}>section: </span> {item?.section_name}
                     {/* {Utility?.toPascalSentenceCase(item?.section_name)} */}
                   </Typography>
                 </Box>
