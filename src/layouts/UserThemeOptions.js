@@ -64,6 +64,8 @@ const UserThemeOptions = () => {
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
         tableHeaderBg: '#E8F4F2',
+        Secondary: '#00D6C9',
+        Surface: '#F2FFF8',
 
         // *** name required
 
@@ -74,6 +76,7 @@ const UserThemeOptions = () => {
         textLabel: '#00ABAB',
 
         // **
+        OnSurfaceVariant: '#44544A',
 
         // *** name required
         customTableCellBg: '#FCF4AE33',
@@ -83,7 +86,6 @@ const UserThemeOptions = () => {
         customCardBorder: '#00ABAB',
         OnSecondaryContainer: '#1F415B',
         neutralSecondary: '#7A8684',
-        OutlineVariant: '#F2FFF8',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
 
