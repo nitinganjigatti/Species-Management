@@ -86,6 +86,14 @@ export const ProductDetail = ({
                 </Typography>
                 {item?.priority}
               </Grid>
+              {productDetails?.status !== 'Pending' && (
+                <Grid item xs={6} key={statusCall}>
+                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                    Status
+                  </Typography>
+                  <Typography variant='body2'>{productDetails?.status}</Typography>
+                </Grid>
+              )}
               {item?.product_image && (
                 <Grid item xs={6}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
@@ -130,7 +138,8 @@ export const ProductDetail = ({
                   </Grid>
                 </Grid>
               )}
-              <Grid item xs={6}>
+
+              <Grid item xs={12}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
@@ -138,24 +147,6 @@ export const ProductDetail = ({
                   {productDetails?.comments ? productDetails?.comments : 'NA'}
                 </Typography>
               </Grid>
-
-              {productDetails?.status !== 'Pending' && (
-                <Grid item xs={6} key={statusCall}>
-                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                    Status
-                  </Typography>
-                  <Typography variant='body2'>{productDetails?.status}</Typography>
-                </Grid>
-              )}
-
-              {productDetails?.reject_reason && productDetails?.status === 'Rejected' && (
-                <Grid item xs={6}>
-                  <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
-                    Reason Of Rejecting
-                  </Typography>
-                  <Typography variant='body2'>{productDetails?.reject_reason}</Typography>
-                </Grid>
-              )}
 
               <Grid
                 item
