@@ -80,13 +80,8 @@ const MonthWisePurchase = () => {
     }
   }
 
-  const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
-    setLoading(true)
-    await searchTableDatafilter({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
-  }
-
   const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
+    console.log(q, 'raghu')
     try {
       setisFetching(true)
       let params = {
@@ -104,10 +99,19 @@ const MonthWisePurchase = () => {
           id: store.id,
           name: store.name
         }))
-        setisFetching(false)
-        // Append new data to existing list
-        setFullStoreList(prevStores => [...prevStores, ...allStores])
         setTotalmedicineCount(medicineListResponse.data.total_count)
+
+        setFullStoreList(prevStores => {
+          // Merge the previous stores with the new stores
+          const mergedStores = q ? allStores : [...prevStores, ...allStores]
+
+          // Remove duplicates based on `id`
+          const uniqueStores = mergedStores.filter(
+            (store, index, self) => index === self.findIndex(s => s.id === store.id)
+          )
+
+          return uniqueStores
+        })
       }
     } catch (e) {
       console.error(e)
@@ -275,6 +279,13 @@ const MonthWisePurchase = () => {
     await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
   }
 
+  const handleSearchChange = async e => {
+    console.log(statusFilter, 'statusFilter')
+    setLoading(true)
+    setSearchValue(e.target.value)
+    await searchTableDatafilter({ q: e.target.value })
+  }
+
   const handleStatusFilterChange = newFilter => {
     console.log(newFilter, 'newFilter')
     setStatusFilter(newFilter)
@@ -304,12 +315,13 @@ const MonthWisePurchase = () => {
     debounce(async ({ q }) => {
       setSearchValue(q)
       try {
+        setLoading(false)
         await fetchfilterValues({ q })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [statusFilter]
+    []
   )
 
   const searchTableData = useCallback(
@@ -569,6 +581,7 @@ const MonthWisePurchase = () => {
                   totalMedicineCount={totalMedicineCount}
                   loadMoreData={loadMoreData}
                   isFetching={isFetching}
+                  setFiltersApplied={setFiltersApplied}
                 />
               )}
               {openDoctorListDrawer && (

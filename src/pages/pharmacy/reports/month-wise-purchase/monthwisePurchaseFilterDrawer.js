@@ -21,7 +21,8 @@ const MonthWisepurchaseFilter = ({
   filtersApplied,
   setSelectedStores,
   loadMoreData,
-  isFetching
+  isFetching,
+  setFiltersApplied
 }) => {
   const listInnerRef = useRef(null)
 
@@ -37,14 +38,18 @@ const MonthWisepurchaseFilter = ({
   const handleClose = () => {
     setOpenFilterDrawer(false)
     setSearchValue('')
-    if (filtersApplied === false) {
-      setSelectedStores([])
-    }
+    setFiltersApplied(false)
+    // if (filtersApplied === false) {
+    //   setSelectedStores([])
+    // }
   }
 
   useEffect(() => {
     const ref = listInnerRef.current
 
+    if (selectedFruits.length > 0) {
+      setFiltersApplied(false)
+    }
     // Ensure that we are attaching the scroll event to the correct element
     if (ref) {
       ref.addEventListener('scroll', handleScroll)
@@ -56,7 +61,7 @@ const MonthWisepurchaseFilter = ({
         ref.removeEventListener('scroll', handleScroll)
       }
     }
-  }, [listInnerRef, loading]) // Dependency on loading to prevent multiple scroll events during data load
+  }, [listInnerRef, loading, filtersApplied]) // Dependency on loading to prevent multiple scroll events during data load
 
   return (
     <Drawer
@@ -163,6 +168,7 @@ const MonthWisepurchaseFilter = ({
               </>
 
               <Box sx={{ mt: 2 }}>
+                {console.log(fullStoreList, 'fullStoreList')}
                 {!loading ? (
                   fullStoreList.length > 0 ? (
                     fullStoreList.map(fruit => (
