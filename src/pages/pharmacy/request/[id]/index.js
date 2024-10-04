@@ -1888,7 +1888,20 @@ const IndividualRequest = () => {
                                                       ></Icon>
                                                     </Box>
                                                   ) : null}
-
+                                                  {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                                                    <Grid
+                                                      key={index}
+                                                      sx={{
+                                                        minHeight: 104,
+                                                        maxHeight: 104,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        justifyContent: 'center',
+                                                        alignContent: 'top',
+                                                        alignItems: 'center'
+                                                      }}
+                                                    ></Grid>
+                                                  )}
                                                   {el?.alt_parent?.length > 0
                                                     ? el.alt_parent.map((el, index) => {
                                                         return (
@@ -1974,7 +1987,13 @@ const IndividualRequest = () => {
                                                             color: 'customColors.OnSecondaryContainer',
 
                                                             display: 'flex',
-                                                            alignItems: 'center'
+                                                            alignItems: 'center',
+                                                            whiteSpace: 'nowrap',
+                                                            textOverflow: 'ellipsis',
+                                                            overflow: 'hidden',
+                                                            maxWidth: '250px',
+                                                            display: 'inline-block',
+                                                            lineHeight: 'normal'
                                                           }}
                                                         >
                                                           {!isNaN(el?.control_substance) &&
@@ -1991,7 +2010,9 @@ const IndividualRequest = () => {
                                                                 borderRadius: '2px',
                                                                 lineHeight: '12px',
                                                                 textAlign: 'center',
-                                                                mr: 1
+                                                                mr: 1,
+                                                                display: 'inline-block',
+                                                                verticalAlign: 'middle'
                                                               }}
                                                             >
                                                               CS
@@ -2011,7 +2032,9 @@ const IndividualRequest = () => {
                                                                 borderRadius: '2px',
                                                                 lineHeight: '12px',
                                                                 textAlign: 'center',
-                                                                mr: 1
+                                                                mr: 1,
+                                                                display: 'inline-block',
+                                                                verticalAlign: 'middle'
                                                               }}
                                                             >
                                                               PR
@@ -2029,26 +2052,19 @@ const IndividualRequest = () => {
                                                         variant='body1'
                                                         sx={{
                                                           color: 'text.primary',
-                                                          display: { xs: 'none', md: 'none', lg: 'block' },
+
                                                           fontSize: '14px !important',
 
-                                                          fontWeight: 400
+                                                          fontWeight: 400,
+                                                          whiteSpace: 'nowrap',
+                                                          textOverflow: 'ellipsis',
+                                                          overflow: 'hidden',
+                                                          maxWidth: '250px',
+                                                          display: 'inline-block',
+                                                          lineHeight: 'normal'
                                                         }}
                                                       >
                                                         {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                      </Typography>
-                                                    </Tooltip>
-                                                    <Tooltip title={el?.manufacturer} placement='top'>
-                                                      <Typography
-                                                        variant='body1'
-                                                        sx={{
-                                                          color: 'text.primary',
-                                                          display: { xs: 'none', md: 'none', lg: 'block' },
-                                                          fontSize: '14px !important',
-                                                          fontWeight: 400
-                                                        }}
-                                                      >
-                                                        {el?.manufacturer}
                                                       </Typography>
                                                     </Tooltip>
 
@@ -2120,8 +2136,7 @@ const IndividualRequest = () => {
                                                               display: 'flex',
                                                               flexDirection: 'column',
                                                               justifyContent: 'center',
-                                                              flexWrap: 'nowrap',
-                                                              my: 1
+                                                              flexWrap: 'nowrap'
                                                             }}
                                                           >
                                                             <Box>
@@ -2136,7 +2151,13 @@ const IndividualRequest = () => {
                                                                       color: 'customColors.OnSecondaryContainer',
 
                                                                       display: 'flex',
-                                                                      alignItems: 'center'
+                                                                      alignItems: 'center',
+                                                                      whiteSpace: 'nowrap',
+                                                                      textOverflow: 'ellipsis',
+                                                                      overflow: 'hidden',
+                                                                      maxWidth: '250px',
+                                                                      display: 'inline-block',
+                                                                      lineHeight: 'normal'
                                                                     }}
                                                                   >
                                                                     {!isNaN(el?.control_substance) &&
@@ -2153,7 +2174,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         CS
@@ -2173,7 +2196,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         PR
@@ -2191,25 +2216,18 @@ const IndividualRequest = () => {
                                                                   variant='body1'
                                                                   sx={{
                                                                     color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
+
                                                                     fontSize: '14px !important',
-                                                                    fontWeight: 400
+                                                                    fontWeight: 400,
+                                                                    whiteSpace: 'nowrap',
+                                                                    textOverflow: 'ellipsis',
+                                                                    overflow: 'hidden',
+                                                                    maxWidth: '250px',
+                                                                    display: 'inline-block',
+                                                                    lineHeight: 'normal'
                                                                   }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                </Typography>
-                                                              </Tooltip>
-                                                              <Tooltip title={el?.manufacturer} placement='top'>
-                                                                <Typography
-                                                                  variant='body1'
-                                                                  sx={{
-                                                                    color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
-                                                                    fontSize: '14px !important',
-                                                                    fontWeight: 400
-                                                                  }}
-                                                                >
-                                                                  {el?.manufacturer}
                                                                 </Typography>
                                                               </Tooltip>
 
@@ -2242,8 +2260,10 @@ const IndividualRequest = () => {
                                                                       maxWidth: 80,
                                                                       cursor: 'pointer',
                                                                       WebkitBoxOrient: 'vertical',
-                                                                      overflow: 'hidden',
+
                                                                       textOverflow: 'ellipsis',
+                                                                      overflow: 'hidden',
+                                                                      maxWidth: '250px',
                                                                       WebkitLineClamp: 6,
                                                                       whiteSpace: 'nowrap',
                                                                       opacity: '0.5',
@@ -2778,6 +2798,7 @@ const IndividualRequest = () => {
                                                                       WebkitBoxOrient: 'vertical',
                                                                       overflow: 'hidden',
                                                                       textOverflow: 'ellipsis',
+
                                                                       WebkitLineClamp: 6,
                                                                       whiteSpace: 'nowrap',
                                                                       opacity: '0.5',
@@ -3312,6 +3333,20 @@ const IndividualRequest = () => {
                                                                 ></Icon>
                                                               </Box>
                                                             ) : null}
+                                                            {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                                                              <Grid
+                                                                key={index}
+                                                                sx={{
+                                                                  minHeight: 104,
+                                                                  maxHeight: 104,
+                                                                  display: 'flex',
+                                                                  flexDirection: 'column',
+                                                                  justifyContent: 'center',
+                                                                  alignContent: 'top',
+                                                                  alignItems: 'center'
+                                                                }}
+                                                              ></Grid>
+                                                            )}
 
                                                             {el?.alt_parent?.length > 0
                                                               ? el.alt_parent.map((el, index) => {
@@ -3399,7 +3434,13 @@ const IndividualRequest = () => {
                                                                       display: 'flex',
                                                                       alignItems: 'center',
                                                                       fontSize: '16px !important',
-                                                                      fontWeight: 600
+                                                                      fontWeight: 600,
+                                                                      whiteSpace: 'nowrap',
+                                                                      textOverflow: 'ellipsis',
+                                                                      overflow: 'hidden',
+                                                                      maxWidth: '250px',
+                                                                      display: 'inline-block',
+                                                                      lineHeight: 'normal'
                                                                     }}
                                                                   >
                                                                     {!isNaN(el?.control_substance) &&
@@ -3416,7 +3457,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         CS
@@ -3437,7 +3480,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         PR
@@ -3455,25 +3500,17 @@ const IndividualRequest = () => {
                                                                   variant='body1'
                                                                   sx={{
                                                                     color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
+                                                                    whiteSpace: 'nowrap',
+                                                                    textOverflow: 'ellipsis',
+                                                                    overflow: 'hidden',
+                                                                    maxWidth: '250px',
                                                                     fontSize: '14px !important',
-                                                                    fontWeight: 400
+                                                                    fontWeight: 400,
+                                                                    display: 'inline-block',
+                                                                    lineHeight: 'normal'
                                                                   }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                </Typography>
-                                                              </Tooltip>
-                                                              <Tooltip title={el?.manufacturer} placement='top'>
-                                                                <Typography
-                                                                  variant='body1'
-                                                                  sx={{
-                                                                    color: 'text.primary',
-                                                                    display: { xs: 'none', md: 'none', lg: 'block' },
-                                                                    fontSize: '14px !important',
-                                                                    fontWeight: 400
-                                                                  }}
-                                                                >
-                                                                  {el?.manufacturer}
                                                                 </Typography>
                                                               </Tooltip>
 
@@ -3549,10 +3586,7 @@ const IndividualRequest = () => {
                                                                         display: 'flex',
                                                                         flexDirection: 'column',
                                                                         justifyContent: 'center',
-                                                                        flexWrap: 'nowrap',
-                                                                        my: 1
-
-                                                                        // mb: 4,
+                                                                        flexWrap: 'nowrap'
                                                                       }}
                                                                     >
                                                                       <Box>
@@ -3574,7 +3608,13 @@ const IndividualRequest = () => {
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
                                                                                 fontSize: '16px !important',
-                                                                                fontWeight: 600
+                                                                                fontWeight: 600,
+                                                                                whiteSpace: 'nowrap',
+                                                                                textOverflow: 'ellipsis',
+                                                                                overflow: 'hidden',
+                                                                                maxWidth: '250px',
+                                                                                display: 'inline-block',
+                                                                                lineHeight: 'normal'
                                                                               }}
                                                                             >
                                                                               {!isNaN(el?.control_substance) &&
@@ -3591,7 +3631,9 @@ const IndividualRequest = () => {
                                                                                     borderRadius: '2px',
                                                                                     lineHeight: '12px',
                                                                                     textAlign: 'center',
-                                                                                    mr: 1
+                                                                                    mr: 1,
+                                                                                    display: 'inline-block',
+                                                                                    verticalAlign: 'middle'
                                                                                   }}
                                                                                 >
                                                                                   CS
@@ -3612,7 +3654,9 @@ const IndividualRequest = () => {
                                                                                     borderRadius: '2px',
                                                                                     lineHeight: '12px',
                                                                                     textAlign: 'center',
-                                                                                    mr: 1
+                                                                                    mr: 1,
+                                                                                    display: 'inline-block',
+                                                                                    verticalAlign: 'middle'
                                                                                   }}
                                                                                 >
                                                                                   PR
@@ -3630,36 +3674,17 @@ const IndividualRequest = () => {
                                                                             variant='body1'
                                                                             sx={{
                                                                               color: 'text.primary',
-                                                                              display: {
-                                                                                xs: 'none',
-                                                                                md: 'none',
-                                                                                lg: 'block'
-                                                                              },
+                                                                              whiteSpace: 'nowrap',
+                                                                              textOverflow: 'ellipsis',
+                                                                              overflow: 'hidden',
+                                                                              maxWidth: '250px',
                                                                               fontSize: '14px !important',
-                                                                              fontWeight: 400
+                                                                              fontWeight: 400,
+                                                                              display: 'inline-block',
+                                                                              lineHeight: 'normal'
                                                                             }}
                                                                           >
                                                                             {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                          </Typography>
-                                                                        </Tooltip>
-                                                                        <Tooltip
-                                                                          title={el?.manufacturer}
-                                                                          placement='top'
-                                                                        >
-                                                                          <Typography
-                                                                            variant='body1'
-                                                                            sx={{
-                                                                              color: 'text.primary',
-                                                                              display: {
-                                                                                xs: 'none',
-                                                                                md: 'none',
-                                                                                lg: 'block'
-                                                                              },
-                                                                              fontSize: '14px !important',
-                                                                              fontWeight: 400
-                                                                            }}
-                                                                          >
-                                                                            {el?.manufacturer}
                                                                           </Typography>
                                                                         </Tooltip>
 
@@ -3765,7 +3790,7 @@ const IndividualRequest = () => {
                                                                   fontWeight: 400
                                                                 }}
                                                               >
-                                                                Fullfilled:{el?.dispatch_qty}
+                                                                Fulfilled:{el?.dispatch_qty}
                                                               </Typography>{' '}
                                                               <Typography
                                                                 variant='body1'
@@ -3813,7 +3838,7 @@ const IndividualRequest = () => {
                                                                           fontWeight: 400
                                                                         }}
                                                                       >
-                                                                        Fullfilled:{el?.dispatch_qty}
+                                                                        Fulfilled:{el?.dispatch_qty}
                                                                       </Typography>{' '}
                                                                       <Typography
                                                                         variant='body1'
@@ -3882,7 +3907,7 @@ const IndividualRequest = () => {
                                                                       showDialog()
                                                                     }}
                                                                   >
-                                                                    Fullfill
+                                                                    Fulfill
                                                                   </Button>
                                                                 </Grid>
                                                               ) : (
@@ -3991,7 +4016,7 @@ const IndividualRequest = () => {
                                                                                 showDialog()
                                                                               }}
                                                                             >
-                                                                              Fullfill
+                                                                              Fulfill
                                                                             </Button>
                                                                           ) : null}
                                                                         </Box>
@@ -4351,7 +4376,20 @@ const IndividualRequest = () => {
                                                           ></Icon>
                                                         </Box>
                                                       ) : null}
-
+                                                      {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                                                        <Grid
+                                                          key={index}
+                                                          sx={{
+                                                            minHeight: 104,
+                                                            maxHeight: 104,
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            justifyContent: 'center',
+                                                            alignContent: 'top',
+                                                            alignItems: 'center'
+                                                          }}
+                                                        ></Grid>
+                                                      )}
                                                       {el?.alt_parent?.length > 0
                                                         ? el.alt_parent.map((el, index) => {
                                                             return (
@@ -4412,7 +4450,6 @@ const IndividualRequest = () => {
                                                         backgroundColor: getCellBgColor(el),
 
                                                         verticalAlign: 'top',
-
                                                         height: 'auto'
                                                       }}
                                                     >
@@ -4437,7 +4474,13 @@ const IndividualRequest = () => {
                                                                 color: 'customColors.OnSecondaryContainer',
 
                                                                 display: 'flex',
-                                                                alignItems: 'center'
+                                                                alignItems: 'center',
+                                                                whiteSpace: 'nowrap',
+                                                                textOverflow: 'ellipsis',
+                                                                overflow: 'hidden',
+                                                                maxWidth: '250px',
+                                                                display: 'inline-block',
+                                                                lineHeight: 'normal'
                                                               }}
                                                             >
                                                               {!isNaN(el?.control_substance) &&
@@ -4454,7 +4497,9 @@ const IndividualRequest = () => {
                                                                     borderRadius: '2px',
                                                                     lineHeight: '12px',
                                                                     textAlign: 'center',
-                                                                    mr: 1
+                                                                    mr: 1,
+                                                                    display: 'inline-block',
+                                                                    verticalAlign: 'middle'
                                                                   }}
                                                                 >
                                                                   CS
@@ -4474,7 +4519,9 @@ const IndividualRequest = () => {
                                                                     borderRadius: '2px',
                                                                     lineHeight: '12px',
                                                                     textAlign: 'center',
-                                                                    mr: 1
+                                                                    mr: 1,
+                                                                    display: 'inline-block',
+                                                                    verticalAlign: 'middle'
                                                                   }}
                                                                 >
                                                                   PR
@@ -4492,26 +4539,18 @@ const IndividualRequest = () => {
                                                             variant='body1'
                                                             sx={{
                                                               color: 'text.primary',
-                                                              display: { xs: 'none', md: 'none', lg: 'block' },
-                                                              fontSize: '14px !important',
 
-                                                              fontWeight: 400
+                                                              fontSize: '14px !important',
+                                                              fontWeight: 400,
+                                                              whiteSpace: 'nowrap',
+                                                              textOverflow: 'ellipsis',
+                                                              overflow: 'hidden',
+                                                              maxWidth: '250px',
+                                                              display: 'inline-block',
+                                                              lineHeight: 'normal'
                                                             }}
                                                           >
                                                             {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                          </Typography>
-                                                        </Tooltip>
-                                                        <Tooltip title={el?.manufacturer} placement='top'>
-                                                          <Typography
-                                                            variant='body1'
-                                                            sx={{
-                                                              color: 'text.primary',
-                                                              display: { xs: 'none', md: 'none', lg: 'block' },
-                                                              fontSize: '14px !important',
-                                                              fontWeight: 400
-                                                            }}
-                                                          >
-                                                            {el?.manufacturer}
                                                           </Typography>
                                                         </Tooltip>
 
@@ -4587,8 +4626,7 @@ const IndividualRequest = () => {
                                                                   display: 'flex',
                                                                   flexDirection: 'column',
                                                                   justifyContent: 'center',
-                                                                  flexWrap: 'nowrap',
-                                                                  my: 1
+                                                                  flexWrap: 'nowrap'
 
                                                                   // mb: 4,
                                                                 }}
@@ -4605,7 +4643,13 @@ const IndividualRequest = () => {
                                                                           color: 'customColors.OnSecondaryContainer',
 
                                                                           display: 'flex',
-                                                                          alignItems: 'center'
+                                                                          alignItems: 'center',
+                                                                          whiteSpace: 'nowrap',
+                                                                          textOverflow: 'ellipsis',
+                                                                          overflow: 'hidden',
+                                                                          maxWidth: '250px',
+                                                                          display: 'inline-block',
+                                                                          lineHeight: 'normal'
                                                                         }}
                                                                       >
                                                                         {!isNaN(el?.control_substance) &&
@@ -4622,7 +4666,9 @@ const IndividualRequest = () => {
                                                                               borderRadius: '2px',
                                                                               lineHeight: '12px',
                                                                               textAlign: 'center',
-                                                                              mr: 1
+                                                                              mr: 1,
+                                                                              display: 'inline-block',
+                                                                              verticalAlign: 'middle'
                                                                             }}
                                                                           >
                                                                             CS
@@ -4642,7 +4688,9 @@ const IndividualRequest = () => {
                                                                               borderRadius: '2px',
                                                                               lineHeight: '12px',
                                                                               textAlign: 'center',
-                                                                              mr: 1
+                                                                              mr: 1,
+                                                                              display: 'inline-block',
+                                                                              verticalAlign: 'middle'
                                                                             }}
                                                                           >
                                                                             PR
@@ -4660,33 +4708,18 @@ const IndividualRequest = () => {
                                                                       variant='body1'
                                                                       sx={{
                                                                         color: 'text.primary',
-                                                                        display: {
-                                                                          xs: 'none',
-                                                                          md: 'none',
-                                                                          lg: 'block'
-                                                                        },
+
                                                                         fontSize: '14px !important',
-                                                                        fontWeight: 400
+                                                                        fontWeight: 400,
+                                                                        whiteSpace: 'nowrap',
+                                                                        textOverflow: 'ellipsis',
+                                                                        overflow: 'hidden',
+                                                                        maxWidth: '250px',
+                                                                        display: 'inline-block',
+                                                                        lineHeight: 'normal'
                                                                       }}
                                                                     >
                                                                       {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
-                                                                    </Typography>
-                                                                  </Tooltip>
-                                                                  <Tooltip title={el?.manufacturer} placement='top'>
-                                                                    <Typography
-                                                                      variant='body1'
-                                                                      sx={{
-                                                                        color: 'text.primary',
-                                                                        display: {
-                                                                          xs: 'none',
-                                                                          md: 'none',
-                                                                          lg: 'block'
-                                                                        },
-                                                                        fontSize: '14px !important',
-                                                                        fontWeight: 400
-                                                                      }}
-                                                                    >
-                                                                      {el?.manufacturer}
                                                                     </Typography>
                                                                   </Tooltip>
 
@@ -4789,7 +4822,7 @@ const IndividualRequest = () => {
                                                             fontWeight: 400
                                                           }}
                                                         >
-                                                          Fullfilled:{el?.dispatch_qty}
+                                                          Fulfilled:{el?.dispatch_qty}
                                                         </Typography>{' '}
                                                         <Typography
                                                           variant='body1'
@@ -4837,7 +4870,7 @@ const IndividualRequest = () => {
                                                                     fontWeight: 400
                                                                   }}
                                                                 >
-                                                                  Fullfilled:{el?.dispatch_qty}
+                                                                  Fulfilled:{el?.dispatch_qty}
                                                                 </Typography>{' '}
                                                                 <Typography
                                                                   variant='body1'
