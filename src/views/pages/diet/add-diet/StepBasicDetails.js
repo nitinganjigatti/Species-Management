@@ -727,7 +727,7 @@ const StepBasicDetails = ({
         const updatedAllSelectedValues = prevAllSelectedValues
           .map(ingredient => {
             if (ingredient?.mealid === val) {
-              ingredient?.ingredientList = ingredient.ingredientList.filter(
+              ingredient.ingredientList = ingredient.ingredientList.filter(
                 ing => ing?.ingredient_id !== ingredientIdToRemove
               )
             }
@@ -743,7 +743,7 @@ const StepBasicDetails = ({
         field.ingredientwithchoice = field.ingredientwithchoice
           ?.map(ing => {
             if (ing?.mealid === val) {
-              ing?.ingredientList = ing?.ingredientList?.filter(
+              ing.ingredientList = ing?.ingredientList?.filter(
                 item => String(item.ingredient_id) !== ingredientIdToRemove
               )
             }
