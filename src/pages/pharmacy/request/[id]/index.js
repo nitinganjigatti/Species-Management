@@ -29,7 +29,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Divider, Tooltip } from '@mui/material'
+import { Box, CardContent, CardHeader, Divider, Paper, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -133,6 +133,7 @@ const IndividualRequest = () => {
   const [status, setStatus] = useState('Pending')
   const [detailsTab, setDetailsTab] = useState('Pending')
   const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
+  const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -1510,7 +1511,11 @@ const IndividualRequest = () => {
                         <Typography>
                           Requested Items:<strong> {requestItems?.total_qty} </strong>
                         </Typography>
-                        <Typography sx={{ color: 'primary.dark' }}>
+                        <Typography
+                          sx={{ color: 'primary.dark' }}
+                          variant='button'
+                          onClick={() => setShipmentDetailsDialog(true)}
+                        >
                           Shipped Items:<strong> {requestItems?.shipped_qty} </strong>
                         </Typography>
                       </Grid>
@@ -3785,6 +3790,66 @@ const IndividualRequest = () => {
               // maxWidth='sm' // Adjust width (e.g., "xs", "sm", "md", "lg", "xl")
             />
           </Grid> */}
+          <CommonDialogBox
+            title={`Shipped Items (7)`}
+            dialogBoxStatus={shipmentDetailsDialog}
+            close={setShipmentDetailsDialog}
+            noWidth={'noWidth'}
+            style={'#EFF5F2'}
+            formComponent={
+              <>
+                {[1, 2, 3, 4, 5].map(() => (
+                  <Card sx={{ width: 500, m: 2 }}>
+                    <CardContent>
+                      <Typography variant='h5' component='div' gutterBottom sx={{ color: '#333' }}>
+                        Glycomet
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                        <Typography variant='body1' color='text.secondary'>
+                          Shipped Quantity: 936
+                        </Typography>
+                        <Typography variant='body1' color='text.secondary'>
+                          Shipped Value: ₹10,000
+                        </Typography>
+                      </Box>
+
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          backgroundColor: '#E8F4F2',
+                          p: 3,
+                          display: 'flex',
+                          justifyContent: 'space-between'
+                        }}
+                      >
+                        <Box>
+                          <Typography variant='body2' color='text.secondary'>
+                            Shipping ID:
+                          </Typography>
+                          <Typography variant='body1'>SHIP0000021</Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant='body2' color='text.secondary'>
+                            Batch No:
+                          </Typography>
+                          <Typography variant='body1'>2345</Typography>
+                        </Box>
+
+                        <Box>
+                          <Typography variant='body2' color='text.secondary'>
+                            Shipped Quantity:
+                          </Typography>
+                          <Typography variant='body1'>234</Typography>
+                        </Box>
+                      </Paper>
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            }
+          />
         </>
       )}
     </>
