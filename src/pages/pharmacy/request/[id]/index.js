@@ -1991,7 +1991,9 @@ const IndividualRequest = () => {
                                                             whiteSpace: 'nowrap',
                                                             textOverflow: 'ellipsis',
                                                             overflow: 'hidden',
-                                                            maxWidth: '250px'
+                                                            maxWidth: '250px',
+                                                            display: 'inline-block',
+                                                            lineHeight: 'normal'
                                                           }}
                                                         >
                                                           {!isNaN(el?.control_substance) &&
@@ -2008,7 +2010,9 @@ const IndividualRequest = () => {
                                                                 borderRadius: '2px',
                                                                 lineHeight: '12px',
                                                                 textAlign: 'center',
-                                                                mr: 1
+                                                                mr: 1,
+                                                                display: 'inline-block',
+                                                                verticalAlign: 'middle'
                                                               }}
                                                             >
                                                               CS
@@ -2028,7 +2032,9 @@ const IndividualRequest = () => {
                                                                 borderRadius: '2px',
                                                                 lineHeight: '12px',
                                                                 textAlign: 'center',
-                                                                mr: 1
+                                                                mr: 1,
+                                                                display: 'inline-block',
+                                                                verticalAlign: 'middle'
                                                               }}
                                                             >
                                                               PR
@@ -2053,7 +2059,9 @@ const IndividualRequest = () => {
                                                           whiteSpace: 'nowrap',
                                                           textOverflow: 'ellipsis',
                                                           overflow: 'hidden',
-                                                          maxWidth: '250px'
+                                                          maxWidth: '250px',
+                                                          display: 'inline-block',
+                                                          lineHeight: 'normal'
                                                         }}
                                                       >
                                                         {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -2147,7 +2155,9 @@ const IndividualRequest = () => {
                                                                       whiteSpace: 'nowrap',
                                                                       textOverflow: 'ellipsis',
                                                                       overflow: 'hidden',
-                                                                      maxWidth: '250px'
+                                                                      maxWidth: '250px',
+                                                                      display: 'inline-block',
+                                                                      lineHeight: 'normal'
                                                                     }}
                                                                   >
                                                                     {!isNaN(el?.control_substance) &&
@@ -2164,7 +2174,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         CS
@@ -2184,7 +2196,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         PR
@@ -2208,7 +2222,9 @@ const IndividualRequest = () => {
                                                                     whiteSpace: 'nowrap',
                                                                     textOverflow: 'ellipsis',
                                                                     overflow: 'hidden',
-                                                                    maxWidth: '250px'
+                                                                    maxWidth: '250px',
+                                                                    display: 'inline-block',
+                                                                    lineHeight: 'normal'
                                                                   }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -3422,7 +3438,9 @@ const IndividualRequest = () => {
                                                                       whiteSpace: 'nowrap',
                                                                       textOverflow: 'ellipsis',
                                                                       overflow: 'hidden',
-                                                                      maxWidth: '250px'
+                                                                      maxWidth: '250px',
+                                                                      display: 'inline-block',
+                                                                      lineHeight: 'normal'
                                                                     }}
                                                                   >
                                                                     {!isNaN(el?.control_substance) &&
@@ -3439,7 +3457,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         CS
@@ -3460,7 +3480,9 @@ const IndividualRequest = () => {
                                                                           borderRadius: '2px',
                                                                           lineHeight: '12px',
                                                                           textAlign: 'center',
-                                                                          mr: 1
+                                                                          mr: 1,
+                                                                          display: 'inline-block',
+                                                                          verticalAlign: 'middle'
                                                                         }}
                                                                       >
                                                                         PR
@@ -3483,7 +3505,9 @@ const IndividualRequest = () => {
                                                                     overflow: 'hidden',
                                                                     maxWidth: '250px',
                                                                     fontSize: '14px !important',
-                                                                    fontWeight: 400
+                                                                    fontWeight: 400,
+                                                                    display: 'inline-block',
+                                                                    lineHeight: 'normal'
                                                                   }}
                                                                 >
                                                                   {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -3588,7 +3612,9 @@ const IndividualRequest = () => {
                                                                                 whiteSpace: 'nowrap',
                                                                                 textOverflow: 'ellipsis',
                                                                                 overflow: 'hidden',
-                                                                                maxWidth: '250px'
+                                                                                maxWidth: '250px',
+                                                                                display: 'inline-block',
+                                                                                lineHeight: 'normal'
                                                                               }}
                                                                             >
                                                                               {!isNaN(el?.control_substance) &&
@@ -3605,7 +3631,9 @@ const IndividualRequest = () => {
                                                                                     borderRadius: '2px',
                                                                                     lineHeight: '12px',
                                                                                     textAlign: 'center',
-                                                                                    mr: 1
+                                                                                    mr: 1,
+                                                                                    display: 'inline-block',
+                                                                                    verticalAlign: 'middle'
                                                                                   }}
                                                                                 >
                                                                                   CS
@@ -3626,7 +3654,9 @@ const IndividualRequest = () => {
                                                                                     borderRadius: '2px',
                                                                                     lineHeight: '12px',
                                                                                     textAlign: 'center',
-                                                                                    mr: 1
+                                                                                    mr: 1,
+                                                                                    display: 'inline-block',
+                                                                                    verticalAlign: 'middle'
                                                                                   }}
                                                                                 >
                                                                                   PR
@@ -3649,7 +3679,9 @@ const IndividualRequest = () => {
                                                                               overflow: 'hidden',
                                                                               maxWidth: '250px',
                                                                               fontSize: '14px !important',
-                                                                              fontWeight: 400
+                                                                              fontWeight: 400,
+                                                                              display: 'inline-block',
+                                                                              lineHeight: 'normal'
                                                                             }}
                                                                           >
                                                                             {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -4446,7 +4478,9 @@ const IndividualRequest = () => {
                                                                 whiteSpace: 'nowrap',
                                                                 textOverflow: 'ellipsis',
                                                                 overflow: 'hidden',
-                                                                maxWidth: '250px'
+                                                                maxWidth: '250px',
+                                                                display: 'inline-block',
+                                                                lineHeight: 'normal'
                                                               }}
                                                             >
                                                               {!isNaN(el?.control_substance) &&
@@ -4463,7 +4497,9 @@ const IndividualRequest = () => {
                                                                     borderRadius: '2px',
                                                                     lineHeight: '12px',
                                                                     textAlign: 'center',
-                                                                    mr: 1
+                                                                    mr: 1,
+                                                                    display: 'inline-block',
+                                                                    verticalAlign: 'middle'
                                                                   }}
                                                                 >
                                                                   CS
@@ -4483,7 +4519,9 @@ const IndividualRequest = () => {
                                                                     borderRadius: '2px',
                                                                     lineHeight: '12px',
                                                                     textAlign: 'center',
-                                                                    mr: 1
+                                                                    mr: 1,
+                                                                    display: 'inline-block',
+                                                                    verticalAlign: 'middle'
                                                                   }}
                                                                 >
                                                                   PR
@@ -4507,7 +4545,9 @@ const IndividualRequest = () => {
                                                               whiteSpace: 'nowrap',
                                                               textOverflow: 'ellipsis',
                                                               overflow: 'hidden',
-                                                              maxWidth: '250px'
+                                                              maxWidth: '250px',
+                                                              display: 'inline-block',
+                                                              lineHeight: 'normal'
                                                             }}
                                                           >
                                                             {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -4607,7 +4647,9 @@ const IndividualRequest = () => {
                                                                           whiteSpace: 'nowrap',
                                                                           textOverflow: 'ellipsis',
                                                                           overflow: 'hidden',
-                                                                          maxWidth: '250px'
+                                                                          maxWidth: '250px',
+                                                                          display: 'inline-block',
+                                                                          lineHeight: 'normal'
                                                                         }}
                                                                       >
                                                                         {!isNaN(el?.control_substance) &&
@@ -4624,7 +4666,9 @@ const IndividualRequest = () => {
                                                                               borderRadius: '2px',
                                                                               lineHeight: '12px',
                                                                               textAlign: 'center',
-                                                                              mr: 1
+                                                                              mr: 1,
+                                                                              display: 'inline-block',
+                                                                              verticalAlign: 'middle'
                                                                             }}
                                                                           >
                                                                             CS
@@ -4644,7 +4688,9 @@ const IndividualRequest = () => {
                                                                               borderRadius: '2px',
                                                                               lineHeight: '12px',
                                                                               textAlign: 'center',
-                                                                              mr: 1
+                                                                              mr: 1,
+                                                                              display: 'inline-block',
+                                                                              verticalAlign: 'middle'
                                                                             }}
                                                                           >
                                                                             PR
@@ -4668,7 +4714,9 @@ const IndividualRequest = () => {
                                                                         whiteSpace: 'nowrap',
                                                                         textOverflow: 'ellipsis',
                                                                         overflow: 'hidden',
-                                                                        maxWidth: '250px'
+                                                                        maxWidth: '250px',
+                                                                        display: 'inline-block',
+                                                                        lineHeight: 'normal'
                                                                       }}
                                                                     >
                                                                       {`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
