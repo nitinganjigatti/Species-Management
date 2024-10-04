@@ -207,7 +207,6 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
-      // console.log('Request', response.data)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -502,8 +501,6 @@ const IndividualRequest = () => {
 
   const generateOptions = (params, parentId) => {
     let options = []
-    console.log('params', params)
-    console.log('parentId', parentId)
 
     if (selectedPharmacy.type === 'central') {
       options.push({
@@ -1483,8 +1480,10 @@ const IndividualRequest = () => {
                       boxShadow: 'none !important',
                       minHeight: '84px',
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
+                      padding: '16px',
+                      borderRadius: '8px',
+
+                      justifyContent: 'space-between'
                     }}
                   >
                     <Grid
@@ -1495,11 +1494,7 @@ const IndividualRequest = () => {
 
                         display: 'flex',
 
-                        padding: '16px',
-                        alignItems: 'center',
-
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
+                        justifyContent: 'space-between'
                       }}
                     >
                       <Grid
@@ -1511,8 +1506,14 @@ const IndividualRequest = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '8px',
-                          height: '46px'
+                          gap: '4px',
+                          height: '46px',
+                          mb: {
+                            xs: 5,
+                            sm: 5,
+                            md: 5,
+                            lg: 0
+                          }
                         }}
                       >
                         <Typography
@@ -1568,7 +1569,7 @@ const IndividualRequest = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '8px',
+                          gap: '4px',
                           height: '46px',
 
                           textAlign: {
@@ -1576,6 +1577,12 @@ const IndividualRequest = () => {
                             sm: 'right',
                             md: 'right',
                             lg: 'left'
+                          },
+                          mb: {
+                            xs: 5,
+                            sm: 5,
+                            md: 5,
+                            lg: 0
                           }
                         }}
                       >
@@ -1633,8 +1640,14 @@ const IndividualRequest = () => {
                           display: 'flex',
                           flexDirection: 'column',
 
-                          gap: '8px',
-                          height: '46px'
+                          gap: '4px',
+                          height: '46px',
+                          mb: {
+                            xs: 5,
+                            sm: 0,
+                            md: 0,
+                            lg: 0
+                          }
                         }}
                       >
                         <Typography
@@ -1773,8 +1786,6 @@ const IndividualRequest = () => {
                         <TabPanel
                           value='Pending'
                           sx={{
-                            // display: 'flex',
-                            // justifyContent: 'flex-start',
                             padding: '0 !important'
                           }}
                         >
@@ -2082,8 +2093,6 @@ const IndividualRequest = () => {
                                                           display: 'flex',
                                                           width: '100%',
 
-                                                          // my: 2,
-                                                          // gap: 1,
                                                           cursor: 'pointer'
                                                         }}
                                                       >
@@ -2106,8 +2115,6 @@ const IndividualRequest = () => {
                                                               justifyContent: 'center',
                                                               flexWrap: 'nowrap',
                                                               my: 1
-
-                                                              // mb: 4,
                                                             }}
                                                           >
                                                             <Box>
@@ -2248,8 +2255,6 @@ const IndividualRequest = () => {
 
                                                                     width: '100%',
 
-                                                                    // mb: 2,
-                                                                    // gap: 1,
                                                                     cursor: 'pointer'
                                                                   }}
                                                                 >
@@ -2276,8 +2281,6 @@ const IndividualRequest = () => {
                                                       display: 'flex',
                                                       flexDirection: 'column',
                                                       justifyContent: 'center'
-
-                                                      // mb: 4
                                                     }}
                                                   >
                                                     <Typography
@@ -2298,7 +2301,7 @@ const IndividualRequest = () => {
                                                         fontWeight: 400
                                                       }}
                                                     >
-                                                      Fullfilled:{el?.dispatch_qty}
+                                                      Fulfilled:{el?.dispatch_qty}
                                                     </Typography>{' '}
                                                     <Typography
                                                       variant='body1'
@@ -2324,8 +2327,6 @@ const IndividualRequest = () => {
                                                               display: 'flex',
                                                               flexDirection: 'column',
                                                               justifyContent: 'center'
-
-                                                              // mb: 4
                                                             }}
                                                           >
                                                             <Typography
@@ -2346,7 +2347,7 @@ const IndividualRequest = () => {
                                                                 fontWeight: 400
                                                               }}
                                                             >
-                                                              Fullfilled:{el?.dispatch_qty}
+                                                              Fulfilled:{el?.dispatch_qty}
                                                             </Typography>{' '}
                                                             <Typography
                                                               variant='body1'
@@ -3147,8 +3148,6 @@ const IndividualRequest = () => {
                         <TabPanel
                           value='Shipped'
                           sx={{
-                            // display: 'flex',
-                            // justifyContent: 'flex-start',
                             padding: '0 !important'
                           }}
                         >
@@ -3869,7 +3868,6 @@ const IndividualRequest = () => {
                                                                     }
                                                                     variant='contained'
                                                                     onClick={() => {
-                                                                      console.log('outside el', el)
                                                                       setFulfillMedicine({
                                                                         ...el
                                                                       })
