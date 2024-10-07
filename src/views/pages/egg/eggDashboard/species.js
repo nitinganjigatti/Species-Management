@@ -375,7 +375,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 120,
-      field: 'total_eggs_in_nursery',
+      field: 'in_nursery',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'IN NURSERY',
@@ -407,9 +407,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.in_transit && params.row.marked_for_transfer
-                ? Number(params.row.in_transit) + Number(params.row.marked_for_transfer)
-                : '-'}
+              {params.row.in_nursery ? Number(params.row.in_nursery) : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -698,7 +696,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 140,
-      field: 'discarded',
+      field: 'total_discard',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'DISCARDED',
@@ -729,7 +727,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded ? params.row.discarded : '-'}
+              {params.row.total_discard ? params.row.total_discard : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -900,7 +898,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 180,
-      field: 'discarded',
+      field: 'total_discard',
       sortable: false,
       disableColumnMenu: true,
       headerName: 'DISCARDED',
