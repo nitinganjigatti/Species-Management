@@ -1277,7 +1277,7 @@ const ConditionSlider = ({
                                   placeholder='Search & Select'
                                   error={Boolean(errors.species)}
                                   sx={{
-                                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                    '& .MuiInputLabel-root': {
                                       color: 'rgba(76, 78, 100, 0.6)'
                                     }
                                   }}
@@ -1437,13 +1437,12 @@ const ConditionSlider = ({
                                     )
                                   }}
                                   sx={{
-                                    '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                    '& .MuiInputLabel-root': {
                                       color: 'rgba(76, 78, 100, 0.6)'
                                     },
-                                    '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline':
-                                      {
-                                        borderColor: Boolean(errors.enclosure_id) && 'red'
-                                      }
+                                    '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: errors.enclosure_id ? 'red' : undefined
+                                    }
                                   }}
                                 />
                               )}
@@ -1648,7 +1647,6 @@ const ConditionSlider = ({
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              {/* <DemoContainer components={['DatePicker']}> */}
                               <DatePicker
                                 sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                                 value={value}
@@ -1656,7 +1654,6 @@ const ConditionSlider = ({
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
                               />
-                              {/* </DemoContainer> */}
                             </LocalizationProvider>
                           )}
                         />

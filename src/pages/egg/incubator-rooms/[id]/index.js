@@ -711,13 +711,15 @@ const RoomDetails = () => {
                           <TextField
                             sx={{
                               backgroundColor: '#fff',
-                              borderRadius: '8px',
+                              borderColor: '1px solid #C3CEC7',
                               width: '100%',
-                              '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                                height: '40px',
+                              '& .MuiOutlinedInput-root': {
+                                height: 40,
                                 borderRadius: '4px'
                               },
-                              '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                              '& .MuiInputLabel-root': {
+                                top: -7
+                              },
                               '& input': {
                                 position: 'relative',
                                 top: -7

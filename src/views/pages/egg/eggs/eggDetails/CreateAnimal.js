@@ -464,7 +464,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                               placeholder='Search & Select'
                               error={Boolean(errors.species)}
                               sx={{
-                                '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                '& .MuiInputLabel-root': {
                                   color: 'rgba(76, 78, 100, 0.6)'
                                 }
                               }}
@@ -616,13 +616,12 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 )
                               }}
                               sx={{
-                                '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': {
+                                '& .MuiInputLabel-root': {
                                   color: 'rgba(76, 78, 100, 0.6)'
                                 },
-                                '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline':
-                                  {
-                                    borderColor: Boolean(errors.enclosure_id) && 'red'
-                                  }
+                                '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: errors.enclosure_id ? 'red' : undefined
+                                }
                               }}
                             />
                           )}
@@ -992,7 +991,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                         width: '100%',
                                         borderRadius: '50%',
                                         border: '1px',
-                                        '& .css-1pqm26d-MuiAvatar-img': {
+                                        '& .MuiAvatar-img': {
                                           objectFit: 'contain'
                                         }
                                       }}
@@ -1133,7 +1132,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                         width: '100%',
                                         borderRadius: '50%',
                                         border: '1px',
-                                        '& .css-1pqm26d-MuiAvatar-img': {
+                                        '& .MuiAvatar-img': {
                                           objectFit: 'contain'
                                         }
                                       }}
