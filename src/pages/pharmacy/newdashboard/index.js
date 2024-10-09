@@ -46,6 +46,7 @@ import StoreWiseDispatch from '../reports/store-wise-dispatch'
 import RequestChart from 'src/components/pharmacy/dashBoard/RequestChart'
 import { LoadingButton } from '@mui/lab'
 import ReceievedMedicines from 'src/components/pharmacy/dashBoard/ReceievedMedicines'
+import ExpiredProducts from 'src/components/pharmacy/dashBoard/ExpiredProducts'
 
 const NewDashboard = () => {
   const [totalList, setTotalList] = useState([])
@@ -121,39 +122,44 @@ const NewDashboard = () => {
         <Grid item xs={12} md={8}>
           <AnalyticsCongratulations />
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader
-              title={'Critical info'}
-              action={
-                <OptionsMenu
-                  options={['Refresh']}
-                  iconButtonProps={{ size: 'small', className: 'card-more-options' }}
-                />
-              }
-            />
-            <CardContent sx={{ marginTop: -6 }}>
-              <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} className='match-height'>
-                <Grid item xs={6} sm={11 / 2}>
-                  <CriticalInfoCards
-                    title={expiredMedicine?.value}
-                    subTitle={expiredMedicine?.name}
-                    modifiedProperties={modifiedProperties}
+        {selectedPharmacy.type === 'central' ? (
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardHeader
+                title={'Critical info'}
+                action={
+                  <OptionsMenu
+                    options={['Refresh']}
+                    iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                   />
-                </Grid>
-                <Divider orientation='vertical' variant='middle' flexItem />
+                }
+              />
+              <CardContent sx={{ marginTop: -6 }}>
+                <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} className='match-height'>
+                  <Grid item xs={6} sm={11 / 2}>
+                    <CriticalInfoCards
+                      title={expiredMedicine?.value}
+                      subTitle={expiredMedicine?.name}
+                      modifiedProperties={modifiedProperties}
+                    />
+                  </Grid>
+                  <Divider orientation='vertical' variant='middle' flexItem />
 
-                <Grid item xs={11 / 2}>
-                  <CriticalInfoCards
-                    title={outOfStockMedicine?.value}
-                    subTitle={outOfStockMedicine?.name}
-                    modifiedProperties={modifiedProperties}
-                  />
+                  <Grid item xs={11 / 2}>
+                    <CriticalInfoCards
+                      title={outOfStockMedicine?.value}
+                      subTitle={outOfStockMedicine?.name}
+                      modifiedProperties={modifiedProperties}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        ) : (
+          ''
+        )}
+
         <Grid item xs={12} md={12}>
           <TotalListCard
             data={
@@ -177,6 +183,25 @@ const NewDashboard = () => {
             </Grid>
           </>
         ) : null}
+
+        {selectedPharmacy.type === 'central' ? (
+          <>
+            {/* <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+              <ReceievedMedicines />
+            </Grid> */}
+          </>
+        ) : null}
+        {selectedPharmacy.type === 'central' ? (
+          <>
+            <Grid item xs={12} md={6}>
+              <MonthlyDispatchChart />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <MonthlyPurchaseChart />
+            </Grid>
+          </>
+        ) : null}
+
         {selectedPharmacy.type === 'central' ? (
           <>
             <Grid item xs={12} md={12} sx={{ mb: 0 }}>
@@ -184,28 +209,13 @@ const NewDashboard = () => {
             </Grid>
           </>
         ) : null}
+
         {selectedPharmacy.type === 'central' ? (
-          <>
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
-              <ReceievedMedicines />
-            </Grid>
-          </>
-        ) : null}
-        {selectedPharmacy.type === 'central' ? (
-          <>
+          <Grid container item spacing={6} xs={12} md={12} sx={{ display: 'flex' }}>
             <Grid item xs={12} md={12} sx={{ mb: 0 }}>
               <StoreWiseDispatch />
             </Grid>
-          </>
-        ) : null}
-        {selectedPharmacy.type === 'central' ? (
-          <Grid container item spacing={6} xs={12} md={12} sx={{ display: 'flex' }}>
-            <Grid item xs={12} md={6}>
-              <MonthlyDispatchChart />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <MonthlyPurchaseChart />
-            </Grid>
+
             <Grid item xs={12} md={7.5}>
               <StoreWiseNewRequests />
             </Grid>
@@ -228,13 +238,7 @@ const NewDashboard = () => {
                   </TabList>
                   <CardContent>
                     <TabPanel value='1' sx={{ p: 0 }}>
-                      <Typography variant='h6' sx={{ mb: 2 }}>
-                        Header One
-                      </Typography>
-                      <Typography variant='body2' sx={{ mb: 4 }}>
-                        Pudding tiramisu caramels. Gingerbread gummies danish chocolate bar toffee marzipan. Wafer wafer
-                        cake powder danish oat cake.
-                      </Typography>
+                      <ExpiredProducts />
                     </TabPanel>
                     <TabPanel value='2' sx={{ p: 0 }}>
                       <FastMovingProducts />

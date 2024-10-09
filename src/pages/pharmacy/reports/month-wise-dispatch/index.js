@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
-import { getMonthWiseDispatchList } from 'src/lib/api/pharmacy/getAllReports'
+import { getMonthWiseDispatchList, getDoctorReportList } from 'src/lib/api/pharmacy/getAllReports'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -23,8 +23,9 @@ import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
-import MedicineNamedoctorsList from './doctorsList'
+import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
 import MonthWisedispatchFilter from './monthwiseDispatchFilterDrawer'
+import moment from 'moment'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 const dropdownOptions = [
@@ -58,17 +59,15 @@ const MonthWiseDispatch = () => {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState(dropdownOptions[0].value)
   const [isFetching, setisFetching] = useState(false)
+  const [filtersearchValue, setFilterSearchValue] = useState('')
+  const [medicineId, setmedicineId] = useState('')
+  const [doctorsList, setdoctorsList] = useState([])
+  const [totalCount, settotalCount] = useState(0)
+  const [totalDoctors, settotalDoctors] = useState(0)
+  const [totalValue, settotalValue] = useState(0)
+  const [downloadFromDate, setDownloadFromDate] = useState(null)
+  const [downloadToDate, setDownloadToDate] = useState(null)
   const { selectedPharmacy } = usePharmacyContext()
-
-  const handlecheckcell = val => {
-    console.log(val, 'val')
-    if (val.field === 'name') {
-      return
-    } else {
-      setOpenDoctorListDrawer(true)
-      alert(val.row.name)
-    }
-  }
 
   const handleSelectAllChange = event => {
     console.log(fullStoreList, 'fullStoreList')
@@ -81,10 +80,98 @@ const MonthWiseDispatch = () => {
     }
   }
 
-  const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
-    setLoading(true)
-    await searchTableDatafilter({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
+  const handlecheckcell = val => {
+    console.log(val, 'Cell data')
+    const clickedColumnField = val.field
+    const clickedRowData = val.row
+
+    const clickedColumnData = columns.find(column => column.field === clickedColumnField)
+    console.log(clickedColumnData, 'clickedColumnData')
+    if (val.field === 'stock_name') {
+      return
+    } else if (clickedColumnData) {
+      const title = clickedColumnData.field
+      const sub_title = clickedColumnData.renderHeader?.().props.children[1]?.props.children || ''
+      console.log('Clicked Column Title:', title)
+      console.log('Clicked Column Sub-Title:', sub_title)
+
+      let fromDate, toDate
+
+      if (statusFilter === 'weekly') {
+        fromDate = moment(sub_title).startOf('day')
+        toDate = moment(title).endOf('day')
+      } else if (statusFilter === 'monthly') {
+        fromDate = moment(`01 ${title} ${sub_title}`, 'DD MMM YYYY').startOf('month')
+        toDate = moment().endOf('day')
+      } else if (statusFilter === 'yearly') {
+        fromDate = moment(`01 Jan ${title}`, 'DD MMM YYYY').startOf('year')
+        toDate = moment().endOf('day')
+      } else if (statusFilter === 'daily') {
+        const selectedDay = moment().day(title)
+
+        if (selectedDay.isAfter(moment(), 'day')) {
+          selectedDay.subtract(7, 'days')
+        }
+
+        fromDate = selectedDay.startOf('day')
+        toDate = selectedDay.endOf('day')
+      } else {
+        fromDate = moment().startOf('day')
+        toDate = moment().endOf('day')
+      }
+
+      const formattedFromDate = formatDateTime(fromDate, '00:00:00')
+      const formattedToDate = formatDateTime(toDate, '23:59:00')
+
+      // Update state with the formatted dates
+      setDownloadFromDate(formattedFromDate)
+      setDownloadToDate(formattedToDate)
+
+      console.log('Formatted From Date:', formattedFromDate)
+      console.log('Formatted To Date:', formattedToDate)
+
+      if (clickedRowData.id && statusFilter) {
+        setmedicineId(clickedRowData.id)
+        fetchDoctorlist(clickedRowData.id, formattedFromDate, formattedToDate)
+        setOpenDoctorListDrawer(true)
+      } else {
+      }
+    }
+  }
+
+  const fetchDoctorlist = async (medicineId, fromDate, toDate) => {
+    try {
+      setLoading(true)
+
+      let payload = {
+        medicine_id: medicineId,
+        from_date: fromDate,
+        to_date: toDate
+      }
+
+      console.log('Payload:', payload)
+
+      const response = await getDoctorReportList(payload)
+
+      console.log(response, 'medicineListResponse')
+
+      if (response.success === true) {
+        setdoctorsList(response.data.list_items)
+        settotalCount(response.data.total_count)
+        settotalDoctors(response.data.total_doctors)
+        settotalValue(response.data.total_value)
+      }
+    } catch (e) {
+      alert('Error occurred while fetching data')
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Utility function to format the date in 'YYYY-MM-DD HH:mm:ss' format
+  const formatDateTime = (date, defaultTime = '00:00:00') => {
+    return moment(date).format(`YYYY-MM-DD ${defaultTime}`)
   }
 
   const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
@@ -92,7 +179,7 @@ const MonthWiseDispatch = () => {
       setisFetching(true)
       let params = {
         page,
-        limit: 10, // You can also make this dynamic if needed
+        limit: 10,
         q
       }
       const medicineListResponse = await getMedicineList({
@@ -105,15 +192,30 @@ const MonthWiseDispatch = () => {
           id: store.id,
           name: store.name
         }))
-        setisFetching(false)
-        // Append new data to existing list
-        setFullStoreList(prevStores => [...prevStores, ...allStores])
         setTotalmedicineCount(medicineListResponse.data.total_count)
+        console.log(allStores, 'allStores')
+        setFullStoreList(prevStores => {
+          let mergedStores
+          if (q) {
+            // If search is applied, replace the list with the searched results
+            mergedStores = allStores
+          } else {
+            // If search is cleared (q is empty), append the results to the full list
+            mergedStores = [...prevStores, ...allStores]
+          }
+          // Remove duplicates based on `id`
+          const uniqueStores = mergedStores.filter(
+            (store, index, self) => index === self.findIndex(s => s.id === store.id)
+          )
+
+          return uniqueStores
+        })
       }
     } catch (e) {
       console.error(e)
     } finally {
-      setisFetching(false) // Ensure loading is set to false after the API call
+      setisFetching(false)
+      setLoading(false)
     }
   })
 
@@ -270,7 +372,7 @@ const MonthWiseDispatch = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
     setFilterLength(selectedFruits.length)
-    setSearchValue('')
+    setFilterSearchValue('')
   }
 
   const handleSearch = async value => {
@@ -278,6 +380,13 @@ const MonthWiseDispatch = () => {
     setSearchValue(value)
 
     await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
+  }
+
+  const handleSearchChange = async e => {
+    console.log(statusFilter, 'statusFilter')
+    setLoading(true)
+    setFilterSearchValue(e.target.value)
+    await searchTableDatafilter({ q: e.target.value })
   }
 
   const handleStatusFilterChange = newFilter => {
@@ -289,9 +398,21 @@ const MonthWiseDispatch = () => {
   const handleCloseDrawer = () => {
     setSelectedStores([])
     setOpenFilterDrawer(false)
-    setFiltersApplied(false)
+    setFiltersApplied(true)
     setFilterLength('')
     setStoreList(fullStoreList) //
+  }
+
+  const searchClose = () => {
+    setLoading(true)
+    setFiltersApplied(true)
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
+
+    // Ensure paginated data is re-fetched from page 1
+    fetchfilterValues({ page: 1 })
   }
 
   const handleFruitSelection = medicine_ids => {
@@ -307,14 +428,15 @@ const MonthWiseDispatch = () => {
 
   const searchTableDatafilter = useCallback(
     debounce(async ({ q }) => {
-      setSearchValue(q)
+      setFilterSearchValue(q)
       try {
+        setLoading(false)
         await fetchfilterValues({ q })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [statusFilter]
+    []
   )
 
   const searchTableData = useCallback(
@@ -334,8 +456,8 @@ const MonthWiseDispatch = () => {
   }, [fetchTableData])
 
   useEffect(() => {
-    fetchfilterValues({ q: searchValue, page })
-  }, [searchValue, page, filtersApplied])
+    fetchfilterValues({ q: filtersearchValue, page })
+  }, [filtersearchValue, page])
 
   // Function to load more data
   const loadMoreData = () => {
@@ -530,17 +652,28 @@ const MonthWiseDispatch = () => {
                   loading={loading}
                   filtersApplied={filtersApplied}
                   setSelectedStores={setSelectedStores}
-                  setSearchValue={setSearchValue}
+                  setFilterSearchValue={setFilterSearchValue}
                   fetchfilterValues={fetchfilterValues}
                   totalMedicineCount={totalMedicineCount}
                   loadMoreData={loadMoreData}
                   isFetching={isFetching}
+                  setFiltersApplied={setFiltersApplied}
+                  searchClose={searchClose}
+                  filtersearchValue={filtersearchValue}
                 />
               )}
               {openDoctorListDrawer && (
                 <MedicineNamedoctorsList
                   openDoctorListDrawer={openDoctorListDrawer}
                   setOpenDoctorListDrawer={setOpenDoctorListDrawer}
+                  doctorsList={doctorsList}
+                  totalCount={totalCount}
+                  totalDoctors={totalDoctors}
+                  totalValue={totalValue}
+                  loading={loading}
+                  fromDate={downloadFromDate}
+                  toDate={downloadToDate}
+                  statusFilter={statusFilter}
                 />
               )}
             </>

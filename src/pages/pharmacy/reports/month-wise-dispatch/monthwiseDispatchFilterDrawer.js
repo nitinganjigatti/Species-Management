@@ -12,16 +12,20 @@ const MonthWisedispatchFilter = ({
   selectedFruits,
   handleSelectAllChange,
   handleSearchChange,
+  searchClose,
   storeList,
   fullStoreList,
   onApplyFilters,
   handleCloseDrawer,
   loading,
-  setSearchValue,
+  setFilterSearchValue,
   filtersApplied,
-  setSelectedStores,
   loadMoreData,
-  isFetching
+  isFetching,
+  setFiltersApplied,
+  filtersearchValue,
+  setSelectedStores,
+  setFilterLength
 }) => {
   const listInnerRef = useRef(null)
 
@@ -29,21 +33,30 @@ const MonthWisedispatchFilter = ({
     if (listInnerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = listInnerRef.current
       if (scrollTop + clientHeight >= scrollHeight - 5) {
-        loadMoreData() // Trigger loading more data
+        loadMoreData()
       }
     }
   }
   const handleClose = () => {
     setOpenFilterDrawer(false)
-    setSearchValue('')
-    if (filtersApplied === false) {
+    setFilterSearchValue('')
+    setFiltersApplied(false)
+    //setSelectedStores([])
+    if (filtersApplied === false && selectedFruits.length > 0) {
       setSelectedStores([])
     }
   }
 
   useEffect(() => {
+    console.log(filtersApplied, 'lll')
     const ref = listInnerRef.current
 
+    if (selectedFruits.length > 0 && filtersApplied === true) {
+      setFiltersApplied(false)
+    }
+    if (filtersApplied === true) {
+      setFiltersApplied(false)
+    }
     // Ensure that we are attaching the scroll event to the correct element
     if (ref) {
       ref.addEventListener('scroll', handleScroll)
@@ -55,7 +68,7 @@ const MonthWisedispatchFilter = ({
         ref.removeEventListener('scroll', handleScroll)
       }
     }
-  }, [listInnerRef, loading]) // Dependency on loading to prevent multiple scroll events during data load
+  }, [listInnerRef, loading, filtersApplied, searchClose])
 
   return (
     <Drawer
@@ -133,12 +146,14 @@ const MonthWisedispatchFilter = ({
                   <TextField
                     variant='outlined'
                     placeholder='Search'
-                    //value={searchQuery}
+                    value={filtersearchValue}
                     onChange={handleSearchChange}
                     InputProps={{
                       disableUnderline: false
                     }}
                     sx={{
+                      flex: 1,
+                      mx: 1,
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
                         padding: '0',
@@ -148,6 +163,7 @@ const MonthWisedispatchFilter = ({
                       }
                     }}
                   />
+                  {filtersearchValue ? <Icon icon='mdi:close' onClick={searchClose} /> : ''}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
@@ -179,13 +195,9 @@ const MonthWisedispatchFilter = ({
                   ) : (
                     <Typography sx={{ textAlign: 'center', mt: 6 }}>No data to show</Typography>
                   )
-                ) : (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6 }}>
-                    <CircularProgress disableShrink />
-                  </Box>
-                )}
+                ) : null}
               </Box>
-              {/* Show loader when loading new data */}
+
               {isFetching && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                   <CircularProgress size={24} />

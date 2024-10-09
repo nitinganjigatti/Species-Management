@@ -144,6 +144,8 @@ export const DASHBOARD_REPORT = 'reports'
 
 export const DASHBOARD_FAST_MOVING = 'fastmoving-stocks?page=1&limit=10'
 
+export const DASHBOARD_EXPIRED_STOCKS = 'expired-stocks?page=1&limit=10'
+
 export const DASHBOARD_NEW_REQUEST = 'new-request?page=1&limit=10'
 
 export const DASHBOARD_COMPLETED_REQUESTS = 'completed-request'
@@ -177,3 +179,7 @@ export const DASHBOARD_STORE_DISPATCH_REPORT = 'store-dispatch-report'
 export const DASHBOARD_MONTH_WISE_DISPATCH_REPORT = 'monthly-dispatch-report'
 
 export const DASHBOARD_MONTH_WISE_PURCHASE_REPORT = 'monthly-purchase-report'
+
+export const DASHBOARD_DOCTOR_DISPATCH_FILTER = 'store-doctor-dispatch-filter'
+
+export const DASHBOARD_COMPLETED_PENDING_REQUEST = 'completed-pending-request'

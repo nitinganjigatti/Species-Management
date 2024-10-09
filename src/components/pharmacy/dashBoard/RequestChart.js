@@ -1,5 +1,5 @@
 // ** React Imports
-import { forwardRef, useState } from 'react'
+import React, { forwardRef, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -8,9 +8,11 @@ import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
+import { getRequestListChart } from 'src/lib/api/pharmacy/getAllReports'
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
 // ** Third Party Imports
 import format from 'date-fns/format'
+import subDays from 'date-fns/subDays'
 import DatePicker from 'react-datepicker'
 
 // ** Icon Imports
@@ -25,94 +27,110 @@ const columnColors = {
   series2: '#1F415B'
 }
 
-const series = [
-  {
-    name: 'Completed requests',
-    data: [90, 120, 55, 100, 80, 125, 175, 70, 88]
-  },
-  {
-    name: 'Pending requests',
-    data: [85, 100, 30, 40, 95, 90, 30, 110, 62]
-  }
-]
-
 const RequestChart = () => {
   // ** Hook
   const theme = useTheme()
 
   // ** States
-  const [timeperiod, setTimeperiod] = useState('')
+  const [timeperiod, setTimeperiod] = useState(7)
+  const [chartData, setChartData] = useState({ categories: [], series: [] })
+
+  const fetchMedicineData = async () => {
+    try {
+      const end_time = format(new Date(), 'yyyy-MM-dd')
+      const start_time = format(subDays(new Date(), timeperiod), 'yyyy-MM-dd')
+
+      const params = { start_time, end_time }
+
+      const searchResults = await getRequestListChart({ params: params })
+      console.log('searchResults', searchResults)
+
+      const stores = searchResults?.data.map(store => store.store_name) // X-axis: store names
+      const completedRequests = searchResults?.data.map(store => Number(store.completed_request))
+      const pendingRequests = searchResults?.data.map(store => Number(store.pending_request))
+
+      // Update chart data
+      setChartData({
+        categories: stores,
+        series: [
+          { name: 'Completed requests', data: completedRequests },
+          { name: 'Pending requests', data: pendingRequests }
+        ]
+      })
+    } catch (e) {
+      console.log('Error fetching data:', e)
+    }
+  }
+
+  useEffect(() => {
+    fetchMedicineData()
+  }, [timeperiod])
 
   const options = {
     chart: {
-      offsetX: -10,
       stacked: true,
-      parentHeightOffset: 0,
       toolbar: { show: false }
     },
     fill: { opacity: 1 },
     dataLabels: { enabled: false },
     colors: [columnColors.series1, columnColors.series2],
-    legend: {
-      position: 'top',
-      horizontalAlign: 'left',
-      labels: { colors: theme.palette.text.secondary },
-      markers: {
-        offsetY: 1,
-        offsetX: -3
-      },
-      itemMargin: {
-        vertical: 3,
-        horizontal: 10
-      }
-    },
-    stroke: {
-      show: true,
-      colors: ['transparent']
-    },
-    plotOptions: {
-      bar: {
-        columnWidth: '15%',
-        colors: {
-          backgroundBarRadius: 10,
-          backgroundBarColors: [columnColors.bg, columnColors.bg, columnColors.bg, columnColors.bg, columnColors.bg]
-        }
-      }
-    },
-    grid: {
-      borderColor: theme.palette.divider,
-      xaxis: {
-        lines: { show: true }
+    xaxis: {
+      categories: chartData.categories,
+      labels: {
+        style: { colors: '#8e8da4' }
       }
     },
     yaxis: {
       labels: {
-        style: { colors: theme.palette.text.disabled }
+        style: { colors: '#8e8da4' }
       }
     },
-    xaxis: {
-      axisBorder: { show: false },
-      axisTicks: { color: theme.palette.divider },
-      categories: ['7/12', '8/12', '9/12', '10/12', '11/12', '12/12', '13/12', '14/12', '15/12'],
-      crosshairs: {
-        stroke: { color: theme.palette.divider }
-      },
-      labels: {
-        style: { colors: theme.palette.text.disabled }
+    // legend: {
+    //   show: true,
+    //   position: 'top', // Moves the legend above the chart
+    //   horizontalAlign: 'left', // Aligns legend items horizontally (can be 'left', 'center', 'right')
+    //   offsetY: 10,
+    //   markers: {
+    //     radius: 12 // Make legend markers rounded
+    //   }
+    // },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: {
+        formatter: function (val) {
+          return val + ' requests'
+        }
       }
     },
-    responsive: [
-      {
-        breakpoint: 600,
-        options: {
-          plotOptions: {
-            bar: {
-              columnWidth: '35%'
-            }
+    plotOptions: {
+      bar: {
+        columnWidth: '40%',
+        borderRadius: 10,
+        borderRadiusApplication: 'end',
+        borderRadiusWhenStacked: true,
+        dataLabels: {
+          position: 'top'
+        },
+        hover: {
+          // Customize the hover behavior
+          fill: {
+            opacity: 1
           }
         }
       }
-    ]
+    },
+    grid: {
+      borderColor: '#f1f1f1'
+    },
+    legend: {
+      show: true,
+      // position: 'top',
+      //horizontalAlign: 'left',
+      markers: {
+        radius: 12 // Round the legend markers for consistency
+      }
+    }
   }
 
   const handlechange = e => {
@@ -149,7 +167,7 @@ const RequestChart = () => {
         }
       />
       <CardContent>
-        <ReactApexcharts type='bar' height={400} options={options} series={series} />
+        <ReactApexcharts type='bar' height={400} options={options} series={chartData.series} />
       </CardContent>
     </Card>
   )

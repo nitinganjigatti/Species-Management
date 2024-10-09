@@ -24,7 +24,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
-import MedicineNamedoctorsList from '../month-wise-dispatch/doctorsList'
+import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
 import StoreWisedispatchFilter from './storewiseDispatchFilterDrawer'
 
 const dropdownOptions = [
@@ -56,16 +56,6 @@ const StoreWiseDispatch = () => {
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState(dropdownOptions[0].value)
   const { selectedPharmacy } = usePharmacyContext()
-
-  const handlecheckcell = val => {
-    console.log(val, 'val')
-    if (val.field === 'name') {
-      return
-    } else {
-      setOpenDoctorListDrawer(true)
-      alert(val.row.name)
-    }
-  }
 
   const handleSelectAllChange = event => {
     if (event.target.checked) {
@@ -338,7 +328,8 @@ const StoreWiseDispatch = () => {
     const data = params.row
 
     Router.push({
-      pathname: `/pharmacy/reports/store-wise-dispatch/${data?.id}`
+      pathname: `/pharmacy/reports/store-wise-dispatch/${data?.id}`,
+      query: { store_name: data?.store_name }
     })
   }
 
