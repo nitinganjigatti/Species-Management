@@ -16,10 +16,12 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+import { useTheme } from '@emotion/react'
+
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Stack, CircularProgress } from '@mui/material'
+import { Box, Avatar, Badge, Stack, CircularProgress, Grid, TextField } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 // import Router from 'next/router'
 import Utility from 'src/utility'
@@ -31,8 +33,10 @@ import { useRouter } from 'next/router'
 import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
 import { jsx } from '@emotion/react'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ListOfRequest = () => {
+  const theme = useTheme()
   const router = useRouter()
 
   const [loader, setLoader] = useState(false)
@@ -399,6 +403,12 @@ const ListOfRequest = () => {
   //   }
   // }, [])
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Lab Requests</Typography>
+    </>
+  )
+
   return (
     <>
       {loader ? (
@@ -406,7 +416,7 @@ const ListOfRequest = () => {
       ) : (
         <>
           <Card key={selectedLab}>
-            <CardHeader title='Lab Requests' />
+            <CardHeader title={title}/>
 
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}
@@ -500,6 +510,58 @@ const ListOfRequest = () => {
               </Stack>
             </Box>
 
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                  {/* Left Box (Search Field) */}
+                  <Grid item xs={8}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        ml: 5,
+                        height: '40px',
+                        width: '250px' // Set a fixed width for all status
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                </Box>
+                <Grid
+                  sx={{
+                    mx: 4
+                  }}
+                >
+                  <TableData
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+{/* 
             <DataGrid
               autoHeight
               pagination
@@ -526,7 +588,7 @@ const ListOfRequest = () => {
                   }
                 }
               }}
-            />
+            /> */}
           </Card>
         </>
       )}
