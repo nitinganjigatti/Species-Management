@@ -114,6 +114,7 @@ const IndividualRequest = () => {
   const [permissionView, setPermissionView] = useState(false)
 
   const router = useRouter()
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
@@ -1432,7 +1433,7 @@ const IndividualRequest = () => {
         <>
           {permissionView ? (
             <>
-              <CommonDialogBox
+              {/* <CommonDialogBox
                 title={'Order received'}
                 dialogBoxStatus={orderFormDialog}
                 formComponent={
@@ -1445,7 +1446,7 @@ const IndividualRequest = () => {
                 }
                 close={closeOrderFormDialog}
                 show={showOrderFormDialog}
-              />
+              /> */}
               <Card sx={{ mb: 6 }}>
                 <CardHeader
                   avatar={
@@ -3475,17 +3476,21 @@ const IndividualRequest = () => {
                           <TabPanel value='Shipped'>
                             {shippedItems?.length > 0 ? (
                               <>
-                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2 }}>
-                                  {/* <CardHeader title={`Shipments`}></CardHeader> */}
-                                  <TableBasic
-                                    columns={shippedColumns}
-                                    rows={shippedItems}
-                                    onRowClick={e => {
-                                      setOrderId(e.id)
-                                      showOrderFormDialog()
-                                    }}
-                                  ></TableBasic>
-                                </Card>
+                                {/* <Card sx={{ mb: 6, minWidth: '100%', ml: -2 }}> */}
+                                {/* <CardHeader title={`Shipments`}></CardHeader> */}
+                                <TableBasic
+                                  columns={shippedColumns}
+                                  rows={shippedItems}
+                                  onRowClick={e => {
+                                    setOrderId(e.id)
+                                    Router.push({
+                                      pathname: `/pharmacy/request/${id}/shipment-details`,
+                                      query: { orderId: e.id }
+                                    })
+                                    // showOrderFormDialog()
+                                  }}
+                                ></TableBasic>
+                                {/* </Card> */}
                               </>
                             ) : null}
                           </TabPanel>

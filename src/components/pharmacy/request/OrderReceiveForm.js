@@ -14,7 +14,11 @@ import {
   IconButton,
   CardContent,
   CardHeader,
-  Tooltip
+  Tooltip,
+  InputAdornment,
+  FormGroup,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -46,12 +50,14 @@ import Utility from 'src/utility'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import select from 'src/@core/theme/overrides/select'
+import { useRouter } from 'next/router'
+import { CheckBox } from '@mui/icons-material'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
+function OrderReceiveForm({ orderId, requestId }) {
   const defaultValues = {
     shipment_id: '',
     // dispatch_id: '',
@@ -106,6 +112,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
+  const router = useRouter()
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -606,7 +613,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     gap: 2,
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    textTransform: 'capitalize'
+                    textTransform: 'capitalize',
+                    backgroundColor: 'red'
                   }}
                 >
                   <Typography variant='p' sx={{ mx: 2 }}>
@@ -753,8 +761,30 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   params?.row?.dispute_status === undefined ||
                   params?.row?.dispute_status === 'Not Resolved' ||
                   params?.row?.dispute_status === 'Dispute Pending') ? (
-                  <Grid container spacing={2} sx={{ py: 4 }}>
-                    <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    //  sx={{ py: 4 }}
+                    sx={{
+                      py: 4,
+                      backgroundColor: '#f0f0f0', // Add background color
+                      borderRadius: '8px', // Add border radius
+                      padding: 0, // Add padding if required
+                      m: 0,
+                      '& .MuiGrid-item': {
+                        padding: '3px 4px !important' // Specifically target Grid item padding,
+                      }
+                    }}
+                  >
+                    <Grid
+                      item
+                      xs={5}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
                       <FormControl size='small' style={{ width: '100%' }}>
                         <Select
                           label=''
@@ -825,7 +855,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     </Grid>
                     <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Button
-                        sx={{ width: 2, maxWidth: 2 }}
+                        // sx={{ width: 2, maxWidth: 2 }}
+                        sx={{ minWidth: 0, p: 1, m: 1, color: '#7A8684' }}
                         // disabled={disableButton()}
                         onClick={event => {
                           clearStatus(params.row.id, event)
@@ -848,7 +879,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       </Button>
                     </Grid>
                     {wrongCountErr[params.row.uid] && (
-                      <FormHelperText sx={{ mx: 4 }} error>
+                      <FormHelperText sx={{ mx: 4, mt: '-6px' }} error>
                         {wrongCountErr[params.row.uid]}
                       </FormHelperText>
                     )}
@@ -878,6 +909,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                 <Select
                                   label=''
                                   // disabled={getDisableStatus(params.row.id)}
+
                                   name='wrong_count_type'
                                   size='small'
                                   style={{ fontSize: '12px' }}
@@ -988,6 +1020,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                               placeholder='Status'
                               name='status'
                               size='small'
+                              displayEmpty
                               error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
                               // value={params?.row?.status}
                               value={
@@ -1000,7 +1033,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                   : params?.row?.status
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
+                              sx={{
+                                backgroundColor: '#E8F4F2' // Apply the background color to the Select component
+                              }}
                             >
+                              <MenuItem value='' disabled>
+                                <span style={{ color: '#00000066' }}>Select Received Status</span>
+                              </MenuItem>
                               {statusOptions?.map((item, index) => (
                                 <MenuItem key={index} value={item?.label}>
                                   {item?.label === 'Broken' || item?.label === 'Expired'
@@ -1133,7 +1172,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           if (result?.success) {
             toast.success(result?.msg)
             setSubmitLoader(false)
-            closeOrderFormDialog()
+            // closeOrderFormDialog()
           } else {
             toast.error(result?.msg)
             setSubmitLoader(false)
@@ -1147,12 +1186,70 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
 
+  const [checked, setChecked] = useState(false)
+
+  const handleChange = async event => {
+    const isChecked = event.target.checked
+    setChecked(isChecked)
+
+    if (isChecked) {
+      setSubmitLoader(true) // Disable checkbox during submission
+      try {
+        await bulkStatusUpdate() // Ensure this completes before moving forward
+        await getOrderDetails(orderId) // Refresh the data only after updating status
+      } catch (error) {
+        console.error('Error in bulk status update: ', error)
+      } finally {
+        setSubmitLoader(false) // Re-enable checkbox after submission
+      }
+    }
+  }
+
+  console.log(orderData, 'pppppp')
+
   return (
     <>
+      <Box sx={{ pb: 6 }}>
+        <Grid container justifyContent='space-between'>
+          <Grid item xs={12} sm='auto'>
+            <CardHeader
+              sx={{ padding: 0 }}
+              avatar={
+                <Icon
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    router.back()
+                  }}
+                  icon='ep:back'
+                />
+              }
+              title={`Shipment Details - ${orderData.shipment_id}`}
+            />
+          </Grid>
+          <Grid item xs={12} sm='auto'>
+            {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+              <LoadingButton
+                size='large'
+                disabled={disableButton() || submitLoader}
+                variant='contained'
+                onClick={() => {
+                  if (!submitLoader) {
+                    updateStatus()
+                  }
+                }}
+                loading={submitLoader}
+              >
+                Save
+              </LoadingButton>
+            ) : null}
+          </Grid>
+        </Grid>
+      </Box>
+
       {disputeItemDetails?.item_details?.length > 0 ? (
         <Grid container xs={12} sx={{ mx: 'auto' }}>
           <Grid item xs={12}>
-            <Grid container xs={12}>
+            {/* <Grid container xs={12}>
               {orderData?.shipment_id ? (
                 <Grid item md={3} sm={3} xs={6}>
                   <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
@@ -1190,13 +1287,97 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   <p>{orderData.person_shipping}</p>
                 </Grid>
               ) : null}
+            </Grid> */}
+
+            <Grid container xs={12} sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}>
+              {orderData?.from_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}> Shipped From:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.shipment_id ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Shipping id:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.shipment_id}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.from_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>From Store: </p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.shipment_date ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Shipped Date:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>
+                    {Utility.formatDisplayDate(orderData.shipment_date)}
+                  </h4>
+                </Grid>
+              ) : null}
+              {orderData?.vehicle_no ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Vehicle Number:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.vehicle_no}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.to_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>To Store: </p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
+                </Grid>
+              ) : null}
+
+              {orderData?.person_shipping ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Driver Name:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.person_shipping ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Mobile No:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.phone_number}</h4>
+                </Grid>
+              ) : null}
             </Grid>
 
             {disputeItemDetails?.item_details?.length > 0 ? (
               <>
-                <Divider
+                {/* <Divider
                   sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-                />
+                /> */}
+                <Box
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
+                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                    <>
+                      {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                        <FormGroup row>
+                          <FormControlLabel
+                            label='Mark all as Received'
+                            control={
+                              <Checkbox
+                                checked={checked}
+                                onChange={handleChange}
+                                name=' mark_all_as_received'
+                                disabled={checked}
+                              />
+                            }
+                          />
+                        </FormGroup>
+                      )}
+                    </>
+                  ) : null}
+                </Box>
                 <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
                   <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
                 </Grid>
@@ -1216,20 +1397,30 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         : null
                     }
                     multiline
-                    rows={3}
+                    rows={1}
                     type='text'
-                    label='Comment'
+                    // label='Comment'
                     value={disputeItemDetails?.comments}
                     onChange={e => {
                       setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
                     }}
-                    placeholder='comment'
+                    placeholder='Add Comment if any'
                     name='comments'
+                    InputProps={{
+                      sx: {
+                        backgroundColor: '#FCF4AE33' // Setting the background color here
+                      },
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='material-symbols-light:description-outline' size={1} />
+                        </InputAdornment>
+                      )
+                    }}
                   />
                 </FormControl>
               </Grid>
             </Grid>
-            {selectedPharmacy?.permission?.key == 'allow_full_access' || selectedPharmacy?.permission?.key === 'ADD' ? (
+            {/* {selectedPharmacy?.permission?.key == 'allow_full_access' || selectedPharmacy?.permission?.key === 'ADD' ? (
               <Grid>
                 {selectedPharmacy.type === 'local' && (
                   <Divider
@@ -1276,7 +1467,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   </>
                 ) : null}
               </Grid>
-            ) : null}
+            ) : null} */}
           </Grid>
         </Grid>
       ) : (
