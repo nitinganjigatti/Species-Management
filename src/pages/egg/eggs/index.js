@@ -64,7 +64,7 @@ const EggList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 10 })
 
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_received')
+  const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_incubation')
 
   const [isDiscarded, setIsDiscarded] = useState(subTab_value ? subTab_value : 'eggs_discarded')
 
@@ -171,25 +171,29 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
-          >
-            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>
           {params.row.egg_number && (
             <Typography
               sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+            </Typography>
+          )}
+
+          {params.row.egg_code && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px'
               }}
             >
-              UEID : {params.row.egg_number}
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
         </Box>
@@ -439,25 +443,29 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
-          >
-            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>
           {params.row.egg_number && (
             <Typography
               sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+            </Typography>
+          )}
+
+          {params.row.egg_code && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px'
               }}
             >
-              UEID : {params.row.egg_number}
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
         </Box>
@@ -756,25 +764,44 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
-          >
-            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>
           {params.row.egg_number && (
             <Typography
               sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+            </Typography>
+          )}
+
+          {params.row.egg_code && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '19.36px',
+                mt: '1px'
+              }}
+            >
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+            </Typography>
+          )}
+
+          {(params.row.local_id_type || params.row.local_identifier_value) && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px'
               }}
             >
-              UEID : {params.row.egg_number}
+              {params.row.local_id_type} : {params.row.local_identifier_value}
             </Typography>
           )}
         </Box>
@@ -831,26 +858,26 @@ const EggList = () => {
       )
     },
 
-    {
-      width: 200,
-      sortable: false,
-      field: 'lay_date',
-      headerName: 'Lay Date',
+    // {
+    //   width: 200,
+    //   sortable: false,
+    //   field: 'lay_date',
+    //   headerName: 'Lay Date',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-        </Typography>
-      )
-    },
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   width: 170,
@@ -1031,25 +1058,29 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
-          >
-            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>
           {params.row.egg_number && (
             <Typography
               sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+            </Typography>
+          )}
+
+          {params.row.egg_code && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px'
               }}
             >
-              UEID : {params.row.egg_number}
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
         </Box>
@@ -1163,6 +1194,26 @@ const EggList = () => {
       // flex: 0.15,
       width: 150,
       sortable: false,
+      field: 'initial_weight',
+      headerName: 'Initial weight',
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px'
+          }}
+        >
+          {params.row.initial_weight ? params.row.initial_weight : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
       field: 'current_weight',
       headerName: 'current weight',
       align: 'center',
@@ -1196,26 +1247,6 @@ const EggList = () => {
       )
     },
 
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'initial_weight',
-      headerName: 'Initial weight',
-      align: 'center',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.initial_weight ? params.row.initial_weight : '-'}
-        </Typography>
-      )
-    },
     {
       // flex: 0.15,
       width: 130,
@@ -1394,26 +1425,26 @@ const EggList = () => {
       )
     },
 
-    {
-      width: 150,
-      sortable: false,
-      field: 'lay_date',
-      headerName: 'Lay Date',
+    // {
+    //   width: 150,
+    //   sortable: false,
+    //   field: 'lay_date',
+    //   headerName: 'Lay Date',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-        </Typography>
-      )
-    },
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         fontSize: '16px',
+    //         fontWeight: '400',
+    //         lineHeight: '19.36px',
+    //         ml: 3
+    //       }}
+    //     >
+    //       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       // flex: 0.3,
@@ -1528,25 +1559,29 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
-          >
-            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>
           {params.row.egg_number && (
             <Typography
               sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+            </Typography>
+          )}
+
+          {params.row.egg_code && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px'
               }}
             >
-              UEID : {params.row.egg_number}
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
         </Box>
@@ -1788,25 +1823,29 @@ const EggList = () => {
       headerName: 'EGG IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
-          >
-            AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-          </Typography>
           {params.row.egg_number && (
             <Typography
               sx={{
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+            </Typography>
+          )}
+
+          {params.row.egg_code && (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+
                 fontSize: '12px',
                 fontWeight: 400,
                 lineHeight: '19.36px'
               }}
             >
-              UEID : {params.row.egg_number}
+              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
         </Box>

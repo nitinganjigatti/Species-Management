@@ -432,11 +432,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               </Box>
               <Box>
                 {list?.activity_status === 'COMPLETED' ? (
-                  <Typography sx={{ fontSize: '12px', fontWeight: 600, textAlign: 'center' }}>
+                  <Typography sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: '#1F515B' }}>
                     Security checked
                   </Typography>
                 ) : (
-                  <Typography sx={{ fontSize: '12px', textAlign: 'center' }}>Security check pending</Typography>
+                  <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
                 )}
               </Box>
             </Box>

@@ -204,7 +204,7 @@ const DashboardFilter = ({
         )
       case 'Security status':
         return [
-          { id: 'DISCARD_REQUEST_GENERATED', name: 'Pending' },
+          { id: 'DISCARD_REQUEST_GENERATED', name: 'Security check pending' },
           { id: 'COMPLETED', name: 'Security Checked' }
         ]
 
