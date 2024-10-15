@@ -18,7 +18,8 @@ import {
   Dialog,
   DialogTitle,
   IconButton,
-  DialogContent
+  DialogContent,
+  List
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -43,6 +44,7 @@ import AcquisitionFields from 'src/views/pages/parivesh/addNewEntries/Acquisitio
 import TransferFields from 'src/views/pages/parivesh/addNewEntries/TransferFields'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import ListItem from '@mui/material/ListItem'
 
 const schema = yup.object().shape({
   specie: yup
@@ -297,6 +299,8 @@ const AddNewEntry = () => {
     const now = new Date()
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
 
+    console.log(imgSrc, attachments, 'imgSrc')
+
     const payload = {
       org_id: selectedParivesh.id,
       tsn_id: specie?.id,
@@ -416,6 +420,8 @@ const AddNewEntry = () => {
               setValue(key, response.data[key])
             }
           }
+          console.log(response?.data?.dgft_attachments, 'response?.data?.attachments ')
+
           // Update displayFile with existing attachments
           if (
             response?.data?.attachments &&
@@ -473,6 +479,68 @@ const AddNewEntry = () => {
     fileInputRef?.current?.click()
   }
 
+  // const removeSelectedImage = async (index, fileId) => {
+  //   if (fileId) {
+  //     setSelectedFileId(fileId)
+  //     setIsModalOpenDelete(true)
+  //   } else {
+  //     setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
+  //     setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
+  //     // Update the attachments in the form
+  //     const currentFiles = getValues('attachments') || []
+  //     const updatedFiles = currentFiles.filter((_, i) => i !== index)
+  //     setValue('attachments', updatedFiles)
+
+  //     // Adjust the current image index if necessary
+  //     if (index === currentImageIndex && imgSrc.length > 1) {
+  //       setCurrentImageIndex(prev => (prev === imgSrc.length - 1 ? prev - 1 : prev))
+  //     } else if (index < currentImageIndex) {
+  //       setCurrentImageIndex(prev => prev - 1)
+  //     }
+  //   }
+  // }
+
+  // const confirmDeleteAction = async () => {
+  //   try {
+  //     const payload = {
+  //       apad_id: editParams?.id,
+  //       attachment_for: 'animal'
+  //     }
+  //     setDeleteBtnLoader(true)
+  //     const response = await deleteAttachment(selectedFileId, payload)
+  //     console.log('response123', response)
+  //     if (response?.success) {
+  //       setDeleteBtnLoader(false)
+  //       setIsModalOpenDelete(false)
+  //       // Fetch the updated backend files
+  //       const fetchedFiles = response?.data?.attachments?.map(file => ({
+  //         name: file?.attachment_name,
+  //         fileSrc: file?.attachment,
+  //         id: file?.id,
+  //         isBackendFile: true // Mark as backend file
+  //       }))
+
+  //       // Retain only the files that are not deleted (including newly uploaded files)
+  //       const updatedDisplayFiles = [
+  //         ...fetchedFiles,
+  //         ...displayFile.filter(file => file.id !== selectedFileId && !file.isBackendFile)
+  //       ]
+
+  //       // Update the displayFile state
+  //       setDisplayFile(updatedDisplayFiles)
+
+  //       Toaster({ type: 'success', message: response?.message })
+  //     } else {
+  //       setDeleteBtnLoader(false)
+  //       Toaster({ type: 'error', message: response?.message })
+  //     }
+  //   } catch (error) {
+  //     setDeleteBtnLoader(false)
+  //     setIsModalOpenDelete(false)
+  //     console.error('Error uploading files:', error)
+  //   }
+  // }
+
   const removeSelectedImage = async (index, fileId) => {
     if (fileId) {
       setSelectedFileId(fileId)
@@ -480,12 +548,11 @@ const AddNewEntry = () => {
     } else {
       setImgSrc(prevSrc => prevSrc.filter((_, i) => i !== index))
       setDisplayFile(prevFiles => prevFiles.filter((_, i) => i !== index))
-      // Update the attachments in the form
+
       const currentFiles = getValues('attachments') || []
       const updatedFiles = currentFiles.filter((_, i) => i !== index)
       setValue('attachments', updatedFiles)
 
-      // Adjust the current image index if necessary
       if (index === currentImageIndex && imgSrc.length > 1) {
         setCurrentImageIndex(prev => (prev === imgSrc.length - 1 ? prev - 1 : prev))
       } else if (index < currentImageIndex) {
@@ -502,26 +569,26 @@ const AddNewEntry = () => {
       }
       setDeleteBtnLoader(true)
       const response = await deleteAttachment(selectedFileId, payload)
-      console.log('response123', response)
+
       if (response?.success) {
         setDeleteBtnLoader(false)
         setIsModalOpenDelete(false)
-        // Fetch the updated backend files
+
         const fetchedFiles = response?.data?.attachments?.map(file => ({
           name: file?.attachment_name,
           fileSrc: file?.attachment,
           id: file?.id,
-          isBackendFile: true // Mark as backend file
+          isBackendFile: true
         }))
 
-        // Retain only the files that are not deleted (including newly uploaded files)
         const updatedDisplayFiles = [
           ...fetchedFiles,
           ...displayFile.filter(file => file.id !== selectedFileId && !file.isBackendFile)
         ]
 
-        // Update the displayFile state
         setDisplayFile(updatedDisplayFiles)
+        setImgSrc(updatedDisplayFiles)
+        setValue('attachments', updatedDisplayFiles)
 
         Toaster({ type: 'success', message: response?.message })
       } else {
@@ -531,7 +598,8 @@ const AddNewEntry = () => {
     } catch (error) {
       setDeleteBtnLoader(false)
       setIsModalOpenDelete(false)
-      console.error('Error uploading files:', error)
+      console.error('Error deleting file:', error)
+      Toaster({ type: 'error', message: 'An error occurred while deleting the file' })
     }
   }
 
@@ -562,37 +630,48 @@ const AddNewEntry = () => {
     return `${start}...${end}`
   }
 
-  const handleFileSelect = files => {
-    const filesArray = Array.isArray(files) ? files : Array.from(files)
-    console.log(filesArray, 'Files Array') // Debugging line
+  // const handleFileSelect = files => {
+  //   const filesArray = Array.isArray(files) ? files : Array.from(files)
+  //   console.log(filesArray, 'Files Array') // Debugging line
 
-    const filePromises = filesArray.map(file => {
-      return new Promise(resolve => {
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          resolve({ name: file.name, fileSrc: reader.result, file })
-        }
-        reader.readAsDataURL(file)
-      })
-    })
+  //   const filePromises = filesArray.map(file => {
+  //     return new Promise(resolve => {
+  //       const reader = new FileReader()
+  //       reader.onloadend = () => {
+  //         resolve({ name: file.name, fileSrc: reader.result, file })
+  //       }
+  //       reader.readAsDataURL(file)
+  //     })
+  //   })
 
-    Promise.all(filePromises)
-      .then(fileDetails => {
-        console.log(fileDetails, 'File Details') // Debugging line
-        setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
-        setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
-        setValue('attachments', filesArray, { shouldValidate: true })
-        clearErrors('attachments')
-      })
-      .catch(error => {
-        console.error('Error processing files:', error)
-      })
-  }
+  //   Promise.all(filePromises)
+  //     .then(fileDetails => {
+  //       console.log(fileDetails, 'File Details') // Debugging line
+  //       setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
+  //       setDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
+  //       setValue('attachments', filesArray, { shouldValidate: true })
+  //       clearErrors('attachments')
+  //     })
+  //     .catch(error => {
+  //       console.error('Error processing files:', error)
+  //     })
+  // }
 
-  // Dropzone setup
+  // // Dropzone setup
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   onDrop: handleFileSelect,
+  //   multiple: true,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+  //     'application/pdf': ['.pdf'],
+  //     'application/msword': ['.doc'],
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  //     'application/vnd.ms-excel': ['.xls'],
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+  //   }
+  // })
+
   const { getRootProps, getInputProps } = useDropzone({
-    onDrop: handleFileSelect,
-    multiple: true,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
       'application/pdf': ['.pdf'],
@@ -600,6 +679,36 @@ const AddNewEntry = () => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+    },
+    multiple: true,
+    onDrop: acceptedFiles => {
+      // Handle multiple file uploads
+      // setImgSrc(prevFiles => [
+      //   ...prevFiles,
+      //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
+      // ])
+      // setDisplayFile(prevFiles => [
+      //   ...prevFiles,
+      //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
+      // ])
+      // const currentAttachments = getValues('attachments')
+      // setValue('attachments', [
+      //   ...currentAttachments,
+      //   ...acceptedFiles.map(file => Object.assign(file, { fileSrc: URL.createObjectURL(file) }))
+      // ])
+      const newFiles = acceptedFiles.map(file =>
+        Object.assign(file, {
+          fileSrc: URL.createObjectURL(file),
+          isBackendFile: false
+        })
+      )
+
+      setImgSrc(prevFiles => [...prevFiles, ...newFiles])
+      setDisplayFile(prevFiles => [...prevFiles, ...newFiles])
+
+      const currentAttachments = getValues('attachments')
+      setValue('attachments', [...currentAttachments, ...newFiles])
+      clearErrors('attachments')
     }
   })
 
@@ -803,12 +912,12 @@ const AddNewEntry = () => {
 
                   <Divider />
 
-                  <>
+                  {/* <>
                     <Typography sx={{ mb: 6, mt: 6 }} variant='h6'>
                       Attachments
                     </Typography>
                     <Grid container spacing={2} sx={{ mb: 6 }}>
-                      {/* {/ Add Attachments button /} */}
+                     
                       <Grid item xs={12} sm={4} md={3} lg={2.3}>
                         <FormControl fullWidth>
                           <Controller
@@ -863,7 +972,7 @@ const AddNewEntry = () => {
                         </FormControl>
                       </Grid>
 
-                      {/* {/ Uploaded files display /} */}
+                   
                       {displayFile.map((src, index) => {
                         const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
                         return (
@@ -945,7 +1054,250 @@ const AddNewEntry = () => {
                         )
                       })}
                     </Grid>
-                  </>
+                  </> */}
+
+                  <Typography sx={{ mb: 6, mt: 6 }} variant='h6'>
+                    Attachments
+                  </Typography>
+
+                  <Grid container spacing={2} sx={{ mb: 6 }}>
+                    <Grid item xs={12} sm={4} md={3} lg={2.3}>
+                      {/* <FormControl fullWidth> */}
+                      <Controller
+                        name='attachments'
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                          <div
+                            {...getRootProps({ className: 'dropzone' })}
+                            style={{
+                              border: '1px solid #d3d3d3',
+                              width: 'auto',
+                              padding: '0.8rem',
+                              borderRadius: '10px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <input {...getInputProps()} onChange={onChange} />
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: ['column', 'column', 'row'],
+                                alignItems: 'center'
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                                <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                                <Typography sx={{ display: 'flex', alignItems: 'center' }}>Add Attachments</Typography>
+                              </Box>
+                            </Box>
+                          </div>
+                        )}
+                      />
+                      {errors.attachments && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments.message}</FormHelperText>
+                      )}
+                      {/* </FormControl> */}
+                    </Grid>
+
+                    {displayFile.map((src, index) => {
+                      console.log(src, 'vvvvv')
+
+                      const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+                      return (
+                        <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+                          <FormControl fullWidth>
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                backgroundColor: '#f5f5f5',
+                                borderRadius: '8px',
+                                boxSizing: 'border-box',
+                                width: { xs: '100%', sm: 'auto' },
+                                height: '60px',
+                                bgcolor: isImage ? '#f0f0f0' : getIconByFileType(src?.name)?.bgColor
+                              }}
+                            >
+                              {isImage ? (
+                                <img
+                                  style={{
+                                    height: '60px',
+                                    width: '60px',
+                                    borderRadius: '20%',
+                                    objectFit: 'cover',
+                                    padding: '8px'
+                                  }}
+                                  alt={`Uploaded image ${index + 1}`}
+                                  src={src?.fileSrc}
+                                />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    padding: '4px',
+                                    paddingRight: '16px'
+                                  }}
+                                >
+                                  <img
+                                    src={getIconByFileType(src?.name)?.icon}
+                                    alt=''
+                                    style={{
+                                      height: '40px',
+                                      width: '40px'
+                                    }}
+                                  />
+                                  <Tooltip title={src?.name}>
+                                    <Typography variant='body2' color='textSecondary'>
+                                      {truncateFilename(src?.name)}
+                                    </Typography>
+                                  </Tooltip>
+                                </Box>
+                              )}
+                              <Box
+                                sx={{
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '20px',
+                                  width: '20px',
+                                  borderRadius: '6px',
+                                  backgroundColor: theme.palette.customColors.secondaryBg,
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center'
+                                }}
+                                onClick={() => removeSelectedImage(index, src?.id)}
+                              >
+                                <Icon icon='material-symbols-light:close' color='#fff' size={16} />
+                              </Box>
+                            </Box>
+                          </FormControl>
+                        </Grid>
+                      )
+                    })}
+                  </Grid>
+
+                  {/* <>
+                    <Typography sx={{ mb: 6, mt: 6 }} variant='h6'>
+                      Attachments
+                    </Typography>
+                    <Grid container spacing={2} sx={{ mb: 6 }}>
+                      <Grid item xs={12} sm={4} md={3} lg={2.3}>
+                        <div
+                          {...getRootProps({ className: 'dropzone' })}
+                          style={{
+                            border: '1px solid #d3d3d3',
+                            width: 'auto',
+                            padding: '0.8rem',
+                            borderRadius: '10px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <input {...getInputProps()} />
+                          <Box
+                            sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                              <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                              <Typography sx={{ display: 'flex', alignItems: 'center' }}>Add Attachments</Typography>
+                            </Box>
+                          </Box>
+                        </div>
+                        {errors.attachments && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
+                        )}
+                      </Grid>
+
+                      {displayFile.map((src, index) => {
+                        console.log(src, '123')
+
+                        const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+                        return (
+                          <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+                            <FormControl fullWidth>
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  backgroundColor: '#f5f5f5',
+                                  borderRadius: '8px',
+                                  boxSizing: 'border-box',
+                                  width: { xs: '100%', sm: 'auto' },
+                                  height: '60px', // Fixed height for consistency
+                                  bgcolor: isImage ? '#f0f0f0' : getIconByFileType(src?.name)?.bgColor
+                                }}
+                              >
+                                {isImage ? (
+                                  <img
+                                    style={{
+                                      height: '60px',
+                                      width: '60px',
+                                      borderRadius: '20%',
+                                      objectFit: 'cover',
+                                      padding: '8px'
+                                    }}
+                                    alt={`Uploaded image ${index + 1}`}
+                                    src={src?.preview}
+                                  />
+                                ) : (
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                      padding: '4px',
+                                      paddingRight: '16px'
+                                    }}
+                                  >
+                                    <img
+                                      src={getIconByFileType(src?.name)?.icon}
+                                      alt=''
+                                      style={{
+                                        height: '40px',
+                                        width: '40px'
+                                      }}
+                                    />
+                                    <Tooltip title={src?.name}>
+                                      <Typography variant='body2' color='textSecondary'>
+                                        {truncateFilename(src?.name)}
+                                      </Typography>
+                                    </Tooltip>
+                                  </Box>
+                                )}
+                                <Box
+                                  sx={{
+                                    cursor: 'pointer',
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 0,
+                                    zIndex: 10,
+                                    height: '20px',
+                                    width: '20px',
+                                    borderRadius: '6px',
+                                    backgroundColor: theme.palette.customColors.secondaryBg,
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                  }}
+                                  onClick={() => removeSelectedImage(index, src?.id)}
+                                >
+                                  <Icon icon='material-symbols-light:close' color='#fff' size={16} />
+                                </Box>
+                              </Box>
+                            </FormControl>
+                          </Grid>
+                        )
+                      })}
+                    </Grid>
+                  </> */}
 
                   <Box sx={{ display: 'flex', justifyContent: 'end', gap: 4 }}>
                     <Button onClick={() => router.back()} size='large' type='reset' color='error' variant='outlined'>

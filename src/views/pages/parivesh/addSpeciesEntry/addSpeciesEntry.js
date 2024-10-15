@@ -917,7 +917,34 @@ const AddSpeciesNewEntry = props => {
             <Grid container spacing={2} sx={{ mb: 6 }}>
               {/* {/ Add Attachments button /} */}
               <Grid item xs={12} sm={12} md={7.2} lg={7.2}>
-                <FormControl fullWidth>
+                <Controller
+                  name='attachments'
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <div
+                      {...getRootProps({ className: 'dropzone' })}
+                      style={{
+                        border: '1px solid #d3d3d3',
+                        width: 'auto',
+                        padding: '0.8rem',
+                        borderRadius: '10px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <input {...getInputProps()} onChange={onChange} />
+                      <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                          <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                          <Typography sx={{ display: 'flex', alignItems: 'center' }}>Add Attachments</Typography>
+                        </Box>
+                      </Box>
+                    </div>
+                  )}
+                />
+                {errors.attachments && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments.message}</FormHelperText>
+                )}
+                {/* <FormControl fullWidth>
                   <Controller
                     name='attachments'
                     control={control}
@@ -967,7 +994,7 @@ const AddSpeciesNewEntry = props => {
                   {errors.attachments && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
                   )}
-                </FormControl>
+                </FormControl> */}
                 {/* <FormControl fullWidth>
                   <Controller
                     name='attachments'
