@@ -5,26 +5,23 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import moment from 'moment'
 import Icon from 'src/@core/components/icon'
 
-const MedicineNamedoctorsList = ({
+const DoctorsWiseMedicineList = ({
   openDoctorListDrawer,
   setOpenDoctorListDrawer,
   doctorsList,
   totalCount,
-  totalDoctors,
+  totalMedicines,
   totalValue,
   loading,
   fromDate,
   toDate,
   statusFilter,
-  medicinewiseval,
   handleSearchDoctors,
   searchbyDoctorname,
-  setsearchbyDoctorname,
-  handleDownloadExcel
+  setsearchbyDoctorname
 }) => {
   const handleClose = () => {
-    setOpenDoctorListDrawer(false)
-    setsearchbyDoctorname('')
+    setOpenDoctorListDrawer(false), setsearchbyDoctorname('')
   }
 
   const capitalizeFirstLetter = string => {
@@ -56,16 +53,11 @@ const MedicineNamedoctorsList = ({
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <Icon icon='hugeicons:medicine-bottle-01' fontSize={30} />
-          {medicinewiseval === 'received_medicines' ? (
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
-              {doctorsList[0]?.stock_name ? doctorsList[0]?.stock_name : '-'}
-            </Typography>
-          ) : (
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
-              {doctorsList[0]?.medicine_name ? doctorsList[0]?.medicine_name : '-'}
-            </Typography>
-          )}
+          <Icon icon='healthicons:doctor-male-outline' fontSize={30} />
+
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
+            {doctorsList[0]?.doctor_name ? 'Dr ' + doctorsList[0]?.doctor_name : '-'}
+          </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handleClose}>
@@ -137,7 +129,6 @@ const MedicineNamedoctorsList = ({
                     '&:hover': { backgroundColor: '#58B06C' },
                     borderRadius: '4px'
                   }}
-                  onClick={handleDownloadExcel}
                 >
                   <Icon icon='material-symbols:download' />
                 </IconButton>
@@ -197,7 +188,7 @@ const MedicineNamedoctorsList = ({
               >
                 <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
                   <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>
-                    {totalDoctors === 1 ? '1 Doctor' : `${totalDoctors} Doctors`}
+                    {totalMedicines === 1 ? '1 Medicine' : `${totalMedicines} Medicines`}
                   </Typography>
                 </Box>
 
@@ -223,36 +214,20 @@ const MedicineNamedoctorsList = ({
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar
-                            alt='Name'
-                            sx={{ width: 30, height: 30, mr: 2 }}
-                            src={
-                              all?.user_created_profile_pic ? all?.user_created_profile_pic : '/images/avatars/1.png'
-                            }
-                          />
                           <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                            {all?.doctor_name ? 'Dr. ' + all?.doctor_name : '-'}
+                            {all?.stock_name ? all?.stock_name : '-'}
                           </Typography>
                         </Box>
-                        {medicinewiseval === 'received_medicines' ? (
-                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                              {all?.received_count + ' nos.'}
-                            </Typography>
-                            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                              {'₹' + (Number(all.received_value) ? Number(all.received_value).toFixed(2) : '0.00')}
-                            </Typography>
-                          </Box>
-                        ) : (
-                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                              {all?.shipped_count + ' nos.'}
-                            </Typography>
-                            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                              {'₹' + (Number(all.shipped_value) ? Number(all.shipped_value).toFixed(2) : '0.00')}
-                            </Typography>
-                          </Box>
-                        )}
+
+                        {/* Box to stack requested_count and requested_value vertically */}
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                          <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                            {all?.requested_count + ' nos.'}
+                          </Typography>
+                          <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
+                            {'₹' + (Number(all.requested_value) ? Number(all.requested_value).toFixed(2) : '0.00')}
+                          </Typography>
+                        </Box>
                       </Box>
                     </Card>
                   )
@@ -270,4 +245,4 @@ const MedicineNamedoctorsList = ({
   )
 }
 
-export default MedicineNamedoctorsList
+export default DoctorsWiseMedicineList

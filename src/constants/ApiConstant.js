@@ -182,4 +182,16 @@ export const DASHBOARD_MONTH_WISE_PURCHASE_REPORT = 'monthly-purchase-report'
 
 export const DASHBOARD_DOCTOR_DISPATCH_FILTER = 'store-doctor-dispatch-filter'
 
+export const DASHBOARD_DOCTORWISE_MEDICINE_FILTER = 'doctorwise-medicine-filter'
+
 export const DASHBOARD_COMPLETED_PENDING_REQUEST = 'completed-pending-request'
+
+export const DASHBOARD_DOCTOR_WISE_REQUEST = 'doctorwise-request'
+
+export const DASHBOARD_REQUEST_SENT = 'request-sent'
+
+export const DASHBOARD_RECEIVED_MEDICINES = 'received-medicines'
+
+export const DASHBOARD_RECEIVED_MEDICINE_REPORT = 'received-medicine-report'
+
+export const DASHBOARD_MEDICINEWISE_DOCTOR_FILTER = 'medicinewise-doctor-filter'

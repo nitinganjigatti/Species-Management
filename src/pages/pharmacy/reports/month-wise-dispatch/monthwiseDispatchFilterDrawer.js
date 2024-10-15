@@ -24,8 +24,7 @@ const MonthWisedispatchFilter = ({
   isFetching,
   setFiltersApplied,
   filtersearchValue,
-  setSelectedStores,
-  setFilterLength
+  setSelectedStores
 }) => {
   const listInnerRef = useRef(null)
 
@@ -37,13 +36,14 @@ const MonthWisedispatchFilter = ({
       }
     }
   }
+
   const handleClose = () => {
     setOpenFilterDrawer(false)
     setFilterSearchValue('')
-    setFiltersApplied(false)
+    setFiltersApplied(true)
     //setSelectedStores([])
     if (filtersApplied === false && selectedFruits.length > 0) {
-      setSelectedStores([])
+      //setSelectedStores([])
     }
   }
 

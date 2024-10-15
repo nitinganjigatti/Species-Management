@@ -8,7 +8,8 @@ import {
   DASHBOARD_PENDING_REQUEST,
   DASHBOARD_STORE_WISE_PENDING_REQUEST,
   DASHBOARD_MONTHLY_DISPATCH,
-  DASHBOARD_MONTHLY_PURCHASE
+  DASHBOARD_MONTHLY_PURCHASE,
+  DASHBOARD_RECEIVED_MEDICINES
 } from 'src/constants/ApiConstant'
 
 export async function getAllLists() {
@@ -158,6 +159,24 @@ export async function getMonthWiseDispatchList() {
 export async function getMonthWisePurchaseList() {
   try {
     const url = DASHBOARD_MONTHLY_PURCHASE
+    const response = await axiosGet({ url, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function getReceivedMedicineschart() {
+  try {
+    const url = DASHBOARD_RECEIVED_MEDICINES
     const response = await axiosGet({ url, pharmacy: true })
 
     return response?.data

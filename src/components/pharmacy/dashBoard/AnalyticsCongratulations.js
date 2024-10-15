@@ -5,6 +5,7 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import Grid from '@mui/material/Grid'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { styled, useTheme } from '@mui/material/styles'
 
 // Styled Grid component
@@ -33,7 +34,7 @@ const Img = styled('img')(({ theme }) => ({
 const AnalyticsCongratulations = () => {
   // ** Hook
   const theme = useTheme()
-
+  const { selectedPharmacy } = usePharmacyContext()
   return (
     <Card
       sx={{
@@ -42,7 +43,7 @@ const AnalyticsCongratulations = () => {
     >
       <CardContent>
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
-          <StyledGrid item xs={12} sm={3}>
+          <StyledGrid item xs={12} sm={selectedPharmacy.type === 'central' ? 3 : 2}>
             <Img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
           </StyledGrid>
           {/* <Grid item xs={12} sm={3}>

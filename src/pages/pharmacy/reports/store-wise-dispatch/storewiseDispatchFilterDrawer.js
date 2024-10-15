@@ -1,18 +1,7 @@
-import React from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import CircularProgress from '@mui/material/CircularProgress'
 import { LoadingButton } from '@mui/lab'
-import {
-  Box,
-  Checkbox,
-  debounce,
-  Divider,
-  Drawer,
-  FormControl,
-  Grid,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
 
 import Icon from 'src/@core/components/icon'
 
@@ -23,21 +12,64 @@ const StoreWisedispatchFilter = ({
   selectedFruits,
   handleSelectAllChange,
   handleSearchChange,
+  searchClose,
   storeList,
   fullStoreList,
   onApplyFilters,
   handleCloseDrawer,
   loading,
-  setFiltersApplied,
+  setFilterSearchValue,
   filtersApplied,
+  loadMoreData,
+  isFetching,
+  setFiltersApplied,
+  filtersearchValue,
   setSelectedStores
 }) => {
-  const handleClose = () => {
-    setOpenFilterDrawer(false)
-    if (filtersApplied === false) {
-      setSelectedStores([])
+  const listInnerRef = useRef(null)
+
+  const handleScroll = () => {
+    if (listInnerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = listInnerRef.current
+      if (scrollTop + clientHeight >= scrollHeight - 5) {
+        loadMoreData()
+      }
     }
   }
+
+  const handleClose = () => {
+    setOpenFilterDrawer(false)
+    setFilterSearchValue('')
+    setFiltersApplied(true)
+    //setSelectedStores([])
+    if (filtersApplied === false && selectedFruits.length > 0) {
+      //setSelectedStores([])
+    }
+  }
+
+  useEffect(() => {
+    console.log(filtersApplied, 'lll')
+    const ref = listInnerRef.current
+
+    if (selectedFruits.length > 0 && filtersApplied === true) {
+      setFiltersApplied(false)
+    }
+    if (filtersApplied === true) {
+      setFiltersApplied(false)
+    }
+    // Ensure that we are attaching the scroll event to the correct element
+    if (ref) {
+      ref.addEventListener('scroll', handleScroll)
+    }
+
+    // Cleanup event listener on unmount or when ref changes
+    return () => {
+      if (ref) {
+        ref.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [listInnerRef, loading, filtersApplied, searchClose])
+
   return (
     <Drawer
       anchor='right'
@@ -96,6 +128,7 @@ const StoreWisedispatchFilter = ({
                 '-ms-overflow-style': 'none',
                 scrollbarWidth: 'none'
               }}
+              ref={listInnerRef}
             >
               <>
                 <Box
@@ -113,12 +146,14 @@ const StoreWisedispatchFilter = ({
                   <TextField
                     variant='outlined'
                     placeholder='Search'
-                    //value={searchQuery}
+                    value={filtersearchValue}
                     onChange={handleSearchChange}
                     InputProps={{
                       disableUnderline: false
                     }}
                     sx={{
+                      flex: 1,
+                      mx: 1,
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
                         padding: '0',
@@ -128,10 +163,11 @@ const StoreWisedispatchFilter = ({
                       }
                     }}
                   />
+                  {filtersearchValue ? <Icon icon='mdi:close' onClick={searchClose} /> : ''}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    checked={selectedFruits.length === storeList.length}
+                    checked={fullStoreList.length > 0 && selectedFruits.length === fullStoreList.length}
                     indeterminate={selectedFruits.length > 0 && selectedFruits.length < storeList.length}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
@@ -143,22 +179,30 @@ const StoreWisedispatchFilter = ({
 
               <Box sx={{ mt: 2 }}>
                 {!loading ? (
-                  fullStoreList.map(fruit => (
-                    <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <Checkbox
-                        checked={selectedFruits.includes(fruit.id)}
-                        onChange={() => handleFruitSelection(fruit.id)}
-                        inputProps={{ 'aria-label': 'controlled' }}
-                      />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{fruit.name}</Typography>
-                    </Box>
-                  ))
-                ) : (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 6 }}>
-                    <CircularProgress disableShrink />
-                  </Box>
-                )}
+                  fullStoreList.length > 0 ? (
+                    fullStoreList.map(fruit => (
+                      <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Checkbox
+                          checked={selectedFruits.includes(fruit.id)}
+                          onChange={() => handleFruitSelection(fruit.id)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
+                          {fruit.name}
+                        </Typography>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography sx={{ textAlign: 'center', mt: 6 }}>No data to show</Typography>
+                  )
+                ) : null}
               </Box>
+
+              {isFetching && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
             </Box>
           </Grid>
         </Grid>

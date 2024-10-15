@@ -4,34 +4,69 @@ import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { useEffect, useState } from 'react'
-
-// ** Custom Components Imports
-import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
 import Router from 'next/router'
-import { getMonthWisePurchaseList } from 'src/lib/api/pharmacy/dashboard'
+import { getReceivedMedicineschart } from 'src/lib/api/pharmacy/dashboard'
 
 const ReceievedMedicines = () => {
-  // ** Hook
   const theme = useTheme()
 
-  const [purchaseList, setPurchaseList] = useState([])
+  const [purchaseList, setPurchaseList] = useState({ purchase_count: [], purchase_value: [] })
+  const [showPurchaseCount, setShowPurchaseCount] = useState(true) // Toggle for Purchase Count
+  const [showPurchaseValue, setShowPurchaseValue] = useState(true) // Toggle for Purchase Value
 
   const getMonthlyPurchases = async () => {
     try {
-      const result = await getMonthWisePurchaseList()
-
+      const result = await getReceivedMedicineschart()
       if (result?.success === true && result?.data) {
         setPurchaseList(result?.data)
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error fetching purchase data:', error)
+    }
   }
 
   useEffect(() => {
     getMonthlyPurchases()
   }, [])
-  const transactionDates = purchaseList.map(item => (item?.month ? item?.month : ''))
-  const dailyCounts = purchaseList.map(item => (item?.daily_count ? parseInt(item?.daily_count) : ''))
+
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ]
+
+  const purchaseCounts = months.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
+  const purchaseValues = months.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+
+  // Conditionally add series based on checkbox selections
+  const series = []
+  if (showPurchaseCount) {
+    series.push({
+      name: 'Purchase Count',
+      type: 'bar',
+      data: purchaseCounts,
+      color: '#FA6140'
+    })
+  }
+  if (showPurchaseValue) {
+    series.push({
+      name: 'Purchase Value',
+      type: 'line',
+      data: purchaseValues,
+      color: '#fa614059'
+    })
+  }
 
   const options = {
     chart: {
@@ -39,11 +74,22 @@ const ReceievedMedicines = () => {
       parentHeightOffset: 0,
       toolbar: { show: false }
     },
-    tooltip: { enabled: true },
+    tooltip: {
+      enabled: true,
+      y: {
+        formatter: (value, { seriesIndex }) => {
+          if (seriesIndex === 1 || series[0]?.name === 'Purchase Value') {
+            return `₹${value.toFixed(2)} lac`
+          }
+          return value.toFixed(0)
+        }
+      }
+    },
     dataLabels: { enabled: false },
     stroke: {
-      width: 5,
-      curve: 'smooth'
+      width: [0, 5],
+      curve: 'smooth',
+      colors: ['#fa614059']
     },
     grid: {
       show: true,
@@ -54,79 +100,67 @@ const ReceievedMedicines = () => {
       }
     },
     fill: {
-      type: 'gradient',
-      gradient: {
-        opacityTo: 0.7,
-        opacityFrom: 0.5,
-        shadeIntensity: 1,
-        stops: [0, 90, 100],
-        colorStops: [
-          [
-            {
-              offset: 0,
-              opacity: 0.6,
-              color: theme.palette.error.main
-            },
-            {
-              offset: 100,
-              opacity: 0.1,
-              color: theme.palette.background.paper
-            }
-          ]
-        ]
-      }
-    },
-    theme: {
-      monochrome: {
-        enabled: true,
-        shadeTo: 'light',
-        shadeIntensity: 1,
-        color: theme.palette.error.main
-      }
+      type: 'solid',
+      colors: ['#FA6140']
     },
     xaxis: {
-      categories: transactionDates,
+      categories: months,
       labels: {
         show: true
       },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
-    yaxis: { show: true },
-    markers: {
-      size: 1,
-      offsetY: 1,
-      offsetX: 1,
-      strokeWidth: 4,
-      strokeOpacity: 1,
-      colors: ['transparent'],
-      strokeColors: 'transparent',
-      discrete: [
-        {
-          size: 7,
-          seriesIndex: 0,
-          dataPointIndex: 7,
-          strokeColor: theme.palette.error.main,
-          fillColor: theme.palette.background.paper
+    yaxis: [
+      {
+        title: {
+          text: 'Purchase Count'
+        },
+        labels: {
+          formatter: val => val.toFixed(0)
         }
-      ]
+      },
+      {
+        opposite: true,
+        title: {
+          text: 'Purchase Value (₹)'
+        },
+        labels: {
+          formatter: val => `₹${val.toFixed(2)} lac`
+        }
+      }
+    ],
+    markers: {
+      size: 4,
+      colors: ['#FFFFFF'],
+      strokeColors: '#fa6140', // Red outline for markers
+      strokeWidth: 2,
+      hover: {
+        size: 7
+      }
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: '15%', // Slim bar width
+        borderRadius: 10, // Curve the top and bottom of the bars
+        borderRadiusApplication: 'end' // Ensures the top of the bars are curved
+      }
     }
   }
 
-  const handleclick = () => {
+  const handleClick = () => {
     Router.push({
-      pathname: '/pharmacy/reports/month-wise-purchase'
+      pathname: '/pharmacy/reports/received-medicines-report'
     })
   }
 
   return (
     <Card>
       <CardHeader
-        title='Receieved Medicines'
+        title='Received Medicines'
         action={
-          //<OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
           <Typography
-            onClick={handleclick}
+            onClick={handleClick}
             sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
           >
             View More
@@ -134,12 +168,43 @@ const ReceievedMedicines = () => {
         }
       />
       <CardContent>
-        <ReactApexcharts
-          type='area'
-          height={262}
-          options={options}
-          series={[{ name: 'Product purchased', data: dailyCounts }]}
-        />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showPurchaseCount}
+                onChange={() => setShowPurchaseCount(prev => !prev)}
+                color='primary'
+                sx={{
+                  transform: 'scale(0.8)',
+                  '&.Mui-checked': {
+                    color: '#FA6140'
+                  }
+                }}
+              />
+            }
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Count</span>}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showPurchaseValue}
+                onChange={() => setShowPurchaseValue(prev => !prev)}
+                color='primary'
+                sx={{
+                  transform: 'scale(0.8)',
+                  '&.Mui-checked': {
+                    color: '#fa614059'
+                  }
+                }}
+              />
+            }
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Value</span>}
+          />
+        </Box>
+
+        {/* Chart */}
+        <ReactApexcharts type='line' height={262} options={options} series={series} />
       </CardContent>
     </Card>
   )

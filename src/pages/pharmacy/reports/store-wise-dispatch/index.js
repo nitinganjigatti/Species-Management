@@ -21,10 +21,10 @@ import { useRouter } from 'next/router'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
-import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
+import { writeFile, utils } from 'xlsx'
 import StoreWisedispatchFilter from './storewiseDispatchFilterDrawer'
 
 const dropdownOptions = [
@@ -40,7 +40,6 @@ const StoreWiseDispatch = () => {
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
   const [selectedFruits, setSelectedStores] = useState([])
   const [filtersApplied, setFiltersApplied] = useState(false)
   const [filterlength, setFilterLength] = useState('')
@@ -54,7 +53,11 @@ const StoreWiseDispatch = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState(dropdownOptions[0].value)
+  const [totalMedicineCount, setTotalmedicineCount] = useState('')
+  const [page, setPage] = useState(1)
+  const [statusFilter, setStatusFilter] = useState(dropdownOptions[2].value)
+  const [filtersearchValue, setFilterSearchValue] = useState('')
+  const [isFetching, setisFetching] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
@@ -66,10 +69,49 @@ const StoreWiseDispatch = () => {
     }
   }
 
-  const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
-    await searchTableData({ sort, q: e.target.value, column: sortColumn, filter: statusFilter })
-  }
+  const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
+    try {
+      setisFetching(true)
+
+      let params = {
+        page,
+        limit: 10, // You can also make this dynamic if needed
+        q
+      }
+      const medicineListResponse = await getStoreList({ params })
+
+      if (medicineListResponse.data && medicineListResponse.data.list_items) {
+        const medicineList = medicineListResponse.data.list_items
+        const allStores = medicineList.map(store => ({
+          id: store.id,
+          name: store.name
+        }))
+        setTotalmedicineCount(medicineListResponse.data.total_count)
+        console.log(allStores, 'allStores')
+        setFullStoreList(prevStores => {
+          let mergedStores
+          if (q) {
+            // If search is applied, replace the list with the searched results
+            mergedStores = allStores
+          } else {
+            // If search is cleared (q is empty), append the results to the full list
+            mergedStores = [...prevStores, ...allStores]
+          }
+          // Remove duplicates based on `id`
+          const uniqueStores = mergedStores.filter(
+            (store, index, self) => index === self.findIndex(s => s.id === store.id)
+          )
+
+          return uniqueStores
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setisFetching(false)
+      setLoading(false)
+    }
+  })
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
@@ -126,7 +168,7 @@ const StoreWiseDispatch = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Total Purchase Value (in lac)
+                      Total Dispatch Value (in lac)
                     </Typography>
                   </Box>
                 ),
@@ -167,24 +209,33 @@ const StoreWiseDispatch = () => {
                       <Typography
                         sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                       >
-                        {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
+                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
                       </Typography>
                     ) : (
                       <Typography
                         sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                       >
-                        {` (${'₹' + column.total_purchase_value.toFixed(2)})`}
+                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
                       </Typography>
                     )}
                   </Box>
                 ),
                 renderCell: params => {
                   const value = Number(params.value)
-                  return isNaN(value) ? (
-                    <span>{params.value}</span>
-                  ) : (
-                    <Tooltip title={`Dispatch count: ${value.toFixed(2)}`}>
-                      <span style={{ color: '#006D35' }}>{`₹${value.toFixed(2)}`}</span>
+                  if (isNaN(value)) {
+                    return <span>{params.value}</span> // Show original value if it's not a number
+                  }
+                  const roundedValue = Math.round(value)
+
+                  const formattedNumber = roundedValue.toLocaleString('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    maximumFractionDigits: 0
+                  })
+                  console.log(formattedNumber, 'formattedNumber')
+                  return (
+                    <Tooltip title={`Dispatch count: ${formattedNumber}`}>
+                      <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
                 },
@@ -206,15 +257,6 @@ const StoreWiseDispatch = () => {
 
             setRows(rows)
             setTotal(parseInt(res?.data?.total_count))
-
-            const allStores = listItem.rowData.map(store => ({
-              id: store.to_store_id,
-              name: store.store_name
-            }))
-            if (!filtersApplied) {
-              setFullStoreList(allStores)
-            }
-            setStoreList(allStores)
           }
         })
         setLoading(false)
@@ -235,16 +277,28 @@ const StoreWiseDispatch = () => {
   const handleCloseDrawer = () => {
     setSelectedStores([])
     setOpenFilterDrawer(false)
-    setFiltersApplied(false)
+    setFiltersApplied(true)
     setFilterLength('')
     setStoreList(fullStoreList) //
+  }
+
+  const searchClose = () => {
+    setLoading(true)
+    setFiltersApplied(true)
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
+
+    // Ensure paginated data is re-fetched from page 1
+    fetchfilterValues({ page: 1 })
   }
 
   const onApplyFilters = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
     setFilterLength(selectedFruits.length)
-    setSearchValue('')
+    setFilterSearchValue('')
   }
 
   const handleFruitSelection = selected_stores => {
@@ -270,9 +324,33 @@ const StoreWiseDispatch = () => {
     [statusFilter]
   )
 
+  const searchTableDatafilter = useCallback(
+    debounce(async ({ q }) => {
+      setFilterSearchValue(q)
+      try {
+        setLoading(false)
+        await fetchfilterValues({ q })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, filter: statusFilter })
   }, [fetchTableData])
+
+  useEffect(() => {
+    fetchfilterValues({ q: filtersearchValue, page })
+  }, [filtersearchValue, page])
+
+  // Function to load more data
+  const loadMoreData = () => {
+    if (!isFetching && fullStoreList.length < totalMedicineCount) {
+      setPage(prevPage => prevPage + 1)
+    }
+  }
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -287,10 +365,110 @@ const StoreWiseDispatch = () => {
     await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
   }
 
+  const handleSearchChange = async e => {
+    console.log(statusFilter, 'statusFilter')
+    setLoading(true)
+    setFilterSearchValue(e.target.value)
+    await searchTableDatafilter({ q: e.target.value })
+  }
+
   const handleclick = () => {
     Router.push({
       pathname: '/pharmacy/reports/store-wise-dispatch'
     })
+  }
+
+  const handleDownloadReport = async () => {
+    try {
+      let payload = {}
+      const activeStatus = statusFilter
+
+      if (filtersApplied && selectedFruits.length > 0) {
+        payload = {
+          q: searchValue,
+          filter: activeStatus,
+          medicine_ids: selectedFruits
+        }
+      } else {
+        payload = {
+          q: searchValue,
+          filter: activeStatus
+        }
+      }
+
+      // Fetch data without pagination for the Excel report
+      const response = await getStoreWiseDispatchList(payload)
+      const listItem = response.data.list_items
+
+      // Prepare headers for the Excel report
+      const headers = ['Pharmacies'] // Start with "Medicine" as the first column
+      listItem.columnData.forEach(column => {
+        headers.push(`${column.title} (${column.sub_title})`) // Add Month (Year) columns
+      })
+
+      // Prepare data rows for Excel
+      const rows = listItem.rowData.map(row => {
+        const rowData = {
+          Pharmacy: row.store_name
+        }
+
+        // Initialize all month/year columns with default "₹0" values
+        listItem.columnData.forEach(column => {
+          rowData[`${column.title} (${column.sub_title})`] = '₹0' // Default if no data for that column
+        })
+
+        // Map the correct values from `data_values` to the appropriate columns
+        Object.entries(row.data_values).forEach(([month, value]) => {
+          const column = listItem.columnData.find(col => col.title === month)
+
+          if (column) {
+            // Format the value with ₹ and commas, without decimal points
+            const roundedValue = parseFloat(value)
+            const formattedValue = roundedValue.toLocaleString('en-IN', {
+              style: 'currency',
+              currency: 'INR',
+              maximumFractionDigits: 0
+            })
+            rowData[`${column.title} (${column.sub_title})`] = formattedValue
+          }
+        })
+
+        console.log(rowData, 'rowData')
+        return rowData
+      })
+
+      // Create a total purchase value row
+      const totalPurchaseRow = {
+        Medicine: 'Total Dispatch Value (in lac)'
+      }
+      listItem.columnData.forEach(column => {
+        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
+        const formattedPurchaseValue = (column.total_purchase_value / 100000).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `₹${formattedPurchaseValue}`
+      })
+
+      console.log(rows, 'rows')
+
+      // Add the total purchase row as the first row in the table
+      const finalRows = [totalPurchaseRow, ...rows]
+
+      // Convert the rows and headers to worksheet format
+      const wsData = [headers, ...finalRows.map(row => Object.values(row))]
+      console.log(wsData, 'wsData')
+
+      // Convert the data into a worksheet
+      const ws = utils.aoa_to_sheet(wsData)
+      const wb = utils.book_new()
+      utils.book_append_sheet(wb, ws, 'Dispatch_Report')
+
+      // Download the Excel file
+      writeFile(wb, 'Dispatch_Report.xlsx')
+    } catch (error) {
+      console.log('Error downloading report:', error)
+    }
   }
 
   const headerAction = (
@@ -304,12 +482,10 @@ const StoreWiseDispatch = () => {
         </Typography>
       ) : (
         <LoadingButton
-          // disabled={disabled}
-          // loading={loader}
-          // onClick={action ? action : null}
           size='medium'
           variant='contained'
           endIcon={<Icon icon='material-symbols:download' />}
+          onClick={handleDownloadReport}
         >
           Download Report
         </LoadingButton>
@@ -375,9 +551,26 @@ const StoreWiseDispatch = () => {
                 {router.asPath.includes('newdashboard') ? (
                   ''
                 ) : (
-                  <Grid container sx={{ display: 'flex', pr: 5, pt: 2 }} className=''>
-                    <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
-                      <FormControl fullWidth size='small'>
+                  <Grid
+                    container
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 5, pt: 2 }}
+                  >
+                    {/* Search toolbar aligned to the left */}
+                    <Grid item xs={12} sm={6} md={6} sx={{ justifyContent: 'flex-start' }}>
+                      <ServerSideToolbar
+                        value={searchValue}
+                        clearSearch={() => handleSearch('')}
+                        onChange={event => {
+                          setSearchValue(event.target.value)
+                          handleSearch(event.target.value)
+                        }}
+                        checkval='reports'
+                      />
+                    </Grid>
+
+                    {/* Right-aligned container for Select Days and Filter button */}
+                    <Grid item xs={12} sm={4} md={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <FormControl size='small' sx={{ mr: 2 }}>
                         <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
                         <Select
                           size='small'
@@ -394,48 +587,8 @@ const StoreWiseDispatch = () => {
                           ))}
                         </Select>
                       </FormControl>
-                    </Grid>
 
-                    {/* <span style={{}}>
-                      <SingleDatePicker
-                        fullWidth
-                        className=''
-                        width={'100%'}
-                        //date={date}
-                        //value={date}
-                        name={'From Date*'}
-                        label='From Date*'
-                        placeholderText={'From Date*'}
-                        size='small'
-                        // onChangeHandler={date => {
-                        //   setDate(date)
-                        // }}
-                        customInput={<CustomInput label='From Date*' auto />}
-                      />
-                    </span>
-                    <span style={{ paddingLeft: '15px' }}>
-                      <SingleDatePicker
-                        fullWidth
-                        className=''
-                        width={'100%'}
-                        //date={date}
-                        // value={date}
-                        name={'To Date*'}
-                        label='To Date*'
-                        placeholderText={'To Date*'}
-                        size='small'
-                        // onChangeHandler={date => {
-                        //   setDate(date)
-                        // }}
-                        customInput={<CustomInput label='To Date*' auto />}
-                      />
-                    </span> */}
-
-                    <Grid item xs={12} sm={2} md={2} sx={{ ml: 4, mr: 4 }}>
                       <LoadingButton
-                        // disabled={disabled}
-                        // loading={loader}
-                        // onClick={action ? action : null}
                         size='medium'
                         variant='outlined'
                         startIcon={<Icon icon='bi:filter' />}
@@ -489,7 +642,7 @@ const StoreWiseDispatch = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  // slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
@@ -524,18 +677,19 @@ const StoreWiseDispatch = () => {
                   storeList={storeList}
                   onApplyFilters={onApplyFilters}
                   handleCloseDrawer={handleCloseDrawer}
-                  setFiltersApplied={setFiltersApplied}
                   handleSearchChange={handleSearchChange}
                   fullStoreList={fullStoreList}
                   loading={loading}
                   filtersApplied={filtersApplied}
                   setSelectedStores={setSelectedStores}
-                />
-              )}
-              {openDoctorListDrawer && (
-                <MedicineNamedoctorsList
-                  openDoctorListDrawer={openDoctorListDrawer}
-                  setOpenDoctorListDrawer={setOpenDoctorListDrawer}
+                  setFilterSearchValue={setFilterSearchValue}
+                  fetchfilterValues={fetchfilterValues}
+                  totalMedicineCount={totalMedicineCount}
+                  loadMoreData={loadMoreData}
+                  isFetching={isFetching}
+                  setFiltersApplied={setFiltersApplied}
+                  searchClose={searchClose}
+                  filtersearchValue={filtersearchValue}
                 />
               )}
             </>

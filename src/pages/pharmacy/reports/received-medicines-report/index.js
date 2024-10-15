@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
-import { getMonthWisePurchaseList, getDoctorReportList } from 'src/lib/api/pharmacy/getAllReports'
+import { getReceivedMedicineList, getMedicineWiseDoctorFilter } from 'src/lib/api/pharmacy/getAllReports'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@mui/material/styles'
 
@@ -19,16 +20,13 @@ import { Box, Avatar, Badge, TextField, Breadcrumbs, Tooltip } from '@mui/materi
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
+import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import moment from 'moment'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { writeFile, utils } from 'xlsx'
-import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 
 const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
@@ -38,7 +36,7 @@ const dropdownOptions = [
   { value: 'custom', label: 'Custom Range' }
 ]
 
-const MonthWisePurchase = () => {
+const ReceivedMedicinesReport = () => {
   const router = useRouter()
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
@@ -70,9 +68,12 @@ const MonthWisePurchase = () => {
   const [downloadFromDate, setDownloadFromDate] = useState(null)
   const [downloadToDate, setDownloadToDate] = useState(null)
   const [searchbyDoctorname, setsearchbyDoctorname] = useState('')
+  const [medicinewiseval, setmedicinewiseval] = useState('')
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
+    console.log(fullStoreList, 'fullStoreList')
+
     if (event.target.checked) {
       setFiltersApplied(false)
       setSelectedStores(fullStoreList.map(fruit => fruit.id))
@@ -81,11 +82,12 @@ const MonthWisePurchase = () => {
     }
   }
 
-  const handlecheckcell = val => {
+  const handlecheckcell = (val, from) => {
     console.log(val, 'Cell data')
+    console.log(from, 'from')
     const clickedColumnField = val.field
     const clickedRowData = val.row
-
+    setmedicinewiseval(from)
     const clickedColumnData = columns.find(column => column.field === clickedColumnField)
     console.log(clickedColumnData, 'clickedColumnData')
     if (val.field === 'stock_name') {
@@ -153,7 +155,7 @@ const MonthWisePurchase = () => {
 
       console.log('Payload:', payload)
 
-      const response = await getDoctorReportList(payload)
+      const response = await getMedicineWiseDoctorFilter(payload)
 
       console.log(response, 'medicineListResponse')
 
@@ -179,10 +181,9 @@ const MonthWisePurchase = () => {
   const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
     try {
       setisFetching(true)
-
       let params = {
         page,
-        limit: 10, // You can also make this dynamic if needed
+        limit: 10,
         q
       }
       const medicineListResponse = await getMedicineList({
@@ -229,11 +230,13 @@ const MonthWisePurchase = () => {
 
       try {
         setLoading(true)
+
         if (!filtersApplied && selectedFruits.length > 0) {
           setLoading(false)
           return
         }
-
+        console.log(filtersApplied, 'ppppp')
+        console.log(selectedFruits.length, 'ppppppp')
         if (filtersApplied && selectedFruits.length > 0) {
           payload = {
             //sort,
@@ -256,7 +259,7 @@ const MonthWisePurchase = () => {
           }
         }
 
-        await getMonthWisePurchaseList(payload).then(res => {
+        await getReceivedMedicineList(payload).then(res => {
           if (res.data.list_items) {
             console.log(res.data.list_items, 'pppp')
             const listItem = res.data.list_items
@@ -306,7 +309,7 @@ const MonthWisePurchase = () => {
               },
               ...listItem.columnData.map(column => ({
                 field: column.title,
-                headerName: `${column.title}\nTotal: ${column.total_purchase_value}`,
+                headerName: `${column.title}\nTotal: ${column.total_received_value}`,
                 renderHeader: params => (
                   <Box>
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
@@ -319,13 +322,13 @@ const MonthWisePurchase = () => {
                       <Typography
                         sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                       >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        {` (₹${(column.total_received_value / 100000).toFixed(2)})`}
                       </Typography>
                     ) : (
                       <Typography
                         sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                       >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        {` (₹${(column.total_received_value / 100000).toFixed(2)})`}
                       </Typography>
                     )}
                   </Box>
@@ -336,6 +339,7 @@ const MonthWisePurchase = () => {
                     return <span>{params.value}</span> // Show original value if it's not a number
                   }
                   const roundedValue = Math.round(value)
+
                   const formattedNumber = roundedValue.toLocaleString('en-IN', {
                     style: 'currency',
                     currency: 'INR',
@@ -343,7 +347,7 @@ const MonthWisePurchase = () => {
                   })
                   console.log(formattedNumber, 'formattedNumber')
                   return (
-                    <Tooltip title={`Purchase count: ${formattedNumber}`}>
+                    <Tooltip title={`Dispatch count: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
@@ -354,7 +358,7 @@ const MonthWisePurchase = () => {
             setColumns(columns)
 
             const rows = listItem.rowData.map(row => ({
-              id: row.stock_item_id,
+              id: row.stock_id,
               stock_name: row.stock_name,
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
@@ -386,6 +390,7 @@ const MonthWisePurchase = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+
     await searchTableData({ sort, q: value, column: sortColumn, filter: statusFilter })
   }
 
@@ -490,133 +495,15 @@ const MonthWisePurchase = () => {
     }
   }
 
-  const handleDownloadExcel = async () => {
-    try {
-      let payload = {
-        medicine_id: medicineId,
-        from_date: downloadFromDate,
-        to_date: downloadToDate,
-        q: searchbyDoctorname
-      }
-
-      const response = await getDoctorReportList(payload)
-      if (response.success === true) {
-        const data = response.data
-
-        const rows = data.list_items.map(item => ({
-          'Doctor Name': item.doctor_name,
-          'Medicine Name': item.medicine_name,
-          'Shipped Count': item.shipped_count,
-          'Shipped Value': item.shipped_value
-        }))
-
-        // Create worksheet and workbook
-        const worksheet = utils.json_to_sheet(rows)
-        worksheet['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 15 }]
-
-        // Create workbook and append the worksheet
-        const workbook = utils.book_new()
-        utils.book_append_sheet(workbook, worksheet, 'DoctorList')
-
-        // Download the Excel file
-        writeFile(workbook, 'DoctorList.xlsx')
-      }
-    } catch (e) {
-      console.error('Error downloading Excel file', e)
-    }
-  }
-
-  const handleDownloadReport = async () => {
-    try {
-      let payload = {}
-      const activeStatus = statusFilter
-
-      if (filtersApplied && selectedFruits.length > 0) {
-        payload = {
-          q: searchValue,
-          filter: activeStatus,
-          medicine_ids: selectedFruits
-        }
-      } else {
-        payload = {
-          q: searchValue,
-          filter: activeStatus
-        }
-      }
-
-      const response = await getMonthWisePurchaseList(payload)
-      const listItem = response.data.list_items
-
-      const headers = ['Medicine']
-      listItem.columnData.forEach(column => {
-        headers.push(`${column.title} (${column.sub_title})`)
-      })
-
-      const rows = listItem.rowData.map(row => {
-        const rowData = {
-          Medicine: row.stock_name
-        }
-
-        // Initialize all month/year columns with default "₹0" values
-        listItem.columnData.forEach(column => {
-          rowData[`${column.title} (${column.sub_title})`] = '₹0'
-        })
-
-        Object.entries(row.data_values).forEach(([month, value]) => {
-          const column = listItem.columnData.find(col => col.title === month)
-
-          if (column) {
-            const roundedValue = parseFloat(value)
-            const formattedValue = roundedValue.toLocaleString('en-IN', {
-              style: 'currency',
-              currency: 'INR',
-              maximumFractionDigits: 0
-            })
-            rowData[`${column.title} (${column.sub_title})`] = formattedValue
-          }
-        })
-
-        console.log(rowData, 'rowData')
-        return rowData
-      })
-
-      const totalPurchaseRow = {
-        Medicine: 'Total Purchase Value (in lac)'
-      }
-      listItem.columnData.forEach(column => {
-        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
-        const formattedPurchaseValue = (column.total_purchase_value / 100000).toLocaleString('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `₹${formattedPurchaseValue}`
-      })
-
-      const finalRows = [totalPurchaseRow, ...rows]
-
-      // Convert the rows and headers to worksheet format
-      const wsData = [headers, ...finalRows.map(row => Object.values(row))]
-      console.log(wsData, 'wsData')
-
-      // Convert the data into a worksheet
-      const ws = utils.aoa_to_sheet(wsData)
-      const wb = utils.book_new()
-      utils.book_append_sheet(wb, ws, 'Dispatch_Report')
-
-      // Download the Excel file
-      writeFile(wb, 'Dispatch_Report.xlsx')
-    } catch (error) {
-      console.log('Error downloading report:', error)
-    }
-  }
-
   const headerAction = (
     <div>
       <LoadingButton
+        // disabled={disabled}
+        // loading={loader}
+        // onClick={action ? action : null}
         size='medium'
         variant='contained'
         endIcon={<Icon icon='material-symbols:download' />}
-        onClick={handleDownloadReport}
       >
         Download Report
       </LoadingButton>
@@ -643,7 +530,7 @@ const MonthWisePurchase = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {selectedPharmacy.type === 'local' ? (
         <>
           {loader ? (
             <FallbackSpinner />
@@ -661,12 +548,12 @@ const MonthWisePurchase = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Month wise purchase</Typography>
+                    <Typography color='text.primary'>Received medicines</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
               <Card>
-                <CardHeader title='Month wise purchase' action={headerAction} />
+                <CardHeader title='Received medicines' action={headerAction} />
                 {router.asPath.includes('newdashboard') ? (
                   ''
                 ) : (
@@ -718,7 +605,6 @@ const MonthWisePurchase = () => {
                     </Grid>
                   </Grid>
                 )}
-
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
@@ -762,7 +648,7 @@ const MonthWisePurchase = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  //slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
@@ -784,7 +670,7 @@ const MonthWisePurchase = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  onCellClick={params => handlecheckcell(params, 'received_medicines')}
                 />
               </Card>
               {openFilterDrawer && (
@@ -824,10 +710,10 @@ const MonthWisePurchase = () => {
                   fromDate={downloadFromDate}
                   toDate={downloadToDate}
                   statusFilter={statusFilter}
+                  medicinewiseval={medicinewiseval}
                   handleSearchDoctors={handleSearchDoctors}
                   searchbyDoctorname={searchbyDoctorname}
                   setsearchbyDoctorname={setsearchbyDoctorname}
-                  handleDownloadExcel={handleDownloadExcel}
                 />
               )}
             </>
@@ -842,4 +728,4 @@ const MonthWisePurchase = () => {
   )
 }
 
-export default MonthWisePurchase
+export default ReceivedMedicinesReport

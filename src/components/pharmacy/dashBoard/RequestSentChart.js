@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material/styles'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
-import { getRequestListChart } from 'src/lib/api/pharmacy/getAllReports'
+import { getRequestSentChart } from 'src/lib/api/pharmacy/getAllReports'
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
 // ** Third Party Imports
 import format from 'date-fns/format'
@@ -27,7 +27,7 @@ const columnColors = {
   series2: '#1F415B'
 }
 
-const RequestChart = () => {
+const RequestSentChart = () => {
   // ** Hook
   const theme = useTheme()
 
@@ -42,12 +42,12 @@ const RequestChart = () => {
 
       const params = { start_time, end_time }
 
-      const searchResults = await getRequestListChart({ params: params })
+      const searchResults = await getRequestSentChart({ params: params })
       console.log('searchResults', searchResults)
 
-      const stores = searchResults?.data.map(store => store.store_name) // X-axis: store names
-      const completedRequests = searchResults?.data.map(store => Number(store.completed_request))
-      const pendingRequests = searchResults?.data.map(store => Number(store.pending_request))
+      const stores = searchResults?.data.map(store => store.month) // X-axis: store names
+      const completedRequests = searchResults?.data.map(store => Number(store.completed_count))
+      const pendingRequests = searchResults?.data.map(store => Number(store.pending_count))
 
       // Update chart data
       setChartData({
@@ -105,7 +105,7 @@ const RequestChart = () => {
     },
     plotOptions: {
       bar: {
-        columnWidth: '40%',
+        columnWidth: '13%',
         borderRadius: 10,
         borderRadiusApplication: 'end',
         borderRadiusWhenStacked: true,
@@ -137,12 +137,10 @@ const RequestChart = () => {
     setTimeperiod(e.target.value)
   }
 
-  const allZeroData = chartData.series.every(series => series.data.every(val => val === 0))
-
   return (
     <Card>
       <CardHeader
-        title='Requests'
+        title='Requests sent'
         sx={{
           flexDirection: ['column', 'row'],
           alignItems: ['flex-start', 'center'],
@@ -169,14 +167,10 @@ const RequestChart = () => {
         }
       />
       <CardContent>
-        {allZeroData ? (
-          <p>No data to display</p>
-        ) : (
-          <ReactApexcharts type='bar' height={400} options={options} series={chartData.series} />
-        )}
+        <ReactApexcharts type='bar' height={400} options={options} series={chartData.series} />
       </CardContent>
     </Card>
   )
 }
 
-export default RequestChart
+export default RequestSentChart

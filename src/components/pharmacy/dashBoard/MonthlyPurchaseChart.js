@@ -4,122 +4,95 @@ import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { useEffect, useState } from 'react'
-
-// ** Custom Components Imports
-import OptionsMenu from 'src/@core/components/option-menu'
+import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import Router from 'next/router'
 import { getMonthWisePurchaseList } from 'src/lib/api/pharmacy/dashboard'
 
 const MonthlyPurchaseChart = () => {
-  // ** Hook
   const theme = useTheme()
-  const [purchaseList, setPurchaseList] = useState([])
+  const [purchaseList, setPurchaseList] = useState({ purchase_count: [], purchase_value: [] })
+
+  const [showPurchaseCount, setShowPurchaseCount] = useState(true)
+  const [showPurchaseValue, setShowPurchaseValue] = useState(true)
 
   const getMonthlyPurchases = async () => {
     try {
       const result = await getMonthWisePurchaseList()
-
       if (result?.success === true && result?.data) {
         setPurchaseList(result?.data)
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   useEffect(() => {
     getMonthlyPurchases()
   }, [])
-  const transactionDates = purchaseList.map(item => (item?.month ? item?.month : ''))
-  const dailyCounts = purchaseList.map(item => (item?.daily_count ? parseInt(item?.daily_count) : ''))
 
-  // const options = {
-  //   chart: {
-  //     offsetY: -8,
-  //     parentHeightOffset: 0,
-  //     toolbar: { show: false }
-  //   },
-  //   tooltip: { enabled: false },
-  //   dataLabels: { enabled: false },
-  //   stroke: {
-  //     width: 5,
-  //     curve: 'smooth'
-  //   },
-  //   grid: {
-  //     show: false,
-  //     padding: {
-  //       left: 10,
-  //       top: -24,
-  //       right: 12
-  //     }
-  //   },
-  //   fill: {
-  //     type: 'gradient',
-  //     gradient: {
-  //       opacityTo: 0.7,
-  //       opacityFrom: 0.5,
-  //       shadeIntensity: 1,
-  //       stops: [0, 90, 100],
-  //       colorStops: [
-  //         [
-  //           {
-  //             offset: 0,
-  //             opacity: 0.6,
-  //             color: theme.palette.error.main
-  //           },
-  //           {
-  //             offset: 100,
-  //             opacity: 0.1,
-  //             color: theme.palette.background.paper
-  //           }
-  //         ]
-  //       ]
-  //     }
-  //   },
-  //   theme: {
-  //     monochrome: {
-  //       enabled: true,
-  //       shadeTo: 'light',
-  //       shadeIntensity: 1,
-  //       color: theme.palette.error.main
-  //     }
-  //   },
-  //   xaxis: {
-  //     type: 'numeric',
-  //     labels: { show: false },
-  //     axisTicks: { show: false },
-  //     axisBorder: { show: false }
-  //   },
-  //   yaxis: { show: false },
-  //   markers: {
-  //     size: 1,
-  //     offsetY: 1,
-  //     offsetX: -5,
-  //     strokeWidth: 4,
-  //     strokeOpacity: 1,
-  //     colors: ['transparent'],
-  //     strokeColors: 'transparent',
-  //     discrete: [
-  //       {
-  //         size: 7,
-  //         seriesIndex: 0,
-  //         dataPointIndex: 7,
-  //         strokeColor: theme.palette.error.main,
-  //         fillColor: theme.palette.background.paper
-  //       }
-  //     ]
-  //   }
-  // }
+  const fullMonths = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ]
+
+  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  // Purchase counts and values from API
+  const purchaseCounts = fullMonths.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
+  const purchaseValues = fullMonths.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+
+  // Conditionally add series based on checkbox selections
+  const series = []
+  if (showPurchaseCount) {
+    series.push({
+      name: 'Purchase Count',
+      type: 'bar',
+      data: purchaseCounts,
+      color: '#FA6140'
+    })
+  }
+  if (showPurchaseValue) {
+    series.push({
+      name: 'Purchase Value',
+      type: 'line',
+      data: purchaseValues,
+      color: '#FFBDA8'
+    })
+  }
+
   const options = {
     chart: {
       offsetY: 1,
       parentHeightOffset: 0,
       toolbar: { show: false }
     },
-    tooltip: { enabled: true },
+    tooltip: {
+      enabled: true,
+      y: {
+        formatter: (value, { seriesIndex }) => {
+          if (seriesIndex === 1 || series[0].name === 'Purchase Value') {
+            return `₹${value.toFixed(2)} lac`
+          }
+          return value.toFixed(0)
+        }
+      }
+    },
     dataLabels: { enabled: false },
     stroke: {
-      width: 5,
-      curve: 'smooth'
+      width: [0, 3],
+      curve: 'smooth',
+      colors: ['#FA6140', '#FFBDA8']
     },
     grid: {
       show: true,
@@ -130,66 +103,44 @@ const MonthlyPurchaseChart = () => {
       }
     },
     fill: {
-      type: 'gradient',
-      gradient: {
-        opacityTo: 0.7,
-        opacityFrom: 0.5,
-        shadeIntensity: 1,
-        stops: [0, 90, 100],
-        colorStops: [
-          [
-            {
-              offset: 0,
-              opacity: 0.6,
-              color: theme.palette.error.main
-            },
-            {
-              offset: 100,
-              opacity: 0.1,
-              color: theme.palette.background.paper
-            }
-          ]
-        ]
-      }
-    },
-    theme: {
-      monochrome: {
-        enabled: true,
-        shadeTo: 'light',
-        shadeIntensity: 1,
-        color: theme.palette.error.main
-      }
+      type: 'solid',
+      colors: ['#FA6140']
     },
     xaxis: {
-      categories: transactionDates,
-      labels: {
-        show: true
-      },
+      categories: shortMonths,
+      labels: { show: true },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
-    yaxis: { show: true },
+    yaxis: [
+      {
+        title: { text: 'Purchase Count' },
+        labels: { formatter: val => val.toFixed(0) }
+      },
+      {
+        opposite: true,
+        title: { text: 'Purchase Value (₹)' },
+        labels: { formatter: val => `₹${val.toFixed(2)} lac` }
+      }
+    ],
     markers: {
-      size: 1,
-      offsetY: 1,
-      offsetX: 1,
-      strokeWidth: 4,
-      strokeOpacity: 1,
-      colors: ['transparent'],
-      strokeColors: 'transparent',
-      discrete: [
-        {
-          size: 7,
-          seriesIndex: 0,
-          dataPointIndex: 7,
-          strokeColor: theme.palette.error.main,
-          fillColor: theme.palette.background.paper
-        }
-      ]
+      size: 4,
+      colors: ['#FFFFFF'],
+      strokeColors: '#FFBDA8',
+      strokeWidth: 2,
+      hover: { size: 7 }
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: '35%',
+        borderRadius: 10,
+        borderRadiusApplication: 'end',
+        distributed: false
+      }
     }
   }
 
-  const handleclick = () => {
+  const handleClick = () => {
     Router.push({
       pathname: '/pharmacy/reports/month-wise-purchase'
     })
@@ -200,9 +151,8 @@ const MonthlyPurchaseChart = () => {
       <CardHeader
         title='Month wise purchase'
         action={
-          //<OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
           <Typography
-            onClick={handleclick}
+            onClick={handleClick}
             sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
           >
             View More
@@ -210,12 +160,43 @@ const MonthlyPurchaseChart = () => {
         }
       />
       <CardContent>
-        <ReactApexcharts
-          type='area'
-          height={262}
-          options={options}
-          series={[{ name: 'Product purchased', data: dailyCounts }]}
-        />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showPurchaseCount}
+                onChange={() => setShowPurchaseCount(prev => !prev)}
+                color='primary'
+                sx={{
+                  transform: 'scale(0.8)',
+                  '&.Mui-checked': {
+                    color: '#FA6140'
+                  }
+                }}
+              />
+            }
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Count</span>}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showPurchaseValue}
+                onChange={() => setShowPurchaseValue(prev => !prev)}
+                color='primary'
+                sx={{
+                  transform: 'scale(0.8)',
+                  '&.Mui-checked': {
+                    color: '#FFBDA8'
+                  }
+                }}
+              />
+            }
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Value</span>}
+          />
+        </Box>
+
+        {/* Chart */}
+        <ReactApexcharts type='line' height={300} options={options} series={series} />
       </CardContent>
     </Card>
   )
