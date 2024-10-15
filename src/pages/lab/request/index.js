@@ -18,7 +18,6 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
 
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, Stack, CircularProgress, Grid, TextField } from '@mui/material'
@@ -86,7 +85,13 @@ const ListOfRequest = () => {
         <Typography
           variant='body2'
           onClick={() => handleClickRequestId(params)}
-          sx={{ color: 'text.primary', cursor: 'pointer' }}
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'pointer',
+            fontFamily: 'Inter'
+          }}
         >
           {params.row.lab_test_id}
         </Typography>
@@ -99,7 +104,15 @@ const ListOfRequest = () => {
       field: 'site_name',
       headerName: 'Site',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <span alt={params.row.site_name}>{params.row.site_name}</span>
         </Typography>
       )
@@ -111,7 +124,12 @@ const ListOfRequest = () => {
       field: 'created_at',
       headerName: 'Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {Utility.formatDate(params.row.created_at)}
         </Typography>
       )
@@ -122,7 +140,12 @@ const ListOfRequest = () => {
       field: 'total_test',
       headerName: 'No. of Tests ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           <span alt={params.row.total_test}>{params.row.total_lab_tests}</span>
         </Typography>
       )
@@ -416,7 +439,7 @@ const ListOfRequest = () => {
       ) : (
         <>
           <Card key={selectedLab}>
-            <CardHeader title={title}/>
+            <CardHeader title={title} />
 
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}
@@ -511,57 +534,57 @@ const ListOfRequest = () => {
             </Box>
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
-                  {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
-                          }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                </Box>
-                <Grid
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
                   sx={{
-                    mx: 4
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
                   }}
                 >
-                  <TableData
-                    onRowClick={''}
-                    indexedRows={indexedRows}
-                    total={total}
-                    columns={columns}
-                    paginationModel={paginationModel}
-                    handleSortModel={handleSortModel}
-                    setPaginationModel={setPaginationModel}
-                    loading={loading}
-                    searchValue={searchValue}
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
                   />
-                </Grid>
-{/* 
+                </Box>
+              </Grid>
+            </Box>
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <TableData
+                onRowClick={''}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+            {/* 
             <DataGrid
               autoHeight
               pagination

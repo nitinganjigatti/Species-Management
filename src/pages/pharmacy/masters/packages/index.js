@@ -98,7 +98,7 @@ const ManufacturerList = () => {
       headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + "."}
         </Typography>
       )
     },
@@ -108,7 +108,12 @@ const ManufacturerList = () => {
       field: 'label',
       headerName: 'Package',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.label}
         </Typography>
       )
@@ -120,7 +125,12 @@ const ManufacturerList = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )

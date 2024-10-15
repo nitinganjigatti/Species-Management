@@ -89,7 +89,7 @@ const ListOfStores = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no}
+          {params.row.sl_no + "."}
         </Typography>
       )
     },
@@ -99,7 +99,12 @@ const ListOfStores = () => {
       field: 'type',
       headerName: 'TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.type}
         </Typography>
       )
@@ -110,7 +115,12 @@ const ListOfStores = () => {
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.name}
         </Typography>
       )
@@ -121,7 +131,12 @@ const ListOfStores = () => {
       field: 'latitude',
       headerName: 'LATITUDE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.latitude}
         </Typography>
       )
@@ -132,7 +147,12 @@ const ListOfStores = () => {
       field: 'logitude',
       headerName: 'LONGITUDE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.logitude}
         </Typography>
       )
@@ -144,7 +164,12 @@ const ListOfStores = () => {
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.site_name}
         </Typography>
       )
@@ -156,7 +181,12 @@ const ListOfStores = () => {
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.status}
         </Typography>
       )

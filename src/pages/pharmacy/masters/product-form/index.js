@@ -88,13 +88,13 @@ const ListOfDosageForms = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'id',
       headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + "."}
         </Typography>
       )
     },
@@ -104,7 +104,12 @@ const ListOfDosageForms = () => {
       field: 'label',
       headerName: 'Product Form',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.label}
         </Typography>
       )
@@ -116,7 +121,12 @@ const ListOfDosageForms = () => {
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.status}
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>

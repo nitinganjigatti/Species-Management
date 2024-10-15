@@ -241,13 +241,13 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'id',
       headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -258,7 +258,12 @@ const DirectDispatchList = () => {
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.request_number}
         </Typography>
       )
@@ -269,7 +274,12 @@ const DirectDispatchList = () => {
       field: 'request_date',
       headerName: 'Dispatched date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
@@ -280,7 +290,12 @@ const DirectDispatchList = () => {
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
         </Typography>
       )
@@ -291,7 +306,12 @@ const DirectDispatchList = () => {
       field: 'to_store',
       headerName: getRequestedText(),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
@@ -303,9 +323,15 @@ const DirectDispatchList = () => {
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
-      align: 'right',
+      headerAlign:"left",
+      align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.total_qty}
         </Typography>
       )

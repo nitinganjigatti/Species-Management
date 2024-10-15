@@ -58,6 +58,12 @@ const DirectDispatchList = () => {
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
+  const [selectDays, setSelectDays] = useState(router.query.days || 'all')
+
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
 
   const [status, setStatus] = useState(router.query.status || 'pending')
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
@@ -74,7 +80,8 @@ const DirectDispatchList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
-
+    setFilterDates({ startDate: '', endDate: '' })
+    setSelectDays('all')
     setPaginationModel({ page: 0, pageSize: 10 })
     setSearchValue('')
     setStatus(newValue)
@@ -103,19 +110,48 @@ const DirectDispatchList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status, filterByStoreId, page, limit) => {
+    async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
       try {
         setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: page ? page : paginationModel.page + 1,
-          limit: limit ? limit : paginationModel.pageSize,
-          status: filterSwitch === true && status === 'all' ? 'completed' : status,
-          search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+        if (
+          startDate &&
+          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
+          filterDates?.startDate &&
+          filterDates?.endDate // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
+        ) {
+          params = {
+            sort,
+            q,
+            column,
+            page: page ? page : paginationModel.page + 1,
+            limit: limit ? limit : paginationModel.pageSize,
+            pending_days_start: startDate ? startDate : filterDates?.startDate,
+            pending_days_end: endDate ? endDate : filterDates?.endDate,
+            status: filterSwitch === true && status === 'all' ? 'completed' : status,
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+          }
+        } else {
+          params = {
+            sort,
+            q,
+            column,
+            page: page ? page : paginationModel.page + 1,
+            limit: limit ? limit : paginationModel.pageSize,
+            status: filterSwitch === true && status === 'all' ? 'completed' : status,
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+          }
         }
+
+        // const params = {
+        //   sort,
+        //   q,
+        //   column,
+        //   page: page ? page : paginationModel.page + 1,
+        //   limit: limit ? limit : paginationModel.pageSize,
+        //   status: filterSwitch === true && status === 'all' ? 'completed' : status,
+        //   search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+        // }
 
         await getLocalDispatchItemsList({ params: params }).then(res => {
           if (res?.success === true && res?.data.list_items?.length > 0) {
@@ -155,7 +191,15 @@ const DirectDispatchList = () => {
 
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus, filterByStoreId)
+      fetchTableData(
+        newModel[0].sort,
+        searchValue,
+        newModel[0].field,
+        currentStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
     } else {
     }
   }
@@ -166,7 +210,7 @@ const DirectDispatchList = () => {
       const currentStatus = filterSwitch ? 'completed' : status
 
       try {
-        await fetchTableData(sort, q, column, currentStatus, filterByStoreId)
+        await fetchTableData(sort, q, column, currentStatus, filterDates.startDate, filterDates.endDate,filterByStoreId)
       } catch (error) {
         console.error(error)
       }
@@ -187,6 +231,9 @@ const DirectDispatchList = () => {
       column: sortColumn,
       status: status,
       store: filterByStoreId,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      days: selectDays,
       page: 0,
       limit: 10
     })
@@ -196,19 +243,30 @@ const DirectDispatchList = () => {
 
     const tabStatus = status === 'all' ? currentStatus : status
 
-    fetchTableData(sort, searchValue, sortColumn, tabStatus, filterByStoreId)
+    fetchTableData(
+      sort,
+      searchValue,
+      sortColumn,
+      tabStatus,
+      filterDates.startDate,
+      filterDates.endDate,
+      filterByStoreId
+    )
     updateUrlParams({
       sort,
       q: searchValue,
       column: sortColumn,
       status: currentStatus,
       page: paginationModel.page,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
       limit: paginationModel.pageSize,
+      days: selectDays,
       filterSwitch
       // store: filterByStoreId,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch, selectedPharmacy.id])
+  }, [status, fetchTableData, filterSwitch, selectedPharmacy.id, filterDates])
 
   const onRowClick = params => {
     var data = params.row
@@ -217,6 +275,51 @@ const DirectDispatchList = () => {
     Router.push({
       pathname: `/pharmacy/local-dispatch/${data?.id}`
     })
+  }
+
+  const filterByDays = days => {
+    if (days !== 'all') {
+      setTotal(0)
+      setPaginationModel({ page: 0, pageSize: 10 })
+      const currentDate = new Date()
+      const selectedDays = parseInt(days)
+      let startDate
+      let endDate
+
+      switch (selectedDays) {
+        case 3:
+          startDate = Utility.getPreviousDaysDate(currentDate, 3)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+        case 7:
+          startDate = Utility.getPreviousDaysDate(currentDate, 7)
+          endDate = Utility.getPreviousDaysDate(currentDate, 3)
+          setFilterDates({ startDate, endDate })
+
+          break
+        case 15:
+          startDate = Utility.getPreviousDaysDate(currentDate, 15)
+          endDate = Utility.getPreviousDaysDate(currentDate, 7)
+          setFilterDates({ startDate, endDate })
+          break
+        case 16:
+          startDate = Utility.getPreviousDaysDate(currentDate, 16)
+          endDate = Utility.getPreviousDaysDate(currentDate, 1)
+          setFilterDates({ startDate, endDate })
+          break
+        default:
+          startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+      }
+    } else {
+      // setFilterDates({sta})
+
+      setFilterDates({ startDate: '', endDate: '' })
+      fetchTableData(sort, searchValue, sortColumn, status)
+    }
   }
 
   const headerAction = (

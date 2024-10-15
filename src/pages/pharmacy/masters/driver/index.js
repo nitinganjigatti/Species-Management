@@ -94,13 +94,13 @@ const Salts = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'id',
       headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + "."}
         </Typography>
       )
     },
@@ -110,7 +110,13 @@ const Salts = () => {
       field: 'driver_name',
       headerName: 'Driver Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+
+          fontFamily: 'Inter'
+        }}>
           {params.row.driver_name}
         </Typography>
       )
@@ -121,7 +127,13 @@ const Salts = () => {
       field: 'phone_number',
       headerName: 'Phone Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+
+          fontFamily: 'Inter'
+        }}>
           {params.row.phone_number}
         </Typography>
       )
@@ -132,7 +144,13 @@ const Salts = () => {
       field: 'vehicle_number',
       headerName: 'Vehicle Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+
+          fontFamily: 'Inter'
+        }}>
           {params.row.vehicle_number}
         </Typography>
       )

@@ -200,7 +200,7 @@ const ListOfRacks = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.uid +"."}
         </Typography>
       )
     },
@@ -211,7 +211,12 @@ const ListOfRacks = () => {
       field: 'store_name',
       headerName: 'STORE NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.store_name}
         </Typography>
       )
@@ -222,7 +227,12 @@ const ListOfRacks = () => {
       field: 'name',
       headerName: 'RACK NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.name}
         </Typography>
       )
@@ -233,7 +243,12 @@ const ListOfRacks = () => {
       field: 'shelfs',
       headerName: 'SHELFS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.shelfs}
         </Typography>
       )
@@ -244,7 +259,12 @@ const ListOfRacks = () => {
       field: 'position',
       headerName: 'POSITION',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.position}
         </Typography>
       )
@@ -256,7 +276,12 @@ const ListOfRacks = () => {
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.status}
         </Typography>
       )

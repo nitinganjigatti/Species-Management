@@ -169,7 +169,7 @@ const ListOfStocks = () => {
     [paginationModel, stockId]
   )
 
-  console.log("stock Reports >" ,stockReport)
+  console.log('stock Reports >', stockReport)
 
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
@@ -364,7 +364,15 @@ const ListOfStocks = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_items_name}
           </Typography>
         </Tooltip>
@@ -376,7 +384,15 @@ const ListOfStocks = () => {
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
@@ -423,7 +439,15 @@ const ListOfStocks = () => {
       field: 'procured_date',
       headerName: 'PROCURED DATE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.procured_date)}
         </Typography>
       )
@@ -436,7 +460,15 @@ const ListOfStocks = () => {
       type: 'number',
       align: 'right',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
             ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
             : 'NA'}
@@ -466,7 +498,15 @@ const ListOfStocks = () => {
       type: 'number',
       align: 'right',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -497,13 +537,31 @@ const ListOfStocks = () => {
           {params?.row?.stock_config ? (
             params?.row?.stock_config?.map(el => {
               return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography
+                  key={el}
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter'
+                  }}
+                >
                   {el.rack}
                 </Typography>
               )
             })
           ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography
+              key={el}
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               NA
             </Typography>
           )}
@@ -523,13 +581,31 @@ const ListOfStocks = () => {
           {params?.row?.stock_config ? (
             params?.row?.stock_config?.map(el => {
               return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography
+                  key={el}
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter'
+                  }}
+                >
                   {el.shelf}
                 </Typography>
               )
             })
           ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography
+              key={el}
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               NA
             </Typography>
           )}
@@ -577,17 +653,17 @@ const ListOfStocks = () => {
   ]
 
   const batchWiseColumn = [
-    {
-      flex: 0.15,
-      Width: 40,
-      field: 'uid',
-      headerName: 'SL ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.15,
+    //   Width: 40,
+    //   field: 'uid',
+    //   headerName: 'SL ',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.uid}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -617,7 +693,15 @@ const ListOfStocks = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_items_name}
           </Typography>
         </Tooltip>
@@ -630,7 +714,15 @@ const ListOfStocks = () => {
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
@@ -642,7 +734,15 @@ const ListOfStocks = () => {
       field: 'procured_date',
       headerName: 'PROCURED DATE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.procured_date)}
         </Typography>
       )
@@ -655,7 +755,15 @@ const ListOfStocks = () => {
       type: 'number',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
             ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
             : 'NA'}
@@ -669,7 +777,15 @@ const ListOfStocks = () => {
       field: 'batch_no',
       headerName: 'BATCH NUMBER',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -681,7 +797,15 @@ const ListOfStocks = () => {
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
@@ -693,10 +817,18 @@ const ListOfStocks = () => {
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
-      headerAlign:"left",
+      headerAlign: 'left',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
       )
@@ -714,13 +846,31 @@ const ListOfStocks = () => {
           {params?.row?.stock_config ? (
             params?.row?.stock_config?.map(el => {
               return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography
+                  key={el}
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter'
+                  }}
+                >
                   {el.rack}
                 </Typography>
               )
             })
           ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography
+              key={el}
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               NA
             </Typography>
           )}
@@ -740,13 +890,31 @@ const ListOfStocks = () => {
           {params?.row?.stock_config ? (
             params?.row?.stock_config?.map(el => {
               return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+                <Typography
+                  key={el}
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter'
+                  }}
+                >
                   {el.shelf}
                 </Typography>
               )
             })
           ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography
+              key={el}
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               NA
             </Typography>
           )}
@@ -999,29 +1167,30 @@ const ListOfStocks = () => {
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={7} md={7} sx={{ float: 'right',display:"flex" }}>
-                    {changeSwitch ? (
-                          <Box sx={{ ml: 'auto', float: 'right', mr:2 }}>
-                            <ExcelExportButton
-                              disabled={total === 0 ? true : false}
-                              action={() => {
-                                getBatchWiseDataToExport()
-                              }}
-                              loader={excelLoader}
-                              title='Download'
-                            />
-                          </Box>
-                        ) : null}
-                    
+                    <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex' }}>
+                      {changeSwitch ? (
+                        <Box sx={{ ml: 'auto', float: 'right', mr: 2 }}>
+                          <ExcelExportButton
+                            disabled={total === 0 ? true : false}
+                            action={() => {
+                              getBatchWiseDataToExport()
+                            }}
+                            loader={excelLoader}
+                            title='Download'
+                          />
+                        </Box>
+                      ) : null}
+
                       <Grid>
                         {selectedPharmacy.type === 'central' && createForm()}
-                        
+
                         <FormControlLabel
-                          control={<Switch sx={{ mr: 5,mt:1 }} checked={changeSwitch} onChange={handleSwitchChange} />}
+                          control={
+                            <Switch sx={{ mr: 5, mt: 1 }} checked={changeSwitch} onChange={handleSwitchChange} />
+                          }
                           labelPlacement='start'
                           label='Batch Wise '
                         />
-                        
                       </Grid>
                     </Grid>
                   </Box>
@@ -1033,7 +1202,7 @@ const ListOfStocks = () => {
                       }}
                     >
                       <TableData
-                        onRowClick={handleStockRowClick }
+                        onRowClick={handleStockRowClick}
                         indexedRows={batchIndexedRows === undefined ? [] : batchIndexedRows}
                         total={batchTotal}
                         columns={batchWiseColumn}

@@ -140,7 +140,7 @@ const ListOfStates = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -150,7 +150,16 @@ const ListOfStates = () => {
       field: 'name',
       headerName: 'STATE NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'capitalize',
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.name}
         </Typography>
       )
@@ -163,9 +172,17 @@ const ListOfStates = () => {
       headerName: 'STATE CODE',
       type: 'number',
       align: 'left',
-      headerAlign:"left",
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.code}
         </Typography>
       )
@@ -176,7 +193,16 @@ const ListOfStates = () => {
       field: 'short_code',
       headerName: 'SHORT CODE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'uppercase' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.short_code}
         </Typography>
       )
@@ -187,7 +213,16 @@ const ListOfStates = () => {
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.status}
         </Typography>
       )
@@ -379,7 +414,6 @@ const ListOfStates = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-
 
                 {/* <DataGrid
                   columnVisibilityModel={{

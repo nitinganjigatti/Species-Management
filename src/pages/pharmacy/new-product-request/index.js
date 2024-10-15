@@ -79,7 +79,12 @@ export default function NewProductList() {
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+          <Typography variant='body2'  sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}>
             {params?.row?.request_number}
           </Typography>
         </div>
@@ -92,7 +97,12 @@ export default function NewProductList() {
       headerName: 'From Store',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+          <Typography variant='body2'  sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}>
             {params?.row?.from_store_name}
           </Typography>
         </div>
@@ -106,7 +116,12 @@ export default function NewProductList() {
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
+            <Typography key={index}  sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}>
               {item?.product_name}
             </Typography>
           ))}
@@ -120,7 +135,12 @@ export default function NewProductList() {
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params?.row?.priority}
         </Typography>
       )
@@ -131,7 +151,12 @@ export default function NewProductList() {
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params?.row?.requested_user_name}
         </Typography>
       )
@@ -147,7 +172,12 @@ export default function NewProductList() {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
+            <Typography key={index}  sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}>
               {item?.quantity}
             </Typography>
           ))}
@@ -161,7 +191,12 @@ export default function NewProductList() {
       field: 'created_at',
       headerName: 'CREATED Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
@@ -172,7 +207,12 @@ export default function NewProductList() {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params?.row?.status}
         </Typography>
       )

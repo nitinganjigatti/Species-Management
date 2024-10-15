@@ -166,7 +166,7 @@ const ListOfStockAdjusted = () => {
       headerName: 'SL ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl}
+          {params.row.sl +"."}
         </Typography>
       )
     },
@@ -177,7 +177,12 @@ const ListOfStockAdjusted = () => {
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.stock_name}
         </Typography>
       )
@@ -188,7 +193,12 @@ const ListOfStockAdjusted = () => {
       field: 'batch_no',
       headerName: 'Batch number ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.batch_no}
         </Typography>
       )
@@ -201,7 +211,12 @@ const ListOfStockAdjusted = () => {
       field: 'adjustment_quantity',
       headerName: 'Adjustment quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.adjustment_quantity}
         </Typography>
       )
@@ -212,7 +227,12 @@ const ListOfStockAdjusted = () => {
       field: 'reason_name',
       headerName: 'Reason',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.reason_name}
         </Typography>
       )
@@ -253,7 +273,12 @@ const ListOfStockAdjusted = () => {
       field: 'expiry_date',
       headerName: 'Expiry  Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2'  sx={{
+          color: theme.palette.customColors.customHeadingTextColor,
+          fontSize: '14px',
+          fontWeight: 500,
+          fontFamily: 'Inter'
+        }}>
           {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )

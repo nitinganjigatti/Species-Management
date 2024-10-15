@@ -37,7 +37,15 @@ function Dispense() {
       field: 'dispense_id',
       headerName: 'Dispense Id',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.dispense_id}
         </Typography>
       )
@@ -62,7 +70,15 @@ function Dispense() {
             alt={params?.row?.profile_pic}
             src={params?.row?.profile_pic}
           />
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.user_name}
           </Typography>
         </>
@@ -74,7 +90,15 @@ function Dispense() {
       field: 'created_at',
       headerName: 'created At',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
           {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.created_at))}
         </Typography>
@@ -85,10 +109,19 @@ function Dispense() {
       minWidth: 20,
       field: 'animal_count',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'Animal Count',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.animal_count ? params.row.animal_count : 0}
         </Typography>
       )
@@ -151,9 +184,7 @@ function Dispense() {
 
   const title = (
     <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Dispense
-      </Typography>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Dispense</Typography>
     </>
   )
 
@@ -208,7 +239,6 @@ function Dispense() {
                   </Box>
                 </Grid>
 
-               
                 <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                   {status === 'all' || status === 'completed' ? (
                     <Box sx={{ float: 'right', mt: 1 }}>
@@ -238,22 +268,22 @@ function Dispense() {
             </Grid>
           </Grid>
           <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <TableData
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  // handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
-              </Grid>
+            sx={{
+              mx: 4
+            }}
+          >
+            <TableData
+              onRowClick={onRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              // handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
         </Card>
       ) : (
         <>
