@@ -1,4 +1,4 @@
-import { Avatar, Card, CardHeader, Grid, Typography, debounce } from '@mui/material'
+import { Avatar, Box, Card, CardHeader, Grid, TextField, Typography, debounce } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -11,7 +11,12 @@ import moment from 'moment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
+import TableData from 'src/views/table/data-grid/TableData'
+import { Icon } from '@iconify/react'
+import { useTheme } from '@emotion/react'
+
 function Dispense() {
+  const theme = useTheme()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
@@ -144,6 +149,14 @@ function Dispense() {
     })
   }
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+        Dispense
+      </Typography>
+    </>
+  )
+
   return (
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
@@ -160,7 +173,54 @@ function Dispense() {
             }}
           >
             <Grid sx={{ mx: 1.4 }} item>
-              <CardHeader title='Dispense' />
+              <CardHeader title={title} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+               
+                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                  {status === 'all' || status === 'completed' ? (
+                    <Box sx={{ float: 'right', mt: 1 }}>
+                      <FormControlLabel
+                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        label='Completed'
+                        labelPlacement='end'
+                      />
+                    </Box>
+                  ) : null}
+                </Grid>
+              </Box>
             </Grid>
             <Grid sx={{ mx: 5 }} item>
               {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
@@ -177,49 +237,23 @@ function Dispense() {
               )}
             </Grid>
           </Grid>
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
-
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              },
-              '& .css-12hr0br': {
-                paddingTop: 0
-              }
-            }}
-            autoHeight
-            pagination
-            disableColumnSelector={true}
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            slots={{ toolbar: ServerSideToolbar }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            disableColumnMenu
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => {
-                  setSearchValue(event.target.value)
-
-                  return handleSearch(event.target.value)
-                }
-              }
-            }}
-            onRowClick={onRowClick}
-          />
+          <Grid
+                sx={{
+                  mx: 4
+                }}
+              >
+                <TableData
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  // handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
         </Card>
       ) : (
         <>

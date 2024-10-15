@@ -14,8 +14,9 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Grid, TextField } from '@mui/material'
 import { debounce } from 'lodash'
+import { useTheme } from '@emotion/react'
 
 import Router from 'next/router'
 import toast from 'react-hot-toast'
@@ -32,8 +33,11 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ListOfDosageForms = () => {
+  const theme = useTheme()
+
   const [dosageForms, setDosageForms] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -265,6 +269,12 @@ const ListOfDosageForms = () => {
     sl_no: getSlNo(index)
   }))
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Product Form List</Typography>
+    </>
+  )
+
   return (
     <>
       {/* {selectedPharmacy.type === 'central' ? ( */}
@@ -275,38 +285,59 @@ const ListOfDosageForms = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Product Form List' action={headerAction} />
-                <DataGrid
-                  columnVisibilityModel={{
-                    id: false
+                <CardHeader title={title} action={headerAction} />
+                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                  {/* Left Box (Search Field) */}
+                  <Grid item xs={8}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        ml: 5,
+                        height: '40px',
+                        width: '250px' // Set a fixed width for all status
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                </Box>
+
+                <Grid
+                  sx={{
+                    mx: 4
                   }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                />
+                >
+                  <TableData
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
               </Card>
               <AddProductForm
                 drawerWidth={400}

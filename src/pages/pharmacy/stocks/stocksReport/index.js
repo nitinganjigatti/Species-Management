@@ -30,7 +30,8 @@ import {
   MenuItem,
   Switch,
   FormControlLabel,
-  Tooltip
+  Tooltip,
+  TextField
 } from '@mui/material'
 
 import Router from 'next/router'
@@ -55,8 +56,12 @@ import Escrow from '../escrow'
 import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import ExpiringMedicine from '../expired-medicine/expiringStock'
+import { useTheme } from '@emotion/react'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ListOfStocks = () => {
+  const theme = useTheme()
+
   const { selectedPharmacy } = usePharmacyContext()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
@@ -163,6 +168,8 @@ const ListOfStocks = () => {
     },
     [paginationModel, stockId]
   )
+
+  console.log("stock Reports >" ,stockReport)
 
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
@@ -316,17 +323,17 @@ const ListOfStocks = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      field: 'uid',
-      headerName: 'SL ',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.05,
+    //   Width: 40,
+    //   field: 'uid',
+    //   headerName: 'SL ',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.uid}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.12,
       minWidth: 20,
@@ -571,7 +578,7 @@ const ListOfStocks = () => {
 
   const batchWiseColumn = [
     {
-      flex: 0.05,
+      flex: 0.15,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -582,8 +589,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.15,
-
+      flex: 0.2,
       minWidth: 20,
       field: 'image',
       headerName: 'IMAGE',
@@ -605,8 +611,8 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      flex: 0.4,
+      minWidth: 30,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -631,7 +637,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.35,
       minWidth: 20,
       field: 'procured_date',
       headerName: 'PROCURED DATE',
@@ -642,12 +648,12 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.35,
       minWidth: 20,
       field: 'purchase_price',
       headerName: 'Purchase Price',
       type: 'number',
-      align: 'right',
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
@@ -658,7 +664,7 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.35,
       minWidth: 20,
       field: 'batch_no',
       headerName: 'BATCH NUMBER',
@@ -670,7 +676,7 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
@@ -682,12 +688,13 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
-      align: 'right',
+      headerAlign:"left",
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
@@ -888,6 +895,18 @@ const ListOfStocks = () => {
     [getStocksReport]
   )
 
+  const title = (
+    <>
+      {stockReport.length > 0 || stockReportBatch.length > 0 ? (
+        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Stock Report</Typography>
+      ) : (
+        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+          Stock Report is empty
+        </Typography>
+      )}
+    </>
+  )
+
   return (
     <>
       <Grid>
@@ -930,37 +949,122 @@ const ListOfStocks = () => {
                 /> */}
                 <Card>
                   <CardHeader
-                    title={
-                      stockReport.length > 0 || stockReportBatch.length > 0 ? 'Stock Report' : 'Stock Report is empty'
-                    }
+                    title={title}
 
                     // action={headerAction}
                   />
-                  <Grid sx={{ ml: 3, display: 'flex' }}>
-                    <Grid>
+                  {/* <Grid sx={{ ml: 3, display: 'flex' }}> */}
+                  {/* <Grid>
                       {selectedPharmacy.type === 'central' && createForm()}
                       <FormControlLabel
                         control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
                         labelPlacement='start'
-                        label='Batch Wise'
+                        label='Batch Wise '
                       />
-                    </Grid>
+                    </Grid> */}
 
-                    {changeSwitch ? (
-                      <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
-                        <ExcelExportButton
-                          disabled={total === 0 ? true : false}
-                          action={() => {
-                            getBatchWiseDataToExport()
+                  {/* </Grid> */}
+
+                  <Box display='flex' justifyContent='space-between' alignItems='center'>
+                    {/* Left Box (Search Field) */}
+                    <Grid item xs={8}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '8px',
+                          padding: '0 8px',
+                          ml: 5,
+                          height: '40px',
+                          width: '250px' // Set a fixed width for all status
+                        }}
+                      >
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        <TextField
+                          variant='outlined'
+                          placeholder='Search...'
+                          onChange={e => handleSearch(e.target.value, stockId, stockType)}
+                          fullWidth
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              border: 'none',
+                              padding: '0',
+                              '& fieldset': {
+                                border: 'none'
+                              }
+                            }
                           }}
-                          loader={excelLoader}
-                          title='Download'
                         />
                       </Box>
-                    ) : null}
-                  </Grid>
+                    </Grid>
+
+                    <Grid item xs={12} sm={7} md={7} sx={{ float: 'right',display:"flex" }}>
+                    {changeSwitch ? (
+                          <Box sx={{ ml: 'auto', float: 'right', mr:2 }}>
+                            <ExcelExportButton
+                              disabled={total === 0 ? true : false}
+                              action={() => {
+                                getBatchWiseDataToExport()
+                              }}
+                              loader={excelLoader}
+                              title='Download'
+                            />
+                          </Box>
+                        ) : null}
+                    
+                      <Grid>
+                        {selectedPharmacy.type === 'central' && createForm()}
+                        
+                        <FormControlLabel
+                          control={<Switch sx={{ mr: 5,mt:1 }} checked={changeSwitch} onChange={handleSwitchChange} />}
+                          labelPlacement='start'
+                          label='Batch Wise '
+                        />
+                        
+                      </Grid>
+                    </Grid>
+                  </Box>
 
                   {changeSwitch ? (
+                    <Grid
+                      sx={{
+                        mx: 4
+                      }}
+                    >
+                      <TableData
+                        onRowClick={handleStockRowClick }
+                        indexedRows={batchIndexedRows === undefined ? [] : batchIndexedRows}
+                        total={batchTotal}
+                        columns={batchWiseColumn}
+                        paginationModel={batchPaginationModel}
+                        handleSortModel={''}
+                        setPaginationModel={setBatchPaginationModel}
+                        loading={batchLoading}
+                        searchValue={batchSearchValue}
+                      />
+                    </Grid>
+                  ) : (
+                    <Grid
+                      sx={{
+                        mx: 4
+                      }}
+                    >
+                      <TableData
+                        onRowClick={''}
+                        indexedRows={indexedRows}
+                        total={total}
+                        columns={columns}
+                        paginationModel={paginationModel}
+                        handleSortModel={''}
+                        setPaginationModel={setPaginationModel}
+                        loading={loading}
+                        searchValue={searchValue}
+                      />
+                    </Grid>
+                  )}
+
+                  {/* {changeSwitch ? (
                     <DataGrid
                       autoHeight
                       columnVisibilityModel={{
@@ -1032,7 +1136,7 @@ const ListOfStocks = () => {
                       }}
                       onRowClick={handleStockRowClick}
                     />
-                  )}
+                  )} */}
                 </Card>
               </>
             )}

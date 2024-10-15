@@ -158,6 +158,13 @@ const Supplier = () => {
     console.log('Handle Header Action')
   }
 
+  const title = (
+    <>
+    {supplierList.length > 0 ?  <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier List</Typography>: <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier list is empty add supplier'</Typography>}
+     
+    </>
+  )
+
   return (
     <>
       {pharmacyRole ? (
@@ -166,7 +173,7 @@ const Supplier = () => {
             <FallbackSpinner />
           ) : (
             <TableWithFilter
-              TableTitle={supplierList.length > 0 ? 'Supplier List' : 'Supplier list is empty add supplier'}
+              TableTitle={title}
               headerActions={
                 <div>
                   <AddButton

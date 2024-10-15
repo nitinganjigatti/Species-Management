@@ -19,16 +19,20 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
+import { useTheme } from '@emotion/react'
+
 
 import Utility from 'src/utility'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const DirectDispatchList = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -385,6 +389,13 @@ const DirectDispatchList = () => {
       ) : null}
     </div>
   )
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+        Direct Dispatch List
+      </Typography>
+    </>
+  )
 
   const tableData = () => {
     return (
@@ -393,9 +404,58 @@ const DirectDispatchList = () => {
           <FallbackSpinner />
         ) : (
           <>
+
             <Card>
-              <CardHeader title={'Direct Dispatch List'} action={headerAction} />
-              {status === 'all' || status === 'completed' ? (
+              <CardHeader title={title} action={headerAction} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+               
+                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                  {status === 'all' || status === 'completed' ? (
+                    <Box sx={{ float: 'right', mt: 1 }}>
+                      <FormControlLabel
+                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        label='Completed'
+                        labelPlacement='end'
+                      />
+                    </Box>
+                  ) : null}
+                </Grid>
+              </Box>
+
+              {/* {status === 'all' || status === 'completed' ? (
                 <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
                   <FormControlLabel
                     control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
@@ -403,49 +463,24 @@ const DirectDispatchList = () => {
                     labelPlacement='end'
                   />
                 </Box>
-              ) : null}
-              <DataGrid
+              ) : null} */}
+               <Grid
                 sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
+                  mx: 4
                 }}
-                columnVisibilityModel={{
-                  id: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onRowClick={onRowClick}
-              />
+              >
+                <TableData
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
             </Card>
           </>
         )}

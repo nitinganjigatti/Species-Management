@@ -15,6 +15,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
+import { useTheme } from '@emotion/react'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -22,7 +23,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material'
 import { useRouter } from 'next/router'
 
 // ** Icon Imports
@@ -30,9 +31,12 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Utility from 'src/utility'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
+  const theme = useTheme()
 
   /***** Server side pagination */
   const { selectedPharmacy } = usePharmacyContext()
@@ -57,6 +61,7 @@ const DirectDispatchList = () => {
 
   const [status, setStatus] = useState(router.query.status || 'pending')
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
+  const [filterByStoreId, setFilterByStoreId] = useState(router.query.store || 'all')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -75,8 +80,30 @@ const DirectDispatchList = () => {
     setStatus(newValue)
   }
 
+  useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.log('error', error)
+    }
+  }
+
   const fetchTableData = useCallback(
-    async (sort, q, column, status, page, limit) => {
+    async (sort, q, column, status, filterByStoreId, page, limit) => {
       try {
         setLoading(true)
 
@@ -86,7 +113,8 @@ const DirectDispatchList = () => {
           column,
           page: page ? page : paginationModel.page + 1,
           limit: limit ? limit : paginationModel.pageSize,
-          status: filterSwitch === true && status === 'all' ? 'completed' : status
+          status: filterSwitch === true && status === 'all' ? 'completed' : status,
+          search_store: filterByStoreId === 'all' ? '' : filterByStoreId
         }
 
         await getLocalDispatchItemsList({ params: params }).then(res => {
@@ -127,7 +155,7 @@ const DirectDispatchList = () => {
 
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus, filterByStoreId)
     } else {
     }
   }
@@ -138,7 +166,7 @@ const DirectDispatchList = () => {
       const currentStatus = filterSwitch ? 'completed' : status
 
       try {
-        await fetchTableData(sort, q, column, currentStatus)
+        await fetchTableData(sort, q, column, currentStatus, filterByStoreId)
       } catch (error) {
         console.error(error)
       }
@@ -158,6 +186,7 @@ const DirectDispatchList = () => {
       q: searchValue,
       column: sortColumn,
       status: status,
+      store: filterByStoreId,
       page: 0,
       limit: 10
     })
@@ -167,7 +196,7 @@ const DirectDispatchList = () => {
 
     const tabStatus = status === 'all' ? currentStatus : status
 
-    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    fetchTableData(sort, searchValue, sortColumn, tabStatus, filterByStoreId)
     updateUrlParams({
       sort,
       q: searchValue,
@@ -176,6 +205,7 @@ const DirectDispatchList = () => {
       page: paginationModel.page,
       limit: paginationModel.pageSize,
       filterSwitch
+      // store: filterByStoreId,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, fetchTableData, filterSwitch, selectedPharmacy.id])
@@ -212,13 +242,13 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -229,7 +259,15 @@ const DirectDispatchList = () => {
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_number}
         </Typography>
       )
@@ -240,7 +278,15 @@ const DirectDispatchList = () => {
       field: 'request_date',
       headerName: 'Dispatched date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
         </Typography>
       )
@@ -249,9 +295,17 @@ const DirectDispatchList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'to_store',
-      headerName: 'Dispatched To',
+      headerName: 'Dispatch To',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.to_store}
         </Typography>
       )
@@ -272,11 +326,20 @@ const DirectDispatchList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'total_qty',
-      headerName: 'Total Qty',
+      headerName: 'Total Quantity',
       type: 'number',
-      align: 'right',
+      headerAlign: 'left',
+      align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.total_qty}
         </Typography>
       )
@@ -330,7 +393,7 @@ const DirectDispatchList = () => {
       flex: 0.3,
       Width: 40,
       field: 'created_by_user_name',
-      headerName: 'Dispatched by ',
+      headerName: 'Returned by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -380,6 +443,12 @@ const DirectDispatchList = () => {
     </div>
   )
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Direct Dispatch</Typography>
+    </>
+  )
+
   const tableData = () => {
     return (
       <>
@@ -388,58 +457,141 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={'Local Dispatch List'} action={headerAction} />
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+              <CardHeader title={title} action={headerAction} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      // borderRadius: '4px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Full width within the grid item
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      fullWidth
+                      onChange={e => handleSearch(e.target.value)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
+                {/* Group of two boxes on the right */}
+                <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+                  {selectedPharmacy.type === 'central' && (
+                    <Grid
+                      item
+                      sx={{
+                        width: '245px',
+                        height: '50px', // Increased height
+                        borderRadius: '8px',
+                        paddingLeft: '12px',
+                        paddingRight: '12px'
+                      }}
+                    >
+                      <FormControl fullWidth size='small'>
+                        <InputLabel>Filter by Stores</InputLabel>
+                        <Select
+                          fullWidth
+                          size='small'
+                          value={filterByStoreId}
+                          label='Filter by Stores'
+                          onChange={e => {
+                            setTotal(0)
+                            setPaginationModel({ page: 0, pageSize: 10 })
+                            setFilterByStoreId(e.target.value)
+                          }}
+                        >
+                          <MenuItem value='all'>All</MenuItem>
+                          {stores.length > 0 &&
+                            stores.map(store => (
+                              <MenuItem key={store?.id} value={store?.id}>
+                                {store?.name}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  )}
+
+                  <Grid
+                    item
+                    sx={{
+                      width: '245px',
+                      height: '50px', // Increased height
+                      borderRadius: '8px',
+                      paddingLeft: '12px',
+                      paddingRight: '12px',
+                      mr: 1
+                    }}
+                  >
+                    <FormControl fullWidth size='small'>
+                      <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                      <Select
+                        size='small'
+                        value={''}
+                        label='Filter by days'
+                        onChange={e => {
+                          filterByDays(e.target.value)
+                          setSelectDays(e.target.value)
+                        }}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        <MenuItem value='3'>3 Days</MenuItem>
+                        <MenuItem value='7'>3 to 7 Days</MenuItem>
+                        <MenuItem value='15'>7 to 15 Days</MenuItem>
+                        <MenuItem value='16'>15 Days</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                  {status === 'all' || status === 'completed' ? (
+                    <Box sx={{ float: 'right', mt: 1 }}>
+                      <FormControlLabel
+                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        label='Completed'
+                        labelPlacement='end'
+                      />
+                    </Box>
+                  ) : null}
+                </Grid>
+              </Box>
+
+              <Grid
+                sx={{
+                  mx: 4 // Add margin to both left and right
                 }}
-                columnVisibilityModel={{
-                  id: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onRowClick={onRowClick}
-              />
+              >
+                <TableData
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
             </Card>
           </>
         )}

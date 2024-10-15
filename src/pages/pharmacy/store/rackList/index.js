@@ -18,16 +18,27 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, CardHeader, TextField } from '@mui/material'
+import { useTheme } from '@emotion/react'
+
 
 import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
+import TableData from 'src/views/table/data-grid/TableData'
+import { escapeRegExp } from '@mui/x-data-grid/utils/utils'
 
 const ListOfRacks = () => {
+  const theme = useTheme()
+
   const [racks, setRacks] = useState([])
   const [loader, setLoader] = useState(false)
   const [deleteRowId, setDeleteRowId] = useState('')
+  const [data, setData] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [searchText, setSearchText] = useState('')
+  const [filteredData, setFilteredData] = useState([])
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   // ** State
   const [open, setOpen] = useState(false)
@@ -155,9 +166,31 @@ const ListOfRacks = () => {
     getRacksLists()
   }, [selectedPharmacy.id])
 
+  useEffect(() => {
+    setData(racks)
+  }, [racks])
+
   // useEffect(() => {
   //   getRacksLists()
   // }, [selectedPharmacy])
+  const handleSearch = searchValue => {
+    setSearchText(searchValue)
+    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
+
+    const filteredRows = data.filter(row => {
+      return Object.keys(row).some(field => {
+        // @ts-ignore
+        //   return searchRegex.test(row[field].toString())
+        // })
+        return row[field]?.toString() && searchRegex.test(row[field].toString())
+      })
+    })
+    if (searchValue.length) {
+      setFilteredData(filteredRows)
+    } else {
+      setFilteredData([])
+    }
+  }
 
   const columns = [
     {
@@ -275,13 +308,88 @@ const ListOfRacks = () => {
     </div>
   )
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+      Rack List
+      </Typography>
+    </>
+  )
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <>
-          <TableWithFilter TableTitle='Rack List' headerActions={addRackButton} columns={columns} rows={racks} />
+           {/* <TableWithFilter TableTitle={title} headerActions={addRackButton} columns={columns} rows={racks} /> */}
+          <Card sx={{ cursor: 'pointer' }}>
+          <CardHeader title={title} action={addRackButton} />
+
+          <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {/* Left Box (Search Field) */}
+            <Grid item xs={8}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  ml: 5,
+                  height: '40px',
+                  width: '250px' // Set a fixed width for all status
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+          </Box>
+          <Grid
+            sx={{
+              mx: 4
+            }}
+          >
+            <TableData
+              onRowClick={""}
+              indexedRows={filteredData.length ? filteredData : data}
+              total={""}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={""}
+              setPaginationModel={setPaginationModel}
+              loading={""}
+              searchValue={searchValue}
+            />
+          </Grid>
+        </Card>
 
           <ConfirmDialog
             closeDialog={handleClose}

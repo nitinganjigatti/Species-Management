@@ -7,7 +7,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, Tooltip } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, Tooltip, TextField } from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
@@ -28,9 +28,15 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+
 import Chip from '@mui/material/Chip'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ListOfStockAdjusted = () => {
+  const theme = useTheme()
+
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -154,7 +160,7 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'sl',
       headerName: 'SL ',
@@ -189,9 +195,9 @@ const ListOfStockAdjusted = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
-      align: 'right',
+      align: 'left',
       field: 'adjustment_quantity',
       headerName: 'Adjustment quantity',
       renderCell: params => (
@@ -316,11 +322,82 @@ const ListOfStockAdjusted = () => {
     </div>
   )
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+      Stock Adjustment List
+      </Typography>
+    </>
+  )
+
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title='Stock Adjustment List' action={headerAction} />
-        <DataGrid
+        <CardHeader title= {title} action={headerAction} />
+        <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {/* Left Box (Search Field) */}
+            <Grid item xs={8}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  ml: 5,
+                  height: '40px',
+                  width: '250px' // Set a fixed width for all status
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+          </Box>
+          <Grid
+            sx={{
+              mx: 4
+            }}
+          >
+            <TableData
+              onRowClick= {""}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
+        {/* <DataGrid
           sx={{
             '.MuiDataGrid-cell:focus': {
               outline: 'none'
@@ -360,7 +437,7 @@ const ListOfStockAdjusted = () => {
               onChange: event => handleSearch(event.target.value)
             }
           }}
-        />
+        /> */}
       </Card>
     )
   }

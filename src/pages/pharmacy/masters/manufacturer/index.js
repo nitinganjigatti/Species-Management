@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Grid, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
@@ -28,12 +28,16 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
+import { useTheme } from '@emotion/react'
+
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ManufacturerList = () => {
+  const theme = useTheme()
   const [manufacturers, setManufacturers] = useState({})
   const [loader, setLoader] = useState(false)
 
@@ -266,6 +270,12 @@ const ManufacturerList = () => {
     sl_no: getSlNo(index)
   }))
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Manufacturers</Typography>
+    </>
+  )
+
   return (
     <>
       {/* {selectedPharmacy.type === 'central' ? ( */}
@@ -276,8 +286,59 @@ const ManufacturerList = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Manufacturers' action={headerAction} />
-                <DataGrid
+                <CardHeader title={title} action={headerAction} />
+                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                  {/* Left Box (Search Field) */}
+                  <Grid item xs={8}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        ml: 5,
+                        height: '40px',
+                        width: '250px' // Set a fixed width for all status
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                </Box>
+                <Grid
+                  sx={{
+                    mx: 4
+                  }}
+                >
+                  <TableData
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+                {/* <DataGrid
                   columnVisibilityModel={{
                     id: false
                   }}
@@ -307,7 +368,7 @@ const ManufacturerList = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                /> */}
               </Card>
               <AddManufacturer
                 drawerWidth={400}

@@ -20,7 +20,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Tooltip } from '@mui/material'
+import { Box, TextField, Tooltip } from '@mui/material'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -29,8 +29,11 @@ import Utility from 'src/utility'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
+import { useTheme } from '@emotion/react'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const RequestList = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -129,10 +132,18 @@ const RequestList = () => {
 
       try {
         setLoading(true)
+
+        // if (
+        //   ((startDate !== '' || startDate !== undefined) && (endDate !== '' || endDate !== undefined)) ||
+        //   ((filterDates?.startDate !== '' || filterDates?.startDate !== undefined) &&
+        //     (filterDates?.endDate !== '' || filterDates?.endDate !== undefined))
+        // )
+
         if (
-          ((startDate !== '' || startDate !== undefined) && (endDate !== '' || endDate !== undefined)) ||
-          ((filterDates?.startDate !== '' || filterDates?.startDate !== undefined) &&
-            (filterDates?.endDate !== '' || filterDates?.endDate !== undefined))
+          startDate &&
+          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
+          filterDates?.startDate &&
+          filterDates?.endDate // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             type: 'request',
@@ -343,10 +354,14 @@ const RequestList = () => {
           break
       }
     } else {
+      // setFilterDates({sta})
+
       setFilterDates({ startDate: '', endDate: '' })
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
+
+  // console.log("Rows List >>", rows)
 
   // useEffect(() => {
   //   console.log('useEffect', 2)
@@ -369,22 +384,22 @@ const RequestList = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      flex: 0.13,
+      Width: 20,
       field: 'sl_no',
-      headerName: 'SL',
+      headerName: 'S.No',
 
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {/* {params.row.sl_no} */}
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
 
     {
-      flex: 0.05,
-      Width: 40,
+      flex: 0.03,
+      Width: 20,
       field: 'priority',
       headerName: '',
       type: 'number',
@@ -408,82 +423,139 @@ const RequestList = () => {
       hide: true,
       renderCell: params => (
         <>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.request_number}
           </Typography>
         </>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
     },
     {
-      flex: 0.3 / 2,
+      flex: 0.4 / 2,
       minWidth: 20,
       field: 'request',
-      headerName: 'Days',
+      headerName: 'Days Since',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.daysFromToday(params.row.request_date)}
         </Typography>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'request_date',
       headerName: 'Request Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'last_shipping_date',
-      headerName: 'Recent shipping',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'last_shipping_date',
+    //   headerName: 'Recent shipping',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+    //     </Typography>
+    //   )
+    // },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'total_qty',
-      headerName: 'TOTAL ITEMS',
+      headerName: 'REQUESTED ITEMS',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.total_qty}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'fulfilled_qty',
-
-      headerName: 'Balance',
+      headerName: 'Dispatch Pending',
+      headerAlign: 'left',
       type: 'number',
-      align: 'right',
+      align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
         </Typography>
       )
@@ -551,7 +623,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.5,
       Width: 40,
       field: 'created_by_user_name',
       headerName: 'Requested by ',
@@ -585,6 +657,12 @@ const RequestList = () => {
     </div>
   )
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Request List</Typography>
+    </>
+  )
+
   const tableData = () => {
     return (
       <>
@@ -592,62 +670,114 @@ const RequestList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Request List' action={headerAction} />
-            <Grid container sx={{ display: 'flex' }}>
-              <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
-                <FormControl fullWidth size='small'>
-                  <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
-                  <Select
-                    size='small'
-                    value={selectDays}
-                    label='Filter by days'
-                    onChange={e => {
-                      filterByDays(e.target.value)
-                      setSelectDays(e.target.value)
+            <CardHeader title={title} action={headerAction} />
+
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+
+              {/* Group of two boxes on the right */}
+              <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+                {selectedPharmacy.type === 'central' && (
+                  <Grid
+                    item
+                    sx={{
+                      width: '245px',
+                      height: '50px', // Increased height
+                      borderRadius: '8px',
+                      paddingLeft: '12px',
+                      paddingRight: '12px'
                     }}
                   >
-                    <MenuItem value='all'>All</MenuItem>
-                    <MenuItem value='3'>3 Days</MenuItem>
-                    <MenuItem value='7'>3 to 7 Days </MenuItem>
-                    <MenuItem value='15'>7 to 15 Days</MenuItem>
-                    <MenuItem value='16'>15 Days</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
-                {selectedPharmacy.type === 'central' ? (
+                    <FormControl fullWidth size='small'>
+                      <InputLabel>Filter by Stores</InputLabel>
+                      <Select
+                        fullWidth
+                        size='small'
+                        value={filterByStoreId}
+                        label='Filter by Stores'
+                        onChange={e => {
+                          setTotal(0)
+                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setFilterByStoreId(e.target.value)
+                        }}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        {stores.length > 0 &&
+                          stores.map(store => (
+                            <MenuItem key={store?.id} value={store?.id}>
+                              {store?.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+
+                <Grid
+                  item
+                  sx={{
+                    width: '245px',
+                    height: '50px', // Increased height
+                    borderRadius: '8px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
+                    mr: 1
+                  }}
+                >
                   <FormControl fullWidth size='small'>
-                    <InputLabel fullWidth>Filter by Stores</InputLabel>
+                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
                     <Select
-                      fullWidth
                       size='small'
-                      value={filterByStoreId}
-                      label='Filter by Stores'
+                      value={selectDays}
+                      label='Filter by days'
                       onChange={e => {
-                        setTotal(0)
-                        setPaginationModel({ page: 0, pageSize: 10 })
-                        setFilterByStoreId(e.target.value)
+                        filterByDays(e.target.value)
+                        setSelectDays(e.target.value)
                       }}
                     >
                       <MenuItem value='all'>All</MenuItem>
-                      {stores.length > 0
-                        ? stores.map(store => {
-                            return (
-                              <MenuItem key={store?.id} value={store?.id}>
-                                {store?.name}
-                              </MenuItem>
-                            )
-                          })
-                        : null}
+                      <MenuItem value='3'>3 Days</MenuItem>
+                      <MenuItem value='7'>3 to 7 Days</MenuItem>
+                      <MenuItem value='15'>7 to 15 Days</MenuItem>
+                      <MenuItem value='16'>15 Days</MenuItem>
                     </Select>
                   </FormControl>
-                ) : null}
+                </Grid>
               </Grid>
-
-              {/* <Grid item xs={12} sm={6} md={6} sx={{ ml: 4 }}></Grid> */}
               <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                 {status === 'all' || status === 'completed' ? (
-                  <Box sx={{ float: 'right' }}>
+                  <Box sx={{ float: 'right', mt: 1 }}>
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
@@ -656,49 +786,25 @@ const RequestList = () => {
                   </Box>
                 ) : null}
               </Grid>
-            </Grid>
+            </Box>
 
-            <DataGrid
+            <Grid
               sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
+                mx: 4
               }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              disableColumnMenu
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onRowClick={onRowClick}
-            />
+            >
+              <TableData
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
           </Card>
         )}
       </>

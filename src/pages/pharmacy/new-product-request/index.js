@@ -18,7 +18,7 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
-import { Button, Card, CardContent, Grid, debounce } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid, TextField, debounce } from '@mui/material'
 
 import {
   addNonExistingProductStatus,
@@ -32,11 +32,15 @@ import Utility from 'src/utility'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { useTheme } from '@emotion/react'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
+import TableData from 'src/views/table/data-grid/TableData'
 
 export default function NewProductList() {
+  const theme = useTheme()
+
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
@@ -69,7 +73,7 @@ export default function NewProductList() {
 
   const columns = [
     {
-      flex: 0.2,
+      flex: 0.3,
       Width: 10,
       field: 'request_number',
       headerName: 'Request Number',
@@ -122,7 +126,7 @@ export default function NewProductList() {
       )
     },
     selectedPharmacy?.type === 'central' && {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'requested_by',
       headerName: 'Requested User',
@@ -138,7 +142,8 @@ export default function NewProductList() {
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
-      align: 'right',
+      headerAlign:"left",
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row.request_items?.map((item, index) => (
@@ -306,44 +311,83 @@ export default function NewProductList() {
     sl_no: getSlNo(index)
   }))
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+        New Product Request List
+      </Typography>
+    </>
+  )
+
   const tableData = () => {
     return (
       <>
         <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader title='New Product Request List' action={headerAction} />
-          <DataGrid
-            sx={{ cursor: 'pointer' }}
-            columnVisibilityModel={{
-              id: false
+          <CardHeader title={title} action={headerAction} />
+
+          <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {/* Left Box (Search Field) */}
+            <Grid item xs={8}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  ml: 5,
+                  height: '40px',
+                  width: '250px' // Set a fixed width for all status
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+          </Box>
+          <Grid
+            sx={{
+              mx: 4
             }}
-            autoHeight
-            pagination
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbar }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            disableColumnMenu
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
-            }}
-            onRowClick={onRowClick}
-          />
+          >
+            <TableData
+              onRowClick={onRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
         </Card>
 
         {show && (

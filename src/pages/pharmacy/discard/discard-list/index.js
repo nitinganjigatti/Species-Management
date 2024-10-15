@@ -7,7 +7,7 @@ import { getDiscardList } from 'src/lib/api/pharmacy/discard'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, TextField } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -19,8 +19,12 @@ import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
+import { useTheme } from '@emotion/react'
+import TableData from 'src/views/table/data-grid/TableData'
+
 
 const ListOfDiscardProducts = () => {
+  const theme = useTheme()
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -117,7 +121,7 @@ const ListOfDiscardProducts = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'id',
       headerName: 'SL No',
@@ -157,7 +161,8 @@ const ListOfDiscardProducts = () => {
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
-      align: 'right',
+      headerAlign:"left",
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.total_qty}
@@ -170,7 +175,8 @@ const ListOfDiscardProducts = () => {
       field: 'discarded_date',
       headerName: 'Discarded Date',
       type: 'number',
-      align: 'right',
+      headerAlign:"left",
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
@@ -180,8 +186,8 @@ const ListOfDiscardProducts = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      flex: 0.2,
+      Width: 20,
       field: 'created_by_user_name',
       headerName: 'Discarded by ',
       renderCell: params => (
@@ -230,6 +236,15 @@ const ListOfDiscardProducts = () => {
     }
   }
 
+  
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+      Return to Supplier List
+      </Typography>
+    </>
+  )
+
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -238,49 +253,70 @@ const ListOfDiscardProducts = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Return to Supplier List' action={headerAction} />
-              <DataGrid
+              <CardHeader title={title} action={headerAction} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {/* Left Box (Search Field) */}
+            <Grid item xs={8}>
+              <Box
                 sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  ml: 5,
+                  height: '40px',
+                  width: '250px' // Set a fixed width for all status
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  id: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onRowClick={onRowClick}
-              />
+            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+          </Box>
+          <Grid
+            sx={{
+              mx: 4
+            }}
+          >
+            <TableData
+              onRowClick= {onRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
             </Card>
           </>
         )

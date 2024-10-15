@@ -17,17 +17,20 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+import { useTheme } from '@emotion/react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge } from '@mui/material'
+import { Box, Avatar, Badge, Grid, TextField } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ListOfLab = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -294,6 +297,14 @@ const ListOfLab = () => {
     sl_no: getSlNo(index)
   }))
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+       Lab List
+      </Typography>
+    </>
+  )
+
   return (
     <>
       {loader ? (
@@ -308,8 +319,71 @@ const ListOfLab = () => {
             show={showDialog}
           /> */}
           <Card>
-            <CardHeader title='Lab List' action={headerAction} />
-            <DataGrid
+            <CardHeader title={title} action={headerAction} />
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {/* Left Box (Search Field) */}
+            <Grid item xs={8}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  ml: 5,
+                  height: '40px',
+                  width: '250px' // Set a fixed width for all status
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+          </Box>
+          <Grid
+            sx={{
+              mx: 4
+            }}
+          >
+            <TableData
+              onRowClick= {""}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
+            {/* <DataGrid
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
@@ -338,7 +412,7 @@ const ListOfLab = () => {
                   }
                 }
               }}
-            />
+            /> */}
           </Card>
         </>
       )}

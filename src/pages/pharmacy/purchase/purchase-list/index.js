@@ -25,6 +25,8 @@ import { Box } from '@mui/material'
 
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
+import { useTheme } from '@emotion/react'
+
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
@@ -36,8 +38,10 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ListOfPurchase = () => {
+  const theme = useTheme()
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -231,6 +235,12 @@ const ListOfPurchase = () => {
     }
   }
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Inventory List</Typography>
+    </>
+  )
+
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -239,8 +249,59 @@ const ListOfPurchase = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Inventory List' action={headerAction} />
-              <DataGrid
+              <CardHeader title={title} action={headerAction} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                  {/* Left Box (Search Field) */}
+                  <Grid item xs={8}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        ml: 5,
+                        height: '40px',
+                        width: '250px' // Set a fixed width for all status
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                </Box>
+                 <Grid
+                  sx={{
+                    mx: 4
+                  }}
+                >
+                  <TableData
+                     onRowClick={onRowClick}
+                     indexedRows={indexedRows}
+                     total={total}
+                     columns={columns}
+                    paginationModel={paginationModel}
+                     handleSortModel={handleSortModel}
+                   setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                   />
+                </Grid> 
+              {/* <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
                     outline: 'none'
@@ -281,7 +342,7 @@ const ListOfPurchase = () => {
                   }
                 }}
                 onRowClick={onRowClick}
-              />
+              /> */}
             </Card>
           </>
         )
