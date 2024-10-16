@@ -43,6 +43,7 @@ import { useRouter } from 'next/router'
 import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
+import ExcelExportButton from 'src/views/pages/egg/eggs/exportExcel'
 
 const EggList = () => {
   const theme = useTheme()
@@ -56,6 +57,7 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+  console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -79,6 +81,7 @@ const EggList = () => {
   const [openNecropsy, setOpenNecropsy] = useState(false)
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
   const [selectionEggModel, setSelectionEggModel] = useState([])
+  const [batchList, setBatchList] = useState([])
 
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
@@ -2621,6 +2624,19 @@ const EggList = () => {
     )
   }
 
+  const headerAction = (
+    <>
+      <div>
+        <ExcelExportButton
+          tab_Value={tab_Value}
+          subTab_value={subTab_value}
+          data={tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? batchList : rows}
+          filename='eggs_data.xlsx'
+        />
+      </div>
+    </>
+  )
+
   return (
     <>
       {egg_collection_permission ? (
@@ -2635,7 +2651,7 @@ const EggList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Egg List' />
+            <CardHeader title='Egg List' action={headerAction} />
 
             {/* <CardContent> */}
             <TabContext value={status}>
@@ -2891,6 +2907,7 @@ const EggList = () => {
                         setTotal={setTotal}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
+                        setBatchList={setBatchList}
                       />
                     </>
                   </TabPanel>
