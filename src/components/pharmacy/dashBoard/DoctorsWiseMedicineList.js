@@ -18,7 +18,8 @@ const DoctorsWiseMedicineList = ({
   statusFilter,
   handleSearchDoctors,
   searchbyDoctorname,
-  setsearchbyDoctorname
+  setsearchbyDoctorname,
+  handleDownloadExcel
 }) => {
   const handleClose = () => {
     setOpenDoctorListDrawer(false), setsearchbyDoctorname('')
@@ -109,7 +110,9 @@ const DoctorsWiseMedicineList = ({
               >
                 <Grid container alignItems='center'>
                   <Grid item>
-                    <CalendarTodayIcon sx={{ marginRight: 1, color: '#5F6D55', fontSize: '18px' }} />
+                    <CalendarTodayIcon
+                      sx={{ marginRight: 1, color: '#5F6D55', fontSize: '18px', position: 'relative', top: '-8px' }}
+                    />
                   </Grid>
                   <Grid item>
                     <Typography variant='body1' sx={{ fontWeight: '400', color: '#5F6D55', fontSize: '14px' }}>
@@ -129,6 +132,7 @@ const DoctorsWiseMedicineList = ({
                     '&:hover': { backgroundColor: '#58B06C' },
                     borderRadius: '4px'
                   }}
+                  onClick={handleDownloadExcel}
                 >
                   <Icon icon='material-symbols:download' />
                 </IconButton>

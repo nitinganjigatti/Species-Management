@@ -187,6 +187,21 @@ const StoreWiseDispatch = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
+                        {params?.row?.control_substance === '1' && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              background: 'linear-gradient(90deg, #FA6140 0%, #E93353 100%)',
+                              color: '#fff',
+                              paddingLeft: '3px',
+                              paddingRight: '3px',
+                              borderRadius: '5px',
+                              marginRight: '8px'
+                            }}
+                          >
+                            cs
+                          </span>
+                        )}
                         {params.row.store_name}
                       </Typography>
                     </Tooltip>
@@ -206,17 +221,21 @@ const StoreWiseDispatch = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     ) : (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     )}
                   </Box>
                 ),
@@ -228,13 +247,13 @@ const StoreWiseDispatch = () => {
                   const roundedValue = Math.round(value)
 
                   const formattedNumber = roundedValue.toLocaleString('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
+                    // style: 'currency',
+                    // currency: 'INR',
                     maximumFractionDigits: 0
                   })
                   console.log(formattedNumber, 'formattedNumber')
                   return (
-                    <Tooltip title={`Dispatch count: ${formattedNumber}`}>
+                    <Tooltip title={`Dispatch value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
@@ -247,6 +266,7 @@ const StoreWiseDispatch = () => {
             const rows = listItem.rowData.map(row => ({
               id: row.to_store_id,
               store_name: row.store_name,
+              control_substance: row.control_substance,
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
@@ -422,11 +442,10 @@ const StoreWiseDispatch = () => {
           const column = listItem.columnData.find(col => col.title === month)
 
           if (column) {
-            // Format the value with ₹ and commas, without decimal points
             const roundedValue = parseFloat(value)
             const formattedValue = roundedValue.toLocaleString('en-IN', {
-              style: 'currency',
-              currency: 'INR',
+              // style: 'currency',
+              // currency: 'INR',
               maximumFractionDigits: 0
             })
             rowData[`${column.title} (${column.sub_title})`] = formattedValue
@@ -447,7 +466,7 @@ const StoreWiseDispatch = () => {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `₹${formattedPurchaseValue}`
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
 
       console.log(rows, 'rows')
@@ -547,7 +566,11 @@ const StoreWiseDispatch = () => {
                 </Box>
               )}
               <Card>
-                <CardHeader title='Store wise dispatch' action={headerAction} />
+                <CardHeader
+                  title={router.asPath.includes('newdashboard') ? 'Top 5 stores' : 'Store wise dispatch'}
+                  action={headerAction}
+                  sx={{ p: '16px 16px 0px 16px' }}
+                />
                 {router.asPath.includes('newdashboard') ? (
                   ''
                 ) : (
@@ -599,6 +622,17 @@ const StoreWiseDispatch = () => {
                     </Grid>
                   </Grid>
                 )}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    mr: 5,
+                    pb: 2,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
+                </Box>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {

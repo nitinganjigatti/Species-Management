@@ -42,6 +42,9 @@ const dropdownOptions = [
 const StoreWiseDispatchDetail = () => {
   const router = useRouter()
   const theme = useTheme()
+  const selectedStore = localStorage.getItem('selectedStore')
+  const storeObject = JSON.parse(selectedStore)
+  const storeId = storeObject?.id
   const { id, store_name } = router.query
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -150,7 +153,8 @@ const StoreWiseDispatchDetail = () => {
         medicine_id: medicineId,
         from_date: fromDate,
         to_date: toDate,
-        q: doctorsearch
+        q: doctorsearch,
+        store_id: storeId
       }
 
       console.log('Payload:', payload)
@@ -312,6 +316,21 @@ const StoreWiseDispatchDetail = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
+                        {params?.row?.control_substance === '1' && (
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              background: 'linear-gradient(90deg, #FA6140 0%, #E93353 100%)',
+                              color: '#fff',
+                              paddingLeft: '3px',
+                              paddingRight: '3px',
+                              borderRadius: '5px',
+                              marginRight: '8px'
+                            }}
+                          >
+                            cs
+                          </span>
+                        )}
                         {params.row.stock_name}
                       </Typography>
                     </Tooltip>
@@ -334,17 +353,21 @@ const StoreWiseDispatchDetail = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Typography
-                        sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 3 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 3 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     ) : (
-                      <Typography
-                        sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 7 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 7 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     )}
                   </Box>
                 ),
@@ -355,13 +378,13 @@ const StoreWiseDispatchDetail = () => {
                   }
                   const roundedValue = Math.round(value)
                   const formattedNumber = roundedValue.toLocaleString('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
+                    // style: 'currency',
+                    // currency: 'INR',
                     maximumFractionDigits: 0
                   })
                   console.log(formattedNumber, 'formattedNumber')
                   return (
-                    <Tooltip title={`Dispatch count: ${formattedNumber}`}>
+                    <Tooltip title={`Dispatch value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
@@ -374,6 +397,7 @@ const StoreWiseDispatchDetail = () => {
             const rows = listItem.rowData.map(row => ({
               id: row.stock_id,
               stock_name: row.stock_name,
+              control_substance: row.control_substance,
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
@@ -505,7 +529,8 @@ const StoreWiseDispatchDetail = () => {
         medicine_id: medicineId,
         from_date: downloadFromDate,
         to_date: downloadToDate,
-        q: searchbyDoctorname
+        q: searchbyDoctorname,
+        store_id: storeId
       }
 
       const response = await getDoctorReportList(payload)
@@ -544,11 +569,13 @@ const StoreWiseDispatchDetail = () => {
         payload = {
           q: searchValue,
           filter: activeStatus,
+          store: id,
           medicine_ids: selectedFruits
         }
       } else {
         payload = {
           q: searchValue,
+          store: id,
           filter: activeStatus
         }
       }
@@ -576,8 +603,8 @@ const StoreWiseDispatchDetail = () => {
           if (column) {
             const roundedValue = parseFloat(value)
             const formattedValue = roundedValue.toLocaleString('en-IN', {
-              style: 'currency',
-              currency: 'INR',
+              // style: 'currency',
+              // currency: 'INR',
               maximumFractionDigits: 0
             })
             rowData[`${column.title} (${column.sub_title})`] = formattedValue
@@ -595,7 +622,7 @@ const StoreWiseDispatchDetail = () => {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `₹${formattedPurchaseValue}`
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
 
       const finalRows = [totalPurchaseRow, ...rows]
@@ -736,6 +763,17 @@ const StoreWiseDispatchDetail = () => {
                     </Grid>
                   </Grid>
                 )}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    mr: 5,
+                    pb: 2,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
+                </Box>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {

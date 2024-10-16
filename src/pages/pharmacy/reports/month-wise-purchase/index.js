@@ -41,6 +41,9 @@ const dropdownOptions = [
 const MonthWisePurchase = () => {
   const router = useRouter()
   const theme = useTheme()
+  const selectedStore = localStorage.getItem('selectedStore')
+  const storeObject = JSON.parse(selectedStore)
+  const storeId = storeObject?.id
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
@@ -148,7 +151,8 @@ const MonthWisePurchase = () => {
         medicine_id: medicineId,
         from_date: fromDate,
         to_date: toDate,
-        q: doctorsearch
+        q: doctorsearch,
+        store_id: storeId
       }
 
       console.log('Payload:', payload)
@@ -294,7 +298,24 @@ const MonthWisePurchase = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {params.row.stock_name}
+                        <>
+                          {params?.row?.control_substance === '1' && (
+                            <span
+                              style={{
+                                display: 'inline-block',
+                                background: 'linear-gradient(90deg, #FA6140 0%, #E93353 100%)',
+                                color: '#fff',
+                                paddingLeft: '3px',
+                                paddingRight: '3px',
+                                borderRadius: '5px',
+                                marginRight: '8px'
+                              }}
+                            >
+                              cs
+                            </span>
+                          )}
+                          {params.row.stock_name}
+                        </>
                       </Typography>
                     </Tooltip>
                     {/* <Typography sx={{ fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
@@ -316,17 +337,21 @@ const MonthWisePurchase = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     ) : (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     )}
                   </Box>
                 ),
@@ -337,13 +362,13 @@ const MonthWisePurchase = () => {
                   }
                   const roundedValue = Math.round(value)
                   const formattedNumber = roundedValue.toLocaleString('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
+                    // style: 'currency',
+                    // currency: 'INR',
                     maximumFractionDigits: 0
                   })
                   console.log(formattedNumber, 'formattedNumber')
                   return (
-                    <Tooltip title={`Purchase count: ${formattedNumber}`}>
+                    <Tooltip title={`Purchase value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
@@ -356,6 +381,7 @@ const MonthWisePurchase = () => {
             const rows = listItem.rowData.map(row => ({
               id: row.stock_item_id,
               stock_name: row.stock_name,
+              control_substance: row.control_substance,
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
@@ -496,7 +522,8 @@ const MonthWisePurchase = () => {
         medicine_id: medicineId,
         from_date: downloadFromDate,
         to_date: downloadToDate,
-        q: searchbyDoctorname
+        q: searchbyDoctorname,
+        store_id: storeId
       }
 
       const response = await getDoctorReportList(payload)
@@ -568,8 +595,8 @@ const MonthWisePurchase = () => {
           if (column) {
             const roundedValue = parseFloat(value)
             const formattedValue = roundedValue.toLocaleString('en-IN', {
-              style: 'currency',
-              currency: 'INR',
+              // style: 'currency',
+              // currency: 'INR',
               maximumFractionDigits: 0
             })
             rowData[`${column.title} (${column.sub_title})`] = formattedValue
@@ -589,7 +616,7 @@ const MonthWisePurchase = () => {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `₹${formattedPurchaseValue}`
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
 
       const finalRows = [totalPurchaseRow, ...rows]
@@ -718,7 +745,17 @@ const MonthWisePurchase = () => {
                     </Grid>
                   </Grid>
                 )}
-
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    mr: 5,
+                    pb: 2,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
+                </Box>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {

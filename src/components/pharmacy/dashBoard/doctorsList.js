@@ -117,10 +117,12 @@ const MedicineNamedoctorsList = ({
               >
                 <Grid container alignItems='center'>
                   <Grid item>
-                    <CalendarTodayIcon sx={{ marginRight: 1, color: '#5F6D55', fontSize: '18px' }} />
+                    <CalendarTodayIcon
+                      sx={{ marginRight: 1, color: '#5F6D55', fontSize: '18px', position: 'relative', top: '-8px' }}
+                    />
                   </Grid>
-                  <Grid item>
-                    <Typography variant='body1' sx={{ fontWeight: '400', color: '#5F6D55', fontSize: '14px' }}>
+                  <Grid item sx={{ ml: 2 }}>
+                    <Typography variant='body1' sx={{ fontWeight: '400', color: '#5F6D55', fontSize: '15px' }}>
                       {capitalizeFirstLetter(statusFilter)}
                     </Typography>
                     <Typography variant='body2' sx={{ color: '#3A4736', fontSize: '16px', fontWeight: 500 }}>
@@ -246,7 +248,7 @@ const MedicineNamedoctorsList = ({
                         ) : (
                           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                              {all?.shipped_count + ' nos.'}
+                              {all?.shipped_count ? all?.shipped_count + ' nos.' : '-'}
                             </Typography>
                             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
                               {'₹' + (Number(all.shipped_value) ? Number(all.shipped_value).toFixed(2) : '0.00')}

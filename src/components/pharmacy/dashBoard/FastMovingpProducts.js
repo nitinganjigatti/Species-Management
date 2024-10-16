@@ -96,13 +96,13 @@ const FastMovingProducts = () => {
                           {/* <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
                             {row?.total_nos ? `${row?.total_nos}nos` : 'NA'}
                           </Typography> */}
-                          <Chip
+                          {/* <Chip
                             sx={{ ml: '6px', fontSize: '12px' }}
                             size='small'
                             variant='outlined'
                             label={row?.total_nos ? `${row?.total_nos}nos` : 'NA'}
                             color='error'
-                          />
+                          /> */}
                         </Box>
                       </TableCell>
                     </TableRow>

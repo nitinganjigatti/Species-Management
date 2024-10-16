@@ -13,6 +13,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+import { AuthContext } from 'src/context/AuthContext'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -40,6 +41,10 @@ const dropdownOptions = [
 const MonthWiseDispatch = () => {
   const router = useRouter()
   const theme = useTheme()
+
+  const selectedStore = localStorage.getItem('selectedStore')
+  const storeObject = JSON.parse(selectedStore)
+  const storeId = storeObject?.id
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
@@ -149,7 +154,8 @@ const MonthWiseDispatch = () => {
         medicine_id: medicineId,
         from_date: fromDate,
         to_date: toDate,
-        q: doctorsearch
+        q: doctorsearch,
+        store_id: storeId
       }
 
       console.log('Payload:', payload)
@@ -296,7 +302,24 @@ const MonthWiseDispatch = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {params.row.stock_name}
+                        <>
+                          {params?.row?.control_substance === '1' && (
+                            <span
+                              style={{
+                                display: 'inline-block',
+                                background: 'linear-gradient(90deg, #FA6140 0%, #E93353 100%)',
+                                color: '#fff',
+                                paddingLeft: '3px',
+                                paddingRight: '3px',
+                                borderRadius: '5px',
+                                marginRight: '8px'
+                              }}
+                            >
+                              cs
+                            </span>
+                          )}
+                          {params.row.stock_name}
+                        </>
                       </Typography>
                     </Tooltip>
                     {/* <Typography sx={{ fontSize: '0.75rem', color: '#1F415B', fontWeight: 400 }}>
@@ -318,17 +341,21 @@ const MonthWiseDispatch = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     ) : (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
-                      >
-                        {` (₹${(column.total_purchase_value / 100000).toFixed(2)} )`}
-                      </Typography>
+                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
+                        >
+                          {` (${(column.total_purchase_value / 100000).toFixed(2)} )`}
+                        </Typography>
+                      </Tooltip>
                     )}
                   </Box>
                 ),
@@ -341,13 +368,13 @@ const MonthWiseDispatch = () => {
                   const roundedValue = Math.round(value)
 
                   const formattedNumber = roundedValue.toLocaleString('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
+                    // style: 'currency',
+                    // currency: 'INR',
                     maximumFractionDigits: 0
                   })
                   console.log(formattedNumber, 'formattedNumber')
                   return (
-                    <Tooltip title={`Dispatch count: ${formattedNumber}`}>
+                    <Tooltip title={`Dispatch value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
@@ -360,6 +387,7 @@ const MonthWiseDispatch = () => {
             const rows = listItem.rowData.map(row => ({
               id: row.stock_id,
               stock_name: row.stock_name,
+              control_substance: row.control_substance,
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
@@ -501,7 +529,8 @@ const MonthWiseDispatch = () => {
         medicine_id: medicineId,
         from_date: downloadFromDate,
         to_date: downloadToDate,
-        q: searchbyDoctorname
+        q: searchbyDoctorname,
+        store_id: storeId
       }
 
       const response = await getDoctorReportList(payload)
@@ -573,8 +602,8 @@ const MonthWiseDispatch = () => {
           if (column) {
             const roundedValue = parseFloat(value)
             const formattedValue = roundedValue.toLocaleString('en-IN', {
-              style: 'currency',
-              currency: 'INR',
+              // style: 'currency',
+              // currency: 'INR',
               maximumFractionDigits: 0
             })
             rowData[`${column.title} (${column.sub_title})`] = formattedValue
@@ -593,7 +622,7 @@ const MonthWiseDispatch = () => {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `₹${formattedPurchaseValue}`
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
 
       const finalRows = [totalPurchaseRow, ...rows]
@@ -707,6 +736,19 @@ const MonthWiseDispatch = () => {
                     </Grid>
                   </Grid>
                 )}
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    mr: 5,
+                    pb: 2,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
+                </Box>
+
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {

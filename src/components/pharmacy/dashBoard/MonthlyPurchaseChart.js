@@ -31,26 +31,31 @@ const MonthlyPurchaseChart = () => {
     getMonthlyPurchases()
   }, [])
 
-  const fullMonths = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ]
+  // Create a mapping for full month names to short month names
+  const monthMapping = {
+    January: 'Jan',
+    February: 'Feb',
+    March: 'Mar',
+    April: 'Apr',
+    May: 'May',
+    June: 'Jun',
+    July: 'Jul',
+    August: 'Aug',
+    September: 'Sep',
+    October: 'Oct',
+    November: 'Nov',
+    December: 'Dec'
+  }
 
-  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  // Dynamically get the months from the API response
+  const monthsFromApi = purchaseList?.purchase_count[0] ? Object.keys(purchaseList.purchase_count[0]) : []
 
-  // Purchase counts and values from API
-  const purchaseCounts = fullMonths.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
-  const purchaseValues = fullMonths.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+  // Map the purchase count and value based on the dynamic month order from API
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+
+  // Convert full month names to short month names for the x-axis labels
+  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
 
   // Conditionally add series based on checkbox selections
   const series = []
@@ -107,7 +112,7 @@ const MonthlyPurchaseChart = () => {
       colors: ['#FA6140']
     },
     xaxis: {
-      categories: shortMonths,
+      categories: shortMonths, // Use short month names for x-axis labels
       labels: { show: true },
       axisTicks: { show: true },
       axisBorder: { show: true }

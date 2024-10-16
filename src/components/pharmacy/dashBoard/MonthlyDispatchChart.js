@@ -14,7 +14,6 @@ import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
 const MonthlyDispatchChart = () => {
   const theme = useTheme()
   const [purchaseList, setPurchaseList] = useState({ dispatch_count: [], dispatch_value: [] })
-
   const [showDispatchCount, setShowDispatchCount] = useState(true)
   const [showDispatchValue, setShowDispatchValue] = useState(true)
 
@@ -34,26 +33,31 @@ const MonthlyDispatchChart = () => {
     getMonthlyDispatches()
   }, [])
 
-  const fullMonths = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ]
+  // Create a mapping for full month names to short month names
+  const monthMapping = {
+    January: 'Jan',
+    February: 'Feb',
+    March: 'Mar',
+    April: 'Apr',
+    May: 'May',
+    June: 'Jun',
+    July: 'Jul',
+    August: 'Aug',
+    September: 'Sep',
+    October: 'Oct',
+    November: 'Nov',
+    December: 'Dec'
+  }
 
-  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  // Dynamically get the months from the API response
+  const monthsFromApi = purchaseList?.dispatch_count[0] ? Object.keys(purchaseList.dispatch_count[0]) : []
 
-  const purchaseCounts = fullMonths.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
+  // Map the dispatch count and value based on the dynamic month order from API
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
 
-  const purchaseValues = fullMonths.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
+  // Convert full month names to short month names for the x-axis labels
+  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
 
   // Conditionally add series based on checkbox selections
   const series = []
@@ -88,7 +92,6 @@ const MonthlyDispatchChart = () => {
           if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
             return `₹${value.toFixed(2)} lac`
           }
-
           return value.toFixed(0)
         }
       }
@@ -97,7 +100,7 @@ const MonthlyDispatchChart = () => {
     stroke: {
       width: [0, 3], // Adjust the thickness of the bar and line
       curve: 'smooth',
-      colors: ['#006D35', '#37BD69'] // Color for bar and line
+      colors: ['#006D35', '#37BD69']
     },
     grid: {
       show: true,
@@ -112,6 +115,7 @@ const MonthlyDispatchChart = () => {
       colors: ['#FA6140']
     },
     xaxis: {
+      // Use short month names from the API for x-axis labels
       categories: shortMonths,
       labels: {
         show: true
