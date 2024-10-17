@@ -189,7 +189,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     // },
 
     {
-      width: 320,
+      width: 280,
       sortable: false,
       disableColumnMenu: true,
       field: 'species',
@@ -226,7 +226,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '240px',
+                  width: '200px',
                   boxSizing: 'border-box'
                 }}
               >
@@ -247,7 +247,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  width: '240px'
+                  width: '200px'
                 }}
               >
                 {params.row?.default_common_name ? Utility?.toPascalSentenceCase(params.row.default_common_name) : '-'}
@@ -258,7 +258,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     },
     {
-      width: 140,
+      width: 120,
       field: 'total_eggs',
       sortable: false,
       disableColumnMenu: true,
@@ -302,11 +302,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     },
     {
-      width: 120,
+      width: 160,
       field: 'total_egg_in_nest',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'IN NEST',
+      headerName: 'CURRENTLY IN NEST',
       renderCell: params => (
         <Box
           sx={{
@@ -338,7 +338,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'eggs_to_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'EGGS TO NURSERY',
+      // headerName: 'EGGS TO NURSERY',
+      headerName: 'TRANSIT IN NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -374,11 +375,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     },
     {
-      width: 120,
+      width: 180,
       field: 'in_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'IN NURSERY',
+      headerName: 'CURRENTLY IN NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -415,7 +416,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
 
     {
-      width: 120,
+      width: 110,
       field: 'hatched_percentage',
       sortable: false,
       disableColumnMenu: true,
@@ -532,7 +533,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                width: '240px',
+                width: '200px',
                 boxSizing: 'border-box'
               }}
             >
@@ -773,7 +774,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                width: '240px',
+                width: '200px',
                 boxSizing: 'border-box'
               }}
             >
@@ -1062,7 +1063,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       <>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
           {/* Search Box */}
-          {/* <Box
+          <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -1085,9 +1086,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 }
               }}
             />
-          </Box> */}
+          </Box>
 
-          <Box>
+          {/* <Box>
             {status === 'species' && (
               <FormControl fullWidth>
                 <Autocomplete
@@ -1180,7 +1181,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 />
               </FormControl>
             )}
-          </Box>
+          </Box> */}
 
           {/* Date Pickers and Autocomplete */}
           {/* <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
