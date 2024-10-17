@@ -517,8 +517,8 @@ const DoctorWiseRequest = () => {
         const data = response.data
 
         const rows = data.list_items.map(item => ({
-          'Doctor Name': item.doctor_name,
           'Medicine Name': item.stock_name,
+          'Doctor Name': item.doctor_name,
           'Requested Count': item.requested_count,
           'Requested Value': item.requested_value
         }))
@@ -529,10 +529,10 @@ const DoctorWiseRequest = () => {
 
         // Create workbook and append the worksheet
         const workbook = utils.book_new()
-        utils.book_append_sheet(workbook, worksheet, 'DoctorList')
+        utils.book_append_sheet(workbook, worksheet, 'MedicineList')
 
         // Download the Excel file
-        writeFile(workbook, 'DoctorList.xlsx')
+        writeFile(workbook, 'MedicineList.xlsx')
       }
     } catch (e) {
       console.error('Error downloading Excel file', e)

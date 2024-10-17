@@ -224,22 +224,50 @@ const StoreWiseDispatch = () => {
                     )}
                   </Box>
                 ),
+                // renderCell: params => {
+                //   const value = Number(params.value)
+                //   if (isNaN(value)) {
+                //     return <span>{params.value}</span> // Show original value if it's not a number
+                //   }
+                //   const roundedValue = Math.round(value)
+
+                //   const formattedNumber = roundedValue.toLocaleString('en-IN', {
+                //     // style: 'currency',
+                //     // currency: 'INR',
+                //     maximumFractionDigits: 0
+                //   })
+                //   console.log(formattedNumber, 'formattedNumber')
+                //   return (
+                //     <Tooltip title={`Dispatch value: ${formattedNumber}`}>
+                //       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
+                //     </Tooltip>
+                //   )
+                // },
                 renderCell: params => {
                   const value = Number(params.value)
                   if (isNaN(value)) {
                     return <span>{params.value}</span> // Show original value if it's not a number
                   }
-                  const roundedValue = Math.round(value)
 
-                  const formattedNumber = roundedValue.toLocaleString('en-IN', {
-                    // style: 'currency',
-                    // currency: 'INR',
-                    maximumFractionDigits: 0
+                  const roundedValue = Math.round(value)
+                  const valueInLac = roundedValue / 100000 // Convert to lakhs
+
+                  // Format the number in lakhs
+                  const formattedLac = valueInLac.toLocaleString('en-IN', {
+                    maximumFractionDigits: 2 // Display up to 2 decimal places for lakhs
                   })
-                  console.log(formattedNumber, 'formattedNumber')
+
+                  // Format the number in thousands (no conversion needed, just format it)
+                  const formattedThousands = roundedValue.toLocaleString('en-IN', {
+                    maximumFractionDigits: 0 // Display rounded number with no decimals for thousands
+                  })
+
+                  console.log(formattedLac, 'formattedLac')
+                  console.log(formattedThousands, 'formattedThousands')
+
                   return (
-                    <Tooltip title={`Dispatch value: ${formattedNumber}`}>
-                      <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
+                    <Tooltip title={`Dispatch value: ${formattedThousands}`}>
+                      <span style={{ color: '#006D35' }}>{`${formattedLac} `}</span>
                     </Tooltip>
                   )
                 },
@@ -432,7 +460,7 @@ const StoreWiseDispatch = () => {
               // currency: 'INR',
               maximumFractionDigits: 0
             })
-            rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            rowData[`${column.title} (${column.sub_title})`] = (formattedValue / 100000).toFixed(2)
           }
         })
 
