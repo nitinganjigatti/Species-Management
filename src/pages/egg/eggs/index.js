@@ -2493,7 +2493,7 @@ const EggList = () => {
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
             if (val === null || val.nursery_id === '') {
-              setDefaultNursery({ nursery_id: val.nursery_id, nursery_name: val.nursery_name })
+              setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
               setFilterByNurseryId('')
               write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
             } else {
