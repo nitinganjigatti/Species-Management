@@ -469,7 +469,6 @@ const DiscardedTableView = ({
   return (
     <Box>
       <EggTableHeader
-        tabValue={tabValue}
         totalCount={totalpage}
         setFilterList={setFilterList}
         filterList={filterList}
@@ -480,6 +479,7 @@ const DiscardedTableView = ({
         setSearchQuery={setSearchQuery}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
+        data={rows}
       />
       <DataGrid
         sx={{

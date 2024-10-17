@@ -38,10 +38,32 @@ const EggFilterDrawer = ({
   selectedDate,
   setSelectedDate
 }) => {
-  // console.log('filterList :>> ', filterList)
+  console.log('selectedOptions :>> ', selectedOptions)
   const theme = useTheme()
   const router = useRouter()
-  const { tab_Value = 'eggs_received', subTab_value } = router.query
+
+  const {
+    tab_Value = 'eggs_incubation',
+    subTab_value,
+    filter_list,
+    selected_options,
+    selected_filters_options
+  } = router.query
+
+  useEffect(() => {
+    if (filter_list) {
+      console.log('filter_List :>> ', filter_list)
+      setFilterList(JSON.parse(filter_list))
+    }
+    if (selected_options) {
+      console.log('selected_options :>> ', selected_options)
+      setSelectedOptions(JSON.parse(selected_options))
+    }
+    if (selected_filters_options) {
+      console.log('selected_filters_options :>> ', selected_filters_options)
+      setSelectedFiltersOptions(JSON.parse(selected_filters_options))
+    }
+  }, [])
 
   const leftMenu = [
     { id: 1, name: 'Stage' },

@@ -49,7 +49,8 @@ const EggList = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selected_nursery_id, tab_Value, subTab_value, page_value, search_value, selected_nursery_name } = router.query
+  const { tab_Value, subTab_value, page_value, search_value, filter_list, selected_options, selected_filters_options } =
+    router.query
 
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
@@ -57,7 +58,6 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -83,6 +83,7 @@ const EggList = () => {
   const [selectionEggModel, setSelectionEggModel] = useState([])
   const [batchList, setBatchList] = useState([])
 
+  // filter states
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
   const [selectedOptions, setSelectedOptions] = useState({
@@ -98,6 +99,21 @@ const EggList = () => {
   })
 
   const [filterList, setFilterList] = useState([])
+
+  useEffect(() => {
+    if (filter_list) {
+      // console.log('filter_List :>> ', filter_list)
+      setFilterList(JSON.parse(filter_list))
+    }
+    if (selected_options) {
+      // console.log('selected_options :>> ', selected_options)
+      setSelectedOptions(JSON.parse(selected_options))
+    }
+    if (selected_filters_options) {
+      // console.log('selected_filters_options :>> ', selected_filters_options)
+      setSelectedFiltersOptions(JSON.parse(selected_filters_options))
+    }
+  }, [])
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -793,20 +809,28 @@ const EggList = () => {
               AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      sortable: false,
+      field: 'identifier',
+      headerName: 'IDENTIFIER',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
 
-          {(params.row.local_id_type || params.row.local_identifier_value) && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.local_id_type} : {params.row.local_identifier_value}
-            </Typography>
-          )}
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.local_id_type}{' '}
+            {params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'}
+          </Typography>
         </Box>
       )
     },
@@ -2181,11 +2205,10 @@ const EggList = () => {
         tab_Value: status,
         subTab_value: isDiscarded,
         page_value: paginationModel?.page,
-
-        search_value: search_value ? search_value : ''
-
-        // selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
-        // selected_nursery_name: nursery_name ? nursery_name : ''
+        search_value: search_value ? search_value : '',
+        filter_list: JSON.stringify(filterList),
+        selected_options: JSON.stringify(selectedOptions),
+        selected_filters_options: JSON.stringify(selectedFiltersOptions)
       }
 
       // console.log('values :>> ', values)
@@ -2225,9 +2248,23 @@ const EggList = () => {
     setPaginationModel({ page: 0, pageSize: 10 })
     setSelectionEggModel([])
     setSearchQuery('')
-    router.push({ query: { ...router.query, tab_Value: newValue, search_value: '', page_value: 0 } }, undefined, {
-      shallow: true
-    })
+    router.push(
+      {
+        query: {
+          ...router.query,
+          tab_Value: newValue,
+          search_value: '',
+          page_value: 0,
+          filter_list: '',
+          selected_options: '',
+          selected_filters_options: ''
+        }
+      },
+      undefined,
+      {
+        shallow: true
+      }
+    )
   }
 
   const handleTabs = (event, newValue) => {
@@ -2241,9 +2278,23 @@ const EggList = () => {
     setSearchQuery('')
     setSelectionEggModel([])
 
-    router.push({ query: { ...router.query, subTab_value: newValue, search_value: '', page_value: 0 } }, undefined, {
-      shallow: true
-    })
+    router.push(
+      {
+        query: {
+          ...router.query,
+          subTab_value: newValue,
+          search_value: '',
+          page_value: 0,
+          filter_list: '',
+          selected_options: '',
+          selected_filters_options: ''
+        }
+      },
+      undefined,
+      {
+        shallow: true
+      }
+    )
   }
 
   const fetchTableData = useCallback(
@@ -2310,8 +2361,9 @@ const EggList = () => {
               ? discardedTab
               : statusRecived
         }
-        console.log('params table data :>> ', isDiscarded)
-        console.log('params table data :>> ', status)
+
+        // console.log('params table data :>> ', isDiscarded)
+        // console.log('params table data :>> ', status)
         if (
           (status === 'eggs_discarded' && isDiscarded === 'eggs_discarded_at_nursery') ||
           status === 'eggs_received' ||
@@ -2471,7 +2523,6 @@ const EggList = () => {
             status === 'all' ? (
               <>
                 <EggTableHeader
-                  tabValue={status}
                   totalCount={total}
                   setFilterList={setFilterList}
                   filterList={filterList}
@@ -2482,6 +2533,7 @@ const EggList = () => {
                   setSearchQuery={setSearchQuery}
                   selectedOptions={selectedOptions}
                   setSelectedOptions={setSelectedOptions}
+                  data={rows}
                 />
                 <DataGrid
                   sx={{
@@ -2540,7 +2592,6 @@ const EggList = () => {
               status === 'eggs_ready_to_be_discarded_at_nursery' && (
                 <Box>
                   <EggTableHeader
-                    tabValue={status}
                     totalCount={total}
                     setFilterList={setFilterList}
                     filterList={filterList}
@@ -2551,6 +2602,7 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
+                    data={rows}
                   />
 
                   <DataGrid
@@ -2624,18 +2676,17 @@ const EggList = () => {
     )
   }
 
-  const headerAction = (
-    <>
-      <div>
-        <ExcelExportButton
-          tab_Value={tab_Value}
-          subTab_value={subTab_value}
-          data={tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? batchList : rows}
-          filename='eggs_data.xlsx'
-        />
-      </div>
-    </>
-  )
+  // const headerAction = (
+  //   <>
+  //     <div>
+  //       <ExcelExportButton
+  //         tab_Value={tab_Value}
+  //         subTab_value={subTab_value}
+  //         data={tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? batchList : rows}
+  //       />
+  //     </div>
+  //   </>
+  // )
 
   return (
     <>
@@ -2651,7 +2702,11 @@ const EggList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Egg List' action={headerAction} />
+            <CardHeader
+              title='Egg List'
+
+              //  action={headerAction}
+            />
 
             {/* <CardContent> */}
             <TabContext value={status}>
@@ -2713,7 +2768,6 @@ const EggList = () => {
                 {/* {tableData()} */}
                 <Box sx={{ width: '100%', overflowX: 'auto' }}>
                   <EggTableHeader
-                    tabValue={status}
                     totalCount={total}
                     setFilterList={setFilterList}
                     filterList={filterList}
@@ -2724,6 +2778,7 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
+                    data={rows}
                   />
 
                   <DataGrid
@@ -2924,7 +2979,6 @@ const EggList = () => {
                     {/* {tableData()} */}
                     <>
                       <EggTableHeader
-                        tabValue={status}
                         totalCount={total}
                         setFilterList={setFilterList}
                         filterList={filterList}
@@ -2935,6 +2989,7 @@ const EggList = () => {
                         setSearchQuery={setSearchQuery}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
+                        data={rows}
                       />
 
                       <DataGrid
