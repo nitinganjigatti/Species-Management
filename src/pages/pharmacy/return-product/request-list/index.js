@@ -325,7 +325,7 @@ const ReturnRequestList = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.2,
       minWidth: 20,
       field: 'id',
       headerName: 'S.NO',

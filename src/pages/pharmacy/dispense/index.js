@@ -32,6 +32,17 @@ function Dispense() {
 
   const columns = [
     {
+      flex: 0.1,
+      Width: 40,
+      field: 'sl',
+      headerName: 'S.NO',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.sl_no + "."}
+        </Typography>
+      )
+    },
+    {
       flex: 0.2,
       minWidth: 20,
       field: 'dispense_id',

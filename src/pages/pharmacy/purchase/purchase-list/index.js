@@ -27,7 +27,6 @@ import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
 
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -135,13 +134,13 @@ const ListOfPurchase = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'sl',
-      headerName: 'SL ',
+      headerName: 'SL NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl}
+          {params.row.sl + "."}
         </Typography>
       )
     },
@@ -151,7 +150,15 @@ const ListOfPurchase = () => {
       field: 'po_date',
       headerName: 'Purchase Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.po_date)}
         </Typography>
       )
@@ -163,7 +170,15 @@ const ListOfPurchase = () => {
       field: 'po_no',
       headerName: 'Invoice NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.po_no}
         </Typography>
       )
@@ -174,7 +189,15 @@ const ListOfPurchase = () => {
       field: 'supplier_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.supplier_name}
         </Typography>
       )
@@ -185,7 +208,15 @@ const ListOfPurchase = () => {
       field: 'created_at',
       headerName: 'Entry Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.created_at)}
         </Typography>
       )
@@ -198,7 +229,15 @@ const ListOfPurchase = () => {
       type: 'number',
       align: 'right',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.net_amount}
         </Typography>
       )
@@ -251,56 +290,56 @@ const ListOfPurchase = () => {
             <Card>
               <CardHeader title={title} action={headerAction} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
-                  {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
-                    <Box
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
                           }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                </Box>
-                 <Grid
-                  sx={{
-                    mx: 4
-                  }}
-                >
-                  <TableData
-                     onRowClick={onRowClick}
-                     indexedRows={indexedRows}
-                     total={total}
-                     columns={columns}
-                    paginationModel={paginationModel}
-                     handleSortModel={handleSortModel}
-                   setPaginationModel={setPaginationModel}
-                    loading={loading}
-                    searchValue={searchValue}
-                   />
-                </Grid> 
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+              </Box>
+              <Grid
+                sx={{
+                  mx: 4
+                }}
+              >
+                <TableData
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
               {/* <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {

@@ -194,10 +194,10 @@ const ListOfRacks = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'S.NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid +"."}

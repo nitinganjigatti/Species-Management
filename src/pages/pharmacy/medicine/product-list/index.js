@@ -8,7 +8,6 @@ import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@emotion/react'
 
-
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
@@ -66,13 +65,13 @@ const ListOfMedicine = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      flex: 0.15,
+      Width: 30,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'SL NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + "."}
         </Typography>
       )
     },
@@ -82,7 +81,15 @@ const ListOfMedicine = () => {
       field: 'name',
       headerName: 'PRODUCT NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.name}
         </Typography>
       )
@@ -105,7 +112,15 @@ const ListOfMedicine = () => {
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
@@ -117,7 +132,15 @@ const ListOfMedicine = () => {
       field: 'manufacturer_name',
       headerName: 'Manufacturer Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span>
         </Typography>
       )
@@ -129,7 +152,15 @@ const ListOfMedicine = () => {
       field: 'created_at',
       headerName: 'Product Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_type}
         </Typography>
       )
@@ -163,7 +194,15 @@ const ListOfMedicine = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
         </Typography>
       )
@@ -388,8 +427,7 @@ const ListOfMedicine = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={7} md={7} sx={{ float: 'right',display:"flex",mr:5,mt:1 }}>
-               
+                  <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex', mr: 5, mt: 1 }}>
                     <FormControl fullWidth size='small'>
                       <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
                       <Select
@@ -406,7 +444,6 @@ const ListOfMedicine = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-              
                 </Box>
 
                 <Grid
@@ -426,7 +463,7 @@ const ListOfMedicine = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-                
+
                 {/* <DataGrid
                   sx={{ cursor: 'pointer' }}
                   columnVisibilityModel={{

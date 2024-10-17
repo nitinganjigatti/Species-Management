@@ -384,10 +384,10 @@ const RequestList = () => {
 
   const columns = [
     {
-      flex: 0.13,
-      Width: 20,
+      flex: 0.15,
+      Width: 40,
       field: 'sl_no',
-      headerName: 'S.No',
+      headerName: 'S.NO',
 
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -398,7 +398,7 @@ const RequestList = () => {
     },
 
     {
-      flex: 0.03,
+      flex: 0.1,
       Width: 20,
       field: 'priority',
       headerName: '',
@@ -416,7 +416,7 @@ const RequestList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'request_number',
       headerName: 'REQUEST ID',
@@ -438,7 +438,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.35,
       minWidth: 20,
       field: 'from_store',
       headerName: getRequestedText(),
@@ -457,8 +457,8 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.4 / 2,
-      minWidth: 20,
+      flex: 0.5 / 2,
+      minWidth: 40,
       field: 'request',
       headerName: 'Days Since',
       renderCell: params => (
@@ -476,7 +476,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.35,
       minWidth: 20,
       field: 'request_date',
       headerName: 'Request Date',
@@ -516,7 +516,7 @@ const RequestList = () => {
     // },
 
     {
-      flex: 0.3,
+      flex: 0.35,
       minWidth: 20,
       field: 'total_qty',
       headerName: 'REQUESTED ITEMS',
@@ -539,7 +539,7 @@ const RequestList = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.35,
       minWidth: 20,
       field: 'fulfilled_qty',
       headerName: 'Dispatch Pending',
@@ -561,7 +561,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'shipping_status',
       headerName: 'STATUS',

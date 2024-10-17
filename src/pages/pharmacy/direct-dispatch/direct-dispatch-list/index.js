@@ -241,10 +241,10 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.2,
       Width: 40,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -253,7 +253,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'request_number',
       headerName: 'Request Number',
@@ -269,7 +269,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'request_date',
       headerName: 'Dispatched date',
@@ -285,7 +285,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
@@ -301,7 +301,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'to_store',
       headerName: getRequestedText(),
@@ -318,7 +318,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'total_qty',
       headerName: 'Total Qty',
@@ -338,7 +338,7 @@ const DirectDispatchList = () => {
     },
     ,
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'shipping_status',
       headerName: 'Status',

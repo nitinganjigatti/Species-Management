@@ -160,10 +160,10 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.2,
       Width: 40,
       field: 'sl',
-      headerName: 'SL ',
+      headerName: 'S.NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl +"."}
@@ -172,7 +172,7 @@ const ListOfStockAdjusted = () => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 40,
       field: 'stock_name',
       headerName: 'Product Name',
@@ -188,7 +188,7 @@ const ListOfStockAdjusted = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       Width: 40,
       field: 'batch_no',
       headerName: 'Batch number ',
@@ -205,7 +205,7 @@ const ListOfStockAdjusted = () => {
     },
 
     {
-      flex: 0.3,
+      flex: 0.35,
       minWidth: 20,
       align: 'left',
       field: 'adjustment_quantity',
@@ -268,7 +268,7 @@ const ListOfStockAdjusted = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'expiry_date',
       headerName: 'Expiry  Date',

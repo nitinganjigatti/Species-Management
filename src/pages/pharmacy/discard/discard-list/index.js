@@ -22,7 +22,6 @@ import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import TableData from 'src/views/table/data-grid/TableData'
 
-
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
   /***** Server side pagination */
@@ -124,10 +123,10 @@ const ListOfDiscardProducts = () => {
       flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(  params.row.sl) + "."}
         </Typography>
       )
     },
@@ -138,7 +137,15 @@ const ListOfDiscardProducts = () => {
       field: 'req_no',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.req_no}
         </Typography>
       )
@@ -149,7 +156,15 @@ const ListOfDiscardProducts = () => {
       field: 'supplier_name',
       headerName: 'Supplier Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.supplier_name}
         </Typography>
       )
@@ -161,10 +176,18 @@ const ListOfDiscardProducts = () => {
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
-      headerAlign:"left",
+      headerAlign: 'left',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.total_qty}
         </Typography>
       )
@@ -175,10 +198,18 @@ const ListOfDiscardProducts = () => {
       field: 'discarded_date',
       headerName: 'Discarded Date',
       type: 'number',
-      headerAlign:"left",
+      headerAlign: 'left',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
             ? 'NA'
             : Utility.formatDisplayDate(params.row.discarded_date)}
@@ -236,11 +267,10 @@ const ListOfDiscardProducts = () => {
     }
   }
 
-  
   const title = (
     <>
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-      Return to Supplier List
+        Return to Supplier List
       </Typography>
     </>
   )
@@ -255,40 +285,40 @@ const ListOfDiscardProducts = () => {
             <Card>
               <CardHeader title={title} action={headerAction} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
-            {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px' // Set a fixed width for all status
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
-            </Grid>
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
 
-            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
               {status === 'all' || status === 'completed' ? (
                 <Box sx={{ float: 'right', mt: 1 }}>
                   <FormControlLabel
@@ -299,24 +329,24 @@ const ListOfDiscardProducts = () => {
                 </Box>
               ) : null}
             </Grid> */}
-          </Box>
-          <Grid
-            sx={{
-              mx: 4
-            }}
-          >
-            <TableData
-              onRowClick= {onRowClick}
-              indexedRows={indexedRows}
-              total={total}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-            />
-          </Grid>
+              </Box>
+              <Grid
+                sx={{
+                  mx: 4
+                }}
+              >
+                <TableData
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
             </Card>
           </>
         )

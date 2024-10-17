@@ -73,6 +73,17 @@ export default function NewProductList() {
 
   const columns = [
     {
+      flex: 0.2,
+      Width: 40,
+      field: 'id',
+      headerName: 'S.NO',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(  params.row.sl_no) + "."}
+        </Typography>
+      )
+    },
+    {
       flex: 0.3,
       Width: 10,
       field: 'request_number',
