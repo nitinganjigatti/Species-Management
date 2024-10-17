@@ -11,7 +11,7 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, name, disabled = false }) => {
+const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, name, disabled = false, size }) => {
   return (
     <DatePickerWrapper>
       <DatePicker
@@ -28,6 +28,7 @@ const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, nam
           <CustomInput
             label={name}
             width='auto'
+            size={size}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>

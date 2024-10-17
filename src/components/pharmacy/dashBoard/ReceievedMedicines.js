@@ -4,33 +4,31 @@ import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { useEffect, useState } from 'react'
-import MenuItem from '@mui/material/MenuItem'
-import Router from 'next/router'
-// ** Custom Components Imports
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
-import { getMonthWiseDispatchList } from 'src/lib/api/pharmacy/dashboard'
 import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
+import Router from 'next/router'
+import { getReceivedMedicineschart } from 'src/lib/api/pharmacy/dashboard'
 
-const MonthlyDispatchChart = () => {
+const ReceivedMedicines = () => {
   const theme = useTheme()
-  const [purchaseList, setPurchaseList] = useState({ dispatch_count: [], dispatch_value: [] })
-  const [showDispatchCount, setShowDispatchCount] = useState(true)
-  const [showDispatchValue, setShowDispatchValue] = useState(true)
 
-  const getMonthlyDispatches = async () => {
+  const [purchaseList, setPurchaseList] = useState({ purchase_count: [], purchase_value: [] })
+  const [showPurchaseCount, setShowPurchaseCount] = useState(true) // Toggle for Purchase Count
+  const [showPurchaseValue, setShowPurchaseValue] = useState(true) // Toggle for Purchase Value
+
+  const getMonthlyPurchases = async () => {
     try {
-      const result = await getMonthWiseDispatchList()
-
+      const result = await getReceivedMedicineschart()
       if (result?.success === true && result?.data) {
         setPurchaseList(result?.data)
       }
     } catch (error) {
-      console.error(error)
+      console.error('Error fetching purchase data:', error)
     }
   }
 
   useEffect(() => {
-    getMonthlyDispatches()
+    getMonthlyPurchases()
   }, [])
 
   // Create a mapping for full month names to short month names
@@ -50,31 +48,31 @@ const MonthlyDispatchChart = () => {
   }
 
   // Dynamically get the months from the API response
-  const monthsFromApi = purchaseList?.dispatch_count[0] ? Object.keys(purchaseList.dispatch_count[0]) : []
+  const monthsFromApi = purchaseList?.purchase_count[0] ? Object.keys(purchaseList.purchase_count[0]) : []
 
-  // Map the dispatch count and value based on the dynamic month order from API
-  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
-  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
+  // Map the purchase count and value based on the dynamic month order from API
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
 
   // Convert full month names to short month names for the x-axis labels
   const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
 
   // Conditionally add series based on checkbox selections
   const series = []
-  if (showDispatchCount) {
+  if (showPurchaseCount) {
     series.push({
-      name: 'Dispatch Count',
+      name: 'Purchase Count',
       type: 'bar',
       data: purchaseCounts,
-      color: '#006D35'
+      color: '#FA6140'
     })
   }
-  if (showDispatchValue) {
+  if (showPurchaseValue) {
     series.push({
-      name: 'Dispatch Value',
+      name: 'Purchase Value',
       type: 'line',
       data: purchaseValues,
-      color: '#37BD69'
+      color: '#fa614059'
     })
   }
 
@@ -88,8 +86,7 @@ const MonthlyDispatchChart = () => {
       enabled: true,
       y: {
         formatter: (value, { seriesIndex }) => {
-          console.log(series, 'seriesIndex')
-          if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
+          if (seriesIndex === 1 || series[0]?.name === 'Purchase Value') {
             return `₹${value.toFixed(2)} lac`
           }
           return value.toFixed(0)
@@ -98,9 +95,9 @@ const MonthlyDispatchChart = () => {
     },
     dataLabels: { enabled: false },
     stroke: {
-      width: [0, 3], // Adjust the thickness of the bar and line
+      width: [0, 5],
       curve: 'smooth',
-      colors: ['#006D35', '#37BD69']
+      colors: ['#fa614059']
     },
     grid: {
       show: true,
@@ -115,45 +112,32 @@ const MonthlyDispatchChart = () => {
       colors: ['#FA6140']
     },
     xaxis: {
-      // Use short month names from the API for x-axis labels
-      categories: shortMonths,
-      labels: {
-        show: true
-      },
+      categories: shortMonths, // Use short month names for x-axis labels
+      labels: { show: true },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
     yaxis: [
       {
-        title: {
-          text: 'Dispatch Count'
-        },
-        labels: {
-          formatter: val => val.toFixed(0)
-        }
+        title: { text: 'Purchase Count' },
+        labels: { formatter: val => val.toFixed(0) }
       },
       {
         opposite: true,
-        title: {
-          text: 'Dispatch Value (₹)'
-        },
-        labels: {
-          formatter: val => `₹${val.toFixed(2)} lac`
-        }
+        title: { text: 'Purchase Value (₹)' },
+        labels: { formatter: val => `₹${val.toFixed(2)} lac` }
       }
     ],
     markers: {
       size: 4,
       colors: ['#FFFFFF'],
-      strokeColors: '#37BD69',
+      strokeColors: '#fa6140',
       strokeWidth: 2,
-      hover: {
-        size: 7
-      }
+      hover: { size: 7 }
     },
     plotOptions: {
       bar: {
-        columnWidth: '35%',
+        columnWidth: '15%',
         borderRadius: 10,
         borderRadiusApplication: 'end',
         distributed: false
@@ -163,14 +147,14 @@ const MonthlyDispatchChart = () => {
 
   const handleClick = () => {
     Router.push({
-      pathname: '/pharmacy/reports/month-wise-dispatch'
+      pathname: '/pharmacy/reports/received-medicines-report'
     })
   }
 
   return (
     <Card>
       <CardHeader
-        title='Month wise dispatch'
+        title='Received Medicines'
         action={
           <Typography
             onClick={handleClick}
@@ -185,36 +169,37 @@ const MonthlyDispatchChart = () => {
           <FormControlLabel
             control={
               <Checkbox
-                checked={showDispatchCount}
-                onChange={() => setShowDispatchCount(prev => !prev)}
+                checked={showPurchaseCount}
+                onChange={() => setShowPurchaseCount(prev => !prev)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
                   '&.Mui-checked': {
-                    color: '#006D35'
+                    color: '#FA6140'
                   }
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Dispatch Count</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Count</span>}
           />
           <FormControlLabel
             control={
               <Checkbox
-                checked={showDispatchValue}
-                onChange={() => setShowDispatchValue(prev => !prev)}
+                checked={showPurchaseValue}
+                onChange={() => setShowPurchaseValue(prev => !prev)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
                   '&.Mui-checked': {
-                    color: '#37BD69'
+                    color: '#fa614059'
                   }
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Dispatch Value</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Value</span>}
           />
         </Box>
+
         {/* Chart */}
         <ReactApexcharts type='line' height={300} options={options} series={series} />
       </CardContent>
@@ -222,4 +207,4 @@ const MonthlyDispatchChart = () => {
   )
 }
 
-export default MonthlyDispatchChart
+export default ReceivedMedicines
