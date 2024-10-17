@@ -708,6 +708,7 @@ const DirectDispatchList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             <Tab
+             sx={{ml:5}}
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />

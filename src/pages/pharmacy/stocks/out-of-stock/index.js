@@ -14,13 +14,18 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
-import { FormControlLabel, Switch } from '@mui/material'
+import { FormControlLabel, Switch, TextField } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
 import { Tooltip } from '@mui/material'
+import { Icon } from '@iconify/react'
+import { useTheme } from '@emotion/react'
+import TableData from 'src/views/table/data-grid/TableData'
+
 
 const StockOut = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -76,7 +81,7 @@ const StockOut = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
+    fetchTableData(sort,  searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, status, changeSwitch])
 
@@ -119,18 +124,18 @@ const StockOut = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      alignItems: 'right',
-      field: 'id',
-      headerName: 'SL',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.1,
+    //   Width: 40,
+    //   alignItems: 'right',
+    //   field: 'id',
+    //   headerName: 'SL',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.id}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -187,7 +192,8 @@ const StockOut = () => {
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign:"left",
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -198,7 +204,7 @@ const StockOut = () => {
 
   const outOfStocksColumn = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       alignItems: 'right',
       field: 'id',
@@ -239,7 +245,8 @@ const StockOut = () => {
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign:"left",
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -386,13 +393,90 @@ const StockOut = () => {
   //   </>
   // )
 
+  const title = (
+    <>
+      {changeSwitch ? (
+        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Out of Stock</Typography>
+      ) : (
+        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Low Stock</Typography>
+      )}
+    </>
+  )
+
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <Card>
-          <CardHeader title={changeSwitch ? 'Out of Stock' : 'Low Stock'} action={headerAction} />
+          <CardHeader title={title} />
+          <Box display='flex' justifyContent='space-between' alignItems='center'>
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                  {status === 'all' || status === 'completed' ? (
+                    <Box sx={{ float: 'right', mt: 1 }}>
+                      <FormControlLabel
+                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        label='Completed'
+                        labelPlacement='end'
+                      />
+                    </Box>
+                  ) : null}
+                </Grid>
+              </Box>
+
+              <Grid
+            sx={{
+              mx: 4
+            }}
+          > 
+            <TableData
+              onRowClick={""}
+              indexedRows={indexedRows}
+              total={total}
+              columns={status === 'low_stock' ? columns : outOfStocksColumn}
+              paginationModel={paginationModel}
+              // handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
+
+
+{/* 
           <DataGrid
             sx={{
               '.MuiDataGrid-cell:focus': {
@@ -435,7 +519,7 @@ const StockOut = () => {
             }}
 
             // onRowClick={onRowClick}
-          />
+          /> */}
         </Card>
       )}
     </>

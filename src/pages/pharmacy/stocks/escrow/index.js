@@ -1,4 +1,4 @@
-import { Card, CardHeader, Grid, Typography } from '@mui/material'
+import { Card, CardHeader, Grid, TextField, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import { debounce } from 'lodash'
@@ -9,8 +9,13 @@ import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { Box } from '@mui/system'
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+import TableData from 'src/views/table/data-grid/TableData'
 
 function Escrow() {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('desc')
@@ -216,6 +221,12 @@ function Escrow() {
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Escrow List</Typography>
+    </>
+  )
+
   return (
     <>
       {loader ? (
@@ -223,8 +234,62 @@ function Escrow() {
       ) : (
         <>
           <Card>
-            <CardHeader title='Escrow List' />
-            <FormControl size='small' sx={{ ml: 4, my: 2 }}>
+            <CardHeader title={title} />
+
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+
+              {/* Group of two boxes on the right */}
+              <FormControl size='small' sx={{ mr:5, my: 2 }}>
+                <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
+                <Select
+                  size='small'
+                  value={stockType}
+                  label='Filter by stock type'
+                  onChange={e => {
+                    filterByStockType(e.target.value)
+                    setStockType(e.target.value)
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='transit'>Transit</MenuItem>
+                  <MenuItem value='dispute'>Dispute</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* <FormControl size='small' sx={{ ml: 4, my: 2 }}>
               <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
               <Select
                 size='small'
@@ -239,8 +304,26 @@ function Escrow() {
                 <MenuItem value='transit'>Transit</MenuItem>
                 <MenuItem value='dispute'>Dispute</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
 
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <TableData
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+{/* 
             <DataGrid
               autoHeight
               pagination
@@ -271,7 +354,7 @@ function Escrow() {
                 }
               }}
               onRowClick={onRowClick}
-            />
+            /> */}
           </Card>
         </>
       )}

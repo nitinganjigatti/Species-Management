@@ -817,8 +817,9 @@ const RequestList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
+             sx={{ml:5}}
               value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              label={<TabBadge  label='Pending ' totalCount={status === 'pending' ? total : null} />}
             />
             {/* <Tab
               value='completed'

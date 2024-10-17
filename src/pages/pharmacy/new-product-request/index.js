@@ -494,6 +494,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
+             sx={{ml:5}}
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

@@ -12,11 +12,16 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
-import { Tooltip } from '@mui/material'
+import { TextField, Tooltip } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 import Grid from '@mui/material/Grid'
+import { useTheme } from '@emotion/react'
+
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import TableData from 'src/views/table/data-grid/TableData'
 
 const ExpiringMedicine = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -158,18 +163,18 @@ const ExpiringMedicine = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      alignItems: 'right',
-      field: 'id',
-      headerName: 'SL',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.1,
+    //   Width: 40,
+    //   alignItems: 'right',
+    //   field: 'id',
+    //   headerName: 'SL',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.id + '.'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
@@ -223,7 +228,8 @@ const ExpiringMedicine = () => {
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -256,6 +262,11 @@ const ExpiringMedicine = () => {
     return <FallbackSpinner />
   }
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>About To Expire</Typography>
+    </>
+  )
   return (
     <>
       {loader ? (
@@ -264,7 +275,7 @@ const ExpiringMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='About To Expire'
+              title={title}
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton
@@ -278,7 +289,140 @@ const ExpiringMedicine = () => {
                 </Box>
               }
             />
-            <Grid container sx={{ display: 'flex' }}>
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+
+              {/* Group of two boxes on the right */}
+              <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+                {/* {selectedPharmacy.type === 'central' && (
+                  <Grid
+                    item
+                    sx={{
+                      width: '245px',
+                      height: '50px', // Increased height
+                      borderRadius: '8px',
+                      paddingLeft: '12px',
+                      paddingRight: '12px'
+                    }}
+                  >
+                    <FormControl fullWidth size='small'>
+                      <InputLabel>Filter by Stores</InputLabel>
+                      <Select
+                        fullWidth
+                        size='small'
+                        value={filterByStoreId}
+                        label='Filter by Stores'
+                        onChange={e => {
+                          setTotal(0)
+                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setFilterByStoreId(e.target.value)
+                        }}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        {stores.length > 0 &&
+                          stores.map(store => (
+                            <MenuItem key={store?.id} value={store?.id}>
+                              {store?.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )} */}
+
+                <Grid
+                  item
+                  sx={{
+                    width: '245px',
+                    height: '50px', // Increased height
+                    borderRadius: '8px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
+                    mr: 1
+                  }}
+                >
+                  <FormControl fullWidth size='small'>
+                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                    <Select
+                      size='small'
+                      value={selectDays}
+                      label='Filter by days'
+                      onChange={e => {
+                        filterByDays(e.target.value)
+                        setSelectDays(e.target.value)
+                      }}
+                    >
+                      <MenuItem value='7'>7 Days</MenuItem>
+                      <MenuItem value='15'>7 to 15 Days </MenuItem>
+                      <MenuItem value='30'>15 to 30 Days</MenuItem>
+                      <MenuItem value='60'>30 to 60 Days</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+              {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                {status === 'all' || status === 'completed' ? (
+                  <Box sx={{ float: 'right', mt: 1 }}>
+                    <FormControlLabel
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                    />
+                  </Box>
+                ) : null}
+              </Grid> */}
+            </Box>
+
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <TableData
+                onRowClick={''}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+
+            {/* <Grid container sx={{ display: 'flex' }}>
               <Grid item xs={12} sm={3} md={3} sx={{ ml: 4 }}>
                 <FormControl fullWidth size='small'>
                   <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
@@ -298,8 +442,8 @@ const ExpiringMedicine = () => {
                   </Select>
                 </FormControl>
               </Grid>
-            </Grid>
-            <DataGrid
+            </Grid> */}
+            {/* <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -341,7 +485,7 @@ const ExpiringMedicine = () => {
               }}
 
               // onRowClick={onRowClick}
-            />
+            /> */}
           </Card>
         </>
       )}

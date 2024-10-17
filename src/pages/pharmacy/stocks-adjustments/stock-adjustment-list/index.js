@@ -479,6 +479,7 @@ const ListOfStockAdjusted = () => {
             <TabContext value={status}>
               <TabList onChange={handleChange}>
                 <Tab
+                  sx={{ml:5}}
                   value='Missing stock'
                   label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
                 />

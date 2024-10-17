@@ -521,12 +521,14 @@ const DirectDispatchList = () => {
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             {selectedPharmacy?.type === 'central' ? (
               <Tab
+               sx={{ml:5}}
                 value='pending'
                 label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
               />
             ) : null}
 
             <Tab
+             sx={{ml:5}}
               value='shipped'
               label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />

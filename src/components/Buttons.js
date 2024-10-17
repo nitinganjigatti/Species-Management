@@ -15,7 +15,7 @@ function AddButton({ action, title, disabled, styles }) {
       disabled={disabled || false}
       onClick={action ? action : null}
       size='large'
-      variant='outlined'
+      variant='contained'
       startIcon={<Icon icon='material-symbols-light:add' />}
       sx={{mr:1}}
       // style={{ ...styles }}

@@ -729,6 +729,7 @@ const ReturnRequestList = () => {
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             {selectedPharmacy?.type === 'local' ? (
               <Tab
+              sx={{ml:5}}
                 value='pending'
                 label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
               />
