@@ -68,6 +68,11 @@ const schema = yup.object().shape({
   // }),
 
   // gender: yup.string().required('Gender is Required'),
+  gender: yup.string().when('possession_type', {
+    is: 'death',
+    then: () => yup.string().required('Gender is Required'),
+    otherwise: () => yup.string().notRequired()
+  }),
 
   // gender: yup.string().when('$isEditMode', {
   //   is: true,
@@ -191,38 +196,104 @@ const schema = yup.object().shape({
     otherwise: () => yup.array().notRequired()
   }),
   dgft_attachments: yup.array().notRequired(),
+  // male_count: yup
+  //   .number()
+  //   .transform((value, originalValue) => {
+  //     return originalValue === '' ? null : value // Convert empty string to null
+  //   })
+  //   .nullable() // Allow null values
+  //   .typeError('Male Count must be a number')
+  //   .min(0, 'Male Count must be at least 0'),
+
+  // female_count: yup
+  //   .number()
+  //   .transform((value, originalValue) => {
+  //     return originalValue === '' ? null : value // Convert empty string to null
+  //   })
+  //   .nullable() // Allow null values
+  //   .typeError('Female Count must be a number')
+  //   .min(0, 'Female Count must be at least 0'),
+
+  // other_count: yup
+  //   .number()
+  //   .transform((value, originalValue) => {
+  //     return originalValue === '' ? null : value // Convert empty string to null
+  //   })
+  //   .nullable() // Allow null values
+  //   .typeError('Others Count must be a number')
+  //   .min(0, 'Others Count must be at least 0'),
+
+  // counts: yup.object().test('at-least-one', 'At least one count must be provided', function (value) {
+  //   const { male_count, female_count, other_count } = this.parent
+  //   // Check if all counts are empty or zero
+  //   const isValidInput = [male_count, female_count, other_count].some(count => count > 0)
+  //   return isValidInput || (male_count === '' && female_count === '' && other_count === '') // Allow empty values for ongoing input
+  // })
+
+  // counts: yup
+  //   .object()
+  //   .shape({
+  //     male_count: yup
+  //       .number()
+  //       .nullable()
+  //       .transform((value, originalValue) => (originalValue === '' ? null : value))
+  //       .typeError('Male Count must be a number')
+  //       .min(0, 'Male Count must be at least 0'),
+
+  //     female_count: yup
+  //       .number()
+  //       .nullable()
+  //       .transform((value, originalValue) => (originalValue === '' ? null : value))
+  //       .typeError('Female Count must be a number')
+  //       .min(0, 'Female Count must be at least 0'),
+
+  //     other_count: yup
+  //       .number()
+  //       .nullable()
+  //       .transform((value, originalValue) => (originalValue === '' ? null : value))
+  //       .typeError('Others Count must be a number')
+  //       .min(0, 'Others Count must be at least 0')
+  //   })
+  //   .when('possession_type', {
+  //     is: val => val !== 'death',
+  //     then: schema =>
+  //       schema.test('at-least-one', 'At least one count must be provided', function (value) {
+  //         const { male_count, female_count, other_count } = value
+  //         return [male_count, female_count, other_count].some(count => count > 0)
+  //       }),
+  //     otherwise: schema => schema.notRequired() // Make counts optional if possession_type is 'death'
+  //   })
+
   male_count: yup
     .number()
-    .transform((value, originalValue) => {
-      return originalValue === '' ? null : value // Convert empty string to null
-    })
+    .transform((value, originalValue) => (originalValue === '' ? null : value)) // Convert empty string to null
     .nullable() // Allow null values
     .typeError('Male Count must be a number')
     .min(0, 'Male Count must be at least 0'),
 
   female_count: yup
     .number()
-    .transform((value, originalValue) => {
-      return originalValue === '' ? null : value // Convert empty string to null
-    })
+    .transform((value, originalValue) => (originalValue === '' ? null : value)) // Convert empty string to null
     .nullable() // Allow null values
     .typeError('Female Count must be a number')
     .min(0, 'Female Count must be at least 0'),
 
   other_count: yup
     .number()
-    .transform((value, originalValue) => {
-      return originalValue === '' ? null : value // Convert empty string to null
-    })
+    .transform((value, originalValue) => (originalValue === '' ? null : value)) // Convert empty string to null
     .nullable() // Allow null values
     .typeError('Others Count must be a number')
     .min(0, 'Others Count must be at least 0'),
 
-  counts: yup.object().test('at-least-one', 'At least one count must be provided', function (value) {
-    const { male_count, female_count, other_count } = this.parent
-    // Check if all counts are empty or zero
-    const isValidInput = [male_count, female_count, other_count].some(count => count > 0)
-    return isValidInput || (male_count === '' && female_count === '' && other_count === '') // Allow empty values for ongoing input
+  counts: yup.object().when('possession_type', {
+    is: val => val !== 'death', // If possession_type is not 'death'
+    then: schema =>
+      schema.test('at-least-one', 'At least one count must be provided', function (value) {
+        const { male_count, female_count, other_count } = this.parent
+        // Check if any of the counts are greater than 0
+        return [male_count, female_count, other_count].some(count => count > 0)
+      }),
+    otherwise: schema => schema.optional() // If possession_type is 'death', make counts optional
   })
 })
 
@@ -330,7 +401,8 @@ const AddNewEntry = () => {
       cites_numbers,
       male_count,
       female_count,
-      other_count
+      other_count,
+      parent_registration_id
     } = { ...data }
 
     console.log('Form submitted with data:', data)
@@ -360,43 +432,43 @@ const AddNewEntry = () => {
       transaction_date: moment.utc(selectedDate).format('YYYY-MM-DD HH:mm:ss'),
       attachment: attachments
     }
-    // Conditionally include male_count if it's defined
-    if (typeof male_count !== 'undefined' && male_count !== null) {
-      payload.male_count = male_count
-    }
-    // Conditionally include female_count if it's defined
-    if (typeof female_count !== 'undefined' && female_count !== null) {
-      payload.female_count = female_count
-    }
-    // Conditionally include other_count if it's defined
-    if (typeof other_count !== 'undefined' && other_count !== null) {
-      payload.other_count = other_count
-    }
+    // // Conditionally include male_count if it's defined
+    // if (typeof male_count !== 'undefined' && male_count !== null) {
+    //   payload.male_count = male_count
+    // }
+    // // Conditionally include female_count if it's defined
+    // if (typeof female_count !== 'undefined' && female_count !== null) {
+    //   payload.female_count = female_count
+    // }
+    // // Conditionally include other_count if it's defined
+    // if (typeof other_count !== 'undefined' && other_count !== null) {
+    //   payload.other_count = other_count
+    // }
     // Add conditional fields based on possession_type
     if (possession_type === 'death') {
-      payload.reason_for_death = reason_for_death
+      ;(payload.gender = gender), (payload.reason_for_death = reason_for_death)
       payload.death_date = death_date ? moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss') : null
       payload.death_animal_id = death_animal_id
-      // payload.animal_count = 1
+      payload.animal_count = 1
+    } else {
+      // payload.animal_count = animal_count
+      // Conditionally include male_count if it's defined
+      if (typeof male_count !== 'undefined' && male_count !== null) {
+        payload.male_count = male_count
+      }
+      // Conditionally include female_count if it's defined
+      if (typeof female_count !== 'undefined' && female_count !== null) {
+        payload.female_count = female_count
+      }
+      // Conditionally include other_count if it's defined
+      if (typeof other_count !== 'undefined' && other_count !== null) {
+        payload.other_count = other_count
+      }
     }
-    // else {
-    //   // payload.animal_count = animal_count
-    //   // Conditionally include male_count if it's defined
-    //   if (typeof male_count !== 'undefined' && male_count !== null) {
-    //     payload.male_count = male_count
-    //   }
-    //   // Conditionally include female_count if it's defined
-    //   if (typeof female_count !== 'undefined' && female_count !== null) {
-    //     payload.female_count = female_count
-    //   }
-    //   // Conditionally include other_count if it's defined
-    //   if (typeof other_count !== 'undefined' && other_count !== null) {
-    //     payload.other_count = other_count
-    //   }
-    //   // payload.male_count = male_count
-    //   // payload.female_count = female_count
-    //   // payload.other_count = other_count
-    // }
+    if (possession_type === 'birth') {
+      payload.parent_registration_id = parent_registration_id
+    }
+
     if (possession_type === 'transfer') {
       payload.where_to_transfer = where_to_transfer
     } else if (possession_type === 'acquisition') {

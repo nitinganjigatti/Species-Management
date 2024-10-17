@@ -182,7 +182,12 @@ const schema = yup.object().shape({
     then: () => yup.array().min(1, 'Attachment is required').of(yup.mixed().required('Attachment is required')),
     otherwise: () => yup.array().notRequired()
   }),
-  dgft_attachments: yup.array().notRequired()
+  dgft_attachments: yup.array().notRequired(),
+  parent_registration_id: yup.string().when('possession_type', {
+    is: 'birth',
+    then: () => yup.string().required('Parent ID is required'),
+    otherwise: () => yup.string().notRequired()
+  })
 })
 
 const EditNewEntry = () => {
@@ -225,7 +230,8 @@ const EditNewEntry = () => {
     cites_numbers: '',
     death_animal_id: '',
     attachments: [],
-    dgft_attachments: []
+    dgft_attachments: [],
+    parent_registration_id: ''
   }
 
   const {
@@ -285,7 +291,8 @@ const EditNewEntry = () => {
       dgft_attachments,
       cites_required,
       cites_appendix,
-      cites_numbers
+      cites_numbers,
+      parent_registration_id
     } = { ...data }
 
     console.log('Form submitted with data:', data)
@@ -322,6 +329,9 @@ const EditNewEntry = () => {
       payload.animal_count = 1
     } else {
       payload.animal_count = animal_count
+    }
+    if (possession_type === 'birth') {
+      payload.parent_registration_id = parent_registration_id
     }
     if (possession_type === 'transfer') {
       payload.where_to_transfer = where_to_transfer

@@ -156,6 +156,8 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
               renderDetailRow('Animal ID', capitalizeFirstLetter(detailData?.death_animal_id))}
 
             {detailData?.possession_type !== 'death' && renderDetailRow('Total Count', detailData?.animal_count)}
+            {detailData?.possession_type === 'birth' &&
+              renderDetailRow('Parent ID ', detailData?.parent_registration_id)}
 
             {detailData?.possession_type === 'transfer' && (
               <>

@@ -8,7 +8,7 @@ import Grid from '@mui/material/Grid'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { Avatar, Button, Tooltip, Typography, debounce } from '@mui/material'
+import { Avatar, Box, Button, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -172,9 +172,11 @@ const SpeciesList = () => {
     const baseColumns = [
       {
         flex: 0.2,
-        Width: 40,
+        Width: 30,
         field: 'sl_no',
         headerName: 'S.NO',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         renderCell: params => (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.id}
@@ -183,9 +185,12 @@ const SpeciesList = () => {
       },
       {
         flex: 0.3,
-        minWidth: 30,
+        // minWidth: 30,
+        minWidth: 80,
         field: 'species_image',
         headerName: 'IMAGE',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         sortable: false,
         renderCell: params => (
           <>
@@ -224,9 +229,12 @@ const SpeciesList = () => {
       // }
       {
         flex: 0.5,
-        minWidth: 30,
+        // minWidth: 30,
+        minWidth: 140,
         field: 'common_name',
         headerName: 'COMMON NAME',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         sortable: false,
         renderCell: params => (
           <Tooltip title={params.row.common_name || '-'}>
@@ -237,10 +245,13 @@ const SpeciesList = () => {
         )
       },
       {
-        flex: 0.4,
-        minWidth: 30,
+        flex: 0.5,
+        // minWidth: 30,
+        minWidth: 140,
         field: 'scientific_name',
         headerName: 'SCIENTIFIC NAME',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         sortable: false,
         renderCell: params => (
           <Tooltip title={params.row.scientific_name || '-'}>
@@ -257,21 +268,45 @@ const SpeciesList = () => {
 
     // Create columns for each organization
     const organizationColumns = organizationNames.map((orgName, index) => ({
-      flex: 0.4,
-      minWidth: 30,
+      flex: 0.6,
+      // minWidth: 40,
+      minWidth: 180,
       field: `org_${index}`,
       headerName: orgName,
       sortable: false,
+      headerAlign: 'left',
+      // headerAlign: 'center',
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
         const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
         return (
-          // <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
-          //   {org ? org.animal_count : '-'}
-          // </Typography>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {org ? org.animal_count : '-'}
-          </Typography>
+          <>
+            {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
+              {org ? org.animal_count : '-'}
+            </Typography> */}
+            <Box>
+              <Typography variant='h6' sx={{ color: isSelected ? '#37BD69' : '#44544A' }}>
+                {org ? org.animal_count : '-'}
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+                <Box sx={{ bgcolor: '#AFEFEB', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                  <Typography sx={{ color: '#1F515B' }} variant='caption'>
+                    M-{org ? org.male_count : '0'}
+                  </Typography>
+                </Box>
+                <Box sx={{ bgcolor: '#FFD3D3', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                  <Typography sx={{ color: '#1F515B' }} variant='caption'>
+                    F-{org ? org.female_count : '0'}
+                  </Typography>
+                </Box>
+                <Box sx={{ bgcolor: '#8479F91A', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                  <Typography sx={{ color: '#E93353' }} variant='caption'>
+                    O-{org ? org.other_count : '0'}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </>
         )
       }
     }))
@@ -534,12 +569,23 @@ const SpeciesList = () => {
               disableColumnFilter
               // disableColumnSorting
               sx={{
+                width: '100%', // Adjust table width to 100% of its parent container
+                maxWidth: '1200px',
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
 
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
+                },
+                overflowX: 'auto',
+                '& .MuiDataGrid-main': {
+                  margin: '16px', // Apply margin to the main container
+                  borderRadius: '8px', // Apply border-radius to the main container
+                  border: '1px solid rgba(233, 233, 236, 1)' // Apply border to the main container
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none' // Remove the border-top from footer container
                 }
               }}
               columnVisibilityModel={{
@@ -560,6 +606,7 @@ const SpeciesList = () => {
               slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+              rowHeight={80}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
