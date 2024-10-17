@@ -19,7 +19,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     if (tab_Value === 'eggs_received') {
       setFileName('Eggs Received')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
@@ -78,7 +78,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     } else if (tab_Value == 'eggs_ready_to_be_discarded_at_nursery') {
       setFileName('Egg To Be discarded')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
@@ -93,7 +93,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     } else if (tab_Value === 'all') {
       setFileName('All Egg')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
@@ -111,7 +111,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
       setFileName('Eggs Discarded')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
@@ -138,7 +138,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
       setFileName('Eggs Batch Discarded')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'REQUEST ID & EGGS': `${item.request_id} , Egg Count:${item.egg_count}`,
         'REQUEST CREATED ON': `${Utility.formatDisplayDate(

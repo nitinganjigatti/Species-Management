@@ -68,7 +68,8 @@ const EggFilterDrawer = ({
   const leftMenu = [
     { id: 1, name: 'Stage' },
     { id: 2, name: 'Site' },
-    { id: 3, name: 'Nursery' },
+
+    // { id: 3, name: 'Nursery' },
     { id: 4, name: 'Collected Date' },
     { id: 5, name: 'Collected By' }
   ]
@@ -89,7 +90,8 @@ const EggFilterDrawer = ({
 
   const discardMenu = [
     { id: 2, name: 'Site' },
-    { id: 3, name: 'Nursery' },
+
+    // { id: 3, name: 'Nursery' },
     {
       id: 4,
       name: 'Discarded Date'
@@ -392,6 +394,7 @@ const EggFilterDrawer = ({
           }))
         }
         break
+
       case 'Nursery':
         return (
           nurseryList?.map(nursery => ({

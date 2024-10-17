@@ -44,6 +44,7 @@ import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
 import ExcelExportButton from 'src/views/pages/egg/eggs/exportExcel'
+import { readAsync, write, remove, read } from 'src/lib/windows/utils'
 
 const EggList = () => {
   const theme = useTheme()
@@ -88,6 +89,7 @@ const EggList = () => {
 
   const [selectedOptions, setSelectedOptions] = useState({
     Stage: [],
+
     Nursery: [],
     Site: [],
     'Collected By': [],
@@ -100,17 +102,20 @@ const EggList = () => {
 
   const [filterList, setFilterList] = useState([])
 
+  // nursery filter dropdown
+  const [nurseryList, setNurseryList] = useState([])
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [filterByNurseryId, setFilterByNurseryId] = useState('')
+  console.log('filterByNurseryId :>> ', filterByNurseryId)
+
   useEffect(() => {
     if (filter_list) {
-      // console.log('filter_List :>> ', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
-      // console.log('selected_options :>> ', selected_options)
       setSelectedOptions(JSON.parse(selected_options))
     }
     if (selected_filters_options) {
-      // console.log('selected_filters_options :>> ', selected_filters_options)
       setSelectedFiltersOptions(JSON.parse(selected_filters_options))
     }
   }, [])
@@ -2298,14 +2303,14 @@ const EggList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}) => {
+    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}, filterByNurseryId) => {
       // debugger
 
       try {
         setLoading(true)
 
         // Extracting IDs from selectedFiltersOptions
-        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
+        // const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
@@ -2334,10 +2339,11 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
+          // nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
           egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
           collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
           site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          nursery_id: filterByNurseryId || '',
 
           egg_status_id: (() => {
             if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
@@ -2396,9 +2402,9 @@ const EggList = () => {
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {
-      fetchTableData(sort, searchQuery, status, isDiscarded, selectedFiltersOptions)
+      fetchTableData(sort, searchQuery, status, isDiscarded, selectedFiltersOptions, filterByNurseryId)
     }
-  }, [fetchTableData, status, isDiscarded, selectedFiltersOptions])
+  }, [fetchTableData, status, isDiscarded, selectedFiltersOptions, filterByNurseryId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -2431,53 +2437,85 @@ const EggList = () => {
     []
   )
 
-  // const headerAction = (
-  //   <>
-  //     <Box>
-  //       <Autocomplete
-  //         sx={{
-  //           width: 250,
-  //           m: 2,
-  //           ml: 5
-  //         }}
-  //         name='nursery'
-  //         value={defaultNursery}
-  //         disablePortal
-  //         id='nursery'
-  //         options={nurseryList?.length > 0 ? nurseryList : []}
-  //         getOptionLabel={option => option.nursery_name}
-  //         isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
-  //         onChange={(e, val) => {
-  //           // console.log('val :>> ', val)
-  //           if (val === null) {
-  //             setDefaultNursery(null)
-  //             setFilterByNurseryId('')
+  const NurseryList = async q => {
+    try {
+      const params = {
+        search: q,
+        page: 1,
+        limit: 50
+      }
+      await GetNurseryList({ params }).then(res => {
+        const apiList = res?.data?.result || []
 
-  //             // return onChange('')
-  //           } else {
-  //             setDefaultNursery(val)
+        // Add the "All" option
+        const allOption = { nursery_id: '', nursery_name: 'All' }
+        const updatedList = [allOption, ...apiList]
+        setNurseryList(updatedList)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
-  //             // setValue('room', '')
-  //             setFilterByNurseryId(val.nursery_id)
-  //             setNursery_name(val.nursery_name)
+  const readNursery = async () => {
+    const storedNursery = read('Nursery')
+    const parsedNursery = await JSON.parse(storedNursery)
+    if (parsedNursery) {
+      setDefaultNursery(parsedNursery)
+      setFilterByNurseryId(parsedNursery.nursery_id)
+    } else {
+      setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+      setFilterByNurseryId(parsedNursery.nursery_id)
+    }
+  }
 
-  //             // return onChange(val.nursery_id)
-  //           }
-  //         }}
-  //         renderInput={params => (
-  //           <TextField
-  //             onChange={e => {
-  //               searchNursery(e.target.value)
-  //             }}
-  //             {...params}
-  //             label='Select Nursery *'
-  //             placeholder='Search & Select'
-  //           />
-  //         )}
-  //       />
-  //     </Box>
-  //   </>
-  // )
+  useEffect(() => {
+    readNursery()
+
+    NurseryList()
+  }, [])
+
+  const headerAction = (
+    <>
+      <Box>
+        <Autocomplete
+          sx={{
+            width: 250,
+            m: 2,
+            ml: 5
+          }}
+          name='nursery'
+          value={defaultNursery}
+          disablePortal
+          id='nursery'
+          options={nurseryList?.length > 0 ? nurseryList : []}
+          getOptionLabel={option => option.nursery_name}
+          isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
+          onChange={(e, val) => {
+            if (val === null || val.nursery_id === '') {
+              setDefaultNursery({ nursery_id: val.nursery_id, nursery_name: val.nursery_name })
+              setFilterByNurseryId('')
+              write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
+            } else {
+              setDefaultNursery({ nursery_id: val.nursery_id, nursery_name: val.nursery_name })
+              setFilterByNurseryId(val.nursery_id)
+              write('Nursery', JSON.stringify({ nursery_id: val.nursery_id, nursery_name: val.nursery_name }))
+            }
+          }}
+          renderInput={params => (
+            <TextField
+              onChange={e => {
+                searchNursery(e.target.value)
+              }}
+              {...params}
+              label='Select Nursery *'
+              placeholder='Search & Select'
+            />
+          )}
+        />
+      </Box>
+    </>
+  )
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -2702,11 +2740,7 @@ const EggList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader
-              title='Egg List'
-
-              //  action={headerAction}
-            />
+            <CardHeader title='Egg List' action={headerAction} />
 
             {/* <CardContent> */}
             <TabContext value={status}>
