@@ -187,21 +187,6 @@ const StoreWiseDispatch = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {params?.row?.control_substance === '1' && (
-                          <span
-                            style={{
-                              display: 'inline-block',
-                              background: 'linear-gradient(90deg, #FA6140 0%, #E93353 100%)',
-                              color: '#fff',
-                              paddingLeft: '3px',
-                              paddingRight: '3px',
-                              borderRadius: '5px',
-                              marginRight: '8px'
-                            }}
-                          >
-                            cs
-                          </span>
-                        )}
                         {params.row.store_name}
                       </Typography>
                     </Tooltip>
@@ -266,7 +251,6 @@ const StoreWiseDispatch = () => {
             const rows = listItem.rowData.map(row => ({
               id: row.to_store_id,
               store_name: row.store_name,
-              control_substance: row.control_substance,
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
@@ -492,7 +476,7 @@ const StoreWiseDispatch = () => {
 
   const headerAction = (
     <div>
-      {router.asPath.includes('newdashboard') ? (
+      {router.asPath.includes('dashboard') ? (
         <Typography
           onClick={handleclick}
           sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
@@ -549,7 +533,7 @@ const StoreWiseDispatch = () => {
             <FallbackSpinner />
           ) : (
             <>
-              {router.asPath.includes('newdashboard') ? (
+              {router.asPath.includes('dashboard') ? (
                 ''
               ) : (
                 <Box container spacing={6}>
@@ -567,11 +551,11 @@ const StoreWiseDispatch = () => {
               )}
               <Card>
                 <CardHeader
-                  title={router.asPath.includes('newdashboard') ? 'Top 5 stores' : 'Store wise dispatch'}
+                  title={router.asPath.includes('dashboard') ? 'Top 5 stores' : 'Store wise dispatch'}
                   action={headerAction}
                   sx={{ p: '16px 16px 0px 16px' }}
                 />
-                {router.asPath.includes('newdashboard') ? (
+                {router.asPath.includes('dashboard') ? (
                   ''
                 ) : (
                   <Grid
@@ -668,7 +652,7 @@ const StoreWiseDispatch = () => {
                   pagination
                   hideFooterSelectedRowCount
                   disableColumnSelector={true}
-                  rows={router.asPath.includes('newdashboard') ? rows.slice(0, 5) : rows} // Show only first 5 rows for newdashboard
+                  rows={router.asPath.includes('dashboard') ? rows.slice(0, 5) : rows} // Show only first 5 rows for dashboard
                   rowCount={total}
                   columns={columns}
                   sortingMode='server'
@@ -676,12 +660,12 @@ const StoreWiseDispatch = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  // slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
                   disableColumnMenu
-                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
+                  hideFooter={router.asPath.includes('dashboard') ? true : false}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

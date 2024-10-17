@@ -5,15 +5,15 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     sectionTitle: 'Pharmacy'
   }
 
+  // const dashboard = {
+  //   title: 'Dashboard',
+  //   path: '/pharmacy/dashboard',
+  //   icon: 'lets-icons:home-duotone'
+  // }
+
   const dashboard = {
     title: 'Dashboard',
     path: '/pharmacy/dashboard',
-    icon: 'lets-icons:home-duotone'
-  }
-
-  const dashboardnew = {
-    title: 'New Dashboard',
-    path: '/pharmacy/newdashboard',
     icon: 'lets-icons:home-duotone'
   }
 
@@ -312,7 +312,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     pharmacyNavigationArray.push(
       dashboard,
-      dashboardnew,
+      //dashboardnew,
       stockReport,
       requestListing,
       returnListing,
@@ -347,7 +347,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
       dashboard,
-      dashboardnew,
+      //dashboardnew,
       requestListing,
       returnListing,
 

@@ -9,7 +9,7 @@ import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
 import Router from 'next/router'
 import { getReceivedMedicineschart } from 'src/lib/api/pharmacy/dashboard'
 
-const ReceievedMedicines = () => {
+const ReceivedMedicines = () => {
   const theme = useTheme()
 
   const [purchaseList, setPurchaseList] = useState({ purchase_count: [], purchase_value: [] })
@@ -31,23 +31,31 @@ const ReceievedMedicines = () => {
     getMonthlyPurchases()
   }, [])
 
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ]
+  // Create a mapping for full month names to short month names
+  const monthMapping = {
+    January: 'Jan',
+    February: 'Feb',
+    March: 'Mar',
+    April: 'Apr',
+    May: 'May',
+    June: 'Jun',
+    July: 'Jul',
+    August: 'Aug',
+    September: 'Sep',
+    October: 'Oct',
+    November: 'Nov',
+    December: 'Dec'
+  }
 
-  const purchaseCounts = months.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
-  const purchaseValues = months.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+  // Dynamically get the months from the API response
+  const monthsFromApi = purchaseList?.purchase_count[0] ? Object.keys(purchaseList.purchase_count[0]) : []
+
+  // Map the purchase count and value based on the dynamic month order from API
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+
+  // Convert full month names to short month names for the x-axis labels
+  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
 
   // Conditionally add series based on checkbox selections
   const series = []
@@ -104,46 +112,35 @@ const ReceievedMedicines = () => {
       colors: ['#FA6140']
     },
     xaxis: {
-      categories: months,
-      labels: {
-        show: true
-      },
+      categories: shortMonths, // Use short month names for x-axis labels
+      labels: { show: true },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
     yaxis: [
       {
-        title: {
-          text: 'Purchase Count'
-        },
-        labels: {
-          formatter: val => val.toFixed(0)
-        }
+        title: { text: 'Purchase Count' },
+        labels: { formatter: val => val.toFixed(0) }
       },
       {
         opposite: true,
-        title: {
-          text: 'Purchase Value (₹)'
-        },
-        labels: {
-          formatter: val => `₹${val.toFixed(2)} lac`
-        }
+        title: { text: 'Purchase Value (₹)' },
+        labels: { formatter: val => `₹${val.toFixed(2)} lac` }
       }
     ],
     markers: {
       size: 4,
       colors: ['#FFFFFF'],
-      strokeColors: '#fa6140', // Red outline for markers
+      strokeColors: '#fa6140',
       strokeWidth: 2,
-      hover: {
-        size: 7
-      }
+      hover: { size: 7 }
     },
     plotOptions: {
       bar: {
-        columnWidth: '15%', // Slim bar width
-        borderRadius: 10, // Curve the top and bottom of the bars
-        borderRadiusApplication: 'end' // Ensures the top of the bars are curved
+        columnWidth: '15%',
+        borderRadius: 10,
+        borderRadiusApplication: 'end',
+        distributed: false
       }
     }
   }
@@ -204,10 +201,10 @@ const ReceievedMedicines = () => {
         </Box>
 
         {/* Chart */}
-        <ReactApexcharts type='line' height={262} options={options} series={series} />
+        <ReactApexcharts type='line' height={300} options={options} series={series} />
       </CardContent>
     </Card>
   )
 }
 
-export default ReceievedMedicines
+export default ReceivedMedicines

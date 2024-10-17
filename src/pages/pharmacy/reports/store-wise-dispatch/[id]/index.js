@@ -640,7 +640,7 @@ const StoreWiseDispatchDetail = () => {
 
   const headerAction = (
     <div>
-      {router.asPath.includes('newdashboard') ? (
+      {router.asPath.includes('dashboard') ? (
         <Typography
           onClick={handleclick}
           sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
@@ -686,7 +686,7 @@ const StoreWiseDispatchDetail = () => {
             <FallbackSpinner />
           ) : (
             <>
-              {router.asPath.includes('newdashboard') ? (
+              {router.asPath.includes('dashboard') ? (
                 ''
               ) : (
                 <Box container spacing={6}>
@@ -712,7 +712,7 @@ const StoreWiseDispatchDetail = () => {
               )}
               <Card>
                 <CardHeader title={store_name} action={headerAction} />
-                {router.asPath.includes('newdashboard') ? (
+                {router.asPath.includes('dashboard') ? (
                   ''
                 ) : (
                   <Grid
@@ -817,12 +817,12 @@ const StoreWiseDispatchDetail = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  // slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
                   disableColumnMenu
-                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
+                  hideFooter={router.asPath.includes('dashboard') ? true : false}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

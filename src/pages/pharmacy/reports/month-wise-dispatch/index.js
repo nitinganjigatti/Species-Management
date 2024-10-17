@@ -667,7 +667,7 @@ const MonthWiseDispatch = () => {
             <FallbackSpinner />
           ) : (
             <>
-              {router.asPath.includes('newdashboard') ? (
+              {router.asPath.includes('dashboard') ? (
                 ''
               ) : (
                 <Box container spacing={6}>
@@ -685,7 +685,7 @@ const MonthWiseDispatch = () => {
               )}
               <Card>
                 <CardHeader title='Month wise dispatch' action={headerAction} />
-                {router.asPath.includes('newdashboard') ? (
+                {router.asPath.includes('dashboard') ? (
                   ''
                 ) : (
                   <Grid
@@ -792,12 +792,12 @@ const MonthWiseDispatch = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  // slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
                   disableColumnMenu
-                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
+                  hideFooter={router.asPath.includes('dashboard') ? true : false}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'

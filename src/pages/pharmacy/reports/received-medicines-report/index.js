@@ -319,35 +319,39 @@ const ReceivedMedicinesReport = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
-                      >
-                        {` (₹${(column.total_received_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_received_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
+                        >
+                          {` (${(column.total_received_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     ) : (
-                      <Typography
-                        sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
-                      >
-                        {` (₹${(column.total_received_value / 100000).toFixed(2)})`}
-                      </Typography>
+                      <Tooltip title={column.total_received_value.toFixed(2)}>
+                        <Typography
+                          sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
+                        >
+                          {` (${(column.total_received_value / 100000).toFixed(2)})`}
+                        </Typography>
+                      </Tooltip>
                     )}
                   </Box>
                 ),
                 renderCell: params => {
                   const value = Number(params.value)
                   if (isNaN(value)) {
-                    return <span>{params.value}</span> // Show original value if it's not a number
+                    return <span>{params.value}</span>
                   }
                   const roundedValue = Math.round(value)
 
                   const formattedNumber = roundedValue.toLocaleString('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
+                    // style: 'currency',
+                    // currency: 'INR',
                     maximumFractionDigits: 0
                   })
                   console.log(formattedNumber, 'formattedNumber')
                   return (
-                    <Tooltip title={`Dispatch count: ${formattedNumber}`}>
+                    <Tooltip title={`Purchase value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
                     </Tooltip>
                   )
@@ -498,12 +502,10 @@ const ReceivedMedicinesReport = () => {
   const headerAction = (
     <div>
       <LoadingButton
-        // disabled={disabled}
-        // loading={loader}
-        // onClick={action ? action : null}
         size='medium'
         variant='contained'
         endIcon={<Icon icon='material-symbols:download' />}
+        // onClick={handleDownloadReport}
       >
         Download Report
       </LoadingButton>
@@ -536,7 +538,7 @@ const ReceivedMedicinesReport = () => {
             <FallbackSpinner />
           ) : (
             <>
-              {router.asPath.includes('newdashboard') ? (
+              {router.asPath.includes('dashboard') ? (
                 ''
               ) : (
                 <Box container spacing={6}>
@@ -554,7 +556,7 @@ const ReceivedMedicinesReport = () => {
               )}
               <Card>
                 <CardHeader title='Received medicines' action={headerAction} />
-                {router.asPath.includes('newdashboard') ? (
+                {router.asPath.includes('dashboard') ? (
                   ''
                 ) : (
                   <Grid
@@ -605,6 +607,17 @@ const ReceivedMedicinesReport = () => {
                     </Grid>
                   </Grid>
                 )}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    mr: 5,
+                    pb: 2,
+                    fontStyle: 'italic'
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
+                </Box>
                 <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
@@ -648,12 +661,12 @@ const ReceivedMedicinesReport = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  //slots={{ toolbar: router.asPath.includes('newdashboard') ? '' : ServerSideToolbar }}
+                  //slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
                   disableColumnMenu
-                  hideFooter={router.asPath.includes('newdashboard') ? true : false}
+                  hideFooter={router.asPath.includes('dashboard') ? true : false}
                   slotProps={{
                     baseButton: {
                       variant: 'outlined'
