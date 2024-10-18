@@ -321,9 +321,6 @@ const StoreWiseDispatch = () => {
     setPage(1)
     setFullStoreList([])
     fetchfilterValues({ page: 1 })
-
-    // Ensure paginated data is re-fetched from page 1
-    fetchfilterValues({ page: 1 })
   }
 
   const onApplyFilters = () => {
@@ -473,7 +470,6 @@ const StoreWiseDispatch = () => {
         Medicine: 'Total Dispatch Value (in lac)'
       }
       listItem.columnData.forEach(column => {
-        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
         const formattedPurchaseValue = (column.total_purchase_value / 100000).toLocaleString('en-IN', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
@@ -488,15 +484,17 @@ const StoreWiseDispatch = () => {
 
       // Convert the rows and headers to worksheet format
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
-      console.log(wsData, 'wsData')
 
-      // Convert the data into a worksheet
       const ws = utils.aoa_to_sheet(wsData)
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 
-      // Download the Excel file
-      writeFile(wb, 'Dispatch_Report.xlsx')
+      const now = new Date()
+      const dateStr = now.toISOString().slice(0, 10)
+      const timeStr = now.toTimeString().slice(0, 5).replace(/:/g, '-')
+      const fileName = `Storewise_Dispatch_Report_${dateStr}_${timeStr}.xlsx`
+
+      writeFile(wb, fileName)
     } catch (error) {
       console.log('Error downloading report:', error)
     }
