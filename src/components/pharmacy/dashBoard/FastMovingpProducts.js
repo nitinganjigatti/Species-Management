@@ -16,6 +16,7 @@ import Chip from '@mui/material/Chip'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import { getFastMovingStocks } from 'src/lib/api/pharmacy/dashboard'
+import { Grid } from '@mui/material'
 
 const FastMovingProducts = () => {
   const [productsList, setProductsList] = useState([])
@@ -35,18 +36,11 @@ const FastMovingProducts = () => {
   }, [])
 
   return (
-    <Card>
-      <CardHeader
-        title='Fast moving products'
-        titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
-        action={
-          <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
-        }
-      />
+    <Grid>
       <TableContainer>
         <Table>
           <TableHead>
-            <TableRow sx={{ '& .MuiTableCell-root': { py: theme => `${theme.spacing(2.5)} !important` } }}>
+            {/* <TableRow sx={{ '& .MuiTableCell-root': { py: theme => `${theme.spacing(2.5)} !important` } }}>
               <TableCell>
                 <Typography variant='subtitle2' sx={{ textTransform: 'capitalize' }}>
                   Product details
@@ -58,7 +52,7 @@ const FastMovingProducts = () => {
                   QTY required
                 </Typography>
               </TableCell>
-            </TableRow>
+            </TableRow> */}
           </TableHead>
           <TableBody>
             {productsList?.length > 0
@@ -102,13 +96,13 @@ const FastMovingProducts = () => {
                           {/* <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
                             {row?.total_nos ? `${row?.total_nos}nos` : 'NA'}
                           </Typography> */}
-                          <Chip
+                          {/* <Chip
                             sx={{ ml: '6px', fontSize: '12px' }}
                             size='small'
                             variant='outlined'
                             label={row?.total_nos ? `${row?.total_nos}nos` : 'NA'}
                             color='error'
-                          />
+                          /> */}
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -118,7 +112,7 @@ const FastMovingProducts = () => {
           </TableBody>
         </Table>
       </TableContainer>
-    </Card>
+    </Grid>
   )
 }
 

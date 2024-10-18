@@ -199,11 +199,14 @@ const ExpiredMedicine = () => {
         const data = result?.list_items.map(el => {
           return {
             ['Medicine Name']: el?.stock_item_name,
-            ['Supplier name']: el?.supplier_name
+            ['Batch']: el?.batch_no,
+            ['Supplier Name']: el?.supplier_name,
+            ['Expire Date']: el?.expiry_date,
+            ['Quantity']: el?.stock_qty
           }
         })
 
-        Utility.exportToCSV(data, 'Expired Products')
+        Utility.exportToCSV(data, 'expired_products_datetime')
       }
       setExcelLoader(false)
     } catch (error) {

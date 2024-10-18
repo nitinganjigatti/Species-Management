@@ -7,6 +7,7 @@ import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
+import medicalNavigation from 'src/components/navigation/medical'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -36,7 +37,7 @@ const ComposeNavigation = () => {
   }
 
   if (labList?.length > 0 || labRole) {
-    const labNav = labNavigation()
+    const labNav = labNavigation({ labRole })
     navigationArray.push(...labNav)
   }
 
@@ -53,6 +54,9 @@ const ComposeNavigation = () => {
     const pariveshNav = pariveshNavigation()
     navigationArray.push(...pariveshNav)
   }
+
+  const medicalNav = medicalNavigation()
+  navigationArray.push(...medicalNav)
 
   return navigationArray
 }
