@@ -37,6 +37,7 @@ import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -299,7 +300,7 @@ export default function NewProductList() {
     <>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
+          <AddButtonContained title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
         )}
     </>
   )
@@ -505,7 +506,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
-             sx={{ml:5}}
+             sx={{ml:3}}
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

@@ -32,6 +32,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -345,7 +346,7 @@ const ListOfMedicine = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton
+          <AddButtonContained
             title='Add Product'
             action={() => {
               Router.push('/pharmacy/medicine/add-product')

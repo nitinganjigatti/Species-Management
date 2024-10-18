@@ -36,6 +36,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -289,7 +290,7 @@ const ListOfStores = () => {
   }
 
   const headerAction = (
-    <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
+    <div>{pharmacyRole && <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
   )
 
   const checkPharmacy = async () => {

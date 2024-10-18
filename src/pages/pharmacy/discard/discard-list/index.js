@@ -21,6 +21,7 @@ import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -254,7 +255,7 @@ const ListOfDiscardProducts = () => {
         }}
         title='Import Inventory'
       /> */}
-      <AddButton title='Return to Supplier' action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })} />
+      <AddButtonContained title='Return to Supplier' action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })} />
     </Grid>
   )
 

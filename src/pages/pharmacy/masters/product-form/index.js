@@ -34,6 +34,7 @@ import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfDosageForms = () => {
   const theme = useTheme()
@@ -231,7 +232,7 @@ const ListOfDosageForms = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add Product Form' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && <AddButtonContained title='Add Product Form' action={() => addEventSidebarOpen()} />}
     </div>
   )
 

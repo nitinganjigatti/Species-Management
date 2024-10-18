@@ -33,6 +33,7 @@ import { useTheme } from '@emotion/react'
 
 import Chip from '@mui/material/Chip'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -331,7 +332,7 @@ const ListOfStockAdjusted = () => {
 
   const headerAction = (
     <Grid sx={{ display: 'flex', gap: 2 }}>
-      <AddButton
+      <AddButtonContained
         title='Add Stock Adjustment'
         action={() => Router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
       />
@@ -479,7 +480,7 @@ const ListOfStockAdjusted = () => {
             <TabContext value={status}>
               <TabList onChange={handleChange}>
                 <Tab
-                  sx={{ml:5}}
+                  sx={{ml:3}}
                   value='Missing stock'
                   label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
                 />

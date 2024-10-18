@@ -35,6 +35,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
 import { textAlign } from '@mui/system'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfUOM = () => {
   const theme = useTheme()
@@ -183,7 +184,7 @@ const ListOfUOM = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add UOM' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && <AddButtonContained title='Add UOM' action={() => addEventSidebarOpen()} />}
     </div>
   )
 

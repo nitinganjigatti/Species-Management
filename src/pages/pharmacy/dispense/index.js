@@ -14,6 +14,7 @@ import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 function Dispense() {
   const theme = useTheme()
@@ -266,7 +267,7 @@ function Dispense() {
             <Grid sx={{ mx: 5 }} item>
               {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
                 selectedPharmacy.permission.dispense_medicine) && (
-                <AddButton
+                <AddButtonContained
                   title='Add Dispense'
                   action={() => {
                     Router.push('/pharmacy/dispense/add-dispense')

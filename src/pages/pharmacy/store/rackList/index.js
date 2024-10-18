@@ -27,6 +27,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import TableData from 'src/views/table/data-grid/TableData'
 import { escapeRegExp } from '@mui/x-data-grid/utils/utils'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfRacks = () => {
   const theme = useTheme()
@@ -328,7 +329,7 @@ const ListOfRacks = () => {
     <div>
       {(selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
         selectedPharmacy?.permission?.pharmacy_module === 'ADD') && (
-        <AddButton title='Add Rack' action={() => addEventSidebarOpen()} />
+        <AddButtonContained title='Add Rack' action={() => addEventSidebarOpen()} />
       )}
     </div>
   )

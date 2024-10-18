@@ -31,6 +31,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -271,7 +272,7 @@ const RequestList = () => {
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
           <>
-            <AddButton
+            <AddButtonContained
               title='Add Request'
               action={() =>
                 Router.push({
@@ -817,7 +818,7 @@ const RequestList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
-             sx={{ml:5}}
+             sx={{ml:3}}
               value='pending'
               label={<TabBadge  label='Pending ' totalCount={status === 'pending' ? total : null} />}
             />

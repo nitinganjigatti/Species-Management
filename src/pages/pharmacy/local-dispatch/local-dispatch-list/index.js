@@ -33,6 +33,7 @@ import { Box } from '@mui/material'
 import Utility from 'src/utility'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
   const [loader, setLoader] = useState(false)
@@ -326,7 +327,7 @@ const DirectDispatchList = () => {
     <div>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton
+          <AddButtonContained
             title='Add Local Dispatch'
             action={() =>
               Router.push({
@@ -708,7 +709,7 @@ const DirectDispatchList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             <Tab
-             sx={{ml:5}}
+             sx={{ml:3}}
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />

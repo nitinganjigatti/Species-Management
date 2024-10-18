@@ -567,7 +567,7 @@ const ListOfRequest = () => {
                 </Box>
               </Grid>
             </Box>
-            <Grid
+            {/* <Grid
               sx={{
                 mx: 4
               }}
@@ -583,8 +583,8 @@ const ListOfRequest = () => {
                 loading={loading}
                 searchValue={searchValue}
               />
-            </Grid>
-            {/* 
+            </Grid> */}
+            
             <DataGrid
               autoHeight
               pagination
@@ -611,7 +611,7 @@ const ListOfRequest = () => {
                   }
                 }
               }}
-            /> */}
+            />
           </Card>
         </>
       )}

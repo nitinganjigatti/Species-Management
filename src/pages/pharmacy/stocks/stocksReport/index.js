@@ -1084,7 +1084,7 @@ const ListOfStocks = () => {
 
             </Box> */}
             <TabList onChange={handleChange} aria-label='simple tabs example'>
-              <Tab  sx={{ml:5}}value='1' label='Stock Report' />
+              <Tab  sx={{ml:3}}value='1' label='Stock Report' />
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Products' />

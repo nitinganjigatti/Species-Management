@@ -35,6 +35,7 @@ import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ManufacturerList = () => {
   const theme = useTheme()
@@ -232,7 +233,7 @@ const ManufacturerList = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add Manufacturer' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && <AddButtonContained title='Add Manufacturer' action={() => addEventSidebarOpen()} />}
     </div>
   )
 

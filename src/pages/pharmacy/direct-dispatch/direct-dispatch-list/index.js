@@ -30,6 +30,7 @@ import { useTheme } from '@emotion/react'
 
 import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -218,7 +219,7 @@ const DirectDispatchList = () => {
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton
+          <AddButtonContained
             title='Add Direct Dispatch'
             action={() =>
               Router.push({
@@ -521,14 +522,14 @@ const DirectDispatchList = () => {
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             {selectedPharmacy?.type === 'central' ? (
               <Tab
-               sx={{ml:5}}
+               sx={{ml:3}}
                 value='pending'
                 label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
               />
             ) : null}
 
             <Tab
-             sx={{ml:5}}
+             sx={{ml:3}}
               value='shipped'
               label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />

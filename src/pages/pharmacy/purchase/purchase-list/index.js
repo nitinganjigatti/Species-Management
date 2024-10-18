@@ -38,6 +38,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfPurchase = () => {
   const theme = useTheme()
@@ -261,7 +262,7 @@ const ListOfPurchase = () => {
         }}
         title='Import Inventory'
       />
-      <AddButton title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+      <AddButtonContained title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
     </Grid>
   )
 

@@ -20,6 +20,7 @@ import Error404 from 'src/pages/404'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const Supplier = () => {
   const [supplierList, setSupplierList] = useState([])
@@ -176,7 +177,7 @@ const Supplier = () => {
               TableTitle={title}
               headerActions={
                 <div>
-                  <AddButton
+                  <AddButtonContained
                     title='Add Supplier'
                     action={() => {
                       Router.push('/pharmacy/masters/supplier/add-supplier')

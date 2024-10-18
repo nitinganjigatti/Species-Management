@@ -29,6 +29,7 @@ import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
@@ -302,7 +303,7 @@ const ReturnRequestList = () => {
     <div>
       {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
-          <AddButton
+          <AddButtonContained
             title='Add Return Request'
             action={() =>
               Router.push({
@@ -729,12 +730,13 @@ const ReturnRequestList = () => {
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             {selectedPharmacy?.type === 'local' ? (
               <Tab
-              sx={{ml:5}}
+              sx={{ml:3}}
                 value='pending'
                 label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
               />
             ) : null}
             <Tab
+              sx={selectedPharmacy?.type === 'central' && {ml:3}}
               value='shipped'
               label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />

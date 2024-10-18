@@ -7,7 +7,7 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { LoadingButton } from '@mui/lab'
 
-function AddButton({ action, title, disabled, styles }) {
+function AddButtonContained({ action, title, disabled, styles }) {
   return (
     <Button
       // sx={{(title === "request")? ml:2: ""}}  
@@ -15,7 +15,7 @@ function AddButton({ action, title, disabled, styles }) {
       disabled={disabled || false}
       onClick={action ? action : null}
       size='large'
-      variant='outlined'
+      variant='contained'
       startIcon={<Icon icon='material-symbols-light:add' />}
       sx={{mr:1}}
       // style={{ ...styles }}
@@ -77,4 +77,4 @@ function ExcelExportButton({ action, title, loader, disabled }) {
   )
 }
 
-export { AddButton, BackButton, SwitchButton, RequestCancelButton, ExcelExportButton }
+export { AddButtonContained, BackButton, SwitchButton, RequestCancelButton, ExcelExportButton }

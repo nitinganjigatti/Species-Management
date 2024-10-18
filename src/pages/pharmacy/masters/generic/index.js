@@ -40,6 +40,7 @@ import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import TableData from 'src/views/table/data-grid/TableData'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const GenericNamesList = () => {
   const theme = useTheme()
@@ -234,7 +235,7 @@ const GenericNamesList = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add Generic Name' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && <AddButtonContained title='Add Generic Name' action={() => addEventSidebarOpen()} />}
     </div>
   )
 

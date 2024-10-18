@@ -330,11 +330,7 @@ const ListOfLab = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Lab List</Typography>
-    </>
-  )
+  
 
   return (
     <>
@@ -350,71 +346,10 @@ const ListOfLab = () => {
             show={showDialog}
           /> */}
           <Card>
-            <CardHeader title={title} action={headerAction} />
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
-              {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #C3CEC7',
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px' // Set a fixed width for all status
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
-
-              {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-            </Grid> */}
-            </Box>
-            <Grid
-              sx={{
-                mx: 4
-              }}
-            >
-              <TableData
-                onRowClick={''}
-                indexedRows={indexedRows}
-                total={total}
-                columns={columns}
-                paginationModel={paginationModel}
-                handleSortModel={handleSortModel}
-                setPaginationModel={setPaginationModel}
-                loading={loading}
-                searchValue={searchValue}
-              />
-            </Grid>
-            {/* <DataGrid
+            <CardHeader title= "Lab List" action={headerAction} />
+           
+        
+            <DataGrid
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
@@ -443,7 +378,7 @@ const ListOfLab = () => {
                   }
                 }
               }}
-            /> */}
+            />
           </Card>
         </>
       )}
