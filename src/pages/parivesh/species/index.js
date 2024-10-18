@@ -203,63 +203,80 @@ const SpeciesList = () => {
       },
       // {
       //   flex: 0.5,
-      //   minWidth: 30,
+      //   // minWidth: 30,
+      //   minWidth: 140,
       //   field: 'common_name',
       //   headerName: 'COMMON NAME',
+      //   headerAlign: 'left',
+      //   // headerAlign: 'center',
+      //   sortable: false,
       //   renderCell: params => (
-      //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-      //           {params.row.common_name ? params.row.common_name : '-'}
-      //         </Typography>
-      //       </Box>
-      //     </Box>
+      //     <Tooltip title={params.row.common_name || '-'}>
+      //       <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: '500' }}>
+      //         {params.row.common_name ? params.row.common_name : '-'}
+      //       </Typography>
+      //     </Tooltip>
       //   )
       // },
       // {
       //   flex: 0.5,
-      //   minWidth: 30,
+      //   // minWidth: 30,
+      //   minWidth: 140,
       //   field: 'scientific_name',
       //   headerName: 'SCIENTIFIC NAME',
+      //   headerAlign: 'left',
+      //   // headerAlign: 'center',
+      //   sortable: false,
       //   renderCell: params => (
-      //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-      //       {params.row.scientific_name ? params.row.scientific_name : '-'}
-      //     </Typography>
+      //     <Tooltip title={params.row.scientific_name || '-'}>
+      //       <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+      //         {params.row.scientific_name ? params.row.scientific_name : '-'}
+      //       </Typography>
+      //     </Tooltip>
       //   )
-      // }
+      // },
       {
         flex: 0.5,
-        // minWidth: 30,
-        minWidth: 140,
-        field: 'common_name',
-        headerName: 'COMMON NAME',
+        minWidth: 170,
+        field: 'SPECIES NAME',
+        headerName: 'SPECIES NAME',
         headerAlign: 'left',
         // headerAlign: 'center',
         sortable: false,
-        renderCell: params => (
-          <Tooltip title={params.row.common_name || '-'}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
-          </Tooltip>
-        )
-      },
-      {
-        flex: 0.5,
-        // minWidth: 30,
-        minWidth: 140,
-        field: 'scientific_name',
-        headerName: 'SCIENTIFIC NAME',
-        headerAlign: 'left',
-        // headerAlign: 'center',
-        sortable: false,
-        renderCell: params => (
-          <Tooltip title={params.row.scientific_name || '-'}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.scientific_name ? params.row.scientific_name : '-'}
-            </Typography>
-          </Tooltip>
-        )
+        renderCell: params => {
+          const commonName = params.row.common_name
+          const scientificName = params.row.scientific_name
+          const tooltipText = `${commonName} (${scientificName})`
+
+          return (
+            <Tooltip title={tooltipText}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: '#44544A',
+                    fontWeight: '500',
+                    fontSize: '1rem',
+                    lineHeight: 1.5
+                  }}
+                >
+                  {commonName}
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: '#7A8684',
+                    // fontStyle: 'italic',
+                    fontSize: '0.9rem',
+                    lineHeight: 1.2
+                  }}
+                >
+                  ({scientificName})
+                </Typography>
+              </div>
+            </Tooltip>
+          )
+        }
       }
     ]
 
