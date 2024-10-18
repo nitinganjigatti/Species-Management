@@ -11,12 +11,21 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, name, disabled = false, ...rest }) => {
+const SingleDatePicker = ({
+  popperPlacement,
+  date,
+  maxDate,
+  onChangeHandler,
+  name,
+  disabled = false,
+  isClearable = true,
+  ...rest
+}) => {
   return (
     <DatePickerWrapper>
       <DatePicker
         disabled={disabled ? disabled : null}
-        isClearable
+        isClearable={isClearable}
         showIcon
         selected={date}
         // dateFormat='dd/MM/yyyy'
