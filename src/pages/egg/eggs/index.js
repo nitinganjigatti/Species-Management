@@ -44,12 +44,14 @@ import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
 import ExcelExportButton from 'src/views/pages/egg/eggs/exportExcel'
+import { readAsync, write, remove, read } from 'src/lib/windows/utils'
 
 const EggList = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { selected_nursery_id, tab_Value, subTab_value, page_value, search_value, selected_nursery_name } = router.query
+  const { tab_Value, subTab_value, page_value, search_value, filter_list, selected_options, selected_filters_options } =
+    router.query
 
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
@@ -57,7 +59,6 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -83,10 +84,12 @@ const EggList = () => {
   const [selectionEggModel, setSelectionEggModel] = useState([])
   const [batchList, setBatchList] = useState([])
 
+  // filter states
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
 
   const [selectedOptions, setSelectedOptions] = useState({
     Stage: [],
+
     Nursery: [],
     Site: [],
     'Collected By': [],
@@ -98,6 +101,24 @@ const EggList = () => {
   })
 
   const [filterList, setFilterList] = useState([])
+
+  // nursery filter dropdown
+  const [nurseryList, setNurseryList] = useState([])
+  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [filterByNurseryId, setFilterByNurseryId] = useState('')
+  console.log('filterByNurseryId :>> ', filterByNurseryId)
+
+  useEffect(() => {
+    if (filter_list) {
+      setFilterList(JSON.parse(filter_list))
+    }
+    if (selected_options) {
+      setSelectedOptions(JSON.parse(selected_options))
+    }
+    if (selected_filters_options) {
+      setSelectedFiltersOptions(JSON.parse(selected_filters_options))
+    }
+  }, [])
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -793,20 +814,28 @@ const EggList = () => {
               AEID : {params.row.egg_code ? params.row.egg_code : '-'}
             </Typography>
           )}
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      sortable: false,
+      field: 'identifier',
+      headerName: 'IDENTIFIER',
+      renderCell: params => (
+        <Box>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
 
-          {(params.row.local_id_type || params.row.local_identifier_value) && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.local_id_type} : {params.row.local_identifier_value}
-            </Typography>
-          )}
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.local_id_type}{' '}
+            {params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'}
+          </Typography>
         </Box>
       )
     },
@@ -2181,11 +2210,10 @@ const EggList = () => {
         tab_Value: status,
         subTab_value: isDiscarded,
         page_value: paginationModel?.page,
-
-        search_value: search_value ? search_value : ''
-
-        // selected_nursery_id: filterByNurseryId ? filterByNurseryId : '',
-        // selected_nursery_name: nursery_name ? nursery_name : ''
+        search_value: search_value ? search_value : '',
+        filter_list: JSON.stringify(filterList),
+        selected_options: JSON.stringify(selectedOptions),
+        selected_filters_options: JSON.stringify(selectedFiltersOptions)
       }
 
       // console.log('values :>> ', values)
@@ -2225,9 +2253,23 @@ const EggList = () => {
     setPaginationModel({ page: 0, pageSize: 10 })
     setSelectionEggModel([])
     setSearchQuery('')
-    router.push({ query: { ...router.query, tab_Value: newValue, search_value: '', page_value: 0 } }, undefined, {
-      shallow: true
-    })
+    router.push(
+      {
+        query: {
+          ...router.query,
+          tab_Value: newValue,
+          search_value: '',
+          page_value: 0,
+          filter_list: '',
+          selected_options: '',
+          selected_filters_options: ''
+        }
+      },
+      undefined,
+      {
+        shallow: true
+      }
+    )
   }
 
   const handleTabs = (event, newValue) => {
@@ -2241,20 +2283,34 @@ const EggList = () => {
     setSearchQuery('')
     setSelectionEggModel([])
 
-    router.push({ query: { ...router.query, subTab_value: newValue, search_value: '', page_value: 0 } }, undefined, {
-      shallow: true
-    })
+    router.push(
+      {
+        query: {
+          ...router.query,
+          subTab_value: newValue,
+          search_value: '',
+          page_value: 0,
+          filter_list: '',
+          selected_options: '',
+          selected_filters_options: ''
+        }
+      },
+      undefined,
+      {
+        shallow: true
+      }
+    )
   }
 
   const fetchTableData = useCallback(
-    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}) => {
+    async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}, filterByNurseryId) => {
       // debugger
 
       try {
         setLoading(true)
 
         // Extracting IDs from selectedFiltersOptions
-        const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
+        // const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
 
         // const eggStatusIds = selectedFiltersOptions.EggStatus?.map(option => option.id) ||""
@@ -2283,10 +2339,11 @@ const EggList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
-          nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
+          // nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
           egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
           collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
           site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          nursery_id: filterByNurseryId || '',
 
           egg_status_id: (() => {
             if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
@@ -2310,8 +2367,9 @@ const EggList = () => {
               ? discardedTab
               : statusRecived
         }
-        console.log('params table data :>> ', isDiscarded)
-        console.log('params table data :>> ', status)
+
+        // console.log('params table data :>> ', isDiscarded)
+        // console.log('params table data :>> ', status)
         if (
           (status === 'eggs_discarded' && isDiscarded === 'eggs_discarded_at_nursery') ||
           status === 'eggs_received' ||
@@ -2344,9 +2402,9 @@ const EggList = () => {
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {
-      fetchTableData(sort, searchQuery, status, isDiscarded, selectedFiltersOptions)
+      fetchTableData(sort, searchQuery, status, isDiscarded, selectedFiltersOptions, filterByNurseryId)
     }
-  }, [fetchTableData, status, isDiscarded, selectedFiltersOptions])
+  }, [fetchTableData, status, isDiscarded, selectedFiltersOptions, filterByNurseryId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -2379,53 +2437,85 @@ const EggList = () => {
     []
   )
 
-  // const headerAction = (
-  //   <>
-  //     <Box>
-  //       <Autocomplete
-  //         sx={{
-  //           width: 250,
-  //           m: 2,
-  //           ml: 5
-  //         }}
-  //         name='nursery'
-  //         value={defaultNursery}
-  //         disablePortal
-  //         id='nursery'
-  //         options={nurseryList?.length > 0 ? nurseryList : []}
-  //         getOptionLabel={option => option.nursery_name}
-  //         isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
-  //         onChange={(e, val) => {
-  //           // console.log('val :>> ', val)
-  //           if (val === null) {
-  //             setDefaultNursery(null)
-  //             setFilterByNurseryId('')
+  const NurseryList = async q => {
+    try {
+      const params = {
+        search: q,
+        page: 1,
+        limit: 50
+      }
+      await GetNurseryList({ params }).then(res => {
+        const apiList = res?.data?.result || []
 
-  //             // return onChange('')
-  //           } else {
-  //             setDefaultNursery(val)
+        // Add the "All" option
+        const allOption = { nursery_id: '', nursery_name: 'All' }
+        const updatedList = [allOption, ...apiList]
+        setNurseryList(updatedList)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
-  //             // setValue('room', '')
-  //             setFilterByNurseryId(val.nursery_id)
-  //             setNursery_name(val.nursery_name)
+  const readNursery = async () => {
+    const storedNursery = read('Nursery')
+    const parsedNursery = await JSON.parse(storedNursery)
+    if (parsedNursery) {
+      setDefaultNursery(parsedNursery)
+      setFilterByNurseryId(parsedNursery.nursery_id)
+    } else {
+      setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+      setFilterByNurseryId(parsedNursery.nursery_id)
+    }
+  }
 
-  //             // return onChange(val.nursery_id)
-  //           }
-  //         }}
-  //         renderInput={params => (
-  //           <TextField
-  //             onChange={e => {
-  //               searchNursery(e.target.value)
-  //             }}
-  //             {...params}
-  //             label='Select Nursery *'
-  //             placeholder='Search & Select'
-  //           />
-  //         )}
-  //       />
-  //     </Box>
-  //   </>
-  // )
+  useEffect(() => {
+    readNursery()
+
+    NurseryList()
+  }, [])
+
+  const headerAction = (
+    <>
+      <Box>
+        <Autocomplete
+          sx={{
+            width: 250,
+            m: 2,
+            ml: 5
+          }}
+          name='nursery'
+          value={defaultNursery}
+          disablePortal
+          id='nursery'
+          options={nurseryList?.length > 0 ? nurseryList : []}
+          getOptionLabel={option => option.nursery_name}
+          isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
+          onChange={(e, val) => {
+            if (val === null || val.nursery_id === '') {
+              setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+              setFilterByNurseryId('')
+              write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
+            } else {
+              setDefaultNursery({ nursery_id: val.nursery_id, nursery_name: val.nursery_name })
+              setFilterByNurseryId(val.nursery_id)
+              write('Nursery', JSON.stringify({ nursery_id: val.nursery_id, nursery_name: val.nursery_name }))
+            }
+          }}
+          renderInput={params => (
+            <TextField
+              onChange={e => {
+                searchNursery(e.target.value)
+              }}
+              {...params}
+              label='Select Nursery *'
+              placeholder='Search & Select'
+            />
+          )}
+        />
+      </Box>
+    </>
+  )
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -2471,7 +2561,6 @@ const EggList = () => {
             status === 'all' ? (
               <>
                 <EggTableHeader
-                  tabValue={status}
                   totalCount={total}
                   setFilterList={setFilterList}
                   filterList={filterList}
@@ -2482,6 +2571,7 @@ const EggList = () => {
                   setSearchQuery={setSearchQuery}
                   selectedOptions={selectedOptions}
                   setSelectedOptions={setSelectedOptions}
+                  data={rows}
                 />
                 <DataGrid
                   sx={{
@@ -2540,7 +2630,6 @@ const EggList = () => {
               status === 'eggs_ready_to_be_discarded_at_nursery' && (
                 <Box>
                   <EggTableHeader
-                    tabValue={status}
                     totalCount={total}
                     setFilterList={setFilterList}
                     filterList={filterList}
@@ -2551,6 +2640,7 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
+                    data={rows}
                   />
 
                   <DataGrid
@@ -2624,18 +2714,17 @@ const EggList = () => {
     )
   }
 
-  const headerAction = (
-    <>
-      <div>
-        <ExcelExportButton
-          tab_Value={tab_Value}
-          subTab_value={subTab_value}
-          data={tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? batchList : rows}
-          filename='eggs_data.xlsx'
-        />
-      </div>
-    </>
-  )
+  // const headerAction = (
+  //   <>
+  //     <div>
+  //       <ExcelExportButton
+  //         tab_Value={tab_Value}
+  //         subTab_value={subTab_value}
+  //         data={tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? batchList : rows}
+  //       />
+  //     </div>
+  //   </>
+  // )
 
   return (
     <>
@@ -2713,7 +2802,6 @@ const EggList = () => {
                 {/* {tableData()} */}
                 <Box sx={{ width: '100%', overflowX: 'auto' }}>
                   <EggTableHeader
-                    tabValue={status}
                     totalCount={total}
                     setFilterList={setFilterList}
                     filterList={filterList}
@@ -2724,6 +2812,7 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
+                    data={rows}
                   />
 
                   <DataGrid
@@ -2924,7 +3013,6 @@ const EggList = () => {
                     {/* {tableData()} */}
                     <>
                       <EggTableHeader
-                        tabValue={status}
                         totalCount={total}
                         setFilterList={setFilterList}
                         filterList={filterList}
@@ -2935,6 +3023,7 @@ const EggList = () => {
                         setSearchQuery={setSearchQuery}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
+                        data={rows}
                       />
 
                       <DataGrid

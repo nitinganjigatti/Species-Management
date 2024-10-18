@@ -94,7 +94,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
 
               // color: theme.palette.primary.light,
               color: theme.palette.customColors.OnSurfaceVariant,
-              width: 250,
+              width: 150,
               fontWeight: '500',
               lineHeight: '19.36px',
               overflow: 'hidden',
@@ -111,14 +111,14 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             sx={{
               // color: theme.palette.primary.light,
               color: theme.palette.customColors.OnSurfaceVariant,
-              width: 250,
+              width: 150,
               fontSize: '14px',
               fontWeight: '400',
               lineHeight: '16.94px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              width: '100%',
+
               fontStyle: 'italic'
             }}
           >

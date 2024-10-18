@@ -3,20 +3,28 @@ import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
+import { Box } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
-const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_data.xlsx' }) => {
+const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
+  const theme = useTheme()
+
   const [xlsxList, setXlsxList] = useState([])
+  const [fileName, setFileName] = useState('Egg Table List')
 
   //   console.log('xlsxList :>> ', xlsxList)
-  //   console.log('tab_Value :>> ', tab_Value)
+  console.log('tab_Value :>> ', tab_Value)
 
   useEffect(() => {
     if (tab_Value === 'eggs_received') {
-      const formattedData = data.map((item, index) => ({
+      setFileName('Eggs Received')
+
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        'EGG IDENTIFIER': `UEID: ${item.egg_number}, AEID: ${item.egg_code}`,
+        UEID: item.egg_number,
+        AEID: item.egg_code,
         CONDITION: `${item.egg_condition} ${item.egg_initial_temperature}`,
         'SITE NAME': item.site_name,
         NURSERY: item.nursery_name,
@@ -27,11 +35,14 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
       }))
       setXlsxList(formattedData)
     } else if (tab_Value === 'eggs_incubation') {
-      const formattedData = data.map((item, index) => ({
+      setFileName('Eggs Incubation')
+
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        'EGG IDENTIFIER': `UEID: ${item.egg_number}, AEID: ${item.egg_code}`,
+        UEID: item.egg_number,
+        AEID: item.egg_code,
         'STATE & STAGE': `${item.egg_status} ${item.egg_state}`,
         'DAY IN INCUBATION': item.days_in_incubation,
         'INITIAL WEIGHT': item.initial_weight,
@@ -50,22 +61,29 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
       }))
       setXlsxList(formattedData)
     } else if (tab_Value == 'eggs_hatched') {
+      setFileName('Egg Hatched')
+
       const formattedData = data.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        'EGG IDENTIFIER': `UEID: ${item.egg_number}, AEID: ${item.egg_code} , ${item.local_id_type} : ${item.local_identifier_value}`,
+        UEID: item.egg_number,
+        AEID: item.egg_code,
+        IDENTIFIER: `${item.local_id_type} : ${item.local_identifier_value}`,
         'ANIMAL ID': `AAID :${item.animal_id}`,
         'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
         'HATCHED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.hatched_date))} `
       }))
       setXlsxList(formattedData)
     } else if (tab_Value == 'eggs_ready_to_be_discarded_at_nursery') {
-      const formattedData = data.map((item, index) => ({
+      setFileName('Egg To Be discarded')
+
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        'EGG IDENTIFIER': `UEID: ${item.egg_number}, AEID: ${item.egg_code} `,
+        UEID: item.egg_number,
+        AEID: item.egg_code,
         REASON: item.egg_state,
         'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
         'SITE NAME': item.site_name,
@@ -73,11 +91,14 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
       }))
       setXlsxList(formattedData)
     } else if (tab_Value === 'all') {
-      const formattedData = data.map((item, index) => ({
+      setFileName('All Egg')
+
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        'EGG IDENTIFIER': `UEID: ${item.egg_number}, AEID: ${item.egg_code}`,
+        UEID: item.egg_number,
+        AEID: item.egg_code,
         STATE: `${item.egg_status}`,
         'SITE NAME': item.site_name,
         NURSERY: item.nursery_name,
@@ -88,11 +109,14 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
       }))
       setXlsxList(formattedData)
     } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
-      const formattedData = data.map((item, index) => ({
+      setFileName('Eggs Discarded')
+
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        'EGG IDENTIFIER': `UEID: ${item.egg_number}, AEID: ${item.egg_code}`,
+        UEID: item.egg_number,
+        AEID: item.egg_code,
         REASON: `${item.egg_state}`,
         'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
         'SAMPLE TAKEN':
@@ -112,7 +136,9 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
       }))
       setXlsxList(formattedData)
     } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
-      const formattedData = data.map((item, index) => ({
+      setFileName('Eggs Batch Discarded')
+
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'REQUEST ID & EGGS': `${item.request_id} , Egg Count:${item.egg_count}`,
         'REQUEST CREATED ON': `${Utility.formatDisplayDate(
@@ -141,8 +167,8 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
 
     // Add static header data
     const headerData = [
-      ['Egg Data Report'], // Header text
-      ['Name'] // Column header
+      // ['Egg Data Report'], // Header text
+      // ['Name'] // Column header
     ]
 
     // Add the header data to the worksheet
@@ -169,21 +195,39 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data, filename = 'table_da
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', filename)
+    link.setAttribute('download', fileName)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
   return (
-    <Button
-      variant='contained'
-      color='primary'
-      onClick={handleExport}
-      sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}
-    >
-      Excel <Icon icon='ic:round-download' fontSize={20} />
-    </Button>
+    <>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          width: '40px',
+          height: '40px',
+          borderRadius: '4px',
+          bgcolor: theme?.palette.customColors?.lightBg,
+          alignItems: 'center',
+          cursor: 'pointer'
+        }}
+        onClick={handleExport}
+      >
+        <Icon icon='ic:round-download' fontSize={20} />
+      </Box>
+
+      {/* <Button
+        variant='contained'
+        color='primary'
+        onClick={handleExport}
+        sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}
+      >
+        Excel 
+      </Button> */}
+    </>
   )
 }
 

@@ -41,6 +41,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [date, setDate] = useState({ to_date: '', from_date: '' })
   let [page, setPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
+  const [loader, setLoader] = useState(false)
 
   // const [loader, setLoader] = useState(false)
 
@@ -499,7 +500,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const DiscardList = async (q, currentDate, fromDate) => {
-    // setLoader(true)
+    setLoader(true)
+
     // setDiscardList([])
     try {
       const nurseryIds = applyFilters.Nursery?.map(option => option.id)
@@ -549,9 +551,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         }
       })
     } catch (error) {
-      // setLoader(false)
+      setLoader(false)
 
       console.log('error :>> ', error)
+    } finally {
+      setLoader(false)
     }
   }
 
@@ -674,6 +678,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               >
                 {listCount > 0 ? (
                   discardList?.map((item, index) => <Card key={index} list={item} />)
+                ) : loader ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {' '}
+                    <CircularProgress />
+                  </Box>
                 ) : (
                   <Typography
                     sx={{
@@ -712,6 +721,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               >
                 {listCount > 0 ? (
                   discardList?.map((item, index) => <Card key={index} list={item} />)
+                ) : loader ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {' '}
+                    <CircularProgress />
+                  </Box>
                 ) : (
                   <Typography
                     sx={{
