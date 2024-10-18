@@ -306,7 +306,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'total_egg_in_nest',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'CURRENTLY IN NEST',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CURRENTLY
+          </Typography>
+
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            IN NEST
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Box
           sx={{
@@ -328,7 +338,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'}
+            {/* {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'} */}
+            {params.row.currently_in_nest ? params.row.currently_in_nest : '-'}
           </Typography>
         </Box>
       )
@@ -339,7 +350,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       sortable: false,
       disableColumnMenu: true,
       // headerName: 'EGGS TO NURSERY',
-      headerName: 'TRANSIT IN NURSERY',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CURRENTLY
+          </Typography>
+
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            IN NURSERY
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Box
           sx={{
@@ -354,23 +375,16 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }
           }}
         >
-          <CustomTooltip
-            title={[
-              { label: 'In transit:', value: params.row.in_transit },
-              { label: 'Marked for transfer:', value: params.row.marked_for_transfer }
-            ]}
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
           >
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.eggs_to_nursery ? params.row.eggs_to_nursery : '-'}
-            </Typography>
-          </CustomTooltip>
+            {params.row.currently_in_nursery ? params.row.currently_in_nursery : '-'}
+          </Typography>
         </Box>
       )
     },
@@ -379,48 +393,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'in_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'CURRENTLY IN NURSERY',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#37BD691A'
-            }
-          }}
-        >
-          <CustomTooltip
-            disableHoverListener={!params?.row?.nursery_wise_breakdown?.length}
-            title={params?.row?.nursery_wise_breakdown?.map(item => ({
-              label: `${item?.nursery_name}: `,
-              value: `${item?.total_eggs}`
-            }))}
-          >
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.in_nursery ? Number(params.row.in_nursery) : '-'}
-            </Typography>
-          </CustomTooltip>
-        </Box>
-      )
-    },
-
-    {
-      width: 110,
-      field: 'hatched_percentage',
-      sortable: false,
-      disableColumnMenu: true,
-      headerName: 'HATCHED %',
+      headerName: 'HATCHED IN NEST %',
       renderCell: params => (
         <Box
           sx={{
@@ -442,24 +415,140 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {Math.round(
-              Number(params.row.total_hatched_eggs) > 0 && Number(params.row.discarded) >= 0
-                ? (Number(params.row.total_hatched_eggs) /
-                    (Number(params.row.total_hatched_eggs) + Number(params.row.discarded))) *
-                    100
-                : 0 // Fallback to 0 if values are not valid numbers
-            )}
-            % {` (${params?.row?.total_hatched_eggs})`}
+            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+              ? (Number(params.row.hatched_in_nest) /
+                  (Number(params.row.hatched_in_nest) +
+                    Number(params.row.discarded_at_site) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NURSERY %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+              ? (Number(params.row.hatched_in_nursery) /
+                  (Number(params.row.hatched_in_nursery) +
+                    Number(params.row.discarded_at_nursery) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
           </Typography>
         </Box>
       )
     },
     {
-      width: 120,
-      field: 'total_discard',
+      width: 160,
+      field: 'hatched_percentage',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'DISCARDED',
+      headerName: 'TOTAL HATCHED %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {/* total_hatched_eggs */}
+            {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.total_hatch ? params.row.total_hatch : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 170,
+      field: 'discarded_at_site',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED AT SITE',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.discarded_at_site ? params.row.discarded_at_site : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'discarded_at_nursery',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -475,8 +564,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         >
           <CustomTooltip
             title={[
-              { label: 'Ready to discard:', value: params.row.ready_to_discard },
-              { label: 'Discarded:', value: params.row.discarded }
+              { label: 'Ready to be discarded at nursery :', value: params.row.ready_tobe_discarded_at_nursery },
+              { label: 'Discarded at nursery:', value: params.row.discarded_at_nursery }
             ]}
           >
             <Typography
@@ -487,7 +576,79 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.total_discard ? params.row.total_discard : '-'}
+              {params.row.discarded_at_nursery ? params.row.discarded_at_nursery : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    },
+    {
+      width: 140,
+      field: 'total_discarded',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_discarded ? params.row.total_discarded : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 120,
+      field: 'in_transit',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'IN TRANSIT',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <CustomTooltip
+            disableHoverListener={!params?.row?.nursery_wise_breakdown?.length}
+            title={[
+              { label: 'Send to nursery :', value: params.row.send_to_nursery },
+              { label: 'With in transfer request:', value: params.row.within_transfer_request }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.in_transit ? params.row.in_transit : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -588,7 +749,17 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'total_egg_in_nest',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'IN NEST',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CURRENTLY
+          </Typography>
+
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            IN NEST
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Box
           sx={{
@@ -610,7 +781,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'}
+            {/* {params.row.total_egg_in_nest ? params.row.total_egg_in_nest : '-'} */}
+            {params.row.currently_in_nest ? params.row.currently_in_nest : '-'}
           </Typography>
         </Box>
       )
@@ -620,7 +792,18 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'eggs_to_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'EGGS TO NURSERY',
+      // headerName: 'EGGS TO NURSERY',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CURRENTLY
+          </Typography>
+
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            IN NURSERY
+          </Typography>
+        </Box>
+      ),
       renderCell: params => (
         <Box
           sx={{
@@ -628,39 +811,32 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
+
             alignContent: 'center',
             '&:hover': {
               backgroundColor: '#37BD691A'
             }
           }}
         >
-          <CustomTooltip
-            title={[
-              { label: 'In transit:', value: params.row.in_transit },
-              { label: 'Marked for transfer:', value: params.row.marked_for_transfer },
-              { label: 'Transferred:', value: params.row.transferred }
-            ]}
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
           >
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              {params.row.eggs_to_nursery ? params.row.eggs_to_nursery : '-'}
-            </Typography>
-          </CustomTooltip>
+            {params.row.currently_in_nursery ? params.row.currently_in_nursery : '-'}
+          </Typography>
         </Box>
       )
     },
     {
-      width: 160,
-      field: 'hatched_percentage',
+      width: 180,
+      field: 'in_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'HATCHED %',
+      headerName: 'HATCHED IN NEST %',
       renderCell: params => (
         <Box
           sx={{
@@ -682,25 +858,140 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {Math.round(
-              Number(params.row.total_hatched_eggs) > 0 && Number(params.row.discarded) >= 0
-                ? (Number(params.row.total_hatched_eggs) /
-                    (Number(params.row.total_hatched_eggs) + Number(params.row.discarded))) *
-                    100
-                : 0 // Fallback to 0 if values are not valid numbers
-            )}
-            %{` (${params?.row?.total_hatched_eggs})`}
+            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+              ? (Number(params.row.hatched_in_nest) /
+                  (Number(params.row.hatched_in_nest) +
+                    Number(params.row.discarded_at_site) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
           </Typography>
         </Box>
       )
     },
 
     {
-      width: 140,
-      field: 'total_discard',
+      width: 200,
+      field: 'hatched_in_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'DISCARDED',
+      headerName: 'HATCHED IN NURSERY %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+              ? (Number(params.row.hatched_in_nursery) /
+                  (Number(params.row.hatched_in_nursery) +
+                    Number(params.row.discarded_at_nursery) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'hatched_percentage',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {/* total_hatched_eggs */}
+            {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.total_hatch ? params.row.total_hatch : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 170,
+      field: 'discarded_at_site',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED AT SITE',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.discarded_at_site ? params.row.discarded_at_site : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'discarded_at_nursery',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -716,8 +1007,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         >
           <CustomTooltip
             title={[
-              { label: 'Ready to discard:', value: params.row.ready_to_discard },
-              { label: 'Discarded:', value: params.row.discarded }
+              { label: 'Ready to be discarded at nursery :', value: params.row.ready_tobe_discarded_at_nursery },
+              { label: 'Discarded at nursery:', value: params.row.discarded_at_nursery }
             ]}
           >
             <Typography
@@ -728,7 +1019,78 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.total_discard ? params.row.total_discard : '-'}
+              {params.row.discarded_at_nursery ? params.row.discarded_at_nursery : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'total_discarded',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_discarded ? params.row.total_discarded : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 120,
+      field: 'in_transit',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'IN TRANSIT',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'Send to nursery :', value: params.row.send_to_nursery },
+              { label: 'With in transfer request:', value: params.row.within_transfer_request }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.in_transit ? params.row.in_transit : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -826,11 +1188,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
 
     {
-      width: 180,
-      field: 'incubation_count',
+      width: 200,
+      field: 'currently_in_incubator',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'INCUBATION',
+      headerName: 'CURRENTLY IN INCUBATOR',
       renderCell: params => (
         <Box
           sx={{
@@ -838,9 +1200,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
+
             alignContent: 'center',
             '&:hover': {
-              backgroundColor: '#0000000D'
+              backgroundColor: '#37BD691A'
             }
           }}
         >
@@ -852,17 +1215,60 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.incubation_count ? params.row.incubation_count : '-'}
+            {params.row.currently_in_incubator ? params.row.currently_in_incubator : '-'}
           </Typography>
         </Box>
       )
     },
     {
-      width: 180,
-      field: 'hatched_percentage',
+      width: 160,
+      field: 'eggs_to_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'HATCHED %',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CURRENTLY
+          </Typography>
+
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            IN NURSERY
+          </Typography>
+        </Box>
+      ),
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.currently_in_nursery ? params.row.currently_in_nursery : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
         <Box
           sx={{
@@ -884,25 +1290,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {Math.round(
-              Number(params.row.total_hatched_eggs) > 0 && Number(params.row.discarded) >= 0
-                ? (Number(params.row.total_hatched_eggs) /
-                    (Number(params.row.total_hatched_eggs) + Number(params.row.discarded))) *
-                    100
-                : 0 // Fallback to 0 if values are not valid numbers
-            )}
-            % {` (${params?.row?.total_hatched_eggs})`}{' '}
+            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+              ? (Number(params.row.hatched_in_nursery) /
+                  (Number(params.row.hatched_in_nursery) +
+                    Number(params.row.discarded_at_nursery) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)}
+            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
           </Typography>
         </Box>
       )
     },
-
     {
-      width: 180,
-      field: 'total_discard',
+      width: 200,
+      field: 'discarded_at_nursery',
       sortable: false,
       disableColumnMenu: true,
-      headerName: 'DISCARDED',
+      headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -918,8 +1325,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         >
           <CustomTooltip
             title={[
-              { label: 'Ready to discard:', value: params.row.ready_to_discard },
-              { label: 'Discarded:', value: params.row.discarded }
+              { label: 'Ready to be discarded at nursery :', value: params.row.ready_tobe_discarded_at_nursery },
+              { label: 'Discarded at nursery:', value: params.row.discarded_at_nursery }
             ]}
           >
             <Typography
@@ -930,7 +1337,47 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded ? params.row.discarded : '-'}
+              {params.row.discarded_at_nursery ? params.row.discarded_at_nursery : '-'}
+            </Typography>
+          </CustomTooltip>
+        </Box>
+      )
+    },
+
+    {
+      width: 120,
+      field: 'in_transit',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'IN TRANSIT',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <CustomTooltip
+            title={[
+              { label: 'Send to nursery :', value: params.row.send_to_nursery },
+              { label: 'With in transfer request:', value: params.row.within_transfer_request }
+            ]}
+          >
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.in_transit ? params.row.in_transit : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
