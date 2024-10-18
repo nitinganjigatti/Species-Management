@@ -18,6 +18,7 @@ const SingleDatePicker = ({
   onChangeHandler,
   name,
   disabled = false,
+  size,
   isClearable = true,
   ...rest
 }) => {
@@ -38,6 +39,7 @@ const SingleDatePicker = ({
           <CustomInput
             label={name}
             width='auto'
+            size={size}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>

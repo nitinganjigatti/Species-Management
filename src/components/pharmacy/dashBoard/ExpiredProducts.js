@@ -15,16 +15,16 @@ import Chip from '@mui/material/Chip'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
-import { getFastMovingStocks } from 'src/lib/api/pharmacy/dashboard'
+import { getExpiredStocks } from 'src/lib/api/pharmacy/dashboard'
 import { Grid } from '@mui/material'
 
-const FastMovingProducts = () => {
+const ExpiredProducts = () => {
   const [productsList, setProductsList] = useState([])
 
   const getProductsList = async () => {
     try {
-      const result = await getFastMovingStocks()
-
+      const result = await getExpiredStocks()
+      console.log(result, 'result')
       if (result?.success === true && result?.data?.list_items?.length > 0) {
         setProductsList(result?.data?.list_items)
       }
@@ -82,10 +82,10 @@ const FastMovingProducts = () => {
                           </Avatar>
                           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                             <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
-                              {row?.stock_name}
+                              {row?.stock_item_name}
                             </Typography>
                             <Typography variant='caption' sx={{ whiteSpace: 'nowrap' }}>
-                              Qty in stock : {row?.qty ? row?.qty : 'NA'}
+                              Qty in stock : {row?.stock_qty ? row?.stock_qty : 'NA'}
                             </Typography>
                           </Box>
                         </Box>
@@ -100,7 +100,7 @@ const FastMovingProducts = () => {
                             sx={{ ml: '6px', fontSize: '12px' }}
                             size='small'
                             variant='outlined'
-                            label={row?.total_nos ? `${row?.total_nos}nos` : 'NA'}
+                            label={row?.package_qty ? `${row?.package_qty}nos` : 'NA'}
                             color='error'
                           /> */}
                         </Box>
@@ -116,4 +116,4 @@ const FastMovingProducts = () => {
   )
 }
 
-export default FastMovingProducts
+export default ExpiredProducts
