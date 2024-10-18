@@ -26,6 +26,7 @@ import { LoadingButton } from '@mui/lab'
 import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
 import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import moment from 'moment'
+import { writeFile, utils } from 'xlsx'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 const dropdownOptions = [
@@ -499,13 +500,130 @@ const ReceivedMedicinesReport = () => {
     }
   }
 
+  const handleDownloadExcel = async () => {
+    try {
+      let payload = {
+        medicine_id: medicineId,
+        from_date: downloadFromDate,
+        to_date: downloadToDate,
+        q: searchbyDoctorname
+      }
+
+      const response = await getMedicineWiseDoctorFilter(payload)
+      if (response.success === true) {
+        const data = response.data
+
+        const rows = data.list_items.map(item => ({
+          'Doctor Name': item.doctor_name,
+          'Medicine Name': item.stock_name,
+          'Requested Count': item.received_count,
+          'Requested Value': item.received_value
+        }))
+
+        // Create worksheet and workbook
+        const worksheet = utils.json_to_sheet(rows)
+        worksheet['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 15 }]
+
+        // Create workbook and append the worksheet
+        const workbook = utils.book_new()
+        utils.book_append_sheet(workbook, worksheet, 'DoctorList')
+
+        // Download the Excel file
+        writeFile(workbook, 'DoctorList.xlsx')
+      }
+    } catch (e) {
+      console.error('Error downloading Excel file', e)
+    }
+  }
+
+  const handleDownloadReport = async () => {
+    try {
+      let payload = {}
+      const activeStatus = statusFilter
+
+      if (filtersApplied && selectedFruits.length > 0) {
+        payload = {
+          q: searchValue,
+          filter: activeStatus,
+          medicine_ids: selectedFruits
+        }
+      } else {
+        payload = {
+          q: searchValue,
+          filter: activeStatus
+        }
+      }
+
+      const response = await getReceivedMedicineList(payload)
+      const listItem = response.data.list_items
+
+      const headers = ['Medicine']
+      listItem.columnData.forEach(column => {
+        headers.push(`${column.title} (${column.sub_title})`)
+      })
+
+      const rows = listItem.rowData.map(row => {
+        const rowData = {
+          Medicine: row.stock_name
+        }
+
+        // Initialize all month/year columns with default "₹0" values
+        listItem.columnData.forEach(column => {
+          rowData[`${column.title} (${column.sub_title})`] = '₹0'
+        })
+
+        Object.entries(row.data_values).forEach(([month, value]) => {
+          const column = listItem.columnData.find(col => col.title === month)
+
+          if (column) {
+            const roundedValue = parseFloat(value)
+            const formattedValue = roundedValue.toLocaleString('en-IN', {
+              // style: 'currency',
+              // currency: 'INR',
+              maximumFractionDigits: 0
+            })
+            rowData[`${column.title} (${column.sub_title})`] = formattedValue
+          }
+        })
+
+        return rowData
+      })
+
+      const totalPurchaseRow = {
+        Medicine: 'Total Purchase Value (in lac)'
+      }
+      listItem.columnData.forEach(column => {
+        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
+        const formattedPurchaseValue = (column.total_received_value / 100000).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
+      })
+
+      const finalRows = [totalPurchaseRow, ...rows]
+
+      // Convert the rows and headers to worksheet format
+      const wsData = [headers, ...finalRows.map(row => Object.values(row))]
+
+      // Convert the data into a worksheet
+      const ws = utils.aoa_to_sheet(wsData)
+      const wb = utils.book_new()
+      utils.book_append_sheet(wb, ws, 'Dispatch_Report')
+
+      writeFile(wb, 'Purchase_Report.xlsx')
+    } catch (error) {
+      console.log('Error downloading report:', error)
+    }
+  }
+
   const headerAction = (
     <div>
       <LoadingButton
         size='medium'
         variant='contained'
         endIcon={<Icon icon='material-symbols:download' />}
-        // onClick={handleDownloadReport}
+        onClick={handleDownloadReport}
       >
         Download Report
       </LoadingButton>
@@ -727,6 +845,7 @@ const ReceivedMedicinesReport = () => {
                   handleSearchDoctors={handleSearchDoctors}
                   searchbyDoctorname={searchbyDoctorname}
                   setsearchbyDoctorname={setsearchbyDoctorname}
+                  handleDownloadExcel={handleDownloadExcel}
                 />
               )}
             </>
