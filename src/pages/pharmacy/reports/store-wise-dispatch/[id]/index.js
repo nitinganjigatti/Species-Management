@@ -852,7 +852,7 @@ const StoreWiseDispatchDetail = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (
