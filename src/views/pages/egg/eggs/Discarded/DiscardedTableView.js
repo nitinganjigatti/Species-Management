@@ -21,7 +21,8 @@ const DiscardedTableView = ({
   selectedFiltersOptions,
   setTotal,
   selectedOptions,
-  setSelectedOptions
+  setSelectedOptions,
+  setBatchList
 }) => {
   const router = useRouter()
   const { search_value } = router.query
@@ -86,6 +87,7 @@ const DiscardedTableView = ({
           setTotal(Number(res?.data?.data?.total_count))
           setTotalPage(Number(res?.data?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.data?.result))
+          setBatchList(res?.data?.data?.result)
         } else {
           setRows([])
         }
@@ -467,7 +469,6 @@ const DiscardedTableView = ({
   return (
     <Box>
       <EggTableHeader
-        tabValue={tabValue}
         totalCount={totalpage}
         setFilterList={setFilterList}
         filterList={filterList}
@@ -478,6 +479,7 @@ const DiscardedTableView = ({
         setSearchQuery={setSearchQuery}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
+        data={rows}
       />
       <DataGrid
         sx={{
