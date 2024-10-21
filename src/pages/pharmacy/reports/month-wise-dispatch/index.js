@@ -829,7 +829,7 @@ const MonthWiseDispatch = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (

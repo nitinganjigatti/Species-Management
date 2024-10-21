@@ -813,7 +813,7 @@ const ReceivedMedicinesReport = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={params => handlecheckcell(params, 'received_medicines')}
+                  // onCellClick={params => handlecheckcell(params, 'received_medicines')}
                 />
               </Card>
               {openFilterDrawer && (
