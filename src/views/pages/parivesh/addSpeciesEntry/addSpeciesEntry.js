@@ -263,7 +263,7 @@ const AddSpeciesNewEntry = props => {
   const fileInputRef = useRef(null)
   const [values, setValues] = useState(defaultValues)
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
-  const { selectedParivesh } = usePariveshContext()
+  // const { selectedParivesh } = usePariveshContext()
   const [displayFile, setDisplayFile] = useState([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [reasonType, setReasonType] = useState(null)
@@ -319,7 +319,7 @@ const AddSpeciesNewEntry = props => {
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
 
     const payload = {
-      org_id: selectedParivesh.id,
+      // org_id: selectedParivesh.id,
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,

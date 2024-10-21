@@ -51,13 +51,13 @@ const SpeciesDetails = () => {
   const [organizationCountList, setOrganizationCountList] = useState([])
   const [speciesDetails, setSpeciesDetails] = useState({})
 
-  const { selectedParivesh } = usePariveshContext()
+  // const { selectedParivesh } = usePariveshContext()
 
   const authData = useContext(AuthContext)
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const router = useRouter()
-  const { id, tsn_id, tsn_relation } = router.query
+  const { id, org_id, tsn_id, tsn_relation } = router.query
 
   // console.log(tsn_relation, id, tsn, router, 'router')
 
@@ -276,7 +276,7 @@ const SpeciesDetails = () => {
           page: paginationModel.page + 1,
           sortBy: sort,
           sortColumn,
-          org_id: selectedParivesh?.id,
+          org_id: org_id,
           limit: paginationModel.pageSize
         }
 
@@ -313,7 +313,7 @@ const SpeciesDetails = () => {
         }
 
         await getOrgCountList({ params: params }).then(res => {
-          const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+          const filteredData = res.data.filter(org => org.org_id === org_id)
 
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
@@ -581,16 +581,17 @@ const SpeciesDetails = () => {
         console.log(e)
       }
     },
-    [selectedParivesh?.id]
+    [org_id]
   )
 
   useEffect(() => {
-    fetchOrgCountData(selectedParivesh?.id, tsn_id, tsn_relation)
+    fetchOrgCountData(org_id, tsn_id, tsn_relation)
   }, [fetchOrgCountData])
 
   const handleSubmitData = async data => {
     const payload = {
       ...data,
+      org_id: org_id,
       tsn_id: tsn_id,
       tsn_relation: tsn_relation
     }

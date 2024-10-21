@@ -46,7 +46,7 @@ const SpeciesList = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
-  const { selectedParivesh } = usePariveshContext()
+  // const { selectedParivesh } = usePariveshContext()
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const onClose = () => {
@@ -284,46 +284,100 @@ const SpeciesList = () => {
     const organizationNames = [...new Set(rows.flatMap(row => row.organizations.map(org => org.organization_name)))]
 
     // Create columns for each organization
+    // const organizationColumns = organizationNames.map((orgName, index) => ({
+    //   flex: 0.6,
+    //   // minWidth: 40,
+    //   minWidth: 180,
+    //   field: `org_${index}`,
+    //   headerName: orgName,
+    //   sortable: false,
+    //   headerAlign: 'left',
+    //   // headerAlign: 'center',
+    //   renderCell: params => {
+    //     const org = params.row.organizations.find(org => org.organization_name === orgName)
+    //     const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
+    //     return (
+    //       <>
+    //         <Box>
+    //           <Typography variant='h6' sx={{ color: isSelected ? '#37BD69' : '#44544A' }}>
+    //             {org ? org.animal_count : '-'}
+    //           </Typography>
+    //           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+    //             <Box sx={{ bgcolor: '#AFEFEB', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+    //               <Typography sx={{ color: '#1F515B' }} variant='caption'>
+    //                 M-{org ? org.male_count : '0'}
+    //               </Typography>
+    //             </Box>
+    //             <Box sx={{ bgcolor: '#FFD3D3', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+    //               <Typography sx={{ color: '#1F515B' }} variant='caption'>
+    //                 F-{org ? org.female_count : '0'}
+    //               </Typography>
+    //             </Box>
+    //             <Box sx={{ bgcolor: '#8479F91A', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+    //               <Typography sx={{ color: '#E93353' }} variant='caption'>
+    //                 O-{org ? org.other_count : '0'}
+    //               </Typography>
+    //             </Box>
+    //           </Box>
+    //         </Box>
+    //       </>
+    //     )
+    //   }
+    // }))
+
     const organizationColumns = organizationNames.map((orgName, index) => ({
       flex: 0.6,
-      // minWidth: 40,
       minWidth: 180,
       field: `org_${index}`,
       headerName: orgName,
       sortable: false,
       headerAlign: 'left',
-      // headerAlign: 'center',
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
-        const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
+        // const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
+
+        // Define the onClick handler for individual organization cells
+        const handleClick = () => {
+          if (org) {
+            console.log(`Organization ID: ${org.org_id}`) // You can replace this with your routing logic
+            const clickedColumn = params.field !== 'switch'
+            if (clickedColumn) {
+              const data = params?.row?.tsn_id
+              Router.push({
+                pathname: `/parivesh/species/${data}/species-details`,
+                query: {
+                  tsn_relation: params?.row?.tsn_relation,
+                  tsn_id: params?.row?.tsn_id,
+                  org_id: org.org_id
+                }
+              })
+            }
+          }
+        }
+
         return (
-          <>
-            {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Box onClick={handleClick} className='organization-cell' sx={{ cursor: 'pointer' }}>
+            <Typography variant='h6' sx={{ color: '#44544A' }}>
               {org ? org.animal_count : '-'}
-            </Typography> */}
-            <Box>
-              <Typography variant='h6' sx={{ color: isSelected ? '#37BD69' : '#44544A' }}>
-                {org ? org.animal_count : '-'}
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
-                <Box sx={{ bgcolor: '#AFEFEB', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
-                  <Typography sx={{ color: '#1F515B' }} variant='caption'>
-                    M-{org ? org.male_count : '0'}
-                  </Typography>
-                </Box>
-                <Box sx={{ bgcolor: '#FFD3D3', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
-                  <Typography sx={{ color: '#1F515B' }} variant='caption'>
-                    F-{org ? org.female_count : '0'}
-                  </Typography>
-                </Box>
-                <Box sx={{ bgcolor: '#8479F91A', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
-                  <Typography sx={{ color: '#E93353' }} variant='caption'>
-                    O-{org ? org.other_count : '0'}
-                  </Typography>
-                </Box>
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+              <Box sx={{ bgcolor: '#AFEFEB', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                <Typography sx={{ color: '#1F515B' }} variant='caption'>
+                  M-{org ? org.male_count : '0'}
+                </Typography>
+              </Box>
+              <Box sx={{ bgcolor: '#FFD3D3', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                <Typography sx={{ color: '#1F515B' }} variant='caption'>
+                  F-{org ? org.female_count : '0'}
+                </Typography>
+              </Box>
+              <Box sx={{ bgcolor: '#8479F91A', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                <Typography sx={{ color: '#E93353' }} variant='caption'>
+                  O-{org ? org.other_count : '0'}
+                </Typography>
               </Box>
             </Box>
-          </>
+          </Box>
         )
       }
     }))
@@ -332,103 +386,22 @@ const SpeciesList = () => {
     return [...baseColumns, ...organizationColumns]
   }
 
-  // const getColumns = rows => {
-  //   // Create base columns
-  //   const baseColumns = [
-  //     {
-  //       flex: 0.2,
-  //       Width: 40,
-  //       field: 'sl_no',
-  //       headerName: 'S.NO',
-  //       renderCell: params => (
-  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-  //           {params.row.id}
-  //         </Typography>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.3,
-  //       minWidth: 30,
-  //       field: 'species_image',
-  //       headerName: 'IMAGE',
-  //       sortable: false,
-  //       renderCell: params => (
-  //         <>
-  //           <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
-  //         </>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.4,
-  //       minWidth: 30,
-  //       field: 'common_name',
-  //       headerName: 'COMMON NAME',
-  //       sortable: false,
-  //       renderCell: params => (
-  //         <Tooltip title={params.row.common_name || '-'}>
-  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-  //             {params.row.common_name ? params.row.common_name : '-'}
-  //           </Typography>
-  //         </Tooltip>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.4,
-  //       minWidth: 30,
-  //       field: 'scientific_name',
-  //       headerName: 'SCIENTIFIC NAME',
-  //       sortable: false,
-  //       renderCell: params => (
-  //         <Tooltip title={params.row.scientific_name || '-'}>
-  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-  //             {params.row.scientific_name ? params.row.scientific_name : '-'}
-  //           </Typography>
-  //         </Tooltip>
-  //       )
-  //     }
-  //   ]
-
-  //   // Create column for the selected organization
-  //   const organizationColumns = rows.some(row => row.organizations.some(org => org.org_id === selectedParivesh.id))
-  //     ? [
-  //         {
-  //           flex: 0.4,
-  //           minWidth: 30,
-  //           field: `org_selected`,
-  //           headerName: selectedParivesh.organization_name, // Assuming `selectedParivesh` contains `organization_name`
-  //           sortable: false,
-  //           renderCell: params => {
-  //             const org = params.row.organizations.find(org => org.org_id === selectedParivesh.id)
-  //             const isSelected = org && org.org_id === selectedParivesh.id
-  //             return (
-  //               <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
-  //                 {org ? org.animal_count : '-'}
-  //               </Typography>
-  //             )
-  //           }
-  //         }
-  //       ]
-  //     : []
-
-  //   // Combine base columns with organization columns
-  //   return [...baseColumns, ...organizationColumns]
-  // }
-
   const onCellClick = params => {
-    console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
-    if (clickedColumn) {
-      const data = params?.row?.tsn_id
-      Router.push({
-        pathname: `/parivesh/species/${data}/species-details`,
-        query: {
-          tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
-          tsn_id: params?.row?.tsn_id
-        }
-      })
-    } else {
-      return
-    }
+    // console.log(params, 'params')
+    // const clickedColumn = params.field !== 'switch'
+    // if (clickedColumn) {
+    //   const data = params?.row?.tsn_id
+    //   Router.push({
+    //     pathname: `/parivesh/species/${data}/species-details`,
+    //     query: {
+    //       tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
+    //       tsn_id: params?.row?.tsn_id,
+    //       org_id: org_id
+    //     }
+    //   })
+    // } else {
+    //   return
+    // }
   }
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
@@ -473,7 +446,7 @@ const SpeciesList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, selectedParivesh]
+    [paginationModel]
   )
 
   useEffect(() => {
@@ -593,8 +566,17 @@ const SpeciesList = () => {
                 },
 
                 '& .MuiDataGrid-row:hover': {
+                  // cursor: 'pointer',
+                  backgroundColor: 'transparent'
+                },
+                '& .MuiDataGrid-cell:hover': {
+                  backgroundColor: '#AFEFEB33',
                   cursor: 'pointer'
                 },
+                '& .MuiDataGrid-row:hover .MuiDataGrid-cell:nth-of-type(-n+2)': {
+                  backgroundColor: 'transparent'
+                },
+
                 overflowX: 'auto',
                 '& .MuiDataGrid-main': {
                   margin: '16px', // Apply margin to the main container
@@ -634,7 +616,7 @@ const SpeciesList = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-              onCellClick={onCellClick}
+              // onCellClick={onCellClick}
             />
           </Card>
         )}
