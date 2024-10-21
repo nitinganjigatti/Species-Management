@@ -32,7 +32,7 @@ const RequestSentChart = () => {
   const theme = useTheme()
 
   // ** States
-  const [timeperiod, setTimeperiod] = useState(7)
+  const [timeperiod, setTimeperiod] = useState(30)
   const [chartData, setChartData] = useState({ categories: [], series: [] })
 
   const fetchMedicineData = async () => {
