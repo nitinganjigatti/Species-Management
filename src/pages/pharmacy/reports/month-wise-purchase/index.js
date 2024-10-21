@@ -836,7 +836,7 @@ const MonthWisePurchase = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (
