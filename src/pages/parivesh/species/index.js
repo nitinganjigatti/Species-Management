@@ -356,7 +356,12 @@ const SpeciesList = () => {
         }
 
         return (
-          <Box onClick={handleClick} className='organization-cell' sx={{ cursor: 'pointer' }}>
+          <Box
+            onClick={handleClick}
+            sx={{
+              cursor: 'pointer'
+            }}
+          >
             <Typography variant='h6' sx={{ color: '#44544A' }}>
               {org ? org.animal_count : '-'}
             </Typography>
@@ -558,11 +563,18 @@ const SpeciesList = () => {
               disableColumnMenu
               disableColumnFilter
               // disableColumnSorting
+              disableRowSelectionOnClick
               sx={{
                 width: '100%', // Adjust table width to 100% of its parent container
                 maxWidth: '1200px',
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
+                },
+                '& .MuiDataGrid-row': {
+                  // Ensure no default background color for the row on click
+                  '&.Mui-selected': {
+                    backgroundColor: 'transparent' // Remove default row selection color
+                  }
                 },
 
                 '& .MuiDataGrid-row:hover': {
@@ -570,21 +582,24 @@ const SpeciesList = () => {
                   backgroundColor: 'transparent'
                 },
                 '& .MuiDataGrid-cell:hover': {
-                  backgroundColor: '#AFEFEB33',
-                  cursor: 'pointer'
+                  backgroundColor: '#F2FFF8',
+                  cursor: 'pointer',
+                  border: '0.5px solid rgba(55, 189, 105, 0.5)',
+                  borderRadius: '8px'
                 },
                 '& .MuiDataGrid-row:hover .MuiDataGrid-cell:nth-of-type(-n+2)': {
-                  backgroundColor: 'transparent'
+                  backgroundColor: 'transparent',
+                  border: 'none'
                 },
 
                 overflowX: 'auto',
                 '& .MuiDataGrid-main': {
-                  margin: '16px', // Apply margin to the main container
-                  borderRadius: '8px', // Apply border-radius to the main container
-                  border: '1px solid rgba(233, 233, 236, 1)' // Apply border to the main container
+                  margin: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(233, 233, 236, 1)'
                 },
                 '& .MuiDataGrid-footerContainer': {
-                  borderTop: 'none' // Remove the border-top from footer container
+                  borderTop: 'none'
                 }
               }}
               columnVisibilityModel={{
