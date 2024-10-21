@@ -237,7 +237,7 @@ const SpeciesList = () => {
       // },
       {
         flex: 0.5,
-        minWidth: 170,
+        minWidth: 180,
         field: 'SPECIES NAME',
         headerName: 'SPECIES NAME',
         headerAlign: 'left',
@@ -257,7 +257,11 @@ const SpeciesList = () => {
                     color: '#44544A',
                     fontWeight: '500',
                     fontSize: '1rem',
-                    lineHeight: 1.5
+                    lineHeight: 1.5,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '100%'
                   }}
                 >
                   {commonName}
@@ -268,7 +272,11 @@ const SpeciesList = () => {
                     color: '#7A8684',
                     fontStyle: 'italic',
                     fontSize: '0.9rem',
-                    lineHeight: 1.2
+                    lineHeight: 1.2,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '100%'
                   }}
                 >
                   ({scientificName})
@@ -569,12 +577,6 @@ const SpeciesList = () => {
                 maxWidth: '1200px',
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
-                },
-                '& .MuiDataGrid-row': {
-                  // Ensure no default background color for the row on click
-                  '&.Mui-selected': {
-                    backgroundColor: 'transparent' // Remove default row selection color
-                  }
                 },
 
                 '& .MuiDataGrid-row:hover': {

@@ -152,7 +152,7 @@ const TransferFields = ({
           </Typography>
         </Box>
       </Grid>
-      <Grid container spacing={2}>
+      <Grid container spacing={3}>
         <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
