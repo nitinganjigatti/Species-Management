@@ -57,7 +57,7 @@ const DoctorsWiseMedicineList = ({
           <Icon icon='healthicons:doctor-male-outline' fontSize={30} />
 
           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
-            {doctorsList[0]?.doctor_name ? 'Dr ' + doctorsList[0]?.doctor_name : '-'}
+            {doctorsList[0]?.doctor_name ? doctorsList[0]?.doctor_name : '-'}
           </Typography>
         </Box>
 

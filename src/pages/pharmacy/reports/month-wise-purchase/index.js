@@ -281,7 +281,8 @@ const MonthWisePurchase = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Total Purchase Value (in lac)
+                      Total Purchase Value <br />
+                      (in thousand)
                     </Typography>
                   </Box>
                 ),
@@ -341,7 +342,7 @@ const MonthWisePurchase = () => {
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                         >
-                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                          {` (${(column.total_purchase_value / 1000).toFixed(2)})`}
                         </Typography>
                       </Tooltip>
                     ) : (
@@ -349,7 +350,7 @@ const MonthWisePurchase = () => {
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                         >
-                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                          {` (${(column.total_purchase_value / 1000).toFixed(2)})`}
                         </Typography>
                       </Tooltip>
                     )}
@@ -360,16 +361,21 @@ const MonthWisePurchase = () => {
                   if (isNaN(value)) {
                     return <span>{params.value}</span> // Show original value if it's not a number
                   }
-                  const roundedValue = Math.round(value)
-                  const formattedNumber = roundedValue.toLocaleString('en-IN', {
+                  const originalValue = Math.round(value)
+                  const formattedNumber = originalValue.toLocaleString('en-IN', {
                     // style: 'currency',
                     // currency: 'INR',
                     maximumFractionDigits: 0
                   })
-                  console.log(formattedNumber, 'formattedNumber')
+                  const valueInThousands = value / 1000
+
+                  const formattedThousands = valueInThousands.toLocaleString('en-IN', {
+                    maximumFractionDigits: 2
+                  })
+
                   return (
                     <Tooltip title={`Purchase value: ${formattedNumber}`}>
-                      <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
+                      <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
                     </Tooltip>
                   )
                 },
@@ -451,9 +457,6 @@ const MonthWisePurchase = () => {
     setFilterSearchValue('')
     setPage(1)
     setFullStoreList([])
-    fetchfilterValues({ page: 1 })
-
-    // Ensure paginated data is re-fetched from page 1
     fetchfilterValues({ page: 1 })
   }
 
@@ -545,8 +548,12 @@ const MonthWisePurchase = () => {
         const workbook = utils.book_new()
         utils.book_append_sheet(workbook, worksheet, 'DoctorList')
 
-        // Download the Excel file
-        writeFile(workbook, 'DoctorList.xlsx')
+        const now = new Date()
+        const formattedDate = now.toISOString().slice(0, 10) // YYYY-MM-DD
+        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') // HH-MM
+        const fileName = `DoctorList_${formattedDate}_${formattedTime}.xlsx`
+
+        writeFile(workbook, fileName)
       }
     } catch (e) {
       console.error('Error downloading Excel file', e)
@@ -593,13 +600,18 @@ const MonthWisePurchase = () => {
           const column = listItem.columnData.find(col => col.title === month)
 
           if (column) {
-            const roundedValue = parseFloat(value)
-            const formattedValue = roundedValue.toLocaleString('en-IN', {
-              // style: 'currency',
-              // currency: 'INR',
-              maximumFractionDigits: 0
-            })
-            rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            if (value == null || isNaN(value)) {
+              // Handle null or NaN values
+              rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
+            } else {
+              const roundedValue = parseFloat(value) / 1000
+              const formattedValue = roundedValue.toLocaleString('en-IN', {
+                // style: 'currency',
+                // currency: 'INR',
+                maximumFractionDigits: 2
+              })
+              rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            }
           }
         })
 
@@ -608,11 +620,10 @@ const MonthWisePurchase = () => {
       })
 
       const totalPurchaseRow = {
-        Medicine: 'Total Purchase Value (in lac)'
+        Medicine: 'Total Purchase Value (in thousand)'
       }
       listItem.columnData.forEach(column => {
-        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
-        const formattedPurchaseValue = (column.total_purchase_value / 100000).toLocaleString('en-IN', {
+        const formattedPurchaseValue = (column.total_purchase_value / 1000).toLocaleString('en-IN', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })
@@ -628,10 +639,14 @@ const MonthWisePurchase = () => {
       // Convert the data into a worksheet
       const ws = utils.aoa_to_sheet(wsData)
       const wb = utils.book_new()
-      utils.book_append_sheet(wb, ws, 'Dispatch_Report')
+      utils.book_append_sheet(wb, ws, 'Purchase_Report')
 
-      // Download the Excel file
-      writeFile(wb, 'Dispatch_Report.xlsx')
+      const now = new Date()
+      const dateStr = now.toISOString().slice(0, 10)
+      const timeStr = now.toTimeString().slice(0, 5).replace(/:/g, '-')
+      const fileName = `Monthwise_Purchase_Report_${dateStr}_${timeStr}.xlsx`
+
+      writeFile(wb, fileName)
     } catch (error) {
       console.log('Error downloading report:', error)
     }
