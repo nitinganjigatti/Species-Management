@@ -43,14 +43,19 @@ const AnalyticsCongratulations = () => {
     >
       <CardContent>
         <Grid sx={{ display: 'flex', alignItems: 'center' }}>
-          <StyledGrid item xs={12} sm={selectedPharmacy.type === 'central' ? 3 : 2}>
+          <StyledGrid
+            item
+            xs={12}
+            md={selectedPharmacy.type === 'central' ? 3 : 2}
+            sm={selectedPharmacy.type === 'central' ? 4 : 4}
+          >
             <Img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
           </StyledGrid>
           {/* <Grid item xs={12} sm={3}>
             <img width={180} src={`/images/Graphic_pharmacy.png`} alt='image' />
           </Grid> */}
 
-          <Grid item xs={12} sm={9}>
+          <Grid item xs={12} sm={7} md={9}>
             <Typography variant='h5' sx={{ mb: 4.5, color: 'white' }}>
               Simplify operations and enhance productivity
             </Typography>
