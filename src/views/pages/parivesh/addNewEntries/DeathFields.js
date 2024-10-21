@@ -34,6 +34,59 @@ const DeathFields = ({
 
   return (
     <>
+      <Grid container spacing={2} sx={{ mb: 6 }}>
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <Controller
+              name='possession_type'
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  select
+                  label='Reason*'
+                  placeholder='Reason'
+                  value={value}
+                  disabled={isEditMode}
+                  onChange={e => {
+                    const value = e.target.value
+                    onChange(e)
+                    setReasonType(value)
+                    if (!isEditMode) {
+                      setValue('animal_count', '')
+                      setValue('transaction_date', new Date())
+                      setValue('reason_for_death', '')
+                      setValue('death_date', null)
+                      setValue('where_to_transfer', '')
+                      setValue('where_to_acquisition', '')
+                      setValue('dgft_number', '')
+                      setValue('cites_required', '')
+                      setValue('cites_appendix', '')
+                      setValue('cites_numbers', '')
+                      setValue('death_animal_id', '')
+                      setValue('attachments', [])
+                      setValue('dgft_attachments', [])
+                      setValue('parent_registration_id', '')
+                      setImgSrc([])
+                      setDisplayFile([])
+                      setDgftDisplayFile([])
+                    }
+                    setValue('gender', '')
+                  }}
+                  error={Boolean(errors.possession_type)}
+                >
+                  <MenuItem value='birth'>Birth</MenuItem>
+                  <MenuItem value='death'>Death</MenuItem>
+                  <MenuItem value='transfer'>Transfer </MenuItem>
+                  <MenuItem value='acquisition'>Acquisition </MenuItem>
+                </TextField>
+              )}
+            />
+            {errors.possession_type && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid>
+      </Grid>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>

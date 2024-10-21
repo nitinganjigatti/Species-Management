@@ -266,7 +266,7 @@ const SpeciesList = () => {
                   variant='body2'
                   sx={{
                     color: '#7A8684',
-                    // fontStyle: 'italic',
+                    fontStyle: 'italic',
                     fontSize: '0.9rem',
                     lineHeight: 1.2
                   }}
