@@ -842,7 +842,7 @@ const DoctorWiseRequest = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (
