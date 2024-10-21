@@ -910,14 +910,19 @@ const IncubatorDetails = () => {
                       <DatePicker
                         sx={{
                           backgroundColor: '#fff',
-                          borderRadius: '8px',
+                          borderColor: '1px solid #C3CEC7',
                           width: '100%',
-                          '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
-                            height: '40px',
+                          '& .MuiOutlinedInput-root': {
+                            height: 40,
                             borderRadius: '4px'
                           },
-                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                          '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                          '& .MuiInputLabel-root': {
+                            top: -7
+                          },
+                          '& input': {
+                            position: 'relative',
+                            top: -7
+                          }
                         }}
                         value={allocationDate}
                         onChange={newDate => {
@@ -988,14 +993,19 @@ const IncubatorDetails = () => {
                       <DatePicker
                         sx={{
                           backgroundColor: '#fff',
-                          borderRadius: '8px',
+                          borderColor: '1px solid #C3CEC7',
                           width: '100%',
-                          '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
-                            height: '40px',
+                          '& .MuiOutlinedInput-root': {
+                            height: 40,
                             borderRadius: '4px'
                           },
-                          '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                          '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                          '& .MuiInputLabel-root': {
+                            top: -7
+                          },
+                          '& input': {
+                            position: 'relative',
+                            top: -7
+                          }
                         }}
                         format='DD/MM/YYYY'
                         value={collectedDate}
@@ -1086,13 +1096,15 @@ const IncubatorDetails = () => {
                         <TextField
                           sx={{
                             backgroundColor: '#fff',
-                            borderRadius: '8px',
+                            borderColor: '1px solid #C3CEC7',
                             width: '100%',
-                            '& .css-vh4m6j-MuiInputBase-root-MuiOutlinedInput-root': {
-                              height: '40px',
+                            '& .MuiOutlinedInput-root': {
+                              height: 40,
                               borderRadius: '4px'
                             },
-                            '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
+                            '& .MuiInputLabel-root': {
+                              top: -7
+                            },
                             '& input': {
                               position: 'relative',
                               top: -7

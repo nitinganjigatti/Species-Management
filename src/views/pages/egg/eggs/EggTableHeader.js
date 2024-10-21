@@ -5,9 +5,9 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import EggFilterDrawer from './eggFilterDrawer'
 import { useRouter } from 'next/router'
+import ExcelExportButton from './exportExcel'
 
 const EggTableHeader = ({
-  tabValue,
   totalCount,
   setFilterList,
   handleSearch,
@@ -17,31 +17,15 @@ const EggTableHeader = ({
   searchQuery,
   setSearchQuery,
   selectedOptions,
-  setSelectedOptions
+  setSelectedOptions,
+  data
 }) => {
-  // console.log('filterList :>> ', filterList)
-
-  // console.log('selectedFiltersOptions :>> ', selectedFiltersOptions)
-
   const theme = useTheme()
   const router = useRouter()
-  const { search_value, subTab_value } = router.query
+  const { search_value, subTab_value, tab_Value } = router.query
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const [selectedDate, setSelectedDate] = useState(null)
-
-  // const [selectedOptions, setSelectedOptions] = useState({
-  //   Stage: [],
-  //   Nursery: [],
-  //   Site: [],
-  //   'Collected By': [],
-  //   collected_date: null,
-  //   status: null,
-  //   'Discarded By': [],
-  //   discarded_Date: null,
-  //   'Security Check': []
-  // })
-  // console.log('selectedOptions :>> ', selectedOptions)
 
   const handleRemoveFilter = item => {
     const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
@@ -86,18 +70,20 @@ const EggTableHeader = ({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 4, py: 4 }}>
         <Box>
           <Typography sx={{ fontSize: '14px', fontWeight: 300 }}>
-            Total eggs{' '}
-            {tabValue === 'eggs_received'
-              ? 'in  received'
-              : tabValue === 'eggs_hatched'
-              ? 'hatched'
-              : tabValue === 'eggs_incubation'
-              ? 'in incubation'
-              : tabValue === 'eggs_ready_to_be_discarded_at_nursery'
-              ? 'to be discarded'
-              : tabValue === 'eggs_discarded'
-              ? 'discarded'
-              : null}{' '}
+            {' '}
+            {tab_Value === 'eggs_received'
+              ? 'Total eggs in  received'
+              : tab_Value === 'eggs_hatched'
+              ? 'Total eggs in hatched'
+              : tab_Value === 'eggs_incubation'
+              ? 'Total eggs in incubation'
+              : tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+              ? 'Total eggs to be discarded'
+              : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded'
+              ? 'Total batch discarded'
+              : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
+              ? 'Total eggs discarded'
+              : 'Total eggs'}{' '}
             : <span style={{ fontWeight: 500, color: '#000000' }}>{totalCount}</span>
           </Typography>
         </Box>
@@ -137,20 +123,8 @@ const EggTableHeader = ({
               }}
             />
           </Box>
-          {/* <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              width: '40px',
-              height: '40px',
-              borderRadius: '4px',
-              bgcolor: theme?.palette.customColors?.lightBg,
-              alignItems: 'center',
-              cursor: 'pointer'
-            }}
-          >
-            <Icon icon='uil:calender' fontSize={24} />
-          </Box> */}
+
+          <ExcelExportButton tab_Value={tab_Value} subTab_value={subTab_value} data={data} />
           <Box
             sx={{
               display: 'flex',

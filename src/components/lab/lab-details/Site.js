@@ -13,7 +13,7 @@ const Site = ({ labId }) => {
       flex: 2.3,
       minWidth: 20,
       field: 'site',
-      headerName: 'SITE',
+      headerName: 'SITES',
       hide: false,
       filterable: false,
 
