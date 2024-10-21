@@ -180,17 +180,20 @@ const DoctorWiseRequest = () => {
   const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
     try {
       setisFetching(true)
+
       let params = {
         page,
         limit: 10,
         q
       }
+
       const medicineListResponse = await getMedicineList({
         params
       })
 
       if (medicineListResponse.data && medicineListResponse.data.list_items) {
         const medicineList = medicineListResponse.data.list_items
+
         const allStores = medicineList.map(store => ({
           id: store.id,
           name: store.name
@@ -206,6 +209,7 @@ const DoctorWiseRequest = () => {
             // If search is cleared (q is empty), append the results to the full list
             mergedStores = [...prevStores, ...allStores]
           }
+
           // Remove duplicates based on `id`
           const uniqueStores = mergedStores.filter(
             (store, index, self) => index === self.findIndex(s => s.id === store.id)
@@ -232,6 +236,7 @@ const DoctorWiseRequest = () => {
 
         if (!filtersApplied && selectedFruits.length > 0) {
           setLoading(false)
+
           return
         }
         console.log(filtersApplied, 'ppppp')
@@ -240,6 +245,7 @@ const DoctorWiseRequest = () => {
           payload = {
             //sort,
             q,
+
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
@@ -251,6 +257,7 @@ const DoctorWiseRequest = () => {
           payload = {
             //sort,
             q,
+
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
@@ -279,7 +286,8 @@ const DoctorWiseRequest = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Total Purchase Value <br /> (in thousand)
+                      Total Received Value
+                      <br /> (in thousand)
                     </Typography>
                   </Box>
                 ),
@@ -349,9 +357,11 @@ const DoctorWiseRequest = () => {
                     maximumFractionDigits: 0
                   })
                   const valueInThousands = value / 1000
+
                   const formattedThousands = valueInThousands.toLocaleString('en-IN', {
                     maximumFractionDigits: 2
                   })
+
                   return (
                     <Tooltip title={`Purchase value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
@@ -366,10 +376,12 @@ const DoctorWiseRequest = () => {
             const rows = listItem.rowData.map(row => ({
               id: row.doctor_id,
               doctor_name: row.doctor_name,
+
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
+
                 return acc
               }, {})
             }))
@@ -418,6 +430,7 @@ const DoctorWiseRequest = () => {
   const handleStatusFilterChange = newFilter => {
     console.log(newFilter, 'newFilter')
     setStatusFilter(newFilter)
+
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
   }
 
@@ -588,6 +601,7 @@ const DoctorWiseRequest = () => {
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
               const roundedValue = parseFloat(value) / 1000
+
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
@@ -599,6 +613,7 @@ const DoctorWiseRequest = () => {
         })
 
         console.log(rowData, 'rowData')
+
         return rowData
       })
 
