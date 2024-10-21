@@ -122,9 +122,9 @@ const NewDashboard = () => {
         <Typography variant='h5' color='#44544A'>
           Welcome to your pharmacy's control center!
         </Typography>
-        <LoadingButton size='medium' variant='contained' endIcon={<Icon icon='material-symbols:download' />}>
+        {/* <LoadingButton size='medium' variant='contained' endIcon={<Icon icon='material-symbols:download' />}>
           Download Report
-        </LoadingButton>
+        </LoadingButton> */}
       </Box>
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12} md={selectedPharmacy.type === 'central' ? 8 : 12}>
@@ -220,13 +220,7 @@ const NewDashboard = () => {
             </Grid>
           </>
         ) : null}
-        {selectedPharmacy.type === 'central' ? (
-          <>
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
-              <RequestChart />
-            </Grid>
-          </>
-        ) : null}
+
         {selectedPharmacy.type !== 'central' ? (
           <Grid container item spacing={6} xs={12} md={12} sx={{ display: 'flex' }}>
             <Grid item xs={12} md={12} sx={{ mb: 0 }}>
@@ -270,6 +264,10 @@ const NewDashboard = () => {
           <Grid container item spacing={6} xs={12} md={12} sx={{ display: 'flex' }}>
             <Grid item xs={12} md={12} sx={{ mb: 0 }}>
               <StoreWiseDispatch />
+            </Grid>
+
+            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+              <RequestChart />
             </Grid>
 
             <Grid item xs={12} md={7.5}>
