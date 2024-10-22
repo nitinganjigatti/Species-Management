@@ -58,14 +58,16 @@ const StoreWiseDispatch = () => {
   const [statusFilter, setStatusFilter] = useState(dropdownOptions[2].value)
   const [filtersearchValue, setFilterSearchValue] = useState('')
   const [isFetching, setisFetching] = useState(false)
+  const [tempSelectedStores, setTempSelectedStores] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
     if (event.target.checked) {
+      const allSelectedIds = fullStoreList.map(fruit => fruit.id)
+      setTempSelectedStores(allSelectedIds)
       setFiltersApplied(false)
-      setSelectedStores(fullStoreList.map(fruit => fruit.id))
     } else {
-      setSelectedStores([])
+      setTempSelectedStores([])
     }
   }
 
@@ -75,7 +77,7 @@ const StoreWiseDispatch = () => {
 
       let params = {
         page,
-        limit: 10, // You can also make this dynamic if needed
+        limit: 10,
         q
       }
       const medicineListResponse = await getStoreList({ params })
@@ -262,9 +264,6 @@ const StoreWiseDispatch = () => {
                     maximumFractionDigits: 0 // Display rounded number with no decimals for thousands
                   })
 
-                  console.log(formattedLac, 'formattedLac')
-                  console.log(formattedThousands, 'formattedThousands')
-
                   return (
                     <Tooltip title={`Dispatch value: ${formattedThousands}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedLac} `}</span>
@@ -312,6 +311,11 @@ const StoreWiseDispatch = () => {
     setFiltersApplied(true)
     setFilterLength('')
     setStoreList(fullStoreList) //
+    setTempSelectedStores([])
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchClose = () => {
@@ -326,19 +330,33 @@ const StoreWiseDispatch = () => {
   const onApplyFilters = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
+    setSelectedStores(tempSelectedStores)
+    setFilterLength(tempSelectedStores.length)
     setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
-  const handleFruitSelection = selected_stores => {
+  const handleFruitSelection = selected_store => {
     setFiltersApplied(false)
-    setSelectedStores(prevSelectedFruits => {
-      if (prevSelectedFruits.includes(selected_stores)) {
-        return prevSelectedFruits.filter(id => id !== selected_stores)
+    setTempSelectedStores(prevTempSelectedStores => {
+      if (prevTempSelectedStores.includes(selected_store)) {
+        return prevTempSelectedStores.filter(id => id !== selected_store)
       } else {
-        return [...prevSelectedFruits, selected_stores]
+        return [...prevTempSelectedStores, selected_store]
       }
     })
+  }
+
+  const handleClose = () => {
+    setOpenFilterDrawer(false)
+    setFilterSearchValue('')
+    setFiltersApplied(true)
+    setTempSelectedStores(selectedFruits)
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchTableData = useCallback(
@@ -350,7 +368,7 @@ const StoreWiseDispatch = () => {
         console.error(error)
       }
     }, 1000),
-    [statusFilter]
+    [statusFilter, filtersApplied]
   )
 
   const searchTableDatafilter = useCallback(
@@ -425,14 +443,12 @@ const StoreWiseDispatch = () => {
         }
       }
 
-      // Fetch data without pagination for the Excel report
       const response = await getStoreWiseDispatchList(payload)
       const listItem = response.data.list_items
 
-      // Prepare headers for the Excel report
-      const headers = ['Pharmacies'] // Start with "Medicine" as the first column
+      const headers = ['Pharmacies']
       listItem.columnData.forEach(column => {
-        headers.push(`${column.title} (${column.sub_title})`) // Add Month (Year) columns
+        headers.push(`${column.title} (${column.sub_title})`)
       })
 
       // Prepare data rows for Excel
@@ -441,31 +457,32 @@ const StoreWiseDispatch = () => {
           Pharmacy: row.store_name
         }
 
-        // Initialize all month/year columns with default "₹0" values
         listItem.columnData.forEach(column => {
-          rowData[`${column.title} (${column.sub_title})`] = '₹0' // Default if no data for that column
+          rowData[`${column.title} (${column.sub_title})`] = '₹0'
         })
 
-        // Map the correct values from `data_values` to the appropriate columns
         Object.entries(row.data_values).forEach(([month, value]) => {
           const column = listItem.columnData.find(col => col.title === month)
 
           if (column) {
-            const roundedValue = parseFloat(value)
-            const formattedValue = roundedValue.toLocaleString('en-IN', {
-              // style: 'currency',
-              // currency: 'INR',
-              maximumFractionDigits: 0
-            })
-            rowData[`${column.title} (${column.sub_title})`] = (formattedValue / 100000).toFixed(2)
+            if (value == null || isNaN(value)) {
+              // Handle null or NaN values
+              rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
+            } else {
+              const roundedValue = parseFloat(value) / 100000
+              const formattedValue = roundedValue.toLocaleString('en-IN', {
+                // style: 'currency',
+                // currency: 'INR',
+                maximumFractionDigits: 2
+              })
+              rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            }
           }
         })
 
-        console.log(rowData, 'rowData')
         return rowData
       })
 
-      // Create a total purchase value row
       const totalPurchaseRow = {
         Medicine: 'Total Dispatch Value (in lac)'
       }
@@ -734,6 +751,8 @@ const StoreWiseDispatch = () => {
                   setFiltersApplied={setFiltersApplied}
                   searchClose={searchClose}
                   filtersearchValue={filtersearchValue}
+                  tempSelectedStores={tempSelectedStores}
+                  handleClose={handleClose}
                 />
               )}
             </>

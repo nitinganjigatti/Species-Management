@@ -69,6 +69,7 @@ const DoctorWiseRequest = () => {
   const [downloadFromDate, setDownloadFromDate] = useState(null)
   const [downloadToDate, setDownloadToDate] = useState(null)
   const [searchbyDoctorname, setsearchbyDoctorname] = useState('')
+  const [tempSelectedStores, setTempSelectedStores] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
@@ -76,9 +77,9 @@ const DoctorWiseRequest = () => {
 
     if (event.target.checked) {
       setFiltersApplied(false)
-      setSelectedStores(fullStoreList.map(fruit => fruit.id))
+      setTempSelectedStores(fullStoreList.map(fruit => fruit.id))
     } else {
-      setSelectedStores([])
+      setTempSelectedStores([])
     }
   }
 
@@ -402,8 +403,12 @@ const DoctorWiseRequest = () => {
   const onApplyFilters = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
+    setSelectedStores(tempSelectedStores)
+    setFilterLength(tempSelectedStores.length)
     setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const handleSearch = async value => {
@@ -441,6 +446,11 @@ const DoctorWiseRequest = () => {
     setFilterLength('')
     setStoreList(fullStoreList) //
     setsearchbyDoctorname('')
+    setTempSelectedStores([])
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchClose = () => {
@@ -454,13 +464,23 @@ const DoctorWiseRequest = () => {
 
   const handleFruitSelection = selected_doctors => {
     setFiltersApplied(false)
-    setSelectedStores(prevSelectedFruits => {
+    setTempSelectedStores(prevSelectedFruits => {
       if (prevSelectedFruits.includes(selected_doctors)) {
         return prevSelectedFruits.filter(id => id !== selected_doctors)
       } else {
         return [...prevSelectedFruits, selected_doctors]
       }
     })
+  }
+
+  const handleClose = () => {
+    setOpenFilterDrawer(false)
+    setFilterSearchValue('')
+    setFiltersApplied(true)
+    setTempSelectedStores(selectedFruits)
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchTableDatafilter = useCallback(
@@ -485,7 +505,7 @@ const DoctorWiseRequest = () => {
         console.error(error)
       }
     }, 1000),
-    [statusFilter, filtersApplied, statusFilter]
+    [statusFilter, filtersApplied]
   )
 
   useEffect(() => {
@@ -868,6 +888,8 @@ const DoctorWiseRequest = () => {
                   setFiltersApplied={setFiltersApplied}
                   searchClose={searchClose}
                   filtersearchValue={filtersearchValue}
+                  handleClose={handleClose}
+                  tempSelectedStores={tempSelectedStores}
                 />
               )}
               {openDoctorListDrawer && (

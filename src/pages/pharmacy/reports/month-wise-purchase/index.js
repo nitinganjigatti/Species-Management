@@ -73,14 +73,15 @@ const MonthWisePurchase = () => {
   const [downloadFromDate, setDownloadFromDate] = useState(null)
   const [downloadToDate, setDownloadToDate] = useState(null)
   const [searchbyDoctorname, setsearchbyDoctorname] = useState('')
+  const [tempSelectedStores, setTempSelectedStores] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
     if (event.target.checked) {
       setFiltersApplied(false)
-      setSelectedStores(fullStoreList.map(fruit => fruit.id))
+      setTempSelectedStores(fullStoreList.map(fruit => fruit.id))
     } else {
-      setSelectedStores([])
+      setTempSelectedStores([])
     }
   }
 
@@ -412,8 +413,12 @@ const MonthWisePurchase = () => {
   const onApplyFilters = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
+    setSelectedStores(tempSelectedStores)
+    setFilterLength(tempSelectedStores.length)
     setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const handleSearch = async value => {
@@ -449,6 +454,11 @@ const MonthWisePurchase = () => {
     setFilterLength('')
     setStoreList(fullStoreList) //
     setsearchbyDoctorname('')
+    setTempSelectedStores([])
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchClose = () => {
@@ -462,13 +472,23 @@ const MonthWisePurchase = () => {
 
   const handleFruitSelection = medicine_ids => {
     setFiltersApplied(false)
-    setSelectedStores(prevSelectedFruits => {
+    setTempSelectedStores(prevSelectedFruits => {
       if (prevSelectedFruits.includes(medicine_ids)) {
         return prevSelectedFruits.filter(id => id !== medicine_ids)
       } else {
         return [...prevSelectedFruits, medicine_ids]
       }
     })
+  }
+
+  const handleClose = () => {
+    setOpenFilterDrawer(false)
+    setFilterSearchValue('')
+    setFiltersApplied(true)
+    setTempSelectedStores(selectedFruits)
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchTableDatafilter = useCallback(
@@ -493,7 +513,7 @@ const MonthWisePurchase = () => {
         console.error(error)
       }
     }, 1000),
-    [statusFilter, filtersApplied, statusFilter]
+    [statusFilter, filtersApplied]
   )
 
   useEffect(() => {
@@ -862,6 +882,8 @@ const MonthWisePurchase = () => {
                   setFiltersApplied={setFiltersApplied}
                   searchClose={searchClose}
                   filtersearchValue={filtersearchValue}
+                  handleClose={handleClose}
+                  tempSelectedStores={tempSelectedStores}
                 />
               )}
               {openDoctorListDrawer && (
