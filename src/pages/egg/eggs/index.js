@@ -1720,7 +1720,7 @@ const EggList = () => {
       align: 'left',
       renderCell: params => (
         <>
-          {params.row.necropsy_file_uploaded === '1' ? (
+          {params.row.necropsy_file_uploaded === '1' || params.row.is_sample_collected === '1' ? (
             <Typography sx={{ fontSize: '16px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 2 }}>
               Yes <Icon icon='pepicons-pencil:file' fontSize={'24px'} />
             </Typography>
