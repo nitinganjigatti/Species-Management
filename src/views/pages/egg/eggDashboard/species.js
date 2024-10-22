@@ -505,7 +505,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)}
-            % {params.row.total_hatch ? params.row.total_hatch : '-'}
+            % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
           </Typography>
         </Box>
       )
@@ -948,7 +948,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)}
-            % {params.row.total_hatch ? params.row.total_hatch : '-'}
+            % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
           </Typography>
         </Box>
       )
