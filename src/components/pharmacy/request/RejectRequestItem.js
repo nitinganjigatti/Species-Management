@@ -12,7 +12,6 @@ import { LoadingButton } from '@mui/lab'
 import Divider from '@mui/material/Divider'
 import { lighten, useTheme } from '@mui/material/styles'
 
-
 function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDialog }) {
   const theme = useTheme()
 
@@ -43,6 +42,7 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
   const onSubmit = async params => {
     if (parentId) {
       try {
+        setSubmitLoader(true)
         const response = await rejectMedicine(params, parentId?.request_item_id)
         if (response?.success) {
           toast.success(response?.message)
@@ -92,7 +92,18 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
 
       <Divider sx={{ border: '0.5 solid #DAE7DF', position: 'relative', bottom: '20px' }} />
 
-      <Typography sx={{ my: 3, fontSize: '16px', fontWeight: '500' , fontFamily:"Inter",color: theme.palette.customColors.customDarkBg,mb:5 }}>Reason for Decline *</Typography>
+      <Typography
+        sx={{
+          my: 3,
+          fontSize: '16px',
+          fontWeight: '500',
+          fontFamily: 'Inter',
+          color: theme.palette.customColors.customDarkBg,
+          mb: 5
+        }}
+      >
+        Reason for Decline *
+      </Typography>
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12}>

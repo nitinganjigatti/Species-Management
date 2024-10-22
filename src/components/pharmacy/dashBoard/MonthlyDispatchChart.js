@@ -5,187 +5,166 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import { useEffect, useState } from 'react'
 import MenuItem from '@mui/material/MenuItem'
-
+import Router from 'next/router'
 // ** Custom Components Imports
-import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { getMonthWiseDispatchList } from 'src/lib/api/pharmacy/dashboard'
-import { Button } from '@mui/material'
+import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
 
 const MonthlyDispatchChart = () => {
-  // ** Hook
   const theme = useTheme()
-  const [dispatchList, setDispatchList] = useState([])
+  const [purchaseList, setPurchaseList] = useState({ dispatch_count: [], dispatch_value: [] })
+  const [showDispatchCount, setShowDispatchCount] = useState(true)
+  const [showDispatchValue, setShowDispatchValue] = useState(true)
 
   const getMonthlyDispatches = async () => {
     try {
       const result = await getMonthWiseDispatchList()
 
       if (result?.success === true && result?.data) {
-        setDispatchList(result?.data)
+        setPurchaseList(result?.data)
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   useEffect(() => {
     getMonthlyDispatches()
   }, [])
-  const transactionDates = dispatchList.map(item => (item.month ? item.month : ''))
-  const dailyCounts = dispatchList.map(item => (item.daily_count ? parseInt(item.daily_count) : ''))
 
-  // const options = {
-  //   chart: {
-  //     offsetY: -8,
-  //     parentHeightOffset: 0,
-  //     toolbar: { show: false }
-  //   },
-  //   tooltip: { enabled: true },
-  //   dataLabels: { enabled: false },
-  //   stroke: {
-  //     width: 5,
-  //     curve: 'smooth'
-  //   },
-  //   grid: {
-  //     show: true,
-  //     padding: {
-  //       left: 10,
-  //       top: -24,
-  //       right: 12
-  //     }
-  //   },
-  //   fill: {
-  //     type: 'gradient',
-  //     gradient: {
-  //       opacityTo: 0.7,
-  //       opacityFrom: 0.5,
-  //       shadeIntensity: 1,
-  //       stops: [0, 90, 100],
-  //       colorStops: [
-  //         [
-  //           {
-  //             offset: 0,
-  //             opacity: 0.6,
-  //             color: theme.palette.success.main
-  //           },
-  //           {
-  //             offset: 100,
-  //             opacity: 0.1,
-  //             color: theme.palette.background.paper
-  //           }
-  //         ]
-  //       ]
-  //     }
-  //   },
-  //   theme: {
-  //     monochrome: {
-  //       enabled: true,
-  //       shadeTo: 'light',
-  //       shadeIntensity: 1,
-  //       color: theme.palette.success.main
-  //     }
-  //   },
-  //   xaxis: {
-  //     type: 'numeric',
-  //     labels: { show: true },
-  //     axisTicks: { show: true },
-  //     axisBorder: { show: true }
-  //   },
-  //   yaxis: { show: true },
-  //   markers: {
-  //     size: 1,
-  //     offsetY: 1,
-  //     offsetX: -5,
-  //     strokeWidth: 4,
-  //     strokeOpacity: 1,
-  //     colors: ['transparent'],
-  //     strokeColors: 'transparent',
-  //     discrete: [
-  //       {
-  //         size: 7,
-  //         seriesIndex: 0,
-  //         dataPointIndex: 7,
-  //         strokeColor: theme.palette.success.main,
-  //         fillColor: theme.palette.background.paper
-  //       }
-  //     ]
-  //   }
-  // }
+  // Create a mapping for full month names to short month names
+  const monthMapping = {
+    January: 'Jan',
+    February: 'Feb',
+    March: 'Mar',
+    April: 'Apr',
+    May: 'May',
+    June: 'Jun',
+    July: 'Jul',
+    August: 'Aug',
+    September: 'Sep',
+    October: 'Oct',
+    November: 'Nov',
+    December: 'Dec'
+  }
+
+  // Dynamically get the months from the API response
+  const monthsFromApi = purchaseList?.dispatch_count[0] ? Object.keys(purchaseList.dispatch_count[0]) : []
+
+  // Map the dispatch count and value based on the dynamic month order from API
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
+
+  // Convert full month names to short month names for the x-axis labels
+  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
+
+  // Conditionally add series based on checkbox selections
+  const series = []
+  if (showDispatchCount) {
+    series.push({
+      name: 'Dispatch Count',
+      type: 'bar',
+      data: purchaseCounts,
+      color: '#006D35'
+    })
+  }
+  if (showDispatchValue) {
+    series.push({
+      name: 'Dispatch Value',
+      type: 'line',
+      data: purchaseValues,
+      color: '#37BD69'
+    })
+  }
+
   const options = {
     chart: {
-      offsetY: -8,
+      offsetY: 1,
       parentHeightOffset: 0,
       toolbar: { show: false }
     },
-    tooltip: { enabled: true },
+    tooltip: {
+      enabled: true,
+      y: {
+        formatter: (value, { seriesIndex }) => {
+          console.log(series, 'seriesIndex')
+          if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
+            return `₹${value.toFixed(2)} lac`
+          }
+          return value.toFixed(0)
+        }
+      }
+    },
     dataLabels: { enabled: false },
     stroke: {
-      width: 5,
-      curve: 'smooth'
+      width: [0, 3], // Adjust the thickness of the bar and line
+      curve: 'smooth',
+      colors: ['#006D35', '#37BD69']
     },
     grid: {
       show: true,
       padding: {
-        left: 22,
+        left: 24,
         top: -4,
-        right: 12
+        right: 4
       }
     },
     fill: {
-      type: 'gradient',
-      gradient: {
-        opacityTo: 0.7,
-        opacityFrom: 0.5,
-        shadeIntensity: 1,
-        stops: [0, 90, 100],
-        colorStops: [
-          [
-            {
-              offset: 0,
-              opacity: 0.6,
-              color: theme.palette.success.main
-            },
-            {
-              offset: 100,
-              opacity: 0.1,
-              color: theme.palette.background.paper
-            }
-          ]
-        ]
-      }
-    },
-    theme: {
-      monochrome: {
-        enabled: true,
-        shadeTo: 'light',
-        shadeIntensity: 1,
-        color: theme.palette.success.main
-      }
+      type: 'solid',
+      colors: ['#FA6140']
     },
     xaxis: {
-      categories: transactionDates,
-      labels: { show: true },
+      // Use short month names from the API for x-axis labels
+      categories: shortMonths,
+      labels: {
+        show: true
+      },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
-    yaxis: { show: true },
-    markers: {
-      size: 1,
-      offsetY: 1,
-      offsetX: -5,
-      strokeWidth: 4,
-      strokeOpacity: 1,
-      colors: ['transparent'],
-      strokeColors: 'transparent',
-      discrete: [
-        {
-          size: 7,
-          seriesIndex: 0,
-          dataPointIndex: 7,
-          strokeColor: theme.palette.success.main,
-          fillColor: theme.palette.background.paper
+    yaxis: [
+      {
+        title: {
+          text: 'Dispatch Count'
+        },
+        labels: {
+          formatter: val => val.toFixed(0)
         }
-      ]
+      },
+      {
+        opposite: true,
+        title: {
+          text: 'Dispatch Value (₹)'
+        },
+        labels: {
+          formatter: val => `₹${val.toFixed(2)} lac`
+        }
+      }
+    ],
+    markers: {
+      size: 4,
+      colors: ['#FFFFFF'],
+      strokeColors: '#37BD69',
+      strokeWidth: 2,
+      hover: {
+        size: 7
+      }
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: '35%',
+        borderRadius: 10,
+        borderRadiusApplication: 'end',
+        distributed: false
+      }
     }
+  }
+
+  const handleClick = () => {
+    Router.push({
+      pathname: '/pharmacy/reports/month-wise-dispatch'
+    })
   }
 
   return (
@@ -193,16 +172,51 @@ const MonthlyDispatchChart = () => {
       <CardHeader
         title='Month wise dispatch'
         action={
-          <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />
+          <Typography
+            onClick={handleClick}
+            sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
+          >
+            View More
+          </Typography>
         }
       />
       <CardContent>
-        <ReactApexcharts
-          type='area'
-          height={300}
-          options={options}
-          series={[{ name: 'Product dispatched', data: dailyCounts }]}
-        />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showDispatchCount}
+                onChange={() => setShowDispatchCount(prev => !prev)}
+                color='primary'
+                sx={{
+                  transform: 'scale(0.8)',
+                  '&.Mui-checked': {
+                    color: '#006D35'
+                  }
+                }}
+              />
+            }
+            label={<span style={{ fontSize: '12px' }}>Show Dispatch Count</span>}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showDispatchValue}
+                onChange={() => setShowDispatchValue(prev => !prev)}
+                color='primary'
+                sx={{
+                  transform: 'scale(0.8)',
+                  '&.Mui-checked': {
+                    color: '#37BD69'
+                  }
+                }}
+              />
+            }
+            label={<span style={{ fontSize: '12px' }}>Show Dispatch Value</span>}
+          />
+        </Box>
+        {/* Chart */}
+        <ReactApexcharts type='line' height={300} options={options} series={series} />
       </CardContent>
     </Card>
   )

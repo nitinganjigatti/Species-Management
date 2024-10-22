@@ -193,19 +193,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    <span style={{ fontWeight: 600 }}>Site: </span>
-                    {item?.site_name}
-                    {/* {Utility?.toPascalSentenceCase(item?.site_name)} */}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '16.94px',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}> Enclosure: </span>
+                    <span style={{ fontWeight: 600 }}> Encl: </span>
                     {item?.user_enclosure_name}
                     {/* {Utility?.toPascalSentenceCase(item?.user_enclosure_name)} */}
                   </Typography>
@@ -217,8 +205,20 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    <span style={{ fontWeight: 600 }}>section: </span> {item?.section_name}
+                    <span style={{ fontWeight: 600 }}>Sec: </span> {item?.section_name}
                     {/* {Utility?.toPascalSentenceCase(item?.section_name)} */}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>Site: </span>
+                    {item?.site_name}
+                    {/* {Utility?.toPascalSentenceCase(item?.site_name)} */}
                   </Typography>
                 </Box>
               </Box>
