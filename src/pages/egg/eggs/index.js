@@ -2462,10 +2462,10 @@ const EggList = () => {
     const parsedNursery = await JSON.parse(storedNursery)
     if (parsedNursery) {
       setDefaultNursery(parsedNursery)
-      setFilterByNurseryId(parsedNursery.nursery_id)
+      setFilterByNurseryId(parsedNursery?.nursery_id)
     } else {
       setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
-      setFilterByNurseryId(parsedNursery.nursery_id)
+      setFilterByNurseryId(parsedNursery?.nursery_id)
     }
   }
 
