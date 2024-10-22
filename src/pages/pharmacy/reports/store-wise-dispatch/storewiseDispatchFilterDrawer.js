@@ -24,7 +24,8 @@ const StoreWisedispatchFilter = ({
   isFetching,
   setFiltersApplied,
   filtersearchValue,
-  setSelectedStores
+  tempSelectedStores,
+  handleClose
 }) => {
   const listInnerRef = useRef(null)
 
@@ -37,21 +38,11 @@ const StoreWisedispatchFilter = ({
     }
   }
 
-  const handleClose = () => {
-    setOpenFilterDrawer(false)
-    setFilterSearchValue('')
-    setFiltersApplied(true)
-    //setSelectedStores([])
-    if (filtersApplied === false && selectedFruits.length > 0) {
-      //setSelectedStores([])
-    }
-  }
-
   useEffect(() => {
     console.log(filtersApplied, 'lll')
     const ref = listInnerRef.current
 
-    if (selectedFruits.length > 0 && filtersApplied === true) {
+    if (tempSelectedStores.length > 0 && filtersApplied === true) {
       setFiltersApplied(false)
     }
     if (filtersApplied === true) {
@@ -95,7 +86,7 @@ const StoreWisedispatchFilter = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - {selectedFruits.length} </Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter - {tempSelectedStores.length} </Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handleClose}>
@@ -167,8 +158,8 @@ const StoreWisedispatchFilter = ({
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
-                    checked={fullStoreList.length > 0 && selectedFruits.length === fullStoreList.length}
-                    indeterminate={selectedFruits.length > 0 && selectedFruits.length < storeList.length}
+                    checked={fullStoreList.length > 0 && tempSelectedStores.length === fullStoreList.length}
+                    indeterminate={tempSelectedStores.length > 0 && tempSelectedStores.length < storeList.length}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
@@ -183,8 +174,8 @@ const StoreWisedispatchFilter = ({
                     fullStoreList.map(fruit => (
                       <Box key={fruit.id} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                         <Checkbox
-                          checked={selectedFruits.includes(fruit.id)}
-                          onChange={() => handleFruitSelection(fruit.id)}
+                          checked={tempSelectedStores.includes(fruit.id)} // Use tempSelectedStores here
+                          onChange={() => handleFruitSelection(fruit.id)} // Update tempSelectedStores on selection
                           inputProps={{ 'aria-label': 'controlled' }}
                         />
                         <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
@@ -233,7 +224,7 @@ const StoreWisedispatchFilter = ({
           variant='contained'
           size='large'
           onClick={onApplyFilters}
-          disabled={selectedFruits.length > 0 ? false : true}
+          disabled={tempSelectedStores.length > 0 ? false : true}
         >
           APPLY FILTER
         </LoadingButton>

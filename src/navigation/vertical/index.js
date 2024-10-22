@@ -15,6 +15,7 @@ const ComposeNavigation = () => {
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
+  const userSettings = authData?.userData?.permission?.user_settings
 
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
@@ -55,7 +56,9 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  const medicalNav = medicalNavigation()
+  const medicalNav = medicalNavigation({
+    userSettings
+  })
   navigationArray.push(...medicalNav)
 
   return navigationArray

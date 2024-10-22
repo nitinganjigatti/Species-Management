@@ -27,6 +27,7 @@ import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
 import AddCategories from 'src/views/pages/medical/AddCategories'
+import Error404 from 'src/pages/404'
 
 const DiagnosisDetails = () => {
   const theme = useTheme()
@@ -52,6 +53,7 @@ const DiagnosisDetails = () => {
   }
 
   const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
+  const diagnosis_permission = authData?.userData?.permission?.user_settings?.medical_add_diagnosis
   console.log(id, 'id')
 
   const fetchTableData = useCallback(
@@ -82,8 +84,10 @@ const DiagnosisDetails = () => {
   )
 
   useEffect(() => {
-    if (id) {
-      fetchTableData(searchValue)
+    if (diagnosis_permission) {
+      if (id) {
+        fetchTableData(searchValue)
+      }
     }
   }, [fetchTableData])
 
@@ -123,6 +127,7 @@ const DiagnosisDetails = () => {
 
   const handleSubmitData = async params => {
     console.log(params, 'ghghhg')
+
     const payload = {
       label: params?.label,
       category_id: id
@@ -226,73 +231,81 @@ const DiagnosisDetails = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Medical
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-          Category
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Diagnosis
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Diagnosis List' action={headerAction} />
+      {diagnosis_permission ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Medical
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
+              Category
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Diagnosis
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Diagnosis List' action={headerAction} />
 
-        <DataGrid
-          //   hideFooterPagination={true}
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+            <DataGrid
+              //   hideFooterPagination={true}
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={handleCellClick}
-        />
-      </Card>
-      {openDrawer && (
-        <AddCategories
-          openDrawer={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          loading={submitLoader}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          type='diagnosis'
-        />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={handleCellClick}
+            />
+          </Card>
+          {openDrawer && (
+            <AddCategories
+              openDrawer={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              loading={submitLoader}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              type='diagnosis'
+            />
+          )}
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
       )}
     </>
   )
