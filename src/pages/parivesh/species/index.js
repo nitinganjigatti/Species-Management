@@ -543,7 +543,7 @@ const SpeciesList = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={'Species List'} action={headerAction} />
+            <CardHeader title={`Species Overview by Organization's`} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -646,7 +646,7 @@ const SpeciesList = () => {
       {pariveshAccess ? (
         <>
           <Grid>
-            <TabContext value={status}>
+            {/* <TabContext value={status}>
               <TabList onChange={handleChange} aria-label='simple tabs example'>
                 <Tab
                   value='overview'
@@ -657,7 +657,8 @@ const SpeciesList = () => {
               <TabPanel value='overview'>
                 <Grid>{tableData()}</Grid>
               </TabPanel>
-            </TabContext>
+            </TabContext> */}
+            <Grid>{tableData()}</Grid>
           </Grid>
           <AddSpecies
             drawerWidth={400}
