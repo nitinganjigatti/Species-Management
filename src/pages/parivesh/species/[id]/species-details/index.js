@@ -774,7 +774,7 @@ const SpeciesDetails = () => {
             </Breadcrumbs>
           </Box>
           {!organizationCountList.length > 0 &&
-            orgName.map((name, indx) => {
+            orgName?.map((name, indx) => {
               return (
                 <Card>
                   <Box
@@ -803,7 +803,7 @@ const SpeciesDetails = () => {
                     </Box>
 
                     <Typography sx={{ color: '#00AFD6', marginLeft: '0.5rem', fontWeight: 'bold' }} variant='subtitle2'>
-                      {name.organization_name}
+                      {name?.organization_name}
                     </Typography>
                   </Box>
                 </Card>
