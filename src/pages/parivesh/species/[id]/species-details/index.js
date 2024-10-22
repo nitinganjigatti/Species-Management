@@ -50,6 +50,7 @@ const SpeciesDetails = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [organizationCountList, setOrganizationCountList] = useState([])
   const [speciesDetails, setSpeciesDetails] = useState({})
+  const [orgName, setOrgName] = useState([])
 
   // const { selectedParivesh } = usePariveshContext()
 
@@ -313,7 +314,11 @@ const SpeciesDetails = () => {
         }
 
         await getOrgCountList({ params: params }).then(res => {
+          console.log(res?.data, 'respon')
+
           const filteredData = res.data.filter(org => org.org_id === org_id)
+          console.log(filteredData, 'respon123')
+          setOrgName(filteredData)
 
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
@@ -324,32 +329,32 @@ const SpeciesDetails = () => {
               title: 'Approved by Parivesh',
               data: [
                 {
-                  value: org.approved_count_data.total_animal,
+                  value: org?.approved_count_data?.total_animal,
                   label: 'ANIMAL RECORDS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.approved_count_data?.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
-                { value: org.approved_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
+                { value: org.approved_count_data?.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
                 {
-                  value: org.approved_count_data.female_count,
+                  value: org.approved_count_data?.female_count,
                   label: 'FEMALE',
                   color: '#FFD3D3',
                   borderColor: '#FFD3D3'
                 },
                 {
-                  value: org.approved_count_data.other_count,
+                  value: org.approved_count_data?.other_count,
                   label: 'OTHERS',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.species_count,
+                  value: org.approved_count_data?.species_count,
                   label: 'TOTAL SPECIES',
                   color: '#E4B819',
                   borderColor: '#E4B819'
@@ -361,13 +366,13 @@ const SpeciesDetails = () => {
                   content: 'Births',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.approved_count_data.possession_counts.births.male, bgColor: '#00AFD6' },
-                    { value: org.approved_count_data.possession_counts.births.female, bgColor: '#FFD3D3' },
-                    { value: org.approved_count_data.possession_counts.births.other, bgColor: '#FFFFFF' }
+                    { value: org.approved_count_data?.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.approved_count_data?.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.approved_count_data?.possession_counts.births.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.approved_count_data.possession_counts.deaths.total,
+                  value: org.approved_count_data?.possession_counts.deaths.total,
                   content: 'Deaths',
                   bgColor: '#E93353',
                   items: [
@@ -754,6 +759,8 @@ const SpeciesDetails = () => {
     )
   }
 
+  console.log(organizationCountList, 'jjj')
+
   return (
     <>
       {pariveshAccess ? (
@@ -766,11 +773,48 @@ const SpeciesDetails = () => {
               <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
             </Breadcrumbs>
           </Box>
+          {!organizationCountList.length > 0 &&
+            orgName.map((name, indx) => {
+              return (
+                <Card>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: '#00ABAB1A',
+                      padding: '0.8rem',
+                      borderRadius: '0.5rem',
+                      alignContent: 'center',
+                      cursor: 'pointer',
+                      color: '#00AFD6',
+                      m: 3
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: '#AFEFEB ',
+                        padding: '8px',
+                        borderRadius: '6px'
+                      }}
+                    >
+                      <Icon icon='material-symbols:corporate-fare' />
+                    </Box>
+
+                    <Typography sx={{ color: '#00AFD6', marginLeft: '0.5rem', fontWeight: 'bold' }} variant='subtitle2'>
+                      {name.organization_name}
+                    </Typography>
+                  </Box>
+                </Card>
+              )
+            })}
+
           <Box>
             <Card>
               {organizationCountList.length > 0 &&
                 organizationCountList.map((org, inx) => {
-                  console.log(org, 'ppppp')
+                  console.log(org, 'pppppqwer')
                   return (
                     <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                       <CustomAccordion
