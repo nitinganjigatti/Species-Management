@@ -27,6 +27,7 @@ import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
 import AddCategories from 'src/views/pages/medical/AddCategories'
+import Error404 from 'src/pages/404'
 
 const ComplaintsDetails = () => {
   const theme = useTheme()
@@ -52,6 +53,7 @@ const ComplaintsDetails = () => {
   }
 
   const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
+  const complaints_permission = authData?.userData?.permission?.user_settings?.medical_add_complaints
   console.log(id, 'id')
 
   const fetchTableData = useCallback(
@@ -82,8 +84,10 @@ const ComplaintsDetails = () => {
   )
 
   useEffect(() => {
-    if (id) {
-      fetchTableData(searchValue)
+    if (complaints_permission) {
+      if (id) {
+        fetchTableData(searchValue)
+      }
     }
   }, [fetchTableData])
 
@@ -121,6 +125,7 @@ const ComplaintsDetails = () => {
 
   const handleSubmitData = async params => {
     console.log(params, 'ghghhg')
+
     const payload = {
       label: params?.label,
       category_id: id
@@ -224,73 +229,79 @@ const ComplaintsDetails = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Medical
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-          Category
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Complaints
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Complaints List' action={headerAction} />
+      {complaints_permission ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Medical
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
+              Category
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Complaints
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Complaints List' action={headerAction} />
 
-        <DataGrid
-          //   hideFooterPagination={true}
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+            <DataGrid
+              //   hideFooterPagination={true}
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={handleCellClick}
-        />
-      </Card>
-      {openDrawer && (
-        <AddCategories
-          openDrawer={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          loading={submitLoader}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          type='complaints'
-        />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={handleCellClick}
+            />
+          </Card>
+          {openDrawer && (
+            <AddCategories
+              openDrawer={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              loading={submitLoader}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              type='complaints'
+            />
+          )}
+        </>
+      ) : (
+        <Error404></Error404>
       )}
     </>
   )
