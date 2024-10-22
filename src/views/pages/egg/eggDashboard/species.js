@@ -415,7 +415,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+            {/* {(Number(params.row.hatched_in_nest) > 0 &&
+            Number(params.row.discarded_at_site) >= 0 &&
+            Number(params.row.ready_tobe_discarded_at_nursery) >= 0
               ? (Number(params.row.hatched_in_nest) /
                   (Number(params.row.hatched_in_nest) +
                     Number(params.row.discarded_at_site) +
@@ -423,7 +425,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.hatched_in_nest) +
+              Number(params.row.discarded_at_site) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? (
+                  (Number(params.row.hatched_in_nest) /
+                    (Number(params.row.hatched_in_nest) +
+                      Number(params.row.discarded_at_site) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
           </Typography>
         </Box>
@@ -457,7 +471,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+            {/* {(Number(params.row.hatched_in_nursery) > 0 &&
+            Number(params.row.discarded_at_nursery) >= 0 &&
+            Number(params.row.ready_tobe_discarded_at_nursery) >= 0
               ? (Number(params.row.hatched_in_nursery) /
                   (Number(params.row.hatched_in_nursery) +
                     Number(params.row.discarded_at_nursery) +
@@ -465,7 +481,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.hatched_in_nursery) +
+              Number(params.row.discarded_at_nursery) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? (
+                  (Number(params.row.hatched_in_nursery) /
+                    (Number(params.row.hatched_in_nursery) +
+                      Number(params.row.discarded_at_nursery) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
           </Typography>
         </Box>
@@ -499,12 +527,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }}
           >
             {/* total_hatched_eggs */}
-            {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
               ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
+              ? (
+                  (Number(params.row.total_hatch) /
+                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
           </Typography>
         </Box>
@@ -858,7 +893,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+            {/* {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
               ? (Number(params.row.hatched_in_nest) /
                   (Number(params.row.hatched_in_nest) +
                     Number(params.row.discarded_at_site) +
@@ -866,7 +901,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.hatched_in_nest) +
+              Number(params.row.discarded_at_site) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? (
+                  (Number(params.row.hatched_in_nest) /
+                    (Number(params.row.hatched_in_nest) +
+                      Number(params.row.discarded_at_site) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
           </Typography>
         </Box>
@@ -900,7 +947,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+            {/* {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
               ? (Number(params.row.hatched_in_nursery) /
                   (Number(params.row.hatched_in_nursery) +
                     Number(params.row.discarded_at_nursery) +
@@ -908,7 +955,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.hatched_in_nursery) +
+              Number(params.row.discarded_at_nursery) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? (
+                  (Number(params.row.hatched_in_nursery) /
+                    (Number(params.row.hatched_in_nursery) +
+                      Number(params.row.discarded_at_nursery) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
           </Typography>
         </Box>
@@ -942,12 +1001,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }}
           >
             {/* total_hatched_eggs */}
-            {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
               ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
+              ? (
+                  (Number(params.row.total_hatch) /
+                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
           </Typography>
         </Box>
@@ -1290,7 +1356,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+            {/* {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
               ? (Number(params.row.hatched_in_nursery) /
                   (Number(params.row.hatched_in_nursery) +
                     Number(params.row.discarded_at_nursery) +
@@ -1298,7 +1364,19 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)}
+              .toPrecision(3)} */}
+            {Number(params.row.hatched_in_nursery) +
+              Number(params.row.discarded_at_nursery) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? (
+                  (Number(params.row.hatched_in_nursery) /
+                    (Number(params.row.hatched_in_nursery) +
+                      Number(params.row.discarded_at_nursery) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  100
+                ).toPrecision(3)
+              : 0}
             % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
           </Typography>
         </Box>
