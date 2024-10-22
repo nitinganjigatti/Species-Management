@@ -25,6 +25,8 @@ import Toaster from 'src/components/Toaster'
 import AddCategories from 'src/views/pages/medical/AddCategories'
 import { AuthContext } from 'src/context/AuthContext'
 
+import Error404 from 'src/pages/404'
+
 const Diagnosis = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -47,6 +49,7 @@ const Diagnosis = () => {
   }
 
   const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
+  const diagnosis_permission = authData?.userData?.permission?.user_settings?.medical_add_diagnosis
   console.log(zoo_id, 'zoo_id')
 
   const fetchTableData = useCallback(
@@ -57,6 +60,7 @@ const Diagnosis = () => {
         const params = {
           type: 'diagnosis',
           q
+
           // sort,
           // page: paginationModel.page + 1,
           // limit: paginationModel.pageSize
@@ -78,7 +82,9 @@ const Diagnosis = () => {
   )
 
   useEffect(() => {
-    fetchTableData(searchValue)
+    if (diagnosis_permission) {
+      fetchTableData(searchValue)
+    }
   }, [fetchTableData])
 
   const handleSortModel = newModel => {
@@ -180,6 +186,7 @@ const Diagnosis = () => {
       sortable: false,
       field: 'Category',
       headerName: 'Category',
+
       // headerAlign: 'left',
       align: 'left',
 
@@ -213,6 +220,7 @@ const Diagnosis = () => {
           ) : null}
         </>
       )
+
       // renderCell: params => (
       //   <>
       //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
@@ -226,6 +234,7 @@ const Diagnosis = () => {
       //   </>
       // )
     }
+
     // {
     //   flex: 0.3,
     //   minWidth: 30,
