@@ -52,6 +52,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
 import { CheckBox } from '@mui/icons-material'
+import Link from 'next/link'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -113,6 +114,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
+  const { id } = router.query
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -1223,26 +1225,44 @@ function OrderReceiveForm({ orderId, requestId }) {
                   icon='ep:back'
                 />
               }
-              title={`Shipment Details - ${orderData.shipment_id}`}
+              title={`Shipment Details - ${orderData?.shipment_id || ''}`}
             />
           </Grid>
-          <Grid item xs={12} sm='auto'>
-            {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-              <LoadingButton
+          <Grid container item xs={12} sm='auto' spacing={2}>
+            <Grid item>
+              <Button
                 size='large'
-                disabled={disableButton() || submitLoader}
-                variant='contained'
-                onClick={() => {
-                  if (!submitLoader) {
-                    updateStatus()
-                  }
-                }}
-                loading={submitLoader}
+                variant='outlined'
+                fullWidth
+                target='_blank'
+                sx={{ mb: 3.5 }}
+                component={Link}
+                href={`/pharmacy/request/${id}/shipment-details?${orderId}/print/${orderData?.shipment_id}`}
+                startIcon={<Icon icon='material-symbols:print' />}
               >
-                Save
-              </LoadingButton>
-            ) : null}
+                print
+              </Button>
+            </Grid>
+            <Grid item>
+              {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                <LoadingButton
+                  size='large'
+                  disabled={disableButton() || submitLoader}
+                  variant='contained'
+                  onClick={() => {
+                    if (!submitLoader) {
+                      updateStatus()
+                    }
+                  }}
+                  loading={submitLoader}
+                >
+                  Save
+                </LoadingButton>
+              ) : null}
+            </Grid>
           </Grid>
+
+          {/* <Grid item xs={12} sm='auto'></Grid> */}
         </Grid>
       </Box>
 
