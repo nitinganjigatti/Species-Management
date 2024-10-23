@@ -12,6 +12,7 @@ import CardHeader from '@mui/material/CardHeader'
 import TableContainer from '@mui/material/TableContainer'
 import { useEffect, useState } from 'react'
 import Chip from '@mui/material/Chip'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
@@ -20,7 +21,7 @@ import { Grid } from '@mui/material'
 
 const FastMovingProducts = () => {
   const [productsList, setProductsList] = useState([])
-
+  const { selectedPharmacy } = usePharmacyContext()
   const getProductsList = async () => {
     try {
       const result = await getFastMovingStocks()
@@ -33,7 +34,7 @@ const FastMovingProducts = () => {
 
   useEffect(() => {
     getProductsList()
-  }, [])
+  }, [selectedPharmacy.type, selectedPharmacy.id])
 
   return (
     <Grid>

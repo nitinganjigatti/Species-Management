@@ -510,7 +510,7 @@ const DoctorWiseRequest = () => {
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, filter: statusFilter })
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy.id])
 
   useEffect(() => {
     fetchfilterValues({ q: filtersearchValue, page })
