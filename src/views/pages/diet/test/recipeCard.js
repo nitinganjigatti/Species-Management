@@ -87,7 +87,7 @@ const RecipeCard = ({
 
     if (
       allRecipeSelectedValues &&
-      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues?.length > 0 &&
       allRecipeSelectedValues.some(item => item?.mealid === checkid)
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
@@ -133,7 +133,7 @@ const RecipeCard = ({
       setRemarks(newRemarks)
     } else if (
       allRecipeSelectedValues &&
-      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues?.length > 0 &&
       allRecipeSelectedValues.some(item => item?.mealid !== checkid) &&
       searchValue
     ) {
@@ -154,9 +154,9 @@ const RecipeCard = ({
     } else if (
       !searchValue &&
       allRecipeSelectedValues &&
-      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues?.length > 0 &&
       allRecipeSelectedValues.some(item => item?.mealid === checkid) &&
-      selectedCardRecipe.length > 0
+      selectedCardRecipe?.length > 0
     ) {
       const previousSelectedDays = selectedDays || []
       const initialSelectedDays = rows.map(row => ({
@@ -166,7 +166,7 @@ const RecipeCard = ({
 
       setSelectedDays(initialSelectedDays)
       setRemarks({})
-    } else if (selectedCardRecipe.length > 0 && allRecipeSelectedValues && allRecipeSelectedValues.length <= 0) {
+    } else if (selectedCardRecipe?.length > 0 && allRecipeSelectedValues && allRecipeSelectedValues?.length <= 0) {
       const previousSelectedDays = selectedDays || []
 
       // Map over rows to retain previously selected days for matching cards
@@ -309,7 +309,7 @@ const RecipeCard = ({
 
       console.log(selectedDayId, 'selectedDayId')
       // Preserve the previous days_of_week if new ones are not selected
-      const preservedDaysOfWeek = selectedDayId.length ? selectedDayId : existingCard?.days_of_week || []
+      const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
 
       return {
         recipe_name: item.recipe_name,

@@ -42,7 +42,7 @@ const RecipeList = props => {
       const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
       const res = await getRecipeList({ params })
 
-      if (res.data.result.length > 0) {
+      if (res?.data?.result?.length > 0) {
         const newResults = res.data.result.filter(
           item => !ingredientList.some(existingItem => existingItem.id === item.id)
         )
@@ -70,7 +70,7 @@ const RecipeList = props => {
     const container = e.target
 
     // Check if user has reached the bottom and more data is available
-    if (totalCount > ingredientList.length && !reachedEnd) {
+    if (totalCount > ingredientList?.length && !reachedEnd) {
       if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
         setReachedEnd(true) // Prevent multiple API calls
 
