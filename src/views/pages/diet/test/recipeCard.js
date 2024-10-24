@@ -18,12 +18,17 @@ const RecipeCard = ({
   handleSidebarClose,
   allRecipeSelectedValues,
   formData,
-  addEventSidebarOpen
+  addEventSidebarOpen,
+  searchValue,
+  setSearchValue
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
 
   const [selectedCount, setSelectedCount] = useState([])
+  const [selectedDays, setSelectedDays] = useState()
+
+  const [expandedIndex, setExpandedIndex] = useState([])
 
   const Day = [
     { id: 0, name: 'All', isActive: true },
@@ -37,17 +42,165 @@ const RecipeCard = ({
   ]
 
   useEffect(() => {
-    const initialSelectedDays = rows.map(row => ({
-      cardId: row.id,
-      days: Day
-    }))
+    // Filter out duplicates based on id and mealid
+    const uniqueSelectedValues = allRecipeSelectedValues?.filter(
+      (value, index, self) =>
+        index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
+    )
 
-    setSelectedDays(initialSelectedDays)
-  }, [rows])
+    // Compare uniqueSelectedValues with checkid
+    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
-  const [selectedDays, setSelectedDays] = useState()
+    // Initialize a new array to store the updated selectedCardRecipe
+    let updatedSelectedCardRecipe = []
 
-  const [expandedIndex, setExpandedIndex] = useState([])
+    // Iterate over rows and check for matches
+    rows.forEach(row => {
+      const match = selectedValuesWithCheckId?.find(item => String(item.recipe_id) === row.id)
+      if (match) {
+        // Construct a new object with keys from the row object and values from the match object
+        const updatedRow = {}
+        for (const key in row) {
+          updatedRow[key] = match[key] !== undefined ? match[key] : row[key]
+        }
+
+        // Add the updated row object to updatedSelectedCardRecipe
+        updatedSelectedCardRecipe.push(updatedRow)
+      }
+    })
+
+    // Update selectedCardRecipe with merged objects
+    const currentSelectedCardRecipe = selectedCardRecipe || []
+    const updatedSelectedCard = [
+      ...currentSelectedCardRecipe,
+      ...selectedValuesWithCheckId
+        .map(item => ({
+          ...item,
+          id: String(item.recipe_id)
+        }))
+        .filter(item => !currentSelectedCardRecipe.some(existingItem => existingItem.recipe_id === item.recipe_id)) // Avoid duplicates
+    ]
+
+    setSelectedCardRecipe(updatedSelectedCard)
+
+    const previousSelectedDays = selectedDays || [] // Keep track of previous selections
+
+    if (
+      allRecipeSelectedValues &&
+      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues.some(item => item?.mealid === checkid)
+    ) {
+      const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
+      const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+      const newRemarks = {}
+
+      // Update selectedDays state with the extracted values
+      console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
+      const updatedSelectedDays = []
+      cardIds.forEach((cardId, index) => {
+        updatedSelectedDays.push({
+          cardId: cardId,
+          days: Day.map(day => ({
+            id: day.id,
+            name: day.name,
+            isActive: days[index]?.includes(day.id) ? true : false
+          }))
+        })
+      })
+
+      // Merge updatedSelectedDays with rows
+      const finalSelectedDays = rows.map(row => {
+        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
+        console.log('updatedDay :>> ', updatedDay)
+        if (updatedDay) {
+          return updatedDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day
+          }
+        }
+      })
+      setSelectedDays(finalSelectedDays)
+
+      selectedValuesWithCheckId?.forEach(item => {
+        console.log('item for remarks ', item)
+        if (item.mealid === checkid) {
+          newRemarks[item.recipe_id] = item.remarks
+        }
+      })
+
+      setRemarks(newRemarks)
+    } else if (
+      allRecipeSelectedValues &&
+      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues.some(item => item?.mealid !== checkid) &&
+      searchValue
+    ) {
+      const finalSelectedDays = rows.map(row => {
+        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+
+        // If no match with checkid, enable all days
+        const enabledAllDays = Day.map(day => ({
+          id: day.id,
+          name: day.name,
+          isActive: true // Enable all days if mealid does not match checkid
+        }))
+
+        return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays } // Keep previously selected days if available, or enable all days
+      })
+      setSelectedDays(finalSelectedDays)
+      setRemarks({})
+    } else if (
+      !searchValue &&
+      allRecipeSelectedValues &&
+      allRecipeSelectedValues.length > 0 &&
+      allRecipeSelectedValues.some(item => item?.mealid === checkid) &&
+      selectedCardRecipe.length > 0
+    ) {
+      const previousSelectedDays = selectedDays || []
+      const initialSelectedDays = rows.map(row => ({
+        cardId: row.id,
+        days: Day
+      }))
+
+      setSelectedDays(initialSelectedDays)
+      setRemarks({})
+    } else if (selectedCardRecipe.length > 0 && allRecipeSelectedValues && allRecipeSelectedValues.length <= 0) {
+      const previousSelectedDays = selectedDays || []
+
+      // Map over rows to retain previously selected days for matching cards
+      const updatedSelectedDays = rows.map(row => {
+        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+
+        if (previousDay) {
+          // If the card has previously selected days, retain them
+          return previousDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day.map(day => ({
+              id: day.id,
+              name: day.name,
+              isActive: true // Enable all days for new cards
+            }))
+          }
+        }
+      })
+
+      setSelectedDays(updatedSelectedDays)
+      setRemarks({})
+    } else if (!searchValue) {
+      const previousSelectedDays = selectedDays || []
+      const initialSelectedDays = rows.map(row => ({
+        cardId: row.id,
+        days: Day
+      }))
+
+      setSelectedDays(initialSelectedDays)
+      setRemarks({})
+    }
+  }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen, searchValue])
 
   const handleSelectedDays = (dayId, dayName, cardId) => {
     let updatedDays = selectedDays.map(card => {
@@ -103,24 +256,6 @@ const RecipeCard = ({
     })
 
     setSelectedDays(updatedDays)
-
-    // // Find the last selected day
-    // let lastSelectedDayInfo = null;
-    // for (let i = updatedDays.length - 1; i >= 0; i--) {
-    //     const card = updatedDays[i];
-    //     for (let j = card.days.length - 1; j >= 0; j--) {
-    //         const day = card.days[j];
-    //         if (day.isActive) {
-    //             lastSelectedDayInfo = day;
-    //             break;
-    //         }
-    //     }
-    //     if (lastSelectedDayInfo) {
-    //         break;
-    //     }
-    // }
-
-    // // Log the last selected day to the console
   }
 
   const handleCardClick = item => {
@@ -150,26 +285,36 @@ const RecipeCard = ({
 
   const handleSelected = () => {
     handleSidebarClose()
-    console.log(selectedCardRecipe, 'selectedCardRecipe')
+    setSearchValue('')
 
     const filteredItems = selectedCardRecipe.map(item => {
+      // Find the selected days for the current item
+
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
 
+      // Extract the selected day names and ids
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
-
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
+      // Find the remarks for the current item
       const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
-      // Extract ingredient names from the ingredients array
+      // Extract ingredient details
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
 
+      // Find the existing card in selectedCardRecipe to preserve previous data
+      const existingCard = selectedCardRecipe.find(card => card.id === item.id)
+
+      console.log(selectedDayId, 'selectedDayId')
+      // Preserve the previous days_of_week if new ones are not selected
+      const preservedDaysOfWeek = selectedDayId.length ? selectedDayId : existingCard?.days_of_week || []
+
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
-        days_of_week: selectedDayId,
+        days_of_week: preservedDaysOfWeek, // Retain previous days_of_week if new one is empty
         remarks: cardRemarks,
         mealid: checkid,
         recipe_image: item.recipe_image,
@@ -181,6 +326,8 @@ const RecipeCard = ({
     })
 
     setSelectedCardRecipe(filteredItems)
+
+    // Trigger onChange callback with the updated recipe
     onChange(filteredItems)
   }
 
@@ -211,107 +358,11 @@ const RecipeCard = ({
     setSelectedCardRecipe(updatedCards)
   }
 
-  useEffect(() => {
-    // Filter out duplicates based on id and mealid
+  const filteredRecipeList = rows.filter(
+    item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) // filter by search
+  )
 
-    const uniqueSelectedValues = allRecipeSelectedValues?.filter(
-      (value, index, self) =>
-        index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
-    )
-
-    // Compare uniqueSelectedValues with checkid
-    const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
-
-    // Initialize a new array to store the updated selectedCardRecipe
-    let updatedSelectedCardRecipe = []
-
-    // Iterate over rows and check for matches
-    rows.forEach(row => {
-      const match = selectedValuesWithCheckId?.find(item => String(item.recipe_id) === row.id)
-      if (match) {
-        // Construct a new object with keys from the row object and values from the match object
-        const updatedRow = {}
-        for (const key in row) {
-          updatedRow[key] = match[key] !== undefined ? match[key] : row[key]
-        }
-
-        // Add the updated row object to updatedSelectedCardRecipe
-        updatedSelectedCardRecipe.push(updatedRow)
-      }
-    })
-
-    // Update selectedCardRecipe with matched objects
-    const updatedSelectedCard =
-      selectedValuesWithCheckId?.map(item => ({
-        ...item,
-        id: String(item.recipe_id) // Convert ingredient_id to string
-      })) || []
-    setSelectedCardRecipe(updatedSelectedCard)
-
-    // Extract cardId values and selectedDays arrays from selectedValuesWithCheckId
-    if (
-      allRecipeSelectedValues &&
-      allRecipeSelectedValues.length > 0 &&
-      allRecipeSelectedValues.some(item => item?.mealid === checkid)
-    ) {
-      const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
-      const days = selectedValuesWithCheckId.map(item => item.days_of_week)
-      const newRemarks = {}
-
-      // Update selectedDays state with the extracted values
-      console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
-      const updatedSelectedDays = []
-      cardIds.forEach((cardId, index) => {
-        updatedSelectedDays.push({
-          cardId: cardId,
-          days: Day.map(day => ({
-            id: day.id,
-            name: day.name,
-            isActive: days[index]?.includes(day.id) ? true : false
-          }))
-        })
-      })
-
-      // Merge updatedSelectedDays with rows
-      const finalSelectedDays = rows.map(row => {
-        const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
-        console.log('updatedDay :>> ', updatedDay)
-        if (updatedDay) {
-          return updatedDay
-        } else {
-          return {
-            cardId: row.id,
-            days: Day
-          }
-        }
-      })
-      setSelectedDays(finalSelectedDays)
-
-      selectedValuesWithCheckId?.forEach(item => {
-        console.log('item for remarks ', item)
-        if (item.mealid === checkid) {
-          newRemarks[item.recipe_id] = item.remarks
-        }
-      })
-
-      setRemarks(newRemarks)
-
-      // setRemarks({
-      //   ...remarks,
-      //   [cardIds]: event.target.value
-      // })
-    } else {
-      const initialSelectedDays = rows.map(row => ({
-        cardId: row.id,
-        days: Day
-      }))
-
-      setSelectedDays(initialSelectedDays)
-      setRemarks({})
-    }
-  }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen])
-
-  const sortedRecipeList = [...rows]?.sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  const sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
 
   const calculateTotalQuantity = ingredients => {
     return ingredients.reduce((total, ingredient) => {
@@ -321,10 +372,7 @@ const RecipeCard = ({
 
   return (
     <Box>
-      {/* Example Card */}
       {sortedRecipeList?.map((item, index) => {
-        // const getQuantity = item?.by_percentage
-
         return (
           <>
             <Box

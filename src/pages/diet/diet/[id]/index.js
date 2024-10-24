@@ -240,7 +240,7 @@ const DietDetail = () => {
                                               fontWeight: 600
                                             }}
                                           >
-                                            TIME
+                                            MEAL NAME & TIME
                                           </Typography>
                                         </Box>
                                       </TableCell>
@@ -1144,7 +1144,7 @@ const DietDetail = () => {
                                                 <span
                                                   style={{
                                                     position: 'absolute', // Change this to absolute
-                                                    top: '70px', // Center vertically
+                                                    top: '80px', // Center vertically
                                                     transform: 'translateY(-50%)', // Adjust to center properly
                                                     //display: 'flex',
                                                     flexDirection: 'column',
@@ -1152,6 +1152,19 @@ const DietDetail = () => {
                                                     width: '70%'
                                                   }}
                                                 >
+                                                  {/* Meal Name */}
+                                                  <Typography
+                                                    sx={{
+                                                      textAlign: 'center',
+                                                      color: '#00AFD6',
+                                                      fontWeight: 500,
+                                                      fontSize: '14px',
+                                                      mt: 10,
+                                                      mb: 5
+                                                    }}
+                                                  >
+                                                    {itemd.meal_name}
+                                                  </Typography>
                                                   <Box
                                                     sx={{
                                                       borderRadius: '25px',
@@ -2369,14 +2382,14 @@ const DietDetail = () => {
                                               </>
                                             </TableRow>
                                           )}
-                                          {itemd.notes &&
-                                          (itemd?.ingredient?.length >= 1 ||
-                                            itemd?.ingredientwithchoice?.length >= 1 ||
-                                            itemd?.recipe?.length >= 1) ? (
-                                            <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+                                          <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+                                            {itemd.notes &&
+                                            (itemd?.ingredient?.length >= 1 ||
+                                              itemd?.ingredientwithchoice?.length >= 1 ||
+                                              itemd?.recipe?.length >= 1) ? (
                                               <Typography
                                                 sx={{
-                                                  width: '100%',
+                                                  width: '1000px',
                                                   display: 'block',
                                                   pb: 3
                                                 }}
@@ -2386,10 +2399,10 @@ const DietDetail = () => {
                                                 </span>{' '}
                                                 {itemd.notes}
                                               </Typography>
-                                            </TableRow>
-                                          ) : (
-                                            ''
-                                          )}
+                                            ) : (
+                                              ''
+                                            )}
+                                          </TableRow>
                                         </>
                                       )
                                     })}
