@@ -1458,10 +1458,11 @@ const AddRequestForm = () => {
           {/* Left side content */}
           <Grid item xs={12} sm={8}>
             <Typography
-              variant='h6'
+              variant='body1'
               sx={{
-                color: 'text.primary',
+                fontSize: '1rem',
                 fontWeight: 500,
+                color: '#44544ADE',
                 mb: 0.5
               }}
             >
@@ -1475,8 +1476,17 @@ const AddRequestForm = () => {
               }}
             >
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Typography color='text.secondary'>Total Request Quantity:</Typography>
-                <Typography fontWeight='medium'>{totalQty}</Typography>
+                <Typography
+                  // color='#7A8684'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    color: '#7A8684'
+                  }}
+                >
+                  Total Request Quantity:
+                </Typography>
+                <Typography sx={{ color: '#1F515B', fontSize: '14px', fontWeight: 400 }}>{totalQty}</Typography>
               </Box>
               <Divider
                 orientation='vertical'
@@ -1489,8 +1499,16 @@ const AddRequestForm = () => {
                 }}
               />
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Typography color='text.secondary'>Total Value:</Typography>
-                <Typography fontWeight='medium'>{`₹ ${totalValue
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    color: '#7A8684'
+                  }}
+                >
+                  Total Value:
+                </Typography>
+                <Typography sx={{ color: '#1F515B', fontSize: '14px', fontWeight: 400 }}>{`₹ ${totalValue
                   .toString()
                   .replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`}</Typography>
               </Box>
@@ -1597,21 +1615,29 @@ const AddRequestForm = () => {
                                   borderRadius: '2px',
                                   background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
                                   '& .MuiChip-label': {
-                                    color: 'white'
+                                    color: 'white',
+                                    paddingLeft: '4px',
+                                    paddingRight: '4px'
                                   }
                                 }}
                               />
                             ) : null}
-                            <Typography variant='h6' sx={{ color: '#1F515B' }}>
+                            <Typography variant='body2' sx={{ color: '#1F515B', fontSize: '16px', fontWeight: 600 }}>
                               {el.medicine_name}
                             </Typography>
                           </Box>
 
                           {/* Package info */}
-                          <Typography variant='body2' sx={{ color: '#44544A', mb: 0.5 }}>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: '#44544A', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
+                          >
                             {el.package}
                           </Typography>
-                          <Typography variant='body2' sx={{ color: '#44544A', mb: 0.5 }}>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: '#44544A', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
+                          >
                             {el.manufacture}
                           </Typography>
 
@@ -1622,41 +1648,81 @@ const AddRequestForm = () => {
                               Prescription.pdf
                             </Typography>
                           </Box> */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box
-                              sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
-                            >
-                              <Icon icon='material-symbols:description-outline' width='1em' height='1em' />
-                            </Box>
-                            <Tooltip title={el?.notes}>
-                              <Typography
-                                variant='body2'
-                                sx={{
-                                  color: '#00000066',
-                                  minWidth: 30,
-                                  maxWidth: 80,
-                                  cursor: 'pointer',
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  WebkitLineClamp: 6,
-                                  whiteSpace: 'nowrap'
-                                }}
+                          {el?.notes ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box
+                                sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
                               >
-                                {el?.notes ? el?.notes : 'NA'}
-                              </Typography>
-                            </Tooltip>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box
-                              sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
-                            >
-                              <Icon icon='material-symbols:attachment' width='1em' height='1em' />
+                                <Icon icon='material-symbols:description-outline' width='1em' height='1em' />
+                              </Box>
+                              <Tooltip title={el?.notes}>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: '#00000066',
+                                    minWidth: 30,
+                                    maxWidth: 80,
+                                    cursor: 'pointer',
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    WebkitLineClamp: 6,
+                                    whiteSpace: 'nowrap',
+                                    fontStyle: 'italic',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  {el?.notes ? el?.notes : 'NA'}
+                                </Typography>
+                              </Tooltip>
                             </Box>
-                            <Typography variant='body2' sx={{ color: '#00000066' }}>
-                              Prescription.pdf
-                            </Typography>
-                          </Box>
+                          ) : null}
+                          {/* {el?.prescription_required_file ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box
+                                sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
+                              >
+                                <Icon icon='material-symbols:attachment' width='1em' height='1em' />
+                              </Box>
+                              <Typography variant='body2' sx={{ color: '#00000066' }}>
+                                {el.prescription_required_file.name}
+                              </Typography>
+                            </Box>
+                          ) : null} */}
+                          {el?.prescription_required_file ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }}>
+                                  <Icon icon='material-symbols:attachment' width='1em' height='1em' />
+                                </Box>
+                                <Typography
+                                  variant='body2'
+                                  sx={{ color: '#00000066', fontSize: '14px', fontWeight: 400 }}
+                                >
+                                  {el.prescription_required_file.name}
+                                </Typography>
+                              </Box>
+
+                              {/* Preview Section */}
+                              {/* {el.prescription_required_file.type.includes('image') ? (
+                                <Box
+                                  component='img'
+                                  src={URL.createObjectURL(el.prescription_required_file)}
+                                  alt='Image Preview'
+                                  sx={{ maxWidth: '200px', maxHeight: '200px', mt: 1, borderRadius: '4px' }}
+                                />
+                              ) : el.prescription_required_file.type === 'application/pdf' ? (
+                                <embed
+                                  src={URL.createObjectURL(el.prescription_required_file)}
+                                  type='application/pdf'
+                                  width='200px'
+                                  height='200px'
+                                  style={{ marginTop: '8px', borderRadius: '4px' }}
+                                />
+                              ) : null} */}
+                            </Box>
+                          ) : null}
                         </TableCell>
 
                         {/* <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
