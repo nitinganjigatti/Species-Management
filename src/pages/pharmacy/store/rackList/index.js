@@ -371,6 +371,7 @@ const ListOfRacks = () => {
                 <TextField
                   variant='outlined'
                   placeholder='Search...'
+                
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
                   sx={{

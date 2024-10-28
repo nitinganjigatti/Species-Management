@@ -692,6 +692,7 @@ const RequestList = () => {
                   <TextField
                     variant='outlined'
                     placeholder='Search...'
+                    value={searchValue}
                     onChange={e => handleSearch(e.target.value)}
                     fullWidth
                     sx={{
@@ -818,9 +819,9 @@ const RequestList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
-             sx={{ml:3}}
+              sx={{ ml: 3 }}
               value='pending'
-              label={<TabBadge  label='Pending ' totalCount={status === 'pending' ? total : null} />}
+              label={<TabBadge label='Pending ' totalCount={status === 'pending' ? total : null} />}
             />
             {/* <Tab
               value='completed'
