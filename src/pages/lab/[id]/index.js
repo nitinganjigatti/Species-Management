@@ -59,6 +59,7 @@ import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import AnimalCard from 'src/views/pages/lab/AnimalCard'
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -645,43 +646,43 @@ const RequestDetails = () => {
                         </span>
                       </Typography>
                     </Box>
-
                     <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                  </Box>
-                  <Box gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        bgcolor: '#EDEDFF',
-                        display: 'flex',
-                        width: 40,
-                        height: 40,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        borderRadius: '10px'
-                      }}
-                    >
-                      <Icon icon='ion:location-outline' fontSize={25} color={'#37BD69'} />
-                    </Box>
-                    <Typography variant='h6'>
-                      Site -{' '}
-                      <span style={{ color: '#37BD69', fontSize: '20px', fontWeight: 'bold' }}>{item?.site_name}</span>
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6, flexWrap: 'wrap' }}>
-                  <Stack direction='row' gap={3}>
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
                     </Typography>
-                    {/* <Typography>
-                      No. of Samples :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_sample}</span>
-                    </Typography> */}
-                  </Stack>
+                  </Box>
 
-                  <Typography>
-                    Requested By- <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
-                  </Typography>
+                  <AnimalCard animalDetails={item?.animal_details} />
+                  <Box gap={2} sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          bgcolor: '#EDEDFF',
+                          display: 'flex',
+                          width: 40,
+                          height: 40,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          borderRadius: '10px'
+                        }}
+                      >
+                        <Icon icon='ion:location-outline' fontSize={25} color={'#37BD69'} />
+                      </Box>
+                      <Typography variant='h6'>
+                        Site -{' '}
+                        <span style={{ color: '#37BD69', fontSize: '20px', fontWeight: 'bold' }}>
+                          {item?.site_name}
+                        </span>
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                      <Typography>
+                        Requested By-{' '}
+                        <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </>
             ))}
