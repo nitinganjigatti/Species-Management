@@ -1131,7 +1131,7 @@ const DietDetail = () => {
                                                   pl: 0,
                                                   pr: '36px',
                                                   background: '#fff',
-                                                  height: '100px',
+                                                  height: '185px',
                                                   //display: 'flex',
                                                   //flexDirection: 'column',
                                                   justifyContent: 'center',
@@ -1159,7 +1159,7 @@ const DietDetail = () => {
                                                       color: '#00AFD6',
                                                       fontWeight: 500,
                                                       fontSize: '14px',
-                                                      mt: 10,
+                                                      mt: '10px',
                                                       mb: 5
                                                     }}
                                                   >
