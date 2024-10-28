@@ -53,8 +53,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     Batch: [],
     'Security status': [],
     Condition: [],
-    Reason: []
+    Reason: [],
+    Site: []
   })
+
+  // console.log('selectedOptions :>> ', selectedOptions)
 
   const [applyFilters, setApplyFilters] = useState({
     Species: [],
@@ -62,8 +65,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     Batch: [],
     'Security status': [],
     Condition: [],
-    Reason: []
+    Reason: [],
+    Site: []
   })
+
+  // console.log('applyFilters :>> ', applyFilters)
 
   const [filterList, setFilterList] = useState([])
 
@@ -93,9 +99,17 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setDiscardList([])
     setListCount('0')
     setSelectedDropDown('all')
-    setApplyFilters({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+    setApplyFilters({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [], Site: [] })
 
-    setSelectedOptions({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+    setSelectedOptions({
+      Species: [],
+      Nursery: [],
+      Batch: [],
+      'Security status': [],
+      Condition: [],
+      Reason: [],
+      Site: []
+    })
     setFilterList([])
   }
 
@@ -130,6 +144,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     // Update the selected options state
     setSelectedOptions(newSelectedFilters)
     setApplyFilters(newSelectedFilters)
+    setDiscardList([])
 
     // fetchTableData();
   }
@@ -267,10 +282,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         key={index}
                         sx={{
                           display: 'flex',
-                          justifyContent: 'center',
+
+                          // justifyContent: 'center',
                           alignItems: 'center',
                           gap: '6px',
-                          p: '8px',
+                          px: '8px',
                           py: '12px',
                           bgcolor: '#dae7df',
                           borderRadius: '8px',
@@ -278,11 +294,15 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         }}
                       >
                         <Typography
-                          sx={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', textTransform: 'capitalize' }}
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: '#000000',
+                            textTransform: 'capitalize',
+                            whiteSpace: 'nowrap'
+                          }}
                         >
                           {item?.name}
-
-                          {/* asdfgh */}
                         </Typography>{' '}
                         <IconButton onClick={() => handleRemoveFilter(item)}>
                           <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
@@ -511,6 +531,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       // const conditionIds = applyFilters.Condition?.map(option => option.id)
       const SecurityIds = applyFilters['Security status']?.map(option => option.id)
       const reasonIds = applyFilters.Reason?.map(option => option.id)
+      const siteIds = applyFilters.Site?.map(option => option.id)
 
       const param = {
         ref_type: tabStatus,
@@ -525,8 +546,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
 
         // egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
-        egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : ''
+        egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : '',
+        site_id: siteIds.length > 0 ? JSON.stringify(siteIds) : ''
       }
+      console.log('param :>> ', param)
 
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
@@ -791,6 +814,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setFilterList={setFilterList}
           setApplyFilters={setApplyFilters}
           filterList={filterList}
+          setDiscardList={setDiscardList}
         />
       )}
     </>
