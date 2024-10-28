@@ -24,25 +24,28 @@ import MenuItem from '@mui/material/MenuItem'
 import Autocomplete from '@mui/material/Autocomplete'
 import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
-import FormControlLabel from '@mui/material/FormControlLabel'
+// import FormControlLabel from '@mui/material/FormControlLabel'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import Router from 'next/router'
+import { Checkbox, FormControlLabel } from '@mui/material'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
 import { Tooltip } from '@mui/material'
+import Image from 'next/image'
 // ** React Imports
-import { forwardRef, useState, useEffect, useCallback } from 'react'
+import { forwardRef, useState, useEffect, useCallback, useRef } from 'react'
 import CustomChip from 'src/@core/components/mui/chip'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import { debounce } from 'lodash'
-
+import InputAdornment from '@mui/material'
+import { Search } from '@mui/icons-material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getMedicineList, getGenericMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 
@@ -71,6 +74,7 @@ import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { borderRadius, color, padding } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -123,6 +127,7 @@ const AddRequestForm = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+  const [tabStatus, setTabStatus] = useState('By product')
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
@@ -688,249 +693,317 @@ const AddRequestForm = () => {
       }
     }
   }
+  // for handle file upload input filed
+  const fileInputRef = useRef(null)
+
+  const handleClick = () => {
+    fileInputRef.current.click()
+  }
 
   // data posting section
   const createForm = () => {
     return (
       // <CardContent>
-      <form style={{ width: '100%' }}>
-        <Grid container item spacing={5} xs={12}>
-          <Grid item xs={12} sm={11 / 2}>
-            <FormControl fullWidth>
-              <Autocomplete
-                // sx={{ zIndex: 1 }}
-                // forcePopupIcon={false}
-                // inputProps={{ tabIndex: '6' }}
-                // disablePortal
-                id='autocomplete-controlled'
-                options={optionsMedicineList}
-                renderOption={(props, option) => (
-                  <li
-                    {...props}
-                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                  >
-                    <Box>
-                      <Typography>{option.name}</Typography>
-                      <Typography variant='body2'>{option.package}</Typography>
-                      <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
-                        <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}{' '}
-                      {option.prescription_required === true && (
-                        <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
-                    </Box>
-                  </li>
-                )}
-                value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
-                onChange={(event, newValue) => {
-                  setNestedRowMedicine({
-                    ...nestedRowMedicine,
-                    medicine_name: newValue?.name,
-                    request_item_medicine_id: newValue?.value,
-                    control_substance: newValue?.control_substance,
-                    prescription_required: newValue?.prescription_required,
-                    package: newValue?.package,
-                    manufacture: newValue?.manufacture,
-                    genericName: newValue?.genericName,
-                    unit_price: newValue?.unit_price
-                  })
-                  setDuplicateMedError('')
-                  setItemErrors({})
-                }}
-                onKeyUp={e => {
-                  searchMedicineData(e.target.value)
-                  setItemErrors({})
-                }}
-                onBlur={() => {
-                  fetchMedicineData('')
-                }}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    placeholder='Search by product name'
-                    label='Search by Product Name*'
-                    error={Boolean(itemErrors.medicine_name)}
-                  />
-                )}
-                // isOptionEqualToValue={(option, value) => {
-                //   console.log('option', option)
-                //   console.log('value', value)
 
-                //   return option?.name === value
-                // }}
-                // getOptionLabel={option => {
-                //   return option?.medicine_name || nestedRowMedicine?.medicine_name || ''
-                // }}
-                // getOptionLabel={option => option?.label}
-                // renderOption={option => (
-                //   <Box sx={{ my: 3, mx: 2 }}>
-                //     <div>{option.key.split('Manufacturer')[0]}</div>
-                //     <div>{option.key.split('Manufacturer')[1]}</div>
-                //   </Box>
-                // )}
-              />
-              {nestedRowMedicine.medicine_name && (
-                <Grid container item sx={{ my: 2 }}>
-                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
-                    <Tooltip title={nestedRowMedicine.package}>
-                      <Chip
-                        label={nestedRowMedicine.package}
-                        color='primary'
-                        variant='outlined'
-                        size='sm'
-                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
-                      />
-                    </Tooltip>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Tooltip title={nestedRowMedicine.manufacture}>
-                      <Chip
-                        label={nestedRowMedicine.manufacture}
-                        color='primary'
-                        variant='outlined'
-                        size='sm'
-                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
-                      />
-                    </Tooltip>
-                  </Grid>
-                  {nestedRowMedicine.control_substance === true && (
-                    <CustomChip sx={{ mt: 1, mx: 1 }} label='CS' skin='light' color='success' size='small' />
-                  )}
-                  {nestedRowMedicine.prescription_required === true && (
-                    <CustomChip sx={{ mt: 1 }} label='PR' skin='light' color='success' size='small' />
-                  )}
-                </Grid>
-              )}
-              {itemErrors.medicine_name && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  This field is required
-                </FormHelperText>
-              )}
-              {duplicateMedError && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {duplicateMedError}
-                </FormHelperText>
-              )}
-            </FormControl>
+      <form style={{ width: '650px' }}>
+        <Divider sx={{ mt: -6 }} />
+        <Grid sx={{ my: 6 }} xs={12}>
+          <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
+            <Typography
+              variant='button'
+              onClick={() => setTabStatus('By product')}
+              sx={{
+                cursor: 'pointer',
+                borderBottom: tabStatus === 'By product' ? '5px solid' : '',
+                color: 'primary.main',
+                padding: '8px 16px'
+              }}
+            >
+              By Product Name
+            </Typography>
+            <Typography
+              variant='button'
+              onClick={() => setTabStatus('By generic')}
+              sx={{
+                cursor: 'pointer',
+                borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
+                color: 'primary.main',
+                padding: '8px 16px'
+              }}
+            >
+              By Generic Name
+            </Typography>
           </Grid>
-          {console.log('optionsMedicineList', optionsMedicineList)}
-          <Grid item xs={12} sm={1}>
-            <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
-          </Grid>
-          <Grid item xs={12} sm={11 / 2}>
-            <FormControl fullWidth>
-              <Autocomplete
-                // sx={{ zIndex: 1 }}
-                // forcePopupIcon={true}
-                // inputProps={{ tabIndex: '6' }}
-                // disablePortal
-                id='autocomplete-controlled'
-                options={optionsMedicineList}
-                renderOption={(props, option) => (
-                  <li
-                    {...props}
-                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                  >
-                    <Box>
-                      <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
-                      <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-
-                      <Typography variant='body2'>{option.package}</Typography>
-                      <Typography variant='body2'>{option.manufacture}</Typography>
-                    </Box>
-                  </li>
-                )}
-                value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
-                onChange={(event, newValue) => {
-                  setNestedRowMedicine({
-                    ...nestedRowMedicine,
-                    medicine_name: newValue?.name,
-                    request_item_medicine_id: newValue?.value,
-                    control_substance: newValue?.control_substance,
-                    prescription_required: newValue?.prescription_required,
-                    package: newValue?.package,
-                    manufacture: newValue?.manufacture,
-                    unit_price: newValue?.unit_price,
-                    genericName: newValue?.genericName
-                  })
-                  setDuplicateMedError('')
-                  setItemErrors({})
-                }}
-                onKeyUp={e => {
-                  searchGenericMedicineData(e.target.value)
-
-                  setItemErrors({})
-                }}
-                onBlur={() => {}}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    placeholder='Search by Generic name'
-                    label='Search by Generic Name*'
-                    error={Boolean(itemErrors.medicine_name)}
-                  />
-                )}
-                isOptionEqualToValue={(option, value) => {
-                  return option?.genericName === value
-                }}
-                getOptionLabel={option => {
-                  return option?.genericName || nestedRowMedicine?.genericName || ''
-                }}
-                // getOptionLabel={option => option?.label}
-                // renderOption={option => (
-                //   <Box sx={{ my: 3, mx: 2 }}>
-                //     <div>{option.key.split('Manufacturer')[0]}</div>
-                //     <div>{option.key.split('Manufacturer')[1]}</div>
-                //   </Box>
-                // )}
-              />
-              {nestedRowMedicine.medicine_name && (
-                <Grid container item sx={{ my: 2 }}>
-                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
-                    <Tooltip title={nestedRowMedicine.package}>
-                      <Chip
-                        label={nestedRowMedicine.package}
-                        color='primary'
-                        variant='outlined'
-                        size='sm'
-                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
-                      />
-                    </Tooltip>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Tooltip title={nestedRowMedicine.manufacture}>
-                      <Chip
-                        label={nestedRowMedicine.manufacture}
-                        color='primary'
-                        variant='outlined'
-                        size='sm'
-                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
-                      />
-                    </Tooltip>
-                  </Grid>
-                  {nestedRowMedicine.control_substance === true && (
-                    <CustomChip sx={{ mt: 1, mx: 1 }} label='CS' skin='light' color='success' size='small' />
+        </Grid>
+        <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }} item xs={12}>
+          {tabStatus === 'By product' ? (
+            <Grid item xs={12} sm={12}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  // sx={{ zIndex: 1 }}
+                  // forcePopupIcon={false}
+                  // inputProps={{ tabIndex: '6' }}
+                  // disablePortal
+                  id='autocomplete-controlled'
+                  options={optionsMedicineList}
+                  renderOption={(props, option) => (
+                    <li
+                      {...props}
+                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    >
+                      <Box>
+                        {/* <Typography>{option.name}</Typography>
+                        <Typography variant='body2'>{option.package}</Typography>
+                        <Typography variant='body2'>{option.manufacture}</Typography>
+                        {option.control_substance === true && (
+                          <CustomChip label='CS' skin='light' color='success' size='small' />
+                        )}{' '}
+                        {option.prescription_required === true && (
+                          <CustomChip label='PR' skin='light' color='success' size='small' />
+                        )} */}
+                        <Typography
+                          sx={{
+                            color: 'customColors.OnSecondaryContainer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '16px',
+                            fontWeight: 400
+                          }}
+                        >
+                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                          {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
+                          {option.name}({option.package})
+                        </Typography>
+                      </Box>
+                    </li>
                   )}
-                  {nestedRowMedicine.prescription_required === true && (
-                    <CustomChip sx={{ mt: 1 }} label='PR' skin='light' color='success' size='small' />
+                  value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
+                  onChange={(event, newValue) => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      medicine_name: newValue?.name,
+                      request_item_medicine_id: newValue?.value,
+                      control_substance: newValue?.control_substance,
+                      prescription_required: newValue?.prescription_required,
+                      package: newValue?.package,
+                      manufacture: newValue?.manufacture,
+                      genericName: newValue?.genericName,
+                      unit_price: newValue?.unit_price
+                    })
+                    setDuplicateMedError('')
+                    setItemErrors({})
+                  }}
+                  onKeyUp={e => {
+                    searchMedicineData(e.target.value)
+                    setItemErrors({})
+                  }}
+                  onBlur={() => {
+                    fetchMedicineData('')
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      placeholder='Search by product name'
+                      label='Search by Product Name*'
+                      error={Boolean(itemErrors.medicine_name)}
+                    />
                   )}
-                </Grid>
-              )}
-              {itemErrors.medicine_name && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  This field is required
-                </FormHelperText>
-              )}
-              {duplicateMedError && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {duplicateMedError}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
+                  // isOptionEqualToValue={(option, value) => {
+                  //   console.log('option', option)
+                  //   console.log('value', value)
 
-          <Grid item xs={12} sm={11 / 2}>
+                  //   return option?.name === value
+                  // }}
+                  // getOptionLabel={option => {
+                  //   return option?.medicine_name || nestedRowMedicine?.medicine_name || ''
+                  // }}
+                  // getOptionLabel={option => option?.label}
+                  // renderOption={option => (
+                  //   <Box sx={{ my: 3, mx: 2 }}>
+                  //     <div>{option.key.split('Manufacturer')[0]}</div>
+                  //     <div>{option.key.split('Manufacturer')[1]}</div>
+                  //   </Box>
+                  // )}
+                />
+                {/* {nestedRowMedicine.medicine_name && (
+                  <Grid container item sx={{ my: 2 }}>
+                    <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+                      <Tooltip title={nestedRowMedicine.package}>
+                        <Chip
+                          label={nestedRowMedicine.package}
+                          color='primary'
+                          variant='outlined'
+                          size='sm'
+                          sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Tooltip title={nestedRowMedicine.manufacture}>
+                        <Chip
+                          label={nestedRowMedicine.manufacture}
+                          color='primary'
+                          variant='outlined'
+                          size='sm'
+                          sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                        />
+                      </Tooltip>
+                    </Grid>
+                    {nestedRowMedicine.control_substance === true && (
+                      <CustomChip sx={{ mt: 1, mx: 1 }} label='CS' skin='light' color='success' size='small' />
+                    )}
+                    {nestedRowMedicine.prescription_required === true && (
+                      <CustomChip sx={{ mt: 1 }} label='PR' skin='light' color='success' size='small' />
+                    )}
+                  </Grid>
+                )} */}
+                {itemErrors.medicine_name && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+                {duplicateMedError && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {duplicateMedError}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+          ) : (
+            <Grid item xs={12} sm={12}>
+              <FormControl fullWidth>
+                <Autocomplete
+                  // sx={{ zIndex: 1 }}
+                  // forcePopupIcon={true}
+                  // inputProps={{ tabIndex: '6' }}
+                  // disablePortal
+                  id='autocomplete-controlled'
+                  options={optionsMedicineList}
+                  renderOption={(props, option) => (
+                    <li
+                      {...props}
+                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                    >
+                      <Box>
+                        {/* <Typography>
+                          {option.genericName ? option.genericName : 'Generic name not available'}
+                        </Typography>
+                        <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+
+                        <Typography variant='body2'>{option.package}</Typography>
+                        <Typography variant='body2'>{option.manufacture}</Typography> */}
+                        <Typography
+                          sx={{
+                            color: 'customColors.OnSecondaryContainer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '16px',
+                            fontWeight: 400
+                          }}
+                        >
+                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                          {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
+                          {option.name}({option.package})
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                  value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
+                  onChange={(event, newValue) => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      medicine_name: newValue?.name,
+                      request_item_medicine_id: newValue?.value,
+                      control_substance: newValue?.control_substance,
+                      prescription_required: newValue?.prescription_required,
+                      package: newValue?.package,
+                      manufacture: newValue?.manufacture,
+                      unit_price: newValue?.unit_price,
+                      genericName: newValue?.genericName
+                    })
+                    setDuplicateMedError('')
+                    setItemErrors({})
+                  }}
+                  onKeyUp={e => {
+                    searchGenericMedicineData(e.target.value)
+
+                    setItemErrors({})
+                  }}
+                  onBlur={() => {}}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      placeholder='Search by Generic name'
+                      label='Search by Generic Name*'
+                      error={Boolean(itemErrors.medicine_name)}
+                    />
+                  )}
+                  isOptionEqualToValue={(option, value) => {
+                    return option?.genericName === value
+                  }}
+                  getOptionLabel={option => {
+                    return option?.genericName || nestedRowMedicine?.genericName || ''
+                  }}
+                  // getOptionLabel={option => option?.label}
+                  // renderOption={option => (
+                  //   <Box sx={{ my: 3, mx: 2 }}>
+                  //     <div>{option.key.split('Manufacturer')[0]}</div>
+                  //     <div>{option.key.split('Manufacturer')[1]}</div>
+                  //   </Box>
+                  // )}
+                />
+
+                {itemErrors.medicine_name && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    This field is required
+                  </FormHelperText>
+                )}
+                {duplicateMedError && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {duplicateMedError}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+          )}
+          {nestedRowMedicine?.medicine_name && (
+            <Box
+              sx={{
+                backgroundColor: '#F2FFF8', // Light green background
+                padding: '16px',
+                borderRadius: '8px',
+                marginTop: '5px',
+                border: '0.5px solid #37BD69',
+                borderRadius: '8px'
+              }}
+            >
+              <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+                Available Packing:{' '}
+                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                  {nestedRowMedicine?.package}
+                </span>
+              </Typography>
+              <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
+                Manufactured by:{' '}
+                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                  {nestedRowMedicine?.manufacture}
+                </span>
+              </Typography>
+              {nestedRowMedicine?.availAbleQty && (
+                <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
+                  Availability:{' '}
+                  <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                    {nestedRowMedicine?.availAbleQty}
+                  </span>
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          <Grid item xs={12} sm={12}>
+            <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
+              Quantity *
+            </Typography>
             <FormControl fullWidth>
               <TextField
                 type='number'
@@ -953,45 +1026,39 @@ const AddRequestForm = () => {
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
                     label={`Unit Price - ${nestedRowMedicine.unit_price}`}
-                    color='primary'
                     variant='outlined'
                     size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                    sx={{
+                      mr: 2,
+                      fontSize: '13px',
+                      height: '32px',
+                      fontWeight: 400,
+                      verticalAlign: 'middle',
+                      backgroundColor: 'customColors.OutlineVariant',
+                      color: 'customColors.OnSurfaceVariant',
+                      border: '0.5px solid #37BD69 !important'
+                    }}
                   />
                   <Chip
                     label={`Total QTY Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
-                    color='primary'
                     variant='outlined'
                     size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                    sx={{
+                      fontSize: '13px',
+                      height: '32px',
+                      fontWeight: 400,
+                      verticalAlign: 'middle',
+                      backgroundColor: 'customColors.OutlineVariant',
+                      color: 'customColors.OnSurfaceVariant',
+                      border: '0.5px solid #37BD69 !important'
+                    }}
                   />
                 </Box>
               ) : null}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={1}></Grid>
-          <Grid item xs={12} sm={11 / 2}>
-            <FormControl fullWidth>
-              <TextField
-                type='text'
-                value={nestedRowMedicine.notes}
-                error={Boolean(itemErrors.notes)}
-                label='Notes'
-                onChange={event => {
-                  setNestedRowMedicine({ ...nestedRowMedicine, notes: event.target.value })
-                  setItemErrors({})
-                }}
-              />
-              {itemErrors?.notes && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                  {/* This field is required */}
-                  {itemErrors?.notes}
-                </FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
 
-          <Grid item xs={12} sm={11 / 2}>
+          {/* <Grid item xs={12} sm={12}>
             <Typography>Priority</Typography>
             <RadioGroup
               row
@@ -1002,13 +1069,58 @@ const AddRequestForm = () => {
                 setNestedRowMedicine({ ...nestedRowMedicine, priority_item: event.target.value })
               }}
             >
-              <FormControlLabel value='high' control={<Radio />} label='High' />
-              <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
+              <FormControlLabel value='high' control={<Checkbox />} label='High' />
+              <FormControlLabel value='Normal' control={<Checkbox />} label='Normal' />
             </RadioGroup>
+          </Grid> */}
+          <Grid
+            item
+            xs={12}
+            sm={12}
+            sx={{
+              // border: '0.5px solid',
+              borderRadius: '8px !important',
+              backgroundColor: '#FFBDA84D',
+              display: 'flex'
+              // gap: '24px'
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  sx={{
+                    // color: 'error.main',
+                    ml: '8px',
+                    padding: '12px',
+                    '&.Mui-checked': {
+                      color: 'error.main'
+                    }
+                  }}
+                  checked={nestedRowMedicine.priority_item === 'high'}
+                  onChange={event => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+                      priority_item: event.target.checked ? 'high' : ''
+                    })
+                  }}
+                />
+              }
+              label={
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    color: 'customColors.OnSurfaceVariant'
+                  }}
+                >
+                  Mark this as a high priority item
+                </Typography>
+              }
+              // label='Mark this as a high priority item'
+            />
           </Grid>
 
           {/* // file uploader */}
-          <Grid item xs={12} sm={1}></Grid>
           {/* {nestedRowMedicine.control_substance === true && nestedRowMedicine.prescription_required == false && (
             <Grid item xs={12} sm={11 / 2}>
               <CustomChip label='CS' skin='light' color='success' size='small' />
@@ -1110,10 +1222,39 @@ const AddRequestForm = () => {
           ) : null} */}
           {nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
-              <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
+              <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
+                <Typography
+                  sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
+                >
+                  Add prescription*
+                </Typography>
+
                 {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
                   <Chip
-                    label={nestedRowMedicine.prescription_required_file?.name}
+                    sx={{
+                      backgroundColor: 'customColors.lightBg',
+                      height: '56px',
+                      color: 'customColors.neutralSecondary',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      position: 'relative'
+                    }}
+                    label={
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          color: 'customColors.neutralSecondary',
+                          fontWeight: '400',
+                          padding: '5px',
+                          display: 'flex',
+                          gap: '6px'
+                        }}
+                      >
+                        <Icon icon='material-symbols:description-outline' width='16' color='#7A8684' height='20' />
+                        {nestedRowMedicine.prescription_required_file?.name}
+                      </Typography>
+                    }
                     color='secondary'
                     onDelete={() => {
                       setNestedRowMedicine({
@@ -1122,22 +1263,58 @@ const AddRequestForm = () => {
                         prescription_required_file: ''
                       })
                     }}
-                    deleteIcon={<Icon icon='mdi:delete-outline' />}
+                    deleteIcon={
+                      <Icon
+                        icon='mdi:close-box'
+                        width='24'
+                        color='#7A8684'
+                        height='24'
+                        style={{
+                          position: 'absolute',
+                          top: '-6px',
+                          right: '-9px'
+                        }}
+                      />
+                    }
                   />
                 ) : nestedRowMedicine.prescription_required_file?.type === 'image/png' ||
                   nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
                   <>
                     <Chip
-                      label={nestedRowMedicine.prescription_required_file?.name}
-                      avatar={
-                        <Avatar
-                          alt={nestedRowMedicine.prescription_required_file?.name}
-                          src={
-                            nestedRowMedicine.prescription_required_file
-                              ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
-                              : ''
-                          }
-                        />
+                      sx={{
+                        backgroundColor: 'customColors.lightBg',
+                        height: '56px',
+                        color: 'customColors.neutralSecondary',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '400',
+                        position: 'relative'
+                      }}
+                      label={
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            color: 'customColors.neutralSecondary',
+                            fontWeight: '400',
+                            padding: '5px',
+                            display: 'flex',
+                            gap: '6px'
+                          }}
+                        >
+                          <Image
+                            width={16}
+                            color='#7A8684'
+                            height={20}
+                            alt={nestedRowMedicine.prescription_required_file?.name}
+                            src={
+                              nestedRowMedicine.prescription_required_file
+                                ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                                : ''
+                            }
+                          />
+
+                          {nestedRowMedicine.prescription_required_file?.name}
+                        </Typography>
                       }
                       onDelete={() => {
                         setNestedRowMedicine({
@@ -1146,12 +1323,66 @@ const AddRequestForm = () => {
                           prescription_required_file: ''
                         })
                       }}
+                      deleteIcon={
+                        <Icon
+                          icon='mdi:close-box'
+                          width='24'
+                          color='#7A8684'
+                          height='24'
+                          style={{
+                            position: 'absolute',
+                            top: '-6px',
+                            right: '-9px'
+                          }}
+                        />
+                      }
                     />
                   </>
                 ) : (
+                  // <Chip
+                  //   label={nestedRowMedicine.prescription_required_file}
+                  //   avatar={<Avatar alt='image' src={nestedRowMedicine.prescription_required_file} />}
+                  //   onDelete={() => {
+                  //     setNestedRowMedicine({
+                  //       ...nestedRowMedicine,
+                  //       // control_substance: false,
+                  //       prescription_required_file: ''
+                  //     })
+                  //   }}
+                  // />
                   <Chip
-                    label={nestedRowMedicine.prescription_required_file}
-                    avatar={<Avatar alt='image' src={nestedRowMedicine.prescription_required_file} />}
+                    sx={{
+                      backgroundColor: 'customColors.lightBg',
+                      height: '56px',
+                      color: 'customColors.neutralSecondary',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      position: 'relative'
+                    }}
+                    label={
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          color: 'customColors.neutralSecondary',
+                          fontWeight: '400',
+                          padding: '5px',
+                          display: 'flex',
+                          gap: '6px',
+                          maxWidth: '200px'
+                        }}
+                      >
+                        <img
+                          width={16}
+                          color='#7A8684'
+                          height={20}
+                          alt={nestedRowMedicine.prescription_required_file?.name}
+                          src={nestedRowMedicine.prescription_required_file}
+                        />
+
+                        {nestedRowMedicine.prescription_required_file}
+                      </Typography>
+                    }
                     onDelete={() => {
                       setNestedRowMedicine({
                         ...nestedRowMedicine,
@@ -1159,27 +1390,74 @@ const AddRequestForm = () => {
                         prescription_required_file: ''
                       })
                     }}
+                    deleteIcon={
+                      <Icon
+                        icon='mdi:close-box'
+                        width='24'
+                        color='#7A8684'
+                        height='24'
+                        style={{
+                          position: 'absolute',
+                          top: '-6px',
+                          right: '-9px'
+                        }}
+                      />
+                    }
                   />
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
-                <Typography sx={{ mb: 2 }}>
-                  Attach prescription details (Mandatory){' '}
-                  {nestedRowMedicine.control_substance === true && (
-                    <CustomChip label='CS' skin='light' color='success' size='small' />
-                  )}{' '}
-                </Typography>
-                <FormControl fullWidth>
+              <Grid item xs={12} sm={12}>
+                <Typography sx={{ mb: 2 }}>Add prescription*</Typography>
+                {/* <FormControl fullWidth>
                   <TextField
                     type='file'
+                    aria-hidden
                     accept='.pdf, .jpeg, .jpg, .png'
                     error={Boolean(itemErrors.prescription_required_file)}
-                    // label='Attach prescription'
                     onChange={e => {
-                      // const file = e.target.files[0]
-                      // setNestedRowMedicine({ ...nestedRowMedicine, prescription_required_file: file })
-                      // setItemErrors({})
+                      const file = e.target.files[0]
+                      if (!file) return
+                      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                      if (allowedTypes.includes(file.type)) {
+                        setNestedRowMedicine(prevState => ({
+                          ...prevState,
+                          prescription_required_file: file
+                        }))
+                        setItemErrors({})
+                      } else {
+                        setItemErrors({
+                          prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                        })
+                        e.target.value = ''
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <IconButton component='label' htmlFor='file-upload'>
+                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                        </IconButton>
+                      )
+                    }}
+                  />
+
+                  {itemErrors?.prescription_required_file && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      {itemErrors?.prescription_required_file}
+                    </FormHelperText>
+                  )}
+                </FormControl> */}
+                <FormControl fullWidth>
+                  <input
+                    type='file'
+                    // aria-hidden
+                    // id='file-upload'
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    accept='.pdf, .jpeg, .jpg, .png'
+                    // onClick={handleClick}
+                    error={Boolean(itemErrors.prescription_required_file)}
+                    onChange={e => {
                       const file = e.target.files[0]
                       if (!file) return
                       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
@@ -1197,6 +1475,25 @@ const AddRequestForm = () => {
                       }
                     }}
                   />
+
+                  <TextField
+                    // htmlFor='file-upload'
+                    // id='file-upload'
+                    onClick={handleClick}
+                    placeholder='Add Prescription *'
+                    InputProps={{
+                      readOnly: true,
+
+                      startAdornment: (
+                        <IconButton component='label' htmlFor='file-upload'>
+                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                        </IconButton>
+                      )
+                    }}
+                    error={Boolean(itemErrors.prescription_required_file)}
+                    readOnly
+                  />
+
                   {itemErrors?.prescription_required_file && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                       {itemErrors?.prescription_required_file}
@@ -1206,10 +1503,29 @@ const AddRequestForm = () => {
               </Grid>
             )
           ) : null}
-
-          {/* // file uploader */}
-
-          {/* <Grid item xs={12}> */}
+          <Grid item xs={12} sm={12}>
+            <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
+              Add Notes
+            </Typography>
+            <FormControl fullWidth>
+              <TextField
+                type='text'
+                value={nestedRowMedicine.notes}
+                error={Boolean(itemErrors.notes)}
+                label='Notes'
+                onChange={event => {
+                  setNestedRowMedicine({ ...nestedRowMedicine, notes: event.target.value })
+                  setItemErrors({})
+                }}
+              />
+              {itemErrors?.notes && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {/* This field is required */}
+                  {itemErrors?.notes}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
           <Grid item xs={12}>
             <Box sx={{ float: 'right' }}>
               {medicineItemId ? (
@@ -1217,29 +1533,36 @@ const AddRequestForm = () => {
                   <Button
                     sx={{ mr: 2 }}
                     onClick={() => {
+                      closeDialog()
+                    }}
+                    size='large'
+                    variant='outlined'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
                       updateFormItems()
-                      // closeDialog()
-                      // submitItems()
                     }}
                     size='large'
                     variant='contained'
                   >
                     update
                   </Button>
-                  {/* <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
-                    >
-                      Done
-                    </Button> */}
                 </>
               ) : (
                 <>
                   <Button
                     sx={{ mr: 2 }}
+                    onClick={() => {
+                      closeDialog()
+                    }}
+                    size='large'
+                    variant='outlined'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
                     onClick={() => {
                       // updateFormItems()
                       submitItems()
@@ -1249,15 +1572,6 @@ const AddRequestForm = () => {
                   >
                     Add
                   </Button>
-                  {/* <Button
-                      onClick={() => {
-                        closeDialog()
-                      }}
-                      size='large'
-                      variant='outlined'
-                    >
-                      Done
-                    </Button> */}
                 </>
               )}
             </Box>
@@ -1304,6 +1618,7 @@ const AddRequestForm = () => {
             formComponent={createForm()}
             close={closeDialog}
             show={showDialog}
+            noWidth={true}
           />
         </Grid>
       </CardContent>

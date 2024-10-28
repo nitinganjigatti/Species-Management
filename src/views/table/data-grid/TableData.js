@@ -1,8 +1,19 @@
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 
-const TableData = ({ onRowClick, indexedRows ,total, columns, paginationModel, handleSortModel, setPaginationModel, loading,searchValue}) => {
+const TableData = ({
+  onRowClick,
+  indexedRows,
+  total,
+  columns,
+  paginationModel,
+  handleSortModel,
+  setPaginationModel,
+  loading,
+  searchValue
+}) => {
   const theme = useTheme()
+
   return (
     <DataGrid
       sx={{
@@ -25,6 +36,7 @@ const TableData = ({ onRowClick, indexedRows ,total, columns, paginationModel, h
           margin: '2px',
           borderLeft: '1px solid #0000000D',
           borderRight: '1px solid #0000000D',
+
           // borderBottom: '1px solid #0000000D',
           borderRadius: '8px', // Ensure the right border extends to last row
           // Apply margin to the main container
@@ -71,4 +83,5 @@ const TableData = ({ onRowClick, indexedRows ,total, columns, paginationModel, h
     />
   )
 }
+
 export default TableData

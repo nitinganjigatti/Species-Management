@@ -1232,32 +1232,27 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const handlePrint = () => {
     // Clone the print content and store references
-    const contentToKeep = document.body.cloneNode(true)
-    const printContents = printRef.current.innerHTML
-
-    // Setup restore function before printing
-    const restoreContent = () => {
-      window.location.reload()
-      // Remove print handlers
-      window.onafterprint = null
-      window.onbeforeprint = null
-
-      // Restore all content and handlers
-      document.body.innerHTML = contentToKeep.innerHTML
-
-      // Re-attach event listeners if needed
-      const printButton = document.querySelector('#Button') // Add an id to your button
-      if (printButton) {
-        printButton.addEventListener('click', handlePrint)
-      }
-    }
-
-    // Setup print handler
-    window.onafterprint = restoreContent
-
-    // Execute print
-    document.body.innerHTML = printContents
-    window.print()
+    // const contentToKeep = document.body.cloneNode(true)
+    // const printContents = printRef.current.innerHTML
+    // // Setup restore function before printing
+    // const restoreContent = () => {
+    //   window.location.reload()
+    //   // Remove print handlers
+    //   window.onafterprint = null
+    //   window.onbeforeprint = null
+    //   // Restore all content and handlers
+    //   document.body.innerHTML = contentToKeep.innerHTML
+    //   // Re-attach event listeners if needed
+    //   const printButton = document.querySelector('#Button') // Add an id to your button
+    //   if (printButton) {
+    //     printButton.addEventListener('click', handlePrint)
+    //   }
+    // }
+    // // Setup print handler
+    // window.onafterprint = restoreContent
+    // // Execute print
+    // document.body.innerHTML = printContents
+    // window.print()
   }
 
   return (
