@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import TableWithFilter from '../../../../../components/TableWithFilter'
@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, CardHeader, TextField } from '@mui/material'
 import Router from 'next/router'
 import { AddButton } from 'src/components/Buttons'
 import Error404 from 'src/pages/404'
@@ -21,18 +21,31 @@ import Error404 from 'src/pages/404'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import TableData from 'src/views/table/data-grid/TableData'
+import { useTheme } from '@emotion/react'
 
 const Supplier = () => {
+  const theme = useTheme()
   const [supplierList, setSupplierList] = useState([])
   const [loader, setLoader] = useState(false)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchText, setSearchText] = useState('')
 
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
-  const getSupplierList = async () => {
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const getSupplierList = useCallback(async () => {
     try {
       setLoader(true)
-      const response = await getSuppliers()
+      const params = {
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+      const response = await getSuppliers({ params: params })
 
       console.log('response', response)
 
@@ -42,12 +55,13 @@ const Supplier = () => {
           })
         : []
 
+      // setSupplierList(listWithId)
       setSupplierList(listWithId)
       setLoader(false)
     } catch (error) {
       setLoader(false)
     }
-  }
+  }, [paginationModel])
 
   const handleEdit = id => {
     Router.push({
@@ -58,7 +72,7 @@ const Supplier = () => {
 
   useEffect(() => {
     getSupplierList()
-  }, [])
+  }, [paginationModel])
 
   const columns = [
     {
@@ -161,8 +175,13 @@ const Supplier = () => {
 
   const title = (
     <>
-    {supplierList.length > 0 ?  <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier List</Typography>: <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier list is empty add supplier'</Typography>}
-     
+      {supplierList.length > 0 ? (
+        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier List</Typography>
+      ) : (
+        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+          Supplier list is empty add supplier'
+        </Typography>
+      )}
     </>
   )
 
@@ -173,21 +192,82 @@ const Supplier = () => {
           {loader ? (
             <FallbackSpinner />
           ) : (
-            <TableWithFilter
-              TableTitle={title}
-              headerActions={
-                <div>
-                  <AddButtonContained
-                    title='Add Supplier'
-                    action={() => {
-                      Router.push('/pharmacy/masters/supplier/add-supplier')
+            <Card>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '16px' // Add padding if needed for spacing
+                }}
+              >
+                <CardHeader title={title} sx={{ padding: 0 }} /> {/* Remove padding from CardHeader if needed */}
+                <AddButtonContained
+                  title='Add Supplier'
+                  action={() => {
+                    Router.push('/pharmacy/masters/supplier/add-supplier')
+                  }}
+                />
+              </Box>
+
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    value={searchText}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
                     }}
                   />
-                </div>
-              }
-              columns={columns}
-              rows={supplierList}
-            />
+                </Box>
+              </Grid>
+
+              <Grid sx={{ mx: 4 }}>
+                <TableData
+                  columns={columns}
+                  indexedRows={supplierList}
+                  paginationModel={paginationModel}
+                  setPaginationModel={setPaginationModel}
+                />
+              </Grid>
+            </Card>
+
+            // <TableWithFilter
+            //   TableTitle={title}
+            //   headerActions={
+            //     <div>
+            //       <AddButtonContained
+            //         title='Add Supplier'
+            //         action={() => {
+            //           Router.push('/pharmacy/masters/supplier/add-supplier')
+            //         }}
+            //       />
+            //     </div>
+            //   }
+            //   columns={columns}
+            //   rows={supplierList}
+            // />
           )}
         </>
       ) : (

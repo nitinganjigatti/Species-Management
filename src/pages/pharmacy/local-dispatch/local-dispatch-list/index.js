@@ -582,6 +582,7 @@ const DirectDispatchList = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
+                      value={searchValue}
                       fullWidth
                       onChange={e => handleSearch(e.target.value)}
                       sx={{

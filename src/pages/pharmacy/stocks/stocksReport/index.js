@@ -1152,6 +1152,7 @@ const ListOfStocks = () => {
                         <TextField
                           variant='outlined'
                           placeholder='Search...'
+                          value={searchValue}
                           onChange={e => handleSearch(e.target.value, stockId, stockType)}
                           fullWidth
                           sx={{

@@ -378,6 +378,7 @@ const ListOfStockAdjusted = () => {
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
                 <TextField
                   variant='outlined'
+                  value={searchValue}
                   placeholder='Search...'
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth

@@ -602,6 +602,7 @@ const ReturnRequestList = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
+                      value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
                       sx={{

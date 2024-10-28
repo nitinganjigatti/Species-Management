@@ -39,7 +39,7 @@ function Dispense() {
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no + "."}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -235,6 +235,7 @@ function Dispense() {
                     <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
                     <TextField
                       variant='outlined'
+                      value={searchValue}
                       placeholder='Search...'
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
