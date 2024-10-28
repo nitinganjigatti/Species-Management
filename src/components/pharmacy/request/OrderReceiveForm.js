@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { forwardRef, useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect, useRef } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import {
@@ -52,9 +52,160 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
 import { CheckBox } from '@mui/icons-material'
+import Link from 'next/link'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
+})
+
+const DisputeItemDetails = React.forwardRef((props, ref) => {
+  const { disputeItemDetails, orderData, selectedPharmacy, checked, handleChange, setDisputeItemDetails, columns } =
+    props
+
+  return (
+    <div ref={ref}>
+      {disputeItemDetails?.item_details?.length > 0 ? (
+        <Grid container xs={12} sx={{ mx: 'auto' }}>
+          <Grid item xs={12}>
+            <Grid container xs={12} sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}>
+              {orderData?.from_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}> Shipped From:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.shipment_id ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Shipping id:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.shipment_id}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.from_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>From Store: </p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.shipment_date ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Shipped Date:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>
+                    {Utility.formatDisplayDate(orderData.shipment_date)}
+                  </h4>
+                </Grid>
+              ) : null}
+              {orderData?.vehicle_no ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Vehicle Number:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.vehicle_no}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.to_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>To Store: </p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
+                </Grid>
+              ) : null}
+
+              {orderData?.person_shipping ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Driver Name:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
+                </Grid>
+              ) : null}
+              {orderData?.person_shipping ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>Mobile No:</p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.phone_number}</h4>
+                </Grid>
+              ) : null}
+            </Grid>
+
+            {disputeItemDetails?.item_details?.length > 0 ? (
+              <>
+                <Box
+                  sx={{
+                    mt: theme => `${theme.spacing(5)} !important`,
+                    mb: theme => `${theme.spacing(3)} !important`,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
+                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                    <>
+                      {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                        <FormGroup row>
+                          <FormControlLabel
+                            label='Mark all as Received'
+                            control={
+                              <Checkbox
+                                checked={checked}
+                                onChange={handleChange}
+                                name=' mark_all_as_received'
+                                disabled={checked}
+                              />
+                            }
+                          />
+                        </FormGroup>
+                      )}
+                    </>
+                  ) : null}
+                </Box>
+                <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                  <Box sx={{ width: '100%', overflow: 'auto' }}>
+                    <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+                  </Box>
+                </Grid>
+              </>
+            ) : null}
+
+            <Grid container items>
+              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                <FormControl fullWidth>
+                  <TextField
+                    // disabled={disableButton()}
+                    disabled={
+                      selectedPharmacy.type === 'central'
+                        ? 'disabled'
+                        : disputeItemDetails?.delivery_status === 'Delivered'
+                        ? 'disabled'
+                        : null
+                    }
+                    multiline
+                    rows={1}
+                    type='text'
+                    // label='Comment'
+                    value={disputeItemDetails?.comments}
+                    onChange={e => {
+                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                    }}
+                    placeholder='Add Comment if any'
+                    name='comments'
+                    InputProps={{
+                      sx: {
+                        backgroundColor: '#FCF4AE33' // Setting the background color here
+                      },
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='material-symbols-light:description-outline' size={1} />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <CircularProgress />
+        </Box>
+      )}
+    </div>
+  )
 })
 
 function OrderReceiveForm({ orderId, requestId }) {
@@ -113,6 +264,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
+  const { id } = router.query
 
   const closeDisputeDialog = () => {
     setDisputeDialog(false)
@@ -1207,274 +1359,276 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   console.log(orderData, 'pppppp')
 
+  const printRef = React.useRef()
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank')
+    const printContents = printRef.current.innerHTML
+
+    const styles = Array.from(document.styleSheets)
+      .map(sheet => {
+        try {
+          return Array.from(sheet.cssRules)
+            .map(rule => rule.cssText)
+            .join('\n')
+        } catch (e) {
+          console.warn('Error accessing stylesheet:', e)
+          return ''
+        }
+      })
+      .join('\n')
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title> 
+          <style>
+            /* Include global styles */
+            ${styles}
+            /* You can add specific print styles here */
+            @media print {
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              /* Add more print-specific styles if needed */
+            }
+          </style>
+        </head>
+        <body>
+          ${printContents}
+        </body>
+      </html>
+    `)
+
+    printWindow.document.close()
+    printWindow.focus()
+
+    printWindow.onload = () => {
+      printWindow.print()
+      printWindow.onafterprint = () => {
+        printWindow.close()
+      }
+    }
+  }
+
   return (
     <>
-      <Box sx={{ pb: 6 }}>
-        <Grid container justifyContent='space-between'>
-          <Grid item xs={12} sm='auto'>
-            <CardHeader
-              sx={{ padding: 0 }}
-              avatar={
-                <Icon
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    router.back()
-                  }}
-                  icon='ep:back'
-                />
-              }
-              title={`Shipment Details - ${orderData.shipment_id}`}
-            />
-          </Grid>
-          <Grid item xs={12} sm='auto'>
-            {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-              <LoadingButton
-                size='large'
-                disabled={disableButton() || submitLoader}
-                variant='contained'
-                onClick={() => {
-                  if (!submitLoader) {
-                    updateStatus()
-                  }
-                }}
-                loading={submitLoader}
-              >
-                Save
-              </LoadingButton>
-            ) : null}
-          </Grid>
-        </Grid>
-      </Box>
-
-      {disputeItemDetails?.item_details?.length > 0 ? (
-        <Grid container xs={12} sx={{ mx: 'auto' }}>
-          <Grid item xs={12}>
-            {/* <Grid container xs={12}>
-              {orderData?.shipment_id ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-                  <p>{orderData.shipment_id}</p>
-                </Grid>
-              ) : null}
-              {orderData?.from_store_name ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>From Store </h5>
-                  <p>{orderData.from_store_name}</p>
-                </Grid>
-              ) : null}
-              {orderData?.shipment_date ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-                  <p>{Utility.formatDisplayDate(orderData.shipment_date)}</p>
-                </Grid>
-              ) : null}
-              {orderData?.vehicle_no ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-                  <p>{orderData.vehicle_no}</p>
-                </Grid>
-              ) : null}
-              {orderData?.to_store_name ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-                  <p>{orderData.to_store_name}</p>
-                </Grid>
-              ) : null}
-
-              {orderData?.person_shipping ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Driver Name</h5>
-                  <p>{orderData.person_shipping}</p>
-                </Grid>
-              ) : null}
-            </Grid> */}
-
-            <Grid container xs={12} sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}>
-              {orderData?.from_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}> Shipped From:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.shipment_id ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Shipping id:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.shipment_id}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.from_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>From Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.shipment_date ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Shipped Date:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>
-                    {Utility.formatDisplayDate(orderData.shipment_date)}
-                  </h4>
-                </Grid>
-              ) : null}
-              {orderData?.vehicle_no ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Vehicle Number:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.vehicle_no}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.to_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>To Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
-                </Grid>
-              ) : null}
-
-              {orderData?.person_shipping ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Driver Name:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.person_shipping ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Mobile No:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.phone_number}</h4>
-                </Grid>
-              ) : null}
+      <div>
+        <Box sx={{ pb: 6 }}>
+          <Grid container justifyContent='space-between'>
+            <Grid item xs={12} sm='auto'>
+              <CardHeader
+                sx={{ padding: 0 }}
+                avatar={
+                  <Icon
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      router.back()
+                    }}
+                    icon='ep:back'
+                  />
+                }
+                title={`Shipment Details - ${orderData?.shipment_id || ''}`}
+              />
             </Grid>
 
-            {disputeItemDetails?.item_details?.length > 0 ? (
-              <>
-                {/* <Divider
-                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-                /> */}
-                <Box
-                  sx={{
-                    mt: theme => `${theme.spacing(5)} !important`,
-                    mb: theme => `${theme.spacing(3)} !important`,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
+            <Grid container item xs={12} sm='auto' spacing={2}>
+              <Grid item>
+                <Button
+                  size='large'
+                  variant='outlined'
+                  fullWidth
+                  target='_blank'
+                  sx={{ mb: 3.5 }}
+                  // component={Link}
+                  // href={`/pharmacy/request/${id}/shipment-details?orderId=${orderId}`}
+                  startIcon={<Icon icon='material-symbols:print' />}
+                  // onClick={e => {
+                  //   e.preventDefault()
+                  //   handlePrint()
+                  // }}
+                  onClick={handlePrint}
                 >
-                  <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
-                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-                    <>
-                      {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
-                        <FormGroup row>
-                          <FormControlLabel
-                            label='Mark all as Received'
-                            control={
-                              <Checkbox
-                                checked={checked}
-                                onChange={handleChange}
-                                name=' mark_all_as_received'
-                                disabled={checked}
-                              />
-                            }
-                          />
-                        </FormGroup>
-                      )}
-                    </>
-                  ) : null}
-                </Box>
-                <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-                  <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
-                </Grid>
-              </>
-            ) : null}
-
-            <Grid container items>
-              <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
-                <FormControl fullWidth>
-                  <TextField
-                    // disabled={disableButton()}
-                    disabled={
-                      selectedPharmacy.type === 'central'
-                        ? 'disabled'
-                        : disputeItemDetails?.delivery_status === 'Delivered'
-                        ? 'disabled'
-                        : null
-                    }
-                    multiline
-                    rows={1}
-                    type='text'
-                    // label='Comment'
-                    value={disputeItemDetails?.comments}
-                    onChange={e => {
-                      setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
-                    }}
-                    placeholder='Add Comment if any'
-                    name='comments'
-                    InputProps={{
-                      sx: {
-                        backgroundColor: '#FCF4AE33' // Setting the background color here
-                      },
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='material-symbols-light:description-outline' size={1} />
-                        </InputAdornment>
-                      )
-                    }}
-                  />
-                </FormControl>
+                  print
+                </Button>
               </Grid>
-            </Grid>
-            {/* {selectedPharmacy?.permission?.key == 'allow_full_access' || selectedPharmacy?.permission?.key === 'ADD' ? (
-              <Grid>
-                {selectedPharmacy.type === 'local' && (
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                )}
-
+              <Grid item>
                 {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-                  <>
-                    <LoadingButton
-                      sx={{ float: 'right', my: 4, mx: 2 }}
-                      size='large'
-                      disabled={disableButton() || submitLoader}
-                      variant='contained'
-                      onClick={() => {
-                        if (!submitLoader) {
-                          updateStatus()
-                        }
-                      }}
-                      loading={submitLoader}
-                    >
-                      Save
-                    </LoadingButton>
-                    {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
-                      <LoadingButton
-                        sx={{ float: 'right', my: 4, mx: 6 }}
-                        size='large'
-                        // disabled={disableButton()}
-                        disabled={submitLoader}
-                        variant='contained'
-                        onClick={() => {
-                          if (!submitLoader) {
-                            bulkStatusUpdate()
-                          }
-                        }}
-                        loading={submitLoader}
-                      >
-                        Mark all as Received & Save
-                      </LoadingButton>
-                    )}
-                  </>
+                  <LoadingButton
+                    size='large'
+                    disabled={disableButton() || submitLoader}
+                    variant='contained'
+                    onClick={() => {
+                      if (!submitLoader) {
+                        updateStatus()
+                      }
+                    }}
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
                 ) : null}
               </Grid>
-            ) : null} */}
+            </Grid>
+
+            {/* <Grid item xs={12} sm='auto'></Grid> */}
           </Grid>
-        </Grid>
-      ) : (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <CircularProgress />
         </Box>
-      )}
+        <DisputeItemDetails
+          ref={printRef}
+          disputeItemDetails={disputeItemDetails}
+          orderData={orderData}
+          selectedPharmacy={selectedPharmacy}
+          checked={checked}
+          handleChange={handleChange}
+          setDisputeItemDetails={setDisputeItemDetails}
+          columns={columns}
+        />
+
+        {/* <div ref={printRef}>
+          {disputeItemDetails?.item_details?.length > 0 ? (
+            <Grid container xs={12} sx={{ mx: 'auto' }}>
+              <Grid item xs={12}>
+                <Grid container xs={12} sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}>
+                  {orderData?.from_store_name ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}> Shipped From:</p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
+                    </Grid>
+                  ) : null}
+                  {orderData?.shipment_id ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>Shipping id:</p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.shipment_id}</h4>
+                    </Grid>
+                  ) : null}
+                  {orderData?.from_store_name ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>From Store: </p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
+                    </Grid>
+                  ) : null}
+                  {orderData?.shipment_date ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>Shipped Date:</p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>
+                        {Utility.formatDisplayDate(orderData.shipment_date)}
+                      </h4>
+                    </Grid>
+                  ) : null}
+                  {orderData?.vehicle_no ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>Vehicle Number:</p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.vehicle_no}</h4>
+                    </Grid>
+                  ) : null}
+                  {orderData?.to_store_name ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>To Store: </p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
+                    </Grid>
+                  ) : null}
+
+                  {orderData?.person_shipping ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>Driver Name:</p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
+                    </Grid>
+                  ) : null}
+                  {orderData?.person_shipping ? (
+                    <Grid item md={2} sm={3} xs={6}>
+                      <p style={{ margin: '0px' }}>Mobile No:</p>
+                      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.phone_number}</h4>
+                    </Grid>
+                  ) : null}
+                </Grid>
+
+                {disputeItemDetails?.item_details?.length > 0 ? (
+                  <>
+                    <Box
+                      sx={{
+                        mt: theme => `${theme.spacing(5)} !important`,
+                        mb: theme => `${theme.spacing(3)} !important`,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
+                      {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                        <>
+                          {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
+                            <FormGroup row>
+                              <FormControlLabel
+                                label='Mark all as Received'
+                                control={
+                                  <Checkbox
+                                    checked={checked}
+                                    onChange={handleChange}
+                                    name=' mark_all_as_received'
+                                    disabled={checked}
+                                  />
+                                }
+                              />
+                            </FormGroup>
+                          )}
+                        </>
+                      ) : null}
+                    </Box>
+                    <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
+                      <Box sx={{ width: '100%', overflow: 'auto' }}>
+                        <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+                      </Box>
+                    </Grid>
+                  </>
+                ) : null}
+
+                <Grid container items>
+                  <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
+                    <FormControl fullWidth>
+                      <TextField
+                        // disabled={disableButton()}
+                        disabled={
+                          selectedPharmacy.type === 'central'
+                            ? 'disabled'
+                            : disputeItemDetails?.delivery_status === 'Delivered'
+                            ? 'disabled'
+                            : null
+                        }
+                        multiline
+                        rows={1}
+                        type='text'
+                        // label='Comment'
+                        value={disputeItemDetails?.comments}
+                        onChange={e => {
+                          setDisputeItemDetails({ ...disputeItemDetails, comments: e.target.value })
+                        }}
+                        placeholder='Add Comment if any'
+                        name='comments'
+                        InputProps={{
+                          sx: {
+                            backgroundColor: '#FCF4AE33' // Setting the background color here
+                          },
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon icon='material-symbols-light:description-outline' size={1} />
+                            </InputAdornment>
+                          )
+                        }}
+                      />
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
+          )}
+        </div> */}
+      </div>
     </>
   )
 }

@@ -69,6 +69,8 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import { borderRadius, color, padding } from '@mui/system'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -166,6 +168,11 @@ const AddRequestForm = () => {
   }
 
   const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
+
+  const totalValue = editParams.request_item_details?.reduce(
+    (acc, row) => acc + parseInt(row.unit_price * row.request_item_qty),
+    0
+  )
 
   const addItemsToTable = () => {
     const newData = {
@@ -1261,6 +1268,8 @@ const AddRequestForm = () => {
     )
   }
 
+  console.log(editParams, 'qwert')
+
   return (
     <Card>
       <Grid
@@ -1384,7 +1393,7 @@ const AddRequestForm = () => {
                   )}
                 </FormControl>
               </Grid> */}
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+              {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
                     disabled={true}
@@ -1406,122 +1415,375 @@ const AddRequestForm = () => {
                     </FormHelperText>
                   )}
                 </FormControl>
-              </Grid>
+              </Grid> */}
             </Grid>
           </Grid>
         </form>
-        <Grid
+        {/* <Grid
           container
           item
-          spacing={6}
           sm={12}
           xs={12}
           sx={{
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             alignItems: 'center',
             mb: 2,
             mt: 2
           }}
         >
+          <Box>
+            Request Items
+            <Box sx={{ display: 'flex', mr: 4 }}>
+              <Box>Total Request Quantity: 567</Box>
+              <Box>Total Value: ₹1,35,000</Box>
+            </Box>
+          </Box>
+
           <AddButton
             title='Add Request Item'
             action={() => {
               handleSubmit()
             }}
           />
+        </Grid> */}
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            py: 2,
+            alignItems: 'center'
+          }}
+        >
+          {/* Left side content */}
+          <Grid item xs={12} sm={8}>
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: '#44544ADE',
+                mb: 0.5
+              }}
+            >
+              Request Items
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1, sm: 3 }
+              }}
+            >
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Typography
+                  // color='#7A8684'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    color: '#7A8684'
+                  }}
+                >
+                  Total Request Quantity:
+                </Typography>
+                <Typography sx={{ color: '#1F515B', fontSize: '14px', fontWeight: 400 }}>{totalQty}</Typography>
+              </Box>
+              <Divider
+                orientation='vertical'
+                flexItem
+                sx={{
+                  display: { xs: 'none', sm: 'block' },
+                  mx: 2,
+                  height: '20px',
+                  alignSelf: 'center'
+                }}
+              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    color: '#7A8684'
+                  }}
+                >
+                  Total Value:
+                </Typography>
+                <Typography sx={{ color: '#1F515B', fontSize: '14px', fontWeight: 400 }}>{`₹ ${totalValue
+                  .toString()
+                  .replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`}</Typography>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Right side button */}
+          <Grid
+            item
+            xs={12}
+            sm={4}
+            sx={{
+              display: 'flex',
+              justifyContent: { xs: 'flex-start', sm: 'flex-end' }
+            }}
+          >
+            <AddButtonContained
+              title='Add Request Item'
+              action={() => {
+                handleSubmit()
+              }}
+            />
+          </Grid>
         </Grid>
       </CardContent>
+      <Card sx={{ mx: 6, boxShadow: 'none', border: '1px solid #DAE7DF' }}>
+        <TableContainer>
+          <Table>
+            <TableHead sx={{ backgroundColor: '#C1D3D0' }}>
+              <TableRow>
+                <TableCell>S.No</TableCell>
+                <TableCell>Product Name</TableCell>
+                {/* <TableCell>Priority</TableCell> */}
+                {/* <TableCell>Quantity</TableCell> */}
+                <TableCell>request qty</TableCell>
+                <TableCell>Unit price</TableCell>
+                {/* <TableCell>Total QTY price</TableCell> */}
+                <TableCell>Value</TableCell>
+                {/* <TableCell>Notes</TableCell> */}
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {editParams?.request_item_details
+                ? editParams?.request_item_details.map((el, index) => {
+                    return (
+                      <TableRow key={index}>
+                        <TableCell align='left'>
+                          {index + 1}.
+                          {el?.priority_item === 'high' && (
+                            <>
+                              &nbsp; {/* Adds space between index and bullet */}
+                              <span
+                                style={{
+                                  color: el?.priority_item === 'high' && 'red',
+                                  fontSize: '26px'
+                                }}
+                              >
+                                •
+                              </span>
+                            </>
+                          )}
+                        </TableCell>
+                        {/* <TableCell>
+                          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                            {el.medicine_name}
+                          </Typography>
+                          {el.control_substance ? (
+                            <CustomChip label='CS' skin='light' color='success' size='small' />
+                          ) : null}{' '}
+                          {el.prescription_required ? (
+                            <CustomChip label='PR' skin='light' color='success' size='small' />
+                          ) : null}
+                          <Typography variant='body2'>{el.package}</Typography>
+                          <Typography variant='body2'>{el.manufacture}</Typography>
+                        </TableCell> */}
+                        <TableCell align='left'>
+                          {/* Name and chips in a flex container */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            {el.control_substance ? (
+                              <CustomChip
+                                label='CS'
+                                skin='filled'
+                                // color='error'
+                                size='small'
+                                sx={{
+                                  borderRadius: '2px',
+                                  background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
+                                  '& .MuiChip-label': {
+                                    color: 'white',
+                                    paddingLeft: '4px',
+                                    paddingRight: '4px'
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            {el.prescription_required ? (
+                              <CustomChip
+                                label='PR'
+                                skin='light'
+                                // color='success'
+                                size='small'
+                                sx={{
+                                  borderRadius: '2px',
+                                  background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
+                                  '& .MuiChip-label': {
+                                    color: 'white',
+                                    paddingLeft: '4px',
+                                    paddingRight: '4px'
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <Typography variant='body2' sx={{ color: '#1F515B', fontSize: '16px', fontWeight: 600 }}>
+                              {el.medicine_name}
+                            </Typography>
+                          </Box>
 
-      <TableContainer>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-            <TableRow>
-              <TableCell>Product Name</TableCell>
-              <TableCell>Priority</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Unit price</TableCell>
-              <TableCell>Total QTY price</TableCell>
-              <TableCell>Notes</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {editParams?.request_item_details
-              ? editParams?.request_item_details.map((el, index) => {
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                          {el.medicine_name}
-                        </Typography>
-                        {el.control_substance ? (
-                          <CustomChip label='CS' skin='light' color='success' size='small' />
-                        ) : null}{' '}
-                        {el.prescription_required ? (
-                          <CustomChip label='PR' skin='light' color='success' size='small' />
-                        ) : null}
-                        <Typography variant='body2'>{el.package}</Typography>
-                        <Typography variant='body2'>{el.manufacture}</Typography>
-                      </TableCell>
-
-                      <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
-                        {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
-                      </TableCell>
-
-                      <TableCell align='center'>{el.request_item_qty}</TableCell>
-                      <TableCell align='center'>{el.unit_price > 0 ? el.unit_price : 'NA'}</TableCell>
-                      <TableCell align='center'>
-                        {el?.unit_price * el?.request_item_qty > 0 ? el?.unit_price * el?.request_item_qty : 'NA'}
-                      </TableCell>
-                      <TableCell align='left'>
-                        <Tooltip title={el?.notes}>
+                          {/* Package info */}
                           <Typography
-                            sx={{
-                              minWidth: 30,
-                              maxWidth: 80,
-                              cursor: 'pointer',
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              WebkitLineClamp: 6,
-                              whiteSpace: 'nowrap'
+                            variant='body2'
+                            sx={{ color: '#44544A', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
+                          >
+                            {el.package}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: '#44544A', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
+                          >
+                            {el.manufacture}
+                          </Typography>
+
+                          {/* File information with icon */}
+                          {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Icon icon='material-symbols:attachment' height='1.2em' sx={{ color: '#00000066' }} />
+                            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                              Prescription.pdf
+                            </Typography>
+                          </Box> */}
+                          {el?.notes ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box
+                                sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
+                              >
+                                <Icon icon='material-symbols:description-outline' width='1em' height='1em' />
+                              </Box>
+                              <Tooltip title={el?.notes}>
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: '#00000066',
+                                    minWidth: 30,
+                                    maxWidth: 80,
+                                    cursor: 'pointer',
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    WebkitLineClamp: 6,
+                                    whiteSpace: 'nowrap',
+                                    fontStyle: 'italic',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  {el?.notes ? el?.notes : 'NA'}
+                                </Typography>
+                              </Tooltip>
+                            </Box>
+                          ) : null}
+                          {/* {el?.prescription_required_file ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box
+                                sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
+                              >
+                                <Icon icon='material-symbols:attachment' width='1em' height='1em' />
+                              </Box>
+                              <Typography variant='body2' sx={{ color: '#00000066' }}>
+                                {el.prescription_required_file.name}
+                              </Typography>
+                            </Box>
+                          ) : null} */}
+                          {el?.prescription_required_file ? (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }}>
+                                  <Icon icon='material-symbols:attachment' width='1em' height='1em' />
+                                </Box>
+                                <Typography
+                                  variant='body2'
+                                  sx={{ color: '#00000066', fontSize: '14px', fontWeight: 400 }}
+                                >
+                                  {el.prescription_required_file.name}
+                                </Typography>
+                              </Box>
+
+                              {/* Preview Section */}
+                              {/* {el.prescription_required_file.type.includes('image') ? (
+                                <Box
+                                  component='img'
+                                  src={URL.createObjectURL(el.prescription_required_file)}
+                                  alt='Image Preview'
+                                  sx={{ maxWidth: '200px', maxHeight: '200px', mt: 1, borderRadius: '4px' }}
+                                />
+                              ) : el.prescription_required_file.type === 'application/pdf' ? (
+                                <embed
+                                  src={URL.createObjectURL(el.prescription_required_file)}
+                                  type='application/pdf'
+                                  width='200px'
+                                  height='200px'
+                                  style={{ marginTop: '8px', borderRadius: '4px' }}
+                                />
+                              ) : null} */}
+                            </Box>
+                          ) : null}
+                        </TableCell>
+
+                        {/* <TableCell sx={{ color: el?.priority_item === 'Normal' ? 'green' : 'red' }}>
+                          {el?.priority_item ? (el?.priority_item === 'Normal' ? 'Normal' : 'High') : null}
+                        </TableCell> */}
+
+                        <TableCell align='left'>{el.request_item_qty}</TableCell>
+                        <TableCell align='left'>{el.unit_price > 0 ? `₹ ${el.unit_price}` : 'NA'}</TableCell>
+                        <TableCell align='left'>
+                          {el?.unit_price * el?.request_item_qty > 0
+                            ? `₹ ${el?.unit_price * el?.request_item_qty}`
+                            : 'NA'}
+                        </TableCell>
+                        {/* <TableCell align='left'>
+                          <Tooltip title={el?.notes}>
+                            <Typography
+                              sx={{
+                                minWidth: 30,
+                                maxWidth: 80,
+                                cursor: 'pointer',
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                WebkitLineClamp: 6,
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {el?.notes ? el?.notes : 'NA'}
+                            </Typography>
+                          </Tooltip>
+                        </TableCell> */}
+
+                        <TableCell align='left'>
+                          <IconButton
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                            aria-label='Edit'
+                            onClick={() => {
+                              setMedicineItemId(el.request_item_medicine_id)
+
+                              editTableData(el.request_item_medicine_id)
+                              showDialog()
                             }}
                           >
-                            {el?.notes ? el?.notes : 'NA'}
-                          </Typography>
-                        </Tooltip>
-                      </TableCell>
+                            <Icon icon='mdi:pencil-outline' />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => {
+                              // if (editParams?.request_item_details?.length === 1) {
+                              //   openCancelDialog()
+                              // } else {
+                              removeItemsFromTable(el.request_item_medicine_id)
+                              // }
+                            }}
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                          >
+                            <Icon icon='mdi:delete-outline' />
+                          </IconButton>
 
-                      <TableCell>
-                        <IconButton
-                          size='small'
-                          sx={{ mr: 0.5 }}
-                          aria-label='Edit'
-                          onClick={() => {
-                            setMedicineItemId(el.request_item_medicine_id)
-
-                            editTableData(el.request_item_medicine_id)
-                            showDialog()
-                          }}
-                        >
-                          <Icon icon='mdi:pencil-outline' />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => {
-                            // if (editParams?.request_item_details?.length === 1) {
-                            //   openCancelDialog()
-                            // } else {
-                            removeItemsFromTable(el.request_item_medicine_id)
-                            // }
-                          }}
-                          size='small'
-                          sx={{ mr: 0.5 }}
-                        >
-                          <Icon icon='mdi:delete-outline' />
-                        </IconButton>
-
-                        {/* {el.id !== undefined ? (
+                          {/* {el.id !== undefined ? (
                           <IconButton
                             onClick={() => {
                               console.log('line items', el)
@@ -1538,15 +1800,16 @@ const AddRequestForm = () => {
                             <Icon icon='mdi:delete-outline' />
                           </IconButton>
                         ) : null} */}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              : null}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <CardContent sx={{ pt: 8 }}>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Card>
+      {/* <CardContent sx={{ pt: 8 }}>
         {totalQty ? (
           <Grid container>
             <Grid
@@ -1574,7 +1837,7 @@ const AddRequestForm = () => {
             </Grid>
           </Grid>
         ) : null}
-      </CardContent>
+      </CardContent> */}
       <Grid item xs={12}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           {id && editParams?.request_item_details?.length > 0 ? (
@@ -1588,18 +1851,6 @@ const AddRequestForm = () => {
               />
             </>
           ) : null}
-          <LoadingButton
-            disabled={editParams.request_item_details.length > 0 ? false : true}
-            sx={{ marginRight: '8px' }}
-            size='large'
-            onClick={() => {
-              postItemsData()
-            }}
-            variant='contained'
-            loading={submitLoader}
-          >
-            Save
-          </LoadingButton>
           {id ? null : (
             <Button
               disabled={editParams.request_item_details.length > 0 ? false : true}
@@ -1613,10 +1864,23 @@ const AddRequestForm = () => {
               }}
               size='large'
               variant='outlined'
+              sx={{ marginRight: '8px' }}
             >
               Reset
             </Button>
           )}
+          <LoadingButton
+            disabled={editParams.request_item_details.length > 0 ? false : true}
+            // sx={{ marginRight: '8px' }}
+            size='large'
+            onClick={() => {
+              postItemsData()
+            }}
+            variant='contained'
+            loading={submitLoader}
+          >
+            Save
+          </LoadingButton>
         </Box>
       </Grid>
       {/* <ConfirmDialogBox
