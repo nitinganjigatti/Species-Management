@@ -50,11 +50,9 @@ const DashboardFilter = ({
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
-  console.log('taxonomyList :>> ', taxonomyList)
+
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
-
-  // console.log('filterList :>> ', filterList?.length)
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
@@ -104,9 +102,7 @@ const DashboardFilter = ({
   const getTaxonomyListFunc = async q => {
     try {
       getSpecieList(q).then(res => {
-        // console.log('res :>> ', res.result.length > 0)
         if (res.result.length > 0) {
-          console.log('res :>> ', res)
           setTaxonomyList(res?.result)
         }
       })

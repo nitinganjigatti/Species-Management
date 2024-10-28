@@ -535,7 +535,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           // setDiscardList(list?.result)
           if (list?.result?.length > 0) {
             if (showFilters) {
-              setDiscardList(list?.result)
+              setDiscardList([...discardList, ...list?.result])
             } else {
               setDiscardList([...discardList, ...list?.result])
             }
