@@ -1,0 +1,78 @@
+import Organization from "../parivesh/home/overview/organization"
+
+const data = [
+  {
+    commonName: 'African Lion',
+    speciesName: 'Lion',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Male_Lion_on_Rock.jpg',
+    Male: '2',
+    Female: '2',
+    Undetermined: '2',
+    total: '6',
+    class: 'Mammalia',
+    order: 'Panthera',
+    family: 'Felidae',
+    Genus: 'Panthera',
+    Site: 'North Site' ,
+    Section:"Savanna" ,
+    Enclosure: "Lion Enclosure",
+    Cluster:"Predator Cluster" ,
+    Organization:"City Zoo"
+  },
+  {
+    commonName: 'African Lion',
+    speciesName: 'Lion',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Male_Lion_on_Rock.jpg',
+    Male: '2',
+    Female: '2',
+    Undetermined: '2',
+    total: '6',
+    class: 'Mammalia',
+    order: 'Panthera',
+    family: 'Felidae',
+    Genus: 'Panthera',
+    Site: 'North Site',
+    Section:"Savanna" ,
+    Enclosure: "Lion Enclosure",
+    Cluster:"Predator Cluster" ,
+    Organization:"City Zoo"
+
+  },
+  {
+    commonName: 'African Lion',
+    speciesName: 'Lion',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Male_Lion_on_Rock.jpg',
+    Male: '2',
+    Female: '2',
+    Undetermined: '2',
+    total: '6',
+    class: 'Mammalia',
+    order: 'Panthera',
+    family: 'Felidae',
+    Genus: 'Panthera',
+    Site: 'North Site',
+    Section:"Savanna" ,
+    Enclosure: "Lion Enclosure",
+    Cluster:"Predator Cluster" ,
+    Organization:"City Zoo"
+  },
+  {
+    commonName: 'African Lion',
+    speciesName: 'Lion',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/49/Male_Lion_on_Rock.jpg',
+    Male: '2',
+    Female: '2',
+    Undetermined: '2',
+    total: '6',
+    class: 'Mammalia',
+    order: 'Panthera',
+    family: 'Felidae',
+    Genus: 'Panthera',
+    Site: 'North Site',
+    Section:"Savanna" ,
+    Enclosure: "Lion Enclosure",
+    Cluster:"Predator Cluster" ,
+    Organization:"City Zoo"
+  }
+]
+export default data
