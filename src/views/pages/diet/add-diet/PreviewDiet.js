@@ -1002,7 +1002,7 @@ const StepPreviewDiet = ({
                             border: 'none',
                             height: '40px',
                             backgroundColor: '#fff',
-                            pl: '16px',
+                            pl: '0 !important',
                             py: 0,
                             width: '180px',
                             position: 'sticky',
@@ -1027,7 +1027,7 @@ const StepPreviewDiet = ({
                                 fontWeight: 600
                               }}
                             >
-                              TIME
+                              MEAL NAME & TIME
                             </Typography>
                           </Box>
                         </TableCell>
@@ -1267,6 +1267,7 @@ const StepPreviewDiet = ({
 
                         return (
                           <>
+                            {console.log(itemd, 'itemd')}
                             <TableRow key={index} className=''>
                               <TableCell
                                 sx={{
@@ -1289,15 +1290,28 @@ const StepPreviewDiet = ({
                               >
                                 <span
                                   style={{
-                                    position: 'absolute', // Change this to absolute
-                                    top: '70px', // Center vertically
-                                    transform: 'translateY(-50%)', // Adjust to center properly
+                                    position: 'absolute',
+                                    top: '80px',
+                                    transform: 'translateY(-50%)',
                                     //display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     width: '70%'
                                   }}
                                 >
+                                  {/* Meal Name */}
+                                  <Typography
+                                    sx={{
+                                      textAlign: 'center',
+                                      color: '#00AFD6',
+                                      fontWeight: 500,
+                                      fontSize: '14px',
+                                      mt: 4,
+                                      mb: 5
+                                    }}
+                                  >
+                                    {itemd.meal_name}
+                                  </Typography>
                                   <Box
                                     sx={{
                                       borderRadius: '25px',
@@ -2660,8 +2674,9 @@ const StepPreviewDiet = ({
                                 })}
                               </>
                             </TableRow>
-                            {itemd.notes ? (
-                              <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+
+                            <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
+                              {itemd.notes ? (
                                 <Typography
                                   sx={{
                                     width: '100%',
@@ -2672,10 +2687,10 @@ const StepPreviewDiet = ({
                                   <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>Notes :</span>{' '}
                                   {itemd.notes}
                                 </Typography>
-                              </TableRow>
-                            ) : (
-                              ''
-                            )}
+                              ) : (
+                                ''
+                              )}
+                            </TableRow>
                           </>
                         )
                       })}
