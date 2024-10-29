@@ -61,6 +61,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const editParamsInitialState = {
   supplier_id: '',
@@ -691,7 +692,7 @@ const AddDiscardProducts = () => {
                               {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
                             </Typography>
                           </TableCell>
-                          <TableCell>{el.comments ? el.comments : 'NA'}</TableCell>
+                          <TableCell>{el.comments ? <TextEllipsisWithModal text={el.comments} /> : 'NA'}</TableCell>
                           <TableCell>{el.reason ? el.reason : 'NA'}</TableCell>
 
                           <TableCell>{el.quantity}</TableCell>

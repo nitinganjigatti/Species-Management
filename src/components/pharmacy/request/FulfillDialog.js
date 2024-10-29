@@ -609,11 +609,37 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           >
             <CardContent>
               <Grid container sx={{ flexGrow: 1, m: 'auto' }}>
-                <Grid item xs={12 / 1} sm={12 / 3} md={12 / 5} lg={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Requested From</Typography>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+                >
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400',
+                      lineHeight: '14.52px'
+                    }}
+                  >
+                    Requested By
+                  </Typography>
 
-                  <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
-                    <strong>{storeDetails?.to_store}</strong>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500',
+                      lineHeight: '16.94px'
+                    }}
+                  >
+                    {storeDetails?.to_store}
                   </Typography>
                 </Grid>
                 <Grid
@@ -622,12 +648,34 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   sm={12 / 3}
                   md={12 / 5}
                   lg={12 / 5}
-                  sx={{ mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } }}
+                  sx={{
+                    mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
                 >
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Product Name</Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
+                    Product Name
+                  </Typography>
 
-                  <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
-                    <strong>{fulfillMedicine?.stock_name}</strong>{' '}
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {fulfillMedicine?.stock_name}
                   </Typography>
                 </Grid>
                 <Grid
@@ -638,12 +686,32 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   lg={12 / 5}
                   sx={{
                     textAlign: { xs: 'left', sx: 'right' },
-                    mt: { mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } }
+                    mt: { mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
                   }}
                 >
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>QTY Requested</Typography>
-                  <Typography sx={{ color: 'primary.light' }}>
-                    <strong>{fulfillMedicine?.requested_qty}</strong>{' '}
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
+                    QTY Requested
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {fulfillMedicine?.requested_qty}
                   </Typography>
                 </Grid>
                 <Grid
@@ -652,13 +720,34 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   sm={12 / 3}
                   md={12 / 5}
                   lg={12 / 5}
-                  sx={{ textAlign: { sm: 'left', sx: 'right' }, mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' } }}
+                  sx={{
+                    textAlign: { sm: 'left', sx: 'right' },
+                    mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
                 >
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Balance</Typography>
-                  <Typography sx={{ color: 'primary.light' }}>
-                    <strong>
-                      {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
-                    </strong>
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
+                    Balance
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
                   </Typography>
                 </Grid>
                 <Grid
@@ -667,11 +756,33 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   sm={12 / 3}
                   md={12 / 5}
                   lg={12 / 5}
-                  sx={{ textAlign: { sm: 'left', sx: 'right' }, mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' } }}
+                  sx={{
+                    textAlign: { sm: 'left', sx: 'right' },
+                    mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
                 >
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Total Qty Available</Typography>
-                  <Typography sx={{ color: 'primary.light' }}>
-                    <strong>{totalProductCount}</strong>
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
+                    Total Qty Available
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {totalProductCount}
                   </Typography>
                 </Grid>
               </Grid>
@@ -899,7 +1010,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='text'
-                                value={value}
+                                value={value == '0' ? '' : value}
                                 label='Quantity'
                                 onChange={e => {
                                   onChange(e)

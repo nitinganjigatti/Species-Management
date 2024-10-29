@@ -1,26 +1,18 @@
 // addState
 // ** React Imports
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useEffect, useCallback, Fragment } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
-import Switch from '@mui/material/Switch'
-import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import { RadioGroup, FormLabel, Radio } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
-import { useRouter } from 'next/router'
 import { getDriverById } from 'src/lib/api/pharmacy/driver'
 
 // ** Third Party Imports
@@ -35,15 +27,16 @@ const schema = yup.object().shape({
   driver_name: yup
     .string()
     .transform(value => (value ? value.trim() : value))
-    .min(3, 'Driver name must contain at least 3 characters')
-    .required('Driver name is Required'),
+    .required('Driver name is required')
+    .min(3, 'Driver name must contain at least 3 characters'),
+
   active: yup.string().nullable(),
+
   phone_number: yup
-    .number()
+    .string()
     .required('Phone Number is required')
-    .test('is-valid-number', 'Phone Number must be exactly 10 digits', value => {
-      return /^\d{10}$/.test(value)
-    }),
+    .matches(/^\d{10}$/, 'Phone Number must be exactly 10 digits'),
+
   vehicle_number: yup.string().required('Vehicle Number is required')
 })
 

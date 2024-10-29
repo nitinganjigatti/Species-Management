@@ -265,7 +265,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           mb: 10,
           width: '100%',
           backgroundColor: 'customColors.lightBg',
-          border: '1px solid #00D6C9'
+          border: '1px solid #00D6C9',
+          boxShadow: 'none !important'
         }}
       >
         <CardContent>
@@ -290,13 +291,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
       <Grid sx={{ my: 6 }} xs={12}>
         <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
           <Typography
-            variant='button' // Use the button variant for styling
+            variant='button'
             onClick={() => setTabStatus('By product')}
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By product' ? '5px solid' : '',
-              color: 'primary.main', // Ensure this matches your button's color
-              padding: '8px 16px' // Match the button padding
+              color: 'primary.main',
+              padding: '8px 16px'
             }}
           >
             By Product Name
@@ -307,8 +308,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
-              color: 'primary.main', // Ensure this matches your button's color
-              padding: '8px 16px' // Match the button padding
+              color: 'primary.main',
+              padding: '8px 16px'
             }}
           >
             By Generic Name
@@ -510,7 +511,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               backgroundColor: '#F2FFF8', // Light green background
               padding: '16px',
               borderRadius: '8px',
-              marginTop: '5px',
               border: '0.5px solid #37BD69',
               borderRadius: '8px'
             }}

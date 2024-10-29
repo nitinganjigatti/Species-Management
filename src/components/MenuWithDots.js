@@ -18,13 +18,37 @@ const MenuWithDots = ({ options }) => {
 
   return (
     <Box sx={{ textAlign: 'left' }}>
-      <IconButton aria-label='more' aria-controls='long-menu' aria-haspopup='true' onClick={handleClick}>
+      <IconButton onClick={handleClick}>
         <Icon icon='mdi:dots-vertical' />
       </IconButton>
-      <Menu keepMounted id='long-menu' anchorEl={anchorEl} onClose={handleClose} open={Boolean(anchorEl)}>
+      <Menu
+        sx={{
+          minWidth: '400px',
+          width: '400px',
+          minHeight: '124px',
+          display: 'flex',
+          flexDirection: 'column',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}
+        keepMounted
+        id='long-menu'
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        open={Boolean(anchorEl)}
+      >
         {options?.length > 0
           ? options?.map((option, index) => (
               <MenuItem
+                sx={{
+                  color: 'customColors.neutralSecondary',
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  padding: '12px',
+                  '&:hover': {
+                    backgroundColor: 'customColors.displaybgPrimary'
+                  }
+                }}
                 key={index}
                 onClick={() => {
                   option.action()
