@@ -23,7 +23,7 @@ const ReceivedMedicines = () => {
         setPurchaseList(result?.data)
       }
     } catch (error) {
-      console.error('Error fetching purchase data:', error)
+      console.error('Error fetching received data:', error)
     }
   }
 
@@ -61,7 +61,7 @@ const ReceivedMedicines = () => {
   const series = []
   if (showPurchaseCount) {
     series.push({
-      name: 'Purchase Count',
+      name: 'Received Count',
       type: 'bar',
       data: purchaseCounts,
       color: '#FA6140'
@@ -69,7 +69,7 @@ const ReceivedMedicines = () => {
   }
   if (showPurchaseValue) {
     series.push({
-      name: 'Purchase Value',
+      name: 'Received Value',
       type: 'line',
       data: purchaseValues,
       color: '#fa614059'
@@ -86,7 +86,7 @@ const ReceivedMedicines = () => {
       enabled: true,
       y: {
         formatter: (value, { seriesIndex }) => {
-          if (seriesIndex === 1 || series[0]?.name === 'Purchase Value') {
+          if (seriesIndex === 1 || series[0]?.name === 'Received Value') {
             return `₹${value.toFixed(2)} lac`
           }
           return value.toFixed(0)
@@ -119,12 +119,12 @@ const ReceivedMedicines = () => {
     },
     yaxis: [
       {
-        title: { text: 'Purchase Count' },
+        title: { text: 'Received Count' },
         labels: { formatter: val => val.toFixed(0) }
       },
       {
         opposite: true,
-        title: { text: 'Purchase Value (₹)' },
+        title: { text: 'Received Value (₹)' },
         labels: { formatter: val => `₹${val.toFixed(2)} lac` }
       }
     ],
@@ -180,7 +180,7 @@ const ReceivedMedicines = () => {
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Purchase Count</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Received Count</span>}
           />
           <FormControlLabel
             control={
@@ -196,7 +196,7 @@ const ReceivedMedicines = () => {
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Purchase Value</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Received Value</span>}
           />
         </Box>
 

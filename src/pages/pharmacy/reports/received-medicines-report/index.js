@@ -26,6 +26,7 @@ import { LoadingButton } from '@mui/lab'
 import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
 import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import moment from 'moment'
+import { writeFile, utils } from 'xlsx'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 const dropdownOptions = [
@@ -69,6 +70,7 @@ const ReceivedMedicinesReport = () => {
   const [downloadToDate, setDownloadToDate] = useState(null)
   const [searchbyDoctorname, setsearchbyDoctorname] = useState('')
   const [medicinewiseval, setmedicinewiseval] = useState('')
+  const [tempSelectedStores, setTempSelectedStores] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
@@ -76,9 +78,9 @@ const ReceivedMedicinesReport = () => {
 
     if (event.target.checked) {
       setFiltersApplied(false)
-      setSelectedStores(fullStoreList.map(fruit => fruit.id))
+      setTempSelectedStores(fullStoreList.map(fruit => fruit.id))
     } else {
-      setSelectedStores([])
+      setTempSelectedStores([])
     }
   }
 
@@ -280,7 +282,7 @@ const ReceivedMedicinesReport = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Total Purchase Value (in lac)
+                      Total Purchase Value <br /> (in thousand)
                     </Typography>
                   </Box>
                 ),
@@ -323,7 +325,7 @@ const ReceivedMedicinesReport = () => {
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                         >
-                          {` (${(column.total_received_value / 100000).toFixed(2)})`}
+                          {` (${(column.total_received_value / 1000).toFixed(2)})`}
                         </Typography>
                       </Tooltip>
                     ) : (
@@ -331,7 +333,7 @@ const ReceivedMedicinesReport = () => {
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                         >
-                          {` (${(column.total_received_value / 100000).toFixed(2)})`}
+                          {` (${(column.total_received_value / 1000).toFixed(2)})`}
                         </Typography>
                       </Tooltip>
                     )}
@@ -342,17 +344,20 @@ const ReceivedMedicinesReport = () => {
                   if (isNaN(value)) {
                     return <span>{params.value}</span>
                   }
-                  const roundedValue = Math.round(value)
+                  const originalValue = Math.round(value)
 
-                  const formattedNumber = roundedValue.toLocaleString('en-IN', {
+                  const formattedNumber = originalValue.toLocaleString('en-IN', {
                     // style: 'currency',
                     // currency: 'INR',
                     maximumFractionDigits: 0
                   })
-                  console.log(formattedNumber, 'formattedNumber')
+                  const valueInThousands = value / 1000
+                  const formattedThousands = valueInThousands.toLocaleString('en-IN', {
+                    maximumFractionDigits: 2
+                  })
                   return (
                     <Tooltip title={`Purchase value: ${formattedNumber}`}>
-                      <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
+                      <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
                     </Tooltip>
                   )
                 },
@@ -388,8 +393,12 @@ const ReceivedMedicinesReport = () => {
   const onApplyFilters = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
+    setSelectedStores(tempSelectedStores)
+    setFilterLength(tempSelectedStores.length)
     setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const handleSearch = async value => {
@@ -426,6 +435,11 @@ const ReceivedMedicinesReport = () => {
     setFilterLength('')
     setStoreList(fullStoreList) //
     setsearchbyDoctorname('')
+    setTempSelectedStores([])
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchClose = () => {
@@ -435,20 +449,27 @@ const ReceivedMedicinesReport = () => {
     setPage(1)
     setFullStoreList([])
     fetchfilterValues({ page: 1 })
-
-    // Ensure paginated data is re-fetched from page 1
-    fetchfilterValues({ page: 1 })
   }
 
   const handleFruitSelection = medicine_ids => {
     setFiltersApplied(false)
-    setSelectedStores(prevSelectedFruits => {
+    setTempSelectedStores(prevSelectedFruits => {
       if (prevSelectedFruits.includes(medicine_ids)) {
         return prevSelectedFruits.filter(id => id !== medicine_ids)
       } else {
         return [...prevSelectedFruits, medicine_ids]
       }
     })
+  }
+
+  const handleClose = () => {
+    setOpenFilterDrawer(false)
+    setFilterSearchValue('')
+    setFiltersApplied(true)
+    setTempSelectedStores(selectedFruits)
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchTableDatafilter = useCallback(
@@ -473,7 +494,7 @@ const ReceivedMedicinesReport = () => {
         console.error(error)
       }
     }, 1000),
-    [statusFilter, filtersApplied, statusFilter]
+    [statusFilter, filtersApplied]
   )
 
   useEffect(() => {
@@ -499,13 +520,142 @@ const ReceivedMedicinesReport = () => {
     }
   }
 
+  const handleDownloadExcel = async () => {
+    try {
+      let payload = {
+        medicine_id: medicineId,
+        from_date: downloadFromDate,
+        to_date: downloadToDate,
+        q: searchbyDoctorname
+      }
+
+      const response = await getMedicineWiseDoctorFilter(payload)
+      if (response.success === true) {
+        const data = response.data
+
+        const rows = data.list_items.map(item => ({
+          'Doctor Name': item.doctor_name,
+          'Medicine Name': item.stock_name,
+          'Requested Count': item.received_count,
+          'Requested Value': item.received_value
+        }))
+
+        const worksheet = utils.json_to_sheet(rows)
+        worksheet['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 15 }]
+
+        // Create workbook and append the worksheet
+        const workbook = utils.book_new()
+        utils.book_append_sheet(workbook, worksheet, 'DoctorList')
+
+        const now = new Date()
+        const formattedDate = now.toISOString().slice(0, 10) // YYYY-MM-DD
+        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') // HH-MM
+        const fileName = `DoctorList_${formattedDate}_${formattedTime}.xlsx`
+
+        writeFile(workbook, fileName)
+      }
+    } catch (e) {
+      console.error('Error downloading Excel file', e)
+    }
+  }
+
+  const handleDownloadReport = async () => {
+    try {
+      let payload = {}
+      const activeStatus = statusFilter
+
+      if (filtersApplied && selectedFruits.length > 0) {
+        payload = {
+          q: searchValue,
+          filter: activeStatus,
+          medicine_ids: selectedFruits
+        }
+      } else {
+        payload = {
+          q: searchValue,
+          filter: activeStatus
+        }
+      }
+
+      const response = await getReceivedMedicineList(payload)
+      const listItem = response.data.list_items
+
+      const headers = ['Medicine']
+      listItem.columnData.forEach(column => {
+        headers.push(`${column.title} (${column.sub_title})`)
+      })
+
+      const rows = listItem.rowData.map(row => {
+        const rowData = {
+          Medicine: row.stock_name
+        }
+
+        listItem.columnData.forEach(column => {
+          rowData[`${column.title} (${column.sub_title})`] = '₹0'
+        })
+
+        Object.entries(row.data_values).forEach(([month, value]) => {
+          const column = listItem.columnData.find(col => col.title === month)
+
+          if (column) {
+            if (value == null || isNaN(value)) {
+              // Handle null or NaN values
+              rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
+            } else {
+              const roundedValue = parseFloat(value) / 1000
+              const formattedValue = roundedValue.toLocaleString('en-IN', {
+                // style: 'currency',
+                // currency: 'INR',
+                maximumFractionDigits: 2
+              })
+              rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            }
+          }
+        })
+
+        return rowData
+      })
+
+      const totalPurchaseRow = {
+        Medicine: 'Total Purchase Value (in thousand)'
+      }
+      listItem.columnData.forEach(column => {
+        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
+        const formattedPurchaseValue = (column.total_received_value / 1000).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
+      })
+
+      const finalRows = [totalPurchaseRow, ...rows]
+
+      // Convert the rows and headers to worksheet format
+      const wsData = [headers, ...finalRows.map(row => Object.values(row))]
+
+      // Convert the data into a worksheet
+      const ws = utils.aoa_to_sheet(wsData)
+      const wb = utils.book_new()
+      utils.book_append_sheet(wb, ws, 'Dispatch_Report')
+
+      const now = new Date()
+      const dateStr = now.toISOString().slice(0, 10)
+      const timeStr = now.toTimeString().slice(0, 5).replace(/:/g, '-')
+      const fileName = `Receieved_Medicines_Report_${dateStr}_${timeStr}.xlsx`
+
+      writeFile(wb, fileName)
+    } catch (error) {
+      console.log('Error downloading report:', error)
+    }
+  }
+
   const headerAction = (
     <div>
       <LoadingButton
         size='medium'
         variant='contained'
         endIcon={<Icon icon='material-symbols:download' />}
-        // onClick={handleDownloadReport}
+        onClick={handleDownloadReport}
       >
         Download Report
       </LoadingButton>
@@ -683,7 +833,7 @@ const ReceivedMedicinesReport = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={params => handlecheckcell(params, 'received_medicines')}
+                  // onCellClick={params => handlecheckcell(params, 'received_medicines')}
                 />
               </Card>
               {openFilterDrawer && (
@@ -709,6 +859,8 @@ const ReceivedMedicinesReport = () => {
                   setFiltersApplied={setFiltersApplied}
                   searchClose={searchClose}
                   filtersearchValue={filtersearchValue}
+                  handleClose={handleClose}
+                  tempSelectedStores={tempSelectedStores}
                 />
               )}
               {openDoctorListDrawer && (
@@ -727,6 +879,7 @@ const ReceivedMedicinesReport = () => {
                   handleSearchDoctors={handleSearchDoctors}
                   searchbyDoctorname={searchbyDoctorname}
                   setsearchbyDoctorname={setsearchbyDoctorname}
+                  handleDownloadExcel={handleDownloadExcel}
                 />
               )}
             </>

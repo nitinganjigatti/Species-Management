@@ -22,7 +22,6 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
-import StoreWisedispatchFilter from '../storewiseDispatchFilterDrawer'
 import { getStoreWiseDispatchDetail, getDoctorReportList } from 'src/lib/api/pharmacy/getAllReports'
 import MedicineNamedoctorsList from 'src/components/pharmacy/dashBoard/doctorsList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
@@ -75,14 +74,15 @@ const StoreWiseDispatchDetail = () => {
   const [downloadFromDate, setDownloadFromDate] = useState(null)
   const [downloadToDate, setDownloadToDate] = useState(null)
   const [searchbyDoctorname, setsearchbyDoctorname] = useState('')
+  const [tempSelectedStores, setTempSelectedStores] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
     if (event.target.checked) {
       setFiltersApplied(false)
-      setSelectedStores(fullStoreList.map(fruit => fruit.id))
+      setTempSelectedStores(fullStoreList.map(fruit => fruit.id))
     } else {
-      setSelectedStores([])
+      setTempSelectedStores([])
     }
   }
 
@@ -299,7 +299,7 @@ const StoreWiseDispatchDetail = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Dispatch Value (in lac)
+                      Dispatch Value <br /> (in thousand)
                     </Typography>
                   </Box>
                 ),
@@ -357,7 +357,7 @@ const StoreWiseDispatchDetail = () => {
                         <Typography
                           sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 3 }}
                         >
-                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                          {` (${(column.total_purchase_value / 1000).toFixed(2)})`}
                         </Typography>
                       </Tooltip>
                     ) : (
@@ -365,7 +365,7 @@ const StoreWiseDispatchDetail = () => {
                         <Typography
                           sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 7 }}
                         >
-                          {` (${(column.total_purchase_value / 100000).toFixed(2)})`}
+                          {` (${(column.total_purchase_value / 1000).toFixed(2)})`}
                         </Typography>
                       </Tooltip>
                     )}
@@ -376,16 +376,19 @@ const StoreWiseDispatchDetail = () => {
                   if (isNaN(value)) {
                     return <span>{params.value}</span> // Show original value if it's not a number
                   }
-                  const roundedValue = Math.round(value)
-                  const formattedNumber = roundedValue.toLocaleString('en-IN', {
+                  const originalValue = Math.round(value)
+                  const formattedNumber = originalValue.toLocaleString('en-IN', {
                     // style: 'currency',
                     // currency: 'INR',
                     maximumFractionDigits: 0
                   })
-                  console.log(formattedNumber, 'formattedNumber')
+                  const valueInThousands = value / 1000
+                  const formattedThousands = valueInThousands.toLocaleString('en-IN', {
+                    maximumFractionDigits: 2
+                  })
                   return (
                     <Tooltip title={`Dispatch value: ${formattedNumber}`}>
-                      <span style={{ color: '#006D35' }}>{`${formattedNumber}`}</span>
+                      <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
                     </Tooltip>
                   )
                 },
@@ -432,6 +435,11 @@ const StoreWiseDispatchDetail = () => {
     setFilterLength('')
     setStoreList(fullStoreList) //
     setsearchbyDoctorname('')
+    setTempSelectedStores([])
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchClose = () => {
@@ -441,27 +449,39 @@ const StoreWiseDispatchDetail = () => {
     setPage(1)
     setFullStoreList([])
     fetchfilterValues({ page: 1 })
-
-    // Ensure paginated data is re-fetched from page 1
-    fetchfilterValues({ page: 1 })
   }
 
   const onApplyFilters = () => {
     setFiltersApplied(true)
     setOpenFilterDrawer(false)
-    setFilterLength(selectedFruits.length)
     setSearchValue('')
+    setSelectedStores(tempSelectedStores)
+    setFilterLength(tempSelectedStores.length)
+    setFilterSearchValue('')
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const handleFruitSelection = medicine_ids => {
     setFiltersApplied(false)
-    setSelectedStores(prevSelectedFruits => {
+    setTempSelectedStores(prevSelectedFruits => {
       if (prevSelectedFruits.includes(medicine_ids)) {
         return prevSelectedFruits.filter(id => id !== medicine_ids)
       } else {
         return [...prevSelectedFruits, medicine_ids]
       }
     })
+  }
+
+  const handleClose = () => {
+    setOpenFilterDrawer(false)
+    setFilterSearchValue('')
+    setFiltersApplied(true)
+    setTempSelectedStores(selectedFruits)
+    setPage(1)
+    setFullStoreList([])
+    fetchfilterValues({ page: 1 })
   }
 
   const searchTableDatafilter = useCallback(
@@ -552,8 +572,12 @@ const StoreWiseDispatchDetail = () => {
         const workbook = utils.book_new()
         utils.book_append_sheet(workbook, worksheet, 'DoctorList')
 
-        // Download the Excel file
-        writeFile(workbook, 'DoctorList.xlsx')
+        const now = new Date()
+        const formattedDate = now.toISOString().slice(0, 10) // YYYY-MM-DD
+        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') // HH-MM
+        const fileName = `DoctorList_${formattedDate}_${formattedTime}.xlsx`
+
+        writeFile(workbook, fileName)
       }
     } catch (e) {
       console.error('Error downloading Excel file', e)
@@ -601,24 +625,29 @@ const StoreWiseDispatchDetail = () => {
           const column = listItem.columnData.find(col => col.title === month)
 
           if (column) {
-            const roundedValue = parseFloat(value)
-            const formattedValue = roundedValue.toLocaleString('en-IN', {
-              // style: 'currency',
-              // currency: 'INR',
-              maximumFractionDigits: 0
-            })
-            rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            if (value == null || isNaN(value)) {
+              // Handle null or NaN values
+              rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
+            } else {
+              const roundedValue = parseFloat(value) / 1000
+              const formattedValue = roundedValue.toLocaleString('en-IN', {
+                // style: 'currency',
+                // currency: 'INR',
+                maximumFractionDigits: 2
+              })
+              rowData[`${column.title} (${column.sub_title})`] = formattedValue
+            }
           }
         })
 
         return rowData
       })
       const totalPurchaseRow = {
-        Medicine: 'Total Dispatch Value (in lac)'
+        Medicine: 'Total Dispatch Value (in thousand)'
       }
       listItem.columnData.forEach(column => {
         // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
-        const formattedPurchaseValue = (column.total_purchase_value / 100000).toLocaleString('en-IN', {
+        const formattedPurchaseValue = (column.total_purchase_value / 1000).toLocaleString('en-IN', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         })
@@ -632,7 +661,12 @@ const StoreWiseDispatchDetail = () => {
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 
-      writeFile(wb, 'Dispatch_Report.xlsx')
+      const now = new Date()
+      const dateStr = now.toISOString().slice(0, 10)
+      const timeStr = now.toTimeString().slice(0, 5).replace(/:/g, '-')
+      const fileName = `Storewise_Medicine_Report_${dateStr}_${timeStr}.xlsx`
+
+      writeFile(wb, fileName)
     } catch (error) {
       console.log('Error downloading report:', error)
     }
@@ -839,7 +873,7 @@ const StoreWiseDispatchDetail = () => {
                     }
                   }}
                   //onRowClick={handleEdit}
-                  onCellClick={handlecheckcell}
+                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (
@@ -865,6 +899,8 @@ const StoreWiseDispatchDetail = () => {
                   setFiltersApplied={setFiltersApplied}
                   searchClose={searchClose}
                   filtersearchValue={filtersearchValue}
+                  handleClose={handleClose}
+                  tempSelectedStores={tempSelectedStores}
                 />
               )}
               {openDoctorListDrawer && (

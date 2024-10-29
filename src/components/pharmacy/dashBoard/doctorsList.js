@@ -233,7 +233,7 @@ const MedicineNamedoctorsList = ({
                             }
                           />
                           <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#44544A' }}>
-                            {all?.doctor_name ? 'Dr. ' + all?.doctor_name : '-'}
+                            {all?.doctor_name ? all?.doctor_name : '-'}
                           </Typography>
                         </Box>
                         {medicinewiseval === 'received_medicines' ? (
