@@ -7,74 +7,79 @@ const AnimalCard = ({ animalDetails }) => {
   console.log('animalDetails :>> ', animalDetails)
 
   return (
-    <Box>
+    <Box
+      // key={i}
+      sx={{
+        backgroundColor: '#fff',
+        borderRadius: '8px',
+        paddingY: '20px',
+        paddingX: '16px',
+
+        // border: '1px solid #C3CEC7',
+        display: 'flex',
+        gap: '10px',
+        bgcolor: '#f2f2f2'
+      }}
+    >
       <Box
-        // key={i}
         sx={{
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          paddingY: '20px',
-          paddingX: '16px',
-          border: '1px solid #C3CEC7',
           display: 'flex',
-          gap: '10px'
+          flexDirection: 'column',
+          gap: '10px',
+          alignItems: 'center'
         }}
       >
         <Box
+          component='img'
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            alignItems: 'center'
+            p: 0.5,
+            width: 44,
+            height: 44,
+            border: '1px solid #C3CEC7',
+            borderRadius: '50%', // Makes it circular like Avatar
+            objectFit: 'contain'
           }}
-        >
-          <Box
-            component='img'
-            sx={{
-              p: 0.5,
-              width: 44,
-              height: 44,
-              border: '1px solid #C3CEC7',
-              borderRadius: '50%', // Makes it circular like Avatar
-              objectFit: 'contain'
-            }}
-            alt={animalDetails?.default_icon}
-            src={animalDetails?.default_icon}
-          />
-          <Box
-            sx={{
-              width: 24,
-              height: 24,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              bgcolor:
-                animalDetails?.sex === 'male' ? '#AFEFEB' : animalDetails?.sex === 'female' ? '#FFD3D3' : '#AFEFEB',
-              borderRadius: 10
-            }}
-          >
-            {animalDetails?.sex === 'male' ? (
-              <Typography sx={{ fontSize: 12 }}>M</Typography>
-            ) : animalDetails?.sex === 'female' ? (
-              <Typography sx={{ fontSize: 12 }}>F</Typography>
-            ) : animalDetails?.sex === 'undetermined' ? (
-              <Typography sx={{ fontSize: 12 }}>UD</Typography>
-            ) : animalDetails?.sex === 'indeterminate' ? (
-              <Typography sx={{ fontSize: 12 }}>ID</Typography>
-            ) : (
-              <Typography sx={{ fontSize: 12 }}>-</Typography>
-            )}
-          </Box>
-        </Box>
+          alt={animalDetails?.default_icon}
+          src={animalDetails?.default_icon}
+        />
         <Box
           sx={{
+            width: 24,
+            pt: 0.2,
+            pr: 0.2,
+            height: 24,
             display: 'flex',
-            flexDirection: 'column',
-            gap: '1px'
+            justifyContent: 'center',
+            alignItems: 'center',
+            bgcolor:
+              animalDetails?.sex === 'male' ? '#AFEFEB' : animalDetails?.sex === 'female' ? '#FFD3D3' : '#AFEFEB',
+            borderRadius: '4px'
           }}
         >
-          {animalDetails?.local_id_type && animalDetails?.local_identifier_value ? (
+          {animalDetails?.sex === 'male' ? (
+            <Typography sx={{ fontSize: 12, fontStyle: 'bold' }}>M</Typography>
+          ) : animalDetails?.sex === 'female' ? (
+            <Typography sx={{ fontSize: 12, fontStyle: 'bold' }}>F</Typography>
+          ) : animalDetails?.sex === 'undetermined' ? (
+            <Typography sx={{ fontSize: 12, fontStyle: 'bold' }}>UD</Typography>
+          ) : animalDetails?.sex === 'indeterminate' ? (
+            <Typography sx={{ fontSize: 12, fontStyle: 'bold' }}>ID</Typography>
+          ) : (
+            <Typography sx={{ fontSize: 12, fontStyle: 'bold' }}>-</Typography>
+          )}
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+
+          // alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1px'
+        }}
+      >
+        {/* {animalDetails?.local_id_type && animalDetails?.local_identifier_value ? (
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -97,28 +102,40 @@ const AnimalCard = ({ animalDetails }) => {
             >
               AID : {animalDetails?.animal_id}
             </Typography>
-          )}
+          )} */}
 
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {animalDetails?.default_common_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '13px',
-              fontWeight: 500,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            ({animalDetails?.scientific_name})
-          </Typography>
-          {/* {item?.type === 'group' && (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          ID : {animalDetails?.animal_id}
+        </Typography>
+
+        <Typography
+          sx={{
+            fontSize: '16px',
+            fontWeight: 600,
+            lineHeight: '19.36px',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          {animalDetails?.default_common_name}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '13px',
+            fontWeight: 500,
+            fontStyle: 'italic',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          ({animalDetails?.scientific_name})
+        </Typography>
+        {/* {item?.type === 'group' && (
             <Typography
               sx={{
                 width: '250px',
@@ -135,7 +152,7 @@ const AnimalCard = ({ animalDetails }) => {
               Count {item?.total_animal}
             </Typography>
           )} */}
-          <Typography
+        {/* <Typography
             sx={{
               fontSize: '14px',
               fontWeight: 400,
@@ -167,8 +184,7 @@ const AnimalCard = ({ animalDetails }) => {
           >
             <span style={{ fontWeight: 600 }}>Site: </span>
             {animalDetails?.site_name}
-          </Typography>
-        </Box>
+          </Typography> */}
       </Box>
     </Box>
   )
