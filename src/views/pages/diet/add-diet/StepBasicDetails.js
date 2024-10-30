@@ -1063,8 +1063,14 @@ const StepBasicDetails = ({
                                   {'REP' + all?.recipe_id}
                                 </Typography>
                               </Grid>
+                              {console.log(all, 'all')}
                               <Grid item xs={12} sm={1.0} sx={{ pl: 2 }}>
-                                <Typography>{all?.ingredients_count}</Typography>
+                                {/* <Typography>{all?.ingredients_count}</Typography> */}
+                                {all?.ingredients ? (
+                                  <Typography>{all?.ingredients?.length}</Typography>
+                                ) : (
+                                  <Typography>{all?.ingredient_name?.length}</Typography>
+                                )}
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>

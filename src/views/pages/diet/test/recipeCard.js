@@ -435,7 +435,7 @@ const RecipeCard = ({
                 </Box>
                 <Box sx={{ width: '333px' }}>
                   <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
-                    <Typography sx={{ ml: 4, fontSize: '20px', color: '#44544A', width: '178px', height: '24px' }}>
+                    <Typography sx={{ ml: 4, fontSize: '20px', color: '#44544A', width: '280px', height: '24px' }}>
                       {item.recipe_name}
                     </Typography>
                     <Typography variant='body' sx={{ ml: 4, fontSize: '14px', width: '79px', height: '17px', mt: 3 }}>

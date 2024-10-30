@@ -277,7 +277,7 @@ const StepAddIngredients = ({
     const isByPercentageValid = data.by_percentage.every(
       item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
-
+    console.log(data, 'data')
     // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
       item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
@@ -591,6 +591,7 @@ const StepAddIngredients = ({
                                 // }
                                 handlecheck(val?.id, index, 'by_percentage')
                                 setFormValue(`by_percentage[${index}].preparation_type`, '')
+                                setFormValue(`by_percentage[${index}].preparation_type_id`, '')
                               }
                             }}
                             onKeyUp={e => {
@@ -779,12 +780,15 @@ const StepAddIngredients = ({
                                 onChange('')
                                 setFormValue(`by_quantity[${index}].ingredient_name`, '')
                                 setFormValue(`by_quantity[${index}].feed_type_label`, '')
-                                setPreparationTypeListQuantity([])
+                                //setPreparationTypeListQuantity([])
+                                setFormValue(`by_quantity[${index}].preparation_type`, '')
                               } else {
                                 onChange(val?.id)
                                 setFormValue(`by_quantity[${index}].ingredient_name`, val?.ingredient_name)
                                 setFormValue(`by_quantity[${index}].feed_type_label`, val?.feed_type_label)
                                 handlecheck(val?.id, index, 'by_quantity')
+                                setFormValue(`by_quantity[${index}].preparation_type`, '')
+                                setFormValue(`by_quantity[${index}].preparation_type_id`, '')
                               }
                             }}
                             onKeyUp={e => {
