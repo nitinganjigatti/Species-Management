@@ -36,15 +36,25 @@ const ComposeLabNavigation = ({ labRole }) => {
   }
 
   const authData = useContext(AuthContext)
+
   const addlabPermission = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
+  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
+  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
   console.log('addlabPermission', addlabPermission)
 
   const labNavigationArray = []
 
   if (labList?.length > 0) {
     labNavigationArray.push(labTitle)
-    mastersLabParent.children.push(labTest, labSample)
+    if (!mastersLabParent.children) {
+      mastersLabParent.children = []
+    }
+
+    if (medical_add_samples && medical_add_tests) {
+      mastersLabParent.children.push(labTest, labSample)
+    }
+
     labNavigationArray.push(lab, request, mastersLabParent)
   } else if (addlabPermission) {
     labNavigationArray.push(labTitle)
