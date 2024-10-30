@@ -67,7 +67,12 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
       {disputeItemDetails?.item_details?.length > 0 ? (
         <Grid container xs={12} sx={{ mx: 'auto' }}>
           <Grid item xs={12}>
-            <Grid container xs={12} sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}>
+            <Grid
+              container
+              xs={12}
+              className='printable-container'
+              sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}
+            >
               {orderData?.from_store_name ? (
                 <Grid item md={2} sm={3} xs={6}>
                   <p style={{ margin: '0px' }}> Shipped From:</p>
@@ -129,7 +134,8 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     mb: theme => `${theme.spacing(3)} !important`,
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    p: 1
                   }}
                 >
                   <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
@@ -680,8 +686,8 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      flex: 0.5,
+      Width: 100,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -1390,12 +1396,39 @@ function OrderReceiveForm({ orderId, requestId }) {
                 margin: 0;
                 padding: 0;
               }
+                .printable-container {
+              background-color: #EFF5F2;
+              padding: 16px; 
+              border-radius: 8px;
+              border: 1px solid #e9e9ec;
+              margin-top: 16px;
+
+            }
+               .print-title {
+              position: absolute;
+              top: 20px;
+              left: 50%;
+              transform: translateX(-50%);
+              font-size: 24px;
+              font-weight: bold;
+              margin-top: 10px;
+            }
+         .footer {
+            text-align: center; 
+            font-size: 16px;
+            position: absolute;
+            bottom: 16px; 
+            width: calc(100%);
+          }
               /* Add more print-specific styles if needed */
             }
           </style>
         </head>
         <body>
+            <div>
           ${printContents}
+             </div>
+              <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
         </body>
       </html>
     `)
