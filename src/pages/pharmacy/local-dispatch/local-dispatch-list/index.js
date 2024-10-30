@@ -32,7 +32,7 @@ import { Box } from '@mui/material'
 
 import Utility from 'src/utility'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
@@ -211,7 +211,15 @@ const DirectDispatchList = () => {
       const currentStatus = filterSwitch ? 'completed' : status
 
       try {
-        await fetchTableData(sort, q, column, currentStatus, filterDates.startDate, filterDates.endDate,filterByStoreId)
+        await fetchTableData(
+          sort,
+          q,
+          column,
+          currentStatus,
+          filterDates.startDate,
+          filterDates.endDate,
+          filterByStoreId
+        )
       } catch (error) {
         console.error(error)
       }
@@ -264,6 +272,7 @@ const DirectDispatchList = () => {
       limit: paginationModel.pageSize,
       days: selectDays,
       filterSwitch
+
       // store: filterByStoreId,
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -571,6 +580,7 @@ const DirectDispatchList = () => {
                       alignItems: 'center',
                       border: '1px solid #C3CEC7',
                       borderRadius: '8px',
+
                       // borderRadius: '4px',
                       padding: '0 8px',
                       ml: 5,
@@ -685,7 +695,7 @@ const DirectDispatchList = () => {
                   mx: 4 // Add margin to both left and right
                 }}
               >
-                <TableData
+                <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
                   total={total}
@@ -710,7 +720,7 @@ const DirectDispatchList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             <Tab
-             sx={{ml:3}}
+              sx={{ ml: 3 }}
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />

@@ -31,7 +31,7 @@ import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfMedicine = () => {
@@ -72,7 +72,7 @@ const ListOfMedicine = () => {
       headerName: 'SL NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no) + "."}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -453,7 +453,7 @@ const ListOfMedicine = () => {
                     mx: 4
                   }}
                 >
-                  <TableData
+                  <CommonTable
                     onRowClick={handleEdit}
                     indexedRows={indexedRows}
                     total={total}

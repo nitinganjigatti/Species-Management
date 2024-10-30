@@ -32,7 +32,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 
 import Chip from '@mui/material/Chip'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfStockAdjusted = () => {
@@ -57,9 +57,11 @@ const ListOfStockAdjusted = () => {
     setNotesDialog(false)
     setExpandedText('')
   }
+
   const openNotesDialog = () => {
     setNotesDialog(true)
   }
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setSearchValue('')
@@ -167,7 +169,7 @@ const ListOfStockAdjusted = () => {
       headerName: 'S.NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl +"."}
+          {params.row.sl + '.'}
         </Typography>
       )
     },
@@ -178,12 +180,15 @@ const ListOfStockAdjusted = () => {
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_name}
         </Typography>
       )
@@ -194,12 +199,15 @@ const ListOfStockAdjusted = () => {
       field: 'batch_no',
       headerName: 'Batch number ',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -212,12 +220,15 @@ const ListOfStockAdjusted = () => {
       field: 'adjustment_quantity',
       headerName: 'Adjustment quantity',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.adjustment_quantity}
         </Typography>
       )
@@ -228,12 +239,15 @@ const ListOfStockAdjusted = () => {
       field: 'reason_name',
       headerName: 'Reason',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.reason_name}
         </Typography>
       )
@@ -274,12 +288,15 @@ const ListOfStockAdjusted = () => {
       field: 'expiry_date',
       headerName: 'Expiry  Date',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
@@ -351,7 +368,7 @@ const ListOfStockAdjusted = () => {
   const title = (
     <>
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-      Stock Adjustment List
+        Stock Adjustment List
       </Typography>
     </>
   )
@@ -359,43 +376,43 @@ const ListOfStockAdjusted = () => {
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title= {title} action={headerAction} />
+        <CardHeader title={title} action={headerAction} />
         <Box display='flex' justifyContent='space-between' alignItems='center'>
-            {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
-              <Box
+          {/* Left Box (Search Field) */}
+          <Grid item xs={8}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #C3CEC7',
+                borderRadius: '8px',
+                padding: '0 8px',
+                ml: 5,
+                height: '40px',
+                width: '250px' // Set a fixed width for all status
+              }}
+            >
+              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+              <TextField
+                variant='outlined'
+                value={searchValue}
+                placeholder='Search...'
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px' // Set a fixed width for all status
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
                     }
-                  }}
-                />
-              </Box>
-            </Grid>
+                  }
+                }}
+              />
+            </Box>
+          </Grid>
 
-            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+          {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
               {status === 'all' || status === 'completed' ? (
                 <Box sx={{ float: 'right', mt: 1 }}>
                   <FormControlLabel
@@ -406,24 +423,24 @@ const ListOfStockAdjusted = () => {
                 </Box>
               ) : null}
             </Grid> */}
-          </Box>
-          <Grid
-            sx={{
-              mx: 4
-            }}
-          >
-            <TableData
-              onRowClick= {""}
-              indexedRows={indexedRows}
-              total={total}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-            />
-          </Grid>
+        </Box>
+        <Grid
+          sx={{
+            mx: 4
+          }}
+        >
+          <CommonTable
+            onRowClick={''}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={searchValue}
+          />
+        </Grid>
         {/* <DataGrid
           sx={{
             '.MuiDataGrid-cell:focus': {
@@ -481,7 +498,7 @@ const ListOfStockAdjusted = () => {
             <TabContext value={status}>
               <TabList onChange={handleChange}>
                 <Tab
-                  sx={{ml:3}}
+                  sx={{ ml: 3 }}
                   value='Missing stock'
                   label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
                 />

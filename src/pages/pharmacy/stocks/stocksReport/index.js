@@ -57,11 +57,17 @@ import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import ExpiringMedicine from '../expired-medicine/expiringStock'
 import { useTheme } from '@emotion/react'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { useRouter } from 'next/router'
 
 const ListOfStocks = () => {
   const theme = useTheme()
+  const router = useRouter()
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
   const { selectedPharmacy } = usePharmacyContext()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
@@ -86,7 +92,7 @@ const ListOfStocks = () => {
   const [loader, setLoader] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [show, setShow] = useState(false)
-  const [value, setValue] = useState('1')
+  const [value, setValue] = useState(router.query.value || '1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
   const [changeSwitch, setChangeSwitch] = useState()
@@ -94,6 +100,9 @@ const ListOfStocks = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+    updateUrlParams({
+      value: newValue
+    })
   }
 
   const closeDialog = () => {
@@ -238,6 +247,9 @@ const ListOfStocks = () => {
 
   useEffect(() => {
     getStoresLists()
+    updateUrlParams({
+      value: value
+    })
   }, [])
 
   useEffect(() => {
@@ -1084,7 +1096,7 @@ const ListOfStocks = () => {
 
             </Box> */}
             <TabList onChange={handleChange} aria-label='simple tabs example'>
-              <Tab  sx={{ml:3}}value='1' label='Stock Report' />
+              <Tab sx={{ ml: 3 }} value='1' label='Stock Report' />
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
               <Tab value='4' label='Expired Products' />
@@ -1202,7 +1214,7 @@ const ListOfStocks = () => {
                         mx: 4
                       }}
                     >
-                      <TableData
+                      <CommonTable
                         onRowClick={handleStockRowClick}
                         indexedRows={batchIndexedRows === undefined ? [] : batchIndexedRows}
                         total={batchTotal}
@@ -1220,7 +1232,7 @@ const ListOfStocks = () => {
                         mx: 4
                       }}
                     >
-                      <TableData
+                      <CommonTable
                         onRowClick={''}
                         indexedRows={indexedRows}
                         total={total}

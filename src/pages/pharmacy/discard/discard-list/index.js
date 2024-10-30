@@ -20,11 +20,12 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
+
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -127,7 +128,7 @@ const ListOfDiscardProducts = () => {
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(  params.row.sl) + "."}
+          {parseInt(params.row.sl) + '.'}
         </Typography>
       )
     },
@@ -255,7 +256,10 @@ const ListOfDiscardProducts = () => {
         }}
         title='Import Inventory'
       /> */}
-      <AddButtonContained title='Return to Supplier' action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })} />
+      <AddButtonContained
+        title='Return to Supplier'
+        action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
+      />
     </Grid>
   )
 
@@ -336,7 +340,7 @@ const ListOfDiscardProducts = () => {
                   mx: 4
                 }}
               >
-                <TableData
+                <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
                   total={total}

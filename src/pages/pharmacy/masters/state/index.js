@@ -36,7 +36,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfStates = () => {
@@ -403,7 +403,7 @@ const ListOfStates = () => {
                     mx: 4
                   }}
                 >
-                  <TableData
+                  <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
                     total={total}

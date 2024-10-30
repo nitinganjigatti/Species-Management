@@ -27,9 +27,8 @@ import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 
-
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
@@ -259,12 +258,15 @@ const DirectDispatchList = () => {
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_number}
         </Typography>
       )
@@ -275,12 +277,15 @@ const DirectDispatchList = () => {
       field: 'request_date',
       headerName: 'Dispatched date',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.request_date)}
         </Typography>
       )
@@ -291,12 +296,15 @@ const DirectDispatchList = () => {
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
         </Typography>
       )
@@ -307,12 +315,15 @@ const DirectDispatchList = () => {
       field: 'to_store',
       headerName: getRequestedText(),
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
         </Typography>
       )
@@ -324,15 +335,18 @@ const DirectDispatchList = () => {
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
-      headerAlign:"left",
+      headerAlign: 'left',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.total_qty}
         </Typography>
       )
@@ -416,6 +430,7 @@ const DirectDispatchList = () => {
       ) : null}
     </div>
   )
+
   const title = (
     <>
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
@@ -431,7 +446,6 @@ const DirectDispatchList = () => {
           <FallbackSpinner />
         ) : (
           <>
-
             <Card>
               <CardHeader title={title} action={headerAction} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -469,7 +483,6 @@ const DirectDispatchList = () => {
                   </Box>
                 </Grid>
 
-               
                 <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                   {status === 'all' || status === 'completed' ? (
                     <Box sx={{ float: 'right', mt: 1 }}>
@@ -492,12 +505,12 @@ const DirectDispatchList = () => {
                   />
                 </Box>
               ) : null} */}
-               <Grid
+              <Grid
                 sx={{
                   mx: 4
                 }}
               >
-                <TableData
+                <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
                   total={total}
@@ -523,14 +536,14 @@ const DirectDispatchList = () => {
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             {selectedPharmacy?.type === 'central' ? (
               <Tab
-               sx={{ml:3}}
+                sx={{ ml: 3 }}
                 value='pending'
                 label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
               />
             ) : null}
 
             <Tab
-             sx={{ml:3}}
+              sx={{ ml: 3 }}
               value='shipped'
               label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />

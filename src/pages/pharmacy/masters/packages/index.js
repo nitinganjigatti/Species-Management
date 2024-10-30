@@ -19,7 +19,6 @@ import { debounce } from 'lodash'
 import Router from 'next/router'
 import { useTheme } from '@emotion/react'
 
-
 import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
 
 import AddPackages from 'src/views/pages/pharmacy/medicine/packages/addPackages'
@@ -35,7 +34,7 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ManufacturerList = () => {
@@ -99,7 +98,7 @@ const ManufacturerList = () => {
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no) + "."}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -109,12 +108,15 @@ const ManufacturerList = () => {
       field: 'label',
       headerName: 'Package',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.label}
         </Typography>
       )
@@ -126,12 +128,15 @@ const ManufacturerList = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
@@ -338,7 +343,7 @@ const ManufacturerList = () => {
                     mx: 4
                   }}
                 >
-                  <TableData
+                  <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
                     total={total}

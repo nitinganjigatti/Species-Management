@@ -1,4 +1,15 @@
-import { Avatar, Box, Card, CardHeader, Grid, TextField, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Card,
+  CardHeader,
+  Grid,
+  TextField,
+  Typography,
+  debounce,
+  FormControlLabel,
+  Switch
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -11,7 +22,7 @@ import moment from 'moment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
@@ -285,13 +296,12 @@ function Dispense() {
               mx: 4
             }}
           >
-            <TableData
+            <CommonTable
               onRowClick={onRowClick}
               indexedRows={indexedRows}
               total={total}
               columns={columns}
               paginationModel={paginationModel}
-              // handleSortModel={handleSortModel}
               setPaginationModel={setPaginationModel}
               loading={loading}
               searchValue={searchValue}

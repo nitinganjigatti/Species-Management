@@ -13,6 +13,7 @@ import Divider from '@mui/material/Divider'
 
 function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvailableDialog }) {
   const theme = useTheme()
+
   const defaultValues = {
     comments: ''
   }
@@ -88,7 +89,16 @@ function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvail
       </Card>
       <Divider sx={{ border: '0.5 solid #DAE7DF', position: 'relative', bottom: '20px' }} />
 
-      <Typography sx={{ my: 3, fontSize: '16px', fontWeight: '500', fontFamily: 'Inter', color: theme.palette.customColors.customDarkBg, mb: 5 }}>
+      <Typography
+        sx={{
+          my: 3,
+          fontSize: '16px',
+          fontWeight: '500',
+          fontFamily: 'Inter',
+          color: theme.palette.customColors.customDarkBg,
+          mb: 5
+        }}
+      >
         Add Comments
       </Typography>
 

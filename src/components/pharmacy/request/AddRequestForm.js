@@ -432,6 +432,7 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
+      console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
         let optionMedListFromApi = searchResults?.data?.list_items?.map(item => ({
           value: item.id,

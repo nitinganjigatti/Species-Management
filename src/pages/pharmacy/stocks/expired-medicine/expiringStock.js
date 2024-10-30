@@ -18,7 +18,7 @@ import Grid from '@mui/material/Grid'
 import { useTheme } from '@emotion/react'
 
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -267,6 +267,7 @@ const ExpiringMedicine = () => {
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>About To Expire</Typography>
     </>
   )
+
   return (
     <>
       {loader ? (
@@ -409,7 +410,7 @@ const ExpiringMedicine = () => {
                 mx: 4
               }}
             >
-              <TableData
+              <CommonTable
                 onRowClick={''}
                 indexedRows={indexedRows}
                 total={total}

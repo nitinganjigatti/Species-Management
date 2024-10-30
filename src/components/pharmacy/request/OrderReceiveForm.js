@@ -830,8 +830,6 @@ function OrderReceiveForm({ orderId, requestId }) {
                         action={closeDisputeDialog}
                         content={
                           <Box sx={{ m: 0 }}>
-                            {/* <DialogTitle id='alert-dialog-title'>Hello</DialogTitle> */}
-                            {/* {rejectItemsPayload.length > 0 ? ( */}
                             <>
                               <DialogContent>
                                 <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>

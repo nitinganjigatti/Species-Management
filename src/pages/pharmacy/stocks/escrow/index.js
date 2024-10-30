@@ -12,7 +12,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 function Escrow() {
   const theme = useTheme()
@@ -205,6 +205,7 @@ function Escrow() {
       fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type })
     }
   }
+
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setSearchValue(q)
@@ -216,6 +217,7 @@ function Escrow() {
     }, 1000),
     []
   )
+
   const handleSearch = async value => {
     setSearchValue(value)
     await searchTableData({ sort, q: value, column: sortColumn })
@@ -271,7 +273,7 @@ function Escrow() {
               </Grid>
 
               {/* Group of two boxes on the right */}
-              <FormControl size='small' sx={{ mr:5, my: 2 }}>
+              <FormControl size='small' sx={{ mr: 5, my: 2 }}>
                 <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
                 <Select
                   size='small'
@@ -311,7 +313,7 @@ function Escrow() {
                 mx: 4
               }}
             >
-              <TableData
+              <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}
                 total={total}
@@ -323,7 +325,7 @@ function Escrow() {
                 searchValue={searchValue}
               />
             </Grid>
-{/* 
+            {/*
             <DataGrid
               autoHeight
               pagination

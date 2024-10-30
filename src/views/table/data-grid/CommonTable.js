@@ -1,7 +1,8 @@
+/* eslint-disable lines-around-comment */
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 
-const TableData = ({
+const CommonTable = ({
   onRowClick,
   indexedRows,
   total,
@@ -84,4 +85,4 @@ const TableData = ({
   )
 }
 
-export default TableData
+export default CommonTable

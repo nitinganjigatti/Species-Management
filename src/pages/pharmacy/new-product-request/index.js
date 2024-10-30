@@ -36,7 +36,7 @@ import { useTheme } from '@emotion/react'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 export default function NewProductList() {
@@ -80,7 +80,7 @@ export default function NewProductList() {
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(  params.row.sl_no) + "."}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -91,12 +91,15 @@ export default function NewProductList() {
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2'  sx={{
+          <Typography
+            variant='body2'
+            sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: 'Inter'
-            }}>
+            }}
+          >
             {params?.row?.request_number}
           </Typography>
         </div>
@@ -109,12 +112,15 @@ export default function NewProductList() {
       headerName: 'From Store',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2'  sx={{
+          <Typography
+            variant='body2'
+            sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: 'Inter'
-            }}>
+            }}
+          >
             {params?.row?.from_store_name}
           </Typography>
         </div>
@@ -128,12 +134,15 @@ export default function NewProductList() {
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index}  sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}>
+            <Typography
+              key={index}
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               {item?.product_name}
             </Typography>
           ))}
@@ -147,12 +156,15 @@ export default function NewProductList() {
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.priority}
         </Typography>
       )
@@ -163,12 +175,15 @@ export default function NewProductList() {
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.requested_user_name}
         </Typography>
       )
@@ -179,17 +194,20 @@ export default function NewProductList() {
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
-      headerAlign:"left",
+      headerAlign: 'left',
       align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index}  sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}>
+            <Typography
+              key={index}
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               {item?.quantity}
             </Typography>
           ))}
@@ -203,12 +221,15 @@ export default function NewProductList() {
       field: 'created_at',
       headerName: 'CREATED Date',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
@@ -219,12 +240,15 @@ export default function NewProductList() {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.status}
         </Typography>
       )
@@ -300,10 +324,14 @@ export default function NewProductList() {
     <>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButtonContained title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
+          <AddButtonContained
+            title='Add Product'
+            action={() => router.push('/pharmacy/new-product-request/request-product/')}
+          />
         )}
     </>
   )
+
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -312,6 +340,7 @@ export default function NewProductList() {
       ) : null}
     </div>
   )
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column, status }) => {
       setSearchValue(q)
@@ -429,7 +458,7 @@ export default function NewProductList() {
               mx: 4
             }}
           >
-            <TableData
+            <CommonTable
               onRowClick={onRowClick}
               indexedRows={indexedRows}
               total={total}
@@ -499,6 +528,7 @@ export default function NewProductList() {
       </>
     )
   }
+
   return (
     <>
       {loader ? (
@@ -507,7 +537,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
-             sx={{ml:3}}
+              sx={{ ml: 3 }}
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

@@ -28,7 +28,7 @@ import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ReturnRequestList = () => {
@@ -566,6 +566,7 @@ const ReturnRequestList = () => {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
+
   const title = (
     <>
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
@@ -705,7 +706,7 @@ const ReturnRequestList = () => {
                   mx: 4
                 }}
               >
-                <TableData
+                <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
                   total={total}
@@ -731,13 +732,13 @@ const ReturnRequestList = () => {
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             {selectedPharmacy?.type === 'local' ? (
               <Tab
-              sx={{ml:3}}
+                sx={{ ml: 3 }}
                 value='pending'
                 label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
               />
             ) : null}
             <Tab
-              sx={selectedPharmacy?.type === 'central' && {ml:3}}
+              sx={selectedPharmacy?.type === 'central' && { ml: 3 }}
               value='shipped'
               label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
             />

@@ -21,7 +21,7 @@ import Error404 from 'src/pages/404'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@emotion/react'
 
 const Supplier = () => {
@@ -41,6 +41,7 @@ const Supplier = () => {
   const getSupplierList = useCallback(async () => {
     try {
       setLoader(true)
+
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize
@@ -244,7 +245,7 @@ const Supplier = () => {
               </Grid>
 
               <Grid sx={{ mx: 4 }}>
-                <TableData
+                <CommonTable
                   columns={columns}
                   indexedRows={supplierList}
                   paginationModel={paginationModel}

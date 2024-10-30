@@ -37,11 +37,12 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfPurchase = () => {
   const theme = useTheme()
+
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -141,7 +142,7 @@ const ListOfPurchase = () => {
       headerName: 'SL NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl + "."}
+          {params.row.sl + '.'}
         </Typography>
       )
     },
@@ -262,7 +263,10 @@ const ListOfPurchase = () => {
         }}
         title='Import Inventory'
       />
-      <AddButtonContained title='Add Inventory' action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })} />
+      <AddButtonContained
+        title='Add Inventory'
+        action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
+      />
     </Grid>
   )
 
@@ -329,7 +333,7 @@ const ListOfPurchase = () => {
                   mx: 4
                 }}
               >
-                <TableData
+                <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
                   total={total}

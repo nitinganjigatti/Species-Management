@@ -21,11 +21,10 @@ import Icon from 'src/@core/components/icon'
 import { Box, CardHeader, TextField } from '@mui/material'
 import { useTheme } from '@emotion/react'
 
-
 import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { escapeRegExp } from '@mui/x-data-grid/utils/utils'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
@@ -201,7 +200,7 @@ const ListOfRacks = () => {
       headerName: 'S.NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid +"."}
+          {params.row.uid + '.'}
         </Typography>
       )
     },
@@ -212,12 +211,15 @@ const ListOfRacks = () => {
       field: 'store_name',
       headerName: 'STORE NAME',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.store_name}
         </Typography>
       )
@@ -228,12 +230,15 @@ const ListOfRacks = () => {
       field: 'name',
       headerName: 'RACK NAME',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.name}
         </Typography>
       )
@@ -244,12 +249,15 @@ const ListOfRacks = () => {
       field: 'shelfs',
       headerName: 'SHELFS',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.shelfs}
         </Typography>
       )
@@ -260,12 +268,15 @@ const ListOfRacks = () => {
       field: 'position',
       headerName: 'POSITION',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.position}
         </Typography>
       )
@@ -277,12 +288,15 @@ const ListOfRacks = () => {
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.status}
         </Typography>
       )
@@ -336,9 +350,7 @@ const ListOfRacks = () => {
 
   const title = (
     <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-      Rack List
-      </Typography>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Rack List</Typography>
     </>
   )
 
@@ -348,46 +360,45 @@ const ListOfRacks = () => {
         <FallbackSpinner />
       ) : (
         <>
-           {/* <TableWithFilter TableTitle={title} headerActions={addRackButton} columns={columns} rows={racks} /> */}
+          {/* <TableWithFilter TableTitle={title} headerActions={addRackButton} columns={columns} rows={racks} /> */}
           <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader title={title} action={addRackButton} />
+            <CardHeader title={title} action={addRackButton} />
 
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
-            {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px' // Set a fixed width for all status
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
                   }}
-                />
-              </Box>
-            </Grid>
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
 
-            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
               {status === 'all' || status === 'completed' ? (
                 <Box sx={{ float: 'right', mt: 1 }}>
                   <FormControlLabel
@@ -398,25 +409,25 @@ const ListOfRacks = () => {
                 </Box>
               ) : null}
             </Grid> */}
-          </Box>
-          <Grid
-            sx={{
-              mx: 4
-            }}
-          >
-            <TableData
-              onRowClick={""}
-              indexedRows={filteredData.length ? filteredData : data}
-              total={""}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={""}
-              setPaginationModel={setPaginationModel}
-              loading={""}
-              searchValue={searchValue}
-            />
-          </Grid>
-        </Card>
+            </Box>
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <CommonTable
+                onRowClick={''}
+                indexedRows={filteredData.length ? filteredData : data}
+                total={''}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={''}
+                setPaginationModel={setPaginationModel}
+                loading={''}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
 
           <ConfirmDialog
             closeDialog={handleClose}

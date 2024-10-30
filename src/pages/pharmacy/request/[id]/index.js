@@ -3492,6 +3492,7 @@ const IndividualRequest = () => {
                                       pathname: `/pharmacy/request/${id}/shipment-details`,
                                       query: { orderId: e.id }
                                     })
+
                                     // showOrderFormDialog()
                                   }}
                                 ></TableBasic>

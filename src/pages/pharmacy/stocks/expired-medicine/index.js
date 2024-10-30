@@ -15,8 +15,7 @@ import { ExcelExportButton } from 'src/components/Buttons'
 import { Grid, TextField, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
-import TableData from 'src/views/table/data-grid/TableData'
-
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -187,7 +186,7 @@ const ExpiredMedicine = () => {
       headerName: 'Qty',
       type: 'number',
       align: 'left',
-      headerAlign:"left",
+      headerAlign: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -230,12 +229,10 @@ const ExpiredMedicine = () => {
   //   return <h1>{error.message}</h1>
   // }
 
-  const title =(
+  const title = (
     <>
-    <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-    Expired Products
-    </Typography>
-  </>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Expired Products</Typography>
+    </>
   )
 
   return (
@@ -260,58 +257,58 @@ const ExpiredMedicine = () => {
                 </Box>
               }
             />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-            {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px' // Set a fixed width for all status
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
                   }}
-                />
-              </Box>
-            </Grid>
-          </Box>
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+            </Box>
 
-          <Grid
-            sx={{
-              mx: 4
-            }}
-          >
-            <TableData
-              onRowClick= {""}
-              indexedRows={indexedRows}
-              total={total}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-            />
-          </Grid>
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <CommonTable
+                onRowClick={''}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
 
             {/* <DataGrid
               sx={{

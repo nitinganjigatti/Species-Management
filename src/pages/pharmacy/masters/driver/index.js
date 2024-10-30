@@ -23,7 +23,6 @@ import { debounce } from 'lodash'
 
 import { useTheme } from '@emotion/react'
 
-
 import toast from 'react-hot-toast'
 
 import Router from 'next/router'
@@ -37,7 +36,7 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const Salts = () => {
@@ -101,7 +100,7 @@ const Salts = () => {
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no) + "."}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -111,13 +110,16 @@ const Salts = () => {
       field: 'driver_name',
       headerName: 'Driver Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
 
-          fontFamily: 'Inter'
-        }}>
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.driver_name}
         </Typography>
       )
@@ -128,13 +130,16 @@ const Salts = () => {
       field: 'phone_number',
       headerName: 'Phone Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
 
-          fontFamily: 'Inter'
-        }}>
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.phone_number}
         </Typography>
       )
@@ -145,13 +150,16 @@ const Salts = () => {
       field: 'vehicle_number',
       headerName: 'Vehicle Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
 
-          fontFamily: 'Inter'
-        }}>
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.vehicle_number}
         </Typography>
       )
@@ -369,7 +377,7 @@ const Salts = () => {
                     mx: 4
                   }}
                 >
-                  <TableData
+                  <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
                     total={total}

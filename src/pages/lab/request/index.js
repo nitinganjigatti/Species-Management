@@ -32,7 +32,7 @@ import { useRouter } from 'next/router'
 import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
 import { jsx } from '@emotion/react'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ListOfRequest = () => {
   const theme = useTheme()
@@ -124,12 +124,15 @@ const ListOfRequest = () => {
       field: 'created_at',
       headerName: 'Date',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDate(params.row.created_at)}
         </Typography>
       )
@@ -140,12 +143,15 @@ const ListOfRequest = () => {
       field: 'total_test',
       headerName: 'No. of Tests ',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <span alt={params.row.total_test}>{params.row.total_lab_tests}</span>
         </Typography>
       )
@@ -572,7 +578,7 @@ const ListOfRequest = () => {
                 mx: 4
               }}
             >
-              <TableData
+              <CommonTable
                 onRowClick={''}
                 indexedRows={indexedRows}
                 total={total}
@@ -584,7 +590,7 @@ const ListOfRequest = () => {
                 searchValue={searchValue}
               />
             </Grid> */}
-            
+
             <DataGrid
               autoHeight
               pagination

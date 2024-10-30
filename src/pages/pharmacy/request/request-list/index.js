@@ -30,7 +30,7 @@ import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } f
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const RequestList = () => {
@@ -795,7 +795,7 @@ const RequestList = () => {
                 mx: 4
               }}
             >
-              <TableData
+              <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}
                 total={total}

@@ -27,7 +27,7 @@ import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ListOfLab = () => {
   const theme = useTheme()
@@ -191,14 +191,17 @@ const ListOfLab = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          textTransform: 'capitalize',
-     
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'capitalize',
+
+            fontFamily: 'Inter'
+          }}
+        >
           {parseInt(params.row.status) === 0 ? 'Inactive' : 'Active'}
         </Typography>
       )
@@ -330,8 +333,6 @@ const ListOfLab = () => {
     sl_no: getSlNo(index)
   }))
 
-  
-
   return (
     <>
       {loader ? (
@@ -346,9 +347,8 @@ const ListOfLab = () => {
             show={showDialog}
           /> */}
           <Card>
-            <CardHeader title= "Lab List" action={headerAction} />
-           
-        
+            <CardHeader title='Lab List' action={headerAction} />
+
             <DataGrid
               autoHeight
               pagination

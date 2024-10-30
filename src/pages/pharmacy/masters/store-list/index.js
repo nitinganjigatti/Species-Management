@@ -35,7 +35,7 @@ import { AuthContext } from 'src/context/AuthContext'
 
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
-import TableData from 'src/views/table/data-grid/TableData'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfStores = () => {
@@ -90,7 +90,7 @@ const ListOfStores = () => {
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no + "."}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -100,12 +100,15 @@ const ListOfStores = () => {
       field: 'type',
       headerName: 'TYPE',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.type}
         </Typography>
       )
@@ -116,12 +119,15 @@ const ListOfStores = () => {
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.name}
         </Typography>
       )
@@ -132,12 +138,15 @@ const ListOfStores = () => {
       field: 'latitude',
       headerName: 'LATITUDE',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.latitude}
         </Typography>
       )
@@ -148,12 +157,15 @@ const ListOfStores = () => {
       field: 'logitude',
       headerName: 'LONGITUDE',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.logitude}
         </Typography>
       )
@@ -165,12 +177,15 @@ const ListOfStores = () => {
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.site_name}
         </Typography>
       )
@@ -182,12 +197,15 @@ const ListOfStores = () => {
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2'  sx={{
-          color: theme.palette.customColors.customHeadingTextColor,
-          fontSize: '14px',
-          fontWeight: 500,
-          fontFamily: 'Inter'
-        }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.status}
         </Typography>
       )
@@ -406,7 +424,7 @@ const ListOfStores = () => {
                     mx: 4
                   }}
                 >
-                  <TableData
+                  <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
                     total={total}
