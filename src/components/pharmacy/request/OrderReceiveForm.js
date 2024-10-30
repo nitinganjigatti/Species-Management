@@ -161,7 +161,11 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 </Box>
                 <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
                   <Box sx={{ width: '100%', overflow: 'auto' }}>
-                    <TableBasic columns={columns} rows={disputeItemDetails?.item_details}></TableBasic>
+                    <TableBasic
+                      columns={columns}
+                      rows={disputeItemDetails?.item_details}
+                      backgroundColor={'#C1D3D0'}
+                    ></TableBasic>
                   </Box>
                 </Grid>
               </>
@@ -761,6 +765,8 @@ function OrderReceiveForm({ orderId, requestId }) {
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
       renderCell: params => {
+        console.log(params.row, 'Anu')
+
         return (
           <>
             {selectedPharmacy.type === 'central' ? (
@@ -771,8 +777,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                     gap: 2,
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    textTransform: 'capitalize',
-                    backgroundColor: 'red'
+                    textTransform: 'capitalize'
+                    // backgroundColor: 'red'
                   }}
                 >
                   <Typography variant='p' sx={{ mx: 2 }}>
@@ -810,8 +816,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                           onClick={() => {
                             resolveItems(params.row)
                           }}
-                          sx={{ padding: 0 }}
-                          color='success'
+                          sx={{ padding: 0, color: '#37BD69' }}
+                          // color='success'
                         >
                           <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
                         </IconButton>
@@ -822,9 +828,9 @@ function OrderReceiveForm({ orderId, requestId }) {
                         onClick={() => {
                           rejectItems(params.row)
                         }}
-                        sx={{ padding: 0 }}
+                        sx={{ padding: 0, color: '#E93353' }}
                         size='large'
-                        color='error'
+                        // color='error'
                       >
                         <Icon icon='ion:close-circle' />
                       </IconButton>
@@ -834,11 +840,16 @@ function OrderReceiveForm({ orderId, requestId }) {
                           closeDisputeDialog()
                         }}
                         action={closeDisputeDialog}
+                        title={'Reason to deny'}
                         content={
                           <Box sx={{ m: 0 }}>
+                            {/* <DialogTitle id='alert-dialog-title'>Reason to deny</DialogTitle> */}
+                            {/* {rejectItemsPayload.length > 0 ? ( */}
+                            {/* <DialogContentText sx={{ mb: 3 }}>Reason to deny</DialogContentText> */}
                             <>
                               <DialogContent>
-                                <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
+                                {/* <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText> */}
+                                {/* <DialogContentText sx={{ mb: 3 }}>Reason to deny</DialogContentText> */}
                                 <FormControl fullWidth>
                                   <TextField
                                     id='name'
@@ -855,6 +866,9 @@ function OrderReceiveForm({ orderId, requestId }) {
                                       setRejectItemsError(null)
                                     }}
                                     label='Comment'
+                                    sx={{
+                                      backgroundColor: '#FCF4AE33'
+                                    }}
                                   />
 
                                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -864,8 +878,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                               </DialogContent>
                               <DialogActions className='dialog-actions-dense'>
                                 <Button
-                                  variant='contained'
-                                  color='error'
+                                  variant='outlined'
+                                  // color='error'
                                   size='small'
                                   onClick={() => {
                                     closeDisputeDialog()
@@ -1061,78 +1075,94 @@ function OrderReceiveForm({ orderId, requestId }) {
                               xs={5}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              <FormControl size='small' style={{ width: '100%' }}>
-                                <Select
-                                  label=''
-                                  // disabled={getDisableStatus(params.row.id)}
+                              {!params?.row?.wrong_count_type === 'shortage' ? (
+                                <FormControl size='small' style={{ width: '100%' }}>
+                                  <Select
+                                    label=''
+                                    // disabled={getDisableStatus(params.row.id)}
 
-                                  name='wrong_count_type'
-                                  size='small'
-                                  style={{ fontSize: '12px' }}
-                                  value={params?.row?.wrong_count_type}
-                                  error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
-                                  onChange={event => handleStatusChange(params.row.id, event)}
-                                >
-                                  <MenuItem value='shortage' style={{ fontSize: '12px' }}>
-                                    Shortage
-                                  </MenuItem>
-                                  <MenuItem value='excess' style={{ fontSize: '12px' }}>
-                                    Excess
-                                  </MenuItem>
-                                </Select>
-                              </FormControl>
+                                    name='wrong_count_type'
+                                    size='small'
+                                    style={{ fontSize: '12px' }}
+                                    value={params?.row?.wrong_count_type}
+                                    error={Boolean(
+                                      params?.row?.wrong_count_type === '' ? `This field is required` : ''
+                                    )}
+                                    onChange={event => handleStatusChange(params.row.id, event)}
+                                  >
+                                    <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                                      Shortage
+                                    </MenuItem>
+                                    <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                                      Excess
+                                    </MenuItem>
+                                  </Select>
+                                </FormControl>
+                              ) : (
+                                <Typography>
+                                  {params?.row?.wrong_count_type
+                                    ? params.row.wrong_count_type.charAt(0).toUpperCase() +
+                                      params.row.wrong_count_type.slice(1)
+                                    : ''}
+                                  {params?.row?.wrong_count_number ? ` (${params.row.wrong_count_number})` : ''} -
+                                </Typography>
+                              )}
                             </Grid>
                             <Grid
                               item
                               xs={5}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                             >
-                              <TextField
-                                // disabled={getDisableStatus(params.row.id)}
-                                id='outlined-size-small'
-                                name='wrong_count_number'
-                                value={params?.row?.wrong_count_number}
-                                error={Boolean(
-                                  params?.row?.wrong_count_number === '' ||
-                                    parseInt(params.row.wrong_count_number, 10) < 0
-                                )}
-                                size='small'
-                                onChange={event => {
-                                  handleStatusChange(params.row.id, event)
+                              {!params?.row?.wrong_count_type === 'shortage' ? (
+                                <TextField
+                                  // disabled={getDisableStatus(params.row.id)}
+                                  id='outlined-size-small'
+                                  name='wrong_count_number'
+                                  value={params?.row?.wrong_count_number}
+                                  error={Boolean(
+                                    params?.row?.wrong_count_number === '' ||
+                                      parseInt(params.row.wrong_count_number, 10) < 0
+                                  )}
+                                  size='small'
+                                  onChange={event => {
+                                    handleStatusChange(params.row.id, event)
 
-                                  const inputValue = event.target.value
-                                  const countValue = Number(params?.row?.count)
-                                  const inputValueNumber = Number(inputValue)
+                                    const inputValue = event.target.value
+                                    const countValue = Number(params?.row?.count)
+                                    const inputValueNumber = Number(inputValue)
 
-                                  if (inputValue.trim() === '') {
-                                    setWrongCountErr(prevErrors => ({
-                                      ...prevErrors,
-                                      [params.row.uid]: 'This field is required'
-                                    }))
-                                  } else if (inputValueNumber <= 0) {
-                                    setWrongCountErr(prevErrors => ({
-                                      ...prevErrors,
-                                      [params.row.uid]: 'Number must be positive'
-                                    }))
-                                  } else if (
-                                    params?.row?.wrong_count_type === 'shortage' &&
-                                    inputValueNumber > countValue
-                                  ) {
-                                    setWrongCountErr(prevErrors => ({
-                                      ...prevErrors,
-                                      [params.row.uid]: 'Qty exceeds shipped count.'
-                                    }))
-                                  } else {
-                                    setWrongCountErr(prevErrors => {
-                                      const newErrors = { ...prevErrors }
-                                      delete newErrors[params.row.uid]
+                                    if (inputValue.trim() === '') {
+                                      setWrongCountErr(prevErrors => ({
+                                        ...prevErrors,
+                                        [params.row.uid]: 'This field is required'
+                                      }))
+                                    } else if (inputValueNumber <= 0) {
+                                      setWrongCountErr(prevErrors => ({
+                                        ...prevErrors,
+                                        [params.row.uid]: 'Number must be positive'
+                                      }))
+                                    } else if (
+                                      params?.row?.wrong_count_type === 'shortage' &&
+                                      inputValueNumber > countValue
+                                    ) {
+                                      setWrongCountErr(prevErrors => ({
+                                        ...prevErrors,
+                                        [params.row.uid]: 'Qty exceeds shipped count.'
+                                      }))
+                                    } else {
+                                      setWrongCountErr(prevErrors => {
+                                        const newErrors = { ...prevErrors }
+                                        delete newErrors[params.row.uid]
 
-                                      return newErrors
-                                    })
-                                  }
-                                }}
-                                inputProps={{ style: { fontSize: 12 } }}
-                              />
+                                        return newErrors
+                                      })
+                                    }
+                                  }}
+                                  inputProps={{ style: { fontSize: 12 } }}
+                                />
+                              ) : (
+                                <Typography sx={{ color: '#E93353' }}> Denied</Typography>
+                              )}
                             </Grid>
                             <Grid
                               item
@@ -1140,7 +1170,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               <Button
-                                sx={{ width: 2, maxWidth: 2 }}
+                                sx={{ width: 1, maxWidth: 1, minWidth: 0, p: 0.5 }}
                                 // disabled={disableButton()}
                                 onClick={event => {
                                   clearStatus(params.row.id, event)
@@ -1220,14 +1250,15 @@ function OrderReceiveForm({ orderId, requestId }) {
                             <Chip
                               label={params.row.total_deny_comments}
                               avatar={
-                                <Avatar>
-                                  <Icon icon='iconamoon:comment' />
+                                <Avatar variant='square' alt='' src={'/images/sms.png'}>
+                                  {/* <Icon icon='iconamoon:comment' /> */}
+                                  {/* <Icon icon='mi:message' style={{ color: '#37BD69' }} /> */}
                                 </Avatar>
                               }
                               onClick={() => {
                                 getRejectedCommentsList(params?.row?.dispatch_item_id)
                               }}
-                              sx={{ padding: 0, mx: 2, alignSelf: 'center' }}
+                              sx={{ padding: 0.5, mx: 2, alignSelf: 'center', borderRadius: '8px' }}
                             />
                             {/* <IconButton
                               aria-label=''
@@ -1398,7 +1429,7 @@ function OrderReceiveForm({ orderId, requestId }) {
               }
                 .printable-container {
               background-color: #EFF5F2;
-              padding: 16px; 
+              padding: 16px;
               border-radius: 8px;
               border: 1px solid #e9e9ec;
               margin-top: 16px;
@@ -1414,10 +1445,10 @@ function OrderReceiveForm({ orderId, requestId }) {
               margin-top: 10px;
             }
          .footer {
-            text-align: center; 
+            text-align: center;
             font-size: 16px;
             position: absolute;
-            bottom: 16px; 
+            bottom: 16px;
             width: calc(100%);
           }
               /* Add more print-specific styles if needed */

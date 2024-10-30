@@ -8,7 +8,17 @@ import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { height } from '@mui/system'
 
-const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRowClick, rowHeight, rowSpacing }) => {
+const TableBasic = ({
+  TableTitle,
+  columns,
+  rows,
+  headerActions,
+  inpFields,
+  onRowClick,
+  rowHeight,
+  rowSpacing,
+  backgroundColor
+}) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   return (
@@ -21,7 +31,8 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
             },
 
             '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
+              cursor: 'pointer',
+              backgroundColor: 'transparent'
             },
             '& .MuiDataGrid-main': {
               // margin: '16px', // Apply margin to the main container
@@ -30,6 +41,9 @@ const TableBasic = ({ TableTitle, columns, rows, headerActions, inpFields, onRow
             },
             '& .MuiDataGrid-footerContainer': {
               borderTop: 'none' // Remove the border-top from footer container
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: backgroundColor
             }
           }}
           columnVisibilityModel={{
