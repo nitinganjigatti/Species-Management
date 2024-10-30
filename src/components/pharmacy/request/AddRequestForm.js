@@ -1554,6 +1554,7 @@ const AddRequestForm = () => {
             <TableBody>
               {editParams?.request_item_details
                 ? editParams?.request_item_details.map((el, index) => {
+                    const isLastRow = index === editParams.request_item_details.length - 1
                     return (
                       <TableRow key={index}>
                         <TableCell align='left'>

@@ -1045,8 +1045,8 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'dispatch_qty',
       headerName: 'Packed QTY',
-      type: 'number',
-      align: 'right',
+      // type: 'number',
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -1425,6 +1425,8 @@ const IndividualRequest = () => {
   //     setProductNotAvailableDialog(false)
   //   }
   // }
+  console.log(requestItems, 'requestItems')
+  console.log(shippedItems, 'shippedItems')
 
   return (
     <>
@@ -1483,7 +1485,8 @@ const IndividualRequest = () => {
                   {/* Request Basic Info */}
                   <Card
                     sx={{
-                      backgroundColor: 'customColors.lightBg'
+                      backgroundColor: 'customColors.lightBg',
+                      boxShadow: 'none'
                     }}
                   >
                     <Grid container spacing={2} sx={{ flexGrow: 1, py: 6, px: 4 }}>
@@ -3441,7 +3444,7 @@ const IndividualRequest = () => {
                               value='Ready To Ship'
                               label={
                                 <TabBadge
-                                  label='Ready To Ship'
+                                  label={`Ready To Ship`}
                                   totalCount={shipmentTab === 'Ready To Ship' ? 0 : null}
                                 />
                               }
@@ -3453,7 +3456,8 @@ const IndividualRequest = () => {
                           </TabLists>
                           <TabPanel value='Ready To Ship'>
                             {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
-                              <Card sx={{ minWidth: '100%', ml: -2 }}>
+                              // <Card sx={{ minWidth: '100%', ml: -2 }}>
+                              <>
                                 <CardHeader
                                   title={``}
                                   action={
@@ -3464,18 +3468,27 @@ const IndividualRequest = () => {
                                         <Button
                                           size='big'
                                           variant='contained'
-                                          onClick={() => {
-                                            openShipDialog()
+                                          onClick={e => {
+                                            // openShipDialog()
+                                            Router.push({
+                                              pathname: `/pharmacy/request/${id}/ship-all-items`,
+                                              query: {
+                                                // orderId: e.id,
+                                              }
+                                            })
                                           }}
                                         >
-                                          Ship
+                                          {/* Ship */}
+                                          Ship all items
                                         </Button>
                                       </Grid>
                                     ) : null
                                   }
+                                  sx={{ p: 0, pb: 5 }}
                                 ></CardHeader>
                                 <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-                              </Card>
+                              </>
+                              // </Card>
                             )}
                           </TabPanel>
                           <TabPanel value='Shipped'>
@@ -3791,62 +3804,66 @@ const IndividualRequest = () => {
             />
           </Grid> */}
           <CommonDialogBox
-            title={`Shipped Items (7)`}
+            title={`Shipped Items (${shippedItems[0]?.shipment_item_details.length || '0'})`}
             dialogBoxStatus={shipmentDetailsDialog}
             close={setShipmentDetailsDialog}
             noWidth={'noWidth'}
             style={'#EFF5F2'}
             formComponent={
               <>
-                {[1, 2, 3, 4, 5].map(() => (
-                  <Card sx={{ width: 500, m: 2 }}>
-                    <CardContent>
-                      <Typography variant='h5' component='div' gutterBottom sx={{ color: '#333' }}>
-                        Glycomet
-                      </Typography>
+                {shippedItems[0]?.shipment_item_details?.map((ship, index) => {
+                  console.log(ship, 'loggss')
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                        <Typography variant='body1' color='text.secondary'>
-                          Shipped Quantity: 936
+                  return (
+                    <Card sx={{ width: 500, m: 2 }}>
+                      <CardContent>
+                        <Typography variant='h5' component='div' gutterBottom sx={{ color: '#333' }}>
+                          {ship?.stock_name}
                         </Typography>
-                        <Typography variant='body1' color='text.secondary'>
-                          Shipped Value: ₹10,000
-                        </Typography>
-                      </Box>
 
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          backgroundColor: '#E8F4F2',
-                          p: 3,
-                          display: 'flex',
-                          justifyContent: 'space-between'
-                        }}
-                      >
-                        <Box>
-                          <Typography variant='body2' color='text.secondary'>
-                            Shipping ID:
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                          <Typography variant='body1' color='text.secondary'>
+                            Shipped Quantity: {ship?.quantity}
                           </Typography>
-                          <Typography variant='body1'>SHIP0000021</Typography>
+                          <Typography variant='body1' color='text.secondary'>
+                            Shipped Value:{''}
+                          </Typography>
                         </Box>
 
-                        <Box>
-                          <Typography variant='body2' color='text.secondary'>
-                            Batch No:
-                          </Typography>
-                          <Typography variant='body1'>2345</Typography>
-                        </Box>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            backgroundColor: '#E8F4F2',
+                            p: 3,
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                          }}
+                        >
+                          <Box>
+                            <Typography variant='body2' color='text.secondary'>
+                              Shipping ID:
+                            </Typography>
+                            <Typography variant='body1'>{ship?.shipment_id}</Typography>
+                          </Box>
 
-                        <Box>
-                          <Typography variant='body2' color='text.secondary'>
-                            Shipped Quantity:
-                          </Typography>
-                          <Typography variant='body1'>234</Typography>
-                        </Box>
-                      </Paper>
-                    </CardContent>
-                  </Card>
-                ))}
+                          <Box>
+                            <Typography variant='body2' color='text.secondary'>
+                              Batch No:
+                            </Typography>
+                            <Typography variant='body1'>{ship?.batch}</Typography>
+                          </Box>
+
+                          <Box>
+                            <Typography variant='body2' color='text.secondary'>
+                              Shipped Quantity:
+                            </Typography>
+                            <Typography variant='body1'>{ship?.quantity}</Typography>
+                          </Box>
+                        </Paper>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </>
             }
           />
