@@ -343,3 +343,7 @@ export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteatta
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'
+
+export const STOCK = 'pharmacy/stock'
+
+export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
