@@ -197,3 +197,7 @@ export const DASHBOARD_RECEIVED_MEDICINE_REPORT = 'received-medicine-report'
 export const DASHBOARD_MEDICINEWISE_DOCTOR_FILTER = 'medicinewise-doctor-filter'
 
 export const DISCARD_REASON = 'discard-reason'
+
+export const STOCK = 'pharmacy/stock'
+
+export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'

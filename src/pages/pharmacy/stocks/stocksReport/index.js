@@ -8,7 +8,12 @@ import MuiTabList from '@mui/lab/TabList'
 
 import TabList from '@mui/lab/TabList'
 
-import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import {
+  getStocksReportById,
+  getLocalStocksReportById,
+  getStockReport,
+  getStockReportByBatch
+} from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -55,6 +60,7 @@ import Escrow from '../escrow'
 import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import ExpiringMedicine from '../expired-medicine/expiringStock'
+import { minWidth, width } from '@mui/system'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -110,33 +116,34 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
       let storeId = id === 'all' ? '' : id
-
       if (id) {
         try {
           setLoading(true)
           let result
-          if (type === 'local') {
-            const params = {
-              sort,
-              q,
-              column,
-              page: paginationModel.page + 1,
-              limit: paginationModel.pageSize,
-              store_id: storeId
-            }
 
-            result = await getLocalStocksReportById(params)
-          } else {
-            const params = {
-              sort,
-              q,
-              column,
-              page: paginationModel.page + 1,
-              limit: paginationModel.pageSize
-            }
+          // if (type === 'local') {
+          //   const params = {
+          //     sort,
+          //     q,
+          //     column,
+          //     page: paginationModel.page + 1,
+          //     limit: paginationModel.pageSize,
+          //     store_id: storeId
+          //   }
 
-            result = await getStocksReportById(storeId, params)
+          //   result = await getStockReport(storeId, params)
+          // } else {
+          const params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize
           }
+
+          result = await getStockReport(storeId, params)
+
+          // }
 
           if (result.success === true && result.data.length > 0) {
             setTotal(parseInt(result.count))
@@ -181,44 +188,46 @@ const ListOfStocks = () => {
         page: batchPaginationModel.page + 1,
         limit: batchPaginationModel.pageSize
       }
-      if (selectedPharmacy?.type === 'local') {
-        try {
-          const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true) {
-            setBatchTotal(parseInt(result?.count))
 
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-            setBatchLoading(false)
-          }
-        } catch (error) {
-          console.log('error', error)
+      // if (selectedPharmacy?.type === 'local') {
+      //   try {
+      //     const result = await getStockReportByBatch(id, batchParams)
+      //     if (result.success === true) {
+      //       setBatchTotal(parseInt(result?.count))
+
+      //       let listWithId = result.data
+      //         ? result.data.map((el, i) => {
+      //             return { ...el, uid: i + 1 }
+      //           })
+      //         : []
+      //       setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+      //       setBatchLoading(false)
+      //     }
+      //   } catch (error) {
+      //     console.log('error', error)
+      //     setBatchLoading(false)
+      //   }
+      // } else {
+      try {
+        const result = await getStockReportByBatch(id, batchParams)
+
+        if (result?.success === true) {
+          setBatchTotal(parseInt(result?.count))
+
+          let listWithId = result.data
+            ? result.data.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
           setBatchLoading(false)
         }
-      } else {
-        try {
-          const result = await getStocksByBatch(id, batchParams)
-
-          if (result?.success === true) {
-            setBatchTotal(parseInt(result?.count))
-
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-            setBatchLoading(false)
-          }
-        } catch (error) {
-          console.log('error', error)
-          setBatchLoading(false)
-        }
+      } catch (error) {
+        console.log('error', error)
+        setBatchLoading(false)
       }
+
+      // }
     },
     [batchPaginationModel]
   )
@@ -235,6 +244,8 @@ const ListOfStocks = () => {
 
   useEffect(() => {
     if (selectedPharmacy?.id !== '' || undefined) {
+      console.log('getStocksReport')
+
       // getStocksReport(selectedPharmacy?.id)
       setStockType(selectedPharmacy?.type)
 
@@ -289,8 +300,9 @@ const ListOfStocks = () => {
   const getBatchWiseDataToExport = async () => {
     try {
       setExcelLoader(true)
-
-      const result = await getStocksByBatch(stockId, { params: '' })
+      debugger
+      console.log(stockId)
+      const result = await getStockReportByBatch(stockId, { params: {} })
       if (result?.success === true && result?.data?.length > 0) {
         const data = result?.data?.map(el => {
           return {
@@ -298,10 +310,11 @@ const ListOfStocks = () => {
             ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
               el?.product_form_label
             }`,
-            ['Manufacture Name']: el?.manufacturer_name,
             ['Expiry Date']: el?.expiry_date,
             ['Batch Number']: el?.batch_no,
-            ['Quantity']: el?.stock_qty
+            ['Quantity']: el?.stock_qty,
+            ['Unit Price']: el?.unit_price,
+            ['value']: el?.total_cost
           }
         })
 
@@ -317,7 +330,7 @@ const ListOfStocks = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      // flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -328,7 +341,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.12,
+      // flex: 0.12,
       minWidth: 20,
       field: 'image',
       headerName: 'IMAGE',
@@ -351,8 +364,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -364,8 +377,8 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
+      // flex: 0.4,
+      width: 260,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
@@ -410,32 +423,32 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'procured_date',
-      headerName: 'PROCURED DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.procured_date)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'purchase_price',
-      headerName: 'Purchase Price',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
-            : 'NA'}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'procured_date',
+    //   headerName: 'PROCURED DATE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDisplayDate(params.row.procured_date)}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'purchase_price',
+    //   headerName: 'Purchase Price',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+    //         ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+    //         : 'NA'}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.2,
@@ -452,8 +465,8 @@ const ListOfStocks = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
@@ -461,6 +474,38 @@ const ListOfStocks = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'total_cost',
+      headerName: 'Value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.total_cost.toLocaleString()}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'stock_item_id',
+      headerName: 'Average Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Number.isInteger(params.row.total_cost / params.row.stock_qty)
+            ? params.row.total_cost / params.row.stock_qty
+            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)}
+          {/* {parseFloat(params.row.total_cost / params.row.stock_qty).toPrecision(2)} */}
+          {/* {params.row.total_cost / params.row.stock_qty} */}
         </Typography>
       )
     },
@@ -479,8 +524,8 @@ const ListOfStocks = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'rack_info',
       headerName: 'Rack',
       type: 'number',
@@ -506,7 +551,7 @@ const ListOfStocks = () => {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'stock_config',
       headerName: 'Shelf',
       type: 'number',
@@ -571,7 +616,7 @@ const ListOfStocks = () => {
 
   const batchWiseColumn = [
     {
-      flex: 0.05,
+      // flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -582,7 +627,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.15,
+      // flex: 0.15,
 
       minWidth: 20,
       field: 'image',
@@ -605,8 +650,8 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -619,8 +664,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.4,
-      minWidth: 20,
+      // flex: 0.4,
+      minWidth: 260,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
@@ -630,36 +675,37 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'procured_date',
-      headerName: 'PROCURED DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.procured_date)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'purchase_price',
-      headerName: 'Purchase Price',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
-            : 'NA'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'procured_date',
+    //   headerName: 'PROCURED DATE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDisplayDate(params.row.procured_date)}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'purchase_price',
+    //   headerName: 'Purchase Price',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+    //         ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+    //         : 'NA'}
+    //     </Typography>
+    //   )
+    // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'batch_no',
       headerName: 'BATCH NUMBER',
       renderCell: params => (
@@ -670,8 +716,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       renderCell: params => (
@@ -682,8 +728,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
@@ -696,8 +742,36 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'unit_price',
+      headerName: 'Unit Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.unit_price) > 0 ? params.row.unit_price : 0}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'total_cost',
+      headerName: 'Value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.total_cost) > 0 ? params.row.total_cost : 0}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
       field: 'rack_info',
       headerName: 'Rack',
       type: 'number',
@@ -722,8 +796,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'stock_config',
       headerName: 'Shelf',
       type: 'number',
@@ -785,7 +859,7 @@ const ListOfStocks = () => {
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
-              let storeId = id === 'all' ? null : id
+              let storeId = id === 'all' ? 'all' : id
 
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
@@ -888,6 +962,52 @@ const ListOfStocks = () => {
     [getStocksReport]
   )
 
+  const handleBatchSortModel = newModel => {
+    if (newModel.length) {
+      setBatchSort(newModel[0].sort)
+      setBatchSortColumn(newModel[0].field)
+      getStocksReportBatchWise({
+        batchSort: newModel[0].sort,
+        batchQ: batchSearchValue,
+        batchColumn: newModel[0].field,
+        id: stockId,
+        type: stockType
+      })
+    } else {
+      setBatchSort(null)
+      getStocksReportBatchWise({
+        batchSort: null,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+  }
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      getStocksReport({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        id: stockId,
+        type: stockType
+      })
+    } else {
+      setSort(null)
+      getStocksReport({
+        sort: null,
+        q: searchValue,
+        column: sortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+  }
+
   return (
     <>
       <Grid>
@@ -972,8 +1092,9 @@ const ListOfStocks = () => {
                       rows={batchIndexedRows === undefined ? [] : batchIndexedRows}
                       rowCount={batchTotal}
                       columns={batchWiseColumn}
-                      sortingMode='server'
+                      onSortModelChange={handleBatchSortModel}
                       paginationMode='server'
+                      sortingMode='server'
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={batchPaginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -1011,6 +1132,7 @@ const ListOfStocks = () => {
                       columns={columns}
                       sortingMode='server'
                       paginationMode='server'
+                      onSortModelChange={handleSortModel}
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={paginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
