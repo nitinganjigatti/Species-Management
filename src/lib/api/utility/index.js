@@ -51,3 +51,63 @@ export const axiosFormPost = async ({ url, body, pharmacy }) => {
 
   return axios.post(completeUrl, body, { headers })
 }
+
+export const fetchFormPost = async ({ url, body, pharmacy }) => {
+  const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
+  const headers = await GetAPIHeader({ pharmacy })
+
+  // headers['Content-Type'] = 'multipart/form-data'
+
+  const formData = new FormData()
+  Object.entries(body).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => {
+        Object.entries(item).forEach(([itemKey, itemValue]) => {
+          formData.append(`${key}[${index}][${itemKey}]`, itemValue)
+        })
+      })
+    } else if (value !== undefined) {
+      formData.append(key, value)
+    }
+  })
+
+  const response = await fetch(completeUrl, {
+    method: 'POST',
+    headers: { ...headers },
+    body: formData
+  })
+
+  if (!response.ok) {
+    const errorResponse = await response.json()
+    throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorResponse.message}`)
+  }
+
+  const responseJson = await response.json()
+
+  return responseJson
+}
+
+export const fetchFormPostMedia = async ({ url, body, pharmacy }) => {
+  const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
+  const headers = await GetAPIHeader({ pharmacy })
+
+  // headers['Content-Type'] = 'multipart/form-data'
+  const formData = new FormData()
+  formData.append('user_id', body.user_id)
+  formData.append('user_attachment[]', body.user_attachment)
+
+  const response = await fetch(completeUrl, {
+    method: 'POST',
+    headers: { ...headers },
+    body: formData
+  })
+
+  if (!response.ok) {
+    const errorResponse = await response.json()
+    throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorResponse.message}`)
+  }
+
+  const responseJson = await response.json()
+
+  return responseJson
+}

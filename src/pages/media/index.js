@@ -79,6 +79,7 @@ const Media = () => {
       if (!hasMore && page !== 1) return
       try {
         setLoading(true)
+
         const params = {
           q,
           userId,
@@ -135,13 +136,15 @@ const Media = () => {
         for (const file of acceptedFiles) {
           const payload = {
             user_id: userId,
-            user_attachment: [file]
+            user_attachment: file
           }
+
           // Call your upload API function with formData
           const res = await uploadMediaFile(payload)
           if (res?.success) {
             successCount++ // Increment successful uploads count
             message = res?.message
+
             // Toaster({ type: 'success', message: res?.message })
             // await getMediaListUserId(userId)
           } else {
@@ -167,6 +170,7 @@ const Media = () => {
     setIsModalOpenDelete(true)
     setAnchorEl(null)
   }
+
   const confirmDeleteAction = async () => {
     try {
       setIsModalOpenDelete(false)
@@ -241,11 +245,13 @@ const Media = () => {
 
   const handleDateFilterChange = event => {
     setSelectedDateFilter(event.target.value)
+
     // Implement filtering logic based on date filter selection
   }
 
   const handleFileTypeFilterChange = event => {
     setSelectedFileTypeFilter(event.target.value)
+
     // Implement filtering logic based on file type filter selection
   }
 

@@ -619,7 +619,7 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          toast.error(JSON.stringify(response), { position: 'top-left' })
+          toast.error(JSON.stringify(response?.message), { position: 'top-left' })
         }
       } catch (error) {
         toast.error(JSON.stringify(error), { position: 'top-left' })
@@ -627,6 +627,7 @@ const AddRequestForm = () => {
     } else {
       try {
         const response = await addRequestItems(postData)
+
         if (response?.success) {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
@@ -634,8 +635,8 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          console.log(JSON.stringify(response))
-          toast.error(JSON.stringify(response), { position: 'top-left' })
+          console.log(JSON.stringify(response?.message))
+          toast.error(JSON.stringify(response.message), { position: 'top-left' })
         }
       } catch (error) {
         console.log('error', JSON.stringify(error))
