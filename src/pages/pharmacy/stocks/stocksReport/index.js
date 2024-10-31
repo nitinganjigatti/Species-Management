@@ -377,19 +377,6 @@ const ListOfStocks = () => {
       )
     },
 
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'package',
-      headerName: 'PACKAGE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
-      )
-    },
-
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -466,8 +453,8 @@ const ListOfStocks = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
@@ -506,6 +493,18 @@ const ListOfStocks = () => {
             : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)}
           {/* {parseFloat(params.row.total_cost / params.row.stock_qty).toPrecision(2)} */}
           {/* {params.row.total_cost / params.row.stock_qty} */}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.4,
+      minWidth: 260,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
     }
@@ -733,7 +732,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
+      // flex: 0.2,
       minWidth: 160,
       field: 'batch_no',
       headerName: 'BATCH NUMBER',
