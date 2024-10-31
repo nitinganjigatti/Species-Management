@@ -3,6 +3,7 @@ import { useContext } from 'react'
 
 const ComposeLabNavigation = ({ labRole }) => {
   console.log(labRole, 'labRole')
+
   const labTitle = {
     sectionTitle: 'Lab'
   }
@@ -23,9 +24,15 @@ const ComposeLabNavigation = ({ labRole }) => {
     title: 'Lab Samples',
     path: '/lab/master/lab-sample'
   }
+
   const labTest = {
     title: 'Lab Tests',
     path: '/lab/master/lab-test'
+  }
+
+  const mortalityReason = {
+    title: 'Mortality Reason',
+    path: '/lab/master/mortality-reason'
   }
 
   const mastersLabParent = {
@@ -52,7 +59,7 @@ const ComposeLabNavigation = ({ labRole }) => {
     }
 
     if (medical_add_samples && medical_add_tests) {
-      mastersLabParent.children.push(labTest, labSample)
+      mastersLabParent.children.push(labTest, labSample, mortalityReason)
     }
 
     labNavigationArray.push(lab, request, mastersLabParent)
