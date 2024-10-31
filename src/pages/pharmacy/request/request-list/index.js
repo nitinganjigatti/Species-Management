@@ -343,7 +343,7 @@ const RequestList = () => {
           break
       }
     } else {
-      setFilterDates({ startDate: '', endDate: '' })
+      setFilterDates({ startDate: null, endDate: null })
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
