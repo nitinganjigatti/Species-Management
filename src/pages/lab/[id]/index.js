@@ -344,7 +344,6 @@ const RequestDetails = () => {
       headerName: 'STATUS',
       renderCell: params => (
         <>
-          {}
           <Box sx={{ minWidth: 120 }}>
             {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
               <FormControl fullWidth size='small'>
@@ -352,37 +351,50 @@ const RequestDetails = () => {
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={params.row.status === 'transferred' ? 'pending' : params.row.status}
+                  defaultValue={params.row.status === 'transferred' ? 'awaiting_sample' : params.row.status}
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
                     backgroundColor:
-                      params.row.status === 'pending' || params.row.status === 'transferred'
+                      params.row.status === 'pending' ||
+                      params.row.status === 'transferred' ||
+                      params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_rejected' ||
+                      params.row.status === 'sample_received'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
                         ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
                         : params.row.status === 'inprogress'
                         ? 'rgba(0, 191, 255, 0.1)' // light blue background for in progress
-                        : 'white',
+                        : 'rgba(0, 128, 0, 0.1)',
+
                     color:
-                      params.row.status === 'pending'
+                      params.row.status === 'pending' ||
+                      params.row.status === 'transferred' ||
+                      params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_rejected' ||
+                      params.row.status === 'sample_received'
                         ? '#FA6140'
                         : params.row.status === 'completed'
                         ? '#37BD69'
                         : params.row.status === 'inprogress'
                         ? '#00AFD6'
-                        : 'black',
+                        : '#37BD69',
 
                     borderRadius: '8px',
                     '& .MuiSelect-icon': {
                       color:
-                        params.row.status === 'pending'
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_rejected' ||
+                        params.row.status === 'sample_received'
                           ? '#FA6140'
                           : params.row.status === 'completed'
                           ? '#37BD69'
                           : params.row.status === 'inprogress'
                           ? '#00AFD6'
-                          : 'black'
+                          : '#37BD69'
                     }
                   }}
                 >
@@ -657,7 +669,7 @@ const RequestDetails = () => {
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {' '}
-                      {/* <IconButton
+                      <IconButton
                         sx={{ mr: 1 }}
                         onClick={() =>
                           router.push({
@@ -666,7 +678,7 @@ const RequestDetails = () => {
                         }
                       >
                         <Icon icon='ep:back' fontSize={25} />
-                      </IconButton> */}
+                      </IconButton>
                       <Typography variant='h6'>
                         Request ID -{' '}
                         <span
