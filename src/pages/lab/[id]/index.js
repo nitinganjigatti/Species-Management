@@ -1082,13 +1082,3 @@ const RequestDetails = () => {
 }
 
 export default RequestDetails
-
-// awaiting_sample
-// sample_received
-// sample_rejected
-// inprogress
-// completed_positive
-// completed_negative
-// completed_detected
-// completed_not_detected
-// completed_inconclusive
