@@ -1,10 +1,5 @@
-import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
-import Icon from 'src/@core/components/icon'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { useRouter } from 'next/router'
-import { useTheme } from '@mui/material/styles'
+import React, { useCallback, useEffect, useState } from 'react'
+
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
 import {
@@ -13,93 +8,40 @@ import {
   updateMortalityReasons,
   deleteMortalityReasons
 } from 'src/lib/api/lab/mortality'
-import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import { Box, Breadcrumbs, Button, Card, IconButton, Typography } from '@mui/material'
+import Icon from 'src/@core/components/icon'
+
+// import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
 import AddMortalityReasons from 'src/views/pages/lab/mortality-reason'
-import { AuthContext } from 'src/context/AuthContext'
-import Error404 from 'src/pages/404'
+import TableWithFilter from 'src/components/TableWithFilter'
 
 const MortalityReason = () => {
-  const theme = useTheme()
-  const router = useRouter()
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const editParamsInitialState = { id: null, label: null }
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [openDetailsDrawer, setOpenDetailsDrawer] = useState(false)
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
-  const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
-  const authData = useContext(AuthContext)
 
-  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
-  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
-  const fetchTableData = useCallback(
-    async q => {
-      try {
-        setLoading(true)
-
-        const params = {
-          q,
-          sort,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await getMortalityReasonsList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.length))
-          setRows(loadServerRows(paginationModel.page, res?.data))
-        })
-        setResetForm(true)
-        setLoading(false)
-      } catch (e) {
-        setLoading(false)
-      }
-    },
-    [paginationModel]
-  )
+  const fetchTableData = useCallback(async q => {
+    try {
+      const params = {}
+      await getMortalityReasonsList({ params: params }).then(res => {
+        // setTotal(parseInt(res?.data?.length))
+        setRows(res?.data)
+      })
+      setResetForm(true)
+    } catch (e) {
+      setRows([])
+      console.log('error', e)
+    }
+  }, [])
 
   useEffect(() => {
-    fetchTableData(searchValue)
+    fetchTableData()
   }, [fetchTableData])
-
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(searchValue, newModel[0].field)
-    } else {
-    }
-  }
-
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q, column)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
-  }
 
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, label: null })
@@ -185,20 +127,21 @@ const MortalityReason = () => {
       )
     },
 
-    // {
-    //   flex: 0.3,
-    //   Width: 30,
-    //   field: 'Description ',
-    //   headerName: 'Description ',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-    //         {params.row.description ? params.row.description : '-'}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
+    {
+      flex: 0.3,
+      Width: 30,
+      field: 'Description ',
+      headerName: 'Description ',
+      sortable: false,
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+            {params.row.description ? params.row.description : 'NA'}
+          </Typography>
+        </Box>
+      )
+    },
+
     // {
     //   flex: 0.4,
     //   minWidth: 40,
@@ -275,93 +218,42 @@ const MortalityReason = () => {
     </div>
   )
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: row.id,
-    sl_no: getSlNo(index)
-  }))
-
   return (
     <>
-      {medical_add_samples && medical_add_tests ? (
-        <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Lab Master
-            </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-              Mortality Reason
-            </Typography>
-          </Breadcrumbs>
-          <Card>
-            <CardHeader title='Mortality Reason' action={headerAction} />
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+          Lab Master
+        </Typography>
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+          Mortality Reason
+        </Typography>
+      </Breadcrumbs>
+      <Card>
+        <TableWithFilter
+          TableTitle='Mortality Reason'
+          columns={columns || []}
+          rows={rows || []}
+          headerActions={headerAction}
+        />
+      </Card>
+      {openDrawer && (
+        <AddMortalityReasons
+          addEventSidebarOpen={openDrawer}
+          setOpenDrawer={setOpenDrawer}
+          handleSubmitData={handleSubmitData}
+          resetForm={resetForm}
+          submitLoader={submitLoader}
+          editParams={editParams}
+        />
+      )}
 
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={handleCellClick}
-            />
-          </Card>
-          {openDrawer && (
-            <AddMortalityReasons
-              addEventSidebarOpen={openDrawer}
-              setOpenDrawer={setOpenDrawer}
-              handleSubmitData={handleSubmitData}
-              resetForm={resetForm}
-              submitLoader={submitLoader}
-              editParams={editParams}
-            />
-          )}
-
-          {/* <ConfirmationDeleteDialog
+      {/* <ConfirmationDeleteDialog
             open={isModalOpenDelete}
             onClose={() => setIsModalOpenDelete(false)}
             confirmLoading={btnLoader}
             onConfirm={confirmDeleteAction}
             title='Are you sure you want to delete this Mortality Reason?'
           /> */}
-        </>
-      ) : (
-        <Error404></Error404>
-      )}
     </>
   )
 }

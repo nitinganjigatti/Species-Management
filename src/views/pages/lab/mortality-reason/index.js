@@ -1,7 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, Fragment } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
-import { Box, Drawer, FormControl, FormHelperText, IconButton, TextField, Typography, Button } from '@mui/material'
+import {
+  Box,
+  Drawer,
+  FormControl,
+  FormHelperText,
+  IconButton,
+  TextField,
+  Typography,
+  FormControlLabel,
+  FormLabel,
+  RadioGroup,
+  Radio
+} from '@mui/material'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
@@ -13,7 +25,9 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  name: ''
+  name: '',
+  description: '',
+  active: false
 }
 
 const AddMortalityReasons = props => {
@@ -41,7 +55,8 @@ const AddMortalityReasons = props => {
         const data = {
           ...response.data?.result,
           name: response?.data?.name,
-          description: response?.data?.description
+          description: response?.data?.description,
+          active: response?.data?.active
         }
         reset(data)
       } else {
@@ -62,14 +77,27 @@ const AddMortalityReasons = props => {
 
   const onSubmit = async params => {
     console.log(params, 'log')
-    const { name } = { ...params }
+
+    const { name, description, active } = { ...params }
 
     const payload = {
       name
+
+      // description,
+      // active
     }
-    console.log(payload, 'Submission Data')
 
     await handleSubmitData(payload)
+  }
+
+  const RenderSidebarFooter = () => {
+    return (
+      <Fragment>
+        <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
+          {editParams?.id ? 'Update' : 'Add'}
+        </LoadingButton>
+      </Fragment>
+    )
   }
 
   return (
@@ -78,109 +106,100 @@ const AddMortalityReasons = props => {
         anchor='right'
         open={addEventSidebarOpen}
         ModalProps={{ keepMounted: true }}
-        sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '500px'] },
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-
-          gap: '24px'
-        }}
+        sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
       >
-        <Box sx={{ backgroundColor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
-          <Box
-            className='sidebar-header'
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255),
-              px: '24px',
-
-              backgroundColor: theme.palette.customColors.lightBg
-            }}
-          >
-            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Typography variant='h6'>
-                {editParams?.id !== null ? `Edit Mortality Reason` : ` Add New Mortality Reason`}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} onClick={() => setOpenDrawer(false)} />
-              </IconButton>
-            </Box>
+        <Box
+          className='sidebar-header'
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            backgroundColor: 'background.default',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          }}
+        >
+          <Typography variant='h6'>
+            {editParams?.id !== null ? 'Edit Mortality Reason' : 'Add  Mortality Reason'}{' '}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
           </Box>
+        </Box>
+        <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
+          <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+            <FormControl fullWidth sx={{ mb: 6 }}>
+              <Controller
+                name='name'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    label='Reason*'
+                    value={value}
+                    onChange={onChange}
+                    placeholder='Reason'
+                    error={Boolean(errors.name)}
+                    name='name'
+                  />
+                )}
+              />
+              {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+            </FormControl>
+            {/* <FormControl fullWidth sx={{ mb: 6 }}>
+              <Controller
+                name='description'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    label='Description'
+                    value={value}
+                    onChange={onChange}
+                    placeholder='Description'
+                    error={Boolean(errors.description)}
+                    name='description'
+                  />
+                )}
+              />
+              {errors.description && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.description.message}</FormHelperText>
+              )}
+            </FormControl> */}
 
-          <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-            <Box
-              sx={{
-                m: 5,
-                px: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '24px',
-                backgroundColor: '#fff',
-                borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                maxHeight: '79vh',
-                overflow: 'scroll'
-              }}
-            >
-              <FormControl fullWidth sx={{ mt: 6 }}>
+            {/* {editParams?.id !== null ? (
+              <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
+                <FormLabel>Status</FormLabel>
                 <Controller
-                  name='name'
+                  name='active'
                   control={control}
                   rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Test Name*'
-                      value={value}
-                      onChange={onChange}
-                      placeholder='Test Name'
-                      error={Boolean(errors.name)}
-                      name='name'
-                    />
+                  render={({ field }) => (
+                    <RadioGroup row {...field} name='validation-basic-radio'>
+                      <FormControlLabel
+                        value='1'
+                        label='Active'
+                        sx={errors.active ? { color: 'error.main' } : null}
+                        control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
+                      />
+                      <FormControlLabel
+                        value='0'
+                        label='Inactive'
+                        sx={errors.active ? { color: 'error.main' } : null}
+                        control={<Radio sx={errors.active ? { color: 'error.main' } : null} />}
+                      />
+                    </RadioGroup>
                   )}
                 />
-                {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
+                {errors.radio && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
+                    This field is required
+                  </FormHelperText>
+                )}
               </FormControl>
-
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    right: 0,
-                    height: '6rem',
-                    width: '100%',
-                    maxWidth: '500px',
-                    position: 'fixed',
-                    bottom: 0,
-                    px: 4,
-                    backgroundColor: 'white',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    display: 'flex',
-                    zIndex: 1234,
-                    gap: 2
-                  }}
-                >
-                  <Button
-                    fullWidth
-                    onClick={() => setOpenDrawer(false)}
-                    size='large'
-                    type='reset'
-                    color='error'
-                    variant='outlined'
-                  >
-                    Cancel
-                  </Button>
-                  <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
-                    {editParams?.id !== null ? `Update` : `Submit`}
-                  </LoadingButton>
-                </Box>
-              </Box>
+            ) : null} */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <RenderSidebarFooter />
             </Box>
           </form>
         </Box>
