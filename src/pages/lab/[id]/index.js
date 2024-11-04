@@ -317,6 +317,7 @@ const RequestDetails = () => {
       flex: 0.8,
       minWidth: 20,
       field: 'test_name',
+      sortable: false,
       headerName: 'Test Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -329,6 +330,7 @@ const RequestDetails = () => {
       flex: 0.4,
       minWidth: 20,
       field: 'sample_name',
+      sortable: false,
       headerName: 'Sample',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -341,6 +343,7 @@ const RequestDetails = () => {
       flex: 0.4,
       minWidth: 20,
       field: 'status',
+      sortable: false,
       headerName: 'STATUS',
       renderCell: params => (
         <>
@@ -433,6 +436,7 @@ const RequestDetails = () => {
       minWidth: 20,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
 
       renderCell: params => (
         <Box>
@@ -476,6 +480,7 @@ const RequestDetails = () => {
     {
       flex: 0.2,
       minWidth: 10,
+      sortable: false,
 
       // field: 'Action',
       // headerName: 'Action',

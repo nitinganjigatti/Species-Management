@@ -90,6 +90,7 @@ const ListOfRequest = () => {
       width: 200,
       field: 'lab_test_id',
       headerName: 'REQUEST ID',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer', ml: 3 }}>
           {params.row.lab_test_id}
@@ -99,7 +100,7 @@ const ListOfRequest = () => {
 
     {
       width: 200,
-
+      sortable: false,
       field: 'site_name',
       headerName: 'Site',
       renderCell: params => (
@@ -112,6 +113,7 @@ const ListOfRequest = () => {
     {
       width: 200,
       field: 'created_at',
+      sortable: false,
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -123,6 +125,7 @@ const ListOfRequest = () => {
       width: 200,
       field: 'total_test',
       headerName: 'No. of Tests ',
+      sortable: false,
       align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -134,6 +137,7 @@ const ListOfRequest = () => {
     {
       width: 200,
       field: 'status',
+      sortable: false,
       headerName: 'Status',
       renderCell: params => (
         <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -196,6 +200,7 @@ const ListOfRequest = () => {
       field: 'Action',
       headerName: 'Action',
       align: 'center',
+      sortable: false,
 
       renderCell: params => (
         <>
