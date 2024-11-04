@@ -129,6 +129,7 @@ const ListOfLab = () => {
           flex: 0.2,
           minWidth: 20,
           field: 'Action',
+          sortable: false,
           headerName: 'Action',
           renderCell: params => (
             <Box>
