@@ -270,6 +270,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   const [rejectItemsError, setRejectItemsError] = useState(null)
   const [listComments, setListComments] = useState([])
   const [wrongCountErr, setWrongCountErr] = useState({})
+  const [markReceived, setMarkReceived] = useState([])
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
@@ -604,7 +605,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       // setListComments()
       if (comments.data.length > 0 && comments.success === true) {
         setListComments(comments)
-        openCommentDialog()
+        // openCommentDialog()
       }
     } catch (error) {
       console.log('comments error', error)
@@ -622,24 +623,24 @@ function OrderReceiveForm({ orderId, requestId }) {
   console.log(listComments, 'listComments')
 
   async function markAsReceived(itemId) {
-    // if (!itemId) {
-    //   console.error('Invalid item ID.')
-    //   return
-    // }
-    // console.log(itemId, 'itemId')
-    // // Update the status of the specific item to "Received"
-    // disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
-    //   item.id === itemId ? { ...item, status: 'Received' } : item
-    // )
-    // // Call updateStatus to handle the rest of the logic
-    // await updateStatus()
-    // closeCommentDialog()
+    if (!itemId) {
+      console.error('Invalid item ID.')
+      return
+    }
+    console.log(itemId, 'itemId')
+    // Update the status of the specific item to "Received"
+    disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
+      item.id === itemId ? { ...item, status: 'Received' } : item
+    )
+    // Call updateStatus to handle the rest of the logic
+    await updateStatus()
+    closeCommentDialog()
   }
 
   // Usage in button click
 
-  const commentDialogBox = params => {
-    console.log(params, 'params123')
+  const commentDialogBox = () => {
+    console.log(markReceived, 'markReceived')
 
     return (
       <ConfirmDialogBox
@@ -654,7 +655,7 @@ function OrderReceiveForm({ orderId, requestId }) {
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2 }}>
               {/* Medicine Name */}
               <Box sx={{ bgcolor: '#EFF5F2', px: 2, py: 2, borderRadius: '8px' }}>
-                <Typography variant='h6'>{params?.stock_name}</Typography>
+                <Typography variant='h6'>{markReceived?.stock_name}</Typography>
               </Box>
 
               <Box>
@@ -699,7 +700,7 @@ function OrderReceiveForm({ orderId, requestId }) {
 
               {/* Mark as Received Button */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
-                <Button type='button' variant='contained' onClick={() => markAsReceived(params)}>
+                <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
                   Mark as Received
                 </Button>
               </Box>
@@ -1323,7 +1324,15 @@ function OrderReceiveForm({ orderId, requestId }) {
                         params?.row?.status === 'Missing - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Open' ||
                         params.row.status === 'Wrong Count - Deny Open' ? (
-                          <>
+                          <Button
+                            variant='text'
+                            onClick={e => {
+                              e.preventDefault()
+                              setMarkReceived(params.row)
+                              openCommentDialog()
+                            }}
+                            sx={{ p: 0, m: 0 }}
+                          >
                             <Chip
                               label={params.row.total_deny_comments}
                               avatar={
@@ -1335,7 +1344,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                               onClick={() => {
                                 getRejectedCommentsList(params?.row?.dispatch_item_id)
                               }}
-                              sx={{ padding: 0.5, mx: 2, alignSelf: 'center', borderRadius: '8px' }}
+                              sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
                             />
                             {/* <IconButton
                               aria-label=''
@@ -1348,8 +1357,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                             >
                               <Icon icon='iconamoon:comment' />
                             </IconButton> */}
-                            {commentDialogBox(params.row)}
-                          </>
+                            {/* {commentDialogBox(params.row)} */}
+                          </Button>
                         ) : null}
                       </Grid>
                     ) : (
@@ -1416,8 +1425,6 @@ function OrderReceiveForm({ orderId, requestId }) {
           request_id: requestId,
           comments: disputeItemDetails?.comments,
           item_status: item?.status,
-          // item_status: markedId && markedId === item.id ? 'Received' : item?.status,
-
           phone_number: orderData?.phone_number
         }
       })
@@ -1433,8 +1440,6 @@ function OrderReceiveForm({ orderId, requestId }) {
       })
       if (verifyCount) {
         setSubmitLoader(true)
-
-        console.log(finalReceivedItems, 'finalReceivedItems')
 
         try {
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
@@ -1560,12 +1565,6 @@ function OrderReceiveForm({ orderId, requestId }) {
       }
     }
   }
-
-  // useEffect(() => {
-  //   if (selectedPharmacy.type === 'central') {
-  //     updateStatus()
-  //   }
-  // }, [selectedPharmacy])
 
   return (
     <>
@@ -1783,6 +1782,7 @@ function OrderReceiveForm({ orderId, requestId }) {
             </Box>
           )}
         </div> */}
+        {commentDialog && commentDialogBox()}
       </div>
     </>
   )
