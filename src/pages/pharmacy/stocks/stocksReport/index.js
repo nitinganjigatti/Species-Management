@@ -298,29 +298,61 @@ const ListOfStocks = () => {
   // }, [])
   const getBatchWiseDataToExport = async () => {
     try {
-      setExcelLoader(true)
+      if (!changeSwitch) {
+        setExcelLoader(true)
+        const result = await getStockReport(stockId, { sort, q: searchValue, column: sortColumn })
 
-      const result = await getStockReportByBatch(stockId, { params: {} })
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Medicine Name']: el?.stock_items_name,
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`,
+              ['Quantity']: el?.stock_qty,
+              ['value']: el?.total_cost,
+              ['Average price']: Number.isInteger(el.total_cost / el.stock_qty)
+                ? el.total_cost / el.stock_qty
+                : parseFloat(el.total_cost / el.stock_qty).toFixed(2),
+              ['Stock Item Id']: el?.stock_item_id
+            }
+          })
 
-      if (result?.success === true && result?.data?.length > 0) {
-        const data = result?.data?.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_items_name,
-            ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
-              el?.product_form_label
-            }`,
+          Utility.exportToCSV(data, 'Stock Report')
+        }
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(true)
+        const batchParams = {
+          sort: batchSort,
+          q: batchSearchValue,
+          column: batchSortColumn
+          // page: batchPaginationModel.page + 1,
+          // limit: batchPaginationModel.pageSize
+        }
+        const result = await getStockReportByBatch(stockId, batchParams)
 
-            ['Quantity']: el?.stock_qty,
-            ['Unit Price']: el?.unit_price,
-            ['value']: el?.total_cost,
-            ['Batch Number']: el?.batch_no,
-            ['Expiry Date']: el?.expiry_date
-          }
-        })
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Medicine Name']: el?.stock_items_name,
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`,
 
-        Utility.exportToCSV(data, 'Batch wise Products')
+              ['Quantity']: el?.stock_qty,
+              ['Unit Price']: el?.unit_price,
+              ['value']: el?.total_cost,
+              ['Batch Number']: el?.batch_no,
+              ['Stock Item Id']: el?.stock_item_id,
+              ['Expiry Date']: el?.expiry_date
+            }
+          })
+
+          Utility.exportToCSV(data, 'Stock Report Batch wise')
+        }
+        setExcelLoader(false)
       }
-      setExcelLoader(false)
     } catch (error) {
       setExcelLoader(false)
 
@@ -458,7 +490,7 @@ const ListOfStocks = () => {
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.stock_qty}
@@ -485,7 +517,7 @@ const ListOfStocks = () => {
       field: 'stock_item_id',
       headerName: 'Average Price',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Number.isInteger(params.row.total_cost / params.row.stock_qty)
@@ -695,7 +727,7 @@ const ListOfStocks = () => {
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
@@ -709,7 +741,7 @@ const ListOfStocks = () => {
       field: 'unit_price',
       headerName: 'Unit Price',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -748,6 +780,7 @@ const ListOfStocks = () => {
       width: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date' || params.row.expiry_date == null
@@ -843,6 +876,7 @@ const ListOfStocks = () => {
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
     setSearchValue('')
+    setBatchSearchValue('')
   }
 
   const headerAction = (
@@ -1014,18 +1048,18 @@ const ListOfStocks = () => {
                       />
                     </Grid>
 
-                    {changeSwitch ? (
-                      <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
-                        <ExcelExportButton
-                          disabled={total === 0 ? true : false}
-                          action={() => {
-                            getBatchWiseDataToExport()
-                          }}
-                          loader={excelLoader}
-                          title='Download'
-                        />
-                      </Box>
-                    ) : null}
+                    {/* {changeSwitch ? ( */}
+                    <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
+                      <ExcelExportButton
+                        disabled={total === 0 ? true : false}
+                        action={() => {
+                          getBatchWiseDataToExport()
+                        }}
+                        loader={excelLoader}
+                        title='Download'
+                      />
+                    </Box>
+                    {/* ) : null} */}
                   </Grid>
 
                   {changeSwitch ? (
