@@ -422,7 +422,7 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [selectedPharmacy])
 
   const bulkStatusUpdate = async () => {
     const updatedItemDetails = disputeItemDetails.item_details.map(item => {
@@ -619,7 +619,28 @@ function OrderReceiveForm({ orderId, requestId }) {
     return result
   }
 
-  const commentDialogBox = () => {
+  console.log(listComments, 'listComments')
+
+  async function markAsReceived(itemId) {
+    // if (!itemId) {
+    //   console.error('Invalid item ID.')
+    //   return
+    // }
+    // console.log(itemId, 'itemId')
+    // // Update the status of the specific item to "Received"
+    // disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
+    //   item.id === itemId ? { ...item, status: 'Received' } : item
+    // )
+    // // Call updateStatus to handle the rest of the logic
+    // await updateStatus()
+    // closeCommentDialog()
+  }
+
+  // Usage in button click
+
+  const commentDialogBox = params => {
+    console.log(params, 'params123')
+
     return (
       <ConfirmDialogBox
         open={commentDialog}
@@ -627,62 +648,120 @@ function OrderReceiveForm({ orderId, requestId }) {
           closeCommentDialog()
         }}
         action={closeCommentDialog}
+        title={'Comments'}
         content={
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
-            {/* <Box sx={{ display: 'flex', justifyContent: 'end' }}>
-              <IconButton size='small' onClick={() => closeCommentDialog()} sx={{ mx: 4 }}>
-                <Icon icon='mdi:close' />
-              </IconButton>
-            </Box> */}
-            <Box sx={{}}>
-              {listComments?.data?.length > 0 ? (
-                listComments?.data?.map((el, index) => {
-                  return (
-                    <Card key={index} sx={{ mx: 2, mb: 2 }}>
-                      {/* <CardHeader
-                        action={
-                          <IconButton size='small' onClick={() => closeCommentDialog()} sx={{ mx: 4 }}>
-                            <Icon icon='mdi:close' />
-                          </IconButton>
-                        }
-                      ></CardHeader> */}
-                      <CardContent>
-                        <Grid container spacing={2}>
-                          <Grid item xs={6}>
-                            <Typography style={{ fontWeight: 'bold' }}>{el?.from_store}</Typography>
-                          </Grid>
-                          <Grid item xs={6} sx={{ alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
-                            <Typography style={{ fontSize: '12px' }}>
-                              {Utility.formatDisplayDate(el?.created_at)}
-                            </Typography>
-                          </Grid>
-                          <Grid item>
-                            <Typography>{el?.comment}</Typography>
-                          </Grid>
-                        </Grid>
-                        {/* <strong>Shipped From:</strong> */}
-                      </CardContent>
-                      {/* <CardContent>{el?.comment}</CardContent> */}
-                    </Card>
-                  )
-                })
-              ) : (
-                <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
-              )}
+          <>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2 }}>
+              {/* Medicine Name */}
+              <Box sx={{ bgcolor: '#EFF5F2', px: 2, py: 2, borderRadius: '8px' }}>
+                <Typography variant='h6'>{params?.stock_name}</Typography>
+              </Box>
+
+              <Box>
+                {listComments?.data?.length > 0 ? (
+                  listComments.data.map((el, index) => (
+                    <Box key={index}>
+                      {/* Comment Header */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
+                          <Typography sx={{ color: '#E93353' }}>
+                            • {index === 0 ? 'Shortage' : 'Missing'} (2)
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ color: '#7A8684' }}>{Utility.formatDisplayDate(el?.created_at)}</Typography>
+                      </Box>
+
+                      {/* Comment Card */}
+                      <Box sx={{ mb: 2, bgcolor: '#1F515B0D', border: '1px solid #4C4E6438', borderRadius: '8px' }}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography sx={{ fontWeight: '600', color: '#FA6140', fontSize: '12px' }}>
+                                {el?.from_store}
+                              </Typography>
+                              <Typography sx={{ fontSize: '12px', color: '#7A8684' }}>
+                                • {Utility.formatDisplayDate(el?.created_at)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                            {el?.comment}
+                          </Typography>
+                        </CardContent>
+                      </Box>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
+                )}
+              </Box>
+
+              {/* Mark as Received Button */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
+                <Button type='button' variant='contained' onClick={() => markAsReceived(params)}>
+                  Mark as Received
+                </Button>
+              </Box>
             </Box>
-            {/* <DialogActions className='dialog-actions-dense'>
-              <Button
-                variant='contained'
-                color='error'
-                size='small'
-                onClick={() => {
-                  closeCommentDialog()
-                }}
-              >
-                Close
-              </Button>
-            </DialogActions> */}
-          </Box>
+          </>
+          //    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
+          //    {/* <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+          //      <IconButton size='small' onClick={() => closeCommentDialog()} sx={{ mx: 4 }}>
+          //        <Icon icon='mdi:close' />
+          //      </IconButton>
+          //    </Box> */}
+          //    <Box>
+          //      {listComments?.data?.length > 0 ? (
+          //        listComments?.data?.map((el, index) => {
+          //          return (
+          //            <Card key={index} sx={{ mx: 2, mb: 2 }}>
+          //              {/* <CardHeader
+          //                action={
+          //                  <IconButton size='small' onClick={() => closeCommentDialog()} sx={{ mx: 4 }}>
+          //                    <Icon icon='mdi:close' />
+          //                  </IconButton>
+          //                }
+          //              ></CardHeader> */}
+
+          //              <CardContent>
+          //                <Grid container spacing={2}>
+          //                  <Grid item xs={6}>
+          //                    <Typography style={{ fontWeight: 'bold' }}>{el?.from_store}</Typography>
+          //                  </Grid>
+          //                  <Grid item xs={6} sx={{ alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
+          //                    <Typography style={{ fontSize: '12px' }}>
+          //                      {Utility.formatDisplayDate(el?.created_at)}
+          //                    </Typography>
+          //                  </Grid>
+          //                  <Grid item>
+          //                    <Typography>{el?.comment}</Typography>
+          //                  </Grid>
+          //                </Grid>
+          //                {/* <strong>Shipped From:</strong> */}
+          //              </CardContent>
+          //              {/* <CardContent>{el?.comment}</CardContent> */}
+          //            </Card>
+          //          )
+          //        })
+          //      ) : (
+          //        <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
+          //      )}
+          //    </Box>
+          //    {/* <DialogActions className='dialog-actions-dense'>
+          //      <Button
+          //        variant='contained'
+          //        color='error'
+          //        size='small'
+          //        onClick={() => {
+          //          closeCommentDialog()
+          //        }}
+          //      >
+          //        Close
+          //      </Button>
+          //    </DialogActions> */}
+
+          //  </Box>
         }
       />
     )
@@ -765,8 +844,6 @@ function OrderReceiveForm({ orderId, requestId }) {
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
       renderCell: params => {
-        console.log(params.row, 'Anu')
-
         return (
           <>
             {selectedPharmacy.type === 'central' ? (
@@ -1271,7 +1348,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                             >
                               <Icon icon='iconamoon:comment' />
                             </IconButton> */}
-                            {commentDialogBox()}
+                            {commentDialogBox(params.row)}
                           </>
                         ) : null}
                       </Grid>
@@ -1322,8 +1399,10 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
     const receivedItems = disputeItemDetails?.item_details
 
-    if (receivedItems.length > 0) {
+    if (receivedItems?.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
+        console.log(item, 'item')
+
         return {
           ...item,
           from_store_id: item?.from_store,
@@ -1337,6 +1416,8 @@ function OrderReceiveForm({ orderId, requestId }) {
           request_id: requestId,
           comments: disputeItemDetails?.comments,
           item_status: item?.status,
+          // item_status: markedId && markedId === item.id ? 'Received' : item?.status,
+
           phone_number: orderData?.phone_number
         }
       })
@@ -1353,11 +1434,14 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (verifyCount) {
         setSubmitLoader(true)
 
+        console.log(finalReceivedItems, 'finalReceivedItems')
+
         try {
           const result = await updateShipmentRequest(orderId, finalReceivedItems)
 
           if (result?.success) {
             toast.success(result?.msg)
+
             setSubmitLoader(false)
             // closeOrderFormDialog()
           } else {
@@ -1366,6 +1450,9 @@ function OrderReceiveForm({ orderId, requestId }) {
           }
         } catch (error) {
           setSubmitLoader(false)
+          if (markedId) {
+            closeCommentDialog()
+          }
 
           toast.error(error?.msg)
         }
@@ -1473,6 +1560,12 @@ function OrderReceiveForm({ orderId, requestId }) {
       }
     }
   }
+
+  // useEffect(() => {
+  //   if (selectedPharmacy.type === 'central') {
+  //     updateStatus()
+  //   }
+  // }, [selectedPharmacy])
 
   return (
     <>
