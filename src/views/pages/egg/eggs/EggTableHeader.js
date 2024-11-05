@@ -5,7 +5,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import EggFilterDrawer from './eggFilterDrawer'
 import { useRouter } from 'next/router'
-import ExcelExportButton from './exportExcel'
+import ExcelExportButton from './exportEggListExcel'
 
 const EggTableHeader = ({
   totalCount,

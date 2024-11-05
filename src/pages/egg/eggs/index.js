@@ -43,7 +43,7 @@ import { useRouter } from 'next/router'
 import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
-import ExcelExportButton from 'src/views/pages/egg/eggs/exportExcel'
+import ExcelExportButton from 'src/views/pages/egg/eggs/exportEggListExcel'
 import { readAsync, write, remove, read } from 'src/lib/windows/utils'
 
 const EggList = () => {
