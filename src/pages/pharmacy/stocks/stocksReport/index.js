@@ -341,7 +341,7 @@ const ListOfStocks = () => {
               ['Quantity']: Number(el?.stock_qty),
               ['Unit Price']: Number(el?.unit_price),
               ['value']: Number(el?.total_cost),
-              ['Batch Number']: Number(el?.batch_no),
+              ['Batch Number']: el?.batch_no,
               ['Expiry Date']: el?.expiry_date,
               ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
                 el?.package_uom_label
