@@ -91,7 +91,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .required('Mobile Number is required')
           .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
             return /^\d{10}$/.test(value)
-          })
+          }),
+        carton_box: yup
+          .number()
+          .typeError('Carton Box must be a number')
+          .positive('Carton Box must be a positive number')
+          .integer('Carton Box must be a whole number')
+          .min(1, 'Carton Box must be greater than 0')
+          .required('Carton Box is required')
       })
     : yup.object().shape({
         receiver_name: yup
@@ -104,7 +111,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .required('Mobile Number is required')
           .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
             return /^\d{10}$/.test(value)
-          })
+          }),
+        carton_box: yup
+          .number()
+          .typeError('Carton Box must be a number')
+          .positive('Carton Box must be a positive number')
+          .integer('Carton Box must be a whole number')
+          .min(1, 'Carton Box must be greater than 0')
+          .required('Carton Box is required')
       })
 
   const {
@@ -189,7 +203,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { person_shipping, vehicle_no, receiver_name, phone_number } = {
+    const { person_shipping, vehicle_no, receiver_name, phone_number, carton_box } = {
       ...params
     }
 
@@ -209,6 +223,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       payloadItem.from_store_id = storeDetails.from_store_id
       payloadItem.vehicle_no = vehicle_no
       payloadItem.phone_number = phone_number
+      payloadItem.carton_box = carton_box
 
       payload.push(payloadItem)
     })
@@ -532,6 +547,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                                 setValue('vehicle_no', '')
                                 setValue('receiver_name', '')
                                 setValue('phone_number', '')
+                                // setValue('driver_name', '')
 
                                 return onChange(null)
                               } else {
@@ -539,6 +555,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                                 setValue('vehicle_no', val.vehicle_number)
                                 setValue('receiver_name', val.driver_name)
                                 setValue('phone_number', val.phone_number)
+                                // setValue('driver_name', val.driver_name)
 
                                 return onChange(val)
                               }
@@ -563,26 +580,49 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 ) : null}
 
                 {deliveryType.Ship && (
+                  // <Grid item xs={12} sm={3} mb={6}>
+                  //   <FormControl fullWidth>
+                  //     <Controller
+                  //       name='driver_name'
+                  //       control={control}
+                  //       rules={{ required: true }}
+                  //       render={({ field: { value, onChange } }) => (
+                  //         <TextField
+                  //           value={value}
+                  //           label='Driver name *'
+                  //           onChange={onChange}
+                  //           placeholder=''
+                  //           error={Boolean(errors.driver_name)}
+                  //           name='driver_name'
+                  //           InputLabelProps={{ shrink: true }}
+                  //         />
+                  //       )}
+                  //     />
+                  //     {errors.driver_name && (
+                  //       <FormHelperText sx={{ color: 'error.main' }}>{errors.driver_name.message}</FormHelperText>
+                  //     )}
+                  //   </FormControl>
+                  // </Grid>
                   <Grid item xs={12} sm={3} mb={6}>
                     <FormControl fullWidth>
                       <Controller
-                        name='driver_name'
+                        name='person_shipping'
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <TextField
                             value={value}
-                            label='Driver name *'
+                            label='Driver Name*'
                             onChange={onChange}
                             placeholder=''
-                            error={Boolean(errors.driver_name)}
-                            name='driver_name'
+                            error={Boolean(errors.person_shipping)}
+                            name='person_shipping'
                             InputLabelProps={{ shrink: true }}
                           />
                         )}
                       />
-                      {errors.driver_name && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.driver_name.message}</FormHelperText>
+                      {errors.person_shipping && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
                       )}
                     </FormControl>
                   </Grid>
@@ -621,7 +661,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       render={({ field: { value, onChange } }) => (
                         <TextField
                           value={value}
-                          label='Mobile number*'
+                          label='Mobile Number*'
                           onChange={onChange}
                           placeholder=''
                           error={Boolean(errors.phone_number)}
@@ -683,7 +723,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} mb={6}>
+                    {/* <Grid item xs={12} sm={6} mb={6}>
                       <FormControl fullWidth>
                         <Controller
                           name='person_shipping'
@@ -692,7 +732,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           render={({ field: { value, onChange } }) => (
                             <TextField
                               value={value}
-                              label='Person Shipping*'
+                              label='Driver Name*'
                               onChange={onChange}
                               placeholder=''
                               error={Boolean(errors.person_shipping)}
@@ -705,7 +745,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
                         )}
                       </FormControl>
-                    </Grid>
+                    </Grid> */}
                   </>
                 ) : (
                   <>
@@ -734,33 +774,31 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     </Grid>
                   </>
                 )}
-                {deliveryType.Ship && (
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='no_of_carton_boxes'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='No of Carton Boxes *'
-                            onChange={onChange}
-                            placeholder=''
-                            error={Boolean(errors.no_of_carton_boxes)}
-                            name='no_of_carton_boxes'
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        )}
-                      />
-                      {errors.no_of_carton_boxes && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.no_of_carton_boxes.message}
-                        </FormHelperText>
+                {/* {deliveryType.Ship && ( */}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='carton_box'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          value={value}
+                          label='No of Carton Boxes *'
+                          onChange={onChange}
+                          placeholder=''
+                          error={Boolean(errors.carton_box)}
+                          name='carton_box'
+                          InputLabelProps={{ shrink: true }}
+                        />
                       )}
-                    </FormControl>
-                  </Grid>
-                )}
+                    />
+                    {errors.carton_box && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.carton_box.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                {/* )} */}
 
                 {/* <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
