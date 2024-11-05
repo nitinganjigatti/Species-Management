@@ -1224,10 +1224,10 @@ const EggList = () => {
 
     {
       // flex: 0.15,
-      width: 150,
+      width: 180,
       sortable: false,
       field: 'initial_weight',
-      headerName: 'Initial weight',
+      headerName: 'Initial weight in gm',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1244,10 +1244,10 @@ const EggList = () => {
     },
     {
       // flex: 0.15,
-      width: 150,
+      width: 180,
       sortable: false,
       field: 'current_weight',
-      headerName: 'current weight',
+      headerName: 'current weight in gm',
       align: 'center',
 
       renderCell: params => (
@@ -1284,7 +1284,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'initial_length',
-      headerName: 'Initial Size-L',
+      headerName: 'Length in mm ',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1304,7 +1304,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'initial_width',
-      headerName: 'Initial Size-W',
+      headerName: 'width in mm',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1319,47 +1319,7 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'site',
-      headerName: 'SITE NAME',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
-      )
-    },
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'nursery_name',
-      headerName: 'Nursery NAME',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.nursery_name ? params.row.nursery_name : '-'}
-        </Typography>
-      )
-    },
     {
       // flex: 0.15,
       width: 130,
@@ -1433,6 +1393,49 @@ const EggList = () => {
         </Typography>
       )
     },
+
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
+      field: 'site',
+      headerName: 'SITE NAME',
+
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery NAME',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
+
     {
       // flex: 0.16,
       width: 130,
