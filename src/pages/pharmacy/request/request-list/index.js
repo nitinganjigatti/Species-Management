@@ -463,13 +463,27 @@ const RequestList = () => {
     {
       flex: 0.2,
       minWidth: 20,
-      field: 'total_qty',
+      field: 'product_count',
       headerName: 'TOTAL ITEMS',
       type: 'number',
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_qty}
+          {params.row?.product_count}
+        </Typography>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'pending_count',
+      headerName: 'PENDING ITEMS',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row?.pending_count}
         </Typography>
       )
     },

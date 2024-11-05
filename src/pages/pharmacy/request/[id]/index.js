@@ -1591,71 +1591,30 @@ const IndividualRequest = () => {
                           }
                         }}
                       >
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
-                          }}
-                        >
-                          Requested Items:
-                          <Box
-                            component='span'
+                        {requestItems?.product_count && (
+                          <Typography
                             sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px',
-                              mx: 2
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary'
                             }}
                           >
-                            {requestItems?.total_qty}
-                          </Box>
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'primary.OnSurface'
-                          }}
-                        >
-                          Shipped Items:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.OnSurface',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                          >
-                            {requestItems?.shipped_qty}
-                          </Box>
-                        </Typography>
-                      </Grid>
-
-                      <Grid
-                        item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '4px',
-                          height: '46px',
-                          mb: {
-                            xs: 5,
-                            sm: 0,
-                            md: 0,
-                            lg: 0
-                          }
-                        }}
-                      >
+                            Requested Items:
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'customColors.OnSurfaceVariant',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              {requestItems?.product_count}
+                            </Box>
+                          </Typography>
+                        )}
                         <Typography
                           sx={{
                             fontSize: '14px',
@@ -1678,7 +1637,49 @@ const IndividualRequest = () => {
                             ₹{requestItems?.requested_amount}
                           </Box>
                         </Typography>
+                        {/* <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface'
+                          }}
+                        >
+                          Shipped Items:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.OnSurface',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            {requestItems?.shipped_qty}
+                          </Box>
+                        </Typography> */}
+                      </Grid>
 
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          height: '46px',
+                          mb: {
+                            xs: 5,
+                            sm: 0,
+                            md: 0,
+                            lg: 0
+                          }
+                        }}
+                      >
                         <Typography
                           sx={{
                             fontSize: '14px',
