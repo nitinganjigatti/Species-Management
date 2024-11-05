@@ -42,10 +42,10 @@ const ComposeNavigation = () => {
     navigationArray.push(...labNav)
   }
 
-  // if (dietModule) {
-  //   const dietNav = dietNavigation()
-  //   navigationArray.push(...dietNav)
-  // }
+  if (dietModule) {
+    const dietNav = dietNavigation()
+    navigationArray.push(...dietNav)
+  }
   if (egg_nursery || egg_collection) {
     const eggNav = eggNavigation({ egg_nursery, egg_collection })
     navigationArray.push(...eggNav)
