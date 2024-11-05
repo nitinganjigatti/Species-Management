@@ -305,19 +305,20 @@ const ListOfStocks = () => {
         if (result?.success === true && result?.data?.length > 0) {
           const data = result?.data?.map(el => {
             return {
+              ['Id']: Number(el?.stock_item_id),
               ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['value']: Number(el?.total_cost),
+              ['Average price']: Number(
+                Number.isInteger(el.total_cost / el.stock_qty)
+                  ? el.total_cost / el.stock_qty
+                  : parseFloat(el.total_cost / el.stock_qty).toFixed(2)
+              ),
               ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
                 el?.package_uom_label
-              } ${el?.product_form_label}`,
-              ['Quantity']: el?.stock_qty,
-              ['value']: el?.total_cost,
-              ['Average price']: Number.isInteger(el.total_cost / el.stock_qty)
-                ? el.total_cost / el.stock_qty
-                : parseFloat(el.total_cost / el.stock_qty).toFixed(2),
-              ['Stock Item Id']: el?.stock_item_id
+              } ${el?.product_form_label}`
             }
           })
-
           Utility.exportToCSV(data, 'Stock Report')
         }
         setExcelLoader(false)
@@ -335,17 +336,16 @@ const ListOfStocks = () => {
         if (result?.success === true && result?.data?.length > 0) {
           const data = result?.data?.map(el => {
             return {
+              ['Id']: Number(el?.stock_item_id),
               ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['Unit Price']: Number(el?.unit_price),
+              ['value']: Number(el?.total_cost),
+              ['Batch Number']: Number(el?.batch_no),
+              ['Expiry Date']: el?.expiry_date,
               ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
                 el?.package_uom_label
-              } ${el?.product_form_label}`,
-
-              ['Quantity']: el?.stock_qty,
-              ['Unit Price']: el?.unit_price,
-              ['value']: el?.total_cost,
-              ['Batch Number']: el?.batch_no,
-              ['Stock Item Id']: el?.stock_item_id,
-              ['Expiry Date']: el?.expiry_date
+              } ${el?.product_form_label}`
             }
           })
 
