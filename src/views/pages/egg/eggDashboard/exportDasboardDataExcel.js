@@ -64,27 +64,27 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
 
       const formattedData = data.map((item, index) => ({
         NO: index + 1,
-        NURSERIES: Utility?.toPascalSentenceCase(item.row.nursery_name) || '-',
-        'TOTAL EGGS': item.row.total_eggs || '-',
-        'CURRENTLY IN INCUBATOR': item.row.currently_in_incubator || '-',
-        'CURRENTLY IN NURSERY': item.row.currently_in_nursery || '-',
+        NURSERIES: item.nursery_name || '-',
+        'TOTAL EGGS': item.total_eggs || '-',
+        'CURRENTLY IN INCUBATOR': item.currently_in_incubator || '-',
+        'CURRENTLY IN NURSERY': item.currently_in_nursery || '-',
         'HATCHED IN NURSERY %': `${
-          Number(item.row.hatched_in_nursery) +
-            Number(item.row.discarded_at_nursery) +
-            Number(item.row.ready_tobe_discarded_at_nursery) >
+          Number(item.hatched_in_nursery) +
+            Number(item.discarded_at_nursery) +
+            Number(item.ready_tobe_discarded_at_nursery) >
           0
             ? Math.round(
-                (Number(item.row.hatched_in_nursery) /
-                  (Number(item.row.hatched_in_nursery) +
-                    Number(item.row.discarded_at_nursery) +
-                    Number(item.row.ready_tobe_discarded_at_nursery))) *
+                (Number(item.hatched_in_nursery) /
+                  (Number(item.hatched_in_nursery) +
+                    Number(item.discarded_at_nursery) +
+                    Number(item.ready_tobe_discarded_at_nursery))) *
                   100
               )
             : 0
-        } % ${item.row.hatched_in_nursery ? `(${item.row.hatched_in_nursery})` : '-'}`,
-        'DISCARDED AT NURSERY': item.row.discarded_at_nursery || '-',
+        } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '-'}`,
+        'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
 
-        'IN TRANSIT': item.row.in_transit || '-'
+        'IN TRANSIT': item.in_transit || '-'
       }))
       setXlsxList(formattedData)
     }
