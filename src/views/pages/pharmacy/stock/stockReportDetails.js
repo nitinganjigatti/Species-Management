@@ -45,7 +45,7 @@ const StockReportDetails = props => {
   }, [purchaseByStockIdList])
 
   const handleNavigate = productId => {
-    router.push(`pharmacy/purchase/add-purchase/?id=${productId}&action=edit`)
+    router.push(`/pharmacy/purchase/add-purchase/?id=${productId}&action=edit&navigatedFrom=stockReport`)
   }
 
   return (

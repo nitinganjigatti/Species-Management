@@ -1168,6 +1168,7 @@ const ListOfStocks = () => {
                       onCellClick={(params, event) => {
                         event.stopPropagation()
                         event.preventDefault()
+
                         // Custom logic for cell clicks
                         if (params.field === 'stock_items_name') {
                           addEventSidebarOpen(params)
@@ -1216,6 +1217,7 @@ const ListOfStocks = () => {
                       onCellClick={(params, event) => {
                         event.stopPropagation()
                         event.preventDefault()
+
                         // Custom logic for cell clicks
                         if (params.field === 'stock_items_name') {
                           addEventSidebarOpen(params)

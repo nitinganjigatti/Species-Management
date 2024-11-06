@@ -136,7 +136,7 @@ const AddPurchaseForm = () => {
   const [supplierDialog, setSupplierDialog] = useState(false)
 
   const router = useRouter()
-  const { id, action } = router.query
+  const { id, action, navigatedFrom } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
   const authData = useContext(AuthContext)
@@ -525,7 +525,11 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        if (navigatedFrom === 'stockReport') {
+          Router.push('/pharmacy/stocks/stocksReport/')
+        } else {
+          Router.push('/pharmacy/purchase/purchase-list/')
+        }
       } else {
         setSubmitLoader(false)
         toast.error(response.message)

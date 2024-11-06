@@ -1,4 +1,4 @@
-import { PURCHASE, CHECK_BATCH, PHARMACY_BASE_URL } from 'src/constants/ApiConstant'
+import { PURCHASE, CHECK_BATCH, PHARMACY_BASE_URL, UPDATE_PURCHASE_BASE_URL } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getPurchaseList({ params }) {
@@ -34,7 +34,7 @@ export async function addPurchase(payload) {
 
 export async function updatePurchase(id, payload) {
   try {
-    const url = `${PHARMACY_BASE_URL}${PURCHASE}/${id}/update`
+    const url = `${UPDATE_PURCHASE_BASE_URL}${PURCHASE}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data, pharmacy: true })
@@ -54,7 +54,7 @@ export async function updatePurchase(id, payload) {
 
 export async function updatePurchasePrice(id, payload) {
   try {
-    const url = `${PHARMACY_BASE_URL}${PURCHASE}/${id}/updatePrice`
+    const url = `${UPDATE_PURCHASE_BASE_URL}${PURCHASE}/${id}/updatePrice`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data, pharmacy: true })
