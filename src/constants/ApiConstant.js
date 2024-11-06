@@ -298,4 +298,4 @@ export const USERS_REPORT = '/user/report'
 
 export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
 
-export const SPECIES_REPORT = 'v1/species/report'
+export const SPECIES_REPORT = 'v1/species/reportv1'
