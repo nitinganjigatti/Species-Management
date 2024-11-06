@@ -81,8 +81,9 @@ const AddRecipe = () => {
 
   useEffect(() => {
     getUnitsList()
+
     callIngredientTypeList({ status: 1, page: 1, limit: 10 })
-  }, [])
+  }, [urlType])
 
   const getUnitsList = async () => {
     try {
@@ -197,12 +198,24 @@ const AddRecipe = () => {
           ...updatedData
         }))
 
-        const ingredientList = data.by_percentage.map(item => ({
-          id: item.ingredient_id,
-          ingredient_name: item.ingredient_name
-        }))
-        console.log(ingredientList, 'ingredientList')
-        setFullIngredientList(ingredientList)
+        // Combine ingredient data and filter out duplicates based on id
+        const combinedIngredients = [
+          ...data.by_percentage.map(item => ({
+            id: item.ingredient_id,
+            ingredient_name: item.ingredient_name
+          })),
+          ...data.by_quantity.map(item => ({
+            id: item.ingredient_id,
+            ingredient_name: item.ingredient_name
+          }))
+        ]
+
+        const uniqueIngredientList = combinedIngredients.filter(
+          (item, index, self) => index === self.findIndex(i => i.id === item.id)
+        )
+
+        console.log(uniqueIngredientList, 'uniqueIngredientList')
+        setFullIngredientList(uniqueIngredientList)
       }
     } catch (error) {
       console.log('Feed list', error)
