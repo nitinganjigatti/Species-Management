@@ -100,8 +100,11 @@ const ListOfStocks = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  const [purchaseByStockId, setPurchaseByStockId] = useState(null)
+  // const [purchaseByStockId, setPurchaseByStockId] = useState(null)
+  const [purchaseByStockId, setPurchaseByStockId] = useState({ batch_no: null, stock_id: null })
   const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
+
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -1021,7 +1024,11 @@ const ListOfStocks = () => {
 
   const addEventSidebarOpen = params => {
     console.log(params.row, 'qwer')
-    setPurchaseByStockId(params.row?.stock_item_id)
+    // setPurchaseByStockId(params.row?.stock_item_id)
+    setPurchaseByStockId({
+      batch_no: params.row?.batch_no,
+      stock_id: params.row?.stock_item_id
+    })
 
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
@@ -1029,7 +1036,7 @@ const ListOfStocks = () => {
   }
 
   const handleSidebarClose = () => {
-    setPurchaseByStockId(null)
+    setPurchaseByStockId({ batch_no: null, stock_id: null })
     setPurchaseByStockIdList([])
     setOpenDrawer(false)
   }
@@ -1039,23 +1046,36 @@ const ListOfStocks = () => {
     } catch (e) {}
   }
 
-  const getPurchaseListByStockId = useCallback(async id => {
-    console.log(id, 'qw')
+  const getPurchaseListByStockId = useCallback(
+    async (stock_id, batch_no) => {
+      console.log(batch_no, 'qw')
 
-    const params = {}
+      const params = { stock_id }
+      if (changeSwitch) {
+        params.batch_no = batch_no
+      }
 
-    try {
-      const result = await getPurchaseListByProduct(id, params)
-      console.log(result, 'res')
-      setPurchaseByStockIdList(result.data)
-    } catch (error) {
-      console.log('error', error)
-    }
-  }, [])
+      try {
+        setPurchaseLoading(true)
+        const result = await getPurchaseListByProduct(params)
+        if (result !== undefined) {
+          console.log(result, 'res')
+          setPurchaseByStockIdList(result.data)
+          setPurchaseLoading(false)
+        }
+      } catch (error) {
+        console.log('error', error)
+        setPurchaseLoading(false)
+      }
+    },
+    [changeSwitch]
+  )
 
   useEffect(() => {
-    if (purchaseByStockId !== null) getPurchaseListByStockId(purchaseByStockId)
-  }, [purchaseByStockId])
+    if (purchaseByStockId && purchaseByStockId.stock_id) {
+      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no)
+    }
+  }, [purchaseByStockId, getPurchaseListByStockId])
 
   return (
     <>
@@ -1279,6 +1299,8 @@ const ListOfStocks = () => {
         submitLoader={submitLoader}
         editParams={editParams}
         purchaseByStockIdList={purchaseByStockIdList}
+        purchaseLoading={purchaseLoading}
+        setPurchaseLoading={setPurchaseLoading}
       />
     </>
   )

@@ -69,8 +69,8 @@ export async function getStockReportByBatch(id, params) {
   return response?.data
 }
 
-export async function getPurchaseListByProduct(id, params) {
-  let response = await axiosGet({ url: `${PURCHASE_BY_PRODUCT}?stock_id=${id}`, params, pharmacy: true })
+export async function getPurchaseListByProduct(params) {
+  let response = await axiosGet({ url: `${PURCHASE_BY_PRODUCT}`, params, pharmacy: true })
 
   return response.data
 }
