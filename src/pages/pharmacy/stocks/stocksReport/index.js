@@ -12,7 +12,8 @@ import {
   getStocksReportById,
   getLocalStocksReportById,
   getStockReport,
-  getStockReportByBatch
+  getStockReportByBatch,
+  getPurchaseListByProduct
 } from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 
@@ -61,6 +62,7 @@ import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import ExpiringMedicine from '../expired-medicine/expiringStock'
 import { minWidth, width } from '@mui/system'
+import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -90,8 +92,16 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
-  const [changeSwitch, setChangeSwitch] = useState()
+  const [changeSwitch, setChangeSwitch] = useState(true)
   const [stockType, setStockType] = useState(selectedPharmacy?.type)
+
+  const editParamsInitialState = { id: null, name: null, active: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [purchaseByStockId, setPurchaseByStockId] = useState(null)
+  const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -929,6 +939,7 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
+
       showDialog()
     }
   }
@@ -1007,6 +1018,44 @@ const ListOfStocks = () => {
       })
     }
   }
+
+  const addEventSidebarOpen = params => {
+    console.log(params.row, 'qwer')
+    setPurchaseByStockId(params.row?.stock_item_id)
+
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    setPurchaseByStockId(null)
+    setPurchaseByStockIdList([])
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    try {
+    } catch (e) {}
+  }
+
+  const getPurchaseListByStockId = useCallback(async id => {
+    console.log(id, 'qw')
+
+    const params = {}
+
+    try {
+      const result = await getPurchaseListByProduct(id, params)
+      console.log(result, 'res')
+      setPurchaseByStockIdList(result.data)
+    } catch (error) {
+      console.log('error', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (purchaseByStockId !== null) getPurchaseListByStockId(purchaseByStockId)
+  }, [purchaseByStockId])
 
   return (
     <>
@@ -1116,6 +1165,17 @@ const ListOfStocks = () => {
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+                        // Custom logic for cell clicks
+                        if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen(params)
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   ) : (
                     <DataGrid
@@ -1153,6 +1213,17 @@ const ListOfStocks = () => {
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+                        // Custom logic for cell clicks
+                        if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen(params)
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   )}
                 </Card>
@@ -1198,6 +1269,17 @@ const ListOfStocks = () => {
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
         </TabContext>
       </Grid>
+
+      <StockReportDetails
+        drawerWidth={400}
+        addEventSidebarOpen={openDrawer}
+        handleSidebarClose={handleSidebarClose}
+        handleSubmitData={handleSubmitData}
+        resetForm={resetForm}
+        submitLoader={submitLoader}
+        editParams={editParams}
+        purchaseByStockIdList={purchaseByStockIdList}
+      />
     </>
   )
 }

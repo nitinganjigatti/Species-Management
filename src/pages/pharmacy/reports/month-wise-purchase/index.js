@@ -15,7 +15,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField, Breadcrumbs, Tooltip } from '@mui/material'
+import { Box, TextField, Breadcrumbs, Tooltip } from '@mui/material'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
@@ -26,7 +26,6 @@ import Error404 from 'src/pages/404'
 import { LoadingButton } from '@mui/lab'
 import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/doctorsList'
 import moment from 'moment'
-import SingleDatePicker from 'src/components/SingleDatePicker'
 import { writeFile, utils } from 'xlsx'
 import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 
@@ -86,19 +85,16 @@ const MonthWisePurchase = () => {
   }
 
   const handlecheckcell = val => {
-    console.log(val, 'Cell data')
     const clickedColumnField = val.field
     const clickedRowData = val.row
 
     const clickedColumnData = columns.find(column => column.field === clickedColumnField)
-    console.log(clickedColumnData, 'clickedColumnData')
+
     if (val.field === 'stock_name') {
       return
     } else if (clickedColumnData) {
       const title = clickedColumnData.field
       const sub_title = clickedColumnData.renderHeader?.().props.children[1]?.props.children || ''
-      console.log('Clicked Column Title:', title)
-      console.log('Clicked Column Sub-Title:', sub_title)
 
       let fromDate, toDate
 
@@ -132,9 +128,6 @@ const MonthWisePurchase = () => {
       setDownloadFromDate(formattedFromDate)
       setDownloadToDate(formattedToDate)
 
-      console.log('Formatted From Date:', formattedFromDate)
-      console.log('Formatted To Date:', formattedToDate)
-
       if (clickedRowData.id && statusFilter) {
         setmedicineId(clickedRowData.id)
         fetchDoctorlist(clickedRowData.id, formattedFromDate, formattedToDate)
@@ -156,11 +149,7 @@ const MonthWisePurchase = () => {
         store_id: storeId
       }
 
-      console.log('Payload:', payload)
-
       const response = await getDoctorReportList(payload)
-
-      console.log(response, 'medicineListResponse')
 
       if (response.success === true) {
         setdoctorsList(response.data.list_items)
@@ -201,7 +190,7 @@ const MonthWisePurchase = () => {
           name: store.name
         }))
         setTotalmedicineCount(medicineListResponse.data.total_count)
-        console.log(allStores, 'allStores')
+
         setFullStoreList(prevStores => {
           let mergedStores
           if (q) {
@@ -250,7 +239,6 @@ const MonthWisePurchase = () => {
             medicine_ids: selectedFruits
           }
         } else {
-          console.log(statusFilter, 'activeStatus')
           payload = {
             //sort,
             q,
@@ -263,7 +251,6 @@ const MonthWisePurchase = () => {
 
         await getMonthWisePurchaseList(payload).then(res => {
           if (res.data.list_items) {
-            console.log(res.data.list_items, 'pppp')
             const listItem = res.data.list_items
 
             const columns = [
@@ -272,7 +259,6 @@ const MonthWisePurchase = () => {
                 headerName: `Pharmacy Name`,
                 renderHeader: () => (
                   <Box>
-                    {console.log(listItem, 'listItem')}
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Medicine names
                     </Typography>
@@ -339,7 +325,11 @@ const MonthWisePurchase = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_purchase_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                         >
@@ -347,7 +337,11 @@ const MonthWisePurchase = () => {
                         </Typography>
                       </Tooltip>
                     ) : (
-                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_purchase_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                         >
@@ -427,7 +421,6 @@ const MonthWisePurchase = () => {
   }
 
   const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
     setLoading(true)
     setFilterSearchValue(e.target.value)
     await searchTableDatafilter({ q: e.target.value })
@@ -437,12 +430,11 @@ const MonthWisePurchase = () => {
     setsearchbyDoctorname(value)
 
     if (medicineId && statusFilter) {
-      fetchDoctorlist(medicineId, downloadFromDate, downloadToDate, value) // Pass search value to API
+      fetchDoctorlist(medicineId, downloadFromDate, downloadToDate, value)
     }
   }
 
   const handleStatusFilterChange = newFilter => {
-    console.log(newFilter, 'newFilter')
     setStatusFilter(newFilter)
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
   }
@@ -624,28 +616,26 @@ const MonthWisePurchase = () => {
               // Handle null or NaN values
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
-              const roundedValue = parseFloat(value) / 1000
+              const roundedValue = parseFloat(value)
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
               })
               rowData[`${column.title} (${column.sub_title})`] = formattedValue
             }
           }
         })
 
-        console.log(rowData, 'rowData')
         return rowData
       })
 
       const totalPurchaseRow = {
-        Medicine: 'Total Purchase Value (in thousand)'
+        Medicine: 'Total Purchase Value '
       }
       listItem.columnData.forEach(column => {
-        const formattedPurchaseValue = (column.total_purchase_value / 1000).toLocaleString('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
+        const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
+          maximumFractionDigits: 0
         })
         totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
@@ -658,6 +648,11 @@ const MonthWisePurchase = () => {
 
       // Convert the data into a worksheet
       const ws = utils.aoa_to_sheet(wsData)
+      ws['!cols'] = [
+        { wch: 20 }, // Width for '1st' column
+
+        ...listItem.columnData.map(() => ({ wch: 15 })) // Width for each month/year column
+      ]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Purchase_Report')
 

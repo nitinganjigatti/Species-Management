@@ -201,3 +201,5 @@ export const DISCARD_REASON = 'discard-reason'
 export const STOCK = 'pharmacy/stock'
 
 export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
+
+export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
