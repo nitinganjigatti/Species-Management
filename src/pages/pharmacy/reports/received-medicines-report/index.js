@@ -16,7 +16,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField, Breadcrumbs, Tooltip } from '@mui/material'
+import { Box, TextField, Breadcrumbs, Tooltip } from '@mui/material'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
@@ -27,7 +27,6 @@ import MedicineNamedoctorsList from '../../../../components/pharmacy/dashBoard/d
 import MonthWisedispatchFilter from '../month-wise-dispatch/monthwiseDispatchFilterDrawer'
 import moment from 'moment'
 import { writeFile, utils } from 'xlsx'
-import SingleDatePicker from 'src/components/SingleDatePicker'
 
 const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
@@ -74,8 +73,6 @@ const ReceivedMedicinesReport = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
-    console.log(fullStoreList, 'fullStoreList')
-
     if (event.target.checked) {
       setFiltersApplied(false)
       setTempSelectedStores(fullStoreList.map(fruit => fruit.id))
@@ -85,20 +82,16 @@ const ReceivedMedicinesReport = () => {
   }
 
   const handlecheckcell = (val, from) => {
-    console.log(val, 'Cell data')
-    console.log(from, 'from')
     const clickedColumnField = val.field
     const clickedRowData = val.row
     setmedicinewiseval(from)
     const clickedColumnData = columns.find(column => column.field === clickedColumnField)
-    console.log(clickedColumnData, 'clickedColumnData')
+
     if (val.field === 'stock_name') {
       return
     } else if (clickedColumnData) {
       const title = clickedColumnData.field
       const sub_title = clickedColumnData.renderHeader?.().props.children[1]?.props.children || ''
-      console.log('Clicked Column Title:', title)
-      console.log('Clicked Column Sub-Title:', sub_title)
 
       let fromDate, toDate
 
@@ -132,9 +125,6 @@ const ReceivedMedicinesReport = () => {
       setDownloadFromDate(formattedFromDate)
       setDownloadToDate(formattedToDate)
 
-      console.log('Formatted From Date:', formattedFromDate)
-      console.log('Formatted To Date:', formattedToDate)
-
       if (clickedRowData.id && statusFilter) {
         setmedicineId(clickedRowData.id)
         fetchDoctorlist(clickedRowData.id, formattedFromDate, formattedToDate)
@@ -155,11 +145,7 @@ const ReceivedMedicinesReport = () => {
         q: doctorsearch
       }
 
-      console.log('Payload:', payload)
-
       const response = await getMedicineWiseDoctorFilter(payload)
-
-      console.log(response, 'medicineListResponse')
 
       if (response.success === true) {
         setdoctorsList(response.data.list_items)
@@ -199,7 +185,7 @@ const ReceivedMedicinesReport = () => {
           name: store.name
         }))
         setTotalmedicineCount(medicineListResponse.data.total_count)
-        console.log(allStores, 'allStores')
+
         setFullStoreList(prevStores => {
           let mergedStores
           if (q) {
@@ -237,8 +223,7 @@ const ReceivedMedicinesReport = () => {
           setLoading(false)
           return
         }
-        console.log(filtersApplied, 'ppppp')
-        console.log(selectedFruits.length, 'ppppppp')
+
         if (filtersApplied && selectedFruits.length > 0) {
           payload = {
             //sort,
@@ -250,7 +235,6 @@ const ReceivedMedicinesReport = () => {
             medicine_ids: selectedFruits
           }
         } else {
-          console.log(statusFilter, 'activeStatus')
           payload = {
             //sort,
             q,
@@ -263,7 +247,6 @@ const ReceivedMedicinesReport = () => {
 
         await getReceivedMedicineList(payload).then(res => {
           if (res.data.list_items) {
-            console.log(res.data.list_items, 'pppp')
             const listItem = res.data.list_items
 
             const columns = [
@@ -272,7 +255,6 @@ const ReceivedMedicinesReport = () => {
                 headerName: `Pharmacy Name`,
                 renderHeader: () => (
                   <Box>
-                    {console.log(listItem, 'listItem')}
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Medicine names
                     </Typography>
@@ -282,7 +264,7 @@ const ReceivedMedicinesReport = () => {
                     <Typography
                       sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                     >
-                      Total Purchase Value <br /> (in thousand)
+                      Total Received Value <br /> (in thousand)
                     </Typography>
                   </Box>
                 ),
@@ -321,7 +303,11 @@ const ReceivedMedicinesReport = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Tooltip title={column.total_received_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_received_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                         >
@@ -329,7 +315,11 @@ const ReceivedMedicinesReport = () => {
                         </Typography>
                       </Tooltip>
                     ) : (
-                      <Tooltip title={column.total_received_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_received_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                         >
@@ -356,7 +346,7 @@ const ReceivedMedicinesReport = () => {
                     maximumFractionDigits: 2
                   })
                   return (
-                    <Tooltip title={`Purchase value: ${formattedNumber}`}>
+                    <Tooltip title={`Received value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
                     </Tooltip>
                   )
@@ -408,7 +398,6 @@ const ReceivedMedicinesReport = () => {
   }
 
   const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
     setLoading(true)
     setFilterSearchValue(e.target.value)
     await searchTableDatafilter({ q: e.target.value })
@@ -423,7 +412,6 @@ const ReceivedMedicinesReport = () => {
   }
 
   const handleStatusFilterChange = newFilter => {
-    console.log(newFilter, 'newFilter')
     setStatusFilter(newFilter)
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
   }
@@ -602,11 +590,11 @@ const ReceivedMedicinesReport = () => {
               // Handle null or NaN values
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
-              const roundedValue = parseFloat(value) / 1000
+              const roundedValue = parseFloat(value)
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
               })
               rowData[`${column.title} (${column.sub_title})`] = formattedValue
             }
@@ -617,13 +605,12 @@ const ReceivedMedicinesReport = () => {
       })
 
       const totalPurchaseRow = {
-        Medicine: 'Total Purchase Value (in thousand)'
+        Medicine: 'Total Received Value '
       }
       listItem.columnData.forEach(column => {
-        // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
-        const formattedPurchaseValue = (column.total_received_value / 1000).toLocaleString('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
+        // Add ₹ symbol and format with commas, keeping two decimal places for the total Received value
+        const formattedPurchaseValue = column.total_received_value.toLocaleString('en-IN', {
+          maximumFractionDigits: 0
         })
         totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
@@ -635,6 +622,11 @@ const ReceivedMedicinesReport = () => {
 
       // Convert the data into a worksheet
       const ws = utils.aoa_to_sheet(wsData)
+      ws['!cols'] = [
+        { wch: 20 }, // Width for '1st' column
+
+        ...listItem.columnData.map(() => ({ wch: 15 })) // Width for each month/year column
+      ]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 
