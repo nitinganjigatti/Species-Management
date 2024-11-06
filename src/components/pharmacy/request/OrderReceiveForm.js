@@ -694,7 +694,12 @@ function OrderReceiveForm({ orderId, requestId }) {
                     </Box>
                   ))
                 ) : (
-                  <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <CircularProgress />
+                  </Box>
+
+                  // <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
+                  // <FallbackSpinner />
                 )}
               </Box>
 
