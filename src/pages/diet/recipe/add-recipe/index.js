@@ -81,9 +81,8 @@ const AddRecipe = () => {
 
   useEffect(() => {
     getUnitsList()
-
     callIngredientTypeList({ status: 1, page: 1, limit: 10 })
-  }, [urlType])
+  }, [activeStep == 0])
 
   const getUnitsList = async () => {
     try {
