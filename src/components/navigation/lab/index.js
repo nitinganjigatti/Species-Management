@@ -3,6 +3,7 @@ import { useContext } from 'react'
 
 const ComposeLabNavigation = ({ labRole }) => {
   console.log(labRole, 'labRole')
+
   const labTitle = {
     sectionTitle: 'Lab'
   }
@@ -23,9 +24,15 @@ const ComposeLabNavigation = ({ labRole }) => {
     title: 'Lab Samples',
     path: '/lab/master/lab-sample'
   }
+
   const labTest = {
     title: 'Lab Tests',
     path: '/lab/master/lab-test'
+  }
+
+  const mortalityReason = {
+    title: 'Mortality Reason',
+    path: '/lab/master/mortality-reason'
   }
 
   const mastersLabParent = {
@@ -36,15 +43,25 @@ const ComposeLabNavigation = ({ labRole }) => {
   }
 
   const authData = useContext(AuthContext)
+
   const addlabPermission = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
+  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
+  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
   console.log('addlabPermission', addlabPermission)
 
   const labNavigationArray = []
 
   if (labList?.length > 0) {
     labNavigationArray.push(labTitle)
-    mastersLabParent.children.push(labTest, labSample)
+    if (!mastersLabParent.children) {
+      mastersLabParent.children = []
+    }
+
+    if (medical_add_samples && medical_add_tests) {
+      mastersLabParent.children.push(labTest, labSample, mortalityReason)
+    }
+
     labNavigationArray.push(lab, request, mastersLabParent)
   } else if (addlabPermission) {
     labNavigationArray.push(labTitle)

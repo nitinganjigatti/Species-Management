@@ -338,6 +338,8 @@ export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmen
 
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
 
+export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
+
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
 
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
