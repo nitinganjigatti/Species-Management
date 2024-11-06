@@ -667,7 +667,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
                           <Typography sx={{ color: '#E93353' }}>
-                            • {index === 0 ? 'Shortage' : 'Missing'} (2)
+                            • {markReceived?.wrong_count_type} ({markReceived?.wrong_count_number})
                           </Typography>
                         </Box>
                         <Typography sx={{ color: '#7A8684' }}>{Utility.formatDisplayDate(el?.created_at)}</Typography>
@@ -694,7 +694,12 @@ function OrderReceiveForm({ orderId, requestId }) {
                     </Box>
                   ))
                 ) : (
-                  <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <CircularProgress />
+                  </Box>
+
+                  // <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
+                  // <FallbackSpinner />
                 )}
               </Box>
 
