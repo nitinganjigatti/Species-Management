@@ -278,8 +278,7 @@ const ReportList = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
             {/* Tabs on the left */}
             <TabList onChange={handleChange}>
-              <Tab sx={{ ml: 2 }} value='statistics' label='Statistics' />
-              <Tab value='species' label='Species' />
+              {/* <Tab sx={{ ml: 2 }} value='statistics' label='Statistics' /> */}
             </TabList>
 
             {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
@@ -406,14 +405,6 @@ const ReportList = () => {
               dataList={dataList}
             />
             <Divider />
-          </TabPanel>
-          <TabPanel value='species' sx={{ p: 0 }}>
-            <StatisticsReport
-              apiFilterParams={apiFilterParams}
-              popoverData={popoverData}
-              setDataList={setDataList}
-              dataList={dataList}
-            />
           </TabPanel>
         </TabContext>
       </Card>
