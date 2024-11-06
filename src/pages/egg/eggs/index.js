@@ -64,7 +64,7 @@ const EggList = () => {
   const [openCreate, setOpenCreate] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 50 })
 
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_incubation')
@@ -2253,7 +2253,7 @@ const EggList = () => {
     setSearchValue('')
     setFilterList([])
     setSelectedFiltersOptions({})
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSelectionEggModel([])
     setSearchQuery('')
     router.push(
@@ -2282,7 +2282,7 @@ const EggList = () => {
     setSubTab(newValue)
     setFilterList([])
     setSelectedFiltersOptions({})
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchQuery('')
     setSelectionEggModel([])
 
