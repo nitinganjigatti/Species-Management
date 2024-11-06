@@ -211,14 +211,17 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import Toaster from 'src/components/Toaster'
 import { getLabSampleListById } from 'src/lib/api/lab/master'
+
 const schema = yup.object().shape({
   test_name: yup.string().trim().required('Test name is required')
+
   // description: yup.string().trim().required('Description is required')
   // sample_ids: yup.array().min(1, 'At least one sample type is required')
 })
 
 const defaultValues = {
   test_name: ''
+
   // description: ''
   // sample_ids: [],
   // sub_tests: []
@@ -264,6 +267,7 @@ const AddSample = props => {
           test_name: response?.data?.result?.label,
           description: response?.data?.result?.lab_test_count
         }
+
         // setSubTests(testIdsName)
         reset(data)
       } else {
@@ -284,6 +288,7 @@ const AddSample = props => {
 
   const onSubmit = async params => {
     console.log(params, 'log')
+
     // const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
     // const payload = {
     //   label: params?.test_name,
@@ -291,8 +296,10 @@ const AddSample = props => {
     //   sub_tests: subTests
     // }
     const { test_name, description } = { ...params }
+
     const payload = {
       label: test_name
+
       // description: description
     }
     console.log(payload, 'Submission Data')
@@ -329,6 +336,7 @@ const AddSample = props => {
     }, 1000),
     []
   )
+
   const handleSearch = value => {
     setSearchValue(value)
     searchSampleData(value)
@@ -365,7 +373,7 @@ const AddSample = props => {
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+        <Box sx={{ width: '100%', height: '100%' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -374,7 +382,7 @@ const AddSample = props => {
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
 
-              bgcolor: theme.palette.customColors.lightBg
+              backgroundColor: 'background.default'
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
@@ -402,10 +410,7 @@ const AddSample = props => {
                 gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-                maxHeight: '79vh',
-                overflow: 'scroll'
+                maxHeight: '79vh'
               }}
             >
               <FormControl fullWidth sx={{ mt: 6 }}>
