@@ -667,7 +667,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
                           <Typography sx={{ color: '#E93353' }}>
-                            • {index === 0 ? 'Shortage' : 'Missing'} ({markReceived?.wrong_count_number})
+                            • {markReceived?.wrong_count_type} ({markReceived?.wrong_count_number})
                           </Typography>
                         </Box>
                         <Typography sx={{ color: '#7A8684' }}>{Utility.formatDisplayDate(el?.created_at)}</Typography>
