@@ -75,6 +75,7 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
+  console.log('nestedRowMedicine', nestedRowMedicine)
 
   const schema = yup.object().shape({
     product: yup.object().shape({
@@ -489,13 +490,17 @@ const PurchaseItemForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
+        {console.log('in addform medicineItemId', medicineItemId)}
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
               name='product'
               control={control}
+              disabled={nestedRowMedicine?.id ? true : false}
               render={({ field: { value, onChange } }) => (
                 <Autocomplete
+                  disabled={nestedRowMedicine?.id ? true : false}
                   options={optionsMedicineList}
                   value={value}
                   renderOption={(props, option) => (
@@ -586,6 +591,7 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  disabled={nestedRowMedicine?.id ? true : false}
                   label='Batch Number*'
                   error={Boolean(errors.purchase_batch_no)}
                   helperText={errors.purchase_batch_no?.message}
@@ -619,6 +625,7 @@ const PurchaseItemForm = props => {
                 render={({ field: { value, onChange } }) => (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DesktopDatePicker
+                      disabled={nestedRowMedicine?.id ? true : false}
                       label='Expiry Date*'
                       inputFormat='MM/DD/YYYY'
                       value={value}
@@ -669,6 +676,7 @@ const PurchaseItemForm = props => {
               control={control}
               render={({ field }) => (
                 <TextField
+                  disabled={nestedRowMedicine?.id ? true : false}
                   {...field}
                   label='Purchase Quantity*'
                   onKeyUp={e => {

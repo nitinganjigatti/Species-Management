@@ -52,6 +52,26 @@ export async function updatePurchase(id, payload) {
   }
 }
 
+export async function updatePurchasePrice(id, payload) {
+  try {
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}/${id}/updatePrice`
+    var data = payload
+    data.id = id
+    const response = await axiosPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function getBatchExpiry(params) {
   const response = await axiosGet({ url: `${CHECK_BATCH}`, params, pharmacy: true })
 
