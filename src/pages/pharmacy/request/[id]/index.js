@@ -1586,6 +1586,31 @@ const IndividualRequest = () => {
                           }
                         }}
                       >
+                        {requestItems?.product_count && (
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary'
+                            }}
+                          >
+                            Requested Items:
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'customColors.OnSurfaceVariant',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              {requestItems?.product_count}
+                            </Box>
+                          </Typography>
+                        )}
+
                         <Typography
                           sx={{
                             fontSize: '14px',
@@ -1594,21 +1619,22 @@ const IndividualRequest = () => {
                             color: 'customColors.neutralSecondary'
                           }}
                         >
-                          Requested Items:
+                          Total Requested Value:
                           <Box
                             component='span'
                             sx={{
                               fontWeight: '500',
                               fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
+                              color: 'primary.light',
                               lineHeight: '19.36px',
                               mx: 2
                             }}
                           >
-                            {requestItems?.total_qty}
+                            ₹{requestItems?.requested_amount}
                           </Box>
                         </Typography>
-                        <Typography
+
+                        {/* <Typography
                           sx={{
                             fontSize: '14px',
                             fontWeight: '400',
@@ -1629,7 +1655,7 @@ const IndividualRequest = () => {
                           >
                             {requestItems?.shipped_qty}
                           </Box>
-                        </Typography>
+                        </Typography> */}
                       </Grid>
 
                       <Grid
@@ -1653,7 +1679,7 @@ const IndividualRequest = () => {
                           }
                         }}
                       >
-                        <Typography
+                        {/* <Typography
                           sx={{
                             fontSize: '14px',
                             fontWeight: '400',
@@ -1674,7 +1700,7 @@ const IndividualRequest = () => {
                           >
                             ₹{requestItems?.requested_amount}
                           </Box>
-                        </Typography>
+                        </Typography> */}
 
                         <Typography
                           sx={{

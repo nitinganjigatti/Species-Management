@@ -311,27 +311,63 @@ const ListOfStocks = () => {
   // }, [])
   const getBatchWiseDataToExport = async () => {
     try {
-      setExcelLoader(true)
+      if (!changeSwitch) {
+        setExcelLoader(true)
+        const result = await getStockReport(stockId, { sort, q: searchValue, column: sortColumn })
 
-      const result = await getStockReportByBatch(stockId, { params: {} })
-      if (result?.success === true && result?.data?.length > 0) {
-        const data = result?.data?.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_items_name,
-            ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
-              el?.product_form_label
-            }`,
-            ['Expiry Date']: el?.expiry_date,
-            ['Batch Number']: el?.batch_no,
-            ['Quantity']: el?.stock_qty,
-            ['Unit Price']: el?.unit_price,
-            ['value']: el?.total_cost
-          }
-        })
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Id']: Number(el?.stock_item_id),
+              ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['value']: Number(el?.total_cost),
+              ['Average price']: Number(
+                Number.isInteger(el.total_cost / el.stock_qty)
+                  ? el.total_cost / el.stock_qty
+                  : parseFloat(el.total_cost / el.stock_qty).toFixed(2)
+              ),
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`
+            }
+          })
+          Utility.exportToCSV(data, 'Stock Report')
+        }
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(true)
 
-        Utility.exportToCSV(data, 'Batch wise Products')
+        const batchParams = {
+          sort: batchSort,
+          q: batchSearchValue,
+          column: batchSortColumn
+
+          // page: batchPaginationModel.page + 1,
+          // limit: batchPaginationModel.pageSize
+        }
+        const result = await getStockReportByBatch(stockId, batchParams)
+
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Id']: Number(el?.stock_item_id),
+              ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['Unit Price']: Number(el?.unit_price),
+              ['value']: Number(el?.total_cost),
+              ['Batch Number']: el?.batch_no,
+              ['Expiry Date']: el?.expiry_date,
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`
+            }
+          })
+
+          Utility.exportToCSV(data, 'Stock Report Batch wise')
+        }
+        setExcelLoader(false)
       }
-      setExcelLoader(false)
     } catch (error) {
       setExcelLoader(false)
 
@@ -385,18 +421,6 @@ const ListOfStocks = () => {
             {params.row.stock_items_name}
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      // flex: 0.4,
-      width: 260,
-      field: 'package',
-      headerName: 'PACKAGE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
       )
     },
 
@@ -520,6 +544,18 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
+    {
+      // flex: 0.4,
+      width: 260,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        </Typography>
+      )
+    }
 
     // {
     //   flex: 0.2,
@@ -534,57 +570,57 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      // flex: 0.2,
-      minWidth: 160,
-      field: 'rack_info',
-      headerName: 'Rack',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.rack}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
-      )
-    },
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'rack_info',
+    //   headerName: 'Rack',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.rack}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // },
 
-    {
-      flex: 0.2,
-      minWidth: 160,
-      field: 'stock_config',
-      headerName: 'Shelf',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.shelf}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
-      )
-    }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'stock_config',
+    //   headerName: 'Shelf',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.shelf}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // }
 
     // {
     //   flex: 0.2,
@@ -674,19 +710,6 @@ const ListOfStocks = () => {
       )
     },
 
-    {
-      // flex: 0.4,
-      minWidth: 260,
-      field: 'package',
-      headerName: 'PACKAGE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
-      )
-    },
-
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -717,34 +740,10 @@ const ListOfStocks = () => {
     {
       // flex: 0.2,
       minWidth: 160,
-      field: 'batch_no',
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-
-    {
-      // flex: 0.2,
-      minWidth: 160,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
-
-    {
-      // flex: 0.2,
-      minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
@@ -779,58 +778,95 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-
     {
       // flex: 0.2,
       minWidth: 160,
-      field: 'rack_info',
-      headerName: 'Rack',
-      type: 'number',
-      align: 'right',
+      field: 'batch_no',
+      type: 'text',
+      align: 'center',
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.rack}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
       )
     },
 
     {
       // flex: 0.2,
       minWidth: 160,
-      field: 'stock_config',
-      headerName: 'Shelf',
-      type: 'number',
-      align: 'right',
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
       renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.shelf}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.4,
+      minWidth: 260,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        </Typography>
       )
     }
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'rack_info',
+    //   headerName: 'Rack',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.rack}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // },
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'stock_config',
+    //   headerName: 'Shelf',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.shelf}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // }
   ]
 
   const getStoresLists = async () => {
