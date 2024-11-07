@@ -59,6 +59,19 @@ import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import AnimalCard from 'src/views/pages/lab/AnimalCard'
+
+const statusData = [
+  { id: 'awaiting_sample', name: 'Awaiting Sample' },
+  { id: 'sample_received', name: 'Sample Received' },
+  { id: 'sample_rejected', name: 'Sample Rejected' },
+  { id: 'inprogress', name: 'In Progress' },
+  { id: 'completed_positive', name: 'Completed - Positive' },
+  { id: 'completed_negative', name: 'Completed - Negative' },
+  { id: 'completed_detected', name: 'Completed - Detected' },
+  { id: 'completed_not_detected', name: 'Completed - Not Detected' },
+  { id: 'completed_inconclusive', name: 'Completed - Inconclusive' }
+]
 
 const RequestDetails = () => {
   const router = useRouter()
@@ -304,6 +317,7 @@ const RequestDetails = () => {
       flex: 0.8,
       minWidth: 20,
       field: 'test_name',
+      sortable: false,
       headerName: 'Test Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -316,6 +330,7 @@ const RequestDetails = () => {
       flex: 0.4,
       minWidth: 20,
       field: 'sample_name',
+      sortable: false,
       headerName: 'Sample',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -328,37 +343,69 @@ const RequestDetails = () => {
       flex: 0.4,
       minWidth: 20,
       field: 'status',
+      sortable: false,
       headerName: 'STATUS',
       renderCell: params => (
         <>
-          {}
           <Box sx={{ minWidth: 120 }}>
             {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
-              <FormControl fullWidth size='small' sx={{ borderColor: 'red' }}>
-                <InputLabel id='demo-simple-select-label'>Status</InputLabel>
+              <FormControl fullWidth size='small'>
                 <Select
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={params.row.status === 'transferred' ? 'pending' : params.row.status}
-                  value={params.row.status} // Assuming params.row.status contains the current status value
-                  label='Status'
+                  defaultValue={params.row.status === 'transferred' ? 'awaiting_sample' : params.row.status}
+                  value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
-                    color:
-                      params.row.status === 'pending' || params.row.status === 'transferred'
-                        ? 'red'
+                    backgroundColor:
+                      params.row.status === 'pending' ||
+                      params.row.status === 'transferred' ||
+                      params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_rejected' ||
+                      params.row.status === 'sample_received'
+                        ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
-                        ? '#2a9d0d'
+                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
                         : params.row.status === 'inprogress'
-                        ? '#00aea4'
-                        : 'black'
+                        ? 'rgba(0, 191, 255, 0.1)' // light blue background for in progress
+                        : 'rgba(0, 128, 0, 0.1)',
+
+                    color:
+                      params.row.status === 'pending' ||
+                      params.row.status === 'transferred' ||
+                      params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_rejected' ||
+                      params.row.status === 'sample_received'
+                        ? '#FA6140'
+                        : params.row.status === 'completed'
+                        ? '#37BD69'
+                        : params.row.status === 'inprogress'
+                        ? '#00AFD6'
+                        : '#37BD69',
+
+                    borderRadius: '8px',
+                    '& .MuiSelect-icon': {
+                      color:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_rejected' ||
+                        params.row.status === 'sample_received'
+                          ? '#FA6140'
+                          : params.row.status === 'completed'
+                          ? '#37BD69'
+                          : params.row.status === 'inprogress'
+                          ? '#00AFD6'
+                          : '#37BD69'
+                    }
                   }}
                 >
-                  <MenuItem value='pending'>Pending</MenuItem>
-                  <MenuItem value='completed'>Completed</MenuItem>
-                  <MenuItem value='inprogress'>In Progress</MenuItem>
-                  {/* <MenuItem value='transferred'>Pending</MenuItem> */}
+                  {statusData?.map((item, index) => (
+                    <MenuItem key={index} value={item?.id}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             ) : (
@@ -389,6 +436,7 @@ const RequestDetails = () => {
       minWidth: 20,
       field: 'Action',
       headerName: 'Action',
+      sortable: false,
 
       renderCell: params => (
         <Box>
@@ -432,6 +480,7 @@ const RequestDetails = () => {
     {
       flex: 0.2,
       minWidth: 10,
+      sortable: false,
 
       // field: 'Action',
       // headerName: 'Action',
@@ -636,52 +685,53 @@ const RequestDetails = () => {
                         <Icon icon='ep:back' fontSize={25} />
                       </IconButton>
                       <Typography variant='h6'>
-                        Request -{' '}
+                        Request ID -{' '}
                         <span
                           onClick={() => handleClickOpen(item)}
-                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer' }}
+                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
                         >
                           {item?.request_id}
                         </span>
                       </Typography>
                     </Box>
-
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                  </Box>
-                  <Box gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        bgcolor: '#EDEDFF',
-                        display: 'flex',
-                        width: 40,
-                        height: 40,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        borderRadius: '10px'
-                      }}
-                    >
-                      <Icon icon='ion:location-outline' fontSize={25} color={'#37BD69'} />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                      <Typography>
+                        Requested By{' '}
+                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                          {item?.user_first_name}
+                        </span>
+                      </Typography>
                     </Box>
-                    <Typography variant='h6'>
-                      Site -{' '}
-                      <span style={{ color: '#37BD69', fontSize: '20px', fontWeight: 'bold' }}>{item?.site_name}</span>
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 6, flexWrap: 'wrap' }}>
-                  <Stack direction='row' gap={3}>
+                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
+                      Site :{' '}
+                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
+                    </Typography>
+                    <Typography sx={{ mt: 2 }}>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
                     </Typography>
-                    {/* <Typography>
-                      No. of Samples :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_sample}</span>
-                    </Typography> */}
-                  </Stack>
+                  </Box>
 
-                  <Typography>
-                    Requested By- <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.user_first_name}</span>
-                  </Typography>
+                  <Box>
+                    <AnimalCard animalDetails={item?.animal_details} />
+                  </Box>
+                  {/* <Box gap={2} sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          bgcolor: '#EDEDFF',
+                          display: 'flex',
+                          width: 40,
+                          height: 40,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          borderRadius: '10px'
+                        }}
+                      >
+                        <Icon icon='ion:location-outline' fontSize={25} color={'#37BD69'} />
+                      </Box>
+                    </Box>
+                  </Box> */}
                 </Box>
               </>
             ))}
