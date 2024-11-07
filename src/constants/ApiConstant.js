@@ -118,6 +118,8 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
+export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
+
 export const RETURN_REQUEST = 'return-item'
 
 export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
@@ -199,6 +201,12 @@ export const DASHBOARD_RECEIVED_MEDICINE_REPORT = 'received-medicine-report'
 export const DASHBOARD_MEDICINEWISE_DOCTOR_FILTER = 'medicinewise-doctor-filter'
 
 export const DISCARD_REASON = 'discard-reason'
+
+export const STOCK = 'pharmacy/stock'
+
+export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
+
+export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const FEED_DETAILS = 'details'
 

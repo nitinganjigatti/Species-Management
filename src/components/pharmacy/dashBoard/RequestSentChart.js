@@ -10,6 +10,7 @@ import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
 import { getRequestSentChart } from 'src/lib/api/pharmacy/getAllReports'
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 // ** Third Party Imports
 import format from 'date-fns/format'
 import subDays from 'date-fns/subDays'
@@ -30,7 +31,7 @@ const columnColors = {
 const RequestSentChart = () => {
   // ** Hook
   const theme = useTheme()
-
+  const { selectedPharmacy } = usePharmacyContext()
   // ** States
   const [timeperiod, setTimeperiod] = useState(30)
   const [chartData, setChartData] = useState({ categories: [], series: [] })
@@ -64,7 +65,7 @@ const RequestSentChart = () => {
 
   useEffect(() => {
     fetchMedicineData()
-  }, [timeperiod])
+  }, [timeperiod, selectedPharmacy.type, selectedPharmacy.id])
 
   const options = {
     chart: {

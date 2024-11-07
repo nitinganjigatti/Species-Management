@@ -69,7 +69,8 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
           mb: 10,
           width: '100%',
           backgroundColor: 'customColors.lightBg',
-          border: '1px solid #00D6C9'
+          border: '1px solid #00D6C9',
+          boxShadow: 'none !important'
         }}
       >
         <CardContent>

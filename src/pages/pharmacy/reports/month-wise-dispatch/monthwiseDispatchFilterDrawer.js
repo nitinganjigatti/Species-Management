@@ -225,7 +225,7 @@ const MonthWisedispatchFilter = ({
           variant='contained'
           size='large'
           onClick={onApplyFilters}
-          disabled={tempSelectedStores.length > 0 ? false : true}
+          disabled={tempSelectedStores.length > 0 || selectedFruits.length > 0 ? false : true}
         >
           APPLY FILTER
         </LoadingButton>

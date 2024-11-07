@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -13,7 +11,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer } from '@mui/material'
+import { Box } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 
@@ -22,8 +20,6 @@ import IconButton from '@mui/material/IconButton'
 import { debounce } from 'lodash'
 
 import toast from 'react-hot-toast'
-
-import Router from 'next/router'
 import AddDriver from 'src/views/pages/pharmacy/medicine/driver/addDriverForm'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 

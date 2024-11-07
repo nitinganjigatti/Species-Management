@@ -73,8 +73,6 @@ const DoctorWiseRequest = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const handleSelectAllChange = event => {
-    console.log(fullStoreList, 'fullStoreList')
-
     if (event.target.checked) {
       setFiltersApplied(false)
       setTempSelectedStores(fullStoreList.map(fruit => fruit.id))
@@ -84,19 +82,16 @@ const DoctorWiseRequest = () => {
   }
 
   const handlecheckcell = val => {
-    console.log(val, 'Cell data')
     const clickedColumnField = val.field
     const clickedRowData = val.row
 
     const clickedColumnData = columns.find(column => column.field === clickedColumnField)
-    console.log(clickedColumnData, 'clickedColumnData')
+
     if (val.field === 'doctor_name') {
       return
     } else if (clickedColumnData) {
       const title = clickedColumnData.field
       const sub_title = clickedColumnData.renderHeader?.().props.children[1]?.props.children || ''
-      console.log('Clicked Column Title:', title)
-      console.log('Clicked Column Sub-Title:', sub_title)
 
       let fromDate, toDate
 
@@ -130,9 +125,6 @@ const DoctorWiseRequest = () => {
       setDownloadFromDate(formattedFromDate)
       setDownloadToDate(formattedToDate)
 
-      console.log('Formatted From Date:', formattedFromDate)
-      console.log('Formatted To Date:', formattedToDate)
-
       if (clickedRowData.id && statusFilter) {
         setmedicineId(clickedRowData.id)
         fetchDoctorlist(clickedRowData.id, formattedFromDate, formattedToDate)
@@ -153,11 +145,7 @@ const DoctorWiseRequest = () => {
         q: doctorsearch
       }
 
-      console.log('Payload:', payload)
-
       const response = await getDoctorWiseMedicineFilter(payload)
-
-      console.log(response, 'medicineListResponse')
 
       if (response.success === true) {
         setdoctorsList(response.data.list_items)
@@ -200,7 +188,7 @@ const DoctorWiseRequest = () => {
           name: store.name
         }))
         setTotalmedicineCount(medicineListResponse.data.total_count)
-        console.log(allStores, 'allStores')
+
         setFullStoreList(prevStores => {
           let mergedStores
           if (q) {
@@ -240,8 +228,7 @@ const DoctorWiseRequest = () => {
 
           return
         }
-        console.log(filtersApplied, 'ppppp')
-        console.log(selectedFruits.length, 'ppppppp')
+
         if (filtersApplied && selectedFruits.length > 0) {
           payload = {
             //sort,
@@ -254,7 +241,6 @@ const DoctorWiseRequest = () => {
             selected_doctors: selectedFruits
           }
         } else {
-          console.log(statusFilter, 'activeStatus')
           payload = {
             //sort,
             q,
@@ -268,7 +254,6 @@ const DoctorWiseRequest = () => {
 
         await getDoctorWiseRequestList(payload).then(res => {
           if (res.data.list_items) {
-            console.log(res.data.list_items, 'pppp')
             const listItem = res.data.list_items
 
             const columns = [
@@ -277,7 +262,6 @@ const DoctorWiseRequest = () => {
                 headerName: `Pharmacy Name`,
                 renderHeader: () => (
                   <Box>
-                    {console.log(listItem, 'listItem')}
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Doctors
                     </Typography>
@@ -327,7 +311,11 @@ const DoctorWiseRequest = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_purchase_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 3 }}
                         >
@@ -335,7 +323,11 @@ const DoctorWiseRequest = () => {
                         </Typography>
                       </Tooltip>
                     ) : (
-                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_purchase_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600, pt: 7 }}
                         >
@@ -418,7 +410,6 @@ const DoctorWiseRequest = () => {
   }
 
   const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
     setLoading(true)
     setFilterSearchValue(e.target.value)
     await searchTableDatafilter({ q: e.target.value })
@@ -433,7 +424,6 @@ const DoctorWiseRequest = () => {
   }
 
   const handleStatusFilterChange = newFilter => {
-    console.log(newFilter, 'newFilter')
     setStatusFilter(newFilter)
 
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
@@ -510,7 +500,7 @@ const DoctorWiseRequest = () => {
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, filter: statusFilter })
-  }, [fetchTableData])
+  }, [fetchTableData, selectedPharmacy.id])
 
   useEffect(() => {
     fetchfilterValues({ q: filtersearchValue, page })
@@ -620,31 +610,28 @@ const DoctorWiseRequest = () => {
               // Handle null or NaN values
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
-              const roundedValue = parseFloat(value) / 1000
+              const roundedValue = parseFloat(value)
 
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
               })
               rowData[`${column.title} (${column.sub_title})`] = formattedValue
             }
           }
         })
 
-        console.log(rowData, 'rowData')
-
         return rowData
       })
 
       const totalPurchaseRow = {
-        Medicine: 'Total Purchase Value (in thousand)'
+        Medicine: 'Total Purchase Value'
       }
       listItem.columnData.forEach(column => {
         // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
-        const formattedPurchaseValue = (column.total_purchase_value / 1000).toLocaleString('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
+        const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
+          maximumFractionDigits: 0
         })
         totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
@@ -655,6 +642,11 @@ const DoctorWiseRequest = () => {
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
 
       const ws = utils.aoa_to_sheet(wsData)
+      ws['!cols'] = [
+        { wch: 20 }, // Width for '1st' column
+
+        ...listItem.columnData.map(() => ({ wch: 15 })) // Width for each month/year column
+      ]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 

@@ -40,7 +40,13 @@ import Icon from 'src/@core/components/icon'
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
+import {
+  addPurchase,
+  getPurchaseListById,
+  updatePurchase,
+  updatePurchasePrice,
+  getBatchExpiry
+} from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
@@ -130,7 +136,7 @@ const AddPurchaseForm = () => {
   const [supplierDialog, setSupplierDialog] = useState(false)
 
   const router = useRouter()
-  const { id, action } = router.query
+  const { id, action, navigatedFrom } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
   const authData = useContext(AuthContext)
@@ -512,13 +518,19 @@ const AddPurchaseForm = () => {
     // console.log('postData', postData)
     if (id) {
       postData.antz_pharmacy_purchase_id = id
-      const response = await updatePurchase(id, postData)
+      // const response = await updatePurchase(id, postData)
+
+      const response = await updatePurchasePrice(id, postData)
 
       if (response?.success) {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        if (navigatedFrom === 'stockReport') {
+          Router.push('/pharmacy/stocks/stocksReport/')
+        } else {
+          Router.push('/pharmacy/purchase/purchase-list/')
+        }
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -1334,20 +1346,21 @@ const AddPurchaseForm = () => {
                           </TableCell>
                         </TableCell>
                         <TableCell align='center'>
-                          {el.id ? null : (
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => {
-                                setMedicineItemId(el.purchase_unit_id)
-                                editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
-                                showDialog()
-                              }}
-                            >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
-                          )}
+                          {/* {el.id ? null : ( */}
+                          <IconButton
+                            size='small'
+                            sx={{ mr: 0.5 }}
+                            aria-label='Edit'
+                            onClick={() => {
+                              console.log('edddd', el)
+                              setMedicineItemId(el.purchase_unit_id)
+                              editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                              showDialog()
+                            }}
+                          >
+                            <Icon icon='mdi:pencil-outline' />
+                          </IconButton>
+                          {/* )} */}
 
                           {id && el.id ? null : (
                             <IconButton

@@ -7,11 +7,12 @@ import { useEffect, useState } from 'react'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { Button, Checkbox, FormControlLabel, Box } from '@mui/material'
 import Router from 'next/router'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { getReceivedMedicineschart } from 'src/lib/api/pharmacy/dashboard'
 
 const ReceivedMedicines = () => {
   const theme = useTheme()
-
+  const { selectedPharmacy } = usePharmacyContext()
   const [purchaseList, setPurchaseList] = useState({ purchase_count: [], purchase_value: [] })
   const [showPurchaseCount, setShowPurchaseCount] = useState(true) // Toggle for Purchase Count
   const [showPurchaseValue, setShowPurchaseValue] = useState(true) // Toggle for Purchase Value
@@ -29,7 +30,7 @@ const ReceivedMedicines = () => {
 
   useEffect(() => {
     getMonthlyPurchases()
-  }, [])
+  }, [selectedPharmacy.type, selectedPharmacy.id])
 
   // Create a mapping for full month names to short month names
   const monthMapping = {

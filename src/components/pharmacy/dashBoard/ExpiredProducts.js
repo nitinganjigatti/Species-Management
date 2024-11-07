@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import TableContainer from '@mui/material/TableContainer'
 import { useEffect, useState } from 'react'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Chip from '@mui/material/Chip'
 
 // ** Custom Components Imports
@@ -20,7 +21,7 @@ import { Grid } from '@mui/material'
 
 const ExpiredProducts = () => {
   const [productsList, setProductsList] = useState([])
-
+  const { selectedPharmacy } = usePharmacyContext()
   const getProductsList = async () => {
     try {
       const result = await getExpiredStocks()
@@ -33,7 +34,7 @@ const ExpiredProducts = () => {
 
   useEffect(() => {
     getProductsList()
-  }, [])
+  }, [selectedPharmacy.type, selectedPharmacy.id])
 
   return (
     <Grid>
