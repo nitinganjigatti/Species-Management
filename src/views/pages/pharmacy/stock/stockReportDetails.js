@@ -17,6 +17,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Next.js Imports
 import { useRouter } from 'next/router'
+import { InputAdornment, TextField } from '@mui/material'
 
 const StockReportDetails = props => {
   // ** Props
@@ -26,16 +27,12 @@ const StockReportDetails = props => {
     submitLoader,
     purchaseByStockIdList,
     purchaseLoading,
-    setPurchaseLoading
+    setPurchaseLoading,
+    handleInputChange,
+    searchPurchase
   } = props
 
   const router = useRouter()
-
-  console.log(purchaseByStockIdList, 'purchaseByStockIdList')
-
-  //   const handleNavigate = productId => {
-  //     router.push(`pharmacy/purchase/add-purchase/?id=${productId}&action=edit`)
-  //   }
 
   const handleNavigate = productId => {
     router.push(`/pharmacy/purchase/add-purchase/?id=${productId}&action=edit&navigatedFrom=stockReport`)
@@ -66,6 +63,23 @@ const StockReportDetails = props => {
       </Box>
 
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
+        <TextField
+          fullWidth
+          size='small'
+          placeholder='Search...'
+          variant='outlined'
+          value={searchPurchase}
+          onChange={handleInputChange}
+          sx={{ mb: 4 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <Icon icon='mdi:magnify' />
+              </InputAdornment>
+            )
+          }}
+        />
+
         {purchaseLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <CircularProgress />
