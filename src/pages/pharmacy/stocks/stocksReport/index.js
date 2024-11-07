@@ -100,11 +100,10 @@ const ListOfStocks = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
-  // const [purchaseByStockId, setPurchaseByStockId] = useState(null)
   const [purchaseByStockId, setPurchaseByStockId] = useState({ batch_no: null, stock_id: null })
   const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
-
   const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [searchPurchase, setSearchPurchase] = useState('')
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -176,7 +175,7 @@ const ListOfStocks = () => {
         } catch (error) {
           setTotal(0)
           setStockReport([])
-          console.log('error', error)
+          console.error('error', error)
           setLoading(false)
         }
       }
@@ -236,7 +235,7 @@ const ListOfStocks = () => {
           setBatchLoading(false)
         }
       } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
         setBatchLoading(false)
       }
 
@@ -257,8 +256,6 @@ const ListOfStocks = () => {
 
   useEffect(() => {
     if (selectedPharmacy?.id !== '' || undefined) {
-      console.log('getStocksReport')
-
       // getStocksReport(selectedPharmacy?.id)
       setStockType(selectedPharmacy?.type)
 
@@ -313,8 +310,7 @@ const ListOfStocks = () => {
   const getBatchWiseDataToExport = async () => {
     try {
       setExcelLoader(true)
-      debugger
-      console.log(stockId)
+
       const result = await getStockReportByBatch(stockId, { params: {} })
       if (result?.success === true && result?.data?.length > 0) {
         const data = result?.data?.map(el => {
@@ -337,7 +333,7 @@ const ListOfStocks = () => {
     } catch (error) {
       setExcelLoader(false)
 
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -850,7 +846,7 @@ const ListOfStocks = () => {
       }
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -1023,20 +1019,13 @@ const ListOfStocks = () => {
   }
 
   const addEventSidebarOpen = params => {
-    console.log(params.row, 'qwer')
-    // setPurchaseByStockId(params.row?.stock_item_id)
-    setPurchaseByStockId({
-      batch_no: params.row?.batch_no,
-      stock_id: params.row?.stock_item_id
-    })
-
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
 
   const handleSidebarClose = () => {
-    setPurchaseByStockId({ batch_no: null, stock_id: null })
+    // setPurchaseByStockId({ batch_no: null, stock_id: null })
     setPurchaseByStockIdList([])
     setOpenDrawer(false)
   }
@@ -1046,25 +1035,34 @@ const ListOfStocks = () => {
     } catch (e) {}
   }
 
-  const getPurchaseListByStockId = useCallback(
-    async (stock_id, batch_no) => {
-      console.log(batch_no, 'qw')
+  const handleSearchPurchase = useCallback(
+    debounce(async (stock_id, batch_no, value) => {
+      setSearchPurchase(value)
+      try {
+        await getPurchaseListByStockId(stock_id, batch_no, value)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
-      const params = { stock_id }
+  const getPurchaseListByStockId = useCallback(
+    async (stock_id, batch_no, q) => {
+      const params = { stock_id, q }
       if (changeSwitch) {
         params.batch_no = batch_no
       }
-
       try {
         setPurchaseLoading(true)
         const result = await getPurchaseListByProduct(params)
         if (result !== undefined) {
-          console.log(result, 'res')
+          // console.log(result, 'res')
           setPurchaseByStockIdList(result.data)
           setPurchaseLoading(false)
         }
       } catch (error) {
-        console.log('error', error)
+        console.error('error', error)
         setPurchaseLoading(false)
       }
     },
@@ -1073,9 +1071,15 @@ const ListOfStocks = () => {
 
   useEffect(() => {
     if (purchaseByStockId && purchaseByStockId.stock_id) {
-      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no)
+      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
     }
   }, [purchaseByStockId, getPurchaseListByStockId])
+
+  const handleInputChange = event => {
+    const value = event.target.value
+    setSearchPurchase(value)
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, value)
+  }
 
   return (
     <>
@@ -1190,7 +1194,11 @@ const ListOfStocks = () => {
                         event.preventDefault()
                         // Custom logic for cell clicks
                         if (params.field === 'stock_items_name') {
-                          addEventSidebarOpen(params)
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
                           event.ignoreRowClick = true
                         } else {
                           handleStockRowClick(params)
@@ -1238,7 +1246,10 @@ const ListOfStocks = () => {
                         event.preventDefault()
                         // Custom logic for cell clicks
                         if (params.field === 'stock_items_name') {
-                          addEventSidebarOpen(params)
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
                           event.ignoreRowClick = true
                         } else {
                           handleStockRowClick(params)
@@ -1301,6 +1312,8 @@ const ListOfStocks = () => {
         purchaseByStockIdList={purchaseByStockIdList}
         purchaseLoading={purchaseLoading}
         setPurchaseLoading={setPurchaseLoading}
+        handleInputChange={handleInputChange}
+        searchPurchase={searchPurchase}
       />
     </>
   )
