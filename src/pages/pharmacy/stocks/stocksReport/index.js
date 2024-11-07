@@ -1028,6 +1028,7 @@ const ListOfStocks = () => {
 
   const handleSidebarClose = () => {
     // setPurchaseByStockId({ batch_no: null, stock_id: null })
+    setSearchPurchase('')
     setPurchaseByStockIdList([])
     setOpenDrawer(false)
   }
@@ -1081,6 +1082,11 @@ const ListOfStocks = () => {
     const value = event.target.value
     setSearchPurchase(value)
     handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, value)
+  }
+
+  const handleClearSearch = event => {
+    setSearchPurchase('')
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, '')
   }
 
   return (
@@ -1250,6 +1256,7 @@ const ListOfStocks = () => {
 
                         // Custom logic for cell clicks
                         if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
                           setPurchaseByStockId({
                             batch_no: params.row?.batch_no,
                             stock_id: params.row?.stock_item_id
@@ -1318,6 +1325,8 @@ const ListOfStocks = () => {
         setPurchaseLoading={setPurchaseLoading}
         handleInputChange={handleInputChange}
         searchPurchase={searchPurchase}
+        setSearchPurchase={setSearchPurchase}
+        handleClearSearch={handleClearSearch}
       />
     </>
   )

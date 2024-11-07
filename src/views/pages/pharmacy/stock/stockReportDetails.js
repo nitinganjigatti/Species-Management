@@ -18,6 +18,8 @@ import Icon from 'src/@core/components/icon'
 // ** Next.js Imports
 import { useRouter } from 'next/router'
 import { InputAdornment, TextField } from '@mui/material'
+import Utility from 'src/utility'
+import { ClearIcon } from '@mui/x-date-pickers'
 
 const StockReportDetails = props => {
   // ** Props
@@ -29,7 +31,9 @@ const StockReportDetails = props => {
     purchaseLoading,
     setPurchaseLoading,
     handleInputChange,
-    searchPurchase
+    searchPurchase,
+    setSearchPurchase,
+    handleClearSearch
   } = props
 
   const router = useRouter()
@@ -37,6 +41,12 @@ const StockReportDetails = props => {
   const handleNavigate = productId => {
     router.push(`/pharmacy/purchase/add-purchase/?id=${productId}&action=edit&navigatedFrom=stockReport`)
   }
+
+  //   const handleClearSearch = () => {
+  //     setSearchPurchase('') // Clear search input
+  //   }
+
+  console.log(purchaseByStockIdList, 'purchaseByStockIdList')
 
   return (
     <Drawer
@@ -76,9 +86,32 @@ const StockReportDetails = props => {
               <InputAdornment position='start'>
                 <Icon icon='mdi:magnify' />
               </InputAdornment>
+            ),
+            endAdornment: searchPurchase && (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={handleClearSearch}>
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
             )
           }}
         />
+        {/* <TextField
+          fullWidth
+          size='small'
+          placeholder='Search...'
+          variant='outlined'
+          value={searchPurchase}
+          onChange={handleInputChange}
+          sx={{ mb: 4 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <Icon icon='mdi:magnify' />
+              </InputAdornment>
+            )
+          }}
+        /> */}
 
         {purchaseLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -89,6 +122,21 @@ const StockReportDetails = props => {
             <Card key={idx} sx={{ mb: 4, cursor: 'pointer' }} onClick={() => handleNavigate(product.id)}>
               <CardContent>
                 <Typography variant='h6'>{product.stock_name}</Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    backgroundColor: 'grey.100',
+                    p: 2,
+                    borderRadius: 0.5,
+                    mt: 1
+                  }}
+                >
+                  <Typography sx={{ fontSize: '14px', fontWeight: '400' }}>Purchase No: {product.po_no}</Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
+                    Date: {Utility.formatDisplayDate(product.po_date)}
+                  </Typography>
+                </Box>
                 {product.product_details.map((detail, index) => (
                   <Box key={index} mt={2}>
                     <Typography variant='body2'>Batch No: {detail.batch_no}</Typography>
