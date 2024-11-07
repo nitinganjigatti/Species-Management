@@ -332,17 +332,16 @@ const ListOfStocks = () => {
               } ${el?.product_form_label}`
             }
           })
+
           Utility.exportToCSV(data, 'Stock Report')
         }
         setExcelLoader(false)
       } else {
         setExcelLoader(true)
-
         const batchParams = {
           sort: batchSort,
           q: batchSearchValue,
           column: batchSortColumn
-
           // page: batchPaginationModel.page + 1,
           // limit: batchPaginationModel.pageSize
         }
@@ -942,6 +941,7 @@ const ListOfStocks = () => {
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
     setSearchValue('')
+    setBatchSearchValue('')
   }
 
   const headerAction = (
@@ -1183,18 +1183,18 @@ const ListOfStocks = () => {
                       />
                     </Grid>
 
-                    {changeSwitch ? (
-                      <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
-                        <ExcelExportButton
-                          disabled={total === 0 ? true : false}
-                          action={() => {
-                            getBatchWiseDataToExport()
-                          }}
-                          loader={excelLoader}
-                          title='Download'
-                        />
-                      </Box>
-                    ) : null}
+                    {/* {changeSwitch ? ( */}
+                    <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
+                      <ExcelExportButton
+                        disabled={total === 0 ? true : false}
+                        action={() => {
+                          getBatchWiseDataToExport()
+                        }}
+                        loader={excelLoader}
+                        title='Download'
+                      />
+                    </Box>
+                    {/* ) : null} */}
                   </Grid>
 
                   {changeSwitch ? (
