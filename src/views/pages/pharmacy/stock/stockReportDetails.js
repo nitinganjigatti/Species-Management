@@ -1,6 +1,3 @@
-// ** React Imports
-import { useState, useEffect } from 'react'
-
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
@@ -9,15 +6,13 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardActions from '@mui/material/CardActions'
-import Button from '@mui/material/Button'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Next.js Imports
 import { useRouter } from 'next/router'
-import { InputAdornment, TextField } from '@mui/material'
+import { Divider, InputAdornment, TextField } from '@mui/material'
 import Utility from 'src/utility'
 import { ClearIcon } from '@mui/x-date-pickers'
 
@@ -39,12 +34,10 @@ const StockReportDetails = props => {
   const router = useRouter()
 
   const handleNavigate = productId => {
-    router.push(`/pharmacy/purchase/add-purchase/?id=${productId}&action=edit&navigatedFrom=stockReport`)
+    // router.push(`/pharmacy/purchase/add-purchase/?id=${productId}&action=edit&navigatedFrom=stockReport`)
+    const url = `/pharmacy/purchase/add-purchase/?id=${productId}&action=edit&navigatedFrom=stockReport`
+    window.open(url, '_blank')
   }
-
-  //   const handleClearSearch = () => {
-  //     setSearchPurchase('') // Clear search input
-  //   }
 
   console.log(purchaseByStockIdList, 'purchaseByStockIdList')
 
@@ -56,23 +49,31 @@ const StockReportDetails = props => {
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
     >
       <Box
-        className='sidebar-header'
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          backgroundColor: 'background.default',
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          position: 'fixed',
+          top: 0,
+          width: 'auto',
+          width: '-webkit-fill-available',
+          backgroundColor: 'white'
         }}
       >
-        <Typography variant='h6'>Stock Report Lists</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-            <Icon icon='mdi:close' fontSize={20} />
-          </IconButton>
+        <Box
+          className='sidebar-header'
+          sx={{
+            display: 'flex',
+            width: '100%',
+            justifyContent: 'space-between',
+            backgroundColor: 'background.default',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          }}
+        >
+          <Typography variant='h6'>Stock Report Lists</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
         </Box>
-      </Box>
-
-      <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <TextField
           fullWidth
           size='small'
@@ -80,7 +81,7 @@ const StockReportDetails = props => {
           variant='outlined'
           value={searchPurchase}
           onChange={handleInputChange}
-          sx={{ mb: 4 }}
+          sx={{ mb: 4, my: 4, px: 4 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>
@@ -96,23 +97,9 @@ const StockReportDetails = props => {
             )
           }}
         />
-        {/* <TextField
-          fullWidth
-          size='small'
-          placeholder='Search...'
-          variant='outlined'
-          value={searchPurchase}
-          onChange={handleInputChange}
-          sx={{ mb: 4 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <Icon icon='mdi:magnify' />
-              </InputAdornment>
-            )
-          }}
-        /> */}
+      </Box>
 
+      <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), mt: '128px' }}>
         {purchaseLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <CircularProgress />
@@ -121,7 +108,7 @@ const StockReportDetails = props => {
           purchaseByStockIdList.map((product, idx) => (
             <Card key={idx} sx={{ mb: 4, cursor: 'pointer' }} onClick={() => handleNavigate(product.id)}>
               <CardContent>
-                <Typography variant='h6'>{product.stock_name}</Typography>
+                <Typography sx={{ fontSize: 16 }}>{product.stock_name}</Typography>
                 <Box
                   sx={{
                     display: 'flex',
@@ -132,17 +119,40 @@ const StockReportDetails = props => {
                     mt: 1
                   }}
                 >
-                  <Typography sx={{ fontSize: '14px', fontWeight: '400' }}>Purchase No: {product.po_no}</Typography>
+                  <Typography sx={{ fontSize: '14px', fontWeight: '400' }}>
+                    Purchase No
+                    <br /> <strong>{product.po_no}</strong>
+                  </Typography>
                   <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
-                    Date: {Utility.formatDisplayDate(product.po_date)}
+                    Date <br />
+                    <strong>{Utility.formatDisplayDate(product.po_date)}</strong>
                   </Typography>
                 </Box>
                 {product.product_details.map((detail, index) => (
-                  <Box key={index} mt={2}>
-                    <Typography variant='body2'>Batch No: {detail.batch_no}</Typography>
-                    <Typography variant='body2'>Net Amount: {detail.net_amount}</Typography>
-                    <Typography variant='body2'>Unit Price: {detail.unit_price}</Typography>
-                    <Typography variant='body2'>Quantity: {detail.qty}</Typography>
+                  <Box key={index}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        py: '6px',
+                        borderTop: index == 0 ? '0px solid' : '1px solid rgb(245, 245, 245)'
+                      }}
+                    >
+                      <div>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
+                          Unit Price: {detail.unit_price}
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>Quantity: {detail.qty}</Typography>
+                      </div>
+                      <div>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
+                          Net Amount: {detail.net_amount}
+                        </Typography>
+                        <Typography sx={{ fontSize: '14px', fontWeight: '400' }}>
+                          Batch No: {detail.batch_no}
+                        </Typography>
+                      </div>
+                    </Box>
                   </Box>
                 ))}
               </CardContent>
@@ -155,226 +165,3 @@ const StockReportDetails = props => {
 }
 
 export default StockReportDetails
-
-// // ** React Imports
-// import { useState, useEffect } from 'react'
-
-// // ** MUI Imports
-// import Box from '@mui/material/Box'
-// import Drawer from '@mui/material/Drawer'
-// import IconButton from '@mui/material/IconButton'
-// import Typography from '@mui/material/Typography'
-// import { CircularProgress, Accordion, AccordionSummary, AccordionDetails, ListItemText, ListItem } from '@mui/material'
-// import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-// import Button from '@mui/material/Button'
-
-// // ** Icon Imports
-// import Icon from 'src/@core/components/icon'
-
-// // ** Next.js Imports
-// import { useRouter } from 'next/router'
-
-// const StockReportDetails = props => {
-//   // ** Props
-//   const {
-//     addEventSidebarOpen,
-//     handleSidebarClose,
-//     handleSubmitData,
-//     resetForm,
-//     submitLoader,
-//     editParams,
-//     purchaseByStockIdList
-//   } = props
-
-//   const [loading, setLoading] = useState(true)
-//   const [expanded, setExpanded] = useState(false)
-//   const router = useRouter()
-
-//   const handleAccordionChange = panel => (event, isExpanded) => {
-//     setExpanded(isExpanded ? panel : false)
-//   }
-
-//   useEffect(() => {
-//     if (purchaseByStockIdList && purchaseByStockIdList.length > 0) {
-//       setLoading(false)
-//     } else {
-//       setLoading(true)
-//     }
-//   }, [purchaseByStockIdList])
-
-//   const handleNavigate = productId => {
-//     router.push(`pharmacy/purchase/add-purchase/?id=${productId}&action=edit`)
-//   }
-
-//   return (
-//     <Drawer
-//       anchor='right'
-//       open={addEventSidebarOpen}
-//       ModalProps={{ keepMounted: true }}
-//       sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
-//     >
-//       <Box
-//         className='sidebar-header'
-//         sx={{
-//           display: 'flex',
-//           justifyContent: 'space-between',
-//           backgroundColor: 'background.default',
-//           p: theme => theme.spacing(3, 3.255, 3, 5.255)
-//         }}
-//       >
-//         <Typography variant='h6'>Stock Report Lists</Typography>
-//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-//             <Icon icon='mdi:close' fontSize={20} />
-//           </IconButton>
-//         </Box>
-//       </Box>
-
-//       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-//         {loading ? (
-//           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-//             <CircularProgress />
-//           </Box>
-//         ) : (
-//           purchaseByStockIdList.map((product, idx) => (
-//             <Box key={idx} mb={6}>
-//               <Accordion expanded={expanded === `panel${idx}`} onChange={handleAccordionChange(`panel${idx}`)}>
-//                 <AccordionSummary
-//                   expandIcon={<ExpandMoreIcon />}
-//                   aria-controls={`panel${idx}-content`}
-//                   id={`panel${idx}-header`}
-//                 >
-//                   <Typography>{product.stock_name}</Typography>
-//                 </AccordionSummary>
-//                 <AccordionDetails>
-//                   {product.product_details.map((detail, index) => (
-//                     <ListItem key={index}>
-//                       <ListItemText
-//                         primary={`Batch No: ${detail.batch_no}`}
-//                         secondary={
-//                           <Box>
-//                             <Typography variant='body2'>Net Amount: {detail.net_amount}</Typography>
-//                             <Typography variant='body2'>Unit Price: {detail.unit_price}</Typography>
-//                             <Typography variant='body2'>Quantity: {detail.qty}</Typography>
-//                           </Box>
-//                         }
-//                       />
-//                     </ListItem>
-//                   ))}
-//                   <Button
-//                     variant='contained'
-//                     color='primary'
-//                     onClick={() => handleNavigate(product.id)}
-//                     sx={{ float: 'right', mb: 4 }}
-//                   >
-//                     update product price
-//                   </Button>
-//                 </AccordionDetails>
-//               </Accordion>
-//             </Box>
-//           ))
-//         )}
-//       </Box>
-//     </Drawer>
-//   )
-// }
-
-// export default StockReportDetails
-
-// // ** React Imports
-// import { useState, useEffect, useCallback, Fragment } from 'react'
-
-// // ** MUI Imports
-// import Box from '@mui/material/Box'
-// import Drawer from '@mui/material/Drawer'
-
-// import IconButton from '@mui/material/IconButton'
-// import Typography from '@mui/material/Typography'
-
-// import { LoadingButton } from '@mui/lab'
-
-// // ** Third Party Imports
-
-// // ** Icon Imports
-// import Icon from 'src/@core/components/icon'
-// import { CircularProgress, List, ListItem, ListItemText, ListSubheader } from '@mui/material'
-
-// const StockReportDetails = props => {
-//   // ** Props
-//   const {
-//     addEventSidebarOpen,
-//     handleSidebarClose,
-//     handleSubmitData,
-//     resetForm,
-//     submitLoader,
-//     editParams,
-//     purchaseByStockIdList
-//   } = props
-
-//   console.log(purchaseByStockIdList, 'purchaseByStockIdList')
-//   const [loading, setLoading] = useState(true)
-
-//   useEffect(() => {
-//     if (purchaseByStockIdList && purchaseByStockIdList.length > 0) {
-//       setLoading(false) // Data is available, hide the loader
-//     } else {
-//       setLoading(true) // Show the loader if the list is empty or being fetched
-//     }
-//   }, [purchaseByStockIdList])
-
-//   return (
-//     <Drawer
-//       anchor='right'
-//       open={addEventSidebarOpen}
-//       ModalProps={{ keepMounted: true }}
-//       sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
-//     >
-//       <Box
-//         className='sidebar-header'
-//         sx={{
-//           display: 'flex',
-//           justifyContent: 'space-between',
-//           backgroundColor: 'background.default',
-//           p: theme => theme.spacing(3, 3.255, 3, 5.255)
-//         }}
-//       >
-//         <Typography variant='h6'> Stock Report Lists</Typography>
-//         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-//             <Icon icon='mdi:close' fontSize={20} />
-//           </IconButton>
-//         </Box>
-//       </Box>
-//       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-//         {loading ? (
-//           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-//             <CircularProgress />
-//           </Box>
-//         ) : (
-//           purchaseByStockIdList.map((product, idx) => (
-//             <Box key={idx} mb={3}>
-//               <List subheader={<Box>{product.stock_name}</Box>}>
-//                 {product.product_details.map((detail, index) => (
-//                   <ListItem key={index}>
-//                     <ListItemText
-//                       primary={`Batch No: ${detail.batch_no}`}
-//                       secondary={
-//                         <Box>
-//                           <Typography variant='body2'>Net Amount: {detail.net_amount}</Typography>
-//                           <Typography variant='body2'>Unit Price: {detail.unit_price}</Typography>
-//                           <Typography variant='body2'>Quantity: {detail.qty}</Typography>
-//                         </Box>
-//                       }
-//                     />
-//                   </ListItem>
-//                 ))}
-//               </List>
-//             </Box>
-//           ))
-//         )}
-//       </Box>
-//     </Drawer>
-//   )
-// }
-
-// export default StockReportDetails
