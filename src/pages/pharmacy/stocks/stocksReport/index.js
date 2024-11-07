@@ -100,6 +100,7 @@ const ListOfStocks = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
   // const [purchaseByStockId, setPurchaseByStockId] = useState(null)
   const [purchaseByStockId, setPurchaseByStockId] = useState({ batch_no: null, stock_id: null })
   const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
@@ -1024,6 +1025,7 @@ const ListOfStocks = () => {
 
   const addEventSidebarOpen = params => {
     console.log(params.row, 'qwer')
+
     // setPurchaseByStockId(params.row?.stock_item_id)
     setPurchaseByStockId({
       batch_no: params.row?.batch_no,
