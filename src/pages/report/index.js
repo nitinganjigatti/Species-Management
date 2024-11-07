@@ -379,7 +379,7 @@ const ReportList = () => {
                         >
                           {category}
                         </Typography>
-                        <List>
+                        <List sx={{ cursor: 'pointer' }}>
                           {popoverData[category].map((item, index) => (
                             <ListItem key={item.key} onClick={() => handleOptions(category, item, index)}>
                               <ListItemIcon>{item.checked && <CheckIcon sx={{ color: 'green' }} />}</ListItemIcon>
