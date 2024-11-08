@@ -1,7 +1,7 @@
 // import { AuthContext } from 'src/context/AuthContext'
 // import { useContext } from 'react'
 
-const ComposeReportNavigation = () => {
+const ComposeReportNavigation = reports_module => {
   const reportTitle = {
     sectionTitle: 'Report'
   }
@@ -15,10 +15,9 @@ const ComposeReportNavigation = () => {
   const reportNavigationArray = []
 
   reportNavigationArray.push(reportTitle)
-  reportNavigationArray.push( report)
+  reportNavigationArray.push(report)
 
   return reportNavigationArray
-
 }
 
 const reportNavigation = () => ComposeReportNavigation()

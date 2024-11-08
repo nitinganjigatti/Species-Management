@@ -22,6 +22,8 @@ const ComposeNavigation = () => {
   const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
+  const reports_module = authData?.userData?.permission?.user_settings?.enable_report_module
+
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -46,14 +48,15 @@ const ComposeNavigation = () => {
   if (egg_nursery || egg_collection) {
     const eggNav = eggNavigation({ egg_nursery, egg_collection })
     navigationArray.push(...eggNav)
-   
   }
 
   const pariveshNav = pariveshNavigation()
   navigationArray.push(...pariveshNav)
 
-  const reportNav = reportNavigation()
-  navigationArray.push(...reportNav)
+  if (reports_module) {
+    const reportNav = reportNavigation({ reports_module })
+    navigationArray.push(...reportNav)
+  }
 
   return navigationArray
 }

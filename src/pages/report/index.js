@@ -115,21 +115,21 @@ const ReportList = () => {
 
       if (response && response.data) {
         const csvUrl = response.data
+        // const csvResponse = await fetch(csvUrl)
+        // const csvText = await csvResponse.text()
 
-        const csvResponse = await fetch(csvUrl)
-        const csvText = await csvResponse.text()
-
-        const blob = new Blob([csvText], { type: 'text/csv' })
-        const blobUrl = URL.createObjectURL(blob)
+        // const blob = new Blob([csvText], { type: 'text/csv' })
+        // const blobUrl = URL.createObjectURL(blob)
 
         const link = document.createElement('a')
-        link.href = blobUrl
+        // link.href = blobUrl
+        link.href = csvUrl
         link.download = filename
         document.body.appendChild(link)
         link.click()
 
         document.body.removeChild(link)
-        URL.revokeObjectURL(blobUrl)
+        URL.revokeObjectURL(csvUrl)
       } else {
         console.error('Error: CSV URL not found in the response.')
       }
