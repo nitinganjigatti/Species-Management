@@ -1537,13 +1537,13 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             ref_id,
             sort_order: sort?.sort === 'asc' ? 'ASC' : 'DESC' || 'DESC',
             sort_column:
-              sort?.field === 'site'
+              status === 'site'
                 ? 'site_name'
-                : sort?.field === 'nursery'
+                : status === 'nursery'
                 ? 'nursery_name'
-                : sort?.field === 'species'
+                : status === 'species'
                 ? 'complete_name'
-                : sort?.field || 'complete_name'
+                : status || ''
           }
         } else {
           params = {
