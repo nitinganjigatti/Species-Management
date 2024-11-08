@@ -1,53 +1,24 @@
-import {
-  Card,
-  CardHeader,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography,
-  Button,
-  Tab,
-  Divider,
-  Box,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material'
-// import { DataGrid } from '@mui/x-data-grid'
-import { useContext, useEffect, useState } from 'react'
-import { ExcelExportButton } from 'src/components/Buttons'
-import { getHousingReport, getSpeciesReport, getUsersReportList } from 'src/lib/api/parivesh/housing'
+import { Card, CardHeader, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
-import { TabContext, TabList, TabPanel } from '@mui/lab'
-import StatisticsReport from './statistics'
+import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
 import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
-// import { getReportFilterList } from 'src/lib/api/report'
 import toast from 'react-hot-toast'
 import { getReportFilterList } from 'src/lib/api/report'
 
-const ReportList = () => {
+const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
-  const [userList, setUserList] = useState([])
-  const [housingList, setHousingList] = useState([])
-  const [speciesList, setSpeciesList] = useState([])
-  const [statisticsList, setStatisticsList] = useState([])
   const [status, setStatus] = useState('statistics')
-  const [rows, setRows] = useState([])
   const [selectedSite, setSelectedSite] = useState([])
   const [dataList, setDataList] = useState([])
-  const [filterPop, setFilterPop] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [total, setTotal] = useState(0)
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: true },
@@ -78,15 +49,6 @@ const ReportList = () => {
     include_genus: 1
   })
 
-  const TabBadge = ({ label, totalCount }) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
-      {label}
-      {totalCount ? (
-        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
-      ) : null}
-    </div>
-  )
-
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
   }
@@ -99,7 +61,6 @@ const ReportList = () => {
   const id = open ? 'filter-popover' : undefined
 
   const getStatisticsDataToExport = async () => {
-    const filename = 'statistic_data.csv'
     const params = {
       response_type: 'csv',
       ...Object.keys(apiFilterParams).reduce((acc, key) => {
@@ -115,21 +76,14 @@ const ReportList = () => {
 
       if (response && response.data) {
         const csvUrl = response.data
-
-        const csvResponse = await fetch(csvUrl)
-        const csvText = await csvResponse.text()
-
-        const blob = new Blob([csvText], { type: 'text/csv' })
-        const blobUrl = URL.createObjectURL(blob)
-
         const link = document.createElement('a')
-        link.href = blobUrl
-        link.download = filename
+        link.href = csvUrl
+
         document.body.appendChild(link)
         link.click()
 
         document.body.removeChild(link)
-        URL.revokeObjectURL(blobUrl)
+        URL.revokeObjectURL(csvUrl)
       } else {
         console.error('Error: CSV URL not found in the response.')
       }
@@ -193,13 +147,11 @@ const ReportList = () => {
         .catch(() => {
           toast.error('Error connecting to the server')
         })
-
       return updatedData
     })
   }
 
   const handleSelectedSite = async e => {
-    // console.log('e.target>', e.target.value)
     const value = e.target.value
     let params = {}
 
@@ -249,6 +201,183 @@ const ReportList = () => {
     }
   }
 
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const [headerList, setHeaderList] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  const initialLoad = useRef(true)
+
+  const fetchData = useCallback(async () => {
+    const params = {
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      include_housing: 1,
+      include_enclosure: 1,
+      include_section: 1,
+      include_cluster: 1,
+      include_class: 1,
+      include_organization: 1,
+      include_order: 1,
+      include_family: 1,
+      include_genus: 1,
+      include_site: 1
+    }
+
+    setIsLoading(true)
+
+    try {
+      const responseData = await getReportFilterList(params)
+
+      if (responseData) {
+        setIsLoading(false)
+        const { header, datalist, total_count } = responseData.data
+        console.log('Received data:', datalist)
+        setHeaderList(header)
+        setTotal(total_count)
+        setDataList(loadServerRows(paginationModel.page, datalist))
+      } else {
+        toast.error('Something went wrong')
+      }
+    } catch (error) {
+      toast.error('Error fetching data')
+      setIsLoading(false)
+    }
+
+    initialLoad.current = false
+  }, [paginationModel])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData, paginationModel])
+
+  useEffect(() => {
+    if (!initialLoad.current) {
+      const fetchFilterData = async () => {
+        setIsLoading(true)
+        const response = await getReportFilterList(apiFilterParams)
+        if (response) {
+          setIsLoading(false)
+          const { header, datalist } = response.data
+          setHeaderList(header)
+          setDataList(datalist)
+          setDataList(loadServerRows(paginationModel.page, datalist))
+        }
+      }
+      fetchFilterData()
+    }
+  }, [popoverData])
+
+  const columns = headerList.map(header => {
+    if (header.key.includes('default_icon')) {
+      return {
+        field: 'speciesAndCommonName',
+        headerName: header.label,
+        isAvatar: true,
+        sortable: false,
+        disableColumnMenu: true,
+        width: 400,
+        renderCell: params => (
+          <CardHeader
+            avatar={
+              <img
+                src={params.row.default_icon}
+                alt={params.row.common_name}
+                style={{ width: 40, height: 40, borderRadius: '50%' }}
+              />
+            }
+            title={
+              <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+                {params.row.common_name}
+              </Typography>
+            }
+            subheader={
+              <Typography
+                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
+                variant='body2'
+              >
+                {params.row.scientific_name}
+              </Typography>
+            }
+          />
+        )
+      }
+    }
+    return {
+      field: header.key,
+      headerName: header.label,
+      width: 200,
+      sortable: false,
+      disableColumnMenu: true,
+      textAlign: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
+            height: '25px',
+            backgroundColor: getCellBackgroundColor(header.label),
+            color: getCellTextColor(header.label),
+            fontWeight: 400,
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+              ? 'center'
+              : header.label === 'total'
+              ? 'flex-end'
+              : 'flex-start',
+            textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+              ? 'center'
+              : header.label === 'total'
+              ? 'right'
+              : 'left'
+          }}
+        >
+          {params.value}
+        </Box>
+      )
+    }
+  })
+
+  const getCellBackgroundColor = label => {
+    switch (label) {
+      case 'Male':
+        return '#AFEFEB'
+      case 'Female':
+        return '#FFD3D3'
+      case 'Undetermined':
+        return '#DDEBE9'
+      case 'Indeterminate':
+        return '#DDEBE9'
+      default:
+        return 'transparent'
+    }
+  }
+
+  const getCellTextColor = label => {
+    switch (label) {
+      case 'Male':
+      case 'Female':
+        return '#1F415B'
+      case 'Undetermined':
+        return '#E93353'
+      case 'Indeterminate':
+        return '#44544A'
+      default:
+        return '#44544A'
+    }
+  }
+
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+
+  const reportRows = dataList?.map((item, index) => ({
+    id: index + 1,
+    ...item,
+    sl_no: getSlNo(index)
+  }))
+
   return (
     <>
       <Card>
@@ -277,9 +406,7 @@ const ReportList = () => {
         <TabContext value={status}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
             {/* Tabs on the left */}
-            <TabList onChange={handleChange}>
-              {/* <Tab sx={{ ml: 2 }} value='statistics' label='Statistics' /> */}
-            </TabList>
+            <TabList onChange={handleChange}></TabList>
 
             {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
               <Box
@@ -327,7 +454,6 @@ const ReportList = () => {
                   </Select>
                 </FormControl>
 
-                {/* Filter Button */}
                 <Button
                   onClick={handleClick}
                   variant='outlined'
@@ -342,12 +468,12 @@ const ReportList = () => {
                     fontFamily: 'Inter',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 3, // Adjusted gap between icon and text
+                    gap: 3,
                     minWidth: '100px'
                   }}
                 >
                   <img src='/images/filterIcon.png' style={{ width: '24px', height: '24px' }} alt='Filter Icon' />
-                  Filter {/* First character capitalized, rest lowercase */}
+                  Filter
                 </Button>
                 <Popover
                   id={id}
@@ -364,7 +490,7 @@ const ReportList = () => {
                   }}
                 >
                   <Box sx={{ p: 2, width: 300 }}>
-                    {Object.keys(popoverData).map(category => (
+                    {Object?.keys(popoverData).map(category => (
                       <div key={category}>
                         <Typography
                           variant='subtitle1'
@@ -393,23 +519,69 @@ const ReportList = () => {
                 </Popover>
               </Box>
             )}
-
-            {/* Dropdowns on the right */}
           </Box>
 
-          <TabPanel value='statistics' sx={{ p: 0 }}>
-            <StatisticsReport
-              apiFilterParams={apiFilterParams}
-              popoverData={popoverData}
-              setDataList={setDataList}
-              dataList={dataList}
-            />
-            <Divider />
-          </TabPanel>
+          <Box sx={{ width: '98%', margin: 4 }}>
+            <Box sx={{ borderRadius: '8px' }}>
+              <DataGrid
+                sx={{
+                  mt: 3,
+                  borderRadius: '8px',
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+                  '& .MuiDataGrid-columnHeader': {
+                    backgroundColor: '#DDEBE9',
+                    color: '#1F415B',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    fontFamily: 'Inter',
+                    textTransform: 'capitalize',
+                    borderBottom: '2px solid #C3CEC7'
+                  },
+                  '.MuiDataGrid-main': {
+                    borderLeft: '1px solid #C3CEC7',
+                    borderRight: '1px solid #C3CEC7',
+                    borderTop: '1px solid #C3CEC7',
+                    borderBottom: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  },
+                  '& .MuiDataGrid-footerContainer': {
+                    borderTop: 'none'
+                  },
+
+                  '& .MuiDataGrid-cell': {
+                    fontFamily: 'Inter',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    lineHeight: '16.94px',
+                    textAlign: 'left',
+                    color: '#44544A'
+                  }
+                }}
+                rows={reportRows}
+                disableColumnSorting={true}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                loading={isLoading}
+                autoHeight
+                disableColumnFilter={false}
+                hideFooterSelectedRowCount
+                rowHeight={70}
+                scrollbarSize={10}
+              />
+            </Box>
+          </Box>
         </TabContext>
       </Card>
     </>
   )
 }
 
-export default ReportList
+export default SpeciesReport

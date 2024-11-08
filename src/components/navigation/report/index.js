@@ -8,17 +8,16 @@ const ComposeReportNavigation = () => {
 
   const report = {
     title: 'All Reports',
-    path: '/report',
+    path: '/report/species',
     icon: 'icon-park-outline:traditional-chinese-medicine'
   }
 
   const reportNavigationArray = []
 
   reportNavigationArray.push(reportTitle)
-  reportNavigationArray.push( report)
+  reportNavigationArray.push(report)
 
   return reportNavigationArray
-
 }
 
 const reportNavigation = () => ComposeReportNavigation()
