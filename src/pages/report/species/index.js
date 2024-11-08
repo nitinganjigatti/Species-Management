@@ -71,29 +71,7 @@ const SpeciesReport = () => {
       }, {})
     }
 
-    try {
-      const response = await getReportFilterList(params)
-
-      if (response && response.data) {
-        const csvUrl = response.data
-        const link = document.createElement('a')
-        link.href = csvUrl
-
-        document.body.appendChild(link)
-        link.click()
-
-        document.body.removeChild(link)
-        URL.revokeObjectURL(csvUrl)
-      } else {
-        console.error('Error: CSV URL not found in the response.')
-      }
-    } catch (error) {
-      console.error('Error fetching statistics data:', error)
-    }
-  }
-
-  const handleChange = (event, newValue) => {
-    setStatus(newValue)
+    await fetchAndSetDataList(params, { responseType: 'csv' })
   }
 
   const title = (
@@ -111,44 +89,57 @@ const SpeciesReport = () => {
     </>
   )
 
+  const fetchAndSetDataList = async (params, options = {}) => {
+    const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
+
+    try {
+      const response = await getReportFilterList(params)
+
+      if (responseType === 'csv' && response && response.data) {
+        const csvUrl = response.data
+        const link = document.createElement('a')
+        link.href = csvUrl
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(csvUrl)
+      } else if (response.success) {
+        const { header, datalist, total_count } = response.data || {}
+
+        setDataList(datalist || [])
+        if (setHeaders) setHeaderList(header)
+        if (setTotalCount) setTotal(total_count)
+      } else {
+        toast.error('Something went wrong')
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleOptions = async (category, item, itemIndex) => {
+    let updatedApiParams
+
     setPopoverData(prevData => {
       const updatedData = {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
 
-      const updatedApiParams = { ...apiFilterParams }
-
+      updatedApiParams = { ...apiFilterParams }
       Object.keys(updatedData).forEach(cat => {
         updatedData[cat].forEach(el => {
-          if (el.checked) {
-            if (el.key in updatedApiParams) {
-              updatedApiParams[el.key] = 1
-            }
-          } else {
-            if (el.key in updatedApiParams) {
-              updatedApiParams[el.key] = 0
-            }
-          }
+          updatedApiParams[el.key] = el.checked ? 1 : 0
         })
       })
 
       setApiFilterParams(updatedApiParams)
-
-      getReportFilterList(updatedApiParams)
-        .then(response => {
-          if (response.success) {
-            setAnchorEl(null)
-          } else {
-            toast.error('Something went wrong')
-          }
-        })
-        .catch(() => {
-          toast.error('Error connecting to the server')
-        })
       return updatedData
     })
+
+    await fetchAndSetDataList(updatedApiParams)
   }
 
   const handleSelectedSite = async e => {
@@ -192,13 +183,7 @@ const SpeciesReport = () => {
       setSelectedSite(value)
     }
 
-    try {
-      const responseData = await getReportFilterList(params)
-
-      setDataList(responseData?.data?.datalist || [])
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
+    await fetchAndSetDataList(params)
   }
 
   function loadServerRows(currentPage, data) {
@@ -228,23 +213,7 @@ const SpeciesReport = () => {
 
     setIsLoading(true)
 
-    try {
-      const responseData = await getReportFilterList(params)
-
-      if (responseData) {
-        setIsLoading(false)
-        const { header, datalist, total_count } = responseData.data
-        console.log('Received data:', datalist)
-        setHeaderList(header)
-        setTotal(total_count)
-        setDataList(loadServerRows(paginationModel.page, datalist))
-      } else {
-        toast.error('Something went wrong')
-      }
-    } catch (error) {
-      toast.error('Error fetching data')
-      setIsLoading(false)
-    }
+    await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
 
     initialLoad.current = false
   }, [paginationModel])
@@ -262,6 +231,7 @@ const SpeciesReport = () => {
           setIsLoading(false)
           const { header, datalist } = response.data
           setHeaderList(header)
+          setAnchorEl(null)
           setDataList(datalist)
           setDataList(loadServerRows(paginationModel.page, datalist))
         }
@@ -406,7 +376,7 @@ const SpeciesReport = () => {
         <TabContext value={status}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
             {/* Tabs on the left */}
-            <TabList onChange={handleChange}></TabList>
+            <TabList onChange={''}></TabList>
 
             {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
               <Box
