@@ -84,18 +84,13 @@ const StepPreviewDiet = ({
     value: item._id,
     label: item.name
   }))
-  console.log(transformedArray, 'transformedArray')
 
   const handleClickOpen = (index, item, type, dietType) => {
-    console.log(item, 'item')
-    console.log(type, 'type')
-    console.log(index, 'index')
-
     if (formData.diet_type_name !== 'By Weight') {
       const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
         return meal.meal_value_header === type
       })
-      console.log(mealTypeObject, 'mealTypeObject')
+
       setFormValue('quantity', mealTypeObject?.quantity)
       setFormValue('notes', mealTypeObject?.notes)
       setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
@@ -130,7 +125,7 @@ const StepPreviewDiet = ({
           return meal.meal_value_header === numericType
         }
       })
-      console.log(mealTypeObject, 'mealTypeObject')
+
       setFormValue('quantity', mealTypeObject?.quantity)
       setFormValue('notes', mealTypeObject?.notes)
       setFormValue('feed_uom_name', mealTypeObject?.feed_uom_name)
@@ -209,7 +204,6 @@ const StepPreviewDiet = ({
 
   // Define a function to receive the diet_types values from the child component
   const handleReceiveDietTypes = dietTypesData => {
-    console.log(dietTypesData, 'dietTypesData')
     setDietTypes(dietTypesData)
     setActivitySidebarOpen(false)
 
@@ -507,7 +501,6 @@ const StepPreviewDiet = ({
         }
         setlocalformData(updatedFormData)
         setOpen(false)
-        console.log(updatedFormData, 'updatedFormData')
       } else {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
         const updatedFormData = { ...formData } // Create a copy of formData
@@ -604,61 +597,6 @@ const StepPreviewDiet = ({
     }
   }, [])
 
-  console.log(screenSize.width, 'pppp')
-
-  // useEffect(() => {
-  //   const mediaElements = document.getElementsByClassName('cellmodule')
-  //   for (const mediaElement of mediaElements) {
-  //     if (screenSize.width === 1821) {
-  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-  //         mediaElement.style.width = '580px'
-  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-  //         mediaElement.style.width = '850px'
-  //       } else if (formData?.child?.length === 2) {
-  //         mediaElement.style.width = '660px'
-  //       } else if (formData?.child?.length > 2) {
-  //         mediaElement.style.width = '510px'
-  //       } else {
-  //         mediaElement.style.width = '566px'
-  //       }
-  //     } else if (screenSize.width === 1619) {
-  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-  //         mediaElement.style.width = '580px'
-  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-  //         mediaElement.style.width = '790px'
-  //       } else if (formData?.child?.length === 2) {
-  //         mediaElement.style.width = '605px'
-  //       } else if (formData?.child?.length > 2) {
-  //         mediaElement.style.width = '510px'
-  //       } else {
-  //         mediaElement.style.width = '500px'
-  //       }
-  //     } else if (screenSize.width === 1457) {
-  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-  //         mediaElement.style.width = '580px'
-  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-  //         mediaElement.style.width = '680px'
-  //       } else if (formData?.child?.length == 2) {
-  //         mediaElement.style.width = '518px'
-  //       } else if (formData?.child?.length > 2) {
-  //         mediaElement.style.width = '500px'
-  //       } else {
-  //         mediaElement.style.width = '500px'
-  //       }
-  //     } else if (screenSize.width === 1943) {
-  //       if (formData?.diet_type_name === 'By Weight' && formData?.child?.length === 1) {
-  //         mediaElement.style.width = '580px'
-  //       } else if (formData?.child?.length === 1 || formData?.child?.length === 0) {
-  //         mediaElement.style.width = '860px'
-  //       } else if (formData?.child?.length > 1) {
-  //         mediaElement.style.width = '665px'
-  //       } else {
-  //         mediaElement.style.width = '568px'
-  //       }
-  //     }
-  //   }
-  // }, [screenSize.width])
-
   useEffect(() => {
     if (formData.diet_type_name === 'By Weight') {
       const updatedFormData = { ...formData, child: diettypechildvalues }
@@ -720,9 +658,7 @@ const StepPreviewDiet = ({
   }, [formData.child])
 
   const onSubmit = async data => {
-    console.log(data, 'data')
     const updatedData = { ...data, ...LocalformData }
-    console.log(updatedData, 'updatedData')
 
     handleNext(updatedData)
     reset(defaultValues)
@@ -1267,7 +1203,6 @@ const StepPreviewDiet = ({
 
                         return (
                           <>
-                            {console.log(itemd, 'itemd')}
                             <TableRow key={index} className=''>
                               <TableCell
                                 sx={{
@@ -1360,8 +1295,6 @@ const StepPreviewDiet = ({
                               </TableCell>
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
-                                  console.log(formData?.child?.length, 'lll')
-
                                   return (
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
@@ -1432,7 +1365,7 @@ const StepPreviewDiet = ({
                                                     {item?.ingredient_name}
                                                   </Typography>
                                                 )}
-                                                {console.log(item, 'item')}
+
                                                 {item?.preparation_type &&
                                                   (item?.feed_cut_size ? (
                                                     <Typography
@@ -1611,7 +1544,6 @@ const StepPreviewDiet = ({
                                             height: '100%'
                                           }}
                                         >
-                                          {console.log(item.meal_type, 'eee')}
                                           <Box
                                             sx={{
                                               backgroundColor: '#0000000d',
@@ -1642,7 +1574,6 @@ const StepPreviewDiet = ({
                                                 fontSize: '14px'
                                               }}
                                             >
-                                              {console.log(index, 'index')}
                                               {/* {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
@@ -1867,9 +1798,9 @@ const StepPreviewDiet = ({
                                                   </Typography>
                                                 )}
                                               </Box>
-                                              {console.log(item, 'kkkk')}
+
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                                                {item?.ingredient_name && item.ingredient_name.length > 0 && (
+                                                {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
                                                       color: '#7A8684',
@@ -1906,7 +1837,7 @@ const StepPreviewDiet = ({
                                                       </Box>
                                                     ))}
                                                   </Typography>
-                                                )}
+                                                )} */}
                                                 {item?.ingredients?.length > 0 &&
                                                   item?.ingredients.map((name, index) => (
                                                     <Box
@@ -2090,7 +2021,6 @@ const StepPreviewDiet = ({
                                             height: '100%'
                                           }}
                                         >
-                                          {console.log(item.meal_type, 'eee')}
                                           <Box
                                             sx={{
                                               backgroundColor: '#0000000d',
@@ -2121,7 +2051,6 @@ const StepPreviewDiet = ({
                                                 fontSize: '14px'
                                               }}
                                             >
-                                              {console.log(index, 'index')}
                                               {/* {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
@@ -2489,7 +2418,6 @@ const StepPreviewDiet = ({
                                             height: '100%'
                                           }}
                                         >
-                                          {console.log(item.meal_type, 'eee')}
                                           <Box
                                             sx={{
                                               backgroundColor: '#0000000d',
@@ -2521,7 +2449,6 @@ const StepPreviewDiet = ({
                                                 fontSize: '14px'
                                               }}
                                             >
-                                              {console.log(index, 'index')}
                                               {/* {item.meal_type
                                                 ? item.meal_type.map((meal, i) => {
                                                     return meal.meal_value_header === 'Generic'
