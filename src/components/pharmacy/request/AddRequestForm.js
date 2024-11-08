@@ -75,6 +75,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { borderRadius, color, padding } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const editParamsInitialState = {
   from_store_type: '',
@@ -1905,7 +1906,9 @@ const AddRequestForm = () => {
                         <TableCell align='left'>
                           {/* Name and chips in a flex container */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            {el.control_substance ? (
+                            {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
+                            {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                            {/* {el.control_substance ? (
                               <CustomChip
                                 label='CS'
                                 skin='filled'
@@ -1921,8 +1924,8 @@ const AddRequestForm = () => {
                                   }
                                 }}
                               />
-                            ) : null}
-                            {el.prescription_required ? (
+                            ) : null} */}
+                            {/* {el.prescription_required ? (
                               <CustomChip
                                 label='PR'
                                 skin='light'
@@ -1938,7 +1941,7 @@ const AddRequestForm = () => {
                                   }
                                 }}
                               />
-                            ) : null}
+                            ) : null} */}
                             <Typography variant='body2' sx={{ color: '#1F515B', fontSize: '16px', fontWeight: 600 }}>
                               {el.medicine_name}
                             </Typography>
@@ -1966,35 +1969,46 @@ const AddRequestForm = () => {
                             </Typography>
                           </Box> */}
                           {el?.notes ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Box
-                                sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
-                              >
-                                <Icon icon='material-symbols:description-outline' width='1em' height='1em' />
-                              </Box>
-                              <Tooltip title={el?.notes}>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: '#00000066',
-                                    minWidth: 30,
-                                    maxWidth: 80,
-                                    cursor: 'pointer',
-                                    WebkitBoxOrient: 'vertical',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    WebkitLineClamp: 6,
-                                    whiteSpace: 'nowrap',
-                                    fontStyle: 'italic',
-                                    fontSize: '14px',
-                                    fontWeight: 400
-                                  }}
-                                >
-                                  {el?.notes ? el?.notes : 'NA'}
-                                </Typography>
-                              </Tooltip>
-                            </Box>
-                          ) : null}
+                            <TextEllipsisWithModal
+                              text={el?.notes}
+                              limit={60}
+                              icon='material-symbols:description-outline'
+                              style={{
+                                color: '#00000066',
+                                fontStyle: 'italic',
+                                fontSize: '14px',
+                                fontWeight: 400
+                              }}
+                            />
+                          ) : // <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          //   <Box
+                          //     sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }} // Apply color and flex styles
+                          //   >
+                          //     <Icon icon='material-symbols:description-outline' width='1em' height='1em' />
+                          //   </Box>
+                          //   <Tooltip title={el?.notes}>
+                          //     <Typography
+                          //       variant='body2'
+                          //       sx={{
+                          //         color: '#00000066',
+                          //         minWidth: 30,
+                          //         maxWidth: 80,
+                          //         cursor: 'pointer',
+                          //         WebkitBoxOrient: 'vertical',
+                          //         overflow: 'hidden',
+                          //         textOverflow: 'ellipsis',
+                          //         WebkitLineClamp: 6,
+                          //         whiteSpace: 'nowrap',
+                          //         fontStyle: 'italic',
+                          //         fontSize: '14px',
+                          //         fontWeight: 400
+                          //       }}
+                          //     >
+                          //       {el?.notes ? el?.notes : 'NA'}
+                          //     </Typography>
+                          //   </Tooltip>
+                          // </Box>
+                          null}
                           {/* {el?.prescription_required_file ? (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Box
