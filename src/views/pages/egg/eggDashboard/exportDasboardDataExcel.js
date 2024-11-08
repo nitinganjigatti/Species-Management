@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx'
 import Button from '@mui/material/Button'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 const DashboardExelExportButton = ({ tab_Value, data }) => {
@@ -20,17 +20,46 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
 
       const formattedData = data?.map((item, index) => ({
         NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        CONDITION: `${item.egg_condition} ${item.egg_initial_temperature}`,
-        'SITE NAME': item.site_name,
-        NURSERY: item.nursery_name,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.created_at)
-        )} `
+        SPECIES: `${item.complete_name || '-'} (${item?.default_common_name || '-'})`,
+        'TOTAL EGGS': item.total_eggs || '-',
+        'CURRENTLY IN NEST': item.currently_in_nest || '-',
+        'CURRENTLY IN NURSERY': item.currently_in_nursery || '-',
+        'HATCHED IN NEST %': `${
+          Number(item.hatched_in_nest) + Number(item.discarded_at_site) + Number(item.ready_tobe_discarded_at_nursery) >
+          0
+            ? Math.round(
+                (Number(item.hatched_in_nest) /
+                  (Number(item.hatched_in_nest) +
+                    Number(item.discarded_at_site) +
+                    Number(item.ready_tobe_discarded_at_nursery))) *
+                  100
+              )
+            : 0
+        } % ${item.hatched_in_nest ? `(${item.hatched_in_nest})` : '(-)'}`,
+        'HATCHED IN NURSERY %': `${
+          Number(item.hatched_in_nursery) +
+            Number(item.discarded_at_nursery) +
+            Number(item.ready_tobe_discarded_at_nursery) >
+          0
+            ? Math.round(
+                (Number(item.hatched_in_nursery) /
+                  (Number(item.hatched_in_nursery) +
+                    Number(item.discarded_at_nursery) +
+                    Number(item.ready_tobe_discarded_at_nursery))) *
+                  100
+              )
+            : 0
+        } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '(-)'}`,
+
+        'TOTAL HATCHED %': `${
+          Number(item.total_hatch) + Number(item.total_discard) + 0
+            ? Math.round((Number(item.total_hatch) / (Number(item.total_hatch) + Number(item.total_discard))) * 100)
+            : 0
+        } % ${item.total_hatch ? `(${item.total_hatch})` : '(-)'}`,
+        'DISCARDED AT SITE': item.discarded_at_site || '-',
+        'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
+        'TOTAL DISCARDED': item.total_discarded || '-',
+        'IN TRANSIT': item.in_transit || '-'
       }))
       setXlsxList(formattedData)
     } else if (tab_Value === 'site') {
@@ -38,25 +67,45 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
 
       const formattedData = data?.map((item, index) => ({
         NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        'STATE & STAGE': `${item.egg_status} ${item.egg_state}`,
-        'DAY IN INCUBATION': item.days_in_incubation,
-        'INITIAL WEIGHT': item.initial_weight,
-        'CURRENT WEIGHT': item.current_weight,
-        'INITIAL SIZE-L': item.initial_length,
-        'INITIAL SIZE-W': item.initial_width,
-        NURSERY: item.nursery_name,
-        'SITE NAME': item.site_name,
-        'NO.EGGS / CLUTCH': item.no_of_eggs_in_clutch,
-        'CLUTCH ID': item.clutch_id,
-        ENCLOSURE: item.enclosure_name,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'ALLOCATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.allocate_date)
-        )} `
+        SITES: item.site_name || '-',
+        'TOTAL EGGS': item.total_eggs || '-',
+        'CURRENTLY IN NEST': item.currently_in_nest || '-',
+        'CURRENTLY IN NURSERY': item.currently_in_nursery || '-',
+        'HATCHED IN NEST %': `${
+          Number(item.hatched_in_nest) + Number(item.discarded_at_site) + Number(item.ready_tobe_discarded_at_nursery) >
+          0
+            ? Math.round(
+                (Number(item.hatched_in_nest) /
+                  (Number(item.hatched_in_nest) +
+                    Number(item.discarded_at_site) +
+                    Number(item.ready_tobe_discarded_at_nursery))) *
+                  100
+              )
+            : 0
+        } % ${item.hatched_in_nest ? `(${item.hatched_in_nest})` : '(-)'}`,
+        'HATCHED IN NURSERY %': `${
+          Number(item.hatched_in_nursery) +
+            Number(item.discarded_at_nursery) +
+            Number(item.ready_tobe_discarded_at_nursery) >
+          0
+            ? Math.round(
+                (Number(item.hatched_in_nursery) /
+                  (Number(item.hatched_in_nursery) +
+                    Number(item.discarded_at_nursery) +
+                    Number(item.ready_tobe_discarded_at_nursery))) *
+                  100
+              )
+            : 0
+        } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '(-)'}`,
+        'TOTAL HATCHED %': `${
+          Number(item.total_hatch) + Number(item.total_discard) + 0
+            ? Math.round((Number(item.total_hatch) / (Number(item.total_hatch) + Number(item.total_discard))) * 100)
+            : 0
+        } % ${item.total_hatch ? `(${item.total_hatch})` : '(-)'}`,
+        'DISCARDED AT SITE': item.discarded_at_site || '-',
+        'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
+        'TOTAL DISCARDED': item.total_discarded || '-',
+        'IN TRANSIT': item.in_transit || '-'
       }))
       setXlsxList(formattedData)
     } else if (tab_Value == 'nursery') {
@@ -83,7 +132,6 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
             : 0
         } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '-'}`,
         'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
-
         'IN TRANSIT': item.in_transit || '-'
       }))
       setXlsxList(formattedData)
@@ -136,16 +184,18 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
         sx={{
           display: 'flex',
           justifyContent: 'center',
-          width: '40px',
-          height: '40px',
-          borderRadius: '4px',
-          bgcolor: theme?.palette.customColors?.lightBg,
           alignItems: 'center',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          gap: '5px'
         }}
         onClick={handleExport}
       >
-        <Icon icon='ic:round-download' fontSize={20} />
+        <Typography
+          sx={{ fontSize: '14px', fontWeight: '500', letterSpacing: '0.1px', lineHeight: '16.94px', color: '#006D35' }}
+        >
+          Download
+        </Typography>
+        <Icon color='#006D35' icon='solar:download-square-outline' fontSize={22} />
       </Box>
     </>
   )
