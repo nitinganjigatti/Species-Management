@@ -1149,7 +1149,7 @@ const EggSecondSecion = ({
                                   onChange(event)
                                 }
                               }}
-                              placeholder='Enter Number'
+                              placeholder='Add Weight'
                               error={Boolean(errors.assessment_value)}
                               name='assessment_value'
                             />
