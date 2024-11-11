@@ -184,7 +184,7 @@ const StepBasicDetails = ({
     const uniqueValues = value.filter(
       (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
     )
-    console.log(uniqueValues, 'uniqueValues')
+
     setAllRecipeSelectedValues(prevState => {
       // Filter out duplicates from the previous state
       const filteredPrevState = prevState.filter(
@@ -239,9 +239,11 @@ const StepBasicDetails = ({
       const flattenedRecipes = formData.meal_data?.flatMap(all =>
         all.recipe?.map(ing => ({
           ...ing,
-          recipe_id: String(ing.recipe_id) // Convert recipe_id to string
+          recipe_id: String(ing.recipe_id), // Convert recipe_id to string
+          ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
         }))
       )
+
       setAllRecipeSelectedValues(flattenedRecipes)
 
       const flattenedIngchoice = formData.meal_data
@@ -302,7 +304,6 @@ const StepBasicDetails = ({
 
         if (Array.isArray(errorObject)) {
           for (const error of errorObject) {
-            console.log(error, 'error')
             if (error?.meal_name?.ref?.name || error?.meal_from_time?.ref?.name || error?.meal_to_time?.ref?.name) {
               firstErrorField =
                 error?.meal_name?.ref?.name || error?.meal_from_time?.ref?.name || error?.meal_to_time?.ref?.name
@@ -314,11 +315,8 @@ const StepBasicDetails = ({
         if (firstErrorField) break
       }
 
-      console.log(firstErrorField, 'firstErrorField')
-
       if (firstErrorField) {
         const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
-        console.log(errorElement, 'errorElement')
 
         if (errorElement) {
           errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -330,16 +328,12 @@ const StepBasicDetails = ({
   }
 
   const handleAddIngerdientChoice = (val, index, type) => {
-    console.log(val, 'val')
-    console.log(index, 'index')
     setOpenIngredientchoice(true)
     setcheckid(val.mealid)
     setingType(type)
   }
 
   const handleAddIngerdientChoicewithindex = (val, index, type) => {
-    console.log(val, 'val')
-    console.log(index, 'index')
     setOpenIngredientchoice(true)
     setcheckid(val.mealid)
     setingType(type)
@@ -353,7 +347,6 @@ const StepBasicDetails = ({
   }
 
   const addEventSidebarOpen = (val, index) => {
-    console.log(val, 'val')
     console.log(index, 'index')
     setOpenDrawer(true)
     setSelectedCardRecipe([])
@@ -361,7 +354,6 @@ const StepBasicDetails = ({
   }
 
   const handleSidebarCloseRecipe = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
@@ -455,7 +447,7 @@ const StepBasicDetails = ({
 
       // Check for time overlap
       const lastOverlapIndex = checkForTimeOverlap(formDataWithImage.meal_data)
-      console.log(lastOverlapIndex, 'lastOverlapIndex')
+
       if (lastOverlapIndex !== -1) {
         toast.error(`Meal ${lastOverlapIndex + 1} Start time cannot be later than end time.`)
 
@@ -463,7 +455,6 @@ const StepBasicDetails = ({
       } else {
         handleNext(formDataWithImage)
       }
-      console.log(formDataWithImage, 'data')
     } catch (validationErrors) {
       validationErrors.inner?.forEach(error => {
         setError(error.path, { message: error.message })
@@ -556,8 +547,6 @@ const StepBasicDetails = ({
   }
 
   const removeIngredientButton = index => {
-    console.log(index, 'index')
-
     return (
       <Box
         style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '20px' }}
@@ -581,7 +570,6 @@ const StepBasicDetails = ({
   }
 
   const removeingClick = (ingredientIdToRemove, val) => {
-    console.log(ingredientIdToRemove, 'ingredientIdToRemove')
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(
         ingredient => ingredient?.ingredient_id !== ingredientIdToRemove
@@ -599,8 +587,7 @@ const StepBasicDetails = ({
         field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
         return field
       })
-      console.log(fieldsIngredients, 'fieldsIngredients')
-      console.log(updatedFieldsIngredients, 'updatedFieldsIngredients')
+
       // Set the final value using setfinalvalue
       setfinalvalue(updatedFieldsIngredients)
 
@@ -611,8 +598,6 @@ const StepBasicDetails = ({
   const removeingClicking = (indexToRemove, val) => {
     setingType('')
     setIngredientchoiceChildStateValue(prevSelectedCard => {
-      console.log(prevSelectedCard, 'prevSelectedCard')
-
       // Filter out the entire ingredient object based on the index of prevSelectedCard
       const filteredChildStateValue = prevSelectedCard.filter((_, index) => index !== indexToRemove)
 
@@ -634,7 +619,6 @@ const StepBasicDetails = ({
       })
 
       setfinalvalueingredientchoice(updatedFieldsIngredients)
-      console.log(filteredChildStateValue, 'filteredChildStateValue')
 
       return filteredChildStateValue
     })
@@ -642,7 +626,6 @@ const StepBasicDetails = ({
 
   const removeingClickRecipe = (recipeIdToRemove, val) => {
     setRecipeChildStateValue(prevSelectedCard => {
-      // console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllRecipeSelectedValues(prevAllSelectedValues => {
@@ -666,63 +649,14 @@ const StepBasicDetails = ({
     })
   }
 
-  // const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
-  //   alert('hi')
-  //   setIngredientchoiceChildStateValue(prevSelectedCard => {
-  //     console.log(prevSelectedCard, 'prevSelectedCard')
-
-  //     const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
-  //       ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
-  //     )
-
-  //     setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-  //       // Filter out objects based on conditions
-  //       console.log(prevAllSelectedValues, 'prevAllSelectedValues')
-
-  //       return prevAllSelectedValues.map(ingredient => {
-  //         if (ingredient.mealid === val) {
-  //           ingredient.ingredientList = ingredient.ingredientList.filter(
-  //             ing => ing.ingredient_id !== ingredientIdToRemove
-  //           )
-  //         }
-
-  //         return ingredient
-  //       })
-  //     })
-
-  //     // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
-  //     const updatedFieldsIngredients = fieldsIngredients.map(field => {
-  //       field.ingredient = field.ingredient?.map(ing => {
-  //         if (ing.mealid === val) {
-  //           ing.ingredientwithchoice = ing.ingredientwithchoice?.ingredientList?.filter(
-  //             item => item.ingredient_id !== ingredientIdToRemove
-  //           )
-  //         }
-
-  //         return ing
-  //       })
-
-  //       return field
-  //     })
-
-  //     // Set the final value using setfinalvalueingredientchoice
-  //     setfinalvalueingredientchoice(updatedFieldsIngredients)
-
-  //     return filteredChildStateValue
-  //   })
-  // }
-
   const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
-      console.log(prevSelectedCard, 'prevSelectedCard')
-
       const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
         ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
       )
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
         // Filter out objects based on conditions
-        console.log(prevAllSelectedValues, 'prevAllSelectedValues')
 
         const updatedAllSelectedValues = prevAllSelectedValues
           .map(ingredient => {
@@ -762,10 +696,6 @@ const StepBasicDetails = ({
 
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
-  console.log(uploadedImage, 'uploadedImage')
-  console.log(formData, 'formdata')
-  console.log(selectedCard, 'selectedCard')
-
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -800,7 +730,7 @@ const StepBasicDetails = ({
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-                {console.log(uomList, 'uomList')}
+
                 <Controller
                   name='diet_type_id'
                   control={control}
@@ -818,7 +748,6 @@ const StepBasicDetails = ({
                         isOptionEqualToValue={(option, value) => option?.id === value}
                         //disabled={id ? true : false}
                         onChange={(e, val) => {
-                          console.log(val, 'val')
                           if (val === null) {
                             setFormValue('diet_type_id', '')
                             setFormValue('diet_type_name', '')
@@ -853,7 +782,6 @@ const StepBasicDetails = ({
               </FormControl>
             </Grid>
 
-            {console.log(uploadedImage, 'uploadedImage')}
             <Grid item xs={6}>
               <CardContent sx={{ px: 0, paddingTop: 2 }}>
                 <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
@@ -1063,14 +991,14 @@ const StepBasicDetails = ({
                                   {'REP' + all?.recipe_id}
                                 </Typography>
                               </Grid>
-                              {console.log(all, 'all')}
+
                               <Grid item xs={12} sm={1.0} sx={{ pl: 2 }}>
-                                {/* <Typography>{all?.ingredients_count}</Typography> */}
-                                {all?.ingredients ? (
+                                <Typography>{all?.ingredients_count}</Typography>
+                                {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
                                 ) : (
                                   <Typography>{all?.ingredient_name?.length}</Typography>
-                                )}
+                                )} */}
                               </Grid>
                               <Grid item xs={12} sm={3.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
@@ -1327,8 +1255,6 @@ const StepBasicDetails = ({
                                 }}
                               >
                                 {all?.ingredientList?.map((all, index) => {
-                                  console.log(all, 'all')
-
                                   return (
                                     <Grid item key={index}>
                                       <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
