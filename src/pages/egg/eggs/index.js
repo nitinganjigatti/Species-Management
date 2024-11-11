@@ -59,6 +59,7 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+  console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -106,7 +107,8 @@ const EggList = () => {
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
-  console.log('filterByNurseryId :>> ', filterByNurseryId)
+
+  // console.log('filterByNurseryId :>> ', filterByNurseryId)
 
   useEffect(() => {
     if (filter_list) {
@@ -2382,12 +2384,10 @@ const EggList = () => {
           status === 'all'
         ) {
           await GetEggList({ params: params }).then(res => {
-            // let listWithId = res.data.result.map((el, i) => {
-            //   return { ...el, uid: i + 1 }
-            // })
             if (res.success) {
+              const ListData = res.data.result ? res.data.result : []
               setTotal(parseInt(res?.data?.total_count))
-              setRows(loadServerRows(paginationModel.page, res.data.result))
+              setRows(loadServerRows(paginationModel.page, ListData))
             } else {
               setRows([])
             }
