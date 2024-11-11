@@ -6,13 +6,14 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import RenderUtility from 'src/utility/render'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Next.js Imports
 import { useRouter } from 'next/router'
-import { Divider, InputAdornment, TextField } from '@mui/material'
+import { Divider, InputAdornment, TextField, Tooltip } from '@mui/material'
 import Utility from 'src/utility'
 import { ClearIcon } from '@mui/x-date-pickers'
 
@@ -67,13 +68,26 @@ const StockReportDetails = props => {
             p: theme => theme.spacing(3, 3.255, 3, 5.255)
           }}
         >
-          <Typography variant='h6'>Stock Report Lists</Typography>
+          <Tooltip title={purchaseByStockIdList[0]?.stock_name} placement='top'>
+            <Typography
+              sx={{
+                mx: 'auto',
+                py: 2,
+                fontSize: 16,
+                fontWeight: 'bold',
+                ...RenderUtility?.getEllipsisStyleForText(400)
+              }}
+            >
+              {purchaseByStockIdList[0]?.stock_name ? purchaseByStockIdList[0]?.stock_name : null}
+            </Typography>
+          </Tooltip>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
               <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
         </Box>
+
         <TextField
           fullWidth
           size='small'
@@ -81,7 +95,7 @@ const StockReportDetails = props => {
           variant='outlined'
           value={searchPurchase}
           onChange={handleInputChange}
-          sx={{ mb: 4, my: 4, px: 4 }}
+          sx={{ my: 4, px: 4 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>
@@ -99,7 +113,7 @@ const StockReportDetails = props => {
         />
       </Box>
 
-      <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), mt: '128px' }}>
+      <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), mt: '120px' }}>
         {purchaseLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <CircularProgress />
@@ -108,7 +122,6 @@ const StockReportDetails = props => {
           purchaseByStockIdList.map((product, idx) => (
             <Card key={idx} sx={{ mb: 4, cursor: 'pointer' }} onClick={() => handleNavigate(product.id)}>
               <CardContent>
-                <Typography sx={{ fontSize: 16 }}>{product.stock_name}</Typography>
                 <Box
                   sx={{
                     display: 'flex',
