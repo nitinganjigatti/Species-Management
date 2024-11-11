@@ -48,18 +48,23 @@ const ComposeLabNavigation = ({ labRole }) => {
   const labList = authData?.userData?.modules?.lab_data?.lab
   const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
   const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
-  console.log('addlabPermission', addlabPermission)
+  const medical_add_mortality_reasons = authData?.userData?.permission?.user_settings?.medical_add_mortality_reasons
 
   const labNavigationArray = []
 
   if (labList?.length > 0) {
     labNavigationArray.push(labTitle)
-    if (!mastersLabParent.children) {
+
+    if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
       mastersLabParent.children = []
     }
 
-    if (medical_add_samples && medical_add_tests) {
+    if (medical_add_samples && medical_add_tests && medical_add_mortality_reasons) {
       mastersLabParent.children.push(labTest, labSample, mortalityReason)
+    }
+
+    if (medical_add_mortality_reasons) {
+      mastersLabParent.children.push(mortalityReason)
     }
 
     labNavigationArray.push(lab, request, mastersLabParent)
