@@ -63,7 +63,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     } else if (tab_Value == 'eggs_hatched') {
       setFileName('Egg Hatched')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
@@ -225,7 +225,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
         onClick={handleExport}
         sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}
       >
-        Excel 
+        Excel
       </Button> */}
     </>
   )
