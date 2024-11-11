@@ -43,7 +43,7 @@ import { useRouter } from 'next/router'
 import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
-import ExcelExportButton from 'src/views/pages/egg/eggs/exportExcel'
+import ExcelExportButton from 'src/views/pages/egg/eggs/exportEggListExcel'
 import { readAsync, write, remove, read } from 'src/lib/windows/utils'
 
 const EggList = () => {
@@ -64,7 +64,7 @@ const EggList = () => {
   const [openCreate, setOpenCreate] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 50 })
 
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_incubation')
@@ -1224,10 +1224,10 @@ const EggList = () => {
 
     {
       // flex: 0.15,
-      width: 150,
+      width: 180,
       sortable: false,
       field: 'initial_weight',
-      headerName: 'Initial weight',
+      headerName: 'Initial weight in gm',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1244,10 +1244,10 @@ const EggList = () => {
     },
     {
       // flex: 0.15,
-      width: 150,
+      width: 180,
       sortable: false,
       field: 'current_weight',
-      headerName: 'current weight',
+      headerName: 'current weight in gm',
       align: 'center',
 
       renderCell: params => (
@@ -1284,7 +1284,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'initial_length',
-      headerName: 'Initial Size-L',
+      headerName: 'Length in mm ',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1304,7 +1304,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'initial_width',
-      headerName: 'Initial Size-W',
+      headerName: 'width in mm',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1319,47 +1319,7 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'site',
-      headerName: 'SITE NAME',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
-      )
-    },
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'nursery_name',
-      headerName: 'Nursery NAME',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.nursery_name ? params.row.nursery_name : '-'}
-        </Typography>
-      )
-    },
     {
       // flex: 0.15,
       width: 130,
@@ -1433,6 +1393,49 @@ const EggList = () => {
         </Typography>
       )
     },
+
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
+      field: 'site',
+      headerName: 'SITE NAME',
+
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery NAME',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
+
     {
       // flex: 0.16,
       width: 130,
@@ -2250,7 +2253,7 @@ const EggList = () => {
     setSearchValue('')
     setFilterList([])
     setSelectedFiltersOptions({})
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSelectionEggModel([])
     setSearchQuery('')
     router.push(
@@ -2279,7 +2282,7 @@ const EggList = () => {
     setSubTab(newValue)
     setFilterList([])
     setSelectedFiltersOptions({})
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchQuery('')
     setSelectionEggModel([])
 

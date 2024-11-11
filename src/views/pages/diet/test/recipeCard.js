@@ -111,7 +111,7 @@ const RecipeCard = ({
       // Merge updatedSelectedDays with rows
       const finalSelectedDays = rows.map(row => {
         const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
-        console.log('updatedDay :>> ', updatedDay)
+
         if (updatedDay) {
           return updatedDay
         } else {
@@ -124,7 +124,6 @@ const RecipeCard = ({
       setSelectedDays(finalSelectedDays)
 
       selectedValuesWithCheckId?.forEach(item => {
-        console.log('item for remarks ', item)
         if (item.mealid === checkid) {
           newRemarks[item.recipe_id] = item.remarks
         }
@@ -286,7 +285,7 @@ const RecipeCard = ({
   const handleSelected = () => {
     handleSidebarClose()
     setSearchValue('')
-
+    console.log(selectedCardRecipe, 'selectedCardRecipe')
     const filteredItems = selectedCardRecipe.map(item => {
       // Find the selected days for the current item
 
@@ -307,7 +306,6 @@ const RecipeCard = ({
       // Find the existing card in selectedCardRecipe to preserve previous data
       const existingCard = selectedCardRecipe.find(card => card.id === item.id)
 
-      console.log(selectedDayId, 'selectedDayId')
       // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
 
@@ -321,7 +319,9 @@ const RecipeCard = ({
         ingredients_count: item.ingredients_count,
         ingredient_name: ingredientNames,
         quantity: quantity,
-        quantity_type: quantityper
+        quantity_type: quantityper,
+        ingredients: item.ingredients,
+        desc: item.desc
       }
     })
 
@@ -435,7 +435,7 @@ const RecipeCard = ({
                 </Box>
                 <Box sx={{ width: '333px' }}>
                   <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
-                    <Typography sx={{ ml: 4, fontSize: '20px', color: '#44544A', width: '178px', height: '24px' }}>
+                    <Typography sx={{ ml: 4, fontSize: '20px', color: '#44544A', width: '280px', height: '24px' }}>
                       {item.recipe_name}
                     </Typography>
                     <Typography variant='body' sx={{ ml: 4, fontSize: '14px', width: '79px', height: '17px', mt: 3 }}>

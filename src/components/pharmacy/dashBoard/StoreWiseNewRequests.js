@@ -10,11 +10,12 @@ import CardContent from '@mui/material/CardContent'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import { getNewRequestsList } from 'src/lib/api/pharmacy/dashboard'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 
 const StoreWiseNewRequests = () => {
   const [requestList, setRequestList] = useState([])
-
+  const { selectedPharmacy } = usePharmacyContext()
   const getNewRequestsLists = async () => {
     try {
       const result = await getNewRequestsList()
@@ -27,7 +28,7 @@ const StoreWiseNewRequests = () => {
 
   useEffect(() => {
     getNewRequestsLists()
-  }, [])
+  }, [selectedPharmacy.type, selectedPharmacy.id])
 
   const columns = [
     {

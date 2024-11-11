@@ -23,6 +23,7 @@ import DiscardEggSlider from '../eggs/discardEggSlider'
 import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
+import DashboardExelExportButton from './exportDasboardDataExcel'
 
 const Species = ({ openDiscard, setOpenDiscard }) => {
   // Context and Theme
@@ -55,6 +56,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const [drawerHeadingCount, setDrawerHeadingCount] = useState(0)
   const [drawerLoading, setDrawerLoading] = useState(false)
   const [drawerList, setDrawerList] = useState([])
+
+  const [sortModel, setSortModel] = useState([{ field: 'complete_name', sort: 'DESC' }])
 
   // Loading and Total Count
   const [loading, setLoading] = useState(false)
@@ -190,7 +193,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 280,
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       field: 'species',
       headerName: 'SPECIES',
@@ -260,7 +263,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 120,
       field: 'total_eggs',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
@@ -304,7 +307,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'total_egg_in_nest',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       renderHeader: () => (
         <Box>
@@ -347,7 +350,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'eggs_to_nursery',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       // headerName: 'EGGS TO NURSERY',
       renderHeader: () => (
@@ -389,11 +392,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     },
     {
-      width: 180,
-      field: 'in_nursery',
-      sortable: false,
+      width: 160,
+      field: 'hatched_percentage',
+      sortable: true,
       disableColumnMenu: true,
-      headerName: 'HATCHED IN NEST %',
+      headerName: 'TOTAL HATCHED %',
       renderCell: params => (
         <Box
           sx={{
@@ -415,39 +418,61 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {/* {(Number(params.row.hatched_in_nest) > 0 &&
-            Number(params.row.discarded_at_site) >= 0 &&
-            Number(params.row.ready_tobe_discarded_at_nursery) >= 0
-              ? (Number(params.row.hatched_in_nest) /
-                  (Number(params.row.hatched_in_nest) +
-                    Number(params.row.discarded_at_site) +
-                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+            {/* total_hatched_eggs */}
+            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.hatched_in_nest) +
-              Number(params.row.discarded_at_site) +
-              Number(params.row.ready_tobe_discarded_at_nursery) >
-            0
-              ? (
-                  (Number(params.row.hatched_in_nest) /
-                    (Number(params.row.hatched_in_nest) +
-                      Number(params.row.discarded_at_site) +
-                      Number(params.row.ready_tobe_discarded_at_nursery))) *
-                  100
-                ).toPrecision(3)
+            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
+              ? Math.round(
+                  (Number(params.row.total_hatch) /
+                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                    100
+                )
               : 0}
-            % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
+            %
           </Typography>
         </Box>
       )
     },
-
+    {
+      width: 160,
+      field: 'total_hatch',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
     {
       width: 200,
-      field: 'hatched_in_nursery',
-      sortable: false,
+      field: 'hatched_in_nursery_percentage',
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
@@ -486,25 +511,25 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               Number(params.row.discarded_at_nursery) +
               Number(params.row.ready_tobe_discarded_at_nursery) >
             0
-              ? (
+              ? Math.round(
                   (Number(params.row.hatched_in_nursery) /
                     (Number(params.row.hatched_in_nursery) +
                       Number(params.row.discarded_at_nursery) +
                       Number(params.row.ready_tobe_discarded_at_nursery))) *
-                  100
-                ).toPrecision(3)
+                    100
+                )
               : 0}
-            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+            %
           </Typography>
         </Box>
       )
     },
     {
-      width: 160,
-      field: 'hatched_percentage',
-      sortable: false,
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: true,
       disableColumnMenu: true,
-      headerName: 'TOTAL HATCHED %',
+      headerName: 'HATCHED IN NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -526,21 +551,94 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {/* total_hatched_eggs */}
-            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
-              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'hatched_in_nest_percentage',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NEST %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {/* {(Number(params.row.hatched_in_nest) > 0 &&
+            Number(params.row.discarded_at_site) >= 0 &&
+            Number(params.row.ready_tobe_discarded_at_nursery) >= 0
+              ? (Number(params.row.hatched_in_nest) /
+                  (Number(params.row.hatched_in_nest) +
+                    Number(params.row.discarded_at_site) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
-              ? (
-                  (Number(params.row.total_hatch) /
-                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
-                  100
-                ).toPrecision(3)
+            {Number(params.row.hatched_in_nest) +
+              Number(params.row.discarded_at_site) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? Math.round(
+                  (Number(params.row.hatched_in_nest) /
+                    (Number(params.row.hatched_in_nest) +
+                      Number(params.row.discarded_at_site) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                    100
+                )
               : 0}
-            % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'in_nursery',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NEST',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nest ? `${params.row.hatched_in_nest}` : '-'}
           </Typography>
         </Box>
       )
@@ -549,7 +647,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 170,
       field: 'discarded_at_site',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT SITE',
       renderCell: params => (
@@ -581,7 +679,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'discarded_at_nursery',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
@@ -620,7 +718,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 140,
       field: 'total_discarded',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'TOTAL DISCARDED',
       renderCell: params => (
@@ -652,7 +750,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 120,
       field: 'in_transit',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'IN TRANSIT',
       renderCell: params => (
@@ -694,7 +792,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const columnSites = [
     {
       width: 320,
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       field: 'species',
       headerName: 'SITES',
@@ -742,7 +840,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'total_eggs',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
@@ -782,7 +880,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'total_egg_in_nest',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       renderHeader: () => (
         <Box>
@@ -825,7 +923,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'eggs_to_nursery',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       // headerName: 'EGGS TO NURSERY',
       renderHeader: () => (
@@ -867,11 +965,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     },
     {
-      width: 180,
-      field: 'in_nursery',
-      sortable: false,
+      width: 160,
+      field: 'hatched_percentage',
+      sortable: true,
       disableColumnMenu: true,
-      headerName: 'HATCHED IN NEST %',
+      headerName: 'TOTAL HATCHED %',
       renderCell: params => (
         <Box
           sx={{
@@ -893,28 +991,53 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {/* {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
-              ? (Number(params.row.hatched_in_nest) /
-                  (Number(params.row.hatched_in_nest) +
-                    Number(params.row.discarded_at_site) +
-                    Number(params.row.ready_tobe_discarded_at_nursery))) *
+            {/* total_hatched_eggs */}
+            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.hatched_in_nest) +
-              Number(params.row.discarded_at_site) +
-              Number(params.row.ready_tobe_discarded_at_nursery) >
-            0
-              ? (
-                  (Number(params.row.hatched_in_nest) /
-                    (Number(params.row.hatched_in_nest) +
-                      Number(params.row.discarded_at_site) +
-                      Number(params.row.ready_tobe_discarded_at_nursery))) *
-                  100
-                ).toPrecision(3)
+            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
+              ? Math.round(
+                  (Number(params.row.total_hatch) /
+                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                    100
+                )
               : 0}
-            % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'hatched',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
           </Typography>
         </Box>
       )
@@ -922,8 +1045,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 200,
-      field: 'hatched_in_nursery',
-      sortable: false,
+      field: 'hatched_in_nursery_percentage',
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
@@ -960,25 +1083,25 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               Number(params.row.discarded_at_nursery) +
               Number(params.row.ready_tobe_discarded_at_nursery) >
             0
-              ? (
+              ? Math.round(
                   (Number(params.row.hatched_in_nursery) /
                     (Number(params.row.hatched_in_nursery) +
                       Number(params.row.discarded_at_nursery) +
                       Number(params.row.ready_tobe_discarded_at_nursery))) *
-                  100
-                ).toPrecision(3)
+                    100
+                )
               : 0}
-            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+            %
           </Typography>
         </Box>
       )
     },
     {
-      width: 160,
-      field: 'hatched_percentage',
-      sortable: false,
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: true,
       disableColumnMenu: true,
-      headerName: 'TOTAL HATCHED %',
+      headerName: 'HATCHED IN NURSERY',
       renderCell: params => (
         <Box
           sx={{
@@ -1000,21 +1123,92 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {/* total_hatched_eggs */}
-            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
-              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'hatched_in_Nest_percentage',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NEST %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {/* {(Number(params.row.hatched_in_nest) > 0 && Number(params.row.discarded_at_site) >= 0
+              ? (Number(params.row.hatched_in_nest) /
+                  (Number(params.row.hatched_in_nest) +
+                    Number(params.row.discarded_at_site) +
+                    Number(params.row.ready_tobe_discarded_at_nursery))) *
                 100
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
-              ? (
-                  (Number(params.row.total_hatch) /
-                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
-                  100
-                ).toPrecision(3)
+            {Number(params.row.hatched_in_nest) +
+              Number(params.row.discarded_at_site) +
+              Number(params.row.ready_tobe_discarded_at_nursery) >
+            0
+              ? Math.round(
+                  (Number(params.row.hatched_in_nest) /
+                    (Number(params.row.hatched_in_nest) +
+                      Number(params.row.discarded_at_site) +
+                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                    100
+                )
               : 0}
-            % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'hatched_in_nest_',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NEST',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nest ? `${params.row.hatched_in_nest}` : '-'}
           </Typography>
         </Box>
       )
@@ -1023,7 +1217,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 170,
       field: 'discarded_at_site',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT SITE',
       renderCell: params => (
@@ -1055,7 +1249,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'discarded_at_nursery',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
@@ -1094,7 +1288,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'total_discarded',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'TOTAL DISCARDED',
       renderCell: params => (
@@ -1126,7 +1320,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 120,
       field: 'in_transit',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'IN TRANSIT',
       renderCell: params => (
@@ -1167,7 +1361,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const columnNurseries = [
     {
       width: 340,
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       field: 'nursery',
       headerName: 'NURSERIES',
@@ -1215,7 +1409,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 180,
       field: 'total_eggs',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'TOTAL EGGS',
       renderCell: params => (
@@ -1256,7 +1450,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'currently_in_incubator',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'CURRENTLY IN INCUBATOR',
       renderCell: params => (
@@ -1289,7 +1483,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'eggs_to_nursery',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       renderHeader: () => (
         <Box>
@@ -1331,8 +1525,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 200,
-      field: 'hatched_in_nursery',
-      sortable: false,
+      field: 'hatched_in_nursery_percentage',
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
@@ -1369,15 +1563,47 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               Number(params.row.discarded_at_nursery) +
               Number(params.row.ready_tobe_discarded_at_nursery) >
             0
-              ? (
+              ? Math.round(
                   (Number(params.row.hatched_in_nursery) /
                     (Number(params.row.hatched_in_nursery) +
                       Number(params.row.discarded_at_nursery) +
                       Number(params.row.ready_tobe_discarded_at_nursery))) *
-                  100
-                ).toPrecision(3)
+                    100
+                )
               : 0}
-            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NURSERY',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
           </Typography>
         </Box>
       )
@@ -1385,7 +1611,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'discarded_at_nursery',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
       renderCell: params => (
@@ -1425,7 +1651,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 120,
       field: 'in_transit',
-      sortable: false,
+      sortable: true,
       disableColumnMenu: true,
       headerName: 'IN TRANSIT',
       renderCell: params => (
@@ -1462,6 +1688,16 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       )
     }
   ]
+
+  const getIdBasedOnStatus = () => {
+    return status === 'species'
+      ? ''
+      : status === 'site'
+      ? defaultSite?.site_id
+      : status === 'nursery'
+      ? defaultNursery?.nursery_id
+      : ''
+  }
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -1510,18 +1746,39 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   }
 
   const getspeciesFunc = useCallback(
-    async (statuss, q, fDate, tDate, ref_id) => {
+    async (statuss, q, fDate, tDate, ref_id, sort) => {
       try {
         setLoading(true)
-
-        const params = {
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          ref_type: statuss || status,
-          q,
-          from_date: fDate,
-          till_date: tDate,
-          ref_id
+        let params
+        if (sort) {
+          params = {
+            page_no: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            ref_type: statuss || status,
+            q,
+            from_date: fDate,
+            till_date: tDate,
+            ref_id,
+            sort_order: sort?.sort === 'asc' ? 'ASC' : 'DESC' || 'DESC',
+            sort_column:
+              status === 'site'
+                ? 'site_name'
+                : status === 'nursery'
+                ? 'nursery_name'
+                : status === 'species'
+                ? 'complete_name'
+                : status || ''
+          }
+        } else {
+          params = {
+            page_no: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            ref_type: statuss || status,
+            q,
+            from_date: fDate,
+            till_date: tDate,
+            ref_id
+          }
         }
 
         const res = await getSpeciesList(params)
@@ -1552,6 +1809,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     getspeciesFunc(status)
   }, [getspeciesFunc])
 
+  const handleSortModelChange = newModel => {
+    setSortModel(newModel)
+    getspeciesFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), newModel[0])
+  }
+
   const tableData = () => {
     const handleSearchChange = e => {
       const searchValue = e.target.value
@@ -1572,16 +1834,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         setTillDate(formattedDate)
         getspeciesFunc(status, searchValue, fromDate, formattedDate, getIdBasedOnStatus())
       }
-    }
-
-    const getIdBasedOnStatus = () => {
-      return status === 'species'
-        ? ''
-        : status === 'site'
-        ? defaultSite?.site_id
-        : status === 'nursery'
-        ? defaultNursery?.nursery_id
-        : ''
     }
 
     return (
@@ -1611,6 +1863,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 }
               }}
             />
+          </Box>
+          <Box>
+            <DashboardExelExportButton tab_Value={status} data={indexedRows} />
           </Box>
 
           {/* <Box>
@@ -1762,7 +2017,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           loading={loading}
-
+          sortModel={sortModel}
+          onSortModelChange={handleSortModelChange}
           // onCellClick={onCellClick}
         />
       </>

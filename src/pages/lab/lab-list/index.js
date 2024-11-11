@@ -129,6 +129,7 @@ const ListOfLab = () => {
           flex: 0.2,
           minWidth: 20,
           field: 'Action',
+          sortable: false,
           headerName: 'Action',
           renderCell: params => (
             <Box>
@@ -144,7 +145,7 @@ const ListOfLab = () => {
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('ASC')
   const [rows, setRows] = useState([])
 
   const [searchValue, setSearchValue] = useState('')
@@ -161,9 +162,9 @@ const ListOfLab = () => {
         setLoading(true)
 
         const params = {
-          sort,
+          sort_order: sort.toUpperCase(),
           q,
-          column,
+          sort_column: column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }

@@ -82,6 +82,20 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
     return `${start}...${end}`
   }
 
+  const convertCitesAppendixToRoman = appendix => {
+    switch (appendix) {
+      case 'Appendix-1':
+        return 'Appendix I' // Roman numeral for 1
+      case 'Appendix-2':
+        return 'Appendix II' // Roman numeral for 2
+      case 'Appendix-3':
+        return ' Appendix III' // Roman numeral for 3
+      // Add more cases as necessary
+      default:
+        return 'NA' // Fallback for unknown appendix
+    }
+  }
+
   return (
     <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
       <DialogTitle sx={{ backgroundColor: titleBackgroundColor }}>
@@ -142,6 +156,8 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
               renderDetailRow('Animal ID', capitalizeFirstLetter(detailData?.death_animal_id))}
 
             {detailData?.possession_type !== 'death' && renderDetailRow('Total Count', detailData?.animal_count)}
+            {detailData?.possession_type === 'birth' &&
+              renderDetailRow('Parent ID ', detailData?.parent_registration_id)}
 
             {detailData?.possession_type === 'transfer' && (
               <>
@@ -164,7 +180,11 @@ const NewEntryDetailsDialog = ({ isEditModal, setIsEditModal, detailData }) => {
             {detailData?.possession_type === 'acquisition' && (
               <>
                 {renderDetailRow('DGFT Number', capitalizeFirstLetter(detailData?.dgft_number))}
-                {renderDetailRow('CITES Category', capitalizeFirstLetter(detailData?.cites_appendix))}
+                {/* {renderDetailRow('CITES Category', capitalizeFirstLetter(detailData?.cites_appendix))} */}
+                {renderDetailRow(
+                  'CITES Category',
+                  detailData?.cites_appendix ? convertCitesAppendixToRoman(detailData.cites_appendix) : 'NA'
+                )}
               </>
             )}
 

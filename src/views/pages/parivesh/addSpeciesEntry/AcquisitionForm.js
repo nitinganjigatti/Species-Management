@@ -29,7 +29,8 @@ const AcquisitionForm = ({
   dgftDisplayFile,
   setDgftDisplayFile,
   getValues,
-  setValue
+  setValue,
+  clearErrors
 }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
@@ -42,6 +43,12 @@ const AcquisitionForm = ({
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
   }
+  const possessionType = watch('possession_type')
+  const male_count = watch('male_count') || 0
+  const female_count = watch('female_count') || 0
+  const other_count = watch('other_count') || 0
+  // Calculate total count
+  const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
 
   // const { getRootProps, getInputProps } = useDropzone({
   //   multiple: true,
@@ -174,7 +181,7 @@ const AcquisitionForm = ({
         )}
       </FormControl>
 
-      <FormControl fullWidth sx={{ mb: 6 }}>
+      {/* <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
           name='gender'
           control={control}
@@ -210,7 +217,7 @@ const AcquisitionForm = ({
         {errors.animal_count && (
           <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
         )}
-      </FormControl>
+      </FormControl> */}
 
       <FormControl fullWidth sx={{ mb: 6 }}>
         <Controller
@@ -236,9 +243,121 @@ const AcquisitionForm = ({
           </FormHelperText>
         )}
       </FormControl>
+      <Divider />
+
+      <Grid item xs={12} sx={{ mb: 6, mt: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant='h6' gutterBottom>
+            Gender *
+          </Typography>
+          <Typography variant='subtitle1' gutterBottom>
+            Total Count: {totalCount}
+          </Typography>
+        </Box>
+      </Grid>
+
+      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+        <FormControl fullWidth>
+          <Controller
+            name='male_count'
+            control={control}
+            rules={{ min: 0, pattern: /^\d*$/ }}
+            render={({ field: { value, onChange } }) => (
+              <TextField
+                label='Male Count'
+                value={value}
+                variant='outlined'
+                // onChange={onChange}
+                onChange={e => {
+                  onChange(e) // Update the value in the form
+                  clearErrors('counts') // Clear the counts error on change
+                }}
+                placeholder='Enter the Male Count'
+                error={Boolean(errors.male_count)}
+                name='male_count'
+              />
+            )}
+          />
+
+          {errors.male_count && (
+            <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
+          )}
+          {errors.counts && (
+            <Grid item xs={12} sx={{ mb: 6 }}>
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
+            </Grid>
+          )}
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+        <FormControl fullWidth>
+          <Controller
+            name='female_count'
+            control={control}
+            rules={{ min: 0, pattern: /^\d*$/ }}
+            render={({ field: { value, onChange } }) => (
+              <TextField
+                label='Female Count'
+                placeholder='Enter the Female Count'
+                value={value}
+                variant='outlined'
+                // onChange={onChange}
+                onChange={e => {
+                  onChange(e) // Update the value in the form
+                  clearErrors('counts') // Clear the counts error on change
+                }}
+                error={Boolean(errors.female_count)}
+                name='female_count'
+              />
+            )}
+          />
+
+          {errors.female_count && (
+            <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
+          )}
+          {errors.counts && (
+            <Grid item xs={12} sx={{ mb: 6 }}>
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
+            </Grid>
+          )}
+        </FormControl>
+      </Grid>
+      <Grid item xs={12} sm={4}>
+        <FormControl fullWidth>
+          <Controller
+            name='other_count'
+            control={control}
+            rules={{ min: 0, pattern: /^\d*$/ }}
+            render={({ field: { value, onChange } }) => (
+              <TextField
+                label='Others Count'
+                placeholder='Enter the Others Count'
+                value={value}
+                variant='outlined'
+                // onChange={onChange}
+                onChange={e => {
+                  onChange(e) // Update the value in the form
+                  clearErrors('counts') // Clear the counts error on change
+                }}
+                error={Boolean(errors.other_count)}
+                name='other_count'
+              />
+            )}
+          />
+
+          {errors.other_count && (
+            <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
+          )}
+          {errors.counts && (
+            <Grid item xs={12} sx={{ mb: 6 }}>
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
+            </Grid>
+          )}
+        </FormControl>
+      </Grid>
 
       <>
-        <Typography variant='h6' sx={{ mb: 2 }}>
+        <Typography variant='h6' sx={{ mb: 2, mt: 6 }}>
           DGFT
         </Typography>
 
@@ -265,6 +384,36 @@ const AcquisitionForm = ({
           <Grid item xs={12} sm={4} md={3} lg={6}>
             <FormControl fullWidth>
               <Controller
+                name='dgft_attachments'
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <div
+                    {...getRootProps({ className: 'dropzone' })}
+                    style={{
+                      border: '1px solid #d3d3d3',
+                      width: 'auto',
+                      padding: '0.8rem',
+                      borderRadius: '10px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <input {...getInputProps()} onChange={onChange} />
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: ['column', 'column', 'row'],
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                        <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                        <Typography sx={{ display: 'flex', alignItems: 'center' }}>Attachments</Typography>
+                      </Box>
+                    </Box>
+                  </div>
+                )}
+              />
+              {/* <Controller
                 name='dgft_attachments'
                 control={control}
                 render={({ field: { onChange, value, ...rest } }) => (
@@ -308,7 +457,7 @@ const AcquisitionForm = ({
                     </Typography>
                   </Box>
                 )}
-              />
+              /> */}
             </FormControl>
 
             {/* <FormControl fullWidth>

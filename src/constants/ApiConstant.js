@@ -118,6 +118,8 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
+export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
+
 export const RETURN_REQUEST = 'return-item'
 
 export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
@@ -199,6 +201,12 @@ export const DASHBOARD_RECEIVED_MEDICINE_REPORT = 'received-medicine-report'
 export const DASHBOARD_MEDICINEWISE_DOCTOR_FILTER = 'medicinewise-doctor-filter'
 
 export const DISCARD_REASON = 'discard-reason'
+
+export const STOCK = 'pharmacy/stock'
+
+export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
+
+export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const FEED_DETAILS = 'details'
 
@@ -337,6 +345,14 @@ export const UPLOAD_ATTACHMENT_BATCH = 'v1/parivesh/species/site/uploadattachmen
 export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmentforbatch'
 
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
+
+export const USERS_REPORT = '/user/report'
+
+export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
+
+export const SPECIES_REPORT = 'v1/species/reportv1'
+
+export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
 

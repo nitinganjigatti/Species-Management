@@ -959,7 +959,14 @@ const BatchDetails = ({ params, searchParams }) => {
                       {attachmentLoader ? (
                         <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
                       ) : (
-                        <Icon icon='mdi:attachment-plus' size={1} />
+                        // <Icon icon='mdi:attachment-plus' size={1} />
+
+                        <Icon
+                          icon='material-symbols-light:attach-file-add'
+                          color='#7A8684'
+                          fontWeight='bold'
+                          size={8}
+                        />
                       )}
                       &nbsp; {`Attachment${filePreviews?.length ? ` (${filePreviews?.length})` : ''}`}
                       <input {...getInputProps()} />

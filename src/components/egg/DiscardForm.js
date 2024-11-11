@@ -141,18 +141,47 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
     fileInputRef?.current?.click()
   }
 
+  // const handleInputImageChange = file => {
+  //   const reader = new FileReader()
+  //   const { files } = file.target
+
+  //   if (files && files.length !== 0) {
+  //     reader.onload = () => {
+  //       setImgSrc(pre => [...pre, reader?.result])
+  //     }
+  //     setDisplayFile(files[0]?.name)
+  //     reader?.readAsDataURL(files[0])
+  //     setImgArr(pre => [...pre, files[0]])
+  //     setValue('image', files)
+  //     clearErrors('image')
+  //   }
+  // }
   const handleInputImageChange = file => {
-    const reader = new FileReader()
     const { files } = file.target
 
     if (files && files.length !== 0) {
-      reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
+      // Clear existing images and names before adding new ones
+      setImgSrc([])
+      setImgArr([])
+
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader()
+        const currentFile = files[i]
+
+        // Closure to capture the current file
+        reader.onload = e => {
+          // Add the new image source to the state
+          setImgSrc(pre => [...pre, e.target.result])
+        }
+
+        // Start reading the current file as a data URL
+        reader.readAsDataURL(currentFile)
       }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
-      setValue('image', files)
+
+      // Update file display and set form values
+      setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
+      setImgArr(pre => [...pre, ...files]) // Store all selected files
+      setValue('image', files) // Update your form state
       clearErrors('image')
     }
   }
@@ -376,6 +405,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                     style={{ display: 'none' }}
                     name='image'
                     ref={fileInputRef}
+                    multiple={true}
                   />
 
                   <Box

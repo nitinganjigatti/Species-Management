@@ -8,7 +8,7 @@ import Grid from '@mui/material/Grid'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { Avatar, Button, Tooltip, Typography, debounce } from '@mui/material'
+import { Avatar, Box, Button, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -46,7 +46,7 @@ const SpeciesList = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
-  const { selectedParivesh } = usePariveshContext()
+  // const { selectedParivesh } = usePariveshContext()
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const onClose = () => {
@@ -172,9 +172,11 @@ const SpeciesList = () => {
     const baseColumns = [
       {
         flex: 0.2,
-        Width: 40,
+        Width: 30,
         field: 'sl_no',
         headerName: 'S.NO',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         renderCell: params => (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
             {params.row.id}
@@ -183,9 +185,12 @@ const SpeciesList = () => {
       },
       {
         flex: 0.3,
-        minWidth: 30,
+        // minWidth: 30,
+        minWidth: 80,
         field: 'species_image',
         headerName: 'IMAGE',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         sortable: false,
         renderCell: params => (
           <>
@@ -198,57 +203,88 @@ const SpeciesList = () => {
       },
       // {
       //   flex: 0.5,
-      //   minWidth: 30,
+      //   // minWidth: 30,
+      //   minWidth: 140,
       //   field: 'common_name',
       //   headerName: 'COMMON NAME',
+      //   headerAlign: 'left',
+      //   // headerAlign: 'center',
+      //   sortable: false,
       //   renderCell: params => (
-      //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-      //           {params.row.common_name ? params.row.common_name : '-'}
-      //         </Typography>
-      //       </Box>
-      //     </Box>
+      //     <Tooltip title={params.row.common_name || '-'}>
+      //       <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: '500' }}>
+      //         {params.row.common_name ? params.row.common_name : '-'}
+      //       </Typography>
+      //     </Tooltip>
       //   )
       // },
       // {
       //   flex: 0.5,
-      //   minWidth: 30,
+      //   // minWidth: 30,
+      //   minWidth: 140,
       //   field: 'scientific_name',
       //   headerName: 'SCIENTIFIC NAME',
+      //   headerAlign: 'left',
+      //   // headerAlign: 'center',
+      //   sortable: false,
       //   renderCell: params => (
-      //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-      //       {params.row.scientific_name ? params.row.scientific_name : '-'}
-      //     </Typography>
+      //     <Tooltip title={params.row.scientific_name || '-'}>
+      //       <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+      //         {params.row.scientific_name ? params.row.scientific_name : '-'}
+      //       </Typography>
+      //     </Tooltip>
       //   )
-      // }
+      // },
       {
         flex: 0.5,
-        minWidth: 30,
-        field: 'common_name',
-        headerName: 'COMMON NAME',
+        minWidth: 180,
+        field: 'SPECIES NAME',
+        headerName: 'SPECIES NAME',
+        headerAlign: 'left',
+        // headerAlign: 'center',
         sortable: false,
-        renderCell: params => (
-          <Tooltip title={params.row.common_name || '-'}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: '500' }}>
-              {params.row.common_name ? params.row.common_name : '-'}
-            </Typography>
-          </Tooltip>
-        )
-      },
-      {
-        flex: 0.4,
-        minWidth: 30,
-        field: 'scientific_name',
-        headerName: 'SCIENTIFIC NAME',
-        sortable: false,
-        renderCell: params => (
-          <Tooltip title={params.row.scientific_name || '-'}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.scientific_name ? params.row.scientific_name : '-'}
-            </Typography>
-          </Tooltip>
-        )
+        renderCell: params => {
+          const commonName = params.row.common_name
+          const scientificName = params.row.scientific_name
+          const tooltipText = `${commonName} (${scientificName})`
+
+          return (
+            <Tooltip title={tooltipText}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: '#44544A',
+                    fontWeight: '500',
+                    fontSize: '1rem',
+                    lineHeight: 1.5,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '100%'
+                  }}
+                >
+                  {commonName}
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: '#7A8684',
+                    fontStyle: 'italic',
+                    fontSize: '0.9rem',
+                    lineHeight: 1.2,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '100%'
+                  }}
+                >
+                  ({scientificName})
+                </Typography>
+              </div>
+            </Tooltip>
+          )
+        }
       }
     ]
 
@@ -256,22 +292,105 @@ const SpeciesList = () => {
     const organizationNames = [...new Set(rows.flatMap(row => row.organizations.map(org => org.organization_name)))]
 
     // Create columns for each organization
+    // const organizationColumns = organizationNames.map((orgName, index) => ({
+    //   flex: 0.6,
+    //   // minWidth: 40,
+    //   minWidth: 180,
+    //   field: `org_${index}`,
+    //   headerName: orgName,
+    //   sortable: false,
+    //   headerAlign: 'left',
+    //   // headerAlign: 'center',
+    //   renderCell: params => {
+    //     const org = params.row.organizations.find(org => org.organization_name === orgName)
+    //     const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
+    //     return (
+    //       <>
+    //         <Box>
+    //           <Typography variant='h6' sx={{ color: isSelected ? '#37BD69' : '#44544A' }}>
+    //             {org ? org.animal_count : '-'}
+    //           </Typography>
+    //           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+    //             <Box sx={{ bgcolor: '#AFEFEB', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+    //               <Typography sx={{ color: '#1F515B' }} variant='caption'>
+    //                 M-{org ? org.male_count : '0'}
+    //               </Typography>
+    //             </Box>
+    //             <Box sx={{ bgcolor: '#FFD3D3', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+    //               <Typography sx={{ color: '#1F515B' }} variant='caption'>
+    //                 F-{org ? org.female_count : '0'}
+    //               </Typography>
+    //             </Box>
+    //             <Box sx={{ bgcolor: '#8479F91A', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+    //               <Typography sx={{ color: '#E93353' }} variant='caption'>
+    //                 O-{org ? org.other_count : '0'}
+    //               </Typography>
+    //             </Box>
+    //           </Box>
+    //         </Box>
+    //       </>
+    //     )
+    //   }
+    // }))
+
     const organizationColumns = organizationNames.map((orgName, index) => ({
-      flex: 0.4,
-      minWidth: 30,
+      flex: 0.6,
+      minWidth: 180,
       field: `org_${index}`,
       headerName: orgName,
       sortable: false,
+      headerAlign: 'left',
       renderCell: params => {
         const org = params.row.organizations.find(org => org.organization_name === orgName)
-        const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
+        // const isSelected = selectedParivesh && org && org.org_id === selectedParivesh.id
+
+        // Define the onClick handler for individual organization cells
+        const handleClick = () => {
+          if (org) {
+            console.log(`Organization ID: ${org.org_id}`) // You can replace this with your routing logic
+            const clickedColumn = params.field !== 'switch'
+            if (clickedColumn) {
+              const data = params?.row?.tsn_id
+              Router.push({
+                pathname: `/parivesh/species/${data}/species-details`,
+                query: {
+                  tsn_relation: params?.row?.tsn_relation,
+                  tsn_id: params?.row?.tsn_id,
+                  org_id: org.org_id
+                }
+              })
+            }
+          }
+        }
+
         return (
-          // <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
-          //   {org ? org.animal_count : '-'}
-          // </Typography>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {org ? org.animal_count : '-'}
-          </Typography>
+          <Box
+            onClick={handleClick}
+            sx={{
+              cursor: 'pointer'
+            }}
+          >
+            <Typography variant='h6' sx={{ color: '#44544A' }}>
+              {org ? org.animal_count : '-'}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+              <Box sx={{ bgcolor: '#AFEFEB', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                <Typography sx={{ color: '#1F515B' }} variant='caption'>
+                  M-{org ? org.male_count : '0'}
+                </Typography>
+              </Box>
+              <Box sx={{ bgcolor: '#FFD3D3', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                <Typography sx={{ color: '#1F515B' }} variant='caption'>
+                  F-{org ? org.female_count : '0'}
+                </Typography>
+              </Box>
+              <Box sx={{ bgcolor: '#8479F91A', px: 1.4, mx: 0.5, borderRadius: 0.4 }}>
+                <Typography sx={{ color: '#E93353' }} variant='caption'>
+                  O-{org ? org.other_count : '0'}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
         )
       }
     }))
@@ -280,103 +399,22 @@ const SpeciesList = () => {
     return [...baseColumns, ...organizationColumns]
   }
 
-  // const getColumns = rows => {
-  //   // Create base columns
-  //   const baseColumns = [
-  //     {
-  //       flex: 0.2,
-  //       Width: 40,
-  //       field: 'sl_no',
-  //       headerName: 'S.NO',
-  //       renderCell: params => (
-  //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-  //           {params.row.id}
-  //         </Typography>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.3,
-  //       minWidth: 30,
-  //       field: 'species_image',
-  //       headerName: 'IMAGE',
-  //       sortable: false,
-  //       renderCell: params => (
-  //         <>
-  //           <Avatar variant='square' src={params.row.species_image} alt={params.row.uid} sx={{ height: 'auto' }} />
-  //         </>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.4,
-  //       minWidth: 30,
-  //       field: 'common_name',
-  //       headerName: 'COMMON NAME',
-  //       sortable: false,
-  //       renderCell: params => (
-  //         <Tooltip title={params.row.common_name || '-'}>
-  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-  //             {params.row.common_name ? params.row.common_name : '-'}
-  //           </Typography>
-  //         </Tooltip>
-  //       )
-  //     },
-  //     {
-  //       flex: 0.4,
-  //       minWidth: 30,
-  //       field: 'scientific_name',
-  //       headerName: 'SCIENTIFIC NAME',
-  //       sortable: false,
-  //       renderCell: params => (
-  //         <Tooltip title={params.row.scientific_name || '-'}>
-  //           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-  //             {params.row.scientific_name ? params.row.scientific_name : '-'}
-  //           </Typography>
-  //         </Tooltip>
-  //       )
-  //     }
-  //   ]
-
-  //   // Create column for the selected organization
-  //   const organizationColumns = rows.some(row => row.organizations.some(org => org.org_id === selectedParivesh.id))
-  //     ? [
-  //         {
-  //           flex: 0.4,
-  //           minWidth: 30,
-  //           field: `org_selected`,
-  //           headerName: selectedParivesh.organization_name, // Assuming `selectedParivesh` contains `organization_name`
-  //           sortable: false,
-  //           renderCell: params => {
-  //             const org = params.row.organizations.find(org => org.org_id === selectedParivesh.id)
-  //             const isSelected = org && org.org_id === selectedParivesh.id
-  //             return (
-  //               <Typography variant='body2' sx={{ color: isSelected ? '#37BD69' : 'text.primary' }}>
-  //                 {org ? org.animal_count : '-'}
-  //               </Typography>
-  //             )
-  //           }
-  //         }
-  //       ]
-  //     : []
-
-  //   // Combine base columns with organization columns
-  //   return [...baseColumns, ...organizationColumns]
-  // }
-
   const onCellClick = params => {
-    console.log(params, 'params')
-    const clickedColumn = params.field !== 'switch'
-    if (clickedColumn) {
-      const data = params?.row?.tsn_id
-      Router.push({
-        pathname: `/parivesh/species/${data}/species-details`,
-        query: {
-          tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
-          tsn_id: params?.row?.tsn_id
-        }
-      })
-    } else {
-      return
-    }
+    // console.log(params, 'params')
+    // const clickedColumn = params.field !== 'switch'
+    // if (clickedColumn) {
+    //   const data = params?.row?.tsn_id
+    //   Router.push({
+    //     pathname: `/parivesh/species/${data}/species-details`,
+    //     query: {
+    //       tsn_relation: params?.row?.tsn_relation, // Assuming tsn_relation holds the value you need
+    //       tsn_id: params?.row?.tsn_id,
+    //       org_id: org_id
+    //     }
+    //   })
+    // } else {
+    //   return
+    // }
   }
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
@@ -421,7 +459,7 @@ const SpeciesList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, selectedParivesh]
+    [paginationModel]
   )
 
   useEffect(() => {
@@ -505,7 +543,7 @@ const SpeciesList = () => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ mt: 4 }}>
-            <CardHeader title={'Species List'} action={headerAction} />
+            <CardHeader title={`Species Overview by Organization's`} action={headerAction} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
@@ -533,13 +571,37 @@ const SpeciesList = () => {
               disableColumnMenu
               disableColumnFilter
               // disableColumnSorting
+              disableRowSelectionOnClick
               sx={{
+                width: '100%', // Adjust table width to 100% of its parent container
+                maxWidth: '1200px',
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
 
                 '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
+                  // cursor: 'pointer',
+                  backgroundColor: 'transparent'
+                },
+                '& .MuiDataGrid-cell:hover': {
+                  backgroundColor: '#F2FFF8',
+                  cursor: 'pointer',
+                  border: '0.5px solid rgba(55, 189, 105, 0.5)',
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-row:hover .MuiDataGrid-cell:nth-of-type(-n+2)': {
+                  backgroundColor: 'transparent',
+                  border: 'none'
+                },
+
+                overflowX: 'auto',
+                '& .MuiDataGrid-main': {
+                  margin: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(233, 233, 236, 1)'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none'
                 }
               }}
               columnVisibilityModel={{
@@ -560,6 +622,7 @@ const SpeciesList = () => {
               slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
+              rowHeight={80}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
@@ -570,7 +633,7 @@ const SpeciesList = () => {
                   onChange: event => handleSearch(event.target.value)
                 }
               }}
-              onCellClick={onCellClick}
+              // onCellClick={onCellClick}
             />
           </Card>
         )}
@@ -583,7 +646,7 @@ const SpeciesList = () => {
       {pariveshAccess ? (
         <>
           <Grid>
-            <TabContext value={status}>
+            {/* <TabContext value={status}>
               <TabList onChange={handleChange} aria-label='simple tabs example'>
                 <Tab
                   value='overview'
@@ -594,7 +657,8 @@ const SpeciesList = () => {
               <TabPanel value='overview'>
                 <Grid>{tableData()}</Grid>
               </TabPanel>
-            </TabContext>
+            </TabContext> */}
+            <Grid>{tableData()}</Grid>
           </Grid>
           <AddSpecies
             drawerWidth={400}

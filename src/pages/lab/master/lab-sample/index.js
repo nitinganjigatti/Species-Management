@@ -1,6 +1,6 @@
 import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
@@ -13,6 +13,8 @@ import moment from 'moment'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
 import AddSample from 'src/views/pages/lab/sample/addSample'
 import SampleDetails from 'src/views/pages/lab/sample/sampleDetails'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const LabSamples = () => {
   const theme = useTheme()
@@ -33,6 +35,10 @@ const LabSamples = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const authData = useContext(AuthContext)
+
+  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
+  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
 
   function loadServerRows(currentPage, data) {
     return data
@@ -298,88 +304,94 @@ const LabSamples = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Lab
-        </Typography> */}
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Lab Master
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Lab Samples
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Lab Samples' action={headerAction} />
+      {medical_add_samples && medical_add_tests ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Lab Master
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Lab Samples
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Lab Samples' action={headerAction} />
 
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={handleCellClick}
-        />
-      </Card>
-      {openDrawer && (
-        <AddSample
-          addEventSidebarOpen={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          handleSubmitData={handleSubmitData}
-          resetForm={resetForm}
-          submitLoader={submitLoader}
-          editParams={editParams}
-        />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={handleCellClick}
+            />
+          </Card>
+          {openDrawer && (
+            <AddSample
+              addEventSidebarOpen={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              handleSubmitData={handleSubmitData}
+              resetForm={resetForm}
+              submitLoader={submitLoader}
+              editParams={editParams}
+            />
+          )}
+          {openDetailsDrawer && (
+            <SampleDetails
+              addEventSidebarOpen={openDetailsDrawer}
+              setOpenDetailsDrawer={setOpenDetailsDrawer}
+              editParams={editParams}
+              setOpenDrawer={setOpenDrawer}
+              fetchTableData={fetchTableData}
+            />
+          )}
+          <ConfirmationDeleteDialog
+            open={isModalOpenDelete}
+            onClose={() => setIsModalOpenDelete(false)}
+            confirmLoading={btnLoader}
+            onConfirm={confirmDeleteAction}
+            title='Are you sure you want to delete this lab sample?'
+          />
+        </>
+      ) : (
+        <Error404></Error404>
       )}
-      {openDetailsDrawer && (
-        <SampleDetails
-          addEventSidebarOpen={openDetailsDrawer}
-          setOpenDetailsDrawer={setOpenDetailsDrawer}
-          editParams={editParams}
-          setOpenDrawer={setOpenDrawer}
-          fetchTableData={fetchTableData}
-        />
-      )}
-      <ConfirmationDeleteDialog
-        open={isModalOpenDelete}
-        onClose={() => setIsModalOpenDelete(false)}
-        confirmLoading={btnLoader}
-        onConfirm={confirmDeleteAction}
-        title='Are you sure you want to delete this lab sample?'
-      />
     </>
   )
 }

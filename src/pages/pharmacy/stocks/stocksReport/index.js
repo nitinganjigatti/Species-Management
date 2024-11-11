@@ -8,7 +8,13 @@ import MuiTabList from '@mui/lab/TabList'
 
 import TabList from '@mui/lab/TabList'
 
-import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import {
+  getStocksReportById,
+  getLocalStocksReportById,
+  getStockReport,
+  getStockReportByBatch,
+  getPurchaseListByProduct
+} from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -55,6 +61,8 @@ import Escrow from '../escrow'
 import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import ExpiringMedicine from '../expired-medicine/expiringStock'
+import { minWidth, width } from '@mui/system'
+import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -84,8 +92,20 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
-  const [changeSwitch, setChangeSwitch] = useState()
+  const [changeSwitch, setChangeSwitch] = useState(true)
   const [stockType, setStockType] = useState(selectedPharmacy?.type)
+
+  const editParamsInitialState = { id: null, name: null, active: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  // const [purchaseByStockId, setPurchaseByStockId] = useState(null)
+  const [purchaseByStockId, setPurchaseByStockId] = useState({ batch_no: null, stock_id: null })
+  const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [searchPurchase, setSearchPurchase] = useState('')
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -110,33 +130,34 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
       let storeId = id === 'all' ? '' : id
-
       if (id) {
         try {
           setLoading(true)
           let result
-          if (type === 'local') {
-            const params = {
-              sort,
-              q,
-              column,
-              page: paginationModel.page + 1,
-              limit: paginationModel.pageSize,
-              store_id: storeId
-            }
 
-            result = await getLocalStocksReportById(params)
-          } else {
-            const params = {
-              sort,
-              q,
-              column,
-              page: paginationModel.page + 1,
-              limit: paginationModel.pageSize
-            }
+          // if (type === 'local') {
+          //   const params = {
+          //     sort,
+          //     q,
+          //     column,
+          //     page: paginationModel.page + 1,
+          //     limit: paginationModel.pageSize,
+          //     store_id: storeId
+          //   }
 
-            result = await getStocksReportById(storeId, params)
+          //   result = await getStockReport(storeId, params)
+          // } else {
+          const params = {
+            sort,
+            q,
+            column,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize
           }
+
+          result = await getStockReport(storeId, params)
+
+          // }
 
           if (result.success === true && result.data.length > 0) {
             setTotal(parseInt(result.count))
@@ -156,7 +177,7 @@ const ListOfStocks = () => {
         } catch (error) {
           setTotal(0)
           setStockReport([])
-          console.log('error', error)
+          console.error('error', error)
           setLoading(false)
         }
       }
@@ -181,44 +202,46 @@ const ListOfStocks = () => {
         page: batchPaginationModel.page + 1,
         limit: batchPaginationModel.pageSize
       }
-      if (selectedPharmacy?.type === 'local') {
-        try {
-          const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true) {
-            setBatchTotal(parseInt(result?.count))
 
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-            setBatchLoading(false)
-          }
-        } catch (error) {
-          console.log('error', error)
+      // if (selectedPharmacy?.type === 'local') {
+      //   try {
+      //     const result = await getStockReportByBatch(id, batchParams)
+      //     if (result.success === true) {
+      //       setBatchTotal(parseInt(result?.count))
+
+      //       let listWithId = result.data
+      //         ? result.data.map((el, i) => {
+      //             return { ...el, uid: i + 1 }
+      //           })
+      //         : []
+      //       setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+      //       setBatchLoading(false)
+      //     }
+      //   } catch (error) {
+      //     console.log('error', error)
+      //     setBatchLoading(false)
+      //   }
+      // } else {
+      try {
+        const result = await getStockReportByBatch(id, batchParams)
+
+        if (result?.success === true) {
+          setBatchTotal(parseInt(result?.count))
+
+          let listWithId = result.data
+            ? result.data.map((el, i) => {
+                return { ...el, uid: i + 1 }
+              })
+            : []
+          setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
           setBatchLoading(false)
         }
-      } else {
-        try {
-          const result = await getStocksByBatch(id, batchParams)
-
-          if (result?.success === true) {
-            setBatchTotal(parseInt(result?.count))
-
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-            setBatchLoading(false)
-          }
-        } catch (error) {
-          console.log('error', error)
-          setBatchLoading(false)
-        }
+      } catch (error) {
+        console.error('error', error)
+        setBatchLoading(false)
       }
+
+      // }
     },
     [batchPaginationModel]
   )
@@ -288,36 +311,74 @@ const ListOfStocks = () => {
   // }, [])
   const getBatchWiseDataToExport = async () => {
     try {
-      setExcelLoader(true)
+      if (!changeSwitch) {
+        setExcelLoader(true)
+        const result = await getStockReport(stockId, { sort, q: searchValue, column: sortColumn })
 
-      const result = await getStocksByBatch(stockId, { params: '' })
-      if (result?.success === true && result?.data?.length > 0) {
-        const data = result?.data?.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_items_name,
-            ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
-              el?.product_form_label
-            }`,
-            ['Manufacture Name']: el?.manufacturer_name,
-            ['Expiry Date']: el?.expiry_date,
-            ['Batch Number']: el?.batch_no,
-            ['Quantity']: el?.stock_qty
-          }
-        })
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Id']: Number(el?.stock_item_id),
+              ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['value']: Number(el?.total_cost),
+              ['Average price']: Number(
+                Number.isInteger(el.total_cost / el.stock_qty)
+                  ? el.total_cost / el.stock_qty
+                  : parseFloat(el.total_cost / el.stock_qty).toFixed(2)
+              ),
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`
+            }
+          })
 
-        Utility.exportToCSV(data, 'Batch wise Products')
+          Utility.exportToCSV(data, 'Stock Report')
+        }
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(true)
+
+        const batchParams = {
+          sort: batchSort,
+          q: batchSearchValue,
+          column: batchSortColumn
+
+          // page: batchPaginationModel.page + 1,
+          // limit: batchPaginationModel.pageSize
+        }
+        const result = await getStockReportByBatch(stockId, batchParams)
+
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Id']: Number(el?.stock_item_id),
+              ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['Unit Price']: Number(el?.unit_price),
+              ['value']: Number(el?.total_cost),
+              ['Batch Number']: el?.batch_no,
+              ['Expiry Date']: el?.expiry_date,
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`
+            }
+          })
+
+          Utility.exportToCSV(data, 'Stock Report Batch wise')
+        }
+        setExcelLoader(false)
       }
-      setExcelLoader(false)
     } catch (error) {
       setExcelLoader(false)
 
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
   const columns = [
     {
-      flex: 0.05,
+      // flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -328,7 +389,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.12,
+      // flex: 0.12,
       minWidth: 20,
       field: 'image',
       headerName: 'IMAGE',
@@ -351,8 +412,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -361,18 +422,6 @@ const ListOfStocks = () => {
             {params.row.stock_items_name}
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'package',
-      headerName: 'PACKAGE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
       )
     },
 
@@ -410,32 +459,32 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'procured_date',
-      headerName: 'PROCURED DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.procured_date)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'purchase_price',
-      headerName: 'Purchase Price',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
-            : 'NA'}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'procured_date',
+    //   headerName: 'PROCURED DATE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDisplayDate(params.row.procured_date)}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'purchase_price',
+    //   headerName: 'Purchase Price',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+    //         ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+    //         : 'NA'}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.2,
@@ -452,8 +501,8 @@ const ListOfStocks = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
@@ -464,6 +513,50 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'total_cost',
+      headerName: 'Value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.total_cost.toLocaleString()}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'stock_item_id',
+      headerName: 'Average Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Number.isInteger(params.row.total_cost / params.row.stock_qty)
+            ? params.row.total_cost / params.row.stock_qty
+            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)}
+          {/* {parseFloat(params.row.total_cost / params.row.stock_qty).toPrecision(2)} */}
+          {/* {params.row.total_cost / params.row.stock_qty} */}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.4,
+      width: 260,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        </Typography>
+      )
+    }
 
     // {
     //   flex: 0.2,
@@ -478,57 +571,57 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'rack_info',
-      headerName: 'Rack',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.rack}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
-      )
-    },
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'rack_info',
+    //   headerName: 'Rack',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.rack}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_config',
-      headerName: 'Shelf',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.shelf}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
-      )
-    }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'stock_config',
+    //   headerName: 'Shelf',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.shelf}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // }
 
     // {
     //   flex: 0.2,
@@ -571,7 +664,7 @@ const ListOfStocks = () => {
 
   const batchWiseColumn = [
     {
-      flex: 0.05,
+      // flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -582,7 +675,7 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.15,
+      // flex: 0.15,
 
       minWidth: 20,
       field: 'image',
@@ -605,8 +698,8 @@ const ListOfStocks = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -618,49 +711,80 @@ const ListOfStocks = () => {
       )
     },
 
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'procured_date',
+    //   headerName: 'PROCURED DATE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDisplayDate(params.row.procured_date)}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'purchase_price',
+    //   headerName: 'Purchase Price',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+    //         ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+    //         : 'NA'}
+    //     </Typography>
+    //   )
+    // },
+
     {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'package',
-      headerName: 'PACKAGE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'procured_date',
-      headerName: 'PROCURED DATE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.procured_date)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'purchase_price',
-      headerName: 'Purchase Price',
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'stock_qty',
+      headerName: 'QTY IN STORE',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
-            ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
-            : 'NA'}
+          {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'unit_price',
+      headerName: 'Unit Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.unit_price) > 0 ? params.row.unit_price : 0}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'total_cost',
+      headerName: 'Value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.total_cost) > 0 ? params.row.total_cost : 0}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.2,
+      minWidth: 160,
       field: 'batch_no',
+      type: 'text',
+      align: 'center',
       headerName: 'BATCH NUMBER',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -670,8 +794,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       renderCell: params => (
@@ -680,72 +804,70 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-
     {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_qty',
-      headerName: 'QTY IN STORE',
-      type: 'number',
-      align: 'right',
+      // flex: 0.4,
+      minWidth: 260,
+      field: 'package',
+      headerName: 'PACKAGE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.stock_qty) > 0 ? params.row.stock_qty : 0}
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'rack_info',
-      headerName: 'Rack',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.rack}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'stock_config',
-      headerName: 'Shelf',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-                  {el.shelf}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-              NA
-            </Typography>
-          )}
-        </>
-      )
     }
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'rack_info',
+    //   headerName: 'Rack',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.rack}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // },
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'stock_config',
+    //   headerName: 'Shelf',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.shelf}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // }
   ]
 
   const getStoresLists = async () => {
@@ -763,7 +885,7 @@ const ListOfStocks = () => {
       }
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -785,7 +907,7 @@ const ListOfStocks = () => {
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
-              let storeId = id === 'all' ? null : id
+              let storeId = id === 'all' ? 'all' : id
 
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
@@ -821,6 +943,7 @@ const ListOfStocks = () => {
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
     setSearchValue('')
+    setBatchSearchValue('')
   }
 
   const headerAction = (
@@ -855,6 +978,7 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
+
       showDialog()
     }
   }
@@ -887,6 +1011,121 @@ const ListOfStocks = () => {
     }, 1000),
     [getStocksReport]
   )
+
+  const handleBatchSortModel = newModel => {
+    if (newModel.length) {
+      setBatchSort(newModel[0].sort)
+      setBatchSortColumn(newModel[0].field)
+      getStocksReportBatchWise({
+        batchSort: newModel[0].sort,
+        batchQ: batchSearchValue,
+        batchColumn: newModel[0].field,
+        id: stockId,
+        type: stockType
+      })
+    } else {
+      setBatchSort(null)
+      getStocksReportBatchWise({
+        batchSort: null,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+  }
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      getStocksReport({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        id: stockId,
+        type: stockType
+      })
+    } else {
+      setSort(null)
+      getStocksReport({
+        sort: null,
+        q: searchValue,
+        column: sortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+  }
+
+  const addEventSidebarOpen = params => {
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    // setPurchaseByStockId({ batch_no: null, stock_id: null })
+    setSearchPurchase('')
+    setPurchaseByStockIdList([])
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    try {
+    } catch (e) {}
+  }
+
+  const handleSearchPurchase = useCallback(
+    debounce(async (stock_id, batch_no, value) => {
+      setSearchPurchase(value)
+      try {
+        await getPurchaseListByStockId(stock_id, batch_no, value)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const getPurchaseListByStockId = useCallback(
+    async (stock_id, batch_no, q) => {
+      const params = { stock_id, q }
+      if (changeSwitch) {
+        params.batch_no = batch_no
+      }
+      try {
+        setPurchaseLoading(true)
+        const result = await getPurchaseListByProduct(params)
+        if (result !== undefined) {
+          // console.log(result, 'res')
+          setPurchaseByStockIdList(result.data)
+          setPurchaseLoading(false)
+        }
+      } catch (error) {
+        console.error('error', error)
+        setPurchaseLoading(false)
+      }
+    },
+    [changeSwitch]
+  )
+
+  useEffect(() => {
+    if (purchaseByStockId && purchaseByStockId.stock_id) {
+      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
+    }
+  }, [purchaseByStockId, getPurchaseListByStockId])
+
+  const handleInputChange = event => {
+    const value = event.target.value
+    setSearchPurchase(value)
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, value)
+  }
+
+  const handleClearSearch = event => {
+    setSearchPurchase('')
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, '')
+  }
 
   return (
     <>
@@ -946,18 +1185,18 @@ const ListOfStocks = () => {
                       />
                     </Grid>
 
-                    {changeSwitch ? (
-                      <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
-                        <ExcelExportButton
-                          disabled={total === 0 ? true : false}
-                          action={() => {
-                            getBatchWiseDataToExport()
-                          }}
-                          loader={excelLoader}
-                          title='Download'
-                        />
-                      </Box>
-                    ) : null}
+                    {/* {changeSwitch ? ( */}
+                    <Box sx={{ ml: 'auto', float: 'right', mr: 6 }}>
+                      <ExcelExportButton
+                        disabled={total === 0 ? true : false}
+                        action={() => {
+                          getBatchWiseDataToExport()
+                        }}
+                        loader={excelLoader}
+                        title='Download'
+                      />
+                    </Box>
+                    {/* ) : null} */}
                   </Grid>
 
                   {changeSwitch ? (
@@ -972,8 +1211,9 @@ const ListOfStocks = () => {
                       rows={batchIndexedRows === undefined ? [] : batchIndexedRows}
                       rowCount={batchTotal}
                       columns={batchWiseColumn}
-                      sortingMode='server'
+                      onSortModelChange={handleBatchSortModel}
                       paginationMode='server'
+                      sortingMode='server'
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={batchPaginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -995,6 +1235,22 @@ const ListOfStocks = () => {
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+
+                        // Custom logic for cell clicks
+                        if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   ) : (
                     <DataGrid
@@ -1011,6 +1267,7 @@ const ListOfStocks = () => {
                       columns={columns}
                       sortingMode='server'
                       paginationMode='server'
+                      onSortModelChange={handleSortModel}
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={paginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -1031,6 +1288,22 @@ const ListOfStocks = () => {
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+
+                        // Custom logic for cell clicks
+                        if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   )}
                 </Card>
@@ -1076,6 +1349,23 @@ const ListOfStocks = () => {
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
         </TabContext>
       </Grid>
+
+      <StockReportDetails
+        drawerWidth={400}
+        addEventSidebarOpen={openDrawer}
+        handleSidebarClose={handleSidebarClose}
+        handleSubmitData={handleSubmitData}
+        resetForm={resetForm}
+        submitLoader={submitLoader}
+        editParams={editParams}
+        purchaseByStockIdList={purchaseByStockIdList}
+        purchaseLoading={purchaseLoading}
+        setPurchaseLoading={setPurchaseLoading}
+        handleInputChange={handleInputChange}
+        searchPurchase={searchPurchase}
+        setSearchPurchase={setSearchPurchase}
+        handleClearSearch={handleClearSearch}
+      />
     </>
   )
 }
