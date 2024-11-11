@@ -6,14 +6,14 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
-const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
+const ExcelExportButton = ({ tab_Value, subTab_value, data = [] }) => {
   const theme = useTheme()
 
   const [xlsxList, setXlsxList] = useState([])
   const [fileName, setFileName] = useState('Egg Table List')
 
   //   console.log('xlsxList :>> ', xlsxList)
-  console.log('tab_Value :>> ', tab_Value)
+  // console.log('tab_Value :>> ', tab_Value)
 
   useEffect(() => {
     if (tab_Value === 'eggs_received') {
