@@ -338,10 +338,12 @@ const ListOfStocks = () => {
         setExcelLoader(false)
       } else {
         setExcelLoader(true)
+
         const batchParams = {
           sort: batchSort,
           q: batchSearchValue,
           column: batchSortColumn
+
           // page: batchPaginationModel.page + 1,
           // limit: batchPaginationModel.pageSize
         }

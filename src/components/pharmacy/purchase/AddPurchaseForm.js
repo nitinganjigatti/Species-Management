@@ -1345,33 +1345,32 @@ const AddPurchaseForm = () => {
                           </TableCell>
                         </TableCell>
                         <TableCell align='center'>
-                          {/* {el.id ? null : ( */}
-                          <IconButton
-                            size='small'
-                            sx={{ mr: 0.5 }}
-                            aria-label='Edit'
-                            onClick={() => {
-                              console.log('edddd', el)
-                              setMedicineItemId(el.purchase_unit_id)
-                              editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
-                              showDialog()
-                            }}
-                          >
-                            <Icon icon='mdi:pencil-outline' />
-                          </IconButton>
-                          {/* )} */}
-
-                          {id && el.id ? null : (
+                          <Box sx={{ display: 'flex' }}>
                             <IconButton
-                              onClick={() => {
-                                removeItemsFroTable(el.purchase_unit_id)
-                              }}
                               size='small'
                               sx={{ mr: 0.5 }}
+                              aria-label='Edit'
+                              onClick={() => {
+                                setMedicineItemId(el.purchase_unit_id)
+                                editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                                showDialog()
+                              }}
                             >
-                              <Icon icon='mdi:delete-outline' />
+                              <Icon icon='mdi:pencil-outline' />
                             </IconButton>
-                          )}
+
+                            {id && el.id ? null : (
+                              <IconButton
+                                onClick={() => {
+                                  removeItemsFroTable(el.purchase_unit_id)
+                                }}
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                              >
+                                <Icon icon='mdi:delete-outline' />
+                              </IconButton>
+                            )}
+                          </Box>
                         </TableCell>
                       </TableRow>
                     )
