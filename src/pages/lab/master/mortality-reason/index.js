@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
@@ -12,10 +12,13 @@ import { Box, Breadcrumbs, Button, Card, IconButton, Typography } from '@mui/mat
 import Icon from 'src/@core/components/icon'
 
 // import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 import AddMortalityReasons from 'src/views/pages/lab/mortality-reason'
 import TableWithFilter from 'src/components/TableWithFilter'
 
 const MortalityReason = () => {
+  const authData = useContext(AuthContext)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [rows, setRows] = useState([])
   const editParamsInitialState = { id: null, label: null }
@@ -24,6 +27,8 @@ const MortalityReason = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+
+  const medical_add_mortality_reasons = authData?.userData?.permission?.user_settings?.medical_add_mortality_reasons
 
   const fetchTableData = useCallback(async q => {
     try {
@@ -220,40 +225,48 @@ const MortalityReason = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Lab Master
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Mortality Reason
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <TableWithFilter
-          TableTitle='Mortality Reason'
-          columns={columns || []}
-          rows={rows || []}
-          headerActions={headerAction}
-        />
-      </Card>
-      {openDrawer && (
-        <AddMortalityReasons
-          addEventSidebarOpen={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          handleSubmitData={handleSubmitData}
-          resetForm={resetForm}
-          submitLoader={submitLoader}
-          editParams={editParams}
-        />
-      )}
+      {medical_add_mortality_reasons ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Lab Master
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Mortality Reason
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <TableWithFilter
+              TableTitle='Mortality Reason'
+              columns={columns || []}
+              rows={rows || []}
+              headerActions={headerAction}
+            />
+          </Card>
+          {openDrawer && (
+            <AddMortalityReasons
+              addEventSidebarOpen={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              handleSubmitData={handleSubmitData}
+              resetForm={resetForm}
+              submitLoader={submitLoader}
+              editParams={editParams}
+            />
+          )}
 
-      {/* <ConfirmationDeleteDialog
+          {/* <ConfirmationDeleteDialog
             open={isModalOpenDelete}
             onClose={() => setIsModalOpenDelete(false)}
             confirmLoading={btnLoader}
             onConfirm={confirmDeleteAction}
             title='Are you sure you want to delete this Mortality Reason?'
           /> */}
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
     </>
   )
 }
