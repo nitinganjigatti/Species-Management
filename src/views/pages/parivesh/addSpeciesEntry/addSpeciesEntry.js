@@ -46,19 +46,24 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
-  animal_count: yup.number().when('possession_type', {
-    is: val => val !== 'death',
-    then: () =>
-      yup
-        .number()
-        .typeError('Total Count must be a number')
-        .positive('Total Count must be greater than zero')
-        .integer('Total Count must be a whole number')
-        .min(1, 'Total Count must be at least 1')
-        .required('Total Count is Required'),
-    otherwise: () => yup.number().notRequired()
+  // animal_count: yup.number().when('possession_type', {
+  //   is: val => val !== 'death',
+  //   then: () =>
+  //     yup
+  //       .number()
+  //       .typeError('Total Count must be a number')
+  //       .positive('Total Count must be greater than zero')
+  //       .integer('Total Count must be a whole number')
+  //       .min(1, 'Total Count must be at least 1')
+  //       .required('Total Count is Required'),
+  //   otherwise: () => yup.number().notRequired()
+  // }),
+  // gender: yup.string().required('Gender is Required'),
+  gender: yup.string().when('possession_type', {
+    is: 'death',
+    then: () => yup.string().required('Gender is Required'),
+    otherwise: () => yup.string().notRequired()
   }),
-  gender: yup.string().required('Gender is Required'),
   transaction_date: yup.date().required('Date is Required'),
   possession_type: yup.string().required('Reason is Required'),
   // Conditional fields for Transfer
@@ -173,7 +178,43 @@ const schema = yup.object().shape({
     then: () => yup.array().min(1, 'Attachment is required').of(yup.mixed().required('Attachment is required')),
     otherwise: () => yup.array().notRequired()
   }),
-  dgft_attachments: yup.array().notRequired()
+  dgft_attachments: yup.array().notRequired(),
+  male_count: yup
+    .number()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)) // Convert empty string to null
+    .nullable() // Allow null values
+    .typeError('Male Count must be a number')
+    .min(0, 'Male Count must be at least 0'),
+
+  female_count: yup
+    .number()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)) // Convert empty string to null
+    .nullable() // Allow null values
+    .typeError('Female Count must be a number')
+    .min(0, 'Female Count must be at least 0'),
+
+  other_count: yup
+    .number()
+    .transform((value, originalValue) => (originalValue === '' ? null : value)) // Convert empty string to null
+    .nullable() // Allow null values
+    .typeError('Others Count must be a number')
+    .min(0, 'Others Count must be at least 0'),
+
+  counts: yup.object().when('possession_type', {
+    is: val => val !== 'death', // If possession_type is not 'death'
+    then: schema =>
+      schema.test('at-least-one', 'At least one count must be provided', function (value) {
+        const { male_count, female_count, other_count } = this.parent
+        // Check if any of the counts are greater than 0
+        return [male_count, female_count, other_count].some(count => count > 0)
+      }),
+    otherwise: schema => schema.optional() // If possession_type is 'death', make counts optional
+  }),
+  parent_registration_id: yup.string().when('possession_type', {
+    is: 'birth',
+    then: () => yup.string().required('Parent ID is required'),
+    otherwise: () => yup.string().notRequired()
+  })
 })
 
 const defaultValues = {
@@ -197,7 +238,11 @@ const defaultValues = {
   cites_number: '',
   death_animal_id: '',
   attachments: [],
-  dgft_attachments: []
+  dgft_attachments: [],
+  male_count: '',
+  female_count: '',
+  other_count: '',
+  parent_registration_id: ''
 }
 
 const AddSpeciesNewEntry = props => {
@@ -218,7 +263,7 @@ const AddSpeciesNewEntry = props => {
   const fileInputRef = useRef(null)
   const [values, setValues] = useState(defaultValues)
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
-  const { selectedParivesh } = usePariveshContext()
+  // const { selectedParivesh } = usePariveshContext()
   const [displayFile, setDisplayFile] = useState([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [reasonType, setReasonType] = useState(null)
@@ -235,6 +280,7 @@ const AddSpeciesNewEntry = props => {
     watch,
     getValues,
     trigger,
+
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -261,7 +307,11 @@ const AddSpeciesNewEntry = props => {
       dgft_attachments,
       cites_required,
       select_appendix,
-      cites_number
+      cites_number,
+      male_count,
+      female_count,
+      other_count,
+      parent_registration_id
     } = { ...params }
 
     const now = new Date()
@@ -269,23 +319,46 @@ const AddSpeciesNewEntry = props => {
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
 
     const payload = {
-      org_id: selectedParivesh.id,
+      // org_id: selectedParivesh.id,
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,
-      gender: gender,
+      // gender: gender,
       // animal_count: animal_count,
       transaction_date: moment.utc(selectedDate).format('YYYY-MM-DD HH:mm:ss'),
       attachment: attachments
     }
     // Add conditional fields based on possession_type
+    // if (possession_type === 'death') {
+    //   payload.reason_for_death = reason_for_death
+    //   payload.death_date = moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss')
+    //   payload.death_animal_id = death_animal_id
+    //   payload.animal_count = 1
+    // } else {
+    //   payload.animal_count = animal_count
+    // }
     if (possession_type === 'death') {
-      payload.reason_for_death = reason_for_death
-      payload.death_date = moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss')
+      ;(payload.gender = gender), (payload.reason_for_death = reason_for_death)
+      payload.death_date = death_date ? moment.utc(death_date).format('YYYY-MM-DD HH:mm:ss') : null
       payload.death_animal_id = death_animal_id
       payload.animal_count = 1
     } else {
-      payload.animal_count = animal_count
+      // payload.animal_count = animal_count
+      // Conditionally include male_count if it's defined
+      if (typeof male_count !== 'undefined' && male_count !== null) {
+        payload.male_count = male_count
+      }
+      // Conditionally include female_count if it's defined
+      if (typeof female_count !== 'undefined' && female_count !== null) {
+        payload.female_count = female_count
+      }
+      // Conditionally include other_count if it's defined
+      if (typeof other_count !== 'undefined' && other_count !== null) {
+        payload.other_count = other_count
+      }
+    }
+    if (possession_type === 'birth') {
+      payload.parent_registration_id = parent_registration_id
     }
     if (possession_type === 'transfer') {
       payload.where_to_transfer = organization_transfer
@@ -893,9 +966,15 @@ const AddSpeciesNewEntry = props => {
               <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
             )}
           </FormControl>
-          {(possessionType === 'birth' || !possessionType) && <BirthForm control={control} errors={errors} />}
-          {possessionType === 'death' && <DeathForm control={control} errors={errors} />}
-          {possessionType === 'transfer' && <TransferForm control={control} errors={errors} />}
+          {(possessionType === 'birth' || !possessionType) && (
+            <BirthForm control={control} errors={errors} watch={watch} clearErrors={clearErrors} />
+          )}
+          {possessionType === 'death' && (
+            <DeathForm control={control} errors={errors} watch={watch} clearErrors={clearErrors} />
+          )}
+          {possessionType === 'transfer' && (
+            <TransferForm control={control} errors={errors} watch={watch} clearErrors={clearErrors} />
+          )}
           {possessionType === 'acquisition' && (
             <AcquisitionForm
               control={control}
@@ -908,6 +987,7 @@ const AddSpeciesNewEntry = props => {
               reasonType={reasonType}
               dgftDisplayFile={dgftDisplayFile}
               setDgftDisplayFile={setDgftDisplayFile}
+              clearErrors={clearErrors}
             />
           )}
           <>
@@ -917,7 +997,34 @@ const AddSpeciesNewEntry = props => {
             <Grid container spacing={2} sx={{ mb: 6 }}>
               {/* {/ Add Attachments button /} */}
               <Grid item xs={12} sm={12} md={7.2} lg={7.2}>
-                <FormControl fullWidth>
+                <Controller
+                  name='attachments'
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <div
+                      {...getRootProps({ className: 'dropzone' })}
+                      style={{
+                        border: '1px solid #d3d3d3',
+                        width: 'auto',
+                        padding: '0.8rem',
+                        borderRadius: '10px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <input {...getInputProps()} onChange={onChange} />
+                      <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                          <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                          <Typography sx={{ display: 'flex', alignItems: 'center' }}>Add Attachments</Typography>
+                        </Box>
+                      </Box>
+                    </div>
+                  )}
+                />
+                {errors.attachments && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments.message}</FormHelperText>
+                )}
+                {/* <FormControl fullWidth>
                   <Controller
                     name='attachments'
                     control={control}
@@ -967,7 +1074,7 @@ const AddSpeciesNewEntry = props => {
                   {errors.attachments && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors.attachments?.message}</FormHelperText>
                   )}
-                </FormControl>
+                </FormControl> */}
                 {/* <FormControl fullWidth>
                   <Controller
                     name='attachments'

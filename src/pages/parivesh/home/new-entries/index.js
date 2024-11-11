@@ -268,7 +268,7 @@ const NewEntry = ({}) => {
     // Ensure params.id exists and is a string or number
     if (params?.id) {
       Router.push({
-        pathname: '/parivesh/home/new-entries/add-newentry',
+        pathname: '/parivesh/home/new-entries/edit-newentry',
         query: { id: params.id } // Pass id in the query object
       })
     }
