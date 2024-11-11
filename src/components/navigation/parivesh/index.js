@@ -3,6 +3,12 @@ const composePariveshNavigation = () => {
     sectionTitle: 'Parivesh'
   }
 
+  // const housing = {
+  //   title: 'Housing' , 
+  //   path:'/parivesh/housing',
+  //   icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
+  // }
+
   const parivesh = {
     title: 'Home',
     path: '/parivesh/home',
@@ -19,7 +25,7 @@ const composePariveshNavigation = () => {
   const pariveshNavigationArray = []
 
   pariveshNavigationArray.push(Title)
-  pariveshNavigationArray.push(parivesh, species)
+  pariveshNavigationArray.push( parivesh, species)
 
   return pariveshNavigationArray
 }
