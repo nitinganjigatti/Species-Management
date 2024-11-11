@@ -8,10 +8,12 @@ import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/materi
 import CheckIcon from '@mui/icons-material/Check'
 import toast from 'react-hot-toast'
 import { getReportFilterList } from 'src/lib/api/report'
+import Error404 from 'src/pages/404'
 
 const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
+  const reports_module = authData?.userData?.role?.settings?.enable_reports_module
 
   const [status, setStatus] = useState('statistics')
   const [selectedSite, setSelectedSite] = useState([])
@@ -223,20 +225,22 @@ const SpeciesReport = () => {
   }, [fetchData, paginationModel])
 
   useEffect(() => {
-    if (!initialLoad.current) {
-      const fetchFilterData = async () => {
-        setIsLoading(true)
-        const response = await getReportFilterList(apiFilterParams)
-        if (response) {
-          setIsLoading(false)
-          const { header, datalist } = response.data
-          setHeaderList(header)
-          setAnchorEl(null)
-          setDataList(datalist)
-          setDataList(loadServerRows(paginationModel.page, datalist))
+    if (reports_module) {
+      if (!initialLoad.current) {
+        const fetchFilterData = async () => {
+          setIsLoading(true)
+          const response = await getReportFilterList(apiFilterParams)
+          if (response) {
+            setIsLoading(false)
+            const { header, datalist } = response.data
+            setHeaderList(header)
+            setAnchorEl(null)
+            setDataList(datalist)
+            setDataList(loadServerRows(paginationModel.page, datalist))
+          }
         }
+        fetchFilterData()
       }
-      fetchFilterData()
     }
   }, [popoverData])
 
@@ -350,206 +354,214 @@ const SpeciesReport = () => {
 
   return (
     <>
-      <Card>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-          <CardHeader title={title} />
-          <Button
-            onClick={() => getStatisticsDataToExport()}
-            variant='contained'
-            sx={{
-              width: '250px',
-              height: '38px',
-              fontSize: '14px',
-              fontFamily: 'Inter',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mr: 2,
-              mt: 2
-            }}
-          >
-            Download Report
-            <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
-          </Button>
-        </Box>
-
-        <TabContext value={status}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-            {/* Tabs on the left */}
-            <TabList onChange={''}></TabList>
-
-            {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-              <Box
+      {reports_module ? (
+        <>
+          <Card>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
+              <CardHeader title={title} />
+              <Button
+                onClick={() => getStatisticsDataToExport()}
+                variant='contained'
                 sx={{
+                  width: '250px',
+                  height: '38px',
+                  fontSize: '14px',
+                  fontFamily: 'Inter',
                   display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
                   alignItems: 'center',
-                  gap: 4,
-                  mr: 2
+                  justifyContent: 'center',
+                  mr: 2,
+                  mt: 2
                 }}
               >
-                <FormControl fullWidth sx={{ maxWidth: '200px' }}>
-                  <InputLabel
-                    sx={{
-                      fontSize: '14px',
-                      fontFamily: 'Inter',
-                      fontWeight: 400,
-                      color: '#44544A',
-                      width: '152px',
-                      height: '17px',
-                      mt: 0.5
-                    }}
-                  >
-                    All Sites
-                  </InputLabel>
-                  <Select
-                    multiple
-                    value={selectedSite}
-                    onChange={handleSelectedSite}
-                    label='Site'
-                    sx={{
-                      height: '40px',
-                      mt: 2,
-                      width: '200px',
-                      borderRadius: '4px',
-                      mr: { sm: 1, xs: 0 }
-                    }}
-                  >
-                    <MenuItem value='All Sites'>All Sites</MenuItem>
-                    {authData?.userData?.user?.zoos[0].sites?.map((item, index) => (
-                      <MenuItem key={index} value={item?.site_id}>
-                        {item?.site_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <Button
-                  onClick={handleClick}
-                  variant='outlined'
-                  sx={{
-                    width: '120px',
-                    height: '40px',
-                    mt: 2,
-                    display: 'flex',
-                    color: '#44544A',
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    fontFamily: 'Inter',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 3,
-                    minWidth: '100px'
-                  }}
-                >
-                  <img src='/images/filterIcon.png' style={{ width: '24px', height: '24px' }} alt='Filter Icon' />
-                  Filter
-                </Button>
-                <Popover
-                  id={id}
-                  open={open}
-                  anchorEl={anchorEl}
-                  onClose={handleClose}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left'
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left'
-                  }}
-                >
-                  <Box sx={{ p: 2, width: 300 }}>
-                    {Object?.keys(popoverData).map(category => (
-                      <div key={category}>
-                        <Typography
-                          variant='subtitle1'
-                          sx={{
-                            fontWeight: 500,
-                            mt: 3,
-                            ml: 3,
-                            fontFamily: 'Inter',
-                            fontSize: '16px',
-                            color: 'yourTheme.palette.customColors.OnSurfaceVariant'
-                          }}
-                        >
-                          {category}
-                        </Typography>
-                        <List sx={{ cursor: 'pointer' }}>
-                          {popoverData[category].map((item, index) => (
-                            <ListItem key={item.key} onClick={() => handleOptions(category, item, index)}>
-                              <ListItemIcon>{item.checked && <CheckIcon sx={{ color: 'green' }} />}</ListItemIcon>
-                              <ListItemText primary={item.label} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </div>
-                    ))}
-                  </Box>
-                </Popover>
-              </Box>
-            )}
-          </Box>
-
-          <Box sx={{ width: '98%', margin: 4 }}>
-            <Box sx={{ borderRadius: '8px' }}>
-              <DataGrid
-                sx={{
-                  mt: 3,
-                  borderRadius: '8px',
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-columnHeader': {
-                    backgroundColor: '#DDEBE9',
-                    color: '#1F415B',
-                    fontWeight: 600,
-                    fontSize: '12px',
-                    fontFamily: 'Inter',
-                    textTransform: 'capitalize',
-                    borderBottom: '2px solid #C3CEC7'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #C3CEC7',
-                    borderRight: '1px solid #C3CEC7',
-                    borderTop: '1px solid #C3CEC7',
-                    borderBottom: '1px solid #C3CEC7',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
-
-                  '& .MuiDataGrid-cell': {
-                    fontFamily: 'Inter',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    lineHeight: '16.94px',
-                    textAlign: 'left',
-                    color: '#44544A'
-                  }
-                }}
-                rows={reportRows}
-                disableColumnSorting={true}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                loading={isLoading}
-                autoHeight
-                disableColumnFilter={false}
-                hideFooterSelectedRowCount
-                rowHeight={70}
-                scrollbarSize={10}
-              />
+                Download Report
+                <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+              </Button>
             </Box>
-          </Box>
-        </TabContext>
-      </Card>
+
+            <TabContext value={status}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+                {/* Tabs on the left */}
+                <TabList onChange={''}></TabList>
+
+                {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      gap: 4,
+                      mr: 2
+                    }}
+                  >
+                    <FormControl fullWidth sx={{ maxWidth: '200px' }}>
+                      <InputLabel
+                        sx={{
+                          fontSize: '14px',
+                          fontFamily: 'Inter',
+                          fontWeight: 400,
+                          color: '#44544A',
+                          width: '152px',
+                          height: '17px',
+                          mt: 0.5
+                        }}
+                      >
+                        All Sites
+                      </InputLabel>
+                      <Select
+                        multiple
+                        value={selectedSite}
+                        onChange={handleSelectedSite}
+                        label='Site'
+                        sx={{
+                          height: '40px',
+                          mt: 2,
+                          width: '200px',
+                          borderRadius: '4px',
+                          mr: { sm: 1, xs: 0 }
+                        }}
+                      >
+                        <MenuItem value='All Sites'>All Sites</MenuItem>
+                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => (
+                          <MenuItem key={index} value={item?.site_id}>
+                            {item?.site_name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <Button
+                      onClick={handleClick}
+                      variant='outlined'
+                      sx={{
+                        width: '120px',
+                        height: '40px',
+                        mt: 2,
+                        display: 'flex',
+                        color: '#44544A',
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 3,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img src='/images/filterIcon.png' style={{ width: '24px', height: '24px' }} alt='Filter Icon' />
+                      Filter
+                    </Button>
+                    <Popover
+                      id={id}
+                      open={open}
+                      anchorEl={anchorEl}
+                      onClose={handleClose}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left'
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left'
+                      }}
+                    >
+                      <Box sx={{ p: 2, width: 300 }}>
+                        {Object?.keys(popoverData).map(category => (
+                          <div key={category}>
+                            <Typography
+                              variant='subtitle1'
+                              sx={{
+                                fontWeight: 500,
+                                mt: 3,
+                                ml: 3,
+                                fontFamily: 'Inter',
+                                fontSize: '16px',
+                                color: 'yourTheme.palette.customColors.OnSurfaceVariant'
+                              }}
+                            >
+                              {category}
+                            </Typography>
+                            <List sx={{ cursor: 'pointer' }}>
+                              {popoverData[category].map((item, index) => (
+                                <ListItem key={item.key} onClick={() => handleOptions(category, item, index)}>
+                                  <ListItemIcon>{item.checked && <CheckIcon sx={{ color: 'green' }} />}</ListItemIcon>
+                                  <ListItemText primary={item.label} />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </div>
+                        ))}
+                      </Box>
+                    </Popover>
+                  </Box>
+                )}
+              </Box>
+
+              <Box sx={{ width: '98%', margin: 4 }}>
+                <Box sx={{ borderRadius: '8px' }}>
+                  <DataGrid
+                    sx={{
+                      mt: 3,
+                      borderRadius: '8px',
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
+                      '& .MuiDataGrid-columnHeader': {
+                        backgroundColor: '#DDEBE9',
+                        color: '#1F415B',
+                        fontWeight: 600,
+                        fontSize: '12px',
+                        fontFamily: 'Inter',
+                        textTransform: 'capitalize',
+                        borderBottom: '2px solid #C3CEC7'
+                      },
+                      '.MuiDataGrid-main': {
+                        borderLeft: '1px solid #C3CEC7',
+                        borderRight: '1px solid #C3CEC7',
+                        borderTop: '1px solid #C3CEC7',
+                        borderBottom: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      },
+                      '& .MuiDataGrid-footerContainer': {
+                        borderTop: 'none'
+                      },
+
+                      '& .MuiDataGrid-cell': {
+                        fontFamily: 'Inter',
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        lineHeight: '16.94px',
+                        textAlign: 'left',
+                        color: '#44544A'
+                      }
+                    }}
+                    rows={reportRows}
+                    disableColumnSorting={true}
+                    rowCount={total}
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={isLoading}
+                    autoHeight
+                    disableColumnFilter={false}
+                    hideFooterSelectedRowCount
+                    rowHeight={70}
+                    scrollbarSize={10}
+                  />
+                </Box>
+              </Box>
+            </TabContext>
+          </Card>
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
     </>
   )
 }

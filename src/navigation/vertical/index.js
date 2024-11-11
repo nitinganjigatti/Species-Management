@@ -22,7 +22,7 @@ const ComposeNavigation = () => {
   const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
-  const reports_module = authData?.userData?.permission?.user_settings?.enable_report_module
+  const reports_module = authData?.userData?.role?.settings?.enable_reports_module
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
