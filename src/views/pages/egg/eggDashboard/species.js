@@ -432,14 +432,46 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'total_hatch',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
           </Typography>
         </Box>
       )
     },
     {
       width: 200,
-      field: 'hatched_in_nursery',
+      field: 'hatched_in_nursery_percentage',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
@@ -487,14 +519,46 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+            %
           </Typography>
         </Box>
       )
     },
     {
-      width: 180,
-      field: 'in_nursery',
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NURSERY',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'hatched_in_nest_percentage',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NEST %',
@@ -542,7 +606,39 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'in_nursery',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NEST',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nest ? `${params.row.hatched_in_nest}` : '-'}
           </Typography>
         </Box>
       )
@@ -909,7 +1005,39 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.total_hatch ? `(${params.row.total_hatch})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'hatched',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
           </Typography>
         </Box>
       )
@@ -917,7 +1045,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 200,
-      field: 'hatched_in_nursery',
+      field: 'hatched_in_nursery_percentage',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
@@ -963,14 +1091,46 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NURSERY',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
           </Typography>
         </Box>
       )
     },
     {
       width: 180,
-      field: 'in_nursery',
+      field: 'hatched_in_Nest_percentage',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NEST %',
@@ -1016,7 +1176,39 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.hatched_in_nest ? `(${params.row.hatched_in_nest})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 180,
+      field: 'hatched_in_nest_',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NEST',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nest ? `${params.row.hatched_in_nest}` : '-'}
           </Typography>
         </Box>
       )
@@ -1333,7 +1525,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 200,
-      field: 'hatched_in_nursery',
+      field: 'hatched_in_nursery_percentage',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
@@ -1379,7 +1571,39 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                     100
                 )
               : 0}
-            % {params.row.hatched_in_nursery ? `(${params.row.hatched_in_nursery})` : '-'}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'hatched_in_nursery',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'HATCHED IN NURSERY',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
           </Typography>
         </Box>
       )

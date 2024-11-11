@@ -12,7 +12,7 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
   const [xlsxList, setXlsxList] = useState([])
   const [fileName, setFileName] = useState('Egg Table List')
 
-  console.log('tab_Value :>> ', tab_Value)
+  // console.log('tab_Value :>> ', tab_Value)
 
   useEffect(() => {
     if (tab_Value === 'species') {
@@ -35,7 +35,8 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
                   100
               )
             : 0
-        } % ${item.hatched_in_nest ? `(${item.hatched_in_nest})` : '(-)'}`,
+        } %`,
+        'HATCHED IN NEST': `${item.hatched_in_nest ? `${item.hatched_in_nest}` : '-'}`,
         'HATCHED IN NURSERY %': `${
           Number(item.hatched_in_nursery) +
             Number(item.discarded_at_nursery) +
@@ -49,13 +50,14 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
                   100
               )
             : 0
-        } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '(-)'}`,
-
+        } %`,
+        'HATCHED IN NURSERY': `${item.hatched_in_nursery ? `${item.hatched_in_nursery}` : '-'}`,
         'TOTAL HATCHED %': `${
           Number(item.total_hatch) + Number(item.total_discard) + 0
             ? Math.round((Number(item.total_hatch) / (Number(item.total_hatch) + Number(item.total_discard))) * 100)
             : 0
-        } % ${item.total_hatch ? `(${item.total_hatch})` : '(-)'}`,
+        } %`,
+        'TOTAL HATCHED': `${item.total_hatch ? `${item.total_hatch}` : '-'}`,
         'DISCARDED AT SITE': item.discarded_at_site || '-',
         'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
         'TOTAL DISCARDED': item.total_discarded || '-',
@@ -82,7 +84,8 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
                   100
               )
             : 0
-        } % ${item.hatched_in_nest ? `(${item.hatched_in_nest})` : '(-)'}`,
+        } %`,
+        'HATCHED IN NEST': `${item.hatched_in_nest ? `${item.hatched_in_nest}` : '-'}`,
         'HATCHED IN NURSERY %': `${
           Number(item.hatched_in_nursery) +
             Number(item.discarded_at_nursery) +
@@ -96,12 +99,14 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
                   100
               )
             : 0
-        } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '(-)'}`,
+        } %`,
+        'HATCHED IN NURSERY': `${item.hatched_in_nursery ? `${item.hatched_in_nursery}` : '-'}`,
         'TOTAL HATCHED %': `${
           Number(item.total_hatch) + Number(item.total_discard) + 0
             ? Math.round((Number(item.total_hatch) / (Number(item.total_hatch) + Number(item.total_discard))) * 100)
             : 0
-        } % ${item.total_hatch ? `(${item.total_hatch})` : '(-)'}`,
+        } %`,
+        'TOTAL HATCHED': `${item.total_hatch ? `${item.total_hatch}` : '-'}`,
         'DISCARDED AT SITE': item.discarded_at_site || '-',
         'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
         'TOTAL DISCARDED': item.total_discarded || '-',
@@ -130,7 +135,8 @@ const DashboardExelExportButton = ({ tab_Value, data }) => {
                   100
               )
             : 0
-        } % ${item.hatched_in_nursery ? `(${item.hatched_in_nursery})` : '-'}`,
+        } %`,
+        'HATCHED IN NURSERY': `${item.hatched_in_nursery ? `${item.hatched_in_nursery}` : '-'}`,
         'DISCARDED AT NURSERY': item.discarded_at_nursery || '-',
         'IN TRANSIT': item.in_transit || '-'
       }))
