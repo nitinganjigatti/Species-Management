@@ -982,8 +982,11 @@ const AddPurchaseForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                router.back()
-                // Router.push('/pharmacy/purchase/purchase-list/')
+                if (navigatedFrom === 'stockReport') {
+                  Router.push('/pharmacy/stocks/stocksReport/')
+                } else {
+                  Router.push('/pharmacy/purchase/purchase-list/')
+                }
               }}
               icon='ep:back'
             />
