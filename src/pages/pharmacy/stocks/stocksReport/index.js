@@ -1240,7 +1240,7 @@ const ListOfStocks = () => {
                         event.preventDefault()
 
                         // Custom logic for cell clicks
-                        if (params.field === 'stock_items_name') {
+                        if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
                           addEventSidebarOpen()
                           setPurchaseByStockId({
                             batch_no: params.row?.batch_no,
