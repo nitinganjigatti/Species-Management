@@ -5,7 +5,43 @@ import React, { useEffect, useState } from 'react'
 import { GetLabUsersById } from 'src/lib/api/lab/labDetails'
 
 const Users = ({ labId }) => {
+  const [total, setTotal] = useState(0)
+  const [sortModel, setSortModel] = useState([{ field: 'users', sort: 'asc' }])
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const getSlNo = index => index + 1
+
+  // function getRowId(row) {
+  //   return row.internalId
+  // }
+
+  const indexedRows = rows?.map((row, index) => {
+    return {
+      ...row,
+      id: index + 1
+    }
+  })
+
+  console.log(indexedRows)
+
   const columns = [
+    {
+      flex: 2.3,
+      minWidth: 20,
+      field: 'id',
+      headerName: 'SL',
+      hide: false,
+      sortable: true,
+      renderCell: params => (
+        <>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.id}
+          </Typography>
+        </>
+      )
+    },
     {
       flex: 2.3,
       minWidth: 20,
@@ -16,27 +52,14 @@ const Users = ({ labId }) => {
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.user_first_name}
+            {params?.row?.user_full_name}
           </Typography>
         </>
       )
     }
   ]
 
-  const [total, setTotal] = useState(0)
-  const [sortModel, setSortModel] = useState([{ field: 'users', sort: 'asc' }])
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const getSlNo = index => index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  const getRowId = row => row?.user_first_name
+  // const getRowId = row => row?.user_first_name
 
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
@@ -57,6 +80,7 @@ const Users = ({ labId }) => {
     }
     try {
       const res = await GetLabUsersById({ params })
+      debugger
       setLoading(false)
       setRows(res?.data?.labs)
     } catch (error) {
@@ -78,9 +102,11 @@ const Users = ({ labId }) => {
 
       <DataGrid
         autoHeight
+        columnVisibilityModel={{
+          id: false
+        }}
         hideFooterPagination
         rows={indexedRows === undefined ? [] : indexedRows}
-        getRowId={getRowId}
         rowCount={total}
         columns={columns}
         sortingMode='server'
