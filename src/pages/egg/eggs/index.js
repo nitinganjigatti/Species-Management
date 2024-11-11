@@ -2324,7 +2324,7 @@ const EggList = () => {
           tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : tab_Value === 'eggs_discarded'
-            ? selectedFiltersOptions['Discarded By']?.map(option => option.id)
+            ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || []
 
@@ -2413,7 +2413,7 @@ const EggList = () => {
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: row.egg_id,
+    id: row?.egg_id,
     sl_no: getSlNo(index)
   }))
 
