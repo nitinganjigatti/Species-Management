@@ -52,15 +52,15 @@ const ComposeLabNavigation = ({ labRole }) => {
 
   const labNavigationArray = []
 
-  if (labList?.length > 0) {
+  if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
     labNavigationArray.push(labTitle)
 
-    if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
-      mastersLabParent.children = []
-    }
+    // if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
+    mastersLabParent.children = []
+    // }
 
-    if (medical_add_samples && medical_add_tests && medical_add_mortality_reasons) {
-      mastersLabParent.children.push(labTest, labSample, mortalityReason)
+    if (medical_add_samples && medical_add_tests) {
+      mastersLabParent.children.push(labSample, labTest)
     }
 
     if (medical_add_mortality_reasons) {
