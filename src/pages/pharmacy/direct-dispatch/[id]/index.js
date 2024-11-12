@@ -74,7 +74,8 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
-  const { id, request_number } = router.query
+  // const { id, request_number } = router.query
+  const { id, request_number, type, value } = router.query
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
@@ -956,7 +957,13 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.back()
+                        debugger
+                        type && value
+                          ? Router.push({
+                              pathname: '/pharmacy/stocks/stocksReport/',
+                              query: { value: value, type: type, searchTerm: request_number }
+                            })
+                          : Router.back()
                       }}
                       icon='ep:back'
                     />

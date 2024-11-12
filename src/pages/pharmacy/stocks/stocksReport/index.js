@@ -1312,7 +1312,8 @@ const ListOfStocks = () => {
                           onChange: event => {
                             setSearchValue(event.target.value)
 
-                            return handleSearch(event.target.value, stockId, stockType)
+                            return handleSearch(event.target.value, stockId, 
+                         )
                           }
                         }
                       }}
@@ -1359,7 +1360,7 @@ const ListOfStocks = () => {
           <TabPanel value='4'>{loader ? <FallbackSpinner /> : <ExpiredMedicine />}</TabPanel>
           <TabPanel value='6'>{loader ? <FallbackSpinner /> : <ExpiringMedicine />}</TabPanel>
 
-          <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
+          <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow value={value} />}</TabPanel>
         </TabContext>
       </Grid>
     </>

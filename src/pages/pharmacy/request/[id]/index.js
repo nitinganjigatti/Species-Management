@@ -117,7 +117,7 @@ const IndividualRequest = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  const { id, request_number } = router.query
+  const { id, request_number, type, value } = router.query
   const [expandedText, setExpandedText] = useState('')
   const [notesDialog, setNotesDialog] = useState(false)
   const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
@@ -1428,6 +1428,8 @@ const IndividualRequest = () => {
   console.log(requestItems, 'requestItems')
   console.log(shippedItems, 'shippedItems')
 
+  // {console.log("Router bCK >" , Router.back())}
+
   return (
     <>
       {loader ? (
@@ -1456,7 +1458,12 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.back()
+                        type && value
+                          ? Router.push({
+                              pathname: '/pharmacy/stocks/stocksReport/',
+                              query: { value: value, type: type, searchTerm: request_number }
+                            })
+                          : Router.back()
                       }}
                       icon='ep:back'
                     />

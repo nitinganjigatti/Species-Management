@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 
 // ** Icon Imports
 import { AddButton } from 'src/components/Buttons'
@@ -28,6 +28,8 @@ import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 function Dispense() {
+  const { searchTerm } = Router.query
+  const isInitialLoad = useRef(true)
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('desc')
@@ -153,6 +155,7 @@ function Dispense() {
 
   const getDipsense = useCallback(
     async ({ sort, q, column }) => {
+      debugger
       try {
         setLoading(true)
 
@@ -174,6 +177,27 @@ function Dispense() {
     },
     [paginationModel]
   )
+  // useEffect(() => {
+  //   getDipsense({ sort, q: searchValue, column: sortColumn })
+  // }, [getDipsense, selectedPharmacy.id])
+
+  // useEffect(() => {
+  //   if (searchTerm) {
+  //     debugger
+  //     setSearchValue(searchTerm)
+  //     getDipsense({ sort, q: searchTerm, column: sortColumn })
+  //   }
+  // }, [searchTerm, getDipsense])
+
+  useEffect(() => {
+    if (isInitialLoad.current && searchTerm) {
+      setSearchValue(searchTerm)
+      getDipsense({ sort, q: searchTerm, column: sortColumn })
+      isInitialLoad.current = false
+    }
+  }, [searchTerm, getDipsense])
+
+  // Fetch data when the selected pharmacy changes
   useEffect(() => {
     getDipsense({ sort, q: searchValue, column: sortColumn })
   }, [getDipsense, selectedPharmacy.id])
@@ -200,9 +224,19 @@ function Dispense() {
 
   const onRowClick = params => {
     var data = params.row
-    Router.push({
-      pathname: `/pharmacy/dispense/${data?.id}`
-    })
+    debugger
+    if (searchValue) {
+      Router.push({
+        pathname: `/pharmacy/dispense/${data?.id}`,
+        query: {
+          searchTerm: data?.dispense_id
+        }
+      })
+    } else {
+      Router.push({
+        pathname: `/pharmacy/dispense/${data?.id}`
+      })
+    }
   }
 
   const title = (

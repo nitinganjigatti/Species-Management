@@ -2,8 +2,7 @@ import { Card, CardHeader, Grid, TextField, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import { debounce } from 'lodash'
-
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
@@ -14,8 +13,13 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 
-function Escrow() {
+function Escrow({ value }) {
+  console.log('Value >>', value)
+
   const theme = useTheme()
+  const { type, searchTerm } = Router.query
+  const isInitialLoad = useRef(true)
+
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('desc')
@@ -24,7 +28,10 @@ function Escrow() {
   const [sortColumn, setSortColumn] = useState('name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [stockType, setStockType] = useState('dispute')
+  const [stockType, setStockType] = useState(type || 'dispute')
+
+  console.log(' Search>>', searchValue)
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -35,17 +42,22 @@ function Escrow() {
     if (data?.request_number?.startsWith('RES')) {
       Router.push({
         pathname: `/pharmacy/request/${data?.request_id}`,
-        query: { id: data.request_id, request_number: data.request_number }
+        query: {
+          id: data.request_id,
+          request_number: data.request_number,
+          type: stockType,
+          value: value
+        }
       })
     } else if (data?.request_number?.startsWith('DD')) {
       Router.push({
         pathname: `/pharmacy/direct-dispatch/${data?.request_id}`,
-        query: { id: data.request_id, request_number: data.request_number }
+        query: { id: data.request_id, request_number: data.request_number, type: stockType, value: value }
       })
     } else if (data?.request_number?.startsWith('RET')) {
       Router.push({
         pathname: `/pharmacy/return-product/${data?.request_id}`,
-        query: { id: data.request_id, request_number: data.request_number }
+        query: { id: data.request_id, request_number: data.request_number, type: stockType, value: value }
       })
     }
   }
@@ -149,6 +161,7 @@ function Escrow() {
 
   const fetchScrewTableData = useCallback(
     async ({ sort, q, column, type }) => {
+      debugger
       try {
         setLoading(true)
 
@@ -177,12 +190,22 @@ function Escrow() {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, stockType, searchTerm]
   )
 
   useEffect(() => {
     fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
   }, [fetchScrewTableData, selectedPharmacy.id])
+
+  useEffect(() => {
+    if (type && isInitialLoad.current) {
+      // Set the initial value of stockType from router's query only on first load
+      setStockType(type)
+      setSearchValue(searchTerm)
+      fetchScrewTableData({ q: searchTerm, column: sortColumn, type })
+      isInitialLoad.current = false // Mark initial load as complete
+    }
+  }, [type, fetchScrewTableData, searchTerm])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -256,6 +279,7 @@ function Escrow() {
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                   <TextField
                     variant='outlined'
+                    value={searchValue}
                     placeholder='Search...'
                     onChange={e => handleSearch(e.target.value)}
                     fullWidth
