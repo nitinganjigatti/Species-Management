@@ -420,10 +420,10 @@ const AddSample = props => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Test Name*'
+                      label='Sample Name*'
                       value={value}
                       onChange={onChange}
-                      placeholder='Test Name'
+                      placeholder='Sample Name'
                       error={Boolean(errors.test_name)}
                       name='test_name'
                     />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
@@ -32,6 +32,9 @@ import { getDietList } from 'src/lib/api/diet/dietList'
 
 import RecipeList from 'src/components/diet/RecipeList'
 import CustomChip from 'src/@core/components/mui/chip'
+
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 // Styled TabList component
 const roleColors = {
@@ -69,6 +72,10 @@ const Diet = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [selectedCard, setSelectedCard] = useState([])
 
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -78,6 +85,7 @@ const Diet = () => {
     setTotal(0)
     setStatus(newValue)
   }
+
   // const addEventSidebarOpen = () => {
   //   setOpenDrawer(true)
   //   setSelectedCard([])
@@ -105,6 +113,7 @@ const Diet = () => {
         await getDietList({ params: params }).then(res => {
           console.log('response', res)
           const startingIndex = paginationModel.page * paginationModel.pageSize
+
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
@@ -122,7 +131,9 @@ const Diet = () => {
   console.log('total <<<', total)
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
+    if (dietModule) {
+      fetchTableData(sort, searchValue, sortColumn, status)
+    }
   }, [fetchTableData, status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -155,16 +166,20 @@ const Diet = () => {
   )
 
   const headerAction = (
-    <div>
-      <Button sx={{ m: 2 }} size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
-      </Button>
-      {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+        <div>
+          <Button sx={{ m: 2 }} size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
+            <Icon icon='mdi:add' fontSize={20} />
+            &nbsp; Add New
+          </Button>
+          {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
         <Icon icon='mdi:add' fontSize={20} />
         &nbsp; Add Recipe
       </Button> */}
-    </div>
+        </div>
+      )}
+    </>
   )
 
   const handleSwitchChange = async (event, rowData) => {
@@ -516,25 +531,29 @@ const Diet = () => {
 
   return (
     <>
-      <Grid>
-        <TabContext sx={{ cursor: 'pointer' }} value={status}>
-          <TabList onChange={handleChange}>
-            <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
-            <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
-            <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
-          </TabList>
-          <TabPanel sx={{ cursor: 'pointer' }} value='1'>
-            {tableData()}
-          </TabPanel>
-          <TabPanel sx={{ cursor: 'pointer' }} value='0'>
-            {tableData()}
-          </TabPanel>
-          <TabPanel sx={{ cursor: 'pointer' }} value=''>
-            {tableData()}
-          </TabPanel>
-          {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
-        </TabContext>
-      </Grid>
+      {dietModule ? (
+        <Grid>
+          <TabContext sx={{ cursor: 'pointer' }} value={status}>
+            <TabList onChange={handleChange}>
+              <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+              <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+              <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+            </TabList>
+            <TabPanel sx={{ cursor: 'pointer' }} value='1'>
+              {tableData()}
+            </TabPanel>
+            <TabPanel sx={{ cursor: 'pointer' }} value='0'>
+              {tableData()}
+            </TabPanel>
+            <TabPanel sx={{ cursor: 'pointer' }} value=''>
+              {tableData()}
+            </TabPanel>
+            {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
+          </TabContext>
+        </Grid>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }
