@@ -76,6 +76,9 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import { Stack } from '@mui/system'
+import RenderUtility from 'src/utility/render'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -686,6 +689,8 @@ const AddDirectDispatch = () => {
   //   }
   // }
 
+  console.log(editParams, 'pppp')
+
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -733,6 +738,7 @@ const AddDirectDispatch = () => {
                     error={duplicateMedError}
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
+                    closeDialog={closeDialog}
                   />
                 }
                 close={closeDialog}
@@ -826,7 +832,7 @@ const AddDirectDispatch = () => {
                   )}
                 </FormControl>
               </Grid> */}
-                  <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                  {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -848,12 +854,81 @@ const AddDirectDispatch = () => {
                         </FormHelperText>
                       )}
                     </FormControl>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </form>
           </CardContent>
-          <Grid
+
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
+            <Box>
+              <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                Dispatch items
+              </Typography>
+
+              {/* <Stack
+                direction='row'
+                spacing={2}
+                divider={<Divider orientation='vertical' flexItem />}
+                sx={{ mb: 2, textAlign: 'center' }}
+              >
+                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary' }}>
+                  Total Dispatch Quantity: <Typography sx={{ color: 'primary.light' }}>0</Typography>
+                </Typography>
+                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary' }}>
+                  Total Dispatch Value: <Typography sx={{ color: 'primary.light' }}>₹0</Typography>
+                </Typography>
+              </Stack> */}
+
+              <Stack
+                direction='row'
+                spacing={2}
+                divider={<Divider orientation='vertical' flexItem />}
+                sx={{ textAlign: 'center' }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Dispatch Quantity:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    {totalQty ? totalQty : '0'}
+                  </Typography>
+                </Typography>
+                {/* <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Dispatch Value:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    ₹0
+                  </Typography>
+                </Typography> */}
+              </Stack>
+            </Box>
+
+            {/* Button Grid - Exactly as in your code */}
+            {/* <Grid
+              container
+              spacing={6}
+              sm={12}
+              xs={12}
+              // sx={{
+              //   display: 'flex',
+              //   justifyContent: 'flex-end',
+              //   alignItems: 'center',
+              //   mb: 4
+              // }}
+            > */}
+            <AddButtonContained
+              title='Add Dispatch Item'
+              action={() => {
+                handleSubmit()
+              }}
+            />
+            {/* </Grid> */}
+          </Box>
+          {/* <Grid
             container
             spacing={6}
             sm={12}
@@ -865,88 +940,111 @@ const AddDirectDispatch = () => {
               mb: 4
             }}
           >
-            <AddButton
+            <AddButtonContained
               title='Add Dispatch Item'
               action={() => {
                 handleSubmit()
               }}
             />
-          </Grid>
+          </Grid> */}
+          <Card
+            sx={{
+              m: 6,
+              border: '1px solid',
+              borderColor: 'customColors.customTableBorderBg',
+              boxShadow: 'none'
+            }}
+          >
+            <TableContainer>
+              <Table sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                  <TableRow>
+                    <TableCell>Product Name</TableCell>
+                    <TableCell>Batch No</TableCell>
+                    <TableCell>Expiry Date</TableCell>
+                    <TableCell>Priority</TableCell>
+                    <TableCell>Quantity</TableCell>
+                    <TableCell>Action</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                  {editParams?.request_item_details
+                    ? editParams?.request_item_details?.map((el, index) => {
+                        return (
+                          <TableRow key={index} sx={{ '&:last-child td': { borderBottom: 'none' } }}>
+                            <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                              <Typography component='samp' variant='body2'>
+                                {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
+                                {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                              </Typography>
+                              <Typography
+                                component='samp'
+                                variant='body2'
+                                sx={{ color: 'primary.light', fontWeight: 600, fontSize: '16px' }}
+                              >
+                                {el.product_name}
+                              </Typography>
+                              {/* {el.control_substance ? (
+                                <CustomChip label='CS' skin='light' color='success' size='small' />
+                              ) : null} */}
+                              <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                {el.packageDetails}
+                              </Typography>
+                              <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                {el.manufacture}
+                              </Typography>
+                            </TableCell>
+                            <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                {el.request_item_batch_no}
+                              </Typography>
+                            </TableCell>
 
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                <TableRow>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Batch No</TableCell>
-                  <TableCell>Expiry Date</TableCell>
-                  <TableCell>Priority</TableCell>
-                  <TableCell>Quantity</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {editParams?.request_item_details
-                  ? editParams?.request_item_details?.map((el, index) => {
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.product_name}
-                            </Typography>
-                            {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null}
-                            <Typography variant='body2'>{el.packageDetails}</Typography>
-                            <Typography variant='body2'>{el.manufacture}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.request_item_batch_no}
-                            </Typography>
-                          </TableCell>
+                            <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
+                              </Typography>
+                            </TableCell>
+                            <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                              {el.priority_item}
+                            </TableCell>
 
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>{el.priority_item}</TableCell>
+                            <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                              {el.request_item_qty}
+                            </TableCell>
 
-                          <TableCell>{el.request_item_qty}</TableCell>
+                            <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                              <IconButton
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                                aria-label='Edit'
+                                onClick={() => {
+                                  //
+                                  setMedicineItemId(el.request_item_medicine_id)
 
-                          <TableCell>
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => {
-                                //
-                                setMedicineItemId(el.request_item_medicine_id)
+                                  editTableData(el.uuid)
+                                  showDialog()
+                                  // }
+                                }}
+                              >
+                                <Icon icon='mdi:pencil-outline' />
+                              </IconButton>
 
-                                editTableData(el.uuid)
-                                showDialog()
-                                // }
-                              }}
-                            >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
+                              <IconButton
+                                onClick={() => {
+                                  // if (editParams?.request_item_details?.length === 1) {
+                                  //   openCancelDialog()
+                                  // } else {
+                                  removeItemsFromTable(el.uuid)
+                                  // }
+                                }}
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                              >
+                                <Icon icon='mdi:delete-outline' />
+                              </IconButton>
 
-                            <IconButton
-                              onClick={() => {
-                                // if (editParams?.request_item_details?.length === 1) {
-                                //   openCancelDialog()
-                                // } else {
-                                removeItemsFromTable(el.uuid)
-                                // }
-                              }}
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                            >
-                              <Icon icon='mdi:delete-outline' />
-                            </IconButton>
-
-                            {/* {el.id !== undefined ? (
+                              {/* {el.id !== undefined ? (
                               <IconButton
                                 onClick={() => {
                                   if (editParams?.request_item_details?.length === 1) {
@@ -962,15 +1060,17 @@ const AddDirectDispatch = () => {
                                 <Icon icon='mdi:delete-outline' />
                               </IconButton>
                             ) : null} */}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  : null}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <CardContent sx={{ pt: 8 }}>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })
+                    : null}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+
+          {/* <CardContent sx={{ pt: 8 }}>
             {totalQty ? (
               <Grid container>
                 <Grid
@@ -1001,7 +1101,7 @@ const AddDirectDispatch = () => {
                 </Grid>
               </Grid>
             ) : null}
-          </CardContent>
+          </CardContent> */}
           <Grid item xs={12}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
               {id ? (

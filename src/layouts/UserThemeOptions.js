@@ -85,6 +85,9 @@ const UserThemeOptions = () => {
         // *** name required
         customTableHeaderBg: '#C1D3D0',
 
+        customTableBorderBg: '#DAE7DF',
+        customDropdownColor: '#FA6140',
+
         // **
         moderateSecondary: '#E4B819'
       },
