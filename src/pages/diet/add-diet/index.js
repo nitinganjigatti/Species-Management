@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
 import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
@@ -21,6 +21,8 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 import { getDietTypeList } from 'src/lib/api/diet/dietList'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const steps = [
   {
@@ -45,6 +47,10 @@ const AddDiet = () => {
   console.log('selectedCardRecipe :>> ', selectedCardRecipe)
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [urlType, seturlType] = useState('')
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [formData, setFormData] = useState({
     diet_name: '',
@@ -148,8 +154,7 @@ const AddDiet = () => {
   }
 
   useEffect(() => {
-    console.log(id, 'id')
-    if (id && urlType) {
+    if (id && urlType && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')) {
       console.log(urlType, 'urlType')
       getIngredientsDetailval(id)
     }
@@ -198,6 +203,7 @@ const AddDiet = () => {
           }
         })
         console.log(newarr, 'newarr')
+
         const newarrdiet = newarr?.map((item, index) => ({
           unit: {
             value: {
@@ -281,13 +287,16 @@ const AddDiet = () => {
         if (data && data.length > 0) {
           if (!data.every(d => d.meal_type && Array.isArray(d.meal_type) && d.meal_type.length > 0)) {
             mealTypeError = true
+
             return false
           }
           if (!data.every(d => d.meal_type.some(mealType => mealType.meal_value_header === 'Generic'))) {
             genericError = true
+
             return false
           }
         }
+
         return true
       }
 
@@ -359,6 +368,7 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+
         return Toaster({ type: 'success', message: apival.message })
       } else {
         return Toaster({
@@ -562,51 +572,69 @@ const AddDiet = () => {
     return getStepContent(activeStep)
   }
 
+  const contentRenderFunction = () => {
+    return (
+      <>
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+          <Link underline='hover' color='inherit' href='/diet/diet/'>
+            Diet
+          </Link>
+          {console.log(id, 'id')}
+          <Typography color='text.primary'>
+            {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
+          </Typography>
+        </Breadcrumbs>
+        {console.log(formData, 'ppp')}
+        <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+          <CardContent>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ width: '90%' }}>
+                <Typography variant='h6'>
+                  {' '}
+                  {id && urlType === 'copy'
+                    ? 'Add new diet'
+                    : id && urlType === 'update'
+                    ? 'Edit diet'
+                    : 'Add new diet'}
+                </Typography>
+              </div>
+            </div>
+          </CardContent>
+
+          <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
+            <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
+              {steps.map((step, index) => {
+                return (
+                  <Step key={index}>
+                    <StepLabel StepIconComponent={StepperCustomDot}>
+                      <div className='step-label'>
+                        {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
+                        <div>
+                          <Typography className='step-title'>{step.title}</Typography>
+                          <Typography className='step-subtitle'>{step.subtitle}</Typography>
+                        </div>
+                      </div>
+                    </StepLabel>
+                  </Step>
+                )
+              })}
+            </Stepper>
+          </StepperWrapper>
+        </Card>
+        {renderContent()}
+      </>
+    )
+  }
+
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Link underline='hover' color='inherit' href='/diet/diet/'>
-          Diet
-        </Link>
-        {console.log(id, 'id')}
-        <Typography color='text.primary'>
-          {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
-        </Typography>
-      </Breadcrumbs>
-      {console.log(formData, 'ppp')}
-      <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
-        <CardContent>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ width: '90%' }}>
-              <Typography variant='h6'>
-                {' '}
-                {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
-              </Typography>
-            </div>
-          </div>
-        </CardContent>
-
-        <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
-          <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
-            {steps.map((step, index) => {
-              return (
-                <Step key={index}>
-                  <StepLabel StepIconComponent={StepperCustomDot}>
-                    <div className='step-label'>
-                      {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
-                      <div>
-                        <Typography className='step-title'>{step.title}</Typography>
-                        <Typography className='step-subtitle'>{step.subtitle}</Typography>
-                      </div>
-                    </div>
-                  </StepLabel>
-                </Step>
-              )
-            })}
-          </Stepper>
-        </StepperWrapper>
-      </Card>
-      {renderContent()}
+      {dietModule && dietModuleAccess === 'ADD' && urlType != 'update' ? (
+        <>{contentRenderFunction()}</>
+      ) : dietModule && (dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') ? (
+        <>{contentRenderFunction()}</>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }
