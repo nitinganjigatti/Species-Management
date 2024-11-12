@@ -6,14 +6,14 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
-const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
+const ExcelExportButton = ({ tab_Value, subTab_value, data = [] }) => {
   const theme = useTheme()
 
   const [xlsxList, setXlsxList] = useState([])
   const [fileName, setFileName] = useState('Egg Table List')
 
   //   console.log('xlsxList :>> ', xlsxList)
-  console.log('tab_Value :>> ', tab_Value)
+  // console.log('tab_Value :>> ', tab_Value)
 
   useEffect(() => {
     if (tab_Value === 'eggs_received') {
@@ -63,7 +63,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
     } else if (tab_Value == 'eggs_hatched') {
       setFileName('Egg Hatched')
 
-      const formattedData = data.map((item, index) => ({
+      const formattedData = data?.map((item, index) => ({
         NO: index + 1,
         'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
         'SCIENTIFIC NAME': item.complete_name || 'Unknown',
@@ -225,7 +225,7 @@ const ExcelExportButton = ({ tab_Value, subTab_value, data }) => {
         onClick={handleExport}
         sx={{ alignItems: 'center', justifyContent: 'center', gap: 1 }}
       >
-        Excel 
+        Excel
       </Button> */}
     </>
   )
