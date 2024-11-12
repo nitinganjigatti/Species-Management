@@ -40,7 +40,7 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 import UserSnackbar from 'src/components/utility/snackbar'
 import Image from 'next/image'
 import { AuthContext } from 'src/context/AuthContext'
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import imageUploader from 'public/images/imageUploader/imageUploader.png'
 
 // ** Source code imports
@@ -1503,7 +1503,11 @@ const AddLab = () => {
                       parent?.child_tests?.length > 0 ? (
                         <Card key={index} mt={2}>
                           <Accordion>
-                            <AccordionSummary aria-controls='panel1a-content' id='panel1a-header'>
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls='panel1a-content'
+                              id='panel1a-header'
+                            >
                               <Typography variant='h6'>{parent?.test_name}</Typography>
                             </AccordionSummary>
                             <AccordionDetails>
