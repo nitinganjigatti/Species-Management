@@ -23,7 +23,7 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
 
-const DietDetailCard = ({ dietDetails }) => {
+const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess }) => {
   const router = useRouter()
   const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
@@ -43,9 +43,11 @@ const DietDetailCard = ({ dietDetails }) => {
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
 
   const handleSwitchChange = async event => {
-    const newIsActive = event.target.checked ? 1 : 0
-    setActivePayload(newIsActive)
-    setConfirmDialogBox(true)
+    if (dietModuleAccess && (dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')) {
+      const newIsActive = event.target.checked ? 1 : 0
+      setActivePayload(newIsActive)
+      setConfirmDialogBox(true)
+    }
   }
 
   const handleClosenew = () => {
@@ -221,37 +223,43 @@ const DietDetailCard = ({ dietDetails }) => {
                       label={isActive === '1' ? 'Active' : 'InActive'}
                     />
                   </Box>
-                  <Tooltip title='Copy' placement='top'>
-                    <Box>
-                      <Icon
-                        icon='fluent:copy-32-regular'
-                        style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-                        onClick={handleDietClick}
-                      />
-                    </Box>
-                  </Tooltip>
-                  <Tooltip title='Edit' placement='top'>
-                    <Box>
-                      <Icon
-                        icon='bx:pencil'
-                        style={{ fontSize: 24, cursor: 'pointer' }}
-                        onClick={() =>
-                          Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                        }
-                      />
-                    </Box>
-                  </Tooltip>
-                  <Tooltip title='Delete' placement='top'>
-                    <Box>
-                      <Icon
-                        onClick={() => {
-                          handlelOpenDelete()
-                        }}
-                        icon='material-symbols:delete-outline'
-                        style={{ fontSize: 24, cursor: 'pointer' }}
-                      />
-                    </Box>
-                  </Tooltip>
+                  {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                    <Tooltip title='Copy' placement='top'>
+                      <Box>
+                        <Icon
+                          icon='fluent:copy-32-regular'
+                          style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                          onClick={handleDietClick}
+                        />
+                      </Box>
+                    </Tooltip>
+                  )}
+                  {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                    <Tooltip title='Edit' placement='top'>
+                      <Box>
+                        <Icon
+                          icon='bx:pencil'
+                          style={{ fontSize: 24, cursor: 'pointer' }}
+                          onClick={() =>
+                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                          }
+                        />
+                      </Box>
+                    </Tooltip>
+                  )}
+                  {dietModuleAccess === 'DELETE' && (
+                    <Tooltip title='Delete' placement='top'>
+                      <Box>
+                        <Icon
+                          onClick={() => {
+                            handlelOpenDelete()
+                          }}
+                          icon='material-symbols:delete-outline'
+                          style={{ fontSize: 24, cursor: 'pointer' }}
+                        />
+                      </Box>
+                    </Tooltip>
+                  )}
                 </Box>
               </Box>
               <Box>
@@ -327,18 +335,20 @@ const DietDetailCard = ({ dietDetails }) => {
                     </Typography>
                   </Box>
                 </Box>
-                <Box
-                  onClick={() => setActivitySidebarOpen(true)}
-                  sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
-                >
-                  <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
-                  <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
-                </Box>
+                {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                  <Box
+                    onClick={() => setActivitySidebarOpen(true)}
+                    sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
+                  >
+                    <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+                    <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
+                  </Box>
+                )}
               </Box>
             </Box>
           </Grid>
         </Grid>
-        {dietDetails?.id && (
+        {dietDetails?.id && (dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
           <ActivityLogs
             activitySidebarOpen={activitySidebarOpen}
             activity_type='diet'
