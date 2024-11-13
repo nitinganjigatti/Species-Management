@@ -23,7 +23,7 @@ import Toaster from 'src/components/Toaster'
 const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDetailval, isActive, setIsActive }) => {
   const router = useRouter()
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
-
+  const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
   const handleClosenew = () => {
     setDeleteDialogBox(false)
     //setIsActive(IngredientsDetailsval.active)
@@ -35,7 +35,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
 
   const handleSwitchChange = async event => {
     const newIsActive = event.target.checked ? 1 : 0
-    setIsActive(newIsActive)
+    setActivePayload(newIsActive)
     setDeleteDialogBox(true)
     console.log(deleteDialogBox, 'deleteDialogBox')
   }
@@ -44,7 +44,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
     console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
-      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: isActive })
+      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: activePayload })
       console.log(response, 'response')
       if (response.success === true) {
         //Router.push(`/diet/recipe`)
@@ -203,7 +203,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
         ingredientCount={IngredientsDetailsval?.total_ingredients}
         message={
           <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-            {isActive === '1' ? 'Deactivate' : 'Activate'} Ingredient?
+            {isActive === '1' ? 'Deactivate' : 'Activate'} Recipe?
           </span>
         }
       />

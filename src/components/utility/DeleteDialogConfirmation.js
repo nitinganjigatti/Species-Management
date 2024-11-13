@@ -258,12 +258,12 @@ const DeleteDialogConfirmation = ({
             </Typography>
           )}
         </DialogTitle>
-
+        {console.log(message.props.children, 'message')}
         <Card
           sx={{
             mb: 4,
             boxShadow: 'none',
-            background: '#666cff17',
+            background: message.props.children == "Deletion isn't possible!" ? '#666cff17' : '#FFBDA833',
             textAlign: 'left',
             pl: 5,
             borderRadius: '5px',
@@ -271,7 +271,14 @@ const DeleteDialogConfirmation = ({
           }}
         >
           {type === 'diet' ? null : (
-            <Typography sx={{ pt: 6, fontSize: 14, fontWeight: 600 }}>
+            <Typography
+              sx={{
+                pt: 6,
+                fontSize: 14,
+                fontWeight: 600,
+                color: message.props.children == "Deletion isn't possible!" ? 'rgb(76 78 100 / 87%)' : '#FA6140'
+              }}
+            >
               This {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is part of{' '}
               {type === 'ingredient'
                 ? `${recipeCount} recipes and ${dietCount} diets.`
@@ -282,6 +289,7 @@ const DeleteDialogConfirmation = ({
           )}
           <Grid>
             {console.log(active, 'active')}
+            {console.log(type, 'type')}
             <Typography sx={{ fontSize: 15 }}>
               <FormControlLabel
                 label={

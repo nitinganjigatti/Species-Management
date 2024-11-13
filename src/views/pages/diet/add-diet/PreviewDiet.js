@@ -687,7 +687,13 @@ const StepPreviewDiet = ({
       <Dialog
         className=''
         open={open}
-        onClose={handleClosed}
+        onClose={(event, reason) => {
+          // Prevent closing on backdrop click or Escape key
+          if (reason !== 'backdropClick') {
+            handleClosed()
+          }
+        }}
+        disableEscapeKeyDown // Disable closing on pressing Escape
         aria-labelledby='customized-dialog-title'
         sx={{
           '& .MuiDialog-paper': {
@@ -710,7 +716,7 @@ const StepPreviewDiet = ({
           }}
         >
           <Typography variant='h6'>Add Value</Typography>
-          <Icon icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
+          <Icon style={{ cursor: 'pointer' }} icon='tabler:x' fontSize='1.25rem' onClick={handleClosed} />
         </DialogTitle>
         <DialogContent>
           {/* <Typography variant='h6'>Add Value</Typography> */}
@@ -2606,7 +2612,7 @@ const StepPreviewDiet = ({
                               {itemd.notes ? (
                                 <Typography
                                   sx={{
-                                    width: '100%',
+                                    width: '1000px',
                                     display: 'block',
                                     pb: 3
                                   }}
