@@ -167,7 +167,8 @@ const StepAddIngredients = ({
     const byPercentageValues = getValues('by_percentage')
     const totalQuantity = byPercentageValues.reduce((acc, curr) => acc + parseFloat(curr.quantity || 0), 0)
 
-    return totalQuantity
+    // Round to 2 decimal places
+    return parseFloat(totalQuantity.toFixed(2))
   }
 
   const addQuantityButton = () => {
@@ -643,6 +644,10 @@ const StepAddIngredients = ({
                               console.log('Total Quantity:', totalQuantity)
                               trigger(`by_percentage[${index}].quantity`)
                             }}
+                            // onBlur={() => {
+                            //   // Format value to 2 decimal places on blur
+                            //   onChange(parseFloat(value || 0).toFixed(2))
+                            // }}
                             placeholder=''
                             onInput={e => {
                               if (e.target.value < 0) {
@@ -675,6 +680,7 @@ const StepAddIngredients = ({
                               fontSize: '14px'
                             }}
                           >
+                            {console.log(calculateTotalQuantity(), 'calculateTotalQuantity')}
                             {fieldsIngredients.length > 1 && calculateTotalQuantity() > 100
                               ? "you've hit 100% limit"
                               : fieldsIngredients.length > 1 && calculateTotalQuantity() < 100
