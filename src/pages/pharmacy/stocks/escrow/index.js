@@ -17,7 +17,7 @@ function Escrow({ value }) {
   console.log('Value >>', value)
 
   const theme = useTheme()
-  const { type, searchTerm } = Router.query
+  const { type } = Router.query
   const isInitialLoad = useRef(true)
 
   const [loader, setLoader] = useState(false)
@@ -38,6 +38,7 @@ function Escrow({ value }) {
   const { selectedPharmacy } = usePharmacyContext()
 
   const onRowClick = params => {
+    console.log('Search Value >>', searchValue)
     var data = params.row
     if (data?.request_number?.startsWith('RES')) {
       Router.push({
@@ -46,7 +47,8 @@ function Escrow({ value }) {
           id: data.request_id,
           request_number: data.request_number,
           type: stockType,
-          value: value
+          value: value,
+          searchValue: data?.request_number
         }
       })
     } else if (data?.request_number?.startsWith('DD')) {
@@ -161,7 +163,6 @@ function Escrow({ value }) {
 
   const fetchScrewTableData = useCallback(
     async ({ sort, q, column, type }) => {
-      debugger
       try {
         setLoading(true)
 
@@ -190,22 +191,22 @@ function Escrow({ value }) {
         setLoading(false)
       }
     },
-    [paginationModel, stockType, searchTerm]
+    [paginationModel]
   )
 
   useEffect(() => {
     fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
   }, [fetchScrewTableData, selectedPharmacy.id])
 
-  useEffect(() => {
-    if (type && isInitialLoad.current) {
-      // Set the initial value of stockType from router's query only on first load
-      setStockType(type)
-      setSearchValue(searchTerm)
-      fetchScrewTableData({ q: searchTerm, column: sortColumn, type })
-      isInitialLoad.current = false // Mark initial load as complete
-    }
-  }, [type, fetchScrewTableData, searchTerm])
+  // useEffect(() => {
+  //   if (type && isInitialLoad.current) {
+  //     // Set the initial value of stockType from router's query only on first load
+  //     setStockType(type)
+  //     //setSearchValue(searchTerm)
+  //     fetchScrewTableData({  column: sortColumn, type })
+  //     isInitialLoad.current = false // Mark initial load as complete
+  //   }
+  // }, [type, fetchScrewTableData, searchTerm])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -229,6 +230,11 @@ function Escrow({ value }) {
     }
   }
 
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({ sort, q: value, column: sortColumn })
+  }
+
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setSearchValue(q)
@@ -240,11 +246,6 @@ function Escrow({ value }) {
     }, 1000),
     []
   )
-
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
-  }
 
   const title = (
     <>
