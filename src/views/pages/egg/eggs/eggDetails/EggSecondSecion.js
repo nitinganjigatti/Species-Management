@@ -379,10 +379,11 @@ const EggSecondSecion = ({
   useEffect(() => {
     fetchTableData()
   }, [fetchTableData])
+
   const series = [
     {
       name: 'Actual Value',
-      data: rowsWeight?.reverse()
+      data: rowsWeight
     }
   ]
 

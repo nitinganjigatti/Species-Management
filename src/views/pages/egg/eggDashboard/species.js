@@ -306,7 +306,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
-      field: 'total_egg_in_nest',
+      field: 'currently_in_nest',
       sortable: true,
       disableColumnMenu: true,
       renderHeader: () => (
@@ -349,7 +349,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
-      field: 'eggs_to_nursery',
+      field: 'currently_in_nursery',
       sortable: true,
       disableColumnMenu: true,
       // headerName: 'EGGS TO NURSERY',
@@ -394,7 +394,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'hatched_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'TOTAL HATCHED %',
       renderCell: params => (
@@ -472,7 +472,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'hatched_in_nursery_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
@@ -559,7 +559,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'hatched_in_nest_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NEST %',
       renderCell: params => (
@@ -613,7 +613,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 180,
-      field: 'in_nursery',
+      field: 'hatched_in_nest',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NEST',
@@ -794,7 +794,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 320,
       sortable: true,
       disableColumnMenu: true,
-      field: 'species',
+      field: 'sites',
       headerName: 'SITES',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -879,7 +879,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
-      field: 'total_egg_in_nest',
+      field: 'currently_in_nest',
       sortable: true,
       disableColumnMenu: true,
       renderHeader: () => (
@@ -922,7 +922,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
-      field: 'eggs_to_nursery',
+      field: 'currently_in_nursery',
       sortable: true,
       disableColumnMenu: true,
       // headerName: 'EGGS TO NURSERY',
@@ -944,7 +944,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             height: 40,
             borderRadius: '4px',
             paddingLeft: 2,
-
             alignContent: 'center',
             '&:hover': {
               backgroundColor: '#37BD691A'
@@ -967,7 +966,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 160,
       field: 'hatched_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'TOTAL HATCHED %',
       renderCell: params => (
@@ -1012,7 +1011,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
-      field: 'hatched',
+      field: 'total_hatch',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'TOTAL HATCHED',
@@ -1046,7 +1045,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'hatched_in_nursery_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
@@ -1131,7 +1130,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 180,
       field: 'hatched_in_Nest_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NEST %',
       renderCell: params => (
@@ -1183,7 +1182,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 180,
-      field: 'hatched_in_nest_',
+      field: 'hatched_in_nest',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NEST',
@@ -1482,7 +1481,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
-      field: 'eggs_to_nursery',
+      field: 'currently_in_nursery',
       sortable: true,
       disableColumnMenu: true,
       renderHeader: () => (
@@ -1526,7 +1525,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     {
       width: 200,
       field: 'hatched_in_nursery_percentage',
-      sortable: true,
+      sortable: false,
       disableColumnMenu: true,
       headerName: 'HATCHED IN NURSERY %',
       renderCell: params => (
@@ -1761,13 +1760,13 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             ref_id,
             sort_order: sort?.sort === 'asc' ? 'ASC' : 'DESC' || 'DESC',
             sort_column:
-              status === 'site'
+              status === 'site' && sort?.field === 'sites'
                 ? 'site_name'
-                : status === 'nursery'
+                : status === 'nursery' && sort?.field === 'nursery'
                 ? 'nursery_name'
-                : status === 'species'
+                : status === 'species' && sort?.field === 'species'
                 ? 'complete_name'
-                : status || ''
+                : sort.field
           }
         } else {
           params = {
@@ -1820,21 +1819,21 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       searchTableData(status, searchValue, fromDate, tillDate, getIdBasedOnStatus())
     }
 
-    const handleFromDateChange = newDate => {
-      if (newDate) {
-        const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-        setFromDate(formattedDate)
-        getspeciesFunc(status, searchValue, formattedDate, tillDate, getIdBasedOnStatus())
-      }
-    }
+    // const handleFromDateChange = newDate => {
+    //   if (newDate) {
+    //     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+    //     setFromDate(formattedDate)
+    //     getspeciesFunc(status, searchValue, formattedDate, tillDate, getIdBasedOnStatus())
+    //   }
+    // }
 
-    const handleTillDateChange = newDate => {
-      if (newDate) {
-        const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-        setTillDate(formattedDate)
-        getspeciesFunc(status, searchValue, fromDate, formattedDate, getIdBasedOnStatus())
-      }
-    }
+    // const handleTillDateChange = newDate => {
+    //   if (newDate) {
+    //     const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
+    //     setTillDate(formattedDate)
+    //     getspeciesFunc(status, searchValue, fromDate, formattedDate, getIdBasedOnStatus())
+    //   }
+    // }
 
     return (
       <>
