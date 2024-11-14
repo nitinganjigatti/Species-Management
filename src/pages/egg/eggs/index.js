@@ -59,7 +59,8 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  console.log('rows :>> ', rows)
+
+  // console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -2574,7 +2575,7 @@ const EggList = () => {
                   setSearchQuery={setSearchQuery}
                   selectedOptions={selectedOptions}
                   setSelectedOptions={setSelectedOptions}
-                  data={rows}
+                  data={indexedRows}
                 />
                 <DataGrid
                   sx={{
@@ -2643,7 +2644,7 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
-                    data={rows}
+                    data={indexedRows}
                   />
 
                   <DataGrid
@@ -2815,7 +2816,7 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
-                    data={rows}
+                    data={indexedRows}
                   />
 
                   <DataGrid
@@ -3026,7 +3027,7 @@ const EggList = () => {
                         setSearchQuery={setSearchQuery}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
-                        data={rows}
+                        data={indexedRows}
                       />
 
                       <DataGrid
