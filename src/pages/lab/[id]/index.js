@@ -451,52 +451,56 @@ const RequestDetails = () => {
         </>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      sortable: false,
-
-      renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
-            <Icon icon='charm:menu-kebab' />
-          </IconButton>
-
-          <Popover
-            sx={{
-              '& .MuiPaper-root': {
-                minWidth: 140,
-                borderRadius: '5px'
-              },
-              '& .MuiBackdrop-root': {
-                bgcolor: 'transparent'
-              }
-            }}
-            open={openPopover}
-            anchorEl={anchorEl}
-            onClose={handleClosePopover}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right'
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right'
-            }}
-          >
-            {(permissions?.allow_full_access === true || permissions?.transfer_tests === true) && (
-              <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
-            )}
-
-            {(permissions?.allow_full_access === true || permissions?.perform_tests === true) && (
-              <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
-            )}
-          </Popover>
-        </Box>
-      )
-    },
+    ...(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests
+      ? [
+          {
+            flex: 0.2,
+            minWidth: 20,
+            field: 'Action',
+            headerName: 'Action',
+            sortable: false,
+            renderCell: params => (
+              <>
+                <Box>
+                  <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
+                    <Icon icon='charm:menu-kebab' />
+                  </IconButton>
+                  <Popover
+                    sx={{
+                      '& .MuiPaper-root': {
+                        minWidth: 140,
+                        borderRadius: '5px'
+                      },
+                      '& .MuiBackdrop-root': {
+                        bgcolor: 'transparent'
+                      }
+                    }}
+                    open={openPopover}
+                    anchorEl={anchorEl}
+                    onClose={handleClosePopover}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right'
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right'
+                    }}
+                  >
+                    {(permissions?.allow_full_access || permissions?.transfer_tests) && (
+                      <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
+                    )}
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                      <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+                    )}
+                  </Popover>
+                </Box>
+              </>
+            )
+          }
+        ]
+      : []),
+    ,
     {
       flex: 0.2,
       minWidth: 10,
