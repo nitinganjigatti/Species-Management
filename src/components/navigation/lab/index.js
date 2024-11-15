@@ -25,12 +25,13 @@ const ComposeLabNavigation = () => {
 
   const labNavigationArray = []
 
-  if (labList?.length > 0) {
-    labNavigationArray.push(labTitle)
-    labNavigationArray.push(lab, request)
-  } else if (addlabPermission) {
+  if (labList?.length > 0 || addlabPermission) {
     labNavigationArray.push(labTitle)
     labNavigationArray.push(lab)
+  }
+
+  if (labList.length > 0) {
+    labNavigationArray.push(request)
   }
 
   return labNavigationArray
