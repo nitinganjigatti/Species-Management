@@ -25,6 +25,7 @@ import {
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
 import AddDietType from './AddDietType'
+import dayjs from 'dayjs'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -1007,6 +1008,7 @@ const StepPreviewDiet = ({
                         {formData.diet_type_name === 'By Gender' ? (
                           <>
                             <TableCell
+                              //colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1019,6 +1021,7 @@ const StepPreviewDiet = ({
                               <Typography>GENERIC</Typography>
                             </TableCell>
                             <TableCell
+                              // colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1031,6 +1034,7 @@ const StepPreviewDiet = ({
                               <Typography>FEMALE </Typography>
                             </TableCell>
                             <TableCell
+                              colSpan={8}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1046,6 +1050,7 @@ const StepPreviewDiet = ({
                         ) : formData.diet_type_name === 'By Lifestage' ? (
                           <>
                             <TableCell
+                              colSpan={5}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1075,6 +1080,7 @@ const StepPreviewDiet = ({
                               )
                             })} */}
                             <TableCell
+                              //colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1087,6 +1093,7 @@ const StepPreviewDiet = ({
                               <Typography>Juvenile </Typography>
                             </TableCell>
                             <TableCell
+                              // colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1099,6 +1106,7 @@ const StepPreviewDiet = ({
                               <Typography>Young</Typography>
                             </TableCell>
                             <TableCell
+                              // colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1111,6 +1119,7 @@ const StepPreviewDiet = ({
                               <Typography>Adult</Typography>
                             </TableCell>
                             <TableCell
+                              //colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1123,6 +1132,7 @@ const StepPreviewDiet = ({
                               <Typography>Undetermined</Typography>
                             </TableCell>
                             <TableCell
+                              // colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1138,6 +1148,7 @@ const StepPreviewDiet = ({
                         ) : formData.diet_type_name === 'Generic' ? (
                           <>
                             <TableCell
+                              colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1153,6 +1164,7 @@ const StepPreviewDiet = ({
                         ) : formData.diet_type_name === 'By Weight' ? (
                           <>
                             <TableCell
+                              colSpan={12}
                               sx={{
                                 border: 'none',
                                 backgroundColor: '#C1D3D099',
@@ -1167,6 +1179,7 @@ const StepPreviewDiet = ({
                             {formData.child?.map((all, index) => {
                               return (
                                 <TableCell
+                                  colSpan={5}
                                   key={index}
                                   sx={{
                                     border: 'none',
@@ -1206,6 +1219,8 @@ const StepPreviewDiet = ({
                         const startTimes = formattedfromTime
                         const endTimes = formattedtoTime
                         const ind = index
+
+                        // console.log(fromDate, endTimes, 'raghu') // Logs times in "h:mm AM/PM" format
 
                         return (
                           <>
@@ -1308,34 +1323,36 @@ const StepPreviewDiet = ({
                                           position: 'sticky',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff',
-                                          float: 'left'
+                                          backgroundColor: '#fff'
+                                          //float: 'left',
+                                          // display: 'flex',
+                                          // flexDirection: 'row'
                                         }}
-                                        className={
-                                          formData?.diet_type_name === 'By Weight'
-                                            ? formData?.child?.length === 1
-                                              ? 'cellmodule9'
-                                              : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4' // Default for By Weight if no other condition is met
-                                            : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4' // Default if By Gender does not match other conditions
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                            : 'cellmodule4' // Default for all other cases
-                                        }
+                                        // className={
+                                        //   formData?.diet_type_name === 'By Weight'
+                                        //     ? formData?.child?.length === 1
+                                        //       ? 'cellmodule9'
+                                        //       : formData?.child?.length === 0
+                                        //       ? 'cellmodule1'
+                                        //       : formData?.child?.length === 2
+                                        //       ? 'cellmodule2'
+                                        //       : formData?.child?.length === 3
+                                        //       ? 'cellmodule22'
+                                        //       : formData?.child?.length > 3
+                                        //       ? 'cellmodule3'
+                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
+                                        //     : formData?.diet_type_name === 'By Gender'
+                                        //     ? formData?.child?.length === 2
+                                        //       ? 'cellmodule5'
+                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
+                                        //     : formData?.diet_type_name === 'Generic'
+                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                        //     : formData?.diet_type_name === 'By Lifestage'
+                                        //     ? formData?.child?.length > 2
+                                        //       ? 'cellmodule7'
+                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                        //     : 'cellmodule4' // Default for all other cases
+                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -1349,6 +1366,31 @@ const StepPreviewDiet = ({
                                             p: '12px',
                                             gap: '16px'
                                           }}
+                                          className={
+                                            formData?.diet_type_name === 'By Weight'
+                                              ? formData?.child?.length === 1
+                                                ? 'cellmodule9'
+                                                : formData?.child?.length === 0
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                ? 'cellmodule2'
+                                                : formData?.child?.length === 3
+                                                ? 'cellmodule22'
+                                                : formData?.child?.length > 3
+                                                ? 'cellmodule3'
+                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                              : formData?.diet_type_name === 'By Gender'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                              : formData?.diet_type_name === 'Generic'
+                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              : formData?.diet_type_name === 'By Lifestage'
+                                              ? formData?.child?.length > 2
+                                                ? 'cellmodule7'
+                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                              : 'cellmodule4' // Default for all other cases
+                                          }
                                         >
                                           <Box>
                                             <Box
@@ -1740,34 +1782,36 @@ const StepPreviewDiet = ({
                                           position: 'sticky',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff',
-                                          float: 'left'
+                                          backgroundColor: '#fff'
+                                          //float: 'left',
+                                          // display: 'flex',
+                                          // flexDirection: 'row'
                                         }}
-                                        className={
-                                          formData?.diet_type_name === 'By Weight'
-                                            ? formData?.child?.length === 1
-                                              ? 'cellmodule9'
-                                              : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4' // Default for By Weight if no other condition is met
-                                            : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4' // Default if By Gender does not match other conditions
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                            : 'cellmodule4' // Default for all other cases
-                                        }
+                                        // className={
+                                        //   formData?.diet_type_name === 'By Weight'
+                                        //     ? formData?.child?.length === 1
+                                        //       ? 'cellmodule9'
+                                        //       : formData?.child?.length === 0
+                                        //       ? 'cellmodule1'
+                                        //       : formData?.child?.length === 2
+                                        //       ? 'cellmodule2'
+                                        //       : formData?.child?.length === 3
+                                        //       ? 'cellmodule22'
+                                        //       : formData?.child?.length > 3
+                                        //       ? 'cellmodule3'
+                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
+                                        //     : formData?.diet_type_name === 'By Gender'
+                                        //     ? formData?.child?.length === 2
+                                        //       ? 'cellmodule5'
+                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
+                                        //     : formData?.diet_type_name === 'Generic'
+                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                        //     : formData?.diet_type_name === 'By Lifestage'
+                                        //     ? formData?.child?.length > 2
+                                        //       ? 'cellmodule7'
+                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                        //     : 'cellmodule4' // Default for all other cases
+                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -1781,6 +1825,31 @@ const StepPreviewDiet = ({
                                             p: '12px',
                                             gap: '16px'
                                           }}
+                                          className={
+                                            formData?.diet_type_name === 'By Weight'
+                                              ? formData?.child?.length === 1
+                                                ? 'cellmodule9'
+                                                : formData?.child?.length === 0
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                ? 'cellmodule2'
+                                                : formData?.child?.length === 3
+                                                ? 'cellmodule22'
+                                                : formData?.child?.length > 3
+                                                ? 'cellmodule3'
+                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                              : formData?.diet_type_name === 'By Gender'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                              : formData?.diet_type_name === 'Generic'
+                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              : formData?.diet_type_name === 'By Lifestage'
+                                              ? formData?.child?.length > 2
+                                                ? 'cellmodule7'
+                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                              : 'cellmodule4' // Default for all other cases
+                                          }
                                         >
                                           <Box>
                                             <Box
@@ -2216,34 +2285,36 @@ const StepPreviewDiet = ({
                                           position: 'sticky',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff',
-                                          float: 'left'
+                                          backgroundColor: '#fff'
+                                          //float: 'left',
+                                          // display: 'flex',
+                                          // flexDirection: 'row'
                                         }}
-                                        className={
-                                          formData?.diet_type_name === 'By Weight'
-                                            ? formData?.child?.length === 1
-                                              ? 'cellmodule9'
-                                              : formData?.child?.length === 0
-                                              ? 'cellmodule1'
-                                              : formData?.child?.length === 2
-                                              ? 'cellmodule2'
-                                              : formData?.child?.length === 3
-                                              ? 'cellmodule22'
-                                              : formData?.child?.length > 3
-                                              ? 'cellmodule3'
-                                              : 'cellmodule4' // Default for By Weight if no other condition is met
-                                            : formData?.diet_type_name === 'By Gender'
-                                            ? formData?.child?.length === 2
-                                              ? 'cellmodule5'
-                                              : 'cellmodule4' // Default if By Gender does not match other conditions
-                                            : formData?.diet_type_name === 'Generic'
-                                            ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                            : formData?.diet_type_name === 'By Lifestage'
-                                            ? formData?.child?.length > 2
-                                              ? 'cellmodule7'
-                                              : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                            : 'cellmodule4' // Default for all other cases
-                                        }
+                                        // className={
+                                        //   formData?.diet_type_name === 'By Weight'
+                                        //     ? formData?.child?.length === 1
+                                        //       ? 'cellmodule9'
+                                        //       : formData?.child?.length === 0
+                                        //       ? 'cellmodule1'
+                                        //       : formData?.child?.length === 2
+                                        //       ? 'cellmodule2'
+                                        //       : formData?.child?.length === 3
+                                        //       ? 'cellmodule22'
+                                        //       : formData?.child?.length > 3
+                                        //       ? 'cellmodule3'
+                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
+                                        //     : formData?.diet_type_name === 'By Gender'
+                                        //     ? formData?.child?.length === 2
+                                        //       ? 'cellmodule5'
+                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
+                                        //     : formData?.diet_type_name === 'Generic'
+                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                        //     : formData?.diet_type_name === 'By Lifestage'
+                                        //     ? formData?.child?.length > 2
+                                        //       ? 'cellmodule7'
+                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                        //     : 'cellmodule4' // Default for all other cases
+                                        // }
                                       >
                                         <Box
                                           key={index}
@@ -2257,6 +2328,31 @@ const StepPreviewDiet = ({
                                             p: '12px',
                                             gap: '16px'
                                           }}
+                                          className={
+                                            formData?.diet_type_name === 'By Weight'
+                                              ? formData?.child?.length === 1
+                                                ? 'cellmodule9'
+                                                : formData?.child?.length === 0
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                ? 'cellmodule2'
+                                                : formData?.child?.length === 3
+                                                ? 'cellmodule22'
+                                                : formData?.child?.length > 3
+                                                ? 'cellmodule3'
+                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                              : formData?.diet_type_name === 'By Gender'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                              : formData?.diet_type_name === 'Generic'
+                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              : formData?.diet_type_name === 'By Lifestage'
+                                              ? formData?.child?.length > 2
+                                                ? 'cellmodule7'
+                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                              : 'cellmodule4' // Default for all other cases
+                                          }
                                         >
                                           <Box
                                             sx={{
@@ -2608,21 +2704,24 @@ const StepPreviewDiet = ({
                               </>
                             </TableRow>
 
-                            <TableRow sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}>
-                              {itemd.notes ? (
-                                <Typography
-                                  sx={{
-                                    width: '1000px',
-                                    display: 'block',
-                                    pb: 3
-                                  }}
-                                >
-                                  <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>Notes :</span>{' '}
-                                  {itemd.notes}
-                                </Typography>
-                              ) : (
-                                ''
-                              )}
+                            <TableRow
+                              sx={{
+                                width: '100%', // Ensure the row spans the full width of the table
+                                borderBottom: '1px solid #C3CEC7', // Add border directly to the row
+                                minHeight: '48px', // Optional: set a minimum height for the row
+                                display: 'table-row' // Default behavior for TableRow
+                              }}
+                            >
+                              <TableCell colSpan={12} sx={{ borderBottom: 'none', padding: '8px 16px' }}>
+                                {itemd.notes ? (
+                                  <>
+                                    <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>Notes :</span>{' '}
+                                    {itemd.notes}
+                                  </>
+                                ) : (
+                                  <></> // Render nothing if no notes are available
+                                )}
+                              </TableCell>
                             </TableRow>
                           </>
                         )

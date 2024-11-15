@@ -49,8 +49,68 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {parseFloat(params.row.quantity).toFixed(2)}
+          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'preparation_type',
+      headerName: 'Preparation Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.preparation_type}
+        </Typography>
+      )
+    }
+  ]
+
+  const columnsforPercentage = [
+    {
+      flex: 0.5,
+      minWidth: 30,
+      field: 'ingredient_name',
+      headerName: 'Ingredient Name',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.ingredient_name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 10,
+      field: 'ingredient_id',
+      headerName: 'Ingredient ID',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.ingredient_id}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'feed_type_label',
+      headerName: 'Feed Type',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.feed_type_label}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'quantity',
+      headerName: `Quantity (100%)`,
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+          {parseFloat(params.row.quantity).toFixed(2)}
+          {params.row.uom_text ? ` ${params.row.uom_text}` : '%'}
         </Typography>
       )
     },
@@ -241,7 +301,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                       }}
                       autoHeight
                       rows={rowsPercentage}
-                      columns={columns}
+                      columns={columnsforPercentage}
                       hideFooter={true}
                     />
                     <CardHeader title='Ingredient by Quantity' sx={{ mt: 8 }} />

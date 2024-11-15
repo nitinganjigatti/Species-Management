@@ -866,6 +866,7 @@ const StepBasicDetails = ({
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
+                          {console.log(value, 'value')}
                           <TimePicker
                             label='Select time - from'
                             onChange={onChange}
