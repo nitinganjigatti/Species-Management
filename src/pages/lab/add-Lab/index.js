@@ -428,8 +428,6 @@ const AddLab = () => {
   // ---------------
 
   const onSubmit = async params => {
-    setSubmitLoader(true)
-
     const { lab_name, type, incharge_name, address, lab_contact_number, tests, is_default } = {
       ...params
     }
@@ -449,6 +447,9 @@ const AddLab = () => {
       image: imgArr[0]
       // user_id: '58'
     }
+
+    if (labTestsEmpty) return
+    setSubmitLoader(true)
 
     // if (files.length > 0) {
     //   payload.image = files[0]
@@ -1088,7 +1089,15 @@ const AddLab = () => {
 
                           {/* test Data */}
                           <Grid item xs={12} md={12} sm={12}>
-                            <Card sx={{ p: 2, display: 'flex', flexDirection: 'column' }} gap={2}>
+                            <Card
+                              sx={{
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column'
+                                // borderColor: labTestsEmpty ? 'red' : 'default'
+                              }}
+                              gap={2}
+                            >
                               <div>
                                 <Box
                                   sx={{
