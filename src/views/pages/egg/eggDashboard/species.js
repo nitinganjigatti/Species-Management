@@ -35,6 +35,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   // Data Lists
   const [speciesList, setSpeciesList] = useState([])
+  const [exportSpeciesList, setExportSpeciesList] = useState([])
   const [taxonomyList, setTaxonomyList] = useState([])
   const [nurseryList, setNurseryList] = useState([])
 
@@ -98,9 +99,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     return useCallback(debounce(callback, delay), [callback, delay])
   }
 
-  // Debounced search callbacks
-  const searchSpecies = useDebouncedCallback(async search => await TaxonomyList({ search }), 1000)
-  const searchNursery = useDebouncedCallback(async q => await NurseryList(q), 1000)
+  // // Debounced search callbacks
+  // const searchSpecies = useDebouncedCallback(async search => await TaxonomyList({ search }), 1000)
+  // const searchNursery = useDebouncedCallback(async q => await NurseryList(q), 1000)
 
   const searchTableData = useDebouncedCallback(async (status, q, fDate, tDate, ref_id) => {
     setSearchValue(q)
@@ -1799,6 +1800,43 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     [paginationModel]
   )
 
+  const exportExcelDataFunc = async (statuss, q, fDate, tDate, ref_id, sort, handleExport) => {
+    try {
+      setLoading(true)
+
+      console.log('sortModelcccc', sortModel)
+      const params = {
+        ref_type: statuss || status,
+        q,
+        ref_id,
+        sort_order: sortModel[0]?.sort === 'asc' ? 'ASC' : 'DESC' || 'DESC',
+        sort_column:
+          status === 'site' && sortModel[0]?.field === 'sites'
+            ? 'site_name'
+            : status === 'nursery' && sortModel[0]?.field === 'nursery'
+            ? 'nursery_name'
+            : status === 'species' && sortModel[0]?.field === 'species'
+            ? 'complete_name'
+            : sortModel[0]?.field
+      }
+
+      const res = await getSpeciesList(params)
+      const data = res?.data?.data
+
+      if (res?.data?.success) {
+        setTimeout(() => {
+          handleExport(data?.result)
+        }, 2000)
+      } else {
+        setExportSpeciesList([])
+      }
+    } catch (e) {
+      console.error('Error fetching species:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     TaxonomyList()
     NurseryList()
@@ -1811,6 +1849,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const handleSortModelChange = newModel => {
     setSortModel(newModel)
     getspeciesFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), newModel[0])
+  }
+  const exportExcelDataCall = handleExport => {
+    exportExcelDataFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), sortModel, handleExport)
   }
 
   const tableData = () => {
@@ -1864,7 +1905,12 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             />
           </Box>
           <Box>
-            <DashboardExelExportButton tab_Value={status} data={indexedRows} />
+            <DashboardExelExportButton
+              tab_Value={status}
+              loading={loading}
+              data={exportSpeciesList}
+              exportExcelDataCall={exportExcelDataCall}
+            />
           </Box>
 
           {/* <Box>
