@@ -266,7 +266,7 @@ const ReturnRequestList = () => {
       headerName: getRequestedText(),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.from_store}
+          {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
         </Typography>
       )
     },

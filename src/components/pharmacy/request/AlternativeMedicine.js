@@ -76,7 +76,11 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-
+    if (values.control_substance === true) {
+      if (values.prescription_required_file?.length === 0) {
+        itemErrors.prescription_required_file = 'This field is required'
+      }
+    }
     if (values.prescription_required === true) {
       if (values.prescription_required_file.length === 0) {
         itemErrors.prescription_required_file = 'This field is required'
@@ -112,7 +116,11 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           manufacture: item.manufacturer_name,
           control_substance: item.controlled_substance === '1' ? true : false,
           status: item?.active === '0' ? 0 : 1,
-          prescription_required: item?.prescription_required === '1' ? true : false,
+
+          // prescription_required: item?.prescription_required === '1' ? true : false,
+          // making prescription true if product is control substance
+          prescription_required:
+            item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
           genericName: item?.generic_name,
           availAbleQty: item?.available_qty
@@ -158,7 +166,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            prescription_required: item?.prescription_required === '1' ? true : false,
+
+            // prescription_required: item?.prescription_required === '1' ? true : false,
+            // making prescription true if product is control substance
+
+            prescription_required:
+              item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0,
             availAbleQty: item?.available_qty
           }))
@@ -218,6 +231,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
       setItemErrors(validate(nestedRowMedicine))
 
       return
+    }
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
     }
 
     if (nestedRowMedicine.prescription_required === true) {
@@ -617,7 +637,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         {/* // file uploader */}
         {/* <Grid item xs={12} sm={1}></Grid> */}
 
-        {nestedRowMedicine.control_substance === true ? (
+        {/* {nestedRowMedicine.control_substance === true ? (
           nestedRowMedicine.control_substance_file ? (
             <Grid item xs={12} sm={12}>
               {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
@@ -711,8 +731,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               </FormControl>
             </Grid>
           )
-        ) : null}
-        {nestedRowMedicine.prescription_required === true ? (
+        ) : null} */}
+        {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
             <Grid item xs={12} sm={12}>
               {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
@@ -771,7 +791,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             </Grid>
           ) : (
             <Grid item xs={12} sm={12}>
-              <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
+              <Typography sx={{ mb: 2 }}>Attach prescription details (Mandatory)</Typography>
               <FormControl fullWidth>
                 <TextField
                   type='file'

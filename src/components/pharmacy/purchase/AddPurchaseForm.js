@@ -1050,7 +1050,6 @@ const AddPurchaseForm = () => {
                       name='Purchase Date*'
                       fullWidth
                       maxDate={new Date()}
-                      date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
                         let formatted = formatDate(date)
@@ -1257,6 +1256,15 @@ const AddPurchaseForm = () => {
                   Net Amount
                 </TableCell>
                 <TableCell
+                  align='right'
+                  sx={{
+                    minWidth: 130,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Gross Amount
+                </TableCell>
+                <TableCell
                   sx={{
                     minWidth: 130,
                     textAlign: 'center'
@@ -1309,20 +1317,23 @@ const AddPurchaseForm = () => {
                     return (
                       <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                         <TableCell>
-                          {el.medicine_name}
-                          <Typography variant='body2'>{el.package_details}</Typography>
-                          <Typography variant='body2'>{el.manufacture}</Typography>
+                          {el?.medicine_name}
+                          <Typography variant='body2'>{el?.package_details}</Typography>
+                          <Typography variant='body2'>{el?.manufacture}</Typography>
                         </TableCell>
-                        <TableCell>{el.purchase_batch_no}</TableCell>
+                        <TableCell>{el?.purchase_batch_no}</TableCell>
                         <TableCell>
-                          {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
+                          {el?.stock_type === 'non_medical'
+                            ? 'NA'
+                            : Utility.formatDisplayDate(el?.purchase_expiry_date)}
                         </TableCell>
-                        <TableCell align='right'>{el.purchase_qty}</TableCell>
+                        <TableCell align='right'>{el?.purchase_qty}</TableCell>
                         {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
-                        <TableCell align='right'>{el.purchase_unit_price}</TableCell>
-                        <TableCell align='right'>{el.purchase_discount}%</TableCell>
+                        <TableCell align='right'>{el?.purchase_unit_price}</TableCell>
+                        <TableCell align='right'>{el?.purchase_discount}%</TableCell>
                         {/* <TableCell align='right'>{el.purchase_igst}%</TableCell> */}
-                        <TableCell align='right'>{el.purchase_net_amount}</TableCell>
+                        <TableCell align='right'>{el?.purchase_net_amount}</TableCell>
+                        <TableCell align='right'>{el?.purchase_gross_amount}</TableCell>
                         <TableCell>
                           <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
                             {el?.purchase_cgst}%
