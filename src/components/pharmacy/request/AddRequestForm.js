@@ -1168,7 +1168,7 @@ const AddRequestForm = () => {
                 <FormControl fullWidth>
                   <TextField
                     type='file'
-                    accept='.pdf, .jpeg, .jpg, .png'
+                    accept='.pdf, image/jpeg, .png'
                     error={Boolean(itemErrors.prescription_required_file)}
                     // label='Attach prescription'
                     onChange={e => {
