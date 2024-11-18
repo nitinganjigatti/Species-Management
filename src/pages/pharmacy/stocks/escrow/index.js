@@ -32,7 +32,7 @@ function Escrow({ value }) {
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10 
+    pageSize: parseInt(router.query.pageSize, 10) || 10
   })
   // const [stockType, setStockType] = useState( 'dispute')
   const [stockType, setStockType] = useState(router.query.stockType || 'dispute')
@@ -216,9 +216,8 @@ function Escrow({ value }) {
         sort,
         sortColumn
       }
-    });
-  }, [stockType,value, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn]);
-  
+    })
+  }, [stockType, value, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
 
   const handleSortModel = useCallback(newModel => {
     if (newModel.length) {
@@ -240,15 +239,38 @@ function Escrow({ value }) {
     setStockType(type)
   }, [])
 
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
 
-      // Reset to the first page (0) on new search
-      setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
+  //     // Reset to the first page (0) on new search
+  //     setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
+  //   }, 500),
+  //   []
+  // )
+  
+  const handleSearch = useCallback(
+    debounce((value) => {
+      setSearchValue(value);
+  
+      // Reset the page to the first page (page 0 in your `paginationModel`)
+      setPaginationModel((prevModel) => ({
+        ...prevModel,
+        page: 0,
+      }));
+  
+      // Update the URL query parameters
+      router.replace({
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          searchValue: value,
+          page: 1, // Update to 1-indexed for the URL
+        },
+      });
     }, 500),
-    []
-  )
+    [router]
+  );
 
   const title = (
     <>
