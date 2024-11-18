@@ -146,7 +146,8 @@ const RecipeDetail = () => {
       // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/recipe`)
-        Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
+        //Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
+        Toaster({ type: 'success', message: `Recipe Deleted Successfully` })
       } else {
         Toaster({ type: 'error', message: 'something went wrong' })
       }
