@@ -562,7 +562,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.25,
+      flex: 0.3,
       minWidth: 20,
       field: 'shipping_status',
       headerName: 'STATUS',
