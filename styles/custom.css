@@ -102,6 +102,9 @@
   .diet_cell_weight2 {
     width: 121px;
   }
+  .w_280 {
+    width: 180px;
+  }
 }
 
 @media (min-width: 1024px) and (max-width: 1199px) {
