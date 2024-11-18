@@ -77,7 +77,7 @@ const RequestDetails = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
 
-  // console.log('authData :>> ', authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
+  console.log('authData :>> ', authData?.userData?.modules?.lab_data?.lab)
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
@@ -111,11 +111,11 @@ const RequestDetails = () => {
 
   // console.log('permissions :>> ', permissions)
 
-  const storedData = JSON.parse(localStorage.getItem('userDetails'))
+  // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
   const [status, setStatus] = React.useState()
 
-  const localLabData = storedData?.modules?.lab_data?.lab
+  const localLabData = authData?.userData?.modules?.lab_data?.lab
 
   const PrvLabId = request[0]?.lab_id
 
@@ -414,16 +414,36 @@ const RequestDetails = () => {
                   alt={params.row.status}
                   style={{
                     color:
-                      params.row.status === 'pending'
-                        ? 'red'
+                      params.row.status === 'pending' ||
+                      params.row.status === 'transferred' ||
+                      params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_rejected' ||
+                      params.row.status === 'sample_received'
+                        ? '#FA6140'
                         : params.row.status === 'completed'
-                        ? 'green'
-                        : params.row.status === 'in progress'
-                        ? 'blue'
-                        : 'black'
+                        ? '#37BD69'
+                        : params.row.status === 'inprogress'
+                        ? '#00AFD6'
+                        : '#37BD69'
                   }}
                 >
-                  {params.row.status}
+                  {params.row.status === 'awaiting_sample'
+                    ? 'Awaiting sample'
+                    : params.row.status === 'sample_received'
+                    ? 'Sample received'
+                    : params.row.status === 'sample_rejected'
+                    ? 'sample rejected'
+                    : params.row.status === 'completed_positive'
+                    ? 'completed positive'
+                    : params.row.status === 'completed_negative'
+                    ? 'completed negative'
+                    : params.row.status === 'completed_detected'
+                    ? 'completed detected'
+                    : params.row.status === 'completed_not_detected'
+                    ? 'completed not detected'
+                    : params.row.status === 'completed_inconclusive'
+                    ? 'completed inconclusive'
+                    : 'inprogress'}
                 </span>
               </Typography>
             )}
@@ -431,52 +451,56 @@ const RequestDetails = () => {
         </>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      sortable: false,
-
-      renderCell: params => (
-        <Box>
-          <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
-            <Icon icon='charm:menu-kebab' />
-          </IconButton>
-
-          <Popover
-            sx={{
-              '& .MuiPaper-root': {
-                minWidth: 140,
-                borderRadius: '5px'
-              },
-              '& .MuiBackdrop-root': {
-                bgcolor: 'transparent'
-              }
-            }}
-            open={openPopover}
-            anchorEl={anchorEl}
-            onClose={handleClosePopover}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right'
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right'
-            }}
-          >
-            {(permissions?.allow_full_access === true || permissions?.transfer_tests === true) && (
-              <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
-            )}
-
-            {(permissions?.allow_full_access === true || permissions?.perform_tests === true) && (
-              <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
-            )}
-          </Popover>
-        </Box>
-      )
-    },
+    ...(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests
+      ? [
+          {
+            flex: 0.2,
+            minWidth: 20,
+            field: 'Action',
+            headerName: 'Action',
+            sortable: false,
+            renderCell: params => (
+              <>
+                <Box>
+                  <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
+                    <Icon icon='charm:menu-kebab' />
+                  </IconButton>
+                  <Popover
+                    sx={{
+                      '& .MuiPaper-root': {
+                        minWidth: 140,
+                        borderRadius: '5px'
+                      },
+                      '& .MuiBackdrop-root': {
+                        bgcolor: 'transparent'
+                      }
+                    }}
+                    open={openPopover}
+                    anchorEl={anchorEl}
+                    onClose={handleClosePopover}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right'
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right'
+                    }}
+                  >
+                    {(permissions?.allow_full_access || permissions?.transfer_tests) && (
+                      <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
+                    )}
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                      <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
+                    )}
+                  </Popover>
+                </Box>
+              </>
+            )
+          }
+        ]
+      : []),
+    ,
     {
       flex: 0.2,
       minWidth: 10,

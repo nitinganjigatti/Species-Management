@@ -14,6 +14,8 @@ const AnimalCard = ({ animalDetails }) => {
         borderRadius: '8px',
         paddingY: '20px',
         paddingX: '16px',
+        width: '345px',
+        height: '106px',
 
         // border: '1px solid #C3CEC7',
         display: 'flex',

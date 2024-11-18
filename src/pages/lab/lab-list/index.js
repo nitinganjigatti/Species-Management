@@ -25,6 +25,7 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 
 import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
 
 const ListOfLab = () => {
   const [loader, setLoader] = useState(false)
@@ -249,49 +250,55 @@ const ListOfLab = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {authData?.userData?.modules?.lab_data?.lab?.length > 0 || authData?.userData?.roles?.settings?.add_lab ? (
         <>
-          {/* <CommonDialogBox
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              {/* <CommonDialogBox
             title={'Configure Medicine'}
             dialogBoxStatus={show}
             formComponent={<MedicineConfigure configureMedId={configureMedId} />}
             close={closeDialog}
             show={showDialog}
           /> */}
-          <Card>
-            <CardHeader title='Lab List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              pageSizeOptions={[10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              onCellClick={onCellClick}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-                    handleSearch(event.target.value)
-                  }
-                }
-              }}
-            />
-          </Card>
+              <Card>
+                <CardHeader title='Lab List' action={headerAction} />
+                <DataGrid
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  pageSizeOptions={[10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  onCellClick={onCellClick}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => {
+                        setSearchValue(event.target.value)
+                        handleSearch(event.target.value)
+                      }
+                    }
+                  }}
+                />
+              </Card>
+            </>
+          )}
         </>
+      ) : (
+        <ErrorScreen />
       )}
     </>
   )

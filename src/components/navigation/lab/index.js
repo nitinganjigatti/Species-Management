@@ -52,7 +52,13 @@ const ComposeLabNavigation = ({ labRole }) => {
 
   const labNavigationArray = []
 
-  if (labList || addlabPermission || medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
+  if (
+    labList?.length > 0 ||
+    addlabPermission ||
+    medical_add_samples ||
+    medical_add_tests ||
+    medical_add_mortality_reasons
+  ) {
     labNavigationArray.push(labTitle)
 
     // if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
@@ -80,6 +86,10 @@ const ComposeLabNavigation = ({ labRole }) => {
     }
 
     labNavigationArray.push(mastersLabParent)
+  }
+
+  if (labList.length > 0) {
+    labNavigationArray.push(request)
   }
 
   return labNavigationArray
