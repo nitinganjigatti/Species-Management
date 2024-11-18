@@ -137,6 +137,80 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
+          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'preparation_type',
+      headerName: 'PREPARATION TYPE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.preparation_type}>
+          {params.row.preparation_type ? params.row.preparation_type : '-'}
+        </Typography>
+      )
+    }
+  ]
+
+  const columnsforPercentage = [
+    {
+      flex: 0.5,
+      minWidth: 30,
+      field: 'ingredient_name',
+      headerName: 'INGREDIENT NAME',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* {renderClient(params)} */}
+          {console.log(params, 'params')}
+          <Avatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            src={params.row.ingredient_image ? params.row.ingredient_image : '/icons/icon_recipe_fill.png'}
+          >
+            {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.ingredient_name ? params.row.ingredient_name : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 10,
+      field: 'ingredient_id',
+      headerName: 'INGREDIENT ID',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'feed_type',
+      headerName: 'FEED TYPE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }} title={params.row.feed_type}>
+          {params.row.feed_type_label ? params.row.feed_type_label : '-'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 10,
+      field: 'quantity',
+      headerName: 'QUANTITY (100%)',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
+          {params.row.uom_text ? ` ${params.row.uom_text}` : '%'}
         </Typography>
       )
     },
@@ -201,7 +275,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               autoHeight
               rows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
               rowCount={rowsPercentage.length}
-              columns={columns}
+              columns={columnsforPercentage}
               loading={loading}
               hideFooter={true}
 

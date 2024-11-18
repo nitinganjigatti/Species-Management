@@ -387,6 +387,7 @@ const DietDetail = () => {
                                                 <Typography>FEMALE </Typography>
                                               </TableCell>
                                               <TableCell
+                                                colSpan={8}
                                                 sx={{
                                                   border: 'none',
                                                   backgroundColor: '#C1D3D099',
@@ -402,6 +403,7 @@ const DietDetail = () => {
                                           ) : dietDetails.diet_type_name === 'By Lifestage' ? (
                                             <>
                                               <TableCell
+                                                colSpan={5}
                                                 sx={{
                                                   border: 'none',
                                                   backgroundColor: '#C1D3D099',
@@ -477,6 +479,7 @@ const DietDetail = () => {
                                           ) : dietDetails.diet_type_name === 'Generic' ? (
                                             <>
                                               <TableCell
+                                                colSpan={12}
                                                 sx={{
                                                   border: 'none',
                                                   backgroundColor: '#C1D3D099',
@@ -492,6 +495,7 @@ const DietDetail = () => {
                                           ) : dietDetails.diet_type_name === 'By Weight' ? (
                                             <>
                                               <TableCell
+                                                colSpan={12}
                                                 sx={{
                                                   border: 'none',
                                                   backgroundColor: '#C1D3D099',
@@ -506,6 +510,7 @@ const DietDetail = () => {
                                               {dietDetails.child?.map((all, index) => {
                                                 return (
                                                   <TableCell
+                                                    colSpan={5}
                                                     key={index}
                                                     sx={{
                                                       border: 'none',
@@ -1252,28 +1257,28 @@ const DietDetail = () => {
                                                                 position: 'sticky',
                                                                 left: '160px',
                                                                 border: 'none',
-                                                                backgroundColor: '#fff',
-                                                                float: 'left'
+                                                                backgroundColor: '#fff'
+                                                                //float: 'left'
                                                               }}
-                                                              className={
-                                                                dietDetails.diet_type_name === 'Generic'
-                                                                  ? 'cell_dimn'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 0
-                                                                  ? 'cell_dimn'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 1
-                                                                  ? 'cell_dimn1'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 2
-                                                                  ? 'cell_dimn2'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 3
-                                                                  ? 'cell_dimn3'
-                                                                  : dietDetails.diet_type_name === 'By Gender'
-                                                                  ? 'cell_gend'
-                                                                  : 'cellmodule4'
-                                                              }
+                                                              // className={
+                                                              //   dietDetails.diet_type_name === 'Generic'
+                                                              //     ? 'cell_dimn'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 0
+                                                              //     ? 'cell_dimn'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 1
+                                                              //     ? 'cell_dimn1'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 2
+                                                              //     ? 'cell_dimn2'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 3
+                                                              //     ? 'cell_dimn3'
+                                                              //     : dietDetails.diet_type_name === 'By Gender'
+                                                              //     ? 'cell_gend'
+                                                              //     : 'cellmodule4'
+                                                              // }
                                                             >
                                                               <Box
                                                                 key={index}
@@ -1285,6 +1290,25 @@ const DietDetail = () => {
                                                                   p: '12px',
                                                                   gap: '16px'
                                                                 }}
+                                                                className={
+                                                                  dietDetails.diet_type_name === 'Generic'
+                                                                    ? 'cell_dimn'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 0
+                                                                    ? 'cell_dimn'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 1
+                                                                    ? 'cell_dimn1'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 2
+                                                                    ? 'cell_dimn2'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 3
+                                                                    ? 'cell_dimn3'
+                                                                    : dietDetails.diet_type_name === 'By Gender'
+                                                                    ? 'cell_gend'
+                                                                    : 'cellmodule4'
+                                                                }
                                                               >
                                                                 <Box>
                                                                   <Box
@@ -1634,28 +1658,28 @@ const DietDetail = () => {
                                                                 left: '160px',
                                                                 border: 'none',
 
-                                                                backgroundColor: '#fff',
-                                                                float: 'left'
+                                                                backgroundColor: '#fff'
+                                                                //float: 'left'
                                                               }}
-                                                              className={
-                                                                dietDetails.diet_type_name === 'Generic'
-                                                                  ? 'cell_dimn'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 0
-                                                                  ? 'cell_dimn'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 1
-                                                                  ? 'cell_dimn1'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 2
-                                                                  ? 'cell_dimn2'
-                                                                  : dietDetails.diet_type_name === 'By Weight' &&
-                                                                    dietDetails?.child?.length === 3
-                                                                  ? 'cell_dimn3'
-                                                                  : dietDetails.diet_type_name === 'By Gender'
-                                                                  ? 'cell_gend'
-                                                                  : 'cellmodule4'
-                                                              }
+                                                              // className={
+                                                              //   dietDetails.diet_type_name === 'Generic'
+                                                              //     ? 'cell_dimn'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 0
+                                                              //     ? 'cell_dimn'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 1
+                                                              //     ? 'cell_dimn1'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 2
+                                                              //     ? 'cell_dimn2'
+                                                              //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                              //       dietDetails?.child?.length === 3
+                                                              //     ? 'cell_dimn3'
+                                                              //     : dietDetails.diet_type_name === 'By Gender'
+                                                              //     ? 'cell_gend'
+                                                              //     : 'cellmodule4'
+                                                              // }
                                                             >
                                                               <Box
                                                                 key={index}
@@ -1667,6 +1691,25 @@ const DietDetail = () => {
                                                                   p: '12px',
                                                                   gap: '16px'
                                                                 }}
+                                                                className={
+                                                                  dietDetails.diet_type_name === 'Generic'
+                                                                    ? 'cell_dimn'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 0
+                                                                    ? 'cell_dimn'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 1
+                                                                    ? 'cell_dimn1'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 2
+                                                                    ? 'cell_dimn2'
+                                                                    : dietDetails.diet_type_name === 'By Weight' &&
+                                                                      dietDetails?.child?.length === 3
+                                                                    ? 'cell_dimn3'
+                                                                    : dietDetails.diet_type_name === 'By Gender'
+                                                                    ? 'cell_gend'
+                                                                    : 'cellmodule4'
+                                                                }
                                                               >
                                                                 <Box>
                                                                   <Box
@@ -2076,28 +2119,28 @@ const DietDetail = () => {
                                                               position: 'sticky',
                                                               left: '160px',
                                                               border: 'none',
-                                                              backgroundColor: '#fff',
-                                                              float: 'left'
+                                                              backgroundColor: '#fff'
+                                                              // float: 'left'
                                                             }}
-                                                            className={
-                                                              dietDetails.diet_type_name === 'Generic'
-                                                                ? 'cell_dimn'
-                                                                : dietDetails.diet_type_name === 'By Weight' &&
-                                                                  dietDetails?.child?.length === 0
-                                                                ? 'cell_dimn'
-                                                                : dietDetails.diet_type_name === 'By Weight' &&
-                                                                  dietDetails?.child?.length === 1
-                                                                ? 'cell_dimn1'
-                                                                : dietDetails.diet_type_name === 'By Weight' &&
-                                                                  dietDetails?.child?.length === 2
-                                                                ? 'cell_dimn2'
-                                                                : dietDetails.diet_type_name === 'By Weight' &&
-                                                                  dietDetails?.child?.length === 3
-                                                                ? 'cell_dimn3'
-                                                                : dietDetails.diet_type_name === 'By Gender'
-                                                                ? 'cell_gend'
-                                                                : 'cellmodule4'
-                                                            }
+                                                            // className={
+                                                            //   dietDetails.diet_type_name === 'Generic'
+                                                            //     ? 'cell_dimn'
+                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                            //       dietDetails?.child?.length === 0
+                                                            //     ? 'cell_dimn'
+                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                            //       dietDetails?.child?.length === 1
+                                                            //     ? 'cell_dimn1'
+                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                            //       dietDetails?.child?.length === 2
+                                                            //     ? 'cell_dimn2'
+                                                            //     : dietDetails.diet_type_name === 'By Weight' &&
+                                                            //       dietDetails?.child?.length === 3
+                                                            //     ? 'cell_dimn3'
+                                                            //     : dietDetails.diet_type_name === 'By Gender'
+                                                            //     ? 'cell_gend'
+                                                            //     : 'cellmodule4'
+                                                            // }
                                                           >
                                                             <Box
                                                               key={index}
@@ -2111,6 +2154,25 @@ const DietDetail = () => {
                                                                 p: '12px',
                                                                 gap: '16px'
                                                               }}
+                                                              className={
+                                                                dietDetails.diet_type_name === 'Generic'
+                                                                  ? 'cell_dimn'
+                                                                  : dietDetails.diet_type_name === 'By Weight' &&
+                                                                    dietDetails?.child?.length === 0
+                                                                  ? 'cell_dimn'
+                                                                  : dietDetails.diet_type_name === 'By Weight' &&
+                                                                    dietDetails?.child?.length === 1
+                                                                  ? 'cell_dimn1'
+                                                                  : dietDetails.diet_type_name === 'By Weight' &&
+                                                                    dietDetails?.child?.length === 2
+                                                                  ? 'cell_dimn2'
+                                                                  : dietDetails.diet_type_name === 'By Weight' &&
+                                                                    dietDetails?.child?.length === 3
+                                                                  ? 'cell_dimn3'
+                                                                  : dietDetails.diet_type_name === 'By Gender'
+                                                                  ? 'cell_gend'
+                                                                  : 'cellmodule4'
+                                                              }
                                                             >
                                                               <Box
                                                                 sx={{
@@ -2426,25 +2488,24 @@ const DietDetail = () => {
                                               <TableRow
                                                 sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}
                                               >
-                                                {itemd.notes &&
-                                                (itemd?.ingredient?.length >= 1 ||
-                                                  itemd?.ingredientwithchoice?.length >= 1 ||
-                                                  itemd?.recipe?.length >= 1) ? (
-                                                  <Typography
-                                                    sx={{
-                                                      width: '1000px',
-                                                      display: 'block',
-                                                      pb: 3
-                                                    }}
-                                                  >
-                                                    <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>
-                                                      Notes :
-                                                    </span>{' '}
-                                                    {itemd.notes}
-                                                  </Typography>
-                                                ) : (
-                                                  ''
-                                                )}
+                                                <TableCell
+                                                  colSpan={12}
+                                                  sx={{ borderBottom: 'none', padding: '8px 16px' }}
+                                                >
+                                                  {itemd.notes &&
+                                                  (itemd?.ingredient?.length >= 1 ||
+                                                    itemd?.ingredientwithchoice?.length >= 1 ||
+                                                    itemd?.recipe?.length >= 1) ? (
+                                                    <>
+                                                      <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>
+                                                        Notes :
+                                                      </span>{' '}
+                                                      {itemd.notes}
+                                                    </>
+                                                  ) : (
+                                                    <></> // Render nothing if no notes are available
+                                                  )}
+                                                </TableCell>
                                               </TableRow>
                                             </>
                                           )

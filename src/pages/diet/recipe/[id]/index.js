@@ -134,7 +134,7 @@ const RecipeDetail = () => {
         return Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
-      alert('ppp')
+      alert('something went wrong')
     }
   }
 
