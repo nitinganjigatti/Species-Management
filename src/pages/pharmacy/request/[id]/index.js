@@ -2259,243 +2259,264 @@ const IndividualRequest = () => {
                 }}
               >
                 <Box sx={{ p: 4, height: '100%', overflow: 'auto' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography
-                      sx={{ color: 'customColors.customHeadingTextColor', fontSize: '20px', fontWeight: 500 }}
-                    >
-                      Shipped Items
-                    </Typography>
-                    <IconButton onClick={() => setShipmentDetailsDialog(false)}>
-                      <CloseIcon />
-                    </IconButton>
-                  </Box>
-
                   <Box
                     sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      backgroundColor: 'customColors.neutral05',
-                      padding: 2,
-                      borderRadius: '4px',
-                      mb: 3
+                      position: 'sticky',
+                      zIndex: 1
                     }}
                   >
-                    <Typography variant='body1'>
-                      <Box
-                        component='strong'
-                        sx={{
-                          color: 'customColors.customHeadingTextColor',
-                          fontSize: '14px',
-                          fontWeight: 400
-                        }}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography
+                        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '20px', fontWeight: 500 }}
                       >
-                        Shipped Items:
-                      </Box>{' '}
-                      <Box
-                        component='span'
-                        sx={{
-                          color: 'customColors.customHeadingTextColor',
-                          fontSize: '16px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {shippedItems[0]?.shipment_item_details.length || '0'}
-                      </Box>
-                    </Typography>
+                        Shipped Items
+                      </Typography>
+                      <IconButton onClick={() => setShipmentDetailsDialog(false)}>
+                        <CloseIcon />
+                      </IconButton>
+                    </Box>
 
-                    <Typography variant='body1'>
-                      <Box
-                        component='strong'
-                        sx={{
-                          color: 'customColors.neutralSecondary',
-                          fontSize: '14px',
-                          fontWeight: 400
-                        }}
-                      >
-                        Shipped Value:
-                      </Box>{' '}
-                      <Box
-                        component='span'
-                        sx={{
-                          color: 'primary.light',
-                          fontSize: '14px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {shippedItems[0]?.shipment_item_details?.value || '0'}
-                      </Box>
-                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'customColors.neutral05',
+                        padding: 2,
+                        borderRadius: '4px',
+                        mb: 3
+                      }}
+                    >
+                      <Typography variant='body1'>
+                        <Box
+                          component='strong'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '14px',
+                            fontWeight: 400
+                          }}
+                        >
+                          Shipped Items:
+                        </Box>{' '}
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '16px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {shippedItems[0]?.shipment_item_details.length || '0'}
+                        </Box>
+                      </Typography>
+
+                      <Typography variant='body1'>
+                        <Box
+                          component='strong'
+                          sx={{
+                            color: 'customColors.neutralSecondary',
+                            fontSize: '14px',
+                            fontWeight: 400
+                          }}
+                        >
+                          Shipped Value:
+                        </Box>{' '}
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'primary.light',
+                            fontSize: '14px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {/* {shippedItems[0]?.shipment_item_details?.value || '0'}
+                           */}
+                          {requestItems?.shipped_amount}
+                        </Box>
+                      </Typography>
+                    </Box>
                   </Box>
 
                   <Divider sx={{ mb: 3 }} />
 
-                  {shippedItems[0]?.shipment_item_details?.length ? (
-                    shippedItems[0]?.shipment_item_details?.map((ship, index) => (
-                      <Card
-                        key={index}
-                        sx={{ mb: 2, borderRadius: '8px', boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)' }}
-                      >
-                        <CardContent>
-                          <Typography
-                            sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
-                            gutterBottom
-                          >
-                            {ship?.stock_name}
-                          </Typography>
-
-                          {/* Shipped Quantity and Value */}
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant='body1'>
-                              <Box
-                                component='span'
-                                sx={{
-                                  color: 'customColors.customHeadingTextColor',
-                                  fontSize: '14px',
-                                  fontWeight: 400
-                                }}
-                              >
-                                Shipped Quantity:
-                              </Box>
-                              <Box
-                                component='span'
-                                sx={{
-                                  color: 'customColors.customHeadingTextColor',
-                                  fontSize: '16px',
-                                  fontWeight: 500
-                                }}
-                              >
-                                {ship?.quantity}
-                              </Box>
+                  <Box
+                    sx={{
+                      height: 'calc(100% - 120px)', // Adjust this value based on your layout
+                      overflowY: 'auto',
+                      paddingTop: 3
+                    }}
+                  >
+                    {shippedItems[0]?.shipment_item_details?.length ? (
+                      shippedItems[0]?.shipment_item_details?.map((ship, index) => (
+                        <Card
+                          key={index}
+                          sx={{
+                            mb: 2,
+                            borderRadius: '8px',
+                            boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+                          }}
+                        >
+                          <CardContent>
+                            <Typography
+                              sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
+                              gutterBottom
+                            >
+                              {ship?.stock_name}
                             </Typography>
-                            <Typography variant='body1'>
-                              <Box
-                                component='span'
-                                sx={{
-                                  color: 'customColors.neutralSecondary',
-                                  fontSize: '14px',
-                                  fontWeight: 400
-                                }}
-                              >
-                                Shipped Value:
-                              </Box>
-                              <Box
-                                component='span'
-                                sx={{
-                                  color: 'primary.light',
-                                  fontSize: '14px',
-                                  fontWeight: 500
-                                }}
-                              >
-                                ₹{ship?.value || '0'}
-                              </Box>
-                            </Typography>
-                          </Box>
 
-                          <Paper
-                            elevation={0}
-                            sx={{
-                              backgroundColor: 'customColors.tableHeaderBg',
-                              p: 2,
-                              borderRadius: '8px',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              gap: 2
-                            }}
-                          >
-                            <Box>
-                              <Typography
-                                variant='body2'
-                                color='customColors.neutralSecondary'
-                                sx={{ fontSize: '12px', fontWeight: 400 }}
-                              >
-                                Shipping ID:
+                            {/* Shipped Quantity and Value */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                              <Typography variant='body1'>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  Shipped Quantity:
+                                </Box>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontSize: '16px',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  {ship?.quantity}
+                                </Box>
                               </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontSize: '14px',
-                                  fontWeight: 500,
-                                  color: 'customColors.customHeadingTextColor'
-                                }}
-                              >
-                                {ship?.shipment_id}
-                              </Typography>
-                            </Box>
-                            <Box>
-                              <Typography
-                                variant='body2'
-                                color='customColors.neutralSecondary'
-                                sx={{ fontSize: '12px', fontWeight: 400 }}
-                              >
-                                Batch No:
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontSize: '14px',
-                                  fontWeight: 500,
-                                  color: 'customColors.customHeadingTextColor'
-                                }}
-                              >
-                                {ship?.batch}
+                              <Typography variant='body1'>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  Shipped Value:
+                                </Box>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'primary.light',
+                                    fontSize: '14px',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  ₹{requestItems?.shipped_amount || '0'}
+                                </Box>
                               </Typography>
                             </Box>
-                            <Box>
-                              <Typography
-                                variant='body2'
-                                color='customColors.neutralSecondary'
-                                sx={{ fontSize: '12px', fontWeight: 400 }}
-                              >
-                                Shipped Quantity:
-                              </Typography>
-                              <Typography
-                                variant='body1'
-                                sx={{
-                                  fontSize: '14px',
-                                  fontWeight: 500,
-                                  color: 'customColors.customHeadingTextColor'
-                                }}
-                              >
-                                {ship?.quantity}
-                              </Typography>
-                            </Box>
-                          </Paper>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '300px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <Avatar
-                        variant='square'
-                        alt=''
-                        src={'/images/Empty-Box.png'}
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                backgroundColor: 'customColors.tableHeaderBg',
+                                p: 2,
+                                borderRadius: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                gap: 2
+                              }}
+                            >
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Shipping ID:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.shipment_id}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Batch No:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.batch}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Shipped Quantity:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.quantity}
+                                </Typography>
+                              </Box>
+                            </Paper>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <Box
                         sx={{
-                          width: '120px',
-                          height: '120px',
-                          mb: 2
-                        }}
-                      />
-                      <Typography
-                        variant='body1'
-                        sx={{
-                          fontSize: '14px',
-                          fontWeight: 400,
-                          color: 'primary.light'
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '300px',
+                          textAlign: 'center'
                         }}
                       >
-                        No Shipped Items
-                      </Typography>
-                    </Box>
-                  )}
+                        <Avatar
+                          variant='square'
+                          alt=''
+                          src={'/images/Empty-Box.png'}
+                          sx={{
+                            width: '120px',
+                            height: '120px',
+                            mb: 2
+                          }}
+                        />
+                        <Typography
+                          variant='body1'
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: 'primary.light'
+                          }}
+                        >
+                          No Shipped Items
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
               </Drawer>
               {/* <CommonDialogBox
