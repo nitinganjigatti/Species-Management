@@ -319,7 +319,7 @@ const AddIngredient = () => {
     } = params
 
     const payload = {
-      active,
+      status: active,
       ingredient_name: ingredientName,
       ingredient_alias: ingredientAlias,
       feed_type: feedType,

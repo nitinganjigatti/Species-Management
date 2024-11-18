@@ -102,6 +102,13 @@ function convertUTCToLocal(date) {
   return local
 }
 
+function convertUTCToLocaltime(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('h:mm A')
+
+  return local
+}
+
 function extractHoursAndMinutes(date) {
   //9:21 PM
   return moment(date).format('hh:mm A')
@@ -126,6 +133,7 @@ const Utility = {
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
+  convertUTCToLocaltime,
   extractHoursAndMinutes,
   renderUserAvatar
 }
