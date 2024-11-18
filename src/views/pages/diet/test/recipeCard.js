@@ -8,7 +8,8 @@ import Button from '@mui/material/Button'
 import DoneIcon from '@mui/icons-material/Done'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
-import { Title, Tooltip } from 'chart.js'
+import { Tooltip } from '@mui/material'
+import { Title } from 'chart.js'
 
 const RecipeCard = ({
   rows,
@@ -436,21 +437,22 @@ const RecipeCard = ({
                 </Box>
                 <Box sx={{ width: '333px' }}>
                   <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
-                    <Typography
-                      sx={{
-                        ml: 4,
-                        fontSize: '20px',
-                        color: '#44544A',
-                        width: '400px',
-                        height: '24px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {item?.recipe_name}
-                    </Typography>
-
+                    <Tooltip title={item?.recipe_name?.length > 50 ? item?.recipe_name : ''}>
+                      <Typography
+                        sx={{
+                          ml: 4,
+                          fontSize: '20px',
+                          color: '#44544A',
+                          width: '400px',
+                          height: '24px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {item?.recipe_name}
+                      </Typography>
+                    </Tooltip>
                     <Typography variant='body' sx={{ ml: 4, fontSize: '14px', width: '79px', height: '17px', mt: 3 }}>
                       {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
                     </Typography>
