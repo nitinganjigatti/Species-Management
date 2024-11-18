@@ -88,9 +88,9 @@ const ComposeLabNavigation = ({ labRole }) => {
     labNavigationArray.push(mastersLabParent)
   }
 
-  if (labList.length > 0) {
-    labNavigationArray.push(request)
-  }
+  // if (labList.length > 0) {
+  //   labNavigationArray.push(request)
+  // }
 
   return labNavigationArray
 }
