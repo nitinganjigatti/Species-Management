@@ -18,6 +18,7 @@ import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { addNewDiet, getDietDetails, updateDiet } from 'src/lib/api/diet/dietList'
 import Router from 'next/router'
+import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 import { getDietTypeList } from 'src/lib/api/diet/dietList'
@@ -180,8 +181,8 @@ const AddDiet = () => {
           remarks: data.remarks,
           meal_data: data.meal_data.map(meal => ({
             ...meal,
-            meal_from_time: formatTime(meal.meal_from_time),
-            meal_to_time: formatTime(meal.meal_to_time)
+            meal_from_time: dayjs(meal.meal_from_time, 'HH:mm'),
+            meal_to_time: dayjs(meal.meal_to_time, 'HH:mm')
           }))
         }))
 
@@ -224,10 +225,14 @@ const AddDiet = () => {
   }
 
   // Function to format time
-  const formatTime = timeString => {
-    const date = new Date(`2000-01-01 ${timeString}`)
+  // const formatTime = timeString => {
+  //   const date = new Date(`2000-01-01 ${timeString}`)
 
-    return date.toUTCString()
+  //   return date.toUTCString()
+  // }
+
+  const formatTime = timeString => {
+    return dayjs(timeString).format('HH:mm') // Standardize the format
   }
 
   useEffect(() => {
@@ -324,8 +329,8 @@ const AddDiet = () => {
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
-            const fromTime = new Date(item.meal_from_time)
-            const toTime = new Date(item.meal_to_time)
+            const fromTime = formatTime(item.meal_from_time)
+            const toTime = formatTime(item.meal_to_time)
 
             // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
@@ -339,12 +344,8 @@ const AddDiet = () => {
               ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
-              meal_from_time: fromTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }),
-              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              meal_from_time: fromTime,
+              meal_to_time: toTime,
               notes: item.notes
 
               // recipe: item?.recipe,
@@ -384,8 +385,8 @@ const AddDiet = () => {
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
-            const fromTime = new Date(item.meal_from_time)
-            const toTime = new Date(item.meal_to_time)
+            const fromTime = formatTime(item.meal_from_time)
+            const toTime = formatTime(item.meal_to_time)
 
             // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
@@ -399,12 +400,8 @@ const AddDiet = () => {
               ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
-              meal_from_time: fromTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }),
-              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              meal_from_time: fromTime,
+              meal_to_time: toTime,
               notes: item.notes
 
               // recipe: item?.recipe,
@@ -457,8 +454,8 @@ const AddDiet = () => {
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
-            const fromTime = new Date(item.meal_from_time)
-            const toTime = new Date(item.meal_to_time)
+            const fromTime = formatTime(item.meal_from_time)
+            const toTime = formatTime(item.meal_to_time)
 
             // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
@@ -472,12 +469,8 @@ const AddDiet = () => {
               ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
-              meal_from_time: fromTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }),
-              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              meal_from_time: fromTime,
+              meal_to_time: toTime,
               notes: item.notes
 
               // recipe: item?.recipe,

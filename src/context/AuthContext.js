@@ -129,6 +129,7 @@ const AuthProvider = ({ children }) => {
                 // role: resData.roles.role_name,
                 username: resData?.user?.user_first_name
               }
+              write('userDetails', resData)
               write('role', resData?.roles?.role_name)
               write('userData', userData)
 

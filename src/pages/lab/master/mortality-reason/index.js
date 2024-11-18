@@ -196,14 +196,16 @@ const MortalityReason = () => {
       sortable: false,
       renderCell: params => (
         <>
-          <Box>
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-            {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleDelete(e, params.row)} aria-label='delete'>
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <Box>
+              <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleDelete(e, params.row)} aria-label='delete'>
               <Icon icon='mdi:delete-outline' />
             </IconButton> */}
-          </Box>
+            </Box>
+          )}
         </>
       )
     }
