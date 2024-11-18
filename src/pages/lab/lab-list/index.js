@@ -268,6 +268,7 @@ const ListOfLab = () => {
                 <DataGrid
                   autoHeight
                   pagination
+                  disableColumnMenu
                   rows={indexedRows === undefined ? [] : indexedRows}
                   rowCount={total}
                   columns={columns}

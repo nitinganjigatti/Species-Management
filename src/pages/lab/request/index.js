@@ -533,6 +533,7 @@ const ListOfRequest = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
+              disableColumnMenu
               sortingMode='server'
               pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
