@@ -65,7 +65,14 @@ export default function NewProductList() {
         const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
         toast.success(toastMessage)
         setShow(false)
-        await fetchTableData({ sort, q: searchValue, column: sortColumn })
+
+        // Trigger table data refresh after status change
+        // Call fetchTableData for 'Pending' tab if the new status is 'Cancelled'
+        if (status === 'Cancelled' || 'Approved' || 'Rejected') {
+          fetchTableData({ sort, q: searchValue, column: sortColumn, status: 'Pending' }) // Refresh pending tab
+        } else {
+          fetchTableData({ sort, q: searchValue, column: sortColumn, status: status })
+        }
       }
     } catch (error) {
       console.log(error)
@@ -281,6 +288,7 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
+      debugger
       try {
         setLoading(true)
 
@@ -374,6 +382,7 @@ export default function NewProductList() {
   }
 
   const onRowClick = async params => {
+    console.log('Status', params)
     setShow(true)
     setItemId(params.id)
     await getNonExistingProductById(params.id)

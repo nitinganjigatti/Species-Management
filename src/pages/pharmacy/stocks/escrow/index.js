@@ -10,27 +10,32 @@ import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } f
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
+import { useRouter } from 'next/router'
+
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 function Escrow({ value }) {
+  const router = useRouter()
   console.log('Value >>', value)
 
   const theme = useTheme()
-  const { type } = Router.query
-  const isInitialLoad = useRef(true)
+  // const { type } = Router.query
 
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
+  // const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [stockType, setStockType] = useState(type || 'dispute')
-
-  console.log(' Search>>', searchValue)
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page, 10) - 1 || 0,
+    pageSize: 10
+  })
+  // const [stockType, setStockType] = useState( 'dispute')
+  const [stockType, setStockType] = useState(router.query.stockType || 'dispute')
 
   function loadServerRows(currentPage, data) {
     return data
@@ -38,28 +43,24 @@ function Escrow({ value }) {
   const { selectedPharmacy } = usePharmacyContext()
 
   const onRowClick = params => {
-    console.log('Search Value >>', searchValue)
     var data = params.row
     if (data?.request_number?.startsWith('RES')) {
       Router.push({
         pathname: `/pharmacy/request/${data?.request_id}`,
         query: {
           id: data.request_id,
-          request_number: data.request_number,
-          type: stockType,
-          value: value,
-          searchValue: data?.request_number
+          request_number: data.request_number
         }
       })
     } else if (data?.request_number?.startsWith('DD')) {
       Router.push({
         pathname: `/pharmacy/direct-dispatch/${data?.request_id}`,
-        query: { id: data.request_id, request_number: data.request_number, type: stockType, value: value }
+        query: { id: data.request_id, request_number: data.request_number }
       })
     } else if (data?.request_number?.startsWith('RET')) {
       Router.push({
         pathname: `/pharmacy/return-product/${data?.request_id}`,
-        query: { id: data.request_id, request_number: data.request_number, type: stockType, value: value }
+        query: { id: data.request_id, request_number: data.request_number }
       })
     }
   }
@@ -161,59 +162,69 @@ function Escrow({ value }) {
     // no_of_days_exist
   ]
 
-  const fetchScrewTableData = useCallback(
-    async ({ sort, q, column, type }) => {
-      try {
-        setLoading(true)
+  const fetchScrewTableData = useCallback(async ({ sort, q, column, type, page, pageSize }) => {
+    try {
+      setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          type
-        }
-        await getScrewList({ params: params }).then(res => {
-          if (res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
-          } else {
-            setTotal(0)
-            setRows([])
-          }
-        })
-        setLoading(false)
-      } catch (e) {
+      const params = {
+        sort,
+        q,
+        column,
+        page: page + 1, // 1-based page index for API
+        limit: pageSize,
+        type
+      }
+      const res = await getScrewList({ params })
+
+      if (res?.data?.length > 0) {
+        setTotal(parseInt(res?.count, 10))
+        setRows(loadServerRows(page, res?.data))
+      } else {
         setTotal(0)
         setRows([])
-        console.log(e)
-        setLoading(false)
       }
-    },
-    [paginationModel]
-  )
+    } catch (e) {
+      setTotal(0)
+      setRows([])
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+  useEffect(() => {
+    fetchScrewTableData({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      type: stockType,
+      page: paginationModel.page,
+      pageSize: paginationModel.pageSize
+    })
+  }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
 
   useEffect(() => {
-    fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
-  }, [fetchScrewTableData, selectedPharmacy.id])
+    router.replace({
+      pathname: router.pathname,
+      query: {
+        ...router.query,
+        stockType,
+        value,
+        page: paginationModel.page + 1,
+        searchValue,
+        sort,
+        sortColumn
+      }
+    })
+  }, [stockType, paginationModel.page, searchValue, sort, sortColumn])
 
-  // useEffect(() => {
-  //   if (type && isInitialLoad.current) {
-  //     // Set the initial value of stockType from router's query only on first load
-  //     setStockType(type)
-  //     //setSearchValue(searchTerm)
-  //     fetchScrewTableData({  column: sortColumn, type })
-  //     isInitialLoad.current = false // Mark initial load as complete
-  //   }
-  // }, [type, fetchScrewTableData, searchTerm])
+  const handleSortModel = useCallback(newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
 
-  const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
-    } else {
+      // Reset to the first page (0) on new sort
     }
-  }
+  }, [])
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -222,28 +233,19 @@ function Escrow({ value }) {
     sl_no: getSlNo(index)
   }))
 
-  const filterByStockType = type => {
-    if (type === 'all') {
-      fetchScrewTableData({ sort, q: searchValue, column: sortColumn })
-    } else {
-      fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type })
-    }
-  }
+  const filterByStockType = useCallback(type => {
+    setStockType(type)
+  }, [])
 
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
-  }
+ 
 
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await fetchScrewTableData(sort, q, column)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
+  const handleSearch = useCallback(
+    debounce(value => {
+      setSearchValue(value)
+
+      // Reset to the first page (0) on new search
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
+    }, 500),
     []
   )
 

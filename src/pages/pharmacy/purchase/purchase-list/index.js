@@ -26,13 +26,10 @@ import { Box } from '@mui/material'
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
-
+import { useRouter } from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { margin } from '@mui/system'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
 
 import { useForm, Controller } from 'react-hook-form'
 import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
@@ -41,6 +38,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfPurchase = () => {
+  const router = useRouter()
   const theme = useTheme()
 
   /***** Server side pagination */
@@ -48,11 +46,15 @@ const ListOfPurchase = () => {
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'label')
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page, 10) - 1 || 0,
+    pageSize: 10
+  })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
@@ -61,38 +63,64 @@ const ListOfPurchase = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  const fetchTableData = useCallback(
-    async (sort, q, column) => {
-      try {
-        setLoading(true)
+  // const fetchTableData = useCallback(
+  //   async (sort, q, column) => {
+  //     try {
+  //       setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
+  //       const params = {
+  //         sort,
+  //         q,
+  //         column,
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
 
-        await getPurchaseList({ params: params }).then(res => {
-          // console.log('getPurchaseList', res)
-          if (res?.success === true && res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
-          }
-        })
-        setLoading(false)
-      } catch (error) {
-        console.log('error', error)
-        setLoading(false)
+  //       await getPurchaseList({ params: params }).then(res => {
+  //         // console.log('getPurchaseList', res)
+  //         if (res?.success === true && res?.data?.length > 0) {
+  //           setTotal(parseInt(res?.count))
+  //           setRows(loadServerRows(paginationModel.page, res?.data))
+  //         }
+  //       })
+  //       setLoading(false)
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+  const fetchTableData = useCallback(async (sortOrder, query, column, page, pageSize) => {
+    setLoading(true)
+    const params = {
+      sort: sortOrder,
+      q: query,
+      column,
+      page: page + 1,
+      limit: pageSize
+    }
+
+    try {
+      const res = await getPurchaseList({ params })
+      if (res?.success && res?.data?.length > 0) {
+        setTotal(parseInt(res.count, 10))
+        setRows(loadServerRows(page, res.data))
+      } else {
+        setTotal(0)
+        setRows([])
       }
-    },
-    [paginationModel]
-  )
+    } catch (error) {
+      console.log('error', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+    console.log('Fetching data with updated parameters...')
+    fetchTableData(sort, searchValue, sortColumn, paginationModel.page, paginationModel.pageSize)
+  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn, fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -101,14 +129,42 @@ const ListOfPurchase = () => {
     sl: getSlNo(index)
   }))
 
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+  //   } else {
+  //   }
+  // }
+
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-    } else {
     }
   }
+  // useEffect(() => {
+  //   // Update the URL with the current page whenever paginationModel.page changes
+  //   router.push({
+  //     pathname: router.pathname,
+  //     query: { ...router.query, page: paginationModel.page + 1 } // Add 1 to match expected 1-indexed page
+  //   })
+  // }, [paginationModel.page])
+
+  useEffect(() => {
+    console.log('Api caleed 2111>>')
+    router.replace({
+      pathname: router.pathname,
+      query: {
+        ...router.query,
+        page: paginationModel.page + 1,
+        searchValue,
+        sort,
+        sortColumn
+      }
+    })
+  }, [paginationModel.page, searchValue, sort, sortColumn])
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
@@ -129,10 +185,45 @@ const ListOfPurchase = () => {
     })
   }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
-  }
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, sortColumn)
+  // }
+
+  const handleSearch = useCallback(
+    debounce((value) => {
+      setSearchValue(value);
+  
+      // Reset the page to the first page (page 0 in your `paginationModel`)
+      setPaginationModel((prevModel) => ({
+        ...prevModel,
+        page: 0,
+      }));
+  
+      // Update the URL query parameters
+      router.replace({
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          searchValue: value,
+          page: 1, // Update to 1-indexed for the URL
+        },
+      });
+    }, 500),
+    [router]
+  );
+  
+
+  // Handle page or query param change in URL to update paginationModel state
+  useEffect(() => {
+    console.log('Api caleed >>')
+    if (router.query.page) {
+      setPaginationModel(prevModel => ({
+        ...prevModel,
+        page: parseInt(router.query.page, 10) - 1 // 0-indexed
+      }))
+    }
+  }, [router.query.page])
 
   const columns = [
     {
@@ -271,6 +362,7 @@ const ListOfPurchase = () => {
   )
 
   const onRowClick = params => {
+    console.log('Params >', params)
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
@@ -313,6 +405,7 @@ const ListOfPurchase = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
+                      value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
                       sx={{
@@ -339,6 +432,20 @@ const ListOfPurchase = () => {
                   total={total}
                   columns={columns}
                   paginationModel={paginationModel}
+                  onPaginationModelChange={model => {
+                    setPaginationModel(model) // Update page and pageSize in the state
+                    router.replace({
+                      pathname: router.pathname,
+                      query: {
+                        ...router.query,
+                        page: model.page + 1, // API uses 1-indexed pages
+                        pageSize: model.pageSize,
+                        searchValue,
+                        sort,
+                        sortColumn
+                      }
+                    })
+                  }}
                   handleSortModel={handleSortModel}
                   setPaginationModel={setPaginationModel}
                   loading={loading}
