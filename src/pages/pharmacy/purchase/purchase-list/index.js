@@ -53,7 +53,7 @@ const ListOfPurchase = () => {
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: 10
+    pageSize: parseInt(router.query.pageSize, 10) || 10 
   })
   const [loading, setLoading] = useState(false)
 
@@ -159,12 +159,13 @@ const ListOfPurchase = () => {
       query: {
         ...router.query,
         page: paginationModel.page + 1,
+        pageSize: paginationModel.pageSize, 
         searchValue,
         sort,
         sortColumn
       }
     })
-  }, [paginationModel.page, searchValue, sort, sortColumn])
+  }, [paginationModel.page,  paginationModel.pageSize, searchValue, sort, sortColumn])
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {

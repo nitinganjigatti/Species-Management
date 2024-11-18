@@ -32,7 +32,7 @@ function Escrow({ value }) {
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: 10
+    pageSize: parseInt(router.query.pageSize, 10) || 10 
   })
   // const [stockType, setStockType] = useState( 'dispute')
   const [stockType, setStockType] = useState(router.query.stockType || 'dispute')
@@ -72,7 +72,7 @@ function Escrow({ value }) {
       field: 'request_id',
       headerName: 'Request Id',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.request_id}
         </Typography>
       )
@@ -83,7 +83,7 @@ function Escrow({ value }) {
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.request_number}
         </Typography>
       )
@@ -94,7 +94,7 @@ function Escrow({ value }) {
       field: 'from_store',
       headerName: 'From Store',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.from_store}
         </Typography>
       )
@@ -105,7 +105,7 @@ function Escrow({ value }) {
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.quantity}
         </Typography>
       )
@@ -116,7 +116,7 @@ function Escrow({ value }) {
       field: 'to_store',
       headerName: 'To Store',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.to_store}
         </Typography>
       )
@@ -127,7 +127,7 @@ function Escrow({ value }) {
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.batch_no}
         </Typography>
       )
@@ -138,7 +138,7 @@ function Escrow({ value }) {
       field: 'status',
       headerName: 'Stock Related To ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params?.row?.status === 'Dispatched' ? 'Transit' : 'Dispute'}
         </Typography>
       )
@@ -149,7 +149,7 @@ function Escrow({ value }) {
       field: 'no_of_days_exist',
       headerName: 'Exist from',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
           {params.row.no_of_days_exist === '0'
             ? 'Today'
             : params.row.no_of_days_exist === null
@@ -191,6 +191,7 @@ function Escrow({ value }) {
       setLoading(false)
     }
   }, [])
+
   useEffect(() => {
     fetchScrewTableData({
       sort,
@@ -206,16 +207,18 @@ function Escrow({ value }) {
     router.replace({
       pathname: router.pathname,
       query: {
-        ...router.query,
+        ...router.query, // Preserve existing query parameters
         stockType,
         value,
-        page: paginationModel.page + 1,
+        page: paginationModel.page + 1, // Convert back to 1-indexed
+        pageSize: paginationModel.pageSize, // Include the current limit
         searchValue,
         sort,
         sortColumn
       }
-    })
-  }, [stockType, paginationModel.page, searchValue, sort, sortColumn])
+    });
+  }, [stockType,value, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn]);
+  
 
   const handleSortModel = useCallback(newModel => {
     if (newModel.length) {
@@ -236,8 +239,6 @@ function Escrow({ value }) {
   const filterByStockType = useCallback(type => {
     setStockType(type)
   }, [])
-
- 
 
   const handleSearch = useCallback(
     debounce(value => {
