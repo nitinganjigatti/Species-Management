@@ -704,22 +704,18 @@ const EggSecondSecion = ({
                         <Tooltip title={value ? value : '-'}>
                           <Typography
                             onClick={() => {
-                              // value.startsWith('Probable') && setProbableParentSideBar(true)
-                              setProbableParentSideBar(true)
-                              // value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                              setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                              // value.startsWith('Probable') &&
-                              //   setParentList(
-                              //     key === 'Mother id'
-                              //       ? eggDetails?.parent_list?.mother_list
-                              //       : eggDetails?.parent_list?.father_list
-                              //   )
-
-                              setParentList(
-                                key === 'Mother id'
-                                  ? eggDetails?.parent_list?.mother_list
-                                  : eggDetails?.parent_list?.father_list
-                              )
+                              if (
+                                (key === 'Mother id' && eggDetails?.parent_list?.mother_list?.length > 0) ||
+                                (key === 'Father id' && eggDetails?.parent_list?.father_list?.length > 0)
+                              ) {
+                                setProbableParentSideBar(true)
+                                setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                                setParentList(
+                                  key === 'Mother id'
+                                    ? eggDetails?.parent_list?.mother_list
+                                    : eggDetails?.parent_list?.father_list
+                                )
+                              }
                             }}
                             sx={{
                               whiteSpace: 'nowrap',
