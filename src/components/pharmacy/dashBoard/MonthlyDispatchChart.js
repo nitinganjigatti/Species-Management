@@ -6,6 +6,7 @@ import CardContent from '@mui/material/CardContent'
 import { useEffect, useState } from 'react'
 import MenuItem from '@mui/material/MenuItem'
 import Router from 'next/router'
+
 // ** Custom Components Imports
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { getMonthWiseDispatchList } from 'src/lib/api/pharmacy/dashboard'
@@ -53,11 +54,14 @@ const MonthlyDispatchChart = () => {
   const monthsFromApi = purchaseList?.dispatch_count[0] ? Object.keys(purchaseList.dispatch_count[0]) : []
 
   // Map the dispatch count and value based on the dynamic month order from API
-  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
-  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)?.reverse()
+
+  const purchaseValues = monthsFromApi
+    .map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
+    ?.reverse()
 
   // Convert full month names to short month names for the x-axis labels
-  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
+  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)?.reverse()
 
   // Conditionally add series based on checkbox selections
   const series = []
@@ -90,9 +94,10 @@ const MonthlyDispatchChart = () => {
         formatter: (value, { seriesIndex }) => {
           console.log(series, 'seriesIndex')
           if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
-            return `₹${value.toFixed(2)} lac`
+            return `₹${value?.toFixed(2)} lac`
           }
-          return value.toFixed(0)
+
+          return value?.toFixed(0)
         }
       }
     },
