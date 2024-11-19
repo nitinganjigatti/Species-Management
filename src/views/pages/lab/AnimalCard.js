@@ -15,7 +15,8 @@ const AnimalCard = ({ animalDetails }) => {
         paddingY: '20px',
         paddingX: '16px',
         width: '345px',
-        height: '106px',
+
+        // height: '106px',
 
         // border: '1px solid #C3CEC7',
         display: 'flex',
@@ -81,32 +82,32 @@ const AnimalCard = ({ animalDetails }) => {
           gap: '1px'
         }}
       >
-        {/* {animalDetails?.local_id_type && animalDetails?.local_identifier_value ? (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              <span> {item?.local_id_type}: </span>
-              <span> {item?.local_identifier_value}</span>
-            </Typography>
-          ) : (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              AID : {animalDetails?.animal_id}
-            </Typography>
-          )} */}
+        {animalDetails?.local_id_type && animalDetails?.local_identifier_value ? (
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            <span> {item?.local_id_type}: </span>
+            <span> {item?.local_identifier_value}</span>
+          </Typography>
+        ) : (
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            AID : {animalDetails?.animal_id}
+          </Typography>
+        )}
 
-        <Typography
+        {/* <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
@@ -115,7 +116,7 @@ const AnimalCard = ({ animalDetails }) => {
           }}
         >
           ID : {animalDetails?.animal_id}
-        </Typography>
+        </Typography> */}
 
         <Typography
           sx={{
@@ -137,6 +138,32 @@ const AnimalCard = ({ animalDetails }) => {
         >
           ({animalDetails?.scientific_name})
         </Typography>
+        {animalDetails?.breed_name && (
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '13px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            Breed : {animalDetails?.breed_name}
+          </Typography>
+        )}
+
+        {animalDetails?.morph_name && (
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '13px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            Variant : {animalDetails?.morph_name}
+          </Typography>
+        )}
+
         {/* {item?.type === 'group' && (
             <Typography
               sx={{
@@ -154,39 +181,39 @@ const AnimalCard = ({ animalDetails }) => {
               Count {item?.total_animal}
             </Typography>
           )} */}
-        {/* <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span style={{ fontWeight: 600 }}> Encl: </span>
-            {animalDetails?.user_enclosure_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span style={{ fontWeight: 600 }}>Sec: </span>
-            {animalDetails?.section_name}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 400,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span style={{ fontWeight: 600 }}>Site: </span>
-            {animalDetails?.site_name}
-          </Typography> */}
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 400,
+            lineHeight: '16.94px',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          <span style={{ fontWeight: 600 }}> Encl: </span>
+          {animalDetails?.user_enclosure_name}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 400,
+            lineHeight: '16.94px',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>Sec: </span>
+          {animalDetails?.section_name}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 400,
+            lineHeight: '16.94px',
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>Site: </span>
+          {animalDetails?.site_name}
+        </Typography>
       </Box>
     </Box>
   )
