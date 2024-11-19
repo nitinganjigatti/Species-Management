@@ -63,13 +63,14 @@ const ComposeLabNavigation = ({ labRole }) => {
 
     // if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
     mastersLabParent.children = []
+
     // }
 
     if (labList?.length > 0 || addlabPermission) {
       labNavigationArray.push(lab)
     }
 
-    if (labList.length > 0) {
+    if (labList?.length > 0) {
       labNavigationArray.push(request)
     }
 
