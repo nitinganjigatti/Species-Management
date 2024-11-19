@@ -177,6 +177,7 @@ const NewDashboard = () => {
                       ['todayDispatchedValue', 'todayRequestCount', 'todayShipmentCount'].includes(el.name)
                     )
                   : ''
+
                 //totalList?.filter(el => el.name === 'medicineCount' || el.name === 'inStockCount')
               }
               modifiedProperties={modifiedProperties}
