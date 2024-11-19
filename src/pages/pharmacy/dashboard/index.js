@@ -155,7 +155,7 @@ const NewDashboard = () => {
 
                   <Grid item xs={11 / 2}>
                     <CriticalInfoCards
-                      title={outOfStockMedicine?.value}
+                      title={outOfStockMedicine?.value === 0 ? '0' : outOfStockMedicine?.value}
                       subTitle={outOfStockMedicine?.name}
                       modifiedProperties={modifiedProperties}
                     />
