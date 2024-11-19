@@ -59,7 +59,8 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  console.log('rows :>> ', rows)
+
+  // console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
@@ -145,6 +146,8 @@ const EggList = () => {
 
   const checkAddPermission = () => {
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      console.log('animal_record_access', animal_record_access)
+
       return true
     } else {
       return false
@@ -848,6 +851,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          {console.log(params.row.animal_id)}
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -2574,7 +2578,8 @@ const EggList = () => {
                   setSearchQuery={setSearchQuery}
                   selectedOptions={selectedOptions}
                   setSelectedOptions={setSelectedOptions}
-                  data={rows}
+                  data={indexedRows}
+                  loading={loading}
                 />
                 <DataGrid
                   sx={{
@@ -2643,7 +2648,8 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
-                    data={rows}
+                    data={indexedRows}
+                    loading={loading}
                   />
 
                   <DataGrid
@@ -2815,7 +2821,8 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
-                    data={rows}
+                    data={indexedRows}
+                    loading={loading}
                   />
 
                   <DataGrid
@@ -3026,7 +3033,8 @@ const EggList = () => {
                         setSearchQuery={setSearchQuery}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
-                        data={rows}
+                        data={indexedRows}
+                        loading={loading}
                       />
 
                       <DataGrid
