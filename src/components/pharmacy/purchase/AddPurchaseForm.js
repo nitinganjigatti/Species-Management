@@ -1050,6 +1050,7 @@ const AddPurchaseForm = () => {
                       name='Purchase Date*'
                       fullWidth
                       maxDate={new Date()}
+                      date={value ? parseFormattedDate(value) : null}
                       width={'100%'}
                       onChangeHandler={date => {
                         let formatted = formatDate(date)
