@@ -205,7 +205,7 @@ const FeedTypes = () => {
         <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
           <Button sx={{ px: 7 }} size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
             <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; NEW
+            &nbsp; ADD NEW
           </Button>
         </Box>
       )}

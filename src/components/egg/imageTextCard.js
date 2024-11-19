@@ -46,7 +46,9 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
             border: 'solid 1px #C3CEC7',
             width: '35px',
             height: '35px',
-            borderRadius: '50%'
+            borderRadius: '50%',
+            p: 0.3,
+            backgroundColor: theme.palette.primary.contrastText
           }}
         >
           {imgURl ? (
@@ -57,7 +59,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                backgroundColor: theme.palette.primary.contrastText
+                objectFit: 'contain'
               }}
             />
           ) : (

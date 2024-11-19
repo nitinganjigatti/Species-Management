@@ -5,7 +5,8 @@ import {
   EXPIRED_MEDICINE,
   STOCK_BY_BATCH,
   STOCK,
-  STOCK_WITH_BATCH
+  STOCK_WITH_BATCH,
+  PURCHASE_BY_PRODUCT
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -59,11 +60,16 @@ export async function getStockReport(id, params) {
 export async function getStockReportByBatch(id, params) {
   let response
   if (id === 'all') {
-    debugger
     response = await axiosGet({ url: `${STOCK_WITH_BATCH}`, params, pharmacy: true })
   } else {
     response = await axiosGet({ url: `${STOCK_WITH_BATCH}/${id}`, params, pharmacy: true })
   }
 
   return response?.data
+}
+
+export async function getPurchaseListByProduct(params) {
+  let response = await axiosGet({ url: `${PURCHASE_BY_PRODUCT}`, params, pharmacy: true })
+
+  return response.data
 }

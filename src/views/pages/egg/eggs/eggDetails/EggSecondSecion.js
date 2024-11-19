@@ -35,7 +35,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { LoadingButton } from '@mui/lab'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
-import { AddAssesment, getWeightList } from 'src/lib/api/egg/egg'
+import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
 import EggActivityLogs from './EggActivityLogs'
 import Utility from 'src/utility'
 import ProbableParent from './ProbableParent'
@@ -70,6 +70,7 @@ const EggSecondSecion = ({
   defaultEggAssesment,
   getDetails
 }) => {
+  const currentDate = moment().format('YYYY-MM-DD')
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
@@ -134,6 +135,7 @@ const EggSecondSecion = ({
   const [transferEggSideBar, setTransferEggSideBar] = useState(false)
   const [parent, setParent] = useState('')
   const [parentList, setParentList] = useState([])
+  const [editWeight, setEditWeight] = useState(false)
 
   //////////////////////////////////////////////////////////////
   const [rows, setRows] = useState([])
@@ -146,6 +148,7 @@ const EggSecondSecion = ({
 
   const defaultValues = {
     egg_id: egg_id,
+    assessment_id: '',
     assessment_type_id: defaultEggAssesment?.assessment_type_id,
     measurement_unit_id: defaultEggAssesment?.unit_id,
     assessment_value: ''
@@ -180,43 +183,50 @@ const EggSecondSecion = ({
       measurement_unit_id: defaultEggAssesment?.unit_id,
       assessment_value: val?.assessment_value
     }
+    const paramsEdit = {
+      ref_id: val?.assessment_id,
+      measurement_unit_id: defaultEggAssesment?.unit_id,
+      assessment_value: val?.assessment_value,
+      assessment_date: currentDate
+    }
     setSubmitAssementloader(true)
 
-    // if (isEdit) {
-    //   setBtnDisabled(true)
-    //   try {
-    //     updateIncubator(id, {
-    //       nursery_id: val?.nursery,
-    //       room_id: val?.room,
-    //       max_eggs: val?.maxNumberOfEggs,
-    //       incubator_name: val?.incubator_name
-    //     }).then(res => {
-    //       if (res.success) {
-    //         reset()
-    //         // handleSidebarClose()
-    //         router.push('/egg/incubators')
-    //       } else {
-    //       }
-    //     })
-    //   } catch (error) {
-    //     console.log(error)
-    //   }
-    // } else {
-    try {
-      AddAssesment(params).then(res => {
-        if (res.success) {
-          reset()
-          setaddWeightSidebar(false)
-          setBtnDisabled(false)
-          setSubmitAssementloader(false)
-          getDetails(egg_id)
-          fetchTableData()
-        } else {
-          setSubmitAssementloader(false)
-        }
-      })
-    } catch (error) {
-      console.log(error)
+    if (editWeight) {
+      try {
+        EditAssesment(paramsEdit).then(res => {
+          if (res.success) {
+            reset()
+            setaddWeightSidebar(false)
+            setBtnDisabled(false)
+            setEditWeight(false)
+            setValue('assessment_id', '')
+            setSubmitAssementloader(false)
+            getDetails(egg_id)
+            fetchTableData()
+          } else {
+            setSubmitAssementloader(false)
+          }
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      try {
+        AddAssesment(params).then(res => {
+          if (res.success) {
+            reset()
+            setaddWeightSidebar(false)
+            setBtnDisabled(false)
+            setSubmitAssementloader(false)
+            getDetails(egg_id)
+            fetchTableData()
+          } else {
+            setSubmitAssementloader(false)
+          }
+        })
+      } catch (error) {
+        console.log(error)
+      }
     }
 
     // }
@@ -313,6 +323,7 @@ const EggSecondSecion = ({
   ]
 
   const handleSidebarClose = () => {
+    setEditWeight(false)
     setSidebarOpen(false)
   }
 
@@ -368,10 +379,11 @@ const EggSecondSecion = ({
   useEffect(() => {
     fetchTableData()
   }, [fetchTableData])
+
   const series = [
     {
       name: 'Actual Value',
-      data: rowsWeight?.reverse()
+      data: rowsWeight
     }
   ]
 
@@ -692,22 +704,18 @@ const EggSecondSecion = ({
                         <Tooltip title={value ? value : '-'}>
                           <Typography
                             onClick={() => {
-                              // value.startsWith('Probable') && setProbableParentSideBar(true)
-                              setProbableParentSideBar(true)
-                              // value.startsWith('Probable') && setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                              setParent(key === 'Mother id' ? 'Mother' : 'Father')
-                              // value.startsWith('Probable') &&
-                              //   setParentList(
-                              //     key === 'Mother id'
-                              //       ? eggDetails?.parent_list?.mother_list
-                              //       : eggDetails?.parent_list?.father_list
-                              //   )
-
-                              setParentList(
-                                key === 'Mother id'
-                                  ? eggDetails?.parent_list?.mother_list
-                                  : eggDetails?.parent_list?.father_list
-                              )
+                              if (
+                                (key === 'Mother id' && eggDetails?.parent_list?.mother_list?.length > 0) ||
+                                (key === 'Father id' && eggDetails?.parent_list?.father_list?.length > 0)
+                              ) {
+                                setProbableParentSideBar(true)
+                                setParent(key === 'Mother id' ? 'Mother' : 'Father')
+                                setParentList(
+                                  key === 'Mother id'
+                                    ? eggDetails?.parent_list?.mother_list
+                                    : eggDetails?.parent_list?.father_list
+                                )
+                              }
                             }}
                             sx={{
                               whiteSpace: 'nowrap',
@@ -954,6 +962,7 @@ const EggSecondSecion = ({
                     <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>DATE</TableCell>
                     <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>TIME</TableCell>
                     <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>ACTUAL</TableCell>
+                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>EDIT</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -993,6 +1002,37 @@ const EggSecondSecion = ({
                           }}
                         >
                           {`${row?.assessment_value} ${row?.uom_abbr}`}
+                        </TableCell>
+                        <TableCell
+                          style={{
+                            padding: '11px 12px 11px 12px',
+                            fontSize: '12px',
+                            fontWeight: '400',
+                            // display: 'flex',
+                            // alignItems: 'center',
+                            // justifyContent: 'center',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              paddingLeft: '8px'
+                            }}
+                          >
+                            <Icon
+                              onClick={() => {
+                                setEditWeight(true)
+                                setValue('assessment_value', row?.assessment_value)
+                                setValue('assessment_id', row?.id)
+                                setaddWeightSidebar(true)
+                              }}
+                              style={{ cursor: 'pointer' }}
+                              icon='ic:outline-edit'
+                              fontSize={20}
+                            />
+                          </Typography>
                         </TableCell>
                       </TableRow>
                     )
@@ -1105,7 +1145,7 @@ const EggSecondSecion = ({
               <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
             </Box>
             <Typography variant='h6' sx={{ mr: 70 }}>
-              Add Weight
+              {editWeight ? 'Edit' : 'Add'} Weight
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton
@@ -1139,9 +1179,7 @@ const EggSecondSecion = ({
                               label='Weight in Grams'
                               value={value}
                               autoFocus
-                              // type='number'
                               inputProps={{ min: 1 }}
-                              // onChange={onChange}
                               onChange={event => {
                                 const newValue = event.target.value
                                 // Validate the input to ensure it contains only numbers
@@ -1149,7 +1187,7 @@ const EggSecondSecion = ({
                                   onChange(event)
                                 }
                               }}
-                              placeholder='Enter Number'
+                              placeholder={`${editWeight ? 'Edit' : 'Add'} Weight`}
                               error={Boolean(errors.assessment_value)}
                               name='assessment_value'
                             />

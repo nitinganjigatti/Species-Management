@@ -40,18 +40,27 @@ const RecipeList = props => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
       const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
-      await getRecipeList({ params }).then(res => {
-        if (res.data.result.length > 0) {
-          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-          setTotalCount(res?.data?.total_count)
-          setReachedEnd(false)
-        } else {
-          setReachedEnd(false)
-        }
-      })
+      const res = await getRecipeList({ params })
+
+      if (res?.data?.result?.length > 0) {
+        const newResults = res.data.result.filter(
+          item => !ingredientList.some(existingItem => existingItem.id === item.id)
+        )
+
+        // Combine previous and new results, ensuring unique IDs
+        const combinedList = [...ingredientList, ...newResults]
+        const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+        setIngredientList(uniqueList)
+        setTotalCount(res.data.total_count)
+        setReachedEnd(false)
+      } else {
+        setReachedEnd(false)
+      }
     }
+
     getRecipeListData()
-  }, [])
+  }, [ingredientPage, searchValue, sort])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -60,28 +69,33 @@ const RecipeList = props => {
   const handleScroll = async e => {
     const container = e.target
 
-    // Check if the user has reached the bottom
-    if (totalCount > ingredientList.length) {
+    // Check if user has reached the bottom and more data is available
+    if (totalCount > ingredientList?.length && !reachedEnd) {
       if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
-        // User has reached the bottom, perform your action here
-        setIngredientPage(++ingredientPage)
-        setReachedEnd(true)
-        try {
-          // const nextPage = paginationModel.page + 1
-          const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
+        setReachedEnd(true) // Prevent multiple API calls
 
+        try {
+          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1 }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
-            setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
 
-            // setPaginationModel(prevPagination => ({ ...prevPagination, page: nextPage }))
-            setReachedEnd(false)
-          } else {
-            setReachedEnd(false) // Depending on your logic, you might want to set reached end to true
+            const updatedList = [...ingredientList, ...newResults]
+
+            // Ensure all IDs in the updated list are unique
+            const uniqueList = Array.from(new Map(updatedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
           }
+
+          setIngredientPage(prevPage => prevPage + 1)
+          setReachedEnd(false)
         } catch (error) {
           console.error(error)
+          setReachedEnd(false)
         }
       }
     }
@@ -89,25 +103,28 @@ const RecipeList = props => {
 
   const searchData = useCallback(
     debounce(async search => {
-      if (searchValue != ' ') {
+      if (search.trim()) {
         try {
-          // const currentAnimalFilterValue = animalFilterValueRef.current
           const params = { page: 1, q: search, sort, status: 1 }
-          await getRecipeList({ params }).then(res => {
-            if (res?.data?.result.length > 0) {
-              setIngredientList(res?.data?.result)
-              setIngredientPage(1)
-            } else {
-              setIngredientList([])
-            }
-          })
+          const res = await getRecipeList({ params })
+          if (res?.data?.result.length > 0) {
+            // Append new results while ensuring unique IDs
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
+
+            const combinedList = [...ingredientList, ...newResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setIngredientPage(1)
+          }
         } catch (error) {
-          // console.error(error)
+          console.error(error)
           setIngredientPage(1)
         }
       }
     }, 500),
-
     [searchValue]
   )
 
@@ -125,29 +142,6 @@ const RecipeList = props => {
         gap: '24px'
       }}
     >
-      {/* <Box
-        className='sidebar-header'
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          backgroundColor: 'background.default',
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
-        }}
-      >
-        <Typography variant='h6'> Add Recipes</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton
-            size='small'
-            onClick={() => {
-              handleSidebarClose()
-            }}
-            sx={{ color: 'text.primary' }}
-          >
-            <Icon icon='mdi:close' fontSize={20} />
-          </IconButton>
-        </Box>
-      </Box> */}
-
       <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
         <Box
           className='sidebar-header'
@@ -171,6 +165,7 @@ const RecipeList = props => {
               size='small'
               onClick={() => {
                 handleSidebarClose()
+                setSearchValue('')
               }}
               sx={{ color: 'text.primary' }}
             >
@@ -207,16 +202,6 @@ const RecipeList = props => {
 
       {/* on scroll */}
       <Box sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }} onScroll={handleScroll}>
-        {/* <TextField
-          fullWidth
-          placeholder='Search Recipe or Ingredient'
-          onKeyUp={e => searchData(e.target.value)}
-          onChange={e => {
-            setSearchValue(e.target.value)
-          }}
-        /> */}
-        {/* Card Section */}
-
         <RecipeCard
           rows={ingredientList}
           setSelectedCardRecipe={setSelectedCardRecipe}
@@ -228,6 +213,8 @@ const RecipeList = props => {
           setAllRecipeSelectedValues={setAllRecipeSelectedValues}
           formData={formData}
           addEventSidebarOpen={addEventSidebarOpen}
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
         />
 
         {/* End Card Section */}

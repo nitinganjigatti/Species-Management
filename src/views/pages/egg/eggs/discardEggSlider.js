@@ -31,6 +31,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
   const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  console.log('isSearchOpen', isSearchOpen)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
@@ -43,6 +44,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [reachedEnd, setReachedEnd] = useState(false)
   const [loader, setLoader] = useState(false)
 
+  // console.log('loader :>> ', loader)
+
   // const [loader, setLoader] = useState(false)
 
   const [selectedDropDown, setSelectedDropDown] = useState('all')
@@ -53,8 +56,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     Batch: [],
     'Security status': [],
     Condition: [],
-    Reason: []
+    Reason: [],
+    Site: []
   })
+
+  // console.log('selectedOptions :>> ', selectedOptions)
 
   const [applyFilters, setApplyFilters] = useState({
     Species: [],
@@ -62,8 +68,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     Batch: [],
     'Security status': [],
     Condition: [],
-    Reason: []
+    Reason: [],
+    Site: []
   })
+
+  // console.log('applyFilters :>> ', applyFilters)
 
   const [filterList, setFilterList] = useState([])
 
@@ -93,9 +102,17 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setDiscardList([])
     setListCount('0')
     setSelectedDropDown('all')
-    setApplyFilters({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+    setApplyFilters({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [], Site: [] })
 
-    setSelectedOptions({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+    setSelectedOptions({
+      Species: [],
+      Nursery: [],
+      Batch: [],
+      'Security status': [],
+      Condition: [],
+      Reason: [],
+      Site: []
+    })
     setFilterList([])
   }
 
@@ -130,6 +147,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     // Update the selected options state
     setSelectedOptions(newSelectedFilters)
     setApplyFilters(newSelectedFilters)
+    setDiscardList([])
 
     // fetchTableData();
   }
@@ -170,8 +188,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 cursor: 'pointer'
               }}
               onClick={() => {
-                setSearch('')
-                handleSearch('')
+                if (isSearchOpen) {
+                  setSearch('')
+                  handleSearch('')
+                }
                 setIsSearchOpen(!isSearchOpen)
               }}
             >
@@ -267,10 +287,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         key={index}
                         sx={{
                           display: 'flex',
-                          justifyContent: 'center',
+
+                          // justifyContent: 'center',
                           alignItems: 'center',
                           gap: '6px',
-                          p: '8px',
+                          px: '8px',
                           py: '12px',
                           bgcolor: '#dae7df',
                           borderRadius: '8px',
@@ -278,11 +299,15 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         }}
                       >
                         <Typography
-                          sx={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', textTransform: 'capitalize' }}
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: '#000000',
+                            textTransform: 'capitalize',
+                            whiteSpace: 'nowrap'
+                          }}
                         >
                           {item?.name}
-
-                          {/* asdfgh */}
                         </Typography>{' '}
                         <IconButton onClick={() => handleRemoveFilter(item)}>
                           <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
@@ -511,6 +536,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       // const conditionIds = applyFilters.Condition?.map(option => option.id)
       const SecurityIds = applyFilters['Security status']?.map(option => option.id)
       const reasonIds = applyFilters.Reason?.map(option => option.id)
+      const siteIds = applyFilters.Site?.map(option => option.id)
 
       const param = {
         ref_type: tabStatus,
@@ -525,8 +551,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
 
         // egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
-        egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : ''
+        egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : '',
+        site_id: siteIds.length > 0 ? JSON.stringify(siteIds) : ''
       }
+
+      // console.log('param :>> ', param)
 
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
@@ -535,7 +564,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           // setDiscardList(list?.result)
           if (list?.result?.length > 0) {
             if (showFilters) {
-              setDiscardList(list?.result)
+              setDiscardList([...discardList, ...list?.result])
             } else {
               setDiscardList([...discardList, ...list?.result])
             }
@@ -589,21 +618,43 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     }
   }, [openDiscard, tabStatus, applyFilters])
 
+  // const handleScroll = async e => {
+  //   const container = e.target
+  //   if (discardList?.length < listCount) {
+  //     if (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + 1) {
+  //       setPage(++page)
+
+  //       setReachedEnd(true)
+  //       try {
+  //         await DiscardList(search, date?.to_date, date?.from_date)
+  //       } catch (error) {
+  //         console.error(error)
+  //       }
+  //     }
+  //   }
+  // }
   const handleScroll = async e => {
     const container = e.target
+
     if (discardList?.length < listCount) {
       if (container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + 1) {
-        setPage(++page)
+        setLoader(true) // Show loader right before fetching new data
+
+        setPage(prevPage => prevPage + 1)
         setReachedEnd(true)
 
         try {
           await DiscardList(search, date?.to_date, date?.from_date)
         } catch (error) {
           console.error(error)
+        } finally {
+          setLoader(false) // Hide loader once data is loaded
         }
       }
     }
   }
+
+  const debouncedHandleScroll = debounce(e => handleScroll(e), 1000)
 
   return (
     <>
@@ -666,7 +717,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Divider />
               {TabHeader()}
               <Box
-                onScroll={handleScroll}
+                onScroll={e => {
+                  debouncedHandleScroll(e)
+                }}
                 sx={{
                   bgcolor: '#eff5f2',
                   py: 2,
@@ -676,31 +729,37 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {listCount > 0 ? (
-                  discardList?.map((item, index) => <Card key={index} list={item} />)
-                ) : loader ? (
+                {
+                  discardList?.map((item, index) => (
+                    <Card key={index} list={item} />
+                  ))
+
+                  // listCount > 0 ? (
+                  // ) : (
+                  //   <Typography
+                  //     sx={{
+                  //       color: '#000000',
+                  //       fontSize: '16px',
+                  //       fontWeight: '500',
+                  //       lineHeight: '19.36px',
+                  //       overflow: 'hidden',
+                  //       textAlign: 'center',
+                  //       mt: 5,
+
+                  //       // textOverflow: 'ellipsis',
+                  //       whiteSpace: 'nowrap',
+                  //       boxSizing: 'border-box'
+                  //     }}
+                  //   >
+                  //     No records
+                  //   </Typography>
+                  // )
+                }
+                {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {' '}
+                    {/* {console.log('loader when scroll', loader)} */}
                     <CircularProgress />
                   </Box>
-                ) : (
-                  <Typography
-                    sx={{
-                      color: '#000000',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textAlign: 'center',
-                      mt: 5,
-
-                      // textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    No records
-                  </Typography>
                 )}
               </Box>
             </TabPanel>
@@ -709,7 +768,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Divider />
               {TabHeader()}
               <Box
-                onScroll={handleScroll}
+                onScroll={e => {
+                  debouncedHandleScroll(e)
+                }}
                 sx={{
                   bgcolor: '#eff5f2',
                   py: 2,
@@ -719,31 +780,37 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {listCount > 0 ? (
-                  discardList?.map((item, index) => <Card key={index} list={item} />)
-                ) : loader ? (
+                {
+                  discardList?.map((item, index) => (
+                    <Card key={index} list={item} />
+                  ))
+
+                  // listCount > 0 ? (
+                  // ) : (
+                  //   <Typography
+                  //     sx={{
+                  //       color: '#000000',
+                  //       fontSize: '16px',
+                  //       fontWeight: '500',
+                  //       lineHeight: '19.36px',
+                  //       overflow: 'hidden',
+                  //       textAlign: 'center',
+                  //       mt: 5,
+
+                  //       // textOverflow: 'ellipsis',
+                  //       whiteSpace: 'nowrap',
+                  //       boxSizing: 'border-box'
+                  //     }}
+                  //   >
+                  //     No records
+                  //   </Typography>
+                  // )
+                }
+                {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {' '}
+                    {console.log('loader when scroll', loader)}
                     <CircularProgress />
                   </Box>
-                ) : (
-                  <Typography
-                    sx={{
-                      color: '#000000',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textAlign: 'center',
-                      mt: 5,
-
-                      // textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    No records
-                  </Typography>
                 )}
               </Box>
             </TabPanel>
@@ -791,6 +858,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setFilterList={setFilterList}
           setApplyFilters={setApplyFilters}
           filterList={filterList}
+          setDiscardList={setDiscardList}
+          setSearch={setSearch}
+          setIsSearchOpen={setIsSearchOpen}
         />
       )}
     </>

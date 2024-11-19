@@ -32,7 +32,7 @@ const DiscardedTableView = ({
 
   const [totalpage, setTotalPage] = useState(0)
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [eggDiscardedId, setEggDiscardedId] = useState('')
@@ -479,7 +479,8 @@ const DiscardedTableView = ({
         setSearchQuery={setSearchQuery}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
-        data={rows}
+        data={indexedRows}
+        loading={loading}
       />
       <DataGrid
         sx={{

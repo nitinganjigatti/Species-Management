@@ -12,7 +12,8 @@ import {
   getStocksReportById,
   getLocalStocksReportById,
   getStockReport,
-  getStockReportByBatch
+  getStockReportByBatch,
+  getPurchaseListByProduct
 } from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 
@@ -61,6 +62,7 @@ import { Avatar, Badge } from '@mui/material'
 import { ExcelExportButton } from 'src/components/Buttons'
 import ExpiringMedicine from '../expired-medicine/expiringStock'
 import { minWidth, width } from '@mui/system'
+import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 
 const ListOfStocks = () => {
   const { selectedPharmacy } = usePharmacyContext()
@@ -90,8 +92,20 @@ const ListOfStocks = () => {
   const [value, setValue] = useState('1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
-  const [changeSwitch, setChangeSwitch] = useState()
+  const [changeSwitch, setChangeSwitch] = useState(true)
   const [stockType, setStockType] = useState(selectedPharmacy?.type)
+
+  const editParamsInitialState = { id: null, name: null, active: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  // const [purchaseByStockId, setPurchaseByStockId] = useState(null)
+  const [purchaseByStockId, setPurchaseByStockId] = useState({ batch_no: null, stock_id: null })
+  const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [searchPurchase, setSearchPurchase] = useState('')
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -116,7 +130,6 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
       let storeId = id === 'all' ? '' : id
-
       if (id) {
         try {
           setLoading(true)
@@ -132,7 +145,7 @@ const ListOfStocks = () => {
           //     store_id: storeId
           //   }
 
-          //   result = await getLocalStocksReportById(params)
+          //   result = await getStockReport(storeId, params)
           // } else {
           const params = {
             sort,
@@ -164,7 +177,7 @@ const ListOfStocks = () => {
         } catch (error) {
           setTotal(0)
           setStockReport([])
-          console.log('error', error)
+          console.error('error', error)
           setLoading(false)
         }
       }
@@ -192,7 +205,7 @@ const ListOfStocks = () => {
 
       // if (selectedPharmacy?.type === 'local') {
       //   try {
-      //     const result = await getStocksByBatch(id, batchParams)
+      //     const result = await getStockReportByBatch(id, batchParams)
       //     if (result.success === true) {
       //       setBatchTotal(parseInt(result?.count))
 
@@ -209,23 +222,26 @@ const ListOfStocks = () => {
       //     setBatchLoading(false)
       //   }
       // } else {
-      try {
-        const result = await getStockReportByBatch(id, batchParams)
 
-        if (result?.success === true) {
-          setBatchTotal(parseInt(result?.count))
+      if (id !== undefined) {
+        try {
+          const result = await getStockReportByBatch(id, batchParams)
 
-          let listWithId = result.data
-            ? result.data.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+          if (result?.success === true) {
+            setBatchTotal(parseInt(result?.count))
+
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+            setBatchLoading(false)
+          }
+        } catch (error) {
+          console.error('error', error)
           setBatchLoading(false)
         }
-      } catch (error) {
-        console.log('error', error)
-        setBatchLoading(false)
       }
 
       // }
@@ -244,8 +260,9 @@ const ListOfStocks = () => {
   }, [])
 
   useEffect(() => {
-    if (selectedPharmacy?.id !== '' || undefined) {
+    if (selectedPharmacy?.id !== '') {
       // getStocksReport(selectedPharmacy?.id)
+
       setStockType(selectedPharmacy?.type)
 
       setStockId(selectedPharmacy?.id)
@@ -268,7 +285,7 @@ const ListOfStocks = () => {
         })
       }
 
-      setStockId(selectedPharmacy?.id)
+      // setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value])
@@ -319,15 +336,18 @@ const ListOfStocks = () => {
               } ${el?.product_form_label}`
             }
           })
+
           Utility.exportToCSV(data, 'Stock Report')
         }
         setExcelLoader(false)
       } else {
         setExcelLoader(true)
+
         const batchParams = {
           sort: batchSort,
           q: batchSearchValue,
           column: batchSortColumn
+
           // page: batchPaginationModel.page + 1,
           // limit: batchPaginationModel.pageSize
         }
@@ -356,7 +376,7 @@ const ListOfStocks = () => {
     } catch (error) {
       setExcelLoader(false)
 
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -497,6 +517,7 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
+
     {
       // flex: 0.2,
       minWidth: 160,
@@ -506,7 +527,7 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Math.round(params.row.total_cost)}
+          {params.row.total_cost.toLocaleString()}
         </Typography>
       )
     },
@@ -530,7 +551,7 @@ const ListOfStocks = () => {
     },
     {
       // flex: 0.4,
-      minWidth: 260,
+      width: 260,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
@@ -555,8 +576,8 @@ const ListOfStocks = () => {
     //   )
     // },
     // {
-    //   flex: 0.2,
-    //   minWidth: 20,
+    //   // flex: 0.2,
+    //   minWidth: 160,
     //   field: 'rack_info',
     //   headerName: 'Rack',
     //   type: 'number',
@@ -582,7 +603,7 @@ const ListOfStocks = () => {
 
     // {
     //   flex: 0.2,
-    //   minWidth: 20,
+    //   minWidth: 160,
     //   field: 'stock_config',
     //   headerName: 'Shelf',
     //   type: 'number',
@@ -741,17 +762,16 @@ const ListOfStocks = () => {
       field: 'unit_price',
       headerName: 'Unit Price',
       type: 'number',
-      align: 'center',
+      align: 'right',
       renderCell: params => (
-        <>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {parseInt(params.row.unit_price) > 0 ? Math.round(params.row.unit_price).toFixed(1) : 0}
-          </Typography>
-        </>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.unit_price) > 0 ? Math.round(params.row.unit_price).toFixed(1) : 0}
+        </Typography>
       )
     },
 
     {
+      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
       headerName: 'Value',
@@ -767,6 +787,8 @@ const ListOfStocks = () => {
       // flex: 0.2,
       minWidth: 160,
       field: 'batch_no',
+      type: 'text',
+      align: 'center',
       headerName: 'BATCH NUMBER',
       align: 'center',
       renderCell: params => (
@@ -777,7 +799,7 @@ const ListOfStocks = () => {
     },
     {
       // flex: 0.2,
-      width: 160,
+      minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       align: 'center',
@@ -791,7 +813,7 @@ const ListOfStocks = () => {
     },
     {
       // flex: 0.4,
-      width: 260,
+      minWidth: 260,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
@@ -801,6 +823,58 @@ const ListOfStocks = () => {
         </Typography>
       )
     }
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'rack_info',
+    //   headerName: 'Rack',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.rack}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // },
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'stock_config',
+    //   headerName: 'Shelf',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.shelf}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // }
   ]
 
   const getStoresLists = async () => {
@@ -818,7 +892,7 @@ const ListOfStocks = () => {
       }
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -911,19 +985,23 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
+
       showDialog()
     }
   }
 
   const handleBatchSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, id) => {
       setBatchSearchValue(value)
+
       try {
         await getStocksReportBatchWise({
           batchSort: batchSort,
           batchQ: value,
           batchColumn: batchSortColumn,
-          id: stockId
+
+          // id: stockId
+          id: id
         })
       } catch (error) {
         console.error(error)
@@ -935,6 +1013,7 @@ const ListOfStocks = () => {
   const handleSearch = useCallback(
     debounce(async value => {
       setSearchValue(value)
+
       try {
         await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
       } catch (error) {
@@ -988,6 +1067,75 @@ const ListOfStocks = () => {
         type: stockType
       })
     }
+  }
+
+  const addEventSidebarOpen = params => {
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    // setPurchaseByStockId({ batch_no: null, stock_id: null })
+    setSearchPurchase('')
+    setPurchaseByStockIdList([])
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    try {
+    } catch (e) {}
+  }
+
+  const handleSearchPurchase = useCallback(
+    debounce(async (stock_id, batch_no, value) => {
+      setSearchPurchase(value)
+      try {
+        await getPurchaseListByStockId(stock_id, batch_no, value)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const getPurchaseListByStockId = useCallback(
+    async (stock_id, batch_no, q) => {
+      const params = { stock_id, q }
+      if (changeSwitch) {
+        params.batch_no = batch_no
+      }
+      try {
+        setPurchaseLoading(true)
+        const result = await getPurchaseListByProduct(params)
+        if (result !== undefined) {
+          // console.log(result, 'res')
+          setPurchaseByStockIdList(result.data)
+          setPurchaseLoading(false)
+        }
+      } catch (error) {
+        console.error('error', error)
+        setPurchaseLoading(false)
+      }
+    },
+    [changeSwitch]
+  )
+
+  useEffect(() => {
+    if (purchaseByStockId && purchaseByStockId.stock_id) {
+      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
+    }
+  }, [purchaseByStockId, getPurchaseListByStockId])
+
+  const handleInputChange = event => {
+    const value = event.target.value
+    setSearchPurchase(value)
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, value)
+  }
+
+  const handleClearSearch = event => {
+    setSearchPurchase('')
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, '')
   }
 
   return (
@@ -1074,9 +1222,9 @@ const ListOfStocks = () => {
                       rows={batchIndexedRows === undefined ? [] : batchIndexedRows}
                       rowCount={batchTotal}
                       columns={batchWiseColumn}
-                      sortingMode='server'
-                      paginationMode='server'
                       onSortModelChange={handleBatchSortModel}
+                      paginationMode='server'
+                      sortingMode='server'
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={batchPaginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -1089,15 +1237,32 @@ const ListOfStocks = () => {
                         },
                         toolbar: {
                           value: batchSearchValue,
-                          clearSearch: () => handleBatchSearch(''),
+
+                          clearSearch: () => handleBatchSearch('', stockId),
                           onChange: event => {
                             setBatchSearchValue(event.target.value)
 
-                            return handleBatchSearch(event.target.value)
+                            return handleBatchSearch(event.target.value, stockId)
                           }
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+
+                        // Custom logic for cell clicks
+                        if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   ) : (
                     <DataGrid
@@ -1135,6 +1300,22 @@ const ListOfStocks = () => {
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+
+                        // Custom logic for cell clicks
+                        if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   )}
                 </Card>
@@ -1180,6 +1361,23 @@ const ListOfStocks = () => {
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow />}</TabPanel>
         </TabContext>
       </Grid>
+
+      <StockReportDetails
+        drawerWidth={400}
+        addEventSidebarOpen={openDrawer}
+        handleSidebarClose={handleSidebarClose}
+        handleSubmitData={handleSubmitData}
+        resetForm={resetForm}
+        submitLoader={submitLoader}
+        editParams={editParams}
+        purchaseByStockIdList={purchaseByStockIdList}
+        purchaseLoading={purchaseLoading}
+        setPurchaseLoading={setPurchaseLoading}
+        handleInputChange={handleInputChange}
+        searchPurchase={searchPurchase}
+        setSearchPurchase={setSearchPurchase}
+        handleClearSearch={handleClearSearch}
+      />
     </>
   )
 }

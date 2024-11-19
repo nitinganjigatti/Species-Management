@@ -235,12 +235,12 @@ const AddRequestForm = () => {
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-    // removing mandatory conation
-    // if (values.control_substance === true) {
-    //   if (values.control_substance_file.length === 0) {
-    //     itemErrors.control_substance_file = 'This field is required'
-    //   }
-    // }
+
+    if (values.control_substance === true) {
+      if (values.prescription_required_file?.length === 0) {
+        itemErrors.prescription_required_file = 'This field is required'
+      }
+    }
     if (values.prescription_required === true) {
       if (values.prescription_required_file.length === 0) {
         itemErrors.prescription_required_file = 'This field is required'
@@ -282,15 +282,14 @@ const AddRequestForm = () => {
 
       return
     }
-    // removing mandatory conation
 
-    // if (nestedRowMedicine.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
 
-    //     return
-    //   }
-    // }
+        return
+      }
+    }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -350,15 +349,14 @@ const AddRequestForm = () => {
 
       return
     }
-    // removing mandatory conation
 
-    // if (nestedRowMedicine.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
 
-    //     return
-    //   }
-    // }
+        return
+      }
+    }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -429,7 +427,10 @@ const AddRequestForm = () => {
           manufacture: item.manufacturer_name,
           control_substance: item.controlled_substance === '1' ? true : false,
           status: item?.active === '0' ? 0 : 1,
-          prescription_required: item?.prescription_required === '1' ? true : false,
+          // prescription_required: item?.prescription_required === '1' ? true : false,
+          // making prescription true if product is control substance
+          prescription_required:
+            item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
           genericName: item?.generic_name
         }))
@@ -474,7 +475,9 @@ const AddRequestForm = () => {
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            prescription_required: item?.prescription_required === '1' ? true : false,
+            // prescription_required: item?.prescription_required === '1' ? true : false,
+            prescription_required:
+              item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0
           }))
         )
@@ -605,8 +608,11 @@ const AddRequestForm = () => {
 
   const postItemsData = async () => {
     setSubmitLoader(true)
+
     const postData = editParams
     postData.total_qty = totalQty
+    console.log('edit', postData)
+    debugger
 
     if (id) {
       try {
@@ -711,7 +717,7 @@ const AddRequestForm = () => {
                       <Typography variant='body2'>{option.manufacture}</Typography>
                       {option.control_substance === true && (
                         <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}{' '}
+                      )}
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
                       )}
@@ -831,9 +837,14 @@ const AddRequestForm = () => {
                     <Box>
                       <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}{' '}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}
@@ -1104,7 +1115,7 @@ const AddRequestForm = () => {
               </Grid>
             )
           ) : null} */}
-          {nestedRowMedicine.prescription_required === true ? (
+          {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
               <Grid item xs={12} sm={11 / 2} sx={{ ml: 'auto' }}>
                 {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
@@ -1169,7 +1180,7 @@ const AddRequestForm = () => {
                 <FormControl fullWidth>
                   <TextField
                     type='file'
-                    accept='.pdf, .jpeg, .jpg, .png'
+                    accept='.pdf, image/jpeg, .png'
                     error={Boolean(itemErrors.prescription_required_file)}
                     // label='Attach prescription'
                     onChange={e => {

@@ -28,8 +28,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
   const getUnitsList = async () => {
     try {
       const params = {
-        type: ['weight'],
-        page_no: 1
+        type: ['length', 'weight'],
+        page_no: 1,
+        limit: 50
       }
       await getUnitsForIngredient({ params: params }).then(res => {
         setUomList(res?.data?.result)

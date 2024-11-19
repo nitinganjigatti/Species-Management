@@ -43,7 +43,7 @@ import { useRouter } from 'next/router'
 import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
 import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
-import ExcelExportButton from 'src/views/pages/egg/eggs/exportExcel'
+import ExcelExportButton from 'src/views/pages/egg/eggs/exportEggListExcel'
 import { readAsync, write, remove, read } from 'src/lib/windows/utils'
 
 const EggList = () => {
@@ -59,12 +59,14 @@ const EggList = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+
+  // console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
 
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 50 })
 
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(tab_Value ? tab_Value : 'eggs_incubation')
@@ -106,7 +108,8 @@ const EggList = () => {
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
-  console.log('filterByNurseryId :>> ', filterByNurseryId)
+
+  // console.log('filterByNurseryId :>> ', filterByNurseryId)
 
   useEffect(() => {
     if (filter_list) {
@@ -143,6 +146,8 @@ const EggList = () => {
 
   const checkAddPermission = () => {
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      console.log('animal_record_access', animal_record_access)
+
       return true
     } else {
       return false
@@ -846,6 +851,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          {console.log(params.row.animal_id)}
           {params.row.animal_id ? (
             <Typography
               style={{
@@ -1224,10 +1230,10 @@ const EggList = () => {
 
     {
       // flex: 0.15,
-      width: 150,
+      width: 180,
       sortable: false,
       field: 'initial_weight',
-      headerName: 'Initial weight',
+      headerName: 'Initial weight in gm',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1244,10 +1250,10 @@ const EggList = () => {
     },
     {
       // flex: 0.15,
-      width: 150,
+      width: 180,
       sortable: false,
       field: 'current_weight',
-      headerName: 'current weight',
+      headerName: 'current weight in gm',
       align: 'center',
 
       renderCell: params => (
@@ -1284,7 +1290,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'initial_length',
-      headerName: 'Initial Size-L',
+      headerName: 'Length in mm ',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1304,7 +1310,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'initial_width',
-      headerName: 'Initial Size-W',
+      headerName: 'width in mm',
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1319,47 +1325,7 @@ const EggList = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'site',
-      headerName: 'SITE NAME',
 
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
-      )
-    },
-    {
-      // flex: 0.15,
-      width: 150,
-      sortable: false,
-      field: 'nursery_name',
-      headerName: 'Nursery NAME',
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.nursery_name ? params.row.nursery_name : '-'}
-        </Typography>
-      )
-    },
     {
       // flex: 0.15,
       width: 130,
@@ -1433,6 +1399,49 @@ const EggList = () => {
         </Typography>
       )
     },
+
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
+      field: 'site',
+      headerName: 'SITE NAME',
+
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.site_name ? params.row.site_name : '-'}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.15,
+      width: 150,
+      sortable: false,
+      field: 'nursery_name',
+      headerName: 'Nursery NAME',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '400',
+            lineHeight: '19.36px',
+            ml: 3
+          }}
+        >
+          {params.row.nursery_name ? params.row.nursery_name : '-'}
+        </Typography>
+      )
+    },
+
     {
       // flex: 0.16,
       width: 130,
@@ -2250,7 +2259,7 @@ const EggList = () => {
     setSearchValue('')
     setFilterList([])
     setSelectedFiltersOptions({})
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSelectionEggModel([])
     setSearchQuery('')
     router.push(
@@ -2279,7 +2288,7 @@ const EggList = () => {
     setSubTab(newValue)
     setFilterList([])
     setSelectedFiltersOptions({})
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setSearchQuery('')
     setSelectionEggModel([])
 
@@ -2319,7 +2328,7 @@ const EggList = () => {
           tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : tab_Value === 'eggs_discarded'
-            ? selectedFiltersOptions['Discarded By']?.map(option => option.id)
+            ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || []
 
@@ -2379,12 +2388,10 @@ const EggList = () => {
           status === 'all'
         ) {
           await GetEggList({ params: params }).then(res => {
-            // let listWithId = res.data.result.map((el, i) => {
-            //   return { ...el, uid: i + 1 }
-            // })
             if (res.success) {
+              const ListData = res.data.result ? res.data.result : []
               setTotal(parseInt(res?.data?.total_count))
-              setRows(loadServerRows(paginationModel.page, res.data.result))
+              setRows(loadServerRows(paginationModel.page, ListData))
             } else {
               setRows([])
             }
@@ -2410,7 +2417,7 @@ const EggList = () => {
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: row.egg_id,
+    id: row?.egg_id,
     sl_no: getSlNo(index)
   }))
 
@@ -2571,7 +2578,8 @@ const EggList = () => {
                   setSearchQuery={setSearchQuery}
                   selectedOptions={selectedOptions}
                   setSelectedOptions={setSelectedOptions}
-                  data={rows}
+                  data={indexedRows}
+                  loading={loading}
                 />
                 <DataGrid
                   sx={{
@@ -2640,7 +2648,8 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
-                    data={rows}
+                    data={indexedRows}
+                    loading={loading}
                   />
 
                   <DataGrid
@@ -2812,7 +2821,8 @@ const EggList = () => {
                     setSearchQuery={setSearchQuery}
                     selectedOptions={selectedOptions}
                     setSelectedOptions={setSelectedOptions}
-                    data={rows}
+                    data={indexedRows}
+                    loading={loading}
                   />
 
                   <DataGrid
@@ -3023,7 +3033,8 @@ const EggList = () => {
                         setSearchQuery={setSearchQuery}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
-                        data={rows}
+                        data={indexedRows}
+                        loading={loading}
                       />
 
                       <DataGrid

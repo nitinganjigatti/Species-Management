@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
 import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
@@ -18,9 +18,12 @@ import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { addNewDiet, getDietDetails, updateDiet } from 'src/lib/api/diet/dietList'
 import Router from 'next/router'
+import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 import { getDietTypeList } from 'src/lib/api/diet/dietList'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const steps = [
   {
@@ -45,6 +48,10 @@ const AddDiet = () => {
   console.log('selectedCardRecipe :>> ', selectedCardRecipe)
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [urlType, seturlType] = useState('')
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [formData, setFormData] = useState({
     diet_name: '',
@@ -148,8 +155,7 @@ const AddDiet = () => {
   }
 
   useEffect(() => {
-    console.log(id, 'id')
-    if (id && urlType) {
+    if (id && urlType && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')) {
       console.log(urlType, 'urlType')
       getIngredientsDetailval(id)
     }
@@ -175,8 +181,8 @@ const AddDiet = () => {
           remarks: data.remarks,
           meal_data: data.meal_data.map(meal => ({
             ...meal,
-            meal_from_time: formatTime(meal.meal_from_time),
-            meal_to_time: formatTime(meal.meal_to_time)
+            meal_from_time: dayjs(meal.meal_from_time, 'HH:mm'),
+            meal_to_time: dayjs(meal.meal_to_time, 'HH:mm')
           }))
         }))
 
@@ -198,6 +204,7 @@ const AddDiet = () => {
           }
         })
         console.log(newarr, 'newarr')
+
         const newarrdiet = newarr?.map((item, index) => ({
           unit: {
             value: {
@@ -218,10 +225,14 @@ const AddDiet = () => {
   }
 
   // Function to format time
-  const formatTime = timeString => {
-    const date = new Date(`2000-01-01 ${timeString}`)
+  // const formatTime = timeString => {
+  //   const date = new Date(`2000-01-01 ${timeString}`)
 
-    return date.toUTCString()
+  //   return date.toUTCString()
+  // }
+
+  const formatTime = timeString => {
+    return dayjs(timeString).format('HH:mm') // Standardize the format
   }
 
   useEffect(() => {
@@ -281,13 +292,16 @@ const AddDiet = () => {
         if (data && data.length > 0) {
           if (!data.every(d => d.meal_type && Array.isArray(d.meal_type) && d.meal_type.length > 0)) {
             mealTypeError = true
+
             return false
           }
           if (!data.every(d => d.meal_type.some(mealType => mealType.meal_value_header === 'Generic'))) {
             genericError = true
+
             return false
           }
         }
+
         return true
       }
 
@@ -315,8 +329,8 @@ const AddDiet = () => {
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
-            const fromTime = new Date(item.meal_from_time)
-            const toTime = new Date(item.meal_to_time)
+            const fromTime = formatTime(item.meal_from_time)
+            const toTime = formatTime(item.meal_to_time)
 
             // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
@@ -330,12 +344,8 @@ const AddDiet = () => {
               ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
-              meal_from_time: fromTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }),
-              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              meal_from_time: fromTime,
+              meal_to_time: toTime,
               notes: item.notes
 
               // recipe: item?.recipe,
@@ -359,6 +369,7 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+
         return Toaster({ type: 'success', message: apival.message })
       } else {
         return Toaster({
@@ -374,8 +385,8 @@ const AddDiet = () => {
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
-            const fromTime = new Date(item.meal_from_time)
-            const toTime = new Date(item.meal_to_time)
+            const fromTime = formatTime(item.meal_from_time)
+            const toTime = formatTime(item.meal_to_time)
 
             // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
@@ -389,12 +400,8 @@ const AddDiet = () => {
               ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
-              meal_from_time: fromTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }),
-              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              meal_from_time: fromTime,
+              meal_to_time: toTime,
               notes: item.notes
 
               // recipe: item?.recipe,
@@ -447,8 +454,8 @@ const AddDiet = () => {
         meal_data: JSON.stringify(
           formData.meal_data.map(item => {
             // Convert string date to Date objects
-            const fromTime = new Date(item.meal_from_time)
-            const toTime = new Date(item.meal_to_time)
+            const fromTime = formatTime(item.meal_from_time)
+            const toTime = formatTime(item.meal_to_time)
 
             // Remove empty arrays from the object
             const filteredItem = Object.fromEntries(
@@ -462,12 +469,8 @@ const AddDiet = () => {
               ...filteredItem,
               mealid: item.mealid,
               meal_name: item.meal_name,
-              meal_from_time: fromTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              }),
-              meal_to_time: toTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+              meal_from_time: fromTime,
+              meal_to_time: toTime,
               notes: item.notes
 
               // recipe: item?.recipe,
@@ -562,51 +565,69 @@ const AddDiet = () => {
     return getStepContent(activeStep)
   }
 
+  const contentRenderFunction = () => {
+    return (
+      <>
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+          <Link underline='hover' color='inherit' href='/diet/diet/'>
+            Diet
+          </Link>
+          {console.log(id, 'id')}
+          <Typography color='text.primary'>
+            {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
+          </Typography>
+        </Breadcrumbs>
+        {console.log(formData, 'ppp')}
+        <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+          <CardContent>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ width: '90%' }}>
+                <Typography variant='h6'>
+                  {' '}
+                  {id && urlType === 'copy'
+                    ? 'Add new diet'
+                    : id && urlType === 'update'
+                    ? 'Edit diet'
+                    : 'Add new diet'}
+                </Typography>
+              </div>
+            </div>
+          </CardContent>
+
+          <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
+            <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
+              {steps.map((step, index) => {
+                return (
+                  <Step key={index}>
+                    <StepLabel StepIconComponent={StepperCustomDot}>
+                      <div className='step-label'>
+                        {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
+                        <div>
+                          <Typography className='step-title'>{step.title}</Typography>
+                          <Typography className='step-subtitle'>{step.subtitle}</Typography>
+                        </div>
+                      </div>
+                    </StepLabel>
+                  </Step>
+                )
+              })}
+            </Stepper>
+          </StepperWrapper>
+        </Card>
+        {renderContent()}
+      </>
+    )
+  }
+
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Link underline='hover' color='inherit' href='/diet/diet/'>
-          Diet
-        </Link>
-        {console.log(id, 'id')}
-        <Typography color='text.primary'>
-          {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
-        </Typography>
-      </Breadcrumbs>
-      {console.log(formData, 'ppp')}
-      <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
-        <CardContent>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ width: '90%' }}>
-              <Typography variant='h6'>
-                {' '}
-                {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
-              </Typography>
-            </div>
-          </div>
-        </CardContent>
-
-        <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
-          <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
-            {steps.map((step, index) => {
-              return (
-                <Step key={index}>
-                  <StepLabel StepIconComponent={StepperCustomDot}>
-                    <div className='step-label'>
-                      {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
-                      <div>
-                        <Typography className='step-title'>{step.title}</Typography>
-                        <Typography className='step-subtitle'>{step.subtitle}</Typography>
-                      </div>
-                    </div>
-                  </StepLabel>
-                </Step>
-              )
-            })}
-          </Stepper>
-        </StepperWrapper>
-      </Card>
-      {renderContent()}
+      {dietModule && dietModuleAccess === 'ADD' && urlType != 'update' ? (
+        <>{contentRenderFunction()}</>
+      ) : dietModule && (dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') ? (
+        <>{contentRenderFunction()}</>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

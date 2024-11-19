@@ -10,10 +10,12 @@ import CardContent from '@mui/material/CardContent'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import { getNewRequestsList } from 'src/lib/api/pharmacy/dashboard'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 
 const StoreWiseNewRequests = () => {
   const [requestList, setRequestList] = useState([])
+  const { selectedPharmacy } = usePharmacyContext()
 
   const getNewRequestsLists = async () => {
     try {
@@ -27,7 +29,7 @@ const StoreWiseNewRequests = () => {
 
   useEffect(() => {
     getNewRequestsLists()
-  }, [])
+  }, [selectedPharmacy.type, selectedPharmacy.id])
 
   const columns = [
     {
@@ -95,32 +97,20 @@ const StoreWiseNewRequests = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.status ? params?.row?.status : 'NA'}
+          {params?.row?.status === 'request' ? 'Pending' : params?.row?.status}
         </Typography>
       )
     }
   ]
 
   const priorityBadge = priority => {
-    if (priority === '') {
-      return (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          NA
-        </Typography>
-      )
-    } else if (priority === 'high') {
+    if (priority === 'High') {
       return (
         <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' variant='outlined' label={priority} color='error' />
       )
-    } else if (priority === 'low') {
-      return (
-        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' variant='outlined' label={priority} color='success' />
-      )
     } else {
       return (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          NA
-        </Typography>
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' variant='outlined' label={priority} color='success' />
       )
     }
   }

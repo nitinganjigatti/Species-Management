@@ -70,6 +70,7 @@ const AddTest = props => {
       if (response?.success) {
         const sampleIdsName = response?.data?.sample_types.map(sample => sample.name)
         const testIdsName = response?.data?.child_tests.map(test => test.name)
+
         const data = {
           ...response.data,
           test_name: response?.data?.label,
@@ -96,6 +97,7 @@ const AddTest = props => {
   const onSubmit = async params => {
     console.log(params, 'log')
     const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
+
     const payload = {
       label: params?.test_name,
       sample_ids: sampleIdsOnly,
@@ -113,6 +115,7 @@ const AddTest = props => {
       setValue('sub_tests', '')
     }
   }
+
   const handleRemoveSubTest = index => {
     setSubTests(subTests.filter((_, i) => i !== index))
   }
@@ -135,6 +138,7 @@ const AddTest = props => {
     }, 1000),
     []
   )
+
   const handleSearch = value => {
     setSearchValue(value)
     searchSampleData(value)
@@ -167,11 +171,15 @@ const AddTest = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%'
+          }}
+        >
           <Box
             className='sidebar-header'
             sx={{
@@ -180,7 +188,7 @@ const AddTest = props => {
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
 
-              bgcolor: theme.palette.customColors.lightBg
+              backgroundColor: 'background.default'
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
@@ -208,10 +216,13 @@ const AddTest = props => {
                 gap: '24px',
                 backgroundColor: '#fff',
                 borderRadius: '8px',
-                boxShadow: '2px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+
+                // boxShadow: '2px',
+                // boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
                 maxHeight: '79vh',
-                overflow: 'scroll'
+
+                // overflow: 'scroll'
+                overflowY: 'auto'
               }}
             >
               <FormControl fullWidth sx={{ mt: 6 }}>
@@ -241,18 +252,34 @@ const AddTest = props => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedSampleIds?.map(sample => (
-                    <Chip
-                      key={sample.id}
-                      label={sample.label || sample.name}
-                      onDelete={() => handleRemoveSampleType(sample)}
-                      sx={{
-                        backgroundColor: '#e8f5e9',
-                        '& .MuiChip-deleteIcon': {
-                          color: '#4caf50'
-                        },
-                        borderRadius: '6px'
-                      }}
-                    />
+                    <>
+                      {editParams?.id ? (
+                        <Chip
+                          key={sample.id}
+                          label={sample.label || sample.name}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          key={sample.id}
+                          label={sample.label || sample.name}
+                          onDelete={() => handleRemoveSampleType(sample)}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      )}
+                    </>
                   ))}
                 </Box>
               </Box>
@@ -303,18 +330,34 @@ const AddTest = props => {
                 <label>Sub Tests</label>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                   {subTests.map((test, index) => (
-                    <Chip
-                      key={index}
-                      label={test}
-                      onDelete={() => handleRemoveSubTest(index)}
-                      sx={{
-                        backgroundColor: '#e8f5e9',
-                        '& .MuiChip-deleteIcon': {
-                          color: '#4caf50'
-                        },
-                        borderRadius: '6px'
-                      }}
-                    />
+                    <>
+                      {editParams?.id ? (
+                        <Chip
+                          key={index}
+                          label={test}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          key={index}
+                          label={test}
+                          onDelete={() => handleRemoveSubTest(index)}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      )}
+                    </>
                   ))}
                 </Box>
               </Box>

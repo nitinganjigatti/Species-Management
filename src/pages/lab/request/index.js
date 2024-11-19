@@ -41,7 +41,8 @@ const ListOfRequest = () => {
 
   // console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
-  console.log('lab :>> ', lab)
+
+  // console.log('lab :>> ', lab)
   const authData = useContext(AuthContext)
 
   // console.log('authData :>> ', authData)
@@ -87,9 +88,10 @@ const ListOfRequest = () => {
     //   )
     // },
     {
-      width: 200,
+      width: 300,
       field: 'lab_test_id',
       headerName: 'REQUEST ID',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer', ml: 3 }}>
           {params.row.lab_test_id}
@@ -98,8 +100,8 @@ const ListOfRequest = () => {
     },
 
     {
-      width: 200,
-
+      width: 230,
+      sortable: false,
       field: 'site_name',
       headerName: 'Site',
       renderCell: params => (
@@ -110,8 +112,9 @@ const ListOfRequest = () => {
     },
 
     {
-      width: 200,
+      width: 220,
       field: 'created_at',
+      sortable: false,
       headerName: 'Date',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -120,9 +123,10 @@ const ListOfRequest = () => {
       )
     },
     {
-      width: 200,
+      width: 220,
       field: 'total_test',
       headerName: 'No. of Tests ',
+      sortable: false,
       align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -131,71 +135,73 @@ const ListOfRequest = () => {
       )
     },
 
+    // {
+    //   width: 200,
+    //   field: 'status',
+    //   sortable: false,
+    //   headerName: 'Status',
+    //   renderCell: params => (
+    //     <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+    //       {params.row.total_tests_pending > 0 && (
+    //         <Box
+    //           sx={{
+    //             bgcolor: '#E93353',
+    //             color: 'white',
+    //             borderRadius: '50px',
+    //             height: 20,
+    //             width: 20,
+    //             display: 'flex',
+    //             alignItems: 'center',
+    //             justifyContent: 'center'
+    //           }}
+    //         >
+    //           {params.row.total_tests_pending}
+    //         </Box>
+    //       )}
+
+    //       {params.row.total_tests_inprogress > 0 && (
+    //         <Box
+    //           sx={{
+    //             bgcolor: '#00AEA4',
+    //             color: 'white',
+    //             borderRadius: '50px',
+    //             height: 20,
+    //             width: 20,
+    //             display: 'flex',
+    //             alignItems: 'center',
+    //             justifyContent: 'center'
+    //           }}
+    //         >
+    //           {params.row.total_tests_inprogress}
+    //         </Box>
+    //       )}
+
+    //       {params.row.total_tests_completed > 0 && (
+    //         <Box
+    //           sx={{
+    //             bgcolor: '#2A9D0D',
+    //             color: 'white',
+    //             borderRadius: '50px',
+    //             height: 20,
+    //             width: 20,
+    //             display: 'flex',
+    //             alignItems: 'center',
+    //             justifyContent: 'center'
+    //           }}
+    //         >
+    //           {params.row.total_tests_completed}
+    //         </Box>
+    //       )}
+    //     </Stack>
+    //   )
+    // },
+
     {
-      width: 200,
-      field: 'status',
-      headerName: 'Status',
-      renderCell: params => (
-        <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-          {params.row.total_tests_pending > 0 && (
-            <Box
-              sx={{
-                bgcolor: '#E93353',
-                color: 'white',
-                borderRadius: '50px',
-                height: 20,
-                width: 20,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {params.row.total_tests_pending}
-            </Box>
-          )}
-
-          {params.row.total_tests_inprogress > 0 && (
-            <Box
-              sx={{
-                bgcolor: '#00AEA4',
-                color: 'white',
-                borderRadius: '50px',
-                height: 20,
-                width: 20,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {params.row.total_tests_inprogress}
-            </Box>
-          )}
-
-          {params.row.total_tests_completed > 0 && (
-            <Box
-              sx={{
-                bgcolor: '#2A9D0D',
-                color: 'white',
-                borderRadius: '50px',
-                height: 20,
-                width: 20,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {params.row.total_tests_completed}
-            </Box>
-          )}
-        </Stack>
-      )
-    },
-
-    {
-      width: 200,
+      width: 220,
       field: 'Action',
       headerName: 'Action',
       align: 'center',
+      sortable: false,
 
       renderCell: params => (
         <>
@@ -479,7 +485,7 @@ const ListOfRequest = () => {
                   Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
 
-                <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
+                {/* <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#E93353', fontSize: '12px' }}>
                     Pending Test - {stats?.total_tests_pending}
                   </Typography>
@@ -493,11 +499,11 @@ const ListOfRequest = () => {
                   <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
                     Completed Test - {stats?.total_tests_completed}
                   </Typography>
-                </Box>
+                </Box> */}
               </Stack>
             </Box>
             {/* Status */}
-            <Box>
+            {/* <Box>
               <Stack
                 direction={{ md: 'row', sm: 'row', sx: 'column' }}
                 spacing={4}
@@ -519,7 +525,7 @@ const ListOfRequest = () => {
                   <Typography variant='subtitle1'>Completed</Typography>
                 </Box>
               </Stack>
-            </Box>
+            </Box> */}
 
             <DataGrid
               autoHeight
@@ -527,6 +533,7 @@ const ListOfRequest = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
+              disableColumnMenu
               sortingMode='server'
               pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}

@@ -87,19 +87,16 @@ const StoreWiseDispatchDetail = () => {
   }
 
   const handlecheckcell = val => {
-    console.log(val, 'Cell data')
     const clickedColumnField = val.field
     const clickedRowData = val.row
 
     const clickedColumnData = columns.find(column => column.field === clickedColumnField)
-    console.log(clickedColumnData, 'clickedColumnData')
+
     if (val.field === 'stock_name') {
       return
     } else if (clickedColumnData) {
       const title = clickedColumnData.field
       const sub_title = clickedColumnData.renderHeader?.().props.children[1]?.props.children || ''
-      console.log('Clicked Column Title:', title)
-      console.log('Clicked Column Sub-Title:', sub_title)
 
       let fromDate, toDate
 
@@ -133,9 +130,6 @@ const StoreWiseDispatchDetail = () => {
       setDownloadFromDate(formattedFromDate)
       setDownloadToDate(formattedToDate)
 
-      console.log('Formatted From Date:', formattedFromDate)
-      console.log('Formatted To Date:', formattedToDate)
-
       if (clickedRowData.id && statusFilter) {
         setmedicineId(clickedRowData.id)
         fetchDoctorlist(clickedRowData.id, formattedFromDate, formattedToDate)
@@ -157,11 +151,7 @@ const StoreWiseDispatchDetail = () => {
         store_id: storeId
       }
 
-      console.log('Payload:', payload)
-
       const response = await getDoctorReportList(payload)
-
-      console.log(response, 'medicineListResponse')
 
       if (response.success === true) {
         setdoctorsList(response.data.list_items)
@@ -201,7 +191,7 @@ const StoreWiseDispatchDetail = () => {
           name: store.name
         }))
         setTotalmedicineCount(medicineListResponse.data.total_count)
-        console.log(allStores, 'allStores')
+
         setFullStoreList(prevStores => {
           let mergedStores
           if (q) {
@@ -228,7 +218,6 @@ const StoreWiseDispatchDetail = () => {
   })
 
   const handleSearchChange = async e => {
-    console.log(statusFilter, 'statusFilter')
     setLoading(true)
     setFilterSearchValue(e.target.value)
     await searchTableDatafilter({ q: e.target.value })
@@ -266,7 +255,6 @@ const StoreWiseDispatchDetail = () => {
             medicine_ids: selectedFruits
           }
         } else {
-          console.log(statusFilter, 'activeStatus')
           payload = {
             //sort,
             q,
@@ -280,7 +268,6 @@ const StoreWiseDispatchDetail = () => {
 
         await getStoreWiseDispatchDetail(payload).then(res => {
           if (res.data.list_items) {
-            console.log(res.data.list_items, 'pppp')
             const listItem = res.data.list_items
 
             const columns = [
@@ -289,7 +276,6 @@ const StoreWiseDispatchDetail = () => {
                 headerName: `Pharmacy Name`,
                 renderHeader: () => (
                   <Box>
-                    {console.log(listItem, 'listItem')}
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Medicine names
                     </Typography>
@@ -353,7 +339,11 @@ const StoreWiseDispatchDetail = () => {
                       {column.sub_title}
                     </Typography>
                     {column.sub_title !== '' ? (
-                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_purchase_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 3 }}
                         >
@@ -361,7 +351,11 @@ const StoreWiseDispatchDetail = () => {
                         </Typography>
                       </Tooltip>
                     ) : (
-                      <Tooltip title={column.total_purchase_value.toFixed(2)}>
+                      <Tooltip
+                        title={column.total_purchase_value.toLocaleString('en-IN', {
+                          maximumFractionDigits: 0
+                        })}
+                      >
                         <Typography
                           sx={{ color: theme.palette.secondary.dark, fontSize: '0.75rem', fontWeight: 600, pt: 7 }}
                         >
@@ -423,7 +417,6 @@ const StoreWiseDispatchDetail = () => {
   )
 
   const handleStatusFilterChange = newFilter => {
-    console.log(newFilter, 'newFilter')
     setStatusFilter(newFilter)
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
   }
@@ -629,11 +622,11 @@ const StoreWiseDispatchDetail = () => {
               // Handle null or NaN values
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
-              const roundedValue = parseFloat(value) / 1000
+              const roundedValue = parseFloat(value)
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
               })
               rowData[`${column.title} (${column.sub_title})`] = formattedValue
             }
@@ -643,13 +636,12 @@ const StoreWiseDispatchDetail = () => {
         return rowData
       })
       const totalPurchaseRow = {
-        Medicine: 'Total Dispatch Value (in thousand)'
+        Medicine: 'Total Dispatch Value '
       }
       listItem.columnData.forEach(column => {
         // Add ₹ symbol and format with commas, keeping two decimal places for the total purchase value
-        const formattedPurchaseValue = (column.total_purchase_value / 1000).toLocaleString('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
+        const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
+          maximumFractionDigits: 0
         })
         totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
       })
@@ -658,6 +650,11 @@ const StoreWiseDispatchDetail = () => {
 
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
       const ws = utils.aoa_to_sheet(wsData)
+      ws['!cols'] = [
+        { wch: 20 }, // Width for '1st' column
+
+        ...listItem.columnData.map(() => ({ wch: 15 })) // Width for each month/year column
+      ]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 
@@ -739,7 +736,7 @@ const StoreWiseDispatchDetail = () => {
                     >
                       Store wise dispatch
                     </Typography>
-                    {console.log(rows, 'rows')}
+
                     <Typography color='text.primary'>{store_name}</Typography>
                   </Breadcrumbs>
                 </Box>

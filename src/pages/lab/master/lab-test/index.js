@@ -1,6 +1,6 @@
 import { Avatar, Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
@@ -13,6 +13,8 @@ import { addLabTest, deleteLabTest, getLabTestList, updateLabTest } from 'src/li
 import moment from 'moment'
 import TestDetails from 'src/views/pages/lab/test/testDetails'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 
 const LabTest = () => {
   const theme = useTheme()
@@ -33,6 +35,10 @@ const LabTest = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const authData = useContext(AuthContext)
+
+  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
+  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
 
   function loadServerRows(currentPage, data) {
     return data
@@ -259,16 +265,18 @@ const LabTest = () => {
       // headerAlign: 'center',
       renderCell: params => (
         <>
-          <Box>
-            {/* <FormControlLabel control={<Switch defaultChecked size='small' />} /> */}
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <Box>
+              {/* <FormControlLabel control={<Switch defaultChecked size='small' />} /> */}
 
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleDelete(e, params.row)} aria-label='delete'>
-              <Icon icon='mdi:delete-outline' />
-            </IconButton>
-          </Box>
+              <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+              {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleDelete(e, params.row)} aria-label='delete'>
+                <Icon icon='mdi:delete-outline' />
+              </IconButton> */}
+            </Box>
+          )}
         </>
       )
     }
@@ -298,88 +306,94 @@ const LabTest = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      {medical_add_tests && medical_add_samples ? (
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
           Lab
         </Typography> */}
-        <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-          Lab Master
-        </Typography>
-        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Lab Tests
-        </Typography>
-      </Breadcrumbs>
-      <Card>
-        <CardHeader title='Lab Tests' action={headerAction} />
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Lab Master
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Lab Tests
+            </Typography>
+          </Breadcrumbs>
+          <Card>
+            <CardHeader title='Lab Tests' action={headerAction} />
 
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          disableColumnMenu
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={handleCellClick}
-        />
-      </Card>
-      {openDrawer && (
-        <AddLabTest
-          addEventSidebarOpen={openDrawer}
-          setOpenDrawer={setOpenDrawer}
-          handleSubmitData={handleSubmitData}
-          resetForm={resetForm}
-          submitLoader={submitLoader}
-          editParams={editParams}
-        />
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              disableColumnMenu
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              rowCount={total}
+              columns={columns}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={handleCellClick}
+            />
+          </Card>
+          {openDrawer && (
+            <AddLabTest
+              addEventSidebarOpen={openDrawer}
+              setOpenDrawer={setOpenDrawer}
+              handleSubmitData={handleSubmitData}
+              resetForm={resetForm}
+              submitLoader={submitLoader}
+              editParams={editParams}
+            />
+          )}
+          {openDetailsDrawer && (
+            <TestDetails
+              addEventSidebarOpen={openDetailsDrawer}
+              setOpenDetailsDrawer={setOpenDetailsDrawer}
+              editParams={editParams}
+              setOpenDrawer={setOpenDrawer}
+              fetchTableData={fetchTableData}
+            />
+          )}
+          <ConfirmationDeleteDialog
+            open={isModalOpenDelete}
+            onClose={() => setIsModalOpenDelete(false)}
+            confirmLoading={btnLoader}
+            onConfirm={confirmDeleteAction}
+            title='Are you sure you want to delete this lab test?'
+          />
+        </>
+      ) : (
+        <Error404></Error404>
       )}
-      {openDetailsDrawer && (
-        <TestDetails
-          addEventSidebarOpen={openDetailsDrawer}
-          setOpenDetailsDrawer={setOpenDetailsDrawer}
-          editParams={editParams}
-          setOpenDrawer={setOpenDrawer}
-          fetchTableData={fetchTableData}
-        />
-      )}
-      <ConfirmationDeleteDialog
-        open={isModalOpenDelete}
-        onClose={() => setIsModalOpenDelete(false)}
-        confirmLoading={btnLoader}
-        onConfirm={confirmDeleteAction}
-        title='Are you sure you want to delete this lab test?'
-      />
     </>
   )
 }

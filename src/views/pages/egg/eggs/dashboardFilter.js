@@ -22,6 +22,7 @@ import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 import { getSpecieList, getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
+import { AuthContext } from 'src/context/AuthContext'
 
 const leftMenu = [
   { id: 1, name: 'Species' },
@@ -30,7 +31,8 @@ const leftMenu = [
   { id: 4, name: 'Security status' },
 
   // { id: 5, name: 'Condition' },
-  { id: 6, name: 'Reason' }
+  { id: 6, name: 'Reason' },
+  { id: 7, name: 'Site' }
 ]
 
 const DashboardFilter = ({
@@ -41,20 +43,25 @@ const DashboardFilter = ({
   setFilterList,
   setShowFilters,
   setApplyFilters,
-  filterList
+  filterList,
+  setDiscardList,
+  setSearch,
+  setIsSearchOpen
 }) => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [nurseryList, setNurseryList] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [taxonomyList, setTaxonomyList] = useState([])
-  console.log('taxonomyList :>> ', taxonomyList)
+
   const [batchList, setBatchList] = useState([])
   const [conditionList, setConditionList] = useState([])
+  const [siteList, setSiteList] = useState([])
 
-  // console.log('filterList :>> ', filterList?.length)
+  // console.log('siteList :>> ', siteList)
 
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
@@ -104,9 +111,7 @@ const DashboardFilter = ({
   const getTaxonomyListFunc = async q => {
     try {
       getSpecieList(q).then(res => {
-        // console.log('res :>> ', res.result.length > 0)
         if (res.result.length > 0) {
-          console.log('res :>> ', res)
           setTaxonomyList(res?.result)
         }
       })
@@ -134,6 +139,9 @@ const DashboardFilter = ({
       getEggMasterData()
       getTaxonomyListFunc()
       getBatchList()
+      if (authData?.userData?.user?.zoos[0]?.sites.length > 0) {
+        setSiteList(authData?.userData?.user?.zoos[0].sites)
+      }
     }
   }, [isFilterOpen])
 
@@ -222,6 +230,14 @@ const DashboardFilter = ({
           id: stage.id,
           name: stage.egg_state
         }))
+
+      case 'Site':
+        return (
+          siteList?.map(site => ({
+            id: site.site_id,
+            name: site.site_name
+          })) || []
+        )
       default:
         return []
     }
@@ -235,7 +251,10 @@ const DashboardFilter = ({
   }
 
   const handleApplyFilter = () => {
+    setIsSearchOpen(false)
+    setSearch('')
     setSearchQuery('')
+    setDiscardList([])
 
     const combinedSelectedOptions = [
       ...selectedOptions.Species,
@@ -245,7 +264,8 @@ const DashboardFilter = ({
       ...selectedOptions['Security status'],
 
       ...selectedOptions.Condition,
-      ...selectedOptions.Reason
+      ...selectedOptions.Reason,
+      ...selectedOptions.Site
     ]
 
     setFilterList(combinedSelectedOptions)

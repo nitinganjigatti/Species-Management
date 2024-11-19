@@ -41,7 +41,11 @@ const AcquisitionFields = ({
   setValue,
   clearErrors,
   isEditMode,
-  editParams
+  editParams,
+  setImgSrc,
+  setDisplayFile,
+  setReasonType,
+  trigger
 }) => {
   const theme = useTheme()
   const router = useRouter()
@@ -61,49 +65,6 @@ const AcquisitionFields = ({
   const handleAddImageClick = () => {
     fileInputRef?.current?.click()
   }
-
-  // const { getRootProps, getInputProps } = useDropzone({
-  //   multiple: true,
-  //   accept: {
-  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
-  //     'application/pdf': ['.pdf'],
-  //     'application/msword': ['.doc'],
-  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-  //     'application/vnd.ms-excel': ['.xls'],
-  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-  //   },
-  //   onDrop: acceptedFiles => {
-  //     if (acceptedFiles.length + dgftDisplayFile?.length > 2) {
-  //       Toaster({ type: 'error', message: 'You can only upload up to 2 files.' })
-  //       return
-  //     }
-  //     const filePromises = acceptedFiles.map(file => {
-  //       return new Promise(resolve => {
-  //         const reader = new FileReader()
-  //         reader.onloadend = () => {
-  //           resolve({ name: file.name, fileSrc: reader.result })
-  //         }
-  //         reader.readAsDataURL(file)
-  //       })
-  //     })
-
-  //     Promise.all(filePromises)
-  //       .then(fileDetails => {
-  //         //   setImgSrc(prevSrc => [...prevSrc, ...fileDetails.map(fileDetail => fileDetail.fileSrc)])
-  //         setDgftDisplayFile(prevFiles => [...prevFiles, ...fileDetails])
-
-  //         // Update attachments in the form
-  //         const currentFiles = getValues('dgft_attachments') || []
-  //         setValue('dgft_attachments', [...currentFiles, ...acceptedFiles])
-
-  //         clearErrors('dgft_attachments')
-  //         setCurrentImageIndex(prevIndex => (prevIndex === 0 ? 0 : prevIndex)) // Keep current index unless it's 0
-  //       })
-  //       .catch(error => {
-  //         console.error('Error processing files:', error)
-  //       })
-  //   }
-  // })
 
   const removeSelectedImage = (index, fileId) => {
     if (fileId) {
@@ -224,8 +185,70 @@ const AcquisitionFields = ({
     }
   })
 
+  const possessionType = watch('possession_type')
+
+  // Watch maleCount, femaleCount, and othersCount
+  const male_count = watch('male_count') || 0
+  const female_count = watch('female_count') || 0
+  const other_count = watch('other_count') || 0
+
+  // Calculate total count
+  const totalCount = Number(male_count) + Number(female_count) + Number(other_count)
   return (
     <>
+      <Grid container spacing={2} sx={{ mb: 6 }}>
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <Controller
+              name='possession_type'
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  select
+                  label='Reason*'
+                  placeholder='Reason'
+                  value={value}
+                  disabled={isEditMode}
+                  onChange={e => {
+                    const value = e.target.value
+                    onChange(e)
+                    setReasonType(value)
+                    if (!isEditMode) {
+                      setValue('animal_count', '')
+                      setValue('transaction_date', new Date())
+                      setValue('reason_for_death', '')
+                      setValue('death_date', null)
+                      setValue('where_to_transfer', '')
+                      setValue('where_to_acquisition', '')
+                      setValue('dgft_number', '')
+                      setValue('cites_required', '')
+                      setValue('cites_appendix', '')
+                      setValue('cites_numbers', '')
+                      setValue('death_animal_id', '')
+                      setValue('attachments', [])
+                      setValue('dgft_attachments', [])
+                      setValue('parent_registration_id', '')
+                      setImgSrc([])
+                      setDisplayFile([])
+                      setDgftDisplayFile([])
+                    }
+                    setValue('gender', '')
+                  }}
+                  error={Boolean(errors.possession_type)}
+                >
+                  <MenuItem value='birth'>Birth</MenuItem>
+                  <MenuItem value='death'>Death</MenuItem>
+                  <MenuItem value='transfer'>Transfer </MenuItem>
+                  <MenuItem value='acquisition'>Acquisition </MenuItem>
+                </TextField>
+              )}
+            />
+            {errors.possession_type && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.possession_type?.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid>
+      </Grid>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
           <FormControl fullWidth>
@@ -247,50 +270,6 @@ const AcquisitionFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='gender'
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
-                  <MenuItem value='male'>Male</MenuItem>
-                  <MenuItem value='female'>Female</MenuItem>
-                  <MenuItem value='other'>Other</MenuItem>
-                </TextField>
-              )}
-            />
-            {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
-          </FormControl>
-        </Grid>
-      </Grid>
-      <Grid container spacing={2}>
-        {reasonType !== 'death' && (
-          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
-            <FormControl fullWidth>
-              <Controller
-                name='animal_count'
-                control={control}
-                rules={{ required: reasonType !== 'death' }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    label='Total Count*'
-                    value={value}
-                    type='number'
-                    onChange={onChange}
-                    placeholder='Enter Total Count'
-                    error={Boolean(errors.animal_count)}
-                    name='animal_count'
-                  />
-                )}
-              />
-
-              {errors.animal_count && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
-              )}
-            </FormControl>
-          </Grid>
-        )}
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -317,7 +296,166 @@ const AcquisitionFields = ({
             )}
           </FormControl>
         </Grid>
+        {/* <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+          <FormControl fullWidth>
+            <Controller
+              name='gender'
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <TextField select label='Gender*' value={value} onChange={onChange} error={Boolean(errors.gender)}>
+                  <MenuItem value='male'>Male</MenuItem>
+                  <MenuItem value='female'>Female</MenuItem>
+                  <MenuItem value='other'>Other</MenuItem>
+                </TextField>
+              )}
+            />
+            {errors.gender && <FormHelperText sx={{ color: 'error.main' }}>{errors.gender?.message}</FormHelperText>}
+          </FormControl>
+        </Grid> */}
       </Grid>
+      {/* <Grid container spacing={2}>
+        {reasonType !== 'death' && (
+          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='animal_count'
+                control={control}
+                rules={{ required: reasonType !== 'death' }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    label='Total Count*'
+                    value={value}
+                    type='number'
+                    onChange={onChange}
+                    placeholder='Enter Total Count'
+                    error={Boolean(errors.animal_count)}
+                    name='animal_count'
+                  />
+                )}
+              />
+
+              {errors.animal_count && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.animal_count?.message}</FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+        )}
+      </Grid> */}
+
+      <Divider />
+
+      <Grid item xs={12}>
+        <Box mt={6}>
+          <Typography variant='h5' gutterBottom>
+            Gender
+          </Typography>
+          <Typography variant='subtitle1' gutterBottom>
+            Total Count: {totalCount}
+          </Typography>
+        </Box>
+      </Grid>
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+          <FormControl fullWidth>
+            <Controller
+              name='male_count'
+              control={control}
+              rules={{ min: 0, pattern: /^\d*$/ }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Male Count'
+                  value={value}
+                  variant='outlined'
+                  // onChange={onChange}
+                  onChange={e => {
+                    onChange(e) // Update the value in the form
+                    clearErrors('counts') // Clear the counts error on change
+                  }}
+                  placeholder='Enter the Male Count'
+                  error={Boolean(errors.male_count)}
+                  name='male_count'
+                />
+              )}
+            />
+
+            {errors.male_count && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
+            )}
+            {errors.counts && (
+              <Grid item xs={12} sx={{ mb: 6 }}>
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
+              </Grid>
+            )}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+          <FormControl fullWidth>
+            <Controller
+              name='female_count'
+              control={control}
+              rules={{ min: 0, pattern: /^\d*$/ }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Female Count'
+                  placeholder='Enter the Female Count'
+                  value={value}
+                  variant='outlined'
+                  // onChange={onChange}
+                  onChange={e => {
+                    onChange(e) // Update the value in the form
+                    clearErrors('counts') // Clear the counts error on change
+                  }}
+                  error={Boolean(errors.female_count)}
+                  name='female_count'
+                />
+              )}
+            />
+
+            {errors.female_count && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
+            )}
+            {errors.counts && (
+              <Grid item xs={12} sx={{ mb: 6 }}>
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
+              </Grid>
+            )}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <Controller
+              name='other_count'
+              control={control}
+              rules={{ min: 0, pattern: /^\d*$/ }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  label='Others Count'
+                  placeholder='Enter the Others Count'
+                  value={value}
+                  variant='outlined'
+                  // onChange={onChange}
+                  onChange={e => {
+                    onChange(e) // Update the value in the form
+                    clearErrors('counts') // Clear the counts error on change
+                  }}
+                  error={Boolean(errors.other_count)}
+                  name='other_count'
+                />
+              )}
+            />
+
+            {errors.other_count && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
+            )}
+            {errors.counts && (
+              <Grid item xs={12} sx={{ mb: 6 }}>
+                <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
+              </Grid>
+            )}
+          </FormControl>
+        </Grid>
+      </Grid>
+
       <>
         <Box sx={{ mb: 6 }}>
           <Divider />
@@ -352,6 +490,36 @@ const AcquisitionFields = ({
               <Grid item xs={12} sm={4} md={3} lg={3.8}>
                 <FormControl fullWidth>
                   <Controller
+                    name='dgft_attachments'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                      <div
+                        {...getRootProps({ className: 'dropzone' })}
+                        style={{
+                          border: '1px solid #d3d3d3',
+                          width: 'auto',
+                          padding: '0.7rem',
+                          borderRadius: '10px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <input {...getInputProps()} onChange={onChange} />
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: ['column', 'column', 'row'],
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
+                            <Icon icon='material-symbols-light:attach-file-add' fontSize='2rem' />
+                            <Typography sx={{ display: 'flex', alignItems: 'center' }}>Attachments</Typography>
+                          </Box>
+                        </Box>
+                      </div>
+                    )}
+                  />
+                  {/* <Controller
                     name='dgft_attachments'
                     control={control}
                     render={({ field: { onChange, value, ...rest } }) => (
@@ -395,7 +563,7 @@ const AcquisitionFields = ({
                         </Typography>
                       </Box>
                     )}
-                  />
+                  /> */}
                 </FormControl>
 
                 {/* <FormControl fullWidth>

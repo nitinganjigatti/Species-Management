@@ -80,6 +80,7 @@ const SampleDetails = props => {
     console.log('Delete:', sample)
     setIsModalOpenDelete(true)
     setSelectedId(sampleDetails?.id)
+
     // Add your logic to handle the delete action
   }
 
@@ -97,7 +98,7 @@ const SampleDetails = props => {
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%' }}>
+        <Box sx={{ width: '100%', height: '100%' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -106,7 +107,7 @@ const SampleDetails = props => {
               p: theme => theme.spacing(3, 3.255, 3, 5.255),
               px: '24px',
 
-              bgcolor: theme.palette.customColors.lightBg
+              backgroundColor: 'background.default'
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
