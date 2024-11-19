@@ -1390,6 +1390,7 @@ const ConditionSlider = ({
                                 onChange={onChange}
                                 label={'Accession Date *'}
                                 maxDate={dayjs()}
+                                format='DD/MM/YYYY'
                               />
                             </LocalizationProvider>
                           )}

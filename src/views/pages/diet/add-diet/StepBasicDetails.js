@@ -987,7 +987,16 @@ const StepBasicDetails = ({
                                 ></Avatar>
                               </Grid>
                               <Grid item xs={12} sm={2.2}>
-                                <Typography sx={{ pl: 3 }}>{all?.recipe_name}</Typography>
+                                <Tooltip title={all.recipe_name}>
+                                  <Typography
+                                    className='recipe_name'
+                                    sx={{
+                                      pl: 3
+                                    }}
+                                  >
+                                    {all?.recipe_name}
+                                  </Typography>
+                                </Tooltip>
                                 <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
                                   {'REP' + all?.recipe_id}
                                 </Typography>
@@ -1099,7 +1108,11 @@ const StepBasicDetails = ({
                                 ></Avatar>
                               </Grid>
                               <Grid item xs={12} sm={1.8}>
-                                <Typography sx={{ pl: 3 }}>{all.ingredient_name}</Typography>
+                                <Tooltip title={all.ingredient_name}>
+                                  <Typography className='recipe_name' sx={{ pl: 3 }}>
+                                    {all.ingredient_name}
+                                  </Typography>
+                                </Tooltip>
                                 <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
                                   {'ING' + all?.ingredient_id}
                                 </Typography>

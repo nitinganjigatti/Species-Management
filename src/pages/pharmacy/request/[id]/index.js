@@ -58,6 +58,7 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 
 import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
+import RenderUtility from 'src/utility/render'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -1441,7 +1442,15 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.back()
+                        if (
+                          selectedPharmacy?.type === 'local' &&
+                          requestItems?.status === 'request' &&
+                          requestItems?.is_modified !== '1'
+                        ) {
+                          Router.push('/pharmacy/request/request-list')
+                        } else {
+                          Router.back()
+                        }
                       }}
                       icon='ep:back'
                     />
@@ -1522,18 +1531,21 @@ const IndividualRequest = () => {
                           }}
                         >
                           Requested By:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'customColors.OnSurfaceVariant',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                          >
-                            {requestItems?.to_store}
-                          </Box>
+                          <Tooltip title={requestItems?.to_store} placement='top' arrow>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'customColors.OnSurfaceVariant',
+                                lineHeight: '19.36px',
+                                mx: 2,
+                                ...RenderUtility?.getEllipsisStyleForText(140)
+                              }}
+                            >
+                              {requestItems?.to_store}
+                            </Box>
+                          </Tooltip>
                         </Typography>
                         <Typography
                           sx={{
@@ -1750,22 +1762,30 @@ const IndividualRequest = () => {
                             sx={{
                               display: 'flex',
                               flexDirection: 'column',
-                              height: '36px',
 
-                              // gap: '4px'
+                              // height: '36px',
                               gap: '10px'
                             }}
                           >
-                            <Typography
-                              sx={{
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                lineHeight: '16.94px',
-                                color: 'customColors.OnSurfaceVariant'
-                              }}
+                            <Tooltip
+                              title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              placement='top'
+                              arrow
                             >
-                              {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                            </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  lineHeight: '16.94px',
+                                  color: 'customColors.OnSurfaceVariant',
+
+                                  ...RenderUtility?.getEllipsisStyleForText(100)
+                                }}
+                              >
+                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              </Typography>
+                            </Tooltip>
+
                             <Typography
                               sx={{
                                 fontSize: '12px',

@@ -22,8 +22,6 @@ const composeMedicalNavigation = ({ userSettings }) => {
 
   const medicalNavigationArray = []
 
-  debugger
-
   if (userSettings?.medical_add_complaints || userSettings?.medical_add_diagnosis) {
     medicalNavigationArray.push(Title)
   }

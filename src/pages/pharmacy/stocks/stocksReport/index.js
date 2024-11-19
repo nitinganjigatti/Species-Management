@@ -222,23 +222,26 @@ const ListOfStocks = () => {
       //     setBatchLoading(false)
       //   }
       // } else {
-      try {
-        const result = await getStockReportByBatch(id, batchParams)
 
-        if (result?.success === true) {
-          setBatchTotal(parseInt(result?.count))
+      if (id !== undefined) {
+        try {
+          const result = await getStockReportByBatch(id, batchParams)
 
-          let listWithId = result.data
-            ? result.data.map((el, i) => {
-                return { ...el, uid: i + 1 }
-              })
-            : []
-          setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+          if (result?.success === true) {
+            setBatchTotal(parseInt(result?.count))
+
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+            setBatchLoading(false)
+          }
+        } catch (error) {
+          console.error('error', error)
           setBatchLoading(false)
         }
-      } catch (error) {
-        console.error('error', error)
-        setBatchLoading(false)
       }
 
       // }
@@ -257,8 +260,9 @@ const ListOfStocks = () => {
   }, [])
 
   useEffect(() => {
-    if (selectedPharmacy?.id !== '' || undefined) {
+    if (selectedPharmacy?.id !== '') {
       // getStocksReport(selectedPharmacy?.id)
+
       setStockType(selectedPharmacy?.type)
 
       setStockId(selectedPharmacy?.id)
@@ -281,7 +285,7 @@ const ListOfStocks = () => {
         })
       }
 
-      setStockId(selectedPharmacy?.id)
+      // setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value])
@@ -984,14 +988,17 @@ const ListOfStocks = () => {
   }
 
   const handleBatchSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, id) => {
       setBatchSearchValue(value)
+
       try {
         await getStocksReportBatchWise({
           batchSort: batchSort,
           batchQ: value,
           batchColumn: batchSortColumn,
-          id: stockId
+
+          // id: stockId
+          id: id
         })
       } catch (error) {
         console.error(error)
@@ -1003,6 +1010,7 @@ const ListOfStocks = () => {
   const handleSearch = useCallback(
     debounce(async value => {
       setSearchValue(value)
+
       try {
         await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
       } catch (error) {
@@ -1226,11 +1234,12 @@ const ListOfStocks = () => {
                         },
                         toolbar: {
                           value: batchSearchValue,
-                          clearSearch: () => handleBatchSearch(''),
+
+                          clearSearch: () => handleBatchSearch('', stockId),
                           onChange: event => {
                             setBatchSearchValue(event.target.value)
 
-                            return handleBatchSearch(event.target.value)
+                            return handleBatchSearch(event.target.value, stockId)
                           }
                         }
                       }}

@@ -127,9 +127,22 @@ const schema = yup.object().shape({
   ),
   drug_class: yup.string().nullable(),
   storage: yup.string().nullable(),
-  prescription_required: yup.string().required('Prescription is required'),
+
+  // prescription_required: yup.string().required('Prescription is required'),
   controlled_substance: yup.string().required('Controlled substance is required'),
+
+  // prescription_required: yup.boolean().when('controlled_substance', {
+  //   is: value => Boolean(value),
+  //   then: yup.boolean().oneOf([true], 'Prescription is required if controlled substance is provided')
+  // }),
+  prescription_required: yup.boolean().when('controlled_substance', (controlled_substance, schema) => {
+    return controlled_substance == '1'
+      ? schema.oneOf([true], 'Prescription is required if product is controlled substance')
+      : schema
+  }),
+
   part_out_of_stock: yup.string().required('part of out of stock is required'),
+
   side_effects: yup.string().nullable(),
   uses: yup.string().nullable(),
   safety_advice: yup.string().nullable(),
@@ -147,6 +160,7 @@ const AddMedicine = () => {
     trigger,
     watch,
     setValue,
+    setError,
     getValues
   } = useForm({
     defaultValues,
@@ -435,6 +449,7 @@ const AddMedicine = () => {
           ...response.data,
           medicine_type: response.data.stock_type,
           medicine_name: response.data.name,
+          prescription_required: response?.data?.controlled_substance === '1' ? '1' : '0',
           generic_name_id: response?.data?.generic_id,
           salts:
             salts !== null && salts.length > 0
@@ -1665,7 +1680,15 @@ const AddMedicine = () => {
                                     name='controlled_substance'
                                     value={value}
                                     label='Controlled substances'
-                                    onChange={onChange}
+                                    onChange={e => {
+                                      onChange(e)
+                                      if (e.target.value === '1') {
+                                        setValue('prescription_required', '1')
+                                      } else {
+                                        setValue('prescription_required', '0')
+                                      }
+                                      setError('prescription_required', '')
+                                    }}
                                     error={Boolean(errors?.controlled_substance)}
                                     labelId='controlled_substance'
                                   >

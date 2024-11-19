@@ -142,6 +142,25 @@ export async function AddAssesment(params) {
     return error
   }
 }
+export async function EditAssesment(params) {
+  try {
+    const response = await axiosPost({
+      url: `${EGG}/edit/assessment`,
+      body: params
+    })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
 
 export async function AddEggNecropsy(payload) {
   try {

@@ -13,7 +13,8 @@ import {
   CircularProgress,
   Avatar,
   Card,
-  InputAdornment
+  InputAdornment,
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import ClearIcon from '@mui/icons-material/Clear'
@@ -903,7 +904,14 @@ const AddIngredientswithChoice = props => {
                   </Box>
                 )}
                 <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
-                  <Typography variant='h6'>{item?.ingredient_name}</Typography>
+                  <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
+                    <Typography
+                      variant='h6'
+                      sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                      {item?.ingredient_name}
+                    </Typography>
+                  </Tooltip>
                   <Stack
                     direction='row'
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}

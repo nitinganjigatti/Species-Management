@@ -479,7 +479,8 @@ const DiscardedTableView = ({
         setSearchQuery={setSearchQuery}
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
-        data={rows}
+        data={indexedRows}
+        loading={loading}
       />
       <DataGrid
         sx={{

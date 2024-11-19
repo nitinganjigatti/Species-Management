@@ -15,6 +15,7 @@ import { styled } from '@mui/material/styles'
 import IconButton from '@mui/material/IconButton'
 import { getDietActivityLogs } from 'src/lib/api/diet/getIngredients'
 import Toaster from 'src/components/Toaster'
+
 import Utility from 'src/utility'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
@@ -335,7 +336,7 @@ const ActivityLogs = ({
                                   }}
                                   variant='caption'
                                 >
-                                  {item.activity_time}
+                                  {Utility.convertUTCToLocaltime(item.activity_time)}
                                 </Typography>
                               </Box>
                             </Box>

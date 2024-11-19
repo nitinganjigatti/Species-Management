@@ -152,17 +152,18 @@ const ExpiredMedicine = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'Supplier name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'supplier_name',
+    //   headerName: 'Supplier name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -193,20 +194,27 @@ const ExpiredMedicine = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
-      const result = await getExpiredMedicine({ params: '' })
+
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn
+      }
+      const result = await getExpiredMedicine({ params: params })
 
       if (result?.list_items.length > 0) {
         const data = result?.list_items.map(el => {
           return {
             ['Medicine Name']: el?.stock_item_name,
             ['Batch']: el?.batch_no,
-            ['Supplier Name']: el?.supplier_name,
             ['Expire Date']: el?.expiry_date,
             ['Quantity']: el?.stock_qty
           }
         })
 
         Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
+      } else {
+        setExcelLoader(false)
       }
       setExcelLoader(false)
     } catch (error) {

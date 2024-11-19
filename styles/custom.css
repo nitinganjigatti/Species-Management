@@ -48,6 +48,12 @@
 .diet_weight {
   width: 155px;
 }
+.recipe_name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 140px;
+}
 @media (min-width: 768px) and (max-width: 1023px) {
   .cellmodule5 {
     width: 465px !important;
@@ -105,6 +111,9 @@
   }
   .diet_cell_weight2 {
     width: 121px;
+  }
+  .w_280 {
+    width: 180px;
   }
 }
 
@@ -168,6 +177,9 @@
   }
   .diet_cell_weight2 {
     width: 121px;
+  }
+  .w_280 {
+    width: 250px;
   }
 }
 

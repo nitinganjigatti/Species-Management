@@ -112,11 +112,20 @@ const MonthlyPurchaseChart = () => {
       colors: ['#FA6140']
     },
     xaxis: {
-      categories: shortMonths, // Use short month names for x-axis labels
-      labels: { show: true },
+      categories: shortMonths,
+      labels: {
+        show: true,
+        rotateAlways: true, // Force rotation
+        rotate: -45, // Rotate labels by -45 degrees
+        hideOverlappingLabels: false, // Show all labels
+        style: {
+          fontSize: '12px'
+        }
+      },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
+
     yaxis: [
       {
         title: { text: 'Purchase Count' },

@@ -94,7 +94,7 @@ export default function DetailsTable({ ...props }) {
         />
       ) : null}
 
-      {parseInt(el?.prescription_required) === 1 ? (
+      {parseInt(el?.prescription_required) === 1 || parseInt(el?.control_substance) === 1 ? (
         <Grid
           sx={{
             display: 'flex',

@@ -115,14 +115,20 @@ const MonthlyDispatchChart = () => {
       colors: ['#FA6140']
     },
     xaxis: {
-      // Use short month names from the API for x-axis labels
       categories: shortMonths,
       labels: {
-        show: true
+        show: true,
+        rotateAlways: true, // Force rotation
+        rotate: -45, // Rotate labels by -45 degrees
+        hideOverlappingLabels: false, // Show all labels
+        style: {
+          fontSize: '12px'
+        }
       },
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
+
     yaxis: [
       {
         title: {

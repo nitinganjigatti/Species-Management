@@ -179,9 +179,12 @@ const TestDetails = props => {
                         ))}
                       </Box>
 
-                      <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
-                        Sub Tests
-                      </Typography>
+                      {testDetails.child_tests?.length > 0 && (
+                        <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                          Sub Tests
+                        </Typography>
+                      )}
+
                       <List disablePadding>
                         {testDetails.child_tests.map((test, index) => (
                           <ListItem

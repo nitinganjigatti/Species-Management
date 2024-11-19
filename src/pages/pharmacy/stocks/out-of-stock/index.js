@@ -145,17 +145,17 @@ const StockOut = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'Supplier name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'supplier_name',
+    //   headerName: 'Supplier name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -221,17 +221,17 @@ const StockOut = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'Supplier Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'supplier_name',
+    //   headerName: 'Supplier Name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+    //     </Typography>
+    //   )
+    // },
 
     {
       flex: 0.2,
@@ -273,19 +273,32 @@ const StockOut = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
-      const result = await getStockOutItems({ params: '' })
+
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        is_low_stock: status === 'out_of_stock' ? 'no' : 'yes'
+      }
+
+      const result = await getStockOutItems({ params: params })
 
       if (result?.list_items.length > 0) {
         const data = result?.list_items.map(el => {
           return {
             ['Medicine Name']: el?.stock_item_name,
-            ['Supplier name']: el?.supplier_name
+            ['Batch']: el?.batch_no,
+            ['Expire Date']: el?.expiry_date,
+            ['Quantity']: el?.stock_qty
           }
         })
 
         Utility.exportToCSV(data, 'Stock out Products')
+      } else {
+        setExcelLoader(false)
       }
-      setExcelLoader(false)
     } catch (error) {
       setExcelLoader(false)
 
