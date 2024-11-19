@@ -52,7 +52,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField fullWidth inputRef={ref} {...props} />
 })
 
-const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
+const ShipRequest = ({ dispatchedItems, storeDetails }) => {
   // ** Hooks
   const [submitLoader, setSubmitLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -957,7 +957,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
             <Box sx={{ mt: 6 }}>
               {dispatchedItems?.length > 0 ? (
                 <Grid md={12} sm={12} xs={12} sx={{ mb: 14 }}>
-                  <TableBasic columns={columns} rows={dispatchedItems}></TableBasic>
+                  <TableBasic
+                    columns={columns}
+                    rows={dispatchedItems}
+                    backgroundColor={'customColors.customTableHeaderBg'}
+                  ></TableBasic>
                 </Grid>
               ) : null}
             </Box>

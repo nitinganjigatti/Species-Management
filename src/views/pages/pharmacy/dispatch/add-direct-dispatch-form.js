@@ -46,8 +46,7 @@ import Utility from 'src/utility'
 const defaultValues = {
   request_item: {
     label: '',
-    value: '',
-    control_substance: false
+    value: ''
   },
   request_item_batch_no: {
     label: '',
@@ -60,7 +59,8 @@ const defaultValues = {
   available_item_qty: '',
   expiry_date: '',
   packageDetails: '',
-  manufacture: ''
+  manufacture: '',
+  control_substance: false
 }
 
 const schema = yup.object().shape({
@@ -168,10 +168,12 @@ export const AddItemsForm = ({
       request_item,
       stock_type,
       packageDetails,
-      manufacture
+      manufacture,
+      control_substance
     } = {
       ...params
     }
+
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
     const isMedicineAlreadyExists = editParams?.request_item_details?.some(
@@ -258,7 +260,8 @@ export const AddItemsForm = ({
         uuid: nestedMedicine?.uuid,
         stock_type,
         packageDetails,
-        manufacture
+        manufacture,
+        control_substance
 
         // to_store_id: '14'
       },
@@ -393,6 +396,7 @@ export const AddItemsForm = ({
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
                         setValue('manufacture', value.manufacture)
+                        setValue('control_substance', value.control_substance)
                       }
                       checkTotalCount()
                     }} // Set selected value
