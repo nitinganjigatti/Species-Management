@@ -517,7 +517,7 @@ const AddIngredients = props => {
     setCutSize(newCutSize)
 
     setVisibility(newVisibility)
-  }, [allSelectedValues, checkid, formData])
+  }, [allSelectedValues, checkid, formData, open])
 
   const searchData = useCallback(
     debounce(async search => {
