@@ -317,7 +317,12 @@ const SpeciesReport = () => {
               : 'left'
           }}
         >
-          {params.value}
+          {params?.value
+            ? params?.value
+            : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+              params?.value === undefined
+            ? 0
+            : '-'}
         </Box>
       )
     }
