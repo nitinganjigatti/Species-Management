@@ -1220,8 +1220,6 @@ const StepPreviewDiet = ({
                         const endTimes = formattedtoTime
                         const ind = index
 
-                        // console.log(fromDate, endTimes, 'raghu') // Logs times in "h:mm AM/PM" format
-
                         return (
                           <>
                             <TableRow key={index} className=''>
