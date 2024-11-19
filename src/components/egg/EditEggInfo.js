@@ -30,13 +30,9 @@ const EditEggInfo = ({ egg_id, closeEditDrawer, egg_number, getDetails }) => {
   const authData = useContext(AuthContext)
 
   const schema = yup.object().shape({
-    egg_number: yup
-      .string()
-      .required('Egg number is required')
-      .trim()
-      .strict(true)
-      .min(1, 'Egg number is required')
-      .matches(/^[a-zA-Z0-9]*$/, 'Egg number can only contain alphabets and alphanumeric values')
+    egg_number: yup.string().required('Egg number is required').trim().strict(true).min(1, 'Egg number is required')
+
+    // .matches(/^[a-zA-Z0-9]*$/, 'Egg number can only contain alphabets and alphanumeric values')
   })
 
   const defaultValues = {

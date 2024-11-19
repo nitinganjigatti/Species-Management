@@ -146,6 +146,8 @@ const EggList = () => {
 
   const checkAddPermission = () => {
     if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      console.log('animal_record_access', animal_record_access)
+
       return true
     } else {
       return false
@@ -849,6 +851,7 @@ const EggList = () => {
       headerName: 'Animal Id',
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+          {console.log(params.row.animal_id)}
           {params.row.animal_id ? (
             <Typography
               style={{

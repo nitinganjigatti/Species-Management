@@ -44,7 +44,9 @@ const DashboardFilter = ({
   setShowFilters,
   setApplyFilters,
   filterList,
-  setDiscardList
+  setDiscardList,
+  setSearch,
+  setIsSearchOpen
 }) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
@@ -249,6 +251,8 @@ const DashboardFilter = ({
   }
 
   const handleApplyFilter = () => {
+    setIsSearchOpen(false)
+    setSearch('')
     setSearchQuery('')
     setDiscardList([])
 

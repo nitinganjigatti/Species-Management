@@ -31,6 +31,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
   const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  console.log('isSearchOpen', isSearchOpen)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
@@ -42,7 +43,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   let [page, setPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [loader, setLoader] = useState(false)
-  console.log('loader :>> ', loader)
+
+  // console.log('loader :>> ', loader)
 
   // const [loader, setLoader] = useState(false)
 
@@ -186,8 +188,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 cursor: 'pointer'
               }}
               onClick={() => {
-                setSearch('')
-                handleSearch('')
+                if (isSearchOpen) {
+                  setSearch('')
+                  handleSearch('')
+                }
                 setIsSearchOpen(!isSearchOpen)
               }}
             >
@@ -855,6 +859,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setApplyFilters={setApplyFilters}
           filterList={filterList}
           setDiscardList={setDiscardList}
+          setSearch={setSearch}
+          setIsSearchOpen={setIsSearchOpen}
         />
       )}
     </>
