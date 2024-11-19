@@ -198,17 +198,14 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
 
   return (
     <>
-      {loading ? // <CircularProgress size={''} />
-      null : (
+      {loading ? (
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            cursor: 'pointer',
             gap: '5px'
           }}
-          onClick={() => exportExcelDataCall(handleExport)}
         >
           <Typography
             sx={{
@@ -221,6 +218,32 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
           >
             Download
           </Typography>
+          <CircularProgress size='22px' />
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer',
+            gap: '5px'
+          }}
+          onClick={() => exportExcelDataCall(!loading && handleExport)}
+          disabled={loading}
+        >
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: '500',
+              letterSpacing: '0.1px',
+              lineHeight: '16.94px',
+              color: '#006D35'
+            }}
+          >
+            Download
+          </Typography>
+
           <Icon color='#006D35' icon='solar:download-square-outline' fontSize={22} />
         </Box>
       )}
