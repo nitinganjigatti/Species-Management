@@ -8,6 +8,7 @@ import { useRouter } from 'next/router'
 import * as XLSX from 'xlsx'
 import ExcelExportButton from './exportEggListExcel'
 import Utility from 'src/utility'
+import { GetEggList } from 'src/lib/api/egg/egg'
 
 const EggTableHeader = ({
   totalCount,
@@ -21,7 +22,9 @@ const EggTableHeader = ({
   selectedOptions,
   setSelectedOptions,
   data,
-  loading
+  loading,
+  filterByNurseryId,
+  tableSearch
 }) => {
   // console.log('data :>> ', data)
 
@@ -36,6 +39,7 @@ const EggTableHeader = ({
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const [selectedDate, setSelectedDate] = useState(null)
+  const [excelLoading, setExcelLoading] = useState(false)
 
   const handleRemoveFilter = item => {
     const updatedFilterList = filterList.filter(filter => filter.id !== item.id || filter.name !== item.name)
@@ -229,44 +233,99 @@ const EggTableHeader = ({
     }
   }, [tab_Value, data])
 
-  const handleExport = () => {
-    // Create a worksheet from the data
-    const worksheet = XLSX.utils.json_to_sheet([])
+  // const handleExport = () => {
+  //   // Create a worksheet from the data
+  //   const worksheet = XLSX.utils.json_to_sheet([])
 
-    // Add static header data
-    const headerData = [
-      // ['Egg Data Report'], // Header text
-      // ['Name'] // Column header
-    ]
+  //   // Add static header data
+  //   const headerData = [
+  //     // ['Egg Data Report'], // Header text
+  //     // ['Name'] // Column header
+  //   ]
 
-    // Add the header data to the worksheet
-    XLSX.utils.sheet_add_aoa(worksheet, headerData, { origin: 'A1' })
+  //   // Add the header data to the worksheet
+  //   XLSX.utils.sheet_add_aoa(worksheet, headerData, { origin: 'A1' })
 
-    // Add table data starting from row 3 (A3)
-    XLSX.utils.sheet_add_json(worksheet, xlsxList, { origin: 'A3' })
+  //   // Add table data starting from row 3 (A3)
+  //   XLSX.utils.sheet_add_json(worksheet, xlsxList, { origin: 'A3' })
 
-    // Create a new workbook and append the worksheet
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data')
+  //   // Create a new workbook and append the worksheet
+  //   const workbook = XLSX.utils.book_new()
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, 'Data')
 
-    // Convert the workbook to binary and create a blob
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array'
-    })
+  //   // Convert the workbook to binary and create a blob
+  //   const excelBuffer = XLSX.write(workbook, {
+  //     bookType: 'xlsx',
+  //     type: 'array'
+  //   })
 
-    const dataBlob = new Blob([excelBuffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    })
+  //   const dataBlob = new Blob([excelBuffer], {
+  //     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  //   })
 
-    // Create a download link and trigger it
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', fileName)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  //   // Create a download link and trigger it
+  //   const url = URL.createObjectURL(dataBlob)
+  //   const link = document.createElement('a')
+  //   link.href = url
+  //   link.setAttribute('download', fileName)
+  //   document.body.appendChild(link)
+  //   link.click()
+  //   document.body.removeChild(link)
+  // }
+
+  const handleExport = async () => {
+    try {
+      console.log('export')
+      setExcelLoading(true)
+      const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
+
+      const collectedByIds =
+        tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+          ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
+          : tab_Value === 'eggs_discarded'
+          ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
+          : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
+      const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || []
+
+      const statusId = selectedFiltersOptions.status?.id ? [selectedFiltersOptions.status?.id] : ''
+
+      const collectedDate = selectedFiltersOptions.collected_date
+        ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
+        : ''
+
+      const params = {
+        q: tableSearch ? tableSearch : '',
+        sorting_by_date: 'latest_date',
+        egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
+        collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
+        site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+        nursery_id: filterByNurseryId || '',
+        egg_status_id: (() => {
+          if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
+            return statusId ? JSON.stringify(statusId) : ''
+          } else {
+            return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
+          }
+        })(),
+        collected_date: collectedDate ? collectedDate : '',
+        type: 'all'
+      }
+
+      await GetEggList({ params: params }).then(res => {
+        if (res.success) {
+          const ListData = res.data.result ? res.data.result : []
+          console.log('ListData', ListData?.result)
+
+          // setRows(loadServerRows(paginationModel.page, ListData))
+        } else {
+          // setRows([])
+        }
+      })
+      setExcelLoading(false)
+    } catch (error) {
+      console.log('error', error)
+      setExcelLoading(true)
+    }
   }
 
   return (
@@ -331,7 +390,7 @@ const EggTableHeader = ({
           {/* <ExcelExportButton tab_Value={tab_Value} subTab_value={subTab_value} data={data} /> */}
 
           <>
-            {loading ? (
+            {loading || excelLoading ? (
               <Box
                 sx={{
                   display: 'flex',

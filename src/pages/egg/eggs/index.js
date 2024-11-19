@@ -2580,6 +2580,8 @@ const EggList = () => {
                   setSelectedOptions={setSelectedOptions}
                   data={indexedRows}
                   loading={loading}
+                  filterByNurseryId={filterByNurseryId}
+                  tableSearch={searchValue}
                 />
                 <DataGrid
                   sx={{
@@ -2650,6 +2652,8 @@ const EggList = () => {
                     setSelectedOptions={setSelectedOptions}
                     data={indexedRows}
                     loading={loading}
+                    filterByNurseryId={filterByNurseryId}
+                    tableSearch={searchValue}
                   />
 
                   <DataGrid
@@ -2823,6 +2827,8 @@ const EggList = () => {
                     setSelectedOptions={setSelectedOptions}
                     data={indexedRows}
                     loading={loading}
+                    filterByNurseryId={filterByNurseryId}
+                    tableSearch={searchValue}
                   />
 
                   <DataGrid
@@ -3007,6 +3013,7 @@ const EggList = () => {
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
                         setBatchList={setBatchList}
+                        filterByNurseryId={filterByNurseryId}
                       />
                     </>
                   </TabPanel>
@@ -3035,6 +3042,8 @@ const EggList = () => {
                         setSelectedOptions={setSelectedOptions}
                         data={indexedRows}
                         loading={loading}
+                        filterByNurseryId={filterByNurseryId}
+                        tableSearch={searchValue}
                       />
 
                       <DataGrid
