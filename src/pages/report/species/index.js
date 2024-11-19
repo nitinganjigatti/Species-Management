@@ -13,7 +13,7 @@ import Error404 from 'src/pages/404'
 const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
-  const reports_module = authData?.userData?.role?.settings?.enable_reports_module
+  const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
 
   const [status, setStatus] = useState('statistics')
   const [selectedSite, setSelectedSite] = useState([])
@@ -21,6 +21,7 @@ const SpeciesReport = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
+
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: true },
@@ -69,6 +70,7 @@ const SpeciesReport = () => {
         if (apiFilterParams[key] === 1) {
           acc[key] = 1
         }
+
         return acc
       }, {})
     }
@@ -138,6 +140,7 @@ const SpeciesReport = () => {
       })
 
       setApiFilterParams(updatedApiParams)
+
       return updatedData
     })
 
@@ -152,6 +155,7 @@ const SpeciesReport = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -162,6 +166,7 @@ const SpeciesReport = () => {
         site_ids: filteredSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -170,6 +175,7 @@ const SpeciesReport = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -179,6 +185,7 @@ const SpeciesReport = () => {
         site_ids: value.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -279,6 +286,7 @@ const SpeciesReport = () => {
         )
       }
     }
+
     return {
       field: header.key,
       headerName: header.label,
