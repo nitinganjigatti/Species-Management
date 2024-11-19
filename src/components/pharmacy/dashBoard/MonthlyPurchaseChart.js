@@ -51,11 +51,14 @@ const MonthlyPurchaseChart = () => {
   const monthsFromApi = purchaseList?.purchase_count[0] ? Object.keys(purchaseList.purchase_count[0]) : []
 
   // Map the purchase count and value based on the dynamic month order from API
-  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)
-  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)?.reverse()
+
+  const purchaseValues = monthsFromApi
+    .map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
+    ?.reverse()
 
   // Convert full month names to short month names for the x-axis labels
-  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
+  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)?.reverse()
 
   // Conditionally add series based on checkbox selections
   const series = []
@@ -89,6 +92,7 @@ const MonthlyPurchaseChart = () => {
           if (seriesIndex === 1 || series[0].name === 'Purchase Value') {
             return `₹${value.toFixed(2)} lac`
           }
+
           return value.toFixed(0)
         }
       }
