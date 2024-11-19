@@ -7,20 +7,9 @@ import { debounce } from 'lodash'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import {
-  Card,
-  CardHeader,
-  Typography,
-  CardContent,
-  Grid,
-  FormHelperText,
-  FormControl,
-  TextField,
-  Button
-} from '@mui/material'
+import { Card, CardHeader, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
@@ -29,13 +18,6 @@ import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { margin } from '@mui/system'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-
-import { useForm, Controller } from 'react-hook-form'
-import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
-import TableWithFilter from 'src/components/TableWithFilter'
 
 const ListOfPurchase = () => {
   /***** Server side pagination */
@@ -70,16 +52,20 @@ const ListOfPurchase = () => {
         }
 
         await getPurchaseList({ params: params }).then(res => {
-          // console.log('getPurchaseList', res)
           if (res?.success === true && res?.data?.length > 0) {
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
+          } else {
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
       } catch (error) {
         console.log('error', error)
         setLoading(false)
+        setTotal(0)
+        setRows([])
       }
     },
     [paginationModel]
@@ -197,6 +183,46 @@ const ListOfPurchase = () => {
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row?.net_amount}
         </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by',
+      headerName: 'Created by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {Utility.formatDisplayDate(params.row.created_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'updated_by',
+      headerName: 'Updated by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
   ]

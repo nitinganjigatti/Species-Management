@@ -1,4 +1,5 @@
 import { Typography } from '@mui/material'
+import { textAlign } from '@mui/system'
 
 export const getEllipsisStyleForText = width => {
   return {
@@ -7,7 +8,9 @@ export const getEllipsisStyleForText = width => {
     overflow: 'hidden',
     maxWidth: width ? `${width}px` : '250px',
     display: 'inline-block',
-    lineHeight: 'normal'
+    lineHeight: 'normal',
+    textAlign: 'center',
+    verticalAlign: 'middle'
   }
 }
 

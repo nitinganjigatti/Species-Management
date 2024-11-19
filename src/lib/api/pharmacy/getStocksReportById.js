@@ -60,7 +60,6 @@ export async function getStockReport(id, params) {
 export async function getStockReportByBatch(id, params) {
   let response
   if (id === 'all') {
-    debugger
     response = await axiosGet({ url: `${STOCK_WITH_BATCH}`, params, pharmacy: true })
   } else {
     response = await axiosGet({ url: `${STOCK_WITH_BATCH}/${id}`, params, pharmacy: true })
