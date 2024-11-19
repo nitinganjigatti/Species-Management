@@ -112,15 +112,16 @@ const EggTableHeader = ({
         AEID: item.egg_code,
         'STATE & STAGE': `${item.egg_status} ${item.egg_state}`,
         'DAY IN INCUBATION': item.days_in_incubation,
-        'INITIAL WEIGHT': item.initial_weight,
-        'CURRENT WEIGHT': item.current_weight,
-        'INITIAL SIZE-L': item.initial_length,
-        'INITIAL SIZE-W': item.initial_width,
-        NURSERY: item.nursery_name,
-        'SITE NAME': item.site_name,
+        'INITIAL WEIGHT IN GM': item.initial_weight,
+        'CURRENT WEIGHT IN GM': item.current_weight,
+        'LENGTH IN MM': item.initial_length,
+        'WIDTH IN MM': item.initial_width,
         'NO.EGGS / CLUTCH': item.no_of_eggs_in_clutch,
         'CLUTCH ID': item.clutch_id,
         ENCLOSURE: item.enclosure_name,
+        'SITE NAME': item.site_name,
+        NURSERY: item.nursery_name,
+
         'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
         'ALLOCATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
           Utility.convertUTCToLocal(item.allocate_date)
