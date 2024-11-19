@@ -252,18 +252,34 @@ const AddTest = props => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedSampleIds?.map(sample => (
-                    <Chip
-                      key={sample.id}
-                      label={sample.label || sample.name}
-                      onDelete={() => handleRemoveSampleType(sample)}
-                      sx={{
-                        backgroundColor: '#e8f5e9',
-                        '& .MuiChip-deleteIcon': {
-                          color: '#4caf50'
-                        },
-                        borderRadius: '6px'
-                      }}
-                    />
+                    <>
+                      {editParams?.id ? (
+                        <Chip
+                          key={sample.id}
+                          label={sample.label || sample.name}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          key={sample.id}
+                          label={sample.label || sample.name}
+                          onDelete={() => handleRemoveSampleType(sample)}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      )}
+                    </>
                   ))}
                 </Box>
               </Box>
@@ -314,18 +330,34 @@ const AddTest = props => {
                 <label>Sub Tests</label>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                   {subTests.map((test, index) => (
-                    <Chip
-                      key={index}
-                      label={test}
-                      onDelete={() => handleRemoveSubTest(index)}
-                      sx={{
-                        backgroundColor: '#e8f5e9',
-                        '& .MuiChip-deleteIcon': {
-                          color: '#4caf50'
-                        },
-                        borderRadius: '6px'
-                      }}
-                    />
+                    <>
+                      {editParams?.id ? (
+                        <Chip
+                          key={index}
+                          label={test}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          key={index}
+                          label={test}
+                          onDelete={() => handleRemoveSubTest(index)}
+                          sx={{
+                            backgroundColor: '#e8f5e9',
+                            '& .MuiChip-deleteIcon': {
+                              color: '#4caf50'
+                            },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      )}
+                    </>
                   ))}
                 </Box>
               </Box>
