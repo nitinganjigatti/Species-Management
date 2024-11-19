@@ -1676,6 +1676,23 @@ const AddRequestForm = () => {
                   &nbsp;
                 </Typography>
               </Grid>
+              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <Autocomplete
+                  options={[]}
+                  getOptionLabel={option => option.name || ''}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      name='search'
+                      label='Search & Select'
+                      error={Boolean(errors.search)}
+                      helperText={errors.search}
+                      placeholder='Search & Select'
+                    />
+                  )}
+                  onChange={(event, value) => {}}
+                />
+              </Grid>
               {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
