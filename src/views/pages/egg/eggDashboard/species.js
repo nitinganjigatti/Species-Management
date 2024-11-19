@@ -353,6 +353,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'currently_in_nursery',
       sortable: true,
       disableColumnMenu: true,
+
       // headerName: 'EGGS TO NURSERY',
       renderHeader: () => (
         <Box>
@@ -426,10 +427,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
+            {Number(params.row.total_hatch) + Number(params.row.total_discarded) + 0
               ? Math.round(
                   (Number(params.row.total_hatch) /
-                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                    (Number(params.row.total_hatch) + Number(params.row.total_discarded))) *
                     100
                 )
               : 0}
@@ -552,7 +553,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.hatched_in_nursery ? `${params.row.hatched_in_nursery}` : '-'}
+            {params?.row?.hatched_in_nursery ? `${params?.row?.hatched_in_nursery}` : '-'}
           </Typography>
         </Box>
       )
@@ -595,15 +596,15 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.hatched_in_nest) +
-              Number(params.row.discarded_at_site) +
-              Number(params.row.ready_tobe_discarded_at_nursery) >
+            {Number(params?.row?.hatched_in_nest) +
+              Number(params?.row?.discarded_at_site) +
+              Number(params?.row?.ready_tobe_discarded_at_nursery) >
             0
               ? Math.round(
-                  (Number(params.row.hatched_in_nest) /
-                    (Number(params.row.hatched_in_nest) +
-                      Number(params.row.discarded_at_site) +
-                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  (Number(params?.row?.hatched_in_nest) /
+                    (Number(params?.row?.hatched_in_nest) +
+                      Number(params?.row?.discarded_at_site) +
+                      Number(params?.row?.ready_tobe_discarded_at_nursery))) *
                     100
                 )
               : 0}
@@ -710,7 +711,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded_at_nursery ? params.row.discarded_at_nursery : '-'}
+              {Number(params?.row?.discarded_at_nursery) + Number(params?.row?.ready_tobe_discarded_at_nursery) > 0
+                ? Number(params?.row?.discarded_at_nursery) + Number(params?.row?.ready_tobe_discarded_at_nursery)
+                : '-'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -926,6 +929,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       field: 'currently_in_nursery',
       sortable: true,
       disableColumnMenu: true,
+
       // headerName: 'EGGS TO NURSERY',
       renderHeader: () => (
         <Box>
@@ -998,10 +1002,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.total_hatch) + Number(params.row.total_discard) + 0
+            {Number(params?.row?.total_hatch) + Number(params?.row?.total_discarded) > 0
               ? Math.round(
-                  (Number(params.row.total_hatch) /
-                    (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                  (Number(params?.row?.total_hatch) /
+                    (Number(params?.row?.total_hatch) + Number(params?.row?.total_discarded))) *
                     100
                 )
               : 0}
@@ -1037,7 +1041,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               lineHeight: '19.36px'
             }}
           >
-            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
+            {params?.row?.total_hatch ? `${params?.row?.total_hatch}` : '-'}
           </Typography>
         </Box>
       )
@@ -1079,15 +1083,15 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.hatched_in_nursery) +
-              Number(params.row.discarded_at_nursery) +
-              Number(params.row.ready_tobe_discarded_at_nursery) >
+            {Number(params?.row?.hatched_in_nursery) +
+              Number(params?.row?.discarded_at_nursery) +
+              Number(params?.row?.ready_tobe_discarded_at_nursery) >
             0
               ? Math.round(
-                  (Number(params.row.hatched_in_nursery) /
-                    (Number(params.row.hatched_in_nursery) +
-                      Number(params.row.discarded_at_nursery) +
-                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  (Number(params?.row?.hatched_in_nursery) /
+                    (Number(params?.row?.hatched_in_nursery) +
+                      Number(params?.row?.discarded_at_nursery) +
+                      Number(params?.row?.ready_tobe_discarded_at_nursery))) *
                     100
                 )
               : 0}
@@ -1164,15 +1168,15 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               : 0
             ) // Fallback to 0 if values are not valid numbers
               .toPrecision(3)} */}
-            {Number(params.row.hatched_in_nest) +
-              Number(params.row.discarded_at_site) +
-              Number(params.row.ready_tobe_discarded_at_nursery) >
+            {Number(params?.row?.hatched_in_nest) +
+              Number(params?.row?.discarded_at_site) +
+              Number(params?.row?.ready_tobe_discarded_at_site) >
             0
               ? Math.round(
-                  (Number(params.row.hatched_in_nest) /
-                    (Number(params.row.hatched_in_nest) +
-                      Number(params.row.discarded_at_site) +
-                      Number(params.row.ready_tobe_discarded_at_nursery))) *
+                  (Number(params?.row?.hatched_in_nest) /
+                    (Number(params?.row?.hatched_in_nest) +
+                      Number(params?.row?.discarded_at_site) +
+                      Number(params?.row?.ready_tobe_discarded_at_site))) *
                     100
                 )
               : 0}
@@ -1233,16 +1237,25 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }
           }}
         >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
+          <CustomTooltip
+            title={[
+              { label: 'Ready to be discarded at nursery :', value: params?.row?.ready_tobe_discarded_at_site },
+              { label: 'Discarded at nursery:', value: params?.row?.discarded_at_site }
+            ]}
           >
-            {params.row.discarded_at_site ? params.row.discarded_at_site : '-'}
-          </Typography>
+            <Typography
+              style={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '600',
+                lineHeight: '19.36px'
+              }}
+            >
+              {Number(params?.row?.discarded_at_site) + Number(params?.row?.ready_tobe_discarded_at_site) > 0
+                ? Number(params?.row?.discarded_at_site) + Number(params?.row?.ready_tobe_discarded_at_site)
+                : '-'}
+            </Typography>
+          </CustomTooltip>
         </Box>
       )
     },
@@ -1267,8 +1280,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         >
           <CustomTooltip
             title={[
-              { label: 'Ready to be discarded at nursery :', value: params.row.ready_tobe_discarded_at_nursery },
-              { label: 'Discarded at nursery:', value: params.row.discarded_at_nursery }
+              { label: 'Ready to be discarded at nursery :', value: params?.row?.ready_tobe_discarded_at_nursery },
+              { label: 'Discarded at nursery:', value: params?.row?.discarded_at_nursery }
             ]}
           >
             <Typography
@@ -1279,7 +1292,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded_at_nursery ? params.row.discarded_at_nursery : '-'}
+              {Number(params?.row?.discarded_at_nursery) + Number(params?.row?.ready_tobe_discarded_at_nursery) > 0
+                ? Number(params?.row?.discarded_at_nursery) + Number(params?.row?.ready_tobe_discarded_at_nursery)
+                : '0'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -1629,8 +1644,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         >
           <CustomTooltip
             title={[
-              { label: 'Ready to be discarded at nursery :', value: params.row.ready_tobe_discarded_at_nursery },
-              { label: 'Discarded at nursery:', value: params.row.discarded_at_nursery }
+              { label: 'Ready to be discarded at nursery :', value: params?.row?.ready_tobe_discarded_at_nursery },
+              { label: 'Discarded at nursery:', value: params?.row?.discarded_at_nursery }
             ]}
           >
             <Typography
@@ -1641,7 +1656,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
                 lineHeight: '19.36px'
               }}
             >
-              {params.row.discarded_at_nursery ? params.row.discarded_at_nursery : '-'}
+              {Number(params?.row?.discarded_at_nursery) + Number(params?.row.ready_tobe_discarded_at_nursery) > 0
+                ? Number(params?.row?.discarded_at_nursery) + Number(params?.row.ready_tobe_discarded_at_nursery)
+                : '0'}
             </Typography>
           </CustomTooltip>
         </Box>
@@ -1669,8 +1686,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         >
           <CustomTooltip
             title={[
-              { label: 'Send to nursery :', value: params.row.send_to_nursery },
-              { label: 'With in transfer request:', value: params.row.within_transfer_request }
+              { label: 'Send to nursery :', value: params?.row?.send_to_nursery },
+              { label: 'With in transfer request:', value: params?.row?.within_transfer_request }
             ]}
           >
             <Typography
@@ -1805,6 +1822,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       setLoading(true)
 
       console.log('sortModelcccc', sortModel)
+
       const params = {
         ref_type: statuss || status,
         q,
@@ -1850,6 +1868,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     setSortModel(newModel)
     getspeciesFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), newModel[0])
   }
+
   const exportExcelDataCall = handleExport => {
     exportExcelDataFunc(status, searchValue, fromDate, tillDate, getIdBasedOnStatus(), sortModel, handleExport)
   }
@@ -2064,6 +2083,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           loading={loading}
           sortModel={sortModel}
           onSortModelChange={handleSortModelChange}
+
           // onCellClick={onCellClick}
         />
       </>
