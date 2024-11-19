@@ -716,7 +716,7 @@ const AddRequestForm = () => {
                       <Typography variant='body2'>{option.manufacture}</Typography>
                       {option.control_substance === true && (
                         <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}{' '}
+                      )}
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
                       )}
@@ -836,9 +836,14 @@ const AddRequestForm = () => {
                     <Box>
                       <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}{' '}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}

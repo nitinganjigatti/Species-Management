@@ -28,6 +28,7 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import CustomChip from 'src/@core/components/mui/chip'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -356,6 +357,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}{' '}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}
@@ -445,9 +452,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     <Box>
                       <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}
@@ -795,7 +807,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               <FormControl fullWidth>
                 <TextField
                   type='file'
-                  accept='.pdf, .jpeg, .jpg, .png'
+                  // eslint-disable-next-line lines-around-comment
+                  // accept='.pdf, .jpeg, .jpg, .png'
+                  accept='.pdf, image/jpeg, .png'
                   error={Boolean(itemErrors.prescription_required_file)}
                   onChange={e => {
                     const file = e.target.files[0]
