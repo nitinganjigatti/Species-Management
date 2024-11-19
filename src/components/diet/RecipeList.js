@@ -165,6 +165,7 @@ const RecipeList = props => {
               size='small'
               onClick={() => {
                 handleSidebarClose()
+                setSearchValue('')
               }}
               sx={{ color: 'text.primary' }}
             >

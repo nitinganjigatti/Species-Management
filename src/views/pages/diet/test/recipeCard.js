@@ -82,8 +82,9 @@ const RecipeCard = ({
         }))
         .filter(item => !currentSelectedCardRecipe.some(existingItem => existingItem.recipe_id === item.recipe_id)) // Avoid duplicates
     ]
-
-    setSelectedCardRecipe(updatedSelectedCard)
+    if (!searchValue) {
+      setSelectedCardRecipe(updatedSelectedCard)
+    }
 
     const previousSelectedDays = selectedDays || [] // Keep track of previous selections
 
@@ -374,6 +375,8 @@ const RecipeCard = ({
 
   return (
     <Box>
+      {console.log(sortedRecipeList, 'sortedRecipeList')}
+      {console.log(selectedCardRecipe, 'selectedCardRecipe')}
       {sortedRecipeList?.map((item, index) => {
         return (
           <>
