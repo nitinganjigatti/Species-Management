@@ -1,4 +1,4 @@
-import { IconButton, TextField, Typography } from '@mui/material'
+import { CircularProgress, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -20,7 +20,8 @@ const EggTableHeader = ({
   setSearchQuery,
   selectedOptions,
   setSelectedOptions,
-  data
+  data,
+  loading
 }) => {
   // console.log('data :>> ', data)
 
@@ -328,21 +329,41 @@ const EggTableHeader = ({
 
           {/* <ExcelExportButton tab_Value={tab_Value} subTab_value={subTab_value} data={data} /> */}
 
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              width: '40px',
-              height: '40px',
-              borderRadius: '4px',
-              bgcolor: theme?.palette.customColors?.lightBg,
-              alignItems: 'center',
-              cursor: 'pointer'
-            }}
-            onClick={handleExport}
-          >
-            <Icon icon='ic:round-download' fontSize={20} />
-          </Box>
+          <>
+            {loading ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '4px',
+                  bgcolor: theme?.palette.customColors?.lightBg,
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <CircularProgress color='success' size={30} />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '4px',
+                  bgcolor: theme?.palette.customColors?.lightBg,
+                  alignItems: 'center',
+                  cursor: 'pointer'
+                }}
+                onClick={handleExport}
+              >
+                <Icon icon='ic:round-download' fontSize={20} />
+              </Box>
+            )}
+          </>
+
           <Box
             sx={{
               display: 'flex',

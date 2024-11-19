@@ -480,6 +480,7 @@ const DiscardedTableView = ({
         selectedOptions={selectedOptions}
         setSelectedOptions={setSelectedOptions}
         data={indexedRows}
+        loading={loading}
       />
       <DataGrid
         sx={{

@@ -757,7 +757,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 }
                 {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {console.log('loader when scroll', loader)}
+                    {/* {console.log('loader when scroll', loader)} */}
                     <CircularProgress />
                   </Box>
                 )}
