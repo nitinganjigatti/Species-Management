@@ -1471,24 +1471,26 @@ const AddLab = () => {
             </>
           )}
           <Drawer anchor='right' open={open} sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}>
-            <div>
-              <Box
-                className='sidebar-header'
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  backgroundColor: 'background.default',
-                  p: theme => theme.spacing(3, 3.255, 3, 5.255)
-                }}
-              >
-                <Typography variant='h6'>Add Lab Tests</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </Box>
+            <Box
+              className='sidebar-header'
+              sx={{
+                position: 'sticky', // Fixes the header
+                top: 0, // Ensures it stays at the top
+                display: 'flex',
+                justifyContent: 'space-between',
+                backgroundColor: 'background.default',
+                p: theme => theme.spacing(3, 3.255, 3, 5.255),
+                zIndex: 1 // Ensures it stays above other content
+              }}
+            >
+              <Typography variant='h6'>Add Lab Tests</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
+                  <Icon icon='mdi:close' fontSize={20} />
+                </IconButton>
               </Box>
-
+            </Box>
+            <div>
               {/* drawer */}
               <Stack sx={{ p: 5 }} spacing={3}>
                 {TestData?.map((sample, index) => (
