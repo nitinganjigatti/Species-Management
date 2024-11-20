@@ -7,9 +7,9 @@ const ComposeReportNavigation = reports_module => {
   }
 
   const report = {
-    title: 'All Reports',
+    title: 'Species Report',
     path: '/report/species',
-    icon: 'icon-park-outline:traditional-chinese-medicine'
+    icon: 'mdi:rabbit-variant-outline'
   }
 
   const reportNavigationArray = []
