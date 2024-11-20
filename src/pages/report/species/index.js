@@ -19,7 +19,7 @@ const SpeciesReport = () => {
   const [selectedSite, setSelectedSite] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   const [popoverData, setPopoverData] = useState({
@@ -208,16 +208,7 @@ const SpeciesReport = () => {
     const params = {
       page: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      include_housing: 1,
-      include_enclosure: 1,
-      include_section: 1,
-      include_cluster: 1,
-      include_class: 1,
-      include_organization: 1,
-      include_order: 1,
-      include_family: 1,
-      include_genus: 1,
-      include_site: 1
+      ...apiFilterParams
     }
 
     setIsLoading(true)

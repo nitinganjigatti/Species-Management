@@ -49,7 +49,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const [tillDate, setTillDate] = useState(null)
 
   // Pagination
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
   // Drawer State
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -1718,7 +1718,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: 50 })
     setStatus(newValue)
     setSearchValue('')
     setTillDate(null)

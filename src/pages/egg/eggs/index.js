@@ -50,8 +50,18 @@ const EggList = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const { tab_Value, subTab_value, page_value, search_value, filter_list, selected_options, selected_filters_options } =
-    router.query
+  const {
+    tab_Value = 'eggs_incubation',
+    subTab_value = 'eggs_discarded',
+    page_value,
+    search_value,
+    filter_list,
+    selected_options,
+    selected_filters_options
+  } = router.query
+
+  // console.log('tab_Value', tab_Value)
+  // console.log('subTab_value', subTab_value)
 
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
@@ -91,7 +101,6 @@ const EggList = () => {
 
   const [selectedOptions, setSelectedOptions] = useState({
     Stage: [],
-
     Nursery: [],
     Site: [],
     'Collected By': [],
@@ -1807,8 +1816,8 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at
-                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                {params.row.discarded_date
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.discarded_date))
                   : '-'}
               </Typography>
             </Box>
@@ -2331,7 +2340,6 @@ const EggList = () => {
             ? selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
             : selectedFiltersOptions['Collected By']?.map(option => option.id) || []
         const siteIds = selectedFiltersOptions.Site?.map(option => option.id) || []
-
         const statusId = selectedFiltersOptions.status?.id ? [selectedFiltersOptions.status?.id] : ''
 
         const collectedDate = selectedFiltersOptions.collected_date
@@ -2341,10 +2349,7 @@ const EggList = () => {
         const params = {
           sort,
           q: search ? search : '',
-
           sorting_by_date: 'latest_date',
-
-          // sortColumn,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
 
@@ -2365,7 +2370,11 @@ const EggList = () => {
           // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
 
           // egg_status_id: statusId ? statusId : '',
-          collected_date: collectedDate ? collectedDate : '',
+          ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+            ? { discarded_date: collectedDate || '' }
+            : subTab_value === 'eggs_discarded_at_nursery'
+            ? { discarded_date: collectedDate || '' }
+            : { collected_date: collectedDate || '' }),
 
           type:
             statusRecived === undefined
@@ -2580,6 +2589,8 @@ const EggList = () => {
                   setSelectedOptions={setSelectedOptions}
                   data={indexedRows}
                   loading={loading}
+                  filterByNurseryId={filterByNurseryId}
+                  tableSearch={searchValue}
                 />
                 <DataGrid
                   sx={{
@@ -2650,6 +2661,8 @@ const EggList = () => {
                     setSelectedOptions={setSelectedOptions}
                     data={indexedRows}
                     loading={loading}
+                    filterByNurseryId={filterByNurseryId}
+                    tableSearch={searchValue}
                   />
 
                   <DataGrid
@@ -2823,6 +2836,8 @@ const EggList = () => {
                     setSelectedOptions={setSelectedOptions}
                     data={indexedRows}
                     loading={loading}
+                    filterByNurseryId={filterByNurseryId}
+                    tableSearch={searchValue}
                   />
 
                   <DataGrid
@@ -3007,6 +3022,7 @@ const EggList = () => {
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
                         setBatchList={setBatchList}
+                        filterByNurseryId={filterByNurseryId}
                       />
                     </>
                   </TabPanel>
@@ -3035,6 +3051,8 @@ const EggList = () => {
                         setSelectedOptions={setSelectedOptions}
                         data={indexedRows}
                         loading={loading}
+                        filterByNurseryId={filterByNurseryId}
+                        tableSearch={searchValue}
                       />
 
                       <DataGrid

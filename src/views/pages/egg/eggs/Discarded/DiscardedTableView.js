@@ -22,7 +22,8 @@ const DiscardedTableView = ({
   setTotal,
   selectedOptions,
   setSelectedOptions,
-  setBatchList
+  setBatchList,
+  filterByNurseryId
 }) => {
   const router = useRouter()
   const { search_value } = router.query
@@ -43,7 +44,7 @@ const DiscardedTableView = ({
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, selectedFiltersOptions = {}) => {
+    async (sort, q, selectedFiltersOptions = {}, filterByNurseryId) => {
       // console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
 
       // debugger
@@ -51,7 +52,7 @@ const DiscardedTableView = ({
         setLoading(true)
 
         // Extracting IDs from selectedFiltersOptions, with a fallback to empty arrays
-        const nurseryIds = selectedFiltersOptions?.Nursery?.map(option => option.id)
+        // const nurseryIds = selectedFiltersOptions?.Nursery?.map(option => option.id)
 
         // const eggStateIds = selectedFiltersOptions?.Stage?.map(option => option.id) || []
         const discardedByIds = selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
@@ -70,7 +71,7 @@ const DiscardedTableView = ({
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryIds?.length > 0 ? JSON.stringify(nurseryIds) : '',
+          nursery_id: filterByNurseryId || '',
 
           // egg_state_id: eggStateIds,
           discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
@@ -104,8 +105,8 @@ const DiscardedTableView = ({
   useEffect(() => {
     // debugger
 
-    fetchTableData(sort, searchValue, selectedFiltersOptions)
-  }, [fetchTableData, selectedFiltersOptions])
+    fetchTableData(sort, searchValue, selectedFiltersOptions, filterByNurseryId)
+  }, [fetchTableData, selectedFiltersOptions, filterByNurseryId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -481,6 +482,8 @@ const DiscardedTableView = ({
         setSelectedOptions={setSelectedOptions}
         data={indexedRows}
         loading={loading}
+        tableSearch={searchValue}
+        filterByNurseryId={filterByNurseryId}
       />
       <DataGrid
         sx={{

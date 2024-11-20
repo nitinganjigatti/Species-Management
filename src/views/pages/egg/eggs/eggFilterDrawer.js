@@ -52,15 +52,15 @@ const EggFilterDrawer = ({
 
   useEffect(() => {
     if (filter_list) {
-      console.log('filter_List :>> ', filter_list)
+      // console.log('filter_List :>> ', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
-      console.log('selected_options :>> ', selected_options)
+      // console.log('selected_options :>> ', selected_options)
       setSelectedOptions(JSON.parse(selected_options))
     }
     if (selected_filters_options) {
-      console.log('selected_filters_options :>> ', selected_filters_options)
+      // console.log('selected_filters_options :>> ', selected_filters_options)
       setSelectedFiltersOptions(JSON.parse(selected_filters_options))
     }
   }, [])
@@ -716,7 +716,11 @@ const EggFilterDrawer = ({
                       <DatePicker
                         sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                         maxDate={dayjs()}
-                        value={selectedOptions?.collected_date}
+                        value={
+                          selectedOptions?.collected_date
+                            ? selectedOptions?.collected_date
+                            : selectedOptions?.discarded_Date
+                        }
                         onChange={handleDateChange}
                       />
                     </LocalizationProvider>
