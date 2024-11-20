@@ -19,7 +19,7 @@ const SpeciesReport = () => {
   const [selectedSite, setSelectedSite] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   const [popoverData, setPopoverData] = useState({
