@@ -30,7 +30,7 @@ const EditEggInfo = ({ egg_id, closeEditDrawer, egg_number, getDetails }) => {
   const authData = useContext(AuthContext)
 
   const schema = yup.object().shape({
-    egg_number: yup.string().required('Egg number is required').trim().strict(true).min(1, 'Egg number is required')
+    egg_number: yup.string().required('Egg number is required').min(1, 'Egg number is required')
 
     // .matches(/^[a-zA-Z0-9]*$/, 'Egg number can only contain alphabets and alphanumeric values')
   })
@@ -66,7 +66,7 @@ const EditEggInfo = ({ egg_id, closeEditDrawer, egg_number, getDetails }) => {
   const onSubmit = async values => {
     const payload = {
       egg_id: egg_id,
-      egg_no: values.egg_number
+      egg_no: values?.egg_number?.trim()
     }
 
     try {
