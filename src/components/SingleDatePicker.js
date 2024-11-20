@@ -11,7 +11,16 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
 import InputAdornment from '@mui/material/InputAdornment'
 
-const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, name, disabled = false, size }) => {
+const SingleDatePicker = ({
+  popperPlacement,
+  date,
+  maxDate,
+  onChangeHandler,
+  name,
+  disabled = false,
+  size,
+  ...rest
+}) => {
   return (
     <DatePickerWrapper>
       <DatePicker
@@ -38,6 +47,7 @@ const SingleDatePicker = ({ popperPlacement, date, maxDate, onChangeHandler, nam
             }}
           />
         }
+        {...rest}
       />
     </DatePickerWrapper>
   )

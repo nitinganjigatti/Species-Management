@@ -222,6 +222,7 @@ const AddPayment = props => {
                       onChange(formatted)
                     }}
                     customInput={<CustomInput label='Date' error={Boolean(errors.date)} />}
+                    isClearable={false}
                   />
                 )}
               />

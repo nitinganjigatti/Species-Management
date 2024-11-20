@@ -136,6 +136,7 @@ const AddExistingPurchase = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
   const authData = useContext(AuthContext)
+
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
     supplier_id: yup.string().required('Supplier is required'),
@@ -826,6 +827,7 @@ const AddExistingPurchase = () => {
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                      isClearable={false}
                     />
                   )}
                 />

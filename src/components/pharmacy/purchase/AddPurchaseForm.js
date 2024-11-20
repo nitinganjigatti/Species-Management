@@ -1057,6 +1057,7 @@ const AddPurchaseForm = () => {
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                      isClearable={false}
                     />
                   )}
                 />

@@ -1412,6 +1412,7 @@ const AddRequestForm = () => {
                       setErrors({})
                     }}
                     customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                    isClearable={false}
                   />
                   {errors.ro_date && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>

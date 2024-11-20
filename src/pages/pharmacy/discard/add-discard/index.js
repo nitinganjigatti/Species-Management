@@ -620,6 +620,7 @@ const AddDiscardProducts = () => {
                         }}
                         maxDate={new Date()}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.discarded_date)} />}
+                        isClearable={false}
                       />
                       {errors.discarded_date && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
