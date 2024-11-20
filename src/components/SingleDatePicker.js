@@ -25,7 +25,6 @@ const SingleDatePicker = ({
     <DatePickerWrapper>
       <DatePicker
         disabled={disabled ? disabled : null}
-        isClearable={isClearable}
         showIcon
         selected={date}
         // dateFormat='dd/MM/yyyy'
