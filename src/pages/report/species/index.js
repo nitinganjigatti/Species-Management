@@ -64,18 +64,20 @@ const SpeciesReport = () => {
   const id = open ? 'filter-popover' : undefined
 
   const getStatisticsDataToExport = async () => {
-    const params = {
-      response_type: 'csv',
-      ...Object.keys(apiFilterParams).reduce((acc, key) => {
-        if (apiFilterParams[key] === 1) {
-          acc[key] = 1
-        }
+    // const params = {
+    //   response_type: 'csv',
+    //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
+    //     if (apiFilterParams[key] === 1) {
+    //       acc[key] = 1
+    //     }
 
-        return acc
-      }, {})
-    }
+    //     return acc
+    //   }, {})
+    // }
 
-    await fetchAndSetDataList(params, { responseType: 'csv' })
+    // debugger
+
+    await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
   const title = (
@@ -103,6 +105,7 @@ const SpeciesReport = () => {
         const csvUrl = response.data
         const link = document.createElement('a')
         link.href = csvUrl
+        debugger
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -151,7 +154,7 @@ const SpeciesReport = () => {
       return updatedData
     })
     setPaginationModel({ ...paginationModel, page: 0 })
-    await fetchData(updatedApiParams, { ...paginationModel, page: 0 })
+    await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
   }
 
   const handleSelectedSite = async e => {
@@ -198,9 +201,11 @@ const SpeciesReport = () => {
       }
       setSelectedSite(value)
     }
+
+    debugger
     setPaginationModel({ ...paginationModel, page: 0 })
-    // await fetchAndSetDataList({ ...params })
-    await fetchData(params, { ...paginationModel, page: 0 })
+    setApiFilterParams(params)
+    await fetchData({ ...params }, { ...paginationModel, page: 0 })
   }
 
   function loadServerRows(currentPage, data) {
@@ -214,6 +219,7 @@ const SpeciesReport = () => {
 
   const fetchData = useCallback(
     async (param, paginationModel) => {
+      debugger
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
@@ -230,8 +236,9 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
+    debugger
     fetchData(apiFilterParams, paginationModel)
-  }, [fetchData])
+  }, [])
 
   // useEffect(() => {
   //   if (reports_module) {
