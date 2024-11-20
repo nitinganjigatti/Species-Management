@@ -49,6 +49,7 @@ import AlertTitle from '@mui/material/AlertTitle'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import RenderUtility from 'src/utility/render'
+import EmptyStateBox from 'src/components/EmptyStateBox'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -1109,37 +1110,7 @@ const IndividualRequest = () => {
                           backgroundColor={'customColors.customTableHeaderBg'}
                         ></TableBasic>
                       ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            height: '300px',
-                            textAlign: 'center'
-                          }}
-                        >
-                          <Avatar
-                            variant='square'
-                            alt=''
-                            src={'/images/out-of-stock.png'}
-                            sx={{
-                              width: '120px',
-                              height: '120px',
-                              mb: 1
-                            }}
-                          />
-                          <Typography
-                            variant='body1'
-                            sx={{
-                              fontSize: '14px',
-                              fontWeight: 400,
-                              color: 'primary.light'
-                            }}
-                          >
-                            No shipped items
-                          </Typography>
-                        </Box>
+                        <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No shipped items' />
                       )}
                     </TabPanel>
                     <TabPanel value='shipment'>
@@ -1215,37 +1186,7 @@ const IndividualRequest = () => {
                                 ></TableBasic>
                               </>
                             ) : (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  height: '300px',
-                                  textAlign: 'center'
-                                }}
-                              >
-                                <Avatar
-                                  variant='square'
-                                  alt=''
-                                  src={'/images/out-of-stock.png'}
-                                  sx={{
-                                    width: '120px',
-                                    height: '120px',
-                                    mb: 1
-                                  }}
-                                />
-                                <Typography
-                                  variant='body1'
-                                  sx={{
-                                    fontSize: '14px',
-                                    fontWeight: 400,
-                                    color: 'primary.light'
-                                  }}
-                                >
-                                  No ship items
-                                </Typography>
-                              </Box>
+                              <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No ship items' />
                             )}
                           </TabPanel>
                           <TabPanel
@@ -1274,37 +1215,7 @@ const IndividualRequest = () => {
                                 ></TableBasic>
                               </>
                             ) : (
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  height: '300px',
-                                  textAlign: 'center'
-                                }}
-                              >
-                                <Avatar
-                                  variant='square'
-                                  alt=''
-                                  src={'/images/out-of-stock.png'}
-                                  sx={{
-                                    width: '120px',
-                                    height: '120px',
-                                    mb: 1
-                                  }}
-                                />
-                                <Typography
-                                  variant='body1'
-                                  sx={{
-                                    fontSize: '14px',
-                                    fontWeight: 400,
-                                    color: 'primary.light'
-                                  }}
-                                >
-                                  No shipped items
-                                </Typography>
-                              </Box>
+                              <EmptyStateBox imageSrc='/images/out-of-stock.png' text=' No shipped items' />
                             )}
                           </TabPanel>
                         </TabContext>

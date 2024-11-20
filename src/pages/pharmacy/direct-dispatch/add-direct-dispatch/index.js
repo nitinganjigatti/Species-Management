@@ -79,6 +79,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { Stack } from '@mui/system'
 import RenderUtility from 'src/utility/render'
+import EmptyStateBox from 'src/components/EmptyStateBox'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -893,7 +894,7 @@ const AddDirectDispatch = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
-                {/* <Typography
+                <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
@@ -901,7 +902,7 @@ const AddDirectDispatch = () => {
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     ₹0
                   </Typography>
-                </Typography> */}
+                </Typography>
               </Stack>
             </Box>
 
@@ -1145,37 +1146,7 @@ const AddDirectDispatch = () => {
               </Grid>
             </Box>
           ) : (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '300px',
-                textAlign: 'center'
-              }}
-            >
-              <Avatar
-                variant='square'
-                alt=''
-                src={'/images/out-of-stock.png'}
-                sx={{
-                  width: '120px',
-                  height: '120px',
-                  mb: 1
-                }}
-              />
-              <Typography
-                variant='body1'
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  color: 'primary.light'
-                }}
-              >
-                No Dispatch items
-              </Typography>
-            </Box>
+            <EmptyStateBox text='No Orders Found' imageSrc='/images/out-of-stock.png' />
           )}
 
           {/* <ConfirmDialogBox

@@ -74,6 +74,10 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import { Stack } from '@mui/system'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import EmptyStateBox from 'src/components/EmptyStateBox'
+import RenderUtility from 'src/utility/render'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -661,6 +665,7 @@ const AddReturnRequest = () => {
         error={duplicateMedError}
         totalQuantity={totalBatchQuantity}
         editParams={editParams}
+        closeDialog={closeDialog}
       />
     )
   }
@@ -750,7 +755,7 @@ const AddReturnRequest = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                {/* <Grid item xs={12} sm={6}>
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                       &nbsp;
@@ -779,11 +784,52 @@ const AddReturnRequest = () => {
                       )}
                     </FormControl>
                   </Grid>
-                </Grid>
+                </Grid> */}
               </Grid>
             </form>
           </CardContent>
-          <Grid
+
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
+            <Box>
+              <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                Return Items
+              </Typography>
+
+              <Stack
+                direction='row'
+                spacing={6}
+                divider={<Divider orientation='vertical' flexItem />}
+                sx={{ textAlign: 'center' }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Return Quantity:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    {totalQty ? totalQty : '0'}
+                  </Typography>
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Return Value:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    ₹0
+                  </Typography>
+                </Typography>
+              </Stack>
+            </Box>
+
+            <AddButtonContained
+              title='Add Return Item'
+              action={() => {
+                handleSubmit()
+              }}
+            />
+          </Box>
+          {/* <Grid
             container
             spacing={6}
             sm={12}
@@ -801,81 +847,94 @@ const AddReturnRequest = () => {
                 handleSubmit()
               }}
             />
-          </Grid>
+          </Grid> */}
+          {editParams?.request_item_details.length ? (
+            <Box>
+              <Card
+                sx={{
+                  m: 6,
+                  border: '1px solid',
+                  borderColor: 'customColors.customTableBorderBg',
+                  boxShadow: 'none'
+                }}
+              >
+                <TableContainer>
+                  <Table sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                    <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                      <TableRow>
+                        <TableCell>Product Name</TableCell>
+                        <TableCell>Batch No</TableCell>
 
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                <TableRow>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Batch No</TableCell>
+                        <TableCell>Expiry Date</TableCell>
+                        <TableCell>Priority</TableCell>
+                        <TableCell>Quantity</TableCell>
+                        <TableCell>Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody x={{ borderColor: 'customColors.customTableBorderBg' }}>
+                      {editParams.request_item_details
+                        ? editParams.request_item_details.map((el, index) => {
+                            return (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                    {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
+                                    {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                                    {el.product_name}
+                                  </Typography>
+                                  {/* {el.control_substance ? (
+                                    <CustomChip label='CS' skin='light' color='success' size='small' />
+                                  ) : null} */}
+                                  <Typography variant='body2'>{el.packageDetails}</Typography>
+                                  <Typography variant='body2'>{el.manufacture}</Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                    {el.request_item_batch_no}
+                                  </Typography>
+                                </TableCell>
 
-                  <TableCell>Expiry Date</TableCell>
-                  <TableCell>Priority</TableCell>
-                  <TableCell>Quantity</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {editParams.request_item_details
-                  ? editParams.request_item_details.map((el, index) => {
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.product_name}
-                            </Typography>
-                            {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null}
-                            <Typography variant='body2'>{el.packageDetails}</Typography>
-                            <Typography variant='body2'>{el.manufacture}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.request_item_batch_no}
-                            </Typography>
-                          </TableCell>
+                                <TableCell>
+                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                    {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date'
+                                      ? 'NA'
+                                      : el.expiry_date}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>{el.priority_item}</TableCell>
 
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>{el.priority_item}</TableCell>
+                                <TableCell>{el.request_item_qty}</TableCell>
 
-                          <TableCell>{el.request_item_qty}</TableCell>
+                                <TableCell>
+                                  <IconButton
+                                    size='small'
+                                    sx={{ mr: 0.5 }}
+                                    aria-label='Edit'
+                                    onClick={() => {
+                                      setMedicineItemId(el.request_item_medicine_id)
 
-                          <TableCell>
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => {
-                                setMedicineItemId(el.request_item_medicine_id)
-
-                                editTableData(el.uuid)
-                                // editTableData(el.request_item_medicine_id)
-                                showDialog()
-                                // }
-                              }}
-                            >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
-                            <IconButton
-                              onClick={() => {
-                                // if (editParams?.request_item_details?.length === 1) {
-                                //   openCancelDialog()
-                                // } else {
-                                removeItemsFromTable(el.uuid)
-                                // }
-                              }}
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                            >
-                              <Icon icon='mdi:delete-outline' />
-                            </IconButton>
-                            {/* {el.id !== undefined ? (
+                                      editTableData(el.uuid)
+                                      // editTableData(el.request_item_medicine_id)
+                                      showDialog()
+                                      // }
+                                    }}
+                                  >
+                                    <Icon icon='mdi:pencil-outline' />
+                                  </IconButton>
+                                  <IconButton
+                                    onClick={() => {
+                                      // if (editParams?.request_item_details?.length === 1) {
+                                      //   openCancelDialog()
+                                      // } else {
+                                      removeItemsFromTable(el.uuid)
+                                      // }
+                                    }}
+                                    size='small'
+                                    sx={{ mr: 0.5 }}
+                                  >
+                                    <Icon icon='mdi:delete-outline' />
+                                  </IconButton>
+                                  {/* {el.id !== undefined ? (
                               <IconButton
                                 onClick={() => {
                                   if (editParams?.request_item_details?.length === 1) {
@@ -892,15 +951,16 @@ const AddReturnRequest = () => {
                                 <Icon icon='mdi:delete-outline' />
                               </IconButton>
                             ) : null} */}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  : null}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <CardContent sx={{ pt: 8 }}>
+                                </TableCell>
+                              </TableRow>
+                            )
+                          })
+                        : null}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+              {/* <CardContent sx={{ pt: 8 }}>
             {totalQty ? (
               <Grid container>
                 <Grid
@@ -931,44 +991,49 @@ const AddReturnRequest = () => {
                 </Grid>
               </Grid>
             ) : null}
-          </CardContent>
+          </CardContent> */}
 
-          <Grid item xs={12}>
-            <Box sx={{ float: 'right', my: 4, mx: 6 }}>
-              {id ? (
-                <RequestCancelButton
-                  title='Cancel Request'
-                  action={() => {
-                    openCancelDialog()
-                    // setEditParams(editParamsInitialState)
-                  }}
-                />
-              ) : null}
-              <LoadingButton
-                disabled={editParams.request_item_details.length > 0 ? false : true}
-                sx={{ marginRight: '8px' }}
-                size='large'
-                onClick={() => {
-                  postItemsData()
-                }}
-                variant='contained'
-                loading={submitLoader}
-              >
-                Save
-              </LoadingButton>
-              {id ? null : (
-                <Button
-                  onClick={() => {
-                    setEditParams(editParamsInitialState)
-                  }}
-                  size='large'
-                  variant='outlined'
-                >
-                  Reset
-                </Button>
-              )}
+              <Grid item xs={12}>
+                <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+                  {id ? (
+                    <RequestCancelButton
+                      title='Cancel Request'
+                      action={() => {
+                        openCancelDialog()
+                        // setEditParams(editParamsInitialState)
+                      }}
+                    />
+                  ) : null}
+                  <LoadingButton
+                    disabled={editParams.request_item_details.length > 0 ? false : true}
+                    sx={{ marginRight: '8px' }}
+                    size='large'
+                    onClick={() => {
+                      postItemsData()
+                    }}
+                    variant='contained'
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
+                  {id ? null : (
+                    <Button
+                      onClick={() => {
+                        setEditParams(editParamsInitialState)
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </Box>
+              </Grid>
             </Box>
-          </Grid>
+          ) : (
+            <EmptyStateBox text='No Orders Found' imageSrc='/images/out-of-stock.png' />
+          )}
+
           {/* <ConfirmDialogBox
             open={deleteDialog}
             closeDialog={() => {
