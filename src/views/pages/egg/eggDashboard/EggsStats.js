@@ -93,13 +93,29 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
       onClick: () => setOpenDiscard(true),
       tooltipContent: (
         <>
-          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-            Discarded: <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded}</span>
-          </p>
-          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-            Marked for Discard:{' '}
-            <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_ready_to_be_discarded}</span>
-          </p>
+          {allStats?.total_egg_discarded && (
+            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+              Discarded: <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded}</span>
+            </p>
+          )}
+          {allStats?.total_egg_ready_to_be_discarded && (
+            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+              Marked for Discard:{' '}
+              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_ready_to_be_discarded}</span>
+            </p>
+          )}
+          {allStats?.total_egg_discarded_at_site && (
+            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+              Discarded in site:{' '}
+              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded_at_site}</span>
+            </p>
+          )}
+          {allStats?.total_egg_discarded_at_nursery && (
+            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+              Discarded in nursery:{' '}
+              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded_at_nursery}</span>
+            </p>
+          )}
         </>
       ),
       valueColor: theme.palette.formContent.tertiary

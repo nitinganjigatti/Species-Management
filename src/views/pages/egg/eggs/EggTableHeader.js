@@ -10,6 +10,7 @@ import ExcelExportButton from './exportEggListExcel'
 import Utility from 'src/utility'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
+import dayjs from 'dayjs'
 
 const EggTableHeader = ({
   totalCount,
@@ -254,24 +255,6 @@ const EggTableHeader = ({
         ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
         : ''
 
-      // const params = {
-      //   q: tableSearch ? tableSearch : '',
-      //   sorting_by_date: 'latest_date',
-      //   egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
-      //   collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
-      //   site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
-      //   nursery_id: filterByNurseryId || '',
-      //   egg_status_id: (() => {
-      //     if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
-      //       return statusId ? JSON.stringify(statusId) : ''
-      //     } else {
-      //       return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
-      //     }
-      //   })(),
-      //   collected_date: collectedDate ? collectedDate : '',
-      //   type: 'all'
-      // }
-
       const discardedByIds = selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
       const activeStatus = selectedFiltersOptions['Security Check']?.map(option => option.id) || []
 
@@ -282,23 +265,6 @@ const EggTableHeader = ({
       const discardedDate = selectedFiltersOptions?.collected_date
         ? dayjs(selectedFiltersOptions?.collected_date).format('YYYY-MM-DD')
         : ''
-
-      // const params2 = {
-      //   // sort,
-      //   q: tableSearch ? tableSearch : '',
-
-      //   // page_no: paginationModel.page + 1,
-      //   // limit: paginationModel.pageSize,
-      //   nursery_id: filterByNurseryId || '',
-
-      //   // egg_state_id: eggStateIds,
-      //   discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
-      //   site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
-      //   activity_status: activeStatus?.length > 0 ? JSON.stringify(activeStatus) : '',
-
-      //   // egg_status_id: eggStateIds.length > 0 ? statusId : [],
-      //   discarded_on: discardedDate ? discardedDate : ''
-      // }
 
       const apiToUse =
         tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? DiscardedEggList : GetEggList
@@ -342,12 +308,7 @@ const EggTableHeader = ({
 
       await apiToUse({ params: params }).then(res => {
         if (res.success || res.data.success) {
-          // console.log('res', res?.data?.data?.result)
           const ListData = res.data.success ? res?.data?.data?.result : res.data.result
-
-          // console.log('ListData', ListData?.result)
-
-          // setRows(loadServerRows(paginationModel.page, ListData))
 
           const tableData = ListData.map((item, index) => {
             if (tab_Value === 'eggs_received') {
@@ -472,13 +433,14 @@ const EggTableHeader = ({
                 //   Utility.convertUTCToLocal(item.requested_on)
                 // )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))} `,
                 'SECURITY CHECK':
-                  item.activity_status === 'DISCARD_REQUEST_GENERATED'
+                  item?.activity_status === 'DISCARD_REQUEST_GENERATED'
                     ? 'Pending'
-                    : item.activity_status === 'COMPLETED'
+                    : item?.activity_status === 'COMPLETED'
                     ? `Security Checked `
                     : `Canceled `,
                 'SECURITY CHECK BY':
-                  item.activity_status === 'CANCELED' ? item.requested_name : item.discarded_person_name
+                  item.activity_status === 'CANCELED' ? item.requested_name : item.discarded_person_name,
+                'SECURITY CHECK ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item?.discarded_on))
               }
             }
           })
