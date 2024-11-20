@@ -296,6 +296,7 @@ const StockOut = () => {
         })
 
         Utility.exportToCSV(data, 'Stock out Products')
+        setExcelLoader(false)
       } else {
         setExcelLoader(false)
       }

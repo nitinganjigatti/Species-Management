@@ -256,6 +256,7 @@ const ExpiringMedicine = () => {
         })
 
         Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
+        setExcelLoader(false)
       } else {
         setExcelLoader(false)
       }
