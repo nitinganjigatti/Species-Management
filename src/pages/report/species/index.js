@@ -95,8 +95,8 @@ const SpeciesReport = () => {
 
   const fetchAndSetDataList = async (params, options = {}) => {
     const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
-
     try {
+      setIsLoading(true)
       const response = await getReportFilterList(params)
 
       if (responseType === 'csv' && response && response.data) {
@@ -109,10 +109,17 @@ const SpeciesReport = () => {
         URL.revokeObjectURL(csvUrl)
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
+        // setDataList(datalist || [])
+        // if (setHeaders) setHeaderList(header)
+        setTotal(total_count)
 
-        setDataList(datalist || [])
-        if (setHeaders) setHeaderList(header)
-        if (setTotalCount) setTotal(total_count)
+        setIsLoading(false)
+
+        setHeaderList(header)
+        setAnchorEl(null)
+        // setDataList(datalist)
+
+        setDataList(loadServerRows(paginationModel.page, datalist))
       } else {
         toast.error('Something went wrong')
       }
@@ -143,8 +150,8 @@ const SpeciesReport = () => {
 
       return updatedData
     })
-
-    await fetchAndSetDataList(updatedApiParams)
+    setPaginationModel({ ...paginationModel, page: 0 })
+    await fetchData(updatedApiParams, { ...paginationModel, page: 0 })
   }
 
   const handleSelectedSite = async e => {
@@ -191,8 +198,9 @@ const SpeciesReport = () => {
       }
       setSelectedSite(value)
     }
-
-    await fetchAndSetDataList(params)
+    setPaginationModel({ ...paginationModel, page: 0 })
+    // await fetchAndSetDataList({ ...params })
+    await fetchData(params, { ...paginationModel, page: 0 })
   }
 
   function loadServerRows(currentPage, data) {
@@ -204,43 +212,46 @@ const SpeciesReport = () => {
 
   const initialLoad = useRef(true)
 
-  const fetchData = useCallback(async () => {
-    const params = {
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
-      ...apiFilterParams
-    }
-
-    setIsLoading(true)
-
-    await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
-
-    initialLoad.current = false
-  }, [paginationModel])
-
-  useEffect(() => {
-    fetchData()
-  }, [fetchData, paginationModel])
-
-  useEffect(() => {
-    if (reports_module) {
-      if (!initialLoad.current) {
-        const fetchFilterData = async () => {
-          setIsLoading(true)
-          const response = await getReportFilterList(apiFilterParams)
-          if (response) {
-            setIsLoading(false)
-            const { header, datalist } = response.data
-            setHeaderList(header)
-            setAnchorEl(null)
-            setDataList(datalist)
-            setDataList(loadServerRows(paginationModel.page, datalist))
-          }
-        }
-        fetchFilterData()
+  const fetchData = useCallback(
+    async (param, paginationModel) => {
+      const params = {
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        ...param
       }
-    }
-  }, [popoverData])
+
+      setIsLoading(true)
+
+      await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
+
+      initialLoad.current = false
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    fetchData(apiFilterParams, paginationModel)
+  }, [fetchData])
+
+  // useEffect(() => {
+  //   if (reports_module) {
+  //     if (!initialLoad.current) {
+  //       const fetchFilterData = async () => {
+  //         setIsLoading(true)
+  //         const response = await getReportFilterList(apiFilterParams)
+  //         if (response) {
+  // setIsLoading(false)
+  // const { header, datalist } = response.data
+  // setHeaderList(header)
+  // setAnchorEl(null)
+  // setDataList(datalist)
+  // setDataList(loadServerRows(paginationModel.page, datalist))
+  //         }
+  //       }
+  //       fetchFilterData()
+  //     }
+  //   }
+  // }, [popoverData])
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
