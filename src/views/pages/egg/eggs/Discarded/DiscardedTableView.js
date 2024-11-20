@@ -482,6 +482,8 @@ const DiscardedTableView = ({
         setSelectedOptions={setSelectedOptions}
         data={indexedRows}
         loading={loading}
+        tableSearch={searchValue}
+        filterByNurseryId={filterByNurseryId}
       />
       <DataGrid
         sx={{

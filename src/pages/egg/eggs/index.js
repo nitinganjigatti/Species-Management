@@ -1807,8 +1807,8 @@ const EggList = () => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.created_at
-                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                {params.row.discarded_date
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.discarded_date))
                   : '-'}
               </Typography>
             </Box>
@@ -2365,7 +2365,10 @@ const EggList = () => {
           // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
 
           // egg_status_id: statusId ? statusId : '',
-          collected_date: collectedDate ? collectedDate : '',
+          ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery' ||
+          (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery')
+            ? { discarded_date: collectedDate || '' }
+            : { collected_date: collectedDate || '' }),
 
           type:
             statusRecived === undefined

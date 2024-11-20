@@ -9,6 +9,7 @@ import * as XLSX from 'xlsx'
 import ExcelExportButton from './exportEggListExcel'
 import Utility from 'src/utility'
 import { GetEggList } from 'src/lib/api/egg/egg'
+import { DiscardedEggList } from 'src/lib/api/egg/discard'
 
 const EggTableHeader = ({
   totalCount,
@@ -86,192 +87,152 @@ const EggTableHeader = ({
   // console.log('xlsxList :>> ', xlsxList)
   const [fileName, setFileName] = useState('Eggs Incubation')
 
-  useEffect(() => {
-    if (tab_Value === 'eggs_received') {
-      setFileName('Eggs Received')
+  // useEffect(() => {
+  //   if (tab_Value === 'eggs_received') {
+  //     setFileName('Eggs Received')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        CONDITION: `${item.egg_condition} ${item.egg_initial_temperature}`,
-        'SITE NAME': item.site_name,
-        NURSERY: item.nursery_name,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.created_at)
-        )} `
-      }))
-      setXlsxList(formattedData)
-    } else if (tab_Value === 'eggs_incubation') {
-      setFileName('Eggs Incubation')
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+  //       UEID: item.egg_number,
+  //       AEID: item.egg_code,
+  //       CONDITION: `${item.egg_condition} ${item.egg_initial_temperature}`,
+  //       'SITE NAME': item.site_name,
+  //       NURSERY: item.nursery_name,
+  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+  //       'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
+  //         Utility.convertUTCToLocal(item.created_at)
+  //       )} `
+  //     }))
+  //     setXlsxList(formattedData)
+  //   } else if (tab_Value === 'eggs_incubation') {
+  //     setFileName('Eggs Incubation')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        'STATE & STAGE': `${item.egg_status} ${item.egg_state}`,
-        'DAY IN INCUBATION': item.days_in_incubation,
-        'INITIAL WEIGHT IN GM': item.initial_weight,
-        'CURRENT WEIGHT IN GM': item.current_weight,
-        'LENGTH IN MM': item.initial_length,
-        'WIDTH IN MM': item.initial_width,
-        'NO.EGGS / CLUTCH': item.no_of_eggs_in_clutch,
-        'CLUTCH ID': item.clutch_id,
-        ENCLOSURE: item.enclosure_name,
-        'SITE NAME': item.site_name,
-        NURSERY: item.nursery_name,
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+  //       UEID: item.egg_number,
+  //       AEID: item.egg_code,
+  //       'STATE & STAGE': `${item.egg_status} ${item.egg_state}`,
+  //       'DAY IN INCUBATION': item.days_in_incubation,
+  //       'INITIAL WEIGHT IN GM': item.initial_weight,
+  //       'CURRENT WEIGHT IN GM': item.current_weight,
+  //       'LENGTH IN MM': item.initial_length,
+  //       'WIDTH IN MM': item.initial_width,
+  //       'NO.EGGS / CLUTCH': item.no_of_eggs_in_clutch,
+  //       'CLUTCH ID': item.clutch_id,
+  //       ENCLOSURE: item.enclosure_name,
+  //       'SITE NAME': item.site_name,
+  //       NURSERY: item.nursery_name,
 
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'ALLOCATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.allocate_date)
-        )} `
-      }))
-      setXlsxList(formattedData)
-    } else if (tab_Value == 'eggs_hatched') {
-      setFileName('Egg Hatched')
+  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+  //       'ALLOCATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
+  //         Utility.convertUTCToLocal(item.allocate_date)
+  //       )} `
+  //     }))
+  //     setXlsxList(formattedData)
+  //   } else if (tab_Value == 'eggs_hatched') {
+  //     setFileName('Egg Hatched')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        IDENTIFIER: `${item.local_id_type} : ${item.local_identifier_value}`,
-        'ANIMAL ID': `AAID :${item.animal_id}`,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'HATCHED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.hatched_date))} `
-      }))
-      setXlsxList(formattedData)
-    } else if (tab_Value == 'eggs_ready_to_be_discarded_at_nursery') {
-      setFileName('Egg To Be discarded')
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+  //       UEID: item.egg_number,
+  //       AEID: item.egg_code,
+  //       IDENTIFIER: `${item.local_id_type} : ${item.local_identifier_value}`,
+  //       'ANIMAL ID': `AAID :${item.animal_id}`,
+  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+  //       'HATCHED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.hatched_date))} `
+  //     }))
+  //     setXlsxList(formattedData)
+  //   } else if (tab_Value == 'eggs_ready_to_be_discarded_at_nursery') {
+  //     setFileName('Egg To Be discarded')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        REASON: item.egg_state,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'SITE NAME': item.site_name,
-        'INITIATED BY': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.ready_to_be_discarded_date))} `
-      }))
-      setXlsxList(formattedData)
-    } else if (tab_Value === 'all') {
-      setFileName('All Egg')
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+  //       UEID: item.egg_number,
+  //       AEID: item.egg_code,
+  //       REASON: item.egg_state,
+  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+  //       'SITE NAME': item.site_name,
+  //       'INITIATED BY': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.ready_to_be_discarded_date))} `
+  //     }))
+  //     setXlsxList(formattedData)
+  //   } else if (tab_Value === 'all') {
+  //     setFileName('All Egg')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        STATE: `${item.egg_status}`,
-        'SITE NAME': item.site_name,
-        NURSERY: item.nursery_name,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.created_at)
-        )} `
-      }))
-      setXlsxList(formattedData)
-    } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
-      setFileName('Eggs Discarded')
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+  //       UEID: item.egg_number,
+  //       AEID: item.egg_code,
+  //       STATE: `${item.egg_status}`,
+  //       'SITE NAME': item.site_name,
+  //       NURSERY: item.nursery_name,
+  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+  //       'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
+  //         Utility.convertUTCToLocal(item.created_at)
+  //       )} `
+  //     }))
+  //     setXlsxList(formattedData)
+  //   } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
+  //     setFileName('Eggs Discarded')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-        'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-        UEID: item.egg_number,
-        AEID: item.egg_code,
-        REASON: `${item.egg_state}`,
-        'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-        'SAMPLE TAKEN':
-          item.necropsy_file_uploaded === '0'
-            ? item.is_necropsy_needed === '1'
-              ? 'Not Yet'
-              : 'NA'
-            : item.is_sample_collected === '1'
-            ? 'Taken'
-            : 'NA',
-        'NECROPSY REPORT':
-          item.necropsy_file_uploaded === '1' ? 'Yes' : item.is_necropsy_needed === '1' ? 'Attach File' : 'NA',
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+  //       UEID: item.egg_number,
+  //       AEID: item.egg_code,
+  //       REASON: `${item.egg_state}`,
+  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+  //       'SAMPLE TAKEN':
+  //         item.necropsy_file_uploaded === '0'
+  //           ? item.is_necropsy_needed === '1'
+  //             ? 'Not Yet'
+  //             : 'NA'
+  //           : item.is_sample_collected === '1'
+  //           ? 'Taken'
+  //           : 'NA',
+  //       'NECROPSY REPORT':
+  //         item.necropsy_file_uploaded === '1' ? 'Yes' : item.is_necropsy_needed === '1' ? 'Attach File' : 'NA',
 
-        'INITIATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.created_at)
-        )} `
-      }))
-      setXlsxList(formattedData)
-    } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
-      setFileName('Eggs Batch Discarded')
+  //       'INITIATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
+  //         Utility.convertUTCToLocal(item.created_at)
+  //       )} `
+  //     }))
+  //     setXlsxList(formattedData)
+  //   } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
+  //     setFileName('Eggs Batch Discarded')
 
-      const formattedData = data?.map((item, index) => ({
-        NO: index + 1,
-        'REQUEST ID & EGGS': `${item.request_id} , Egg Count:${item.egg_count}`,
-        'REQUEST CREATED ON': `${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.requested_on)
-        )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))}`,
+  //     const formattedData = data?.map((item, index) => ({
+  //       NO: index + 1,
+  //       'REQUEST ID & EGGS': `${item.request_id} , Egg Count:${item.egg_count}`,
+  //       'REQUEST CREATED ON': `${Utility.formatDisplayDate(
+  //         Utility.convertUTCToLocal(item.requested_on)
+  //       )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))}`,
 
-        NURSERY: item.nursery_name,
+  //       NURSERY: item.nursery_name,
 
-        'CREATED BY': `${item.requested_name} , ${Utility.formatDisplayDate(
-          Utility.convertUTCToLocal(item.requested_on)
-        )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))} `,
-        'SECURITY CHECK':
-          item.activity_status === 'DISCARD_REQUEST_GENERATED'
-            ? 'Pending'
-            : item.activity_status === 'COMPLETED'
-            ? `Security Checked ${item.discarded_person_name}`
-            : `Canceled ${item.commented_by}`
-      }))
-      setXlsxList(formattedData)
-    }
-  }, [tab_Value, data])
-
-  // const handleExport = () => {
-  //   // Create a worksheet from the data
-  //   const worksheet = XLSX.utils.json_to_sheet([])
-
-  //   // Add static header data
-  //   const headerData = [
-  //     // ['Egg Data Report'], // Header text
-  //     // ['Name'] // Column header
-  //   ]
-
-  //   // Add the header data to the worksheet
-  //   XLSX.utils.sheet_add_aoa(worksheet, headerData, { origin: 'A1' })
-
-  //   // Add table data starting from row 3 (A3)
-  //   XLSX.utils.sheet_add_json(worksheet, xlsxList, { origin: 'A3' })
-
-  //   // Create a new workbook and append the worksheet
-  //   const workbook = XLSX.utils.book_new()
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, 'Data')
-
-  //   // Convert the workbook to binary and create a blob
-  //   const excelBuffer = XLSX.write(workbook, {
-  //     bookType: 'xlsx',
-  //     type: 'array'
-  //   })
-
-  //   const dataBlob = new Blob([excelBuffer], {
-  //     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  //   })
-
-  //   // Create a download link and trigger it
-  //   const url = URL.createObjectURL(dataBlob)
-  //   const link = document.createElement('a')
-  //   link.href = url
-  //   link.setAttribute('download', fileName)
-  //   document.body.appendChild(link)
-  //   link.click()
-  //   document.body.removeChild(link)
-  // }
+  //       'CREATED BY': `${item.requested_name} , ${Utility.formatDisplayDate(
+  //         Utility.convertUTCToLocal(item.requested_on)
+  //       )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))} `,
+  //       'SECURITY CHECK':
+  //         item.activity_status === 'DISCARD_REQUEST_GENERATED'
+  //           ? 'Pending'
+  //           : item.activity_status === 'COMPLETED'
+  //           ? `Security Checked ${item.discarded_person_name}`
+  //           : `Canceled ${item.commented_by}`
+  //     }))
+  //     setXlsxList(formattedData)
+  //   }
+  // }, [tab_Value, data])
 
   const handleExport = async () => {
     try {
@@ -293,32 +254,253 @@ const EggTableHeader = ({
         ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
         : ''
 
-      const params = {
-        q: tableSearch ? tableSearch : '',
-        sorting_by_date: 'latest_date',
-        egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
-        collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
-        site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
-        nursery_id: filterByNurseryId || '',
-        egg_status_id: (() => {
-          if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
-            return statusId ? JSON.stringify(statusId) : ''
-          } else {
-            return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
-          }
-        })(),
-        collected_date: collectedDate ? collectedDate : '',
-        type: 'all'
+      // const params = {
+      //   q: tableSearch ? tableSearch : '',
+      //   sorting_by_date: 'latest_date',
+      //   egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
+      //   collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
+      //   site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+      //   nursery_id: filterByNurseryId || '',
+      //   egg_status_id: (() => {
+      //     if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
+      //       return statusId ? JSON.stringify(statusId) : ''
+      //     } else {
+      //       return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
+      //     }
+      //   })(),
+      //   collected_date: collectedDate ? collectedDate : '',
+      //   type: 'all'
+      // }
+
+      const discardedByIds = selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
+      const activeStatus = selectedFiltersOptions['Security Check']?.map(option => option.id) || []
+
+      // const siteIds = selectedFiltersOptions?.Site?.map(option => option.id) || []
+
+      // const statusId = selectedFiltersOptions?.status ? [selectedFiltersOptions.status] : []
+
+      const discardedDate = selectedFiltersOptions?.collected_date
+        ? dayjs(selectedFiltersOptions?.collected_date).format('YYYY-MM-DD')
+        : ''
+
+      // const params2 = {
+      //   // sort,
+      //   q: tableSearch ? tableSearch : '',
+
+      //   // page_no: paginationModel.page + 1,
+      //   // limit: paginationModel.pageSize,
+      //   nursery_id: filterByNurseryId || '',
+
+      //   // egg_state_id: eggStateIds,
+      //   discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
+      //   site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+      //   activity_status: activeStatus?.length > 0 ? JSON.stringify(activeStatus) : '',
+
+      //   // egg_status_id: eggStateIds.length > 0 ? statusId : [],
+      //   discarded_on: discardedDate ? discardedDate : ''
+      // }
+
+      const apiToUse =
+        tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? DiscardedEggList : GetEggList
+
+      let params = {}
+
+      if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
+        params = {
+          // sort,
+          q: tableSearch ? tableSearch : '',
+          nursery_id: filterByNurseryId || '',
+
+          // egg_state_id: eggStateIds,
+          discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
+          site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          activity_status: activeStatus?.length > 0 ? JSON.stringify(activeStatus) : '',
+
+          // egg_status_id: eggStateIds.length > 0 ? statusId : [],
+          discarded_on: discardedDate ? discardedDate : ''
+        }
+      } else {
+        params = {
+          q: tableSearch ? tableSearch : '',
+          sorting_by_date: 'latest_date',
+          egg_state_id: eggStateIds?.length > 0 ? JSON.stringify(eggStateIds) : '',
+          collected_by: collectedByIds?.length > 0 ? JSON.stringify(collectedByIds) : '',
+          site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          nursery_id: filterByNurseryId || '',
+          egg_status_id: (() => {
+            if (tab_Value === 'eggs_incubation' || tab_Value === 'all') {
+              return statusId ? JSON.stringify(statusId) : ''
+            } else {
+              return eggStateIds?.length > 0 ? (statusId ? JSON.stringify(statusId) : '') : ''
+            }
+          })(),
+          collected_date: collectedDate ? collectedDate : '',
+          type:
+            tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery' ? subTab_value : tab_Value
+        }
       }
 
-      await GetEggList({ params: params }).then(res => {
-        if (res.success) {
-          const ListData = res.data.result ? res.data.result : []
-          console.log('ListData', ListData?.result)
+      await apiToUse({ params: params }).then(res => {
+        if (res.success || res.data.success) {
+          // console.log('res', res?.data?.data?.result)
+          const ListData = res.data.success ? res?.data?.data?.result : res.data.result
+
+          // console.log('ListData', ListData?.result)
 
           // setRows(loadServerRows(paginationModel.page, ListData))
+
+          const tableData = ListData.map((item, index) => {
+            if (tab_Value === 'eggs_received') {
+              return {
+                NO: index + 1,
+                'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+                'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+                UEID: item.egg_number,
+                AEID: item.egg_code,
+                CONDITION: `${item.egg_condition} ${item.egg_initial_temperature}`,
+                'SITE NAME': item.site_name,
+                NURSERY: item.nursery_name,
+                'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+                'COLLECTED BY': item.user_full_name,
+                'CREATED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.created_at))}`
+              }
+            } else if (tab_Value === 'eggs_incubation') {
+              return {
+                NO: index + 1,
+                'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+                'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+                UEID: item.egg_number,
+                AEID: item.egg_code,
+                'STATE ': `${item.egg_status}`,
+                STAGE: item.egg_state && item.egg_state,
+                'DAY IN INCUBATION': item.days_in_incubation,
+                'INITIAL WEIGHT IN GM': item.initial_weight,
+                'CURRENT WEIGHT IN GM': item.current_weight,
+                'LENGTH IN MM': item.initial_length,
+                'WIDTH IN MM': item.initial_width,
+                'NO.EGGS / CLUTCH': item.no_of_eggs_in_clutch,
+                'CLUTCH ID': item.clutch_id,
+                ENCLOSURE: item.enclosure_name,
+                'SITE NAME': item.site_name,
+                NURSERY: item.nursery_name,
+
+                'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+                'ALLOCATED BY': item.user_full_name,
+                'ALLOCATED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.allocate_date))} `
+              }
+            } else if (tab_Value === 'eggs_hatched') {
+              return {
+                NO: index + 1,
+                'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+                'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+                UEID: item.egg_number,
+                AEID: item.egg_code,
+                IDENTIFIER:
+                  item.local_id_type || item.local_identifier_value
+                    ? `${item.local_id_type} : ${item.local_identifier_value}`
+                    : '',
+                'ANIMAL ID': item.animal_id && `AAID :${item.animal_id}`,
+                'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+                'HATCHED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.hatched_date))} `
+              }
+            } else if (tab_Value == 'eggs_ready_to_be_discarded_at_nursery') {
+              return {
+                NO: index + 1,
+                'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+                'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+                UEID: item.egg_number,
+                AEID: item.egg_code,
+                REASON: item.egg_state,
+                'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+                'SITE NAME': item.site_name,
+                'INITIATED BY': item.user_full_name,
+                'INITIATED ON': `${Utility.formatDisplayDate(
+                  Utility.convertUTCToLocal(item.ready_to_be_discarded_date)
+                )} `
+              }
+            } else if (tab_Value === 'all') {
+              return {
+                NO: index + 1,
+                'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+                'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+                UEID: item.egg_number,
+                AEID: item.egg_code,
+                STATE: `${item.egg_status}`,
+                'SITE NAME': item.site_name,
+                NURSERY: item.nursery_name,
+                'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+                'COLLECTED BY': item.user_full_name,
+                'CREATED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.created_at))} `
+              }
+            } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
+              return {
+                NO: index + 1,
+                'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
+                'SCIENTIFIC NAME': item.complete_name || 'Unknown',
+                UEID: item.egg_number,
+                AEID: item.egg_code,
+                REASON: item.egg_state && item.egg_state,
+                'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
+                'SAMPLE TAKEN':
+                  item.necropsy_file_uploaded === '0'
+                    ? item.is_necropsy_needed === '1'
+                      ? 'Not Yet'
+                      : 'NA'
+                    : item.is_sample_collected === '1'
+                    ? 'Taken'
+                    : 'NA',
+                'NECROPSY REPORT':
+                  item.necropsy_file_uploaded === '1' ? 'Yes' : item.is_necropsy_needed === '1' ? 'Attach File' : 'NA',
+
+                'INITIATED BY': item.user_full_name,
+                'INITIATED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.created_at))
+              }
+            } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
+              return {
+                NO: index + 1,
+                'REQUEST ID ': item.request_id,
+                'EGGS COUNT': item.egg_count,
+                'REQUEST CREATED ON': `${Utility.formatDisplayDate(
+                  Utility.convertUTCToLocal(item.requested_on)
+                )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))}`,
+
+                NURSERY: item.nursery_name,
+
+                'CREATED BY': item.requested_name,
+
+                //  ${Utility.formatDisplayDate(
+                //   Utility.convertUTCToLocal(item.requested_on)
+                // )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))} `,
+                'SECURITY CHECK':
+                  item.activity_status === 'DISCARD_REQUEST_GENERATED'
+                    ? 'Pending'
+                    : item.activity_status === 'COMPLETED'
+                    ? `Security Checked `
+                    : `Canceled `,
+                'SECURITY CHECK BY':
+                  item.activity_status === 'CANCELED' ? item.requested_name : item.discarded_person_name
+              }
+            }
+          })
+          let fileName = ''
+          if (tab_Value === 'eggs_received') {
+            fileName = 'Eggs Received'
+          } else if (tab_Value === 'eggs_incubation') {
+            fileName = 'Eggs Incubation'
+          } else if (tab_Value === 'eggs_hatched') {
+            fileName = 'Eggs Hatched'
+          } else if (tab_Value === 'eggs_ready_to_be_discarded_at_nursery') {
+            fileName = 'Eggs To Be Discarded'
+          } else if (tab_Value === 'all') {
+            fileName = 'All Eggs'
+          } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
+            fileName = 'Eggs Discarded'
+          } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
+            fileName = 'Eggs Batch Discarded'
+          }
+          Utility.exportToCSV(tableData, fileName)
         } else {
-          // setRows([])
+          console.log('excel download fail')
         }
       })
       setExcelLoading(false)
