@@ -19,7 +19,6 @@ const SingleDatePicker = ({
   name,
   disabled = false,
   size,
-  isClearable = true,
   ...rest
 }) => {
   return (
@@ -49,7 +48,7 @@ const SingleDatePicker = ({
             }}
           />
         }
-        {...rest} // Apply remaining props
+        {...rest}
       />
     </DatePickerWrapper>
   )

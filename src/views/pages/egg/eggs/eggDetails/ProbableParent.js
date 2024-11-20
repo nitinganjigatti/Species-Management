@@ -143,9 +143,35 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {item?.animal_id}
+                    AAID: {item?.animal_id}
                     {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
                   </Typography>
+                  {item?.breed_name && (
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        lineHeight: '19.36px',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      Breed: {item?.breed_name}
+                      {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
+                    </Typography>
+                  )}
+                  {item?.morph_name && (
+                    <Typography
+                      sx={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        lineHeight: '19.36px',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      Morph: {item?.morph_name}
+                      {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
+                    </Typography>
+                  )}
                   <Typography
                     sx={{
                       fontSize: '16px',
