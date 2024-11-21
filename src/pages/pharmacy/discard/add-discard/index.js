@@ -551,7 +551,8 @@ const AddDiscardProducts = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push('/pharmacy/discard/discard-list')
+                    // Router.push('/pharmacy/discard/discard-list')
+                    Router.back()
                   }}
                   icon='ep:back'
                 />

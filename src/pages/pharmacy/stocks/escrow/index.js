@@ -193,9 +193,10 @@ function Escrow({ value }) {
   }, [])
 
   useEffect(() => {
+    debugger
     fetchScrewTableData({
       sort,
-      q: searchValue,
+      searchValue: searchValue,
       column: sortColumn,
       type: stockType,
       page: paginationModel.page,
@@ -248,29 +249,29 @@ function Escrow({ value }) {
   //   }, 500),
   //   []
   // )
-  
+
   const handleSearch = useCallback(
-    debounce((value) => {
-      setSearchValue(value);
-  
+    debounce(value => {
+      setSearchValue(value)
+
       // Reset the page to the first page (page 0 in your `paginationModel`)
-      setPaginationModel((prevModel) => ({
+      setPaginationModel(prevModel => ({
         ...prevModel,
-        page: 0,
-      }));
-  
+        page: 0
+      }))
+
       // Update the URL query parameters
       router.replace({
         pathname: router.pathname,
         query: {
           ...router.query,
           searchValue: value,
-          page: 1, // Update to 1-indexed for the URL
-        },
-      });
+          page: 1 // Update to 1-indexed for the URL
+        }
+      })
     }, 500),
     [router]
-  );
+  )
 
   const title = (
     <>

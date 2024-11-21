@@ -149,14 +149,31 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const currentStatus = filterSwitch === true ? 'completed' : status
-
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
-    } else {
+      const newSort = newModel[0].sort;
+      const newColumn = newModel[0].field;
+      const currentStatus = filterSwitch === true ? 'completed' : status;
+  
+      setSort(newSort);
+      setSortColumn(newColumn);
+  
+      // Update the router query
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            sort: newSort,
+            column: newColumn,
+          },
+        },
+        undefined,
+        { shallow: true } // Use shallow routing to avoid full page reload
+      );
+  
+      fetchTableData(newSort, searchValue, newColumn, currentStatus);
     }
-  }
+  };
+  
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {

@@ -980,7 +980,8 @@ const AddMedicine = () => {
                         <Icon
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            Router.push('/pharmacy/medicine/product-list')
+                            //
+                            Router.back()
                           }}
                           icon='ep:back'
                         />

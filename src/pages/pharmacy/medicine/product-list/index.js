@@ -254,11 +254,14 @@ const ListOfMedicine = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(Router.query.sort || 'asc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(Router.query.searchValue || '')
+  const [sortColumn, setSortColumn] = useState(Router.query.sortColumn || 'name')
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(Router.query.page, 10) - 1 || 0,
+    pageSize: parseInt(Router.query.pageSize, 10) || 10
+  })
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState(true)
   function loadServerRows(currentPage, data) {
@@ -266,7 +269,8 @@ const ListOfMedicine = () => {
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, status }) => {
+    async ({ sort, q, column, status, page, pageSize }) => {
+      debugger
       let params = {}
       const activeStatus = status ?? statusFilter
       try {
@@ -276,8 +280,8 @@ const ListOfMedicine = () => {
             sort,
             q,
             column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize
+            page: page + 1, // 1-based page index for API
+            limit: pageSize
           }
         } else {
           params = {
@@ -290,10 +294,10 @@ const ListOfMedicine = () => {
           }
         }
 
-        await getMedicineList({ params: params }).then(res => {
+        await getMedicineList({ params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            setRows(loadServerRows(page, res?.data?.list_items))
           } else {
             setTotal(parseInt(res?.data?.total_count))
             setRows([])
@@ -308,6 +312,25 @@ const ListOfMedicine = () => {
     [paginationModel]
   )
 
+  // Fetching Data
+  // const fetchTableData = useCallback(
+  //   async (params = { sort, q, column, status, page, pageSize }) => {
+  //     try {
+  //       setLoading(true)
+  //       const response = await getMedicineList({ params })
+  //       const { list_items, total_count } = response?.data || {}
+
+  //       setRows(list_items || [])
+  //       setTotal(total_count || 0)
+  //     } catch (error) {
+  //       console.error('Failed to fetch medicine data:', error)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -320,9 +343,55 @@ const ListOfMedicine = () => {
     []
   )
 
+  // useEffect(() => {
+  //   fetchTableData({
+  //     sort,
+  //     q: searchValue,
+  //     column: sortColumn,
+  //     status: statusFilter,
+  //     page: paginationModel.page,
+  //     pageSize: paginationModel.pageSize
+  //   })
+  // }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize])
+
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
-  }, [fetchTableData])
+    debugger
+    fetchTableData({
+      sort,
+      q: searchValue,
+      status: statusFilter,
+      column: sortColumn,
+      page: paginationModel.page + 1, // API expects 1-based index
+      pageSize: paginationModel.pageSize
+    })
+  }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
+
+  useEffect(() => {
+    Router.replace({
+      pathname: Router.pathname,
+      query: {
+        page: paginationModel.page + 1,
+        pageSize: paginationModel.pageSize,
+        q: searchValue,
+        sort,
+        column: sortColumn,
+        status: statusFilter
+      }
+    })
+  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn, statusFilter])
+
+  useEffect(() => {
+    const { q, page, pageSize, sort, column, status } = Router.query
+
+    setSearchValue(q || '')
+    setSort(sort || 'asc')
+    setSortColumn(column || 'name')
+    setStatusFilter(status || true)
+    setPaginationModel({
+      page: parseInt(page, 10) - 1 || 0,
+      pageSize: parseInt(pageSize, 10) || 10
+    })
+  }, [])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -332,10 +401,46 @@ const ListOfMedicine = () => {
     }
   }
 
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
-  }
+  // const handleSearch = async value => {
+  //   setSearchValue(value)
+  //   await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
+  // }
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+
+  //     // Reset the page to the first page (page 0 in your `paginationModel`)
+  //     setPaginationModel(prevModel => ({
+  //       ...prevModel,
+  //       page: 0
+  //     }))
+
+  //     // Update the URL query parameters
+  //     Router.replace({
+  //       pathname: Router.pathname,
+  //       query: {
+  //         ...Router.query,
+  //         q: value,
+  //         page: 1 // Update to 1-indexed for the URL
+  //       }
+  //     })
+  //   }, 500),
+  //   []
+  // )
+
+  const handleSearch = useCallback(
+    debounce(value => {
+      setSearchValue(value)
+      fetchTableData({
+        sort,
+        q: value,
+        column: sortColumn,
+        page: paginationModel.page,
+        pageSize: paginationModel.pageSize
+      })
+    }, 500),
+    [sort, sortColumn, paginationModel]
+  )
 
   const handleStatusFilterChange = newFilter => {
     setStatusFilter(newFilter)
@@ -405,7 +510,7 @@ const ListOfMedicine = () => {
                         border: '1px solid #C3CEC7',
                         borderRadius: '8px',
                         padding: '0 8px',
-                        ml: 5,
+                        ml: 3,
                         height: '40px',
                         width: '250px' // Set a fixed width for all status
                       }}
@@ -429,7 +534,7 @@ const ListOfMedicine = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex', mr: 5, mt: 1 }}>
+                  <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex', mr: 5, mt: 3 }}>
                     <FormControl fullWidth size='small'>
                       <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
                       <Select

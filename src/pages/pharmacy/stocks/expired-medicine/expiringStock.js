@@ -81,6 +81,7 @@ const ExpiringMedicine = () => {
     },
     [paginationModel]
   )
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,20 +111,20 @@ const ExpiringMedicine = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
+    debounce(async (sort, q, column, startDate, endDate, id) => {
       try {
-        await fetchTableData(sort, q, column, filterDates?.startDate, filterDates?.endDate, selectedPharmacy.id)
+        await fetchTableData(sort, q, column, startDate, endDate, id)
       } catch (error) {
-        console.error(error)
+        console.error('Error in searchTableData:', error)
       }
     }, 1000),
-    []
+    [] // Include fetchTableData as a dependency
   )
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
+    searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
   }
 
   const filterByDays = days => {
@@ -182,7 +183,15 @@ const ExpiringMedicine = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_items_name}
           </Typography>
         </Tooltip>
@@ -194,7 +203,15 @@ const ExpiringMedicine = () => {
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -205,7 +222,15 @@ const ExpiringMedicine = () => {
       field: 'supplier_name',
       headerName: 'Supplier name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.supplier_name ? params.row.supplier_name : 'NA'}
         </Typography>
       )
@@ -216,7 +241,15 @@ const ExpiringMedicine = () => {
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
@@ -231,7 +264,15 @@ const ExpiringMedicine = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -267,6 +308,8 @@ const ExpiringMedicine = () => {
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>About To Expire</Typography>
     </>
   )
+
+  console.log('Rows >', rows)
 
   return (
     <>
@@ -309,6 +352,7 @@ const ExpiringMedicine = () => {
                   <TextField
                     variant='outlined'
                     placeholder='Search...'
+                    value={searchValue}
                     onChange={e => handleSearch(e.target.value)}
                     fullWidth
                     sx={{

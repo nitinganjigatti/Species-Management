@@ -49,11 +49,12 @@ const StockOut = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
+      console.log('Fetching with sort:', sort) // Debugging sort order
       try {
         setLoading(true)
 
         const params = {
-          sort,
+          sort: sort || 'asc', // Default to 'asc'
           q,
           column,
           page: paginationModel.page + 1,
@@ -61,24 +62,23 @@ const StockOut = () => {
           is_low_stock: status === 'out_of_stock' ? 'no' : 'yes'
         }
 
-        await getStockOutItems({ params: params }).then(res => {
-          if (res?.list_items.length > 0) {
-            setTotal(parseInt(res?.total_count))
-            setRows(loadServerRows(paginationModel.page, res?.list_items))
-          } else {
-            setTotal(0)
-            setRows([])
-          }
-        })
-        setLoading(false)
+        const res = await getStockOutItems({ params })
+        if (res?.list_items?.length > 0) {
+          setTotal(parseInt(res?.total_count, 10))
+          setRows(loadServerRows(paginationModel.page, res.list_items))
+        } else {
+          setTotal(0)
+          setRows([])
+        }
       } catch (error) {
+        console.error('Error fetching table data:', error)
         setTotal(0)
         setRows([])
-        console.log('error', error)
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel.page, paginationModel.pageSize]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
@@ -99,10 +99,22 @@ const StockOut = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
+      const sortField = newModel[0]?.field || ''
+
+      console.log('Sort Order:', sortOrder, 'Sort Field:', sortField)
+
+      // Update state
+      setSort(sortOrder)
+      setSortColumn(sortField)
+
+      // Reset pagination to the first page
+      setPaginationModel(prev => ({ ...prev, page: 0 }))
+
+      // Fetch updated data with new sort
+      fetchTableData(sortOrder, searchValue, sortField, status)
     } else {
+      console.log('No sort model applied')
     }
   }
 
@@ -143,7 +155,15 @@ const StockOut = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_item_name}
           </Typography>
         </Tooltip>
@@ -156,7 +176,15 @@ const StockOut = () => {
       field: 'supplier_name',
       headerName: 'Supplier name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.supplier_name ? params.row.supplier_name : 'NA'}
         </Typography>
       )
@@ -168,7 +196,15 @@ const StockOut = () => {
       field: 'min_qty',
       headerName: 'Reorder level',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.min_qty}
         </Typography>
       )
@@ -195,7 +231,15 @@ const StockOut = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -210,7 +254,15 @@ const StockOut = () => {
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.id}
         </Typography>
       )
@@ -221,7 +273,15 @@ const StockOut = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_item_name}
         </Typography>
       )
@@ -233,7 +293,15 @@ const StockOut = () => {
       field: 'supplier_name',
       headerName: 'Supplier Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.supplier_name ? params.row.supplier_name : 'NA'}
         </Typography>
       )
@@ -248,7 +316,15 @@ const StockOut = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -428,6 +504,7 @@ const StockOut = () => {
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
                 <TextField
                   variant='outlined'
+                  value={searchValue}
                   placeholder='Search...'
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
@@ -468,7 +545,7 @@ const StockOut = () => {
               total={total}
               columns={status === 'low_stock' ? columns : outOfStocksColumn}
               paginationModel={paginationModel}
-              // handleSortModel={handleSortModel}
+              handleSortModel={handleSortModel}
               setPaginationModel={setPaginationModel}
               loading={loading}
               searchValue={searchValue}

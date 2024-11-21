@@ -31,11 +31,14 @@ const ListOfDiscardProducts = () => {
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(Router.query.sort || 'asc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(Router.query.searchValue || '')
+  const [sortColumn, setSortColumn] = useState(Router.query.sortColumn || 'label')
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(Router.query.page, 10) - 1 || 0,
+    pageSize: parseInt(Router.query.pageSize, 10) || 10
+  })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
@@ -45,7 +48,7 @@ const ListOfDiscardProducts = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async ({ sort, q, column, page, pageSize }) => {
       try {
         setLoading(true)
 
@@ -53,7 +56,7 @@ const ListOfDiscardProducts = () => {
           sort,
           q,
           column,
-          page: paginationModel.page + 1,
+          page: paginationModel.page + 1, // API expects 1-based index
           limit: paginationModel.pageSize
         }
 
@@ -75,10 +78,46 @@ const ListOfDiscardProducts = () => {
     },
     [paginationModel]
   )
+  // useEffect(() => {
+  //   fetchTableData(sort, searchValue, sortColumn)
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [fetchTableData, selectedPharmacy.id])
+
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+    fetchTableData({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page + 1, // API expects 1-based index
+      pageSize: paginationModel.pageSize
+    })
+  }, [sort, searchValue, sortColumn, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
+
+  useEffect(() => {
+    Router.replace({
+      pathname: Router.pathname,
+      query: {
+        page: paginationModel.page + 1,
+        pageSize: paginationModel.pageSize,
+        q: searchValue,
+        sort,
+        column: sortColumn
+      }
+    })
+  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
+
+  useEffect(() => {
+    const { q, page, pageSize, sort, column } = Router.query
+
+    // Restore state from query params on mount
+    setSearchValue(q || '')
+    setSort(sort || 'asc')
+    setSortColumn(column || 'label')
+    setPaginationModel({
+      page: parseInt(page, 10) - 1 || 0,
+      pageSize: parseInt(pageSize, 10) || 10
+    })
+  }, []) // Run once on component mount
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -89,23 +128,45 @@ const ListOfDiscardProducts = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-    } else {
+      const { sort, field } = newModel[0]
+      setSort(sort)
+      setSortColumn(field)
+
+      // Reset to the first page when sorting changes
+      // setPaginationModel(prev => ({
+      //   ...prev,
+      //   page: 0
+      // }))
+
+      fetchTableData({
+        sort,
+        q: searchValue,
+        column: field,
+        page: 1, // Reset to first page
+        pageSize: paginationModel.pageSize
+      })
     }
   }
 
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(sort, q, column)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
+  const handleSearch = useCallback(
+    debounce(value => {
+      setSearchValue(value)
+
+      // Reset to first page when search is triggered
+      setPaginationModel(prev => ({
+        ...prev,
+        page: 0
+      }))
+
+      fetchTableData({
+        sort,
+        q: value,
+        column: sortColumn,
+        page: 1, // 1-based index for API
+        pageSize: paginationModel.pageSize
+      })
+    }, 500),
+    [sort, sortColumn, paginationModel.pageSize]
   )
 
   const handleEdit = id => {
@@ -115,10 +176,10 @@ const ListOfDiscardProducts = () => {
     })
   }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
-  }
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, sortColumn)
+  // }
 
   const columns = [
     {
@@ -308,6 +369,7 @@ const ListOfDiscardProducts = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
+                      value={searchValue}
                       onChange={e => handleSearch(e.target.value)}
                       fullWidth
                       sx={{

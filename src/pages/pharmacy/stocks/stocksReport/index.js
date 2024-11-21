@@ -121,61 +121,104 @@ const ListOfStocks = () => {
     return data
   }
 
+  // const getStocksReport = useCallback(
+  //   async ({ sort, q, column, id, type }) => {
+  //     let storeId = id === 'all' ? '' : id
+
+  //     if (id) {
+  //       try {
+  //         setLoading(true)
+  //         let result
+  //         if (type === 'local') {
+  //           const params = {
+  //             sort,
+  //             q,
+  //             column,
+  //             page: paginationModel.page + 1,
+  //             limit: paginationModel.pageSize,
+  //             store_id: storeId
+  //           }
+
+  //           result = await getLocalStocksReportById(params)
+  //         } else {
+  //           const params = {
+  //             sort,
+  //             q,
+  //             column,
+  //             page: paginationModel.page + 1,
+  //             limit: paginationModel.pageSize
+  //           }
+
+  //           result = await getStocksReportById(storeId, params)
+  //         }
+
+  //         if (result.success === true && result.data.length > 0) {
+  //           setTotal(parseInt(result.count))
+
+  //           let listWithId = result.data
+  //             ? result.data.map((el, i) => {
+  //                 return { ...el, uid: i + 1 }
+  //               })
+  //             : []
+  //           setStockReport(loadServerRows(paginationModel.page, listWithId))
+  //           setLoading(false)
+  //         } else {
+  //           setTotal(0)
+  //           setStockReport([])
+  //           setLoading(false)
+  //         }
+  //       } catch (error) {
+  //         setTotal(0)
+  //         setStockReport([])
+  //         console.log('error', error)
+  //         setLoading(false)
+  //       }
+  //     }
+  //   },
+  //   [paginationModel, stockId]
+  // )
+
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id, type }) => {
+    async ({ sort, q, column, id, type, page }) => {
       let storeId = id === 'all' ? '' : id
 
       if (id) {
         try {
           setLoading(true)
           let result
-          if (type === 'local') {
-            const params = {
-              sort,
-              q,
-              column,
-              page: paginationModel.page + 1,
-              limit: paginationModel.pageSize,
-              store_id: storeId
-            }
+          const params = {
+            sort,
+            q,
+            column,
+            page: page || paginationModel.page + 1, // Use passed page or fallback
+            limit: paginationModel.pageSize,
+            store_id: type === 'local' ? storeId : undefined
+          }
 
+          if (type === 'local') {
             result = await getLocalStocksReportById(params)
           } else {
-            const params = {
-              sort,
-              q,
-              column,
-              page: paginationModel.page + 1,
-              limit: paginationModel.pageSize
-            }
-
             result = await getStocksReportById(storeId, params)
           }
 
-          if (result.success === true && result.data.length > 0) {
+          if (result.success && result.data.length > 0) {
             setTotal(parseInt(result.count))
-
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReport(loadServerRows(paginationModel.page, listWithId))
-            setLoading(false)
+            const listWithId = result.data.map((el, i) => ({ ...el, uid: i + 1 }))
+            setStockReport(loadServerRows(page || paginationModel.page, listWithId))
           } else {
             setTotal(0)
             setStockReport([])
-            setLoading(false)
           }
         } catch (error) {
           setTotal(0)
           setStockReport([])
-          console.log('error', error)
+          console.error('error', error)
+        } finally {
           setLoading(false)
         }
       }
     },
-    [paginationModel, stockId]
+    [paginationModel]
   )
 
   console.log('stock Reports >', stockReport)
@@ -238,6 +281,41 @@ const ListOfStocks = () => {
     },
     [batchPaginationModel]
   )
+
+  // const getStocksReportBatchWise = useCallback(
+  //   async ({ batchSort, batchQ, batchColumn, id, page }) => {
+  //     setBatchLoading(true)
+  //     const batchParams = {
+  //       sort: batchSort,
+  //       q: batchQ,
+  //       column: batchColumn,
+  //       page: page + 1, // API expects 1-based index
+  //       limit: batchPaginationModel.pageSize
+  //     }
+
+  //     try {
+  //       const result = await getStocksByBatch(id, batchParams)
+  //       if (result?.success) {
+  //         setBatchTotal(parseInt(result?.count, 10))
+  //         const listWithId = result.data.map((el, i) => ({
+  //           ...el,
+  //           uid: i + 1
+  //         }))
+  //         setStockReportBatch(loadBatchServerRows(page, listWithId))
+  //       } else {
+  //         setBatchTotal(0)
+  //         setStockReportBatch([])
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching batch reports:', error)
+  //       setBatchTotal(0)
+  //       setStockReportBatch([])
+  //     } finally {
+  //       setBatchLoading(false)
+  //     }
+  //   },
+  //   [batchPaginationModel]
+  // )
 
   const batchIndexedRows = stockReportBatch?.map((row, index) => ({
     ...row,
@@ -1063,16 +1141,106 @@ const ListOfStocks = () => {
     []
   )
 
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     const sortOrder = newModel[0].sort
+  //     const sortField = newModel[0].field
+
+  //     // Update sorting state
+  //     setSort(sortOrder)
+  //     setSortColumn(sortField)
+
+  //     // Reset pagination to the first page for sorting
+  //     setPaginationModel(prev => ({ ...prev, page: 0 }))
+
+  //     changeSwitch
+  //       ? getStocksReportBatchWise({
+  //           sort: sortOrder,
+  //           q: searchValue, // Use the current search value
+  //           column: sortField,
+  //           id: stockId, // Use the current stock ID
+  //           type: stockType, // Use the current stock type
+  //           page: 0
+  //         })
+  //       : // Call the API directly with updated parameters
+  //         getStocksReport({
+  //           sort: sortOrder,
+  //           q: searchValue, // Use the current search value
+  //           column: sortField,
+  //           id: stockId, // Use the current stock ID
+  //           type: stockType, // Use the current stock type
+  //           page: 0 // Start from the first page
+  //         })
+  //   }
+  // }
+
+  // const handleSearch = useCallback(
+  //   debounce(async value => {
+  //     setSearchValue(value)
+  //     try {
+  //       await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   [getStocksReport]
+  // )
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const sortOrder = newModel[0].sort
+      const sortField = newModel[0].field
+
+      // Update sorting state
+      setSort(sortOrder)
+      setSortColumn(sortField)
+
+      if (changeSwitch) {
+        // Reset batch pagination and call batch API
+        setBatchPaginationModel(prev => ({ ...prev, page: 0 }))
+        getStocksReportBatchWise({
+          batchSort: sortOrder,
+          batchQ: searchValue, // Use the current search value
+          batchColumn: sortField,
+          id: stockId, // Use the current stock ID
+          page: 0 // Start from the first page
+        })
+      } else {
+        // Reset main pagination and call main API
+        setPaginationModel(prev => ({ ...prev, page: 0 }))
+        getStocksReport({
+          sort: sortOrder,
+          q: searchValue, // Use the current search value
+          column: sortField,
+          id: stockId, // Use the current stock ID
+          type: stockType, // Use the current stock type
+          page: 0 // Start from the first page
+        })
+      }
+    }
+  }
+
   const handleSearch = useCallback(
     debounce(async value => {
       setSearchValue(value)
       try {
-        await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
+        // Reset the page to 0 for new search queries
+        setPaginationModel(prev => ({ ...prev, page: 0 }))
+
+        // Call the API with the updated page index (0)
+        await getStocksReport({
+          sort,
+          q: value,
+          column: sortColumn,
+          id: stockId,
+          type: stockType,
+          page: 0 // Explicitly pass page 0 for a search
+        })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [getStocksReport]
+    [getStocksReport, sort, sortColumn, stockId, stockType]
   )
 
   const title = (
@@ -1165,7 +1333,11 @@ const ListOfStocks = () => {
                           variant='outlined'
                           placeholder='Search...'
                           // value={searchValue}
-                          onChange={e => handleSearch(e.target.value, stockId, stockType)}
+                          onChange={e =>
+                            changeSwitch
+                              ? handleBatchSearch(e.target.value, stockId, stockType)
+                              : handleSearch(e.target.value, stockId, stockType)
+                          }
                           fullWidth
                           sx={{
                             '& .MuiOutlinedInput-root': {
@@ -1238,7 +1410,7 @@ const ListOfStocks = () => {
                         total={total}
                         columns={columns}
                         paginationModel={paginationModel}
-                        handleSortModel={''}
+                        handleSortModel={handleSortModel}
                         setPaginationModel={setPaginationModel}
                         loading={loading}
                         searchValue={searchValue}

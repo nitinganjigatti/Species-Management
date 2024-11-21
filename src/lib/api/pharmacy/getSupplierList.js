@@ -1,8 +1,12 @@
 import { SUPPLIER } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
-export async function getSuppliers(params) {
-  return await axiosGet({ url: SUPPLIER, params, pharmacy: true })
+export async function getSuppliers() {
+  return await axiosGet({ url: SUPPLIER, pharmacy: true })
+}
+
+export async function getSuppliersByParams({params}) {
+  return await axiosGet({ url: SUPPLIER,params, pharmacy: true })
 }
 
 export async function getSupplierById(id) {

@@ -32,6 +32,7 @@ import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import { textAlign } from '@mui/system'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -52,26 +53,6 @@ const RequestList = () => {
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  /***** Server side pagination */
-
-  // const [total, setTotal] = useState(0)
-  // const [sort, setSort] = useState('desc')
-  // const [rows, setRows] = useState([])
-  // const [searchValue, setSearchValue] = useState('')
-  // const [sortColumn, setSortColumn] = useState('label')
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  // const [loading, setLoading] = useState(false)
-  // const [stores, setStores] = useState([])
-  // const [status, setStatus] = useState('pending')
-  // const [filterByStoreId, setFilterByStoreId] = useState('all')
-  // const [filterSwitch, setFilterSwitch] = useState(false)
-
-  // const [selectDays, setSelectDays] = useState('all')
-
-  // const [filterDates, setFilterDates] = useState({
-  //   startDate: '',
-  //   endDate: ''
-  // })
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
@@ -385,7 +366,7 @@ const RequestList = () => {
 
   const columns = [
     {
-      flex: 0.15,
+      flex: 0.19,
       Width: 40,
       field: 'sl_no',
       headerName: 'S.NO',
@@ -404,9 +385,10 @@ const RequestList = () => {
       field: 'priority',
       headerName: '',
       type: 'number',
-      align: 'left',
+      headerAlign: 'left',
+      textAlign:"left",
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary' ,mt:1.5}}>
           {params.row.priority !== null ? (
             <Box sx={{ color: 'error.main' }}>
               <Icon icon={'mdi:dot'} style={{ color: 'primary.error', fontSize: '50px' }}></Icon>
@@ -418,7 +400,7 @@ const RequestList = () => {
 
     {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 30,
       field: 'request_number',
       headerName: 'REQUEST ID',
       hide: true,

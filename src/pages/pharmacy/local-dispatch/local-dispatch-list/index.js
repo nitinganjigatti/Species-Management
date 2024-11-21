@@ -17,7 +17,6 @@ import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import { useTheme } from '@emotion/react'
 
-// ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
@@ -26,20 +25,15 @@ import Router from 'next/router'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material'
 import { useRouter } from 'next/router'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
-
 import Utility from 'src/utility'
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
-  const [loader, setLoader] = useState(false)
   const theme = useTheme()
+  const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
 
@@ -59,20 +53,9 @@ const DirectDispatchList = () => {
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
-  const [selectDays, setSelectDays] = useState(router.query.days || 'all')
-
-  const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
-  })
 
   const [status, setStatus] = useState(router.query.status || 'pending')
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
-  const [filterByStoreId, setFilterByStoreId] = useState(router.query.store || 'all')
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -81,78 +64,25 @@ const DirectDispatchList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
-    setFilterDates({ startDate: '', endDate: '' })
-    setSelectDays('all')
+
     setPaginationModel({ page: 0, pageSize: 10 })
     setSearchValue('')
     setStatus(newValue)
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
-
-  const getStoresLists = async () => {
-    try {
-      setLoader(true)
-      const response = await getStoreList({ params: { column: 'type' } })
-      if (response?.data?.list_items?.length > 0) {
-        response?.data?.list_items?.sort((a, b) => a.id - b.id)
-        setStores(response?.data?.list_items)
-
-        setLoader(false)
-      } else {
-        setLoader(false)
-      }
-    } catch (error) {
-      setLoader(false)
-      console.log('error', error)
-    }
-  }
-
   const fetchTableData = useCallback(
-    async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
+    async (sort, q, column, status, page, limit) => {
       try {
         setLoading(true)
 
-        if (
-          startDate &&
-          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
-          filterDates?.startDate &&
-          filterDates?.endDate // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
-        ) {
-          params = {
-            sort,
-            q,
-            column,
-            page: page ? page : paginationModel.page + 1,
-            limit: limit ? limit : paginationModel.pageSize,
-            pending_days_start: startDate ? startDate : filterDates?.startDate,
-            pending_days_end: endDate ? endDate : filterDates?.endDate,
-            status: filterSwitch === true && status === 'all' ? 'completed' : status,
-            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
-          }
-        } else {
-          params = {
-            sort,
-            q,
-            column,
-            page: page ? page : paginationModel.page + 1,
-            limit: limit ? limit : paginationModel.pageSize,
-            status: filterSwitch === true && status === 'all' ? 'completed' : status,
-            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
-          }
+        const params = {
+          sort,
+          q,
+          column,
+          page: page ? page : paginationModel.page + 1,
+          limit: limit ? limit : paginationModel.pageSize,
+          status: filterSwitch === true && status === 'all' ? 'completed' : status
         }
-
-        // const params = {
-        //   sort,
-        //   q,
-        //   column,
-        //   page: page ? page : paginationModel.page + 1,
-        //   limit: limit ? limit : paginationModel.pageSize,
-        //   status: filterSwitch === true && status === 'all' ? 'completed' : status,
-        //   search_store: filterByStoreId === 'all' ? '' : filterByStoreId
-        // }
 
         await getLocalDispatchItemsList({ params: params }).then(res => {
           if (res?.success === true && res?.data.list_items?.length > 0) {
@@ -174,11 +104,6 @@ const DirectDispatchList = () => {
     [paginationModel]
   )
 
-  // useEffect(() => {
-  //   // setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
-  //   setPaginationModel({ page: 0, pageSize: 10 })
-  // }, [selectedPharmacy])
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -188,20 +113,8 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const currentStatus = filterSwitch ? 'completed' : status
-
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(
-        newModel[0].sort,
-        searchValue,
-        newModel[0].field,
-        currentStatus,
-        filterDates.startDate,
-        filterDates.endDate,
-        filterByStoreId
-      )
-    } else {
     }
   }
 
@@ -211,15 +124,7 @@ const DirectDispatchList = () => {
       const currentStatus = filterSwitch ? 'completed' : status
 
       try {
-        await fetchTableData(
-          sort,
-          q,
-          column,
-          currentStatus,
-          filterDates.startDate,
-          filterDates.endDate,
-          filterByStoreId
-        )
+        await fetchTableData(sort, q, column, currentStatus)
       } catch (error) {
         console.error(error)
       }
@@ -239,44 +144,35 @@ const DirectDispatchList = () => {
       q: searchValue,
       column: sortColumn,
       status: status,
-      store: filterByStoreId,
-      startDate: filterDates.startDate,
-      endDate: filterDates.endDate,
-      days: selectDays,
       page: 0,
       limit: 10
     })
   }
   useEffect(() => {
-    const currentStatus = filterSwitch === true ? 'completed' : status
-
+    const currentStatus = filterSwitch ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
 
-    fetchTableData(
-      sort,
-      searchValue,
-      sortColumn,
-      tabStatus,
-      filterDates.startDate,
-      filterDates.endDate,
-      filterByStoreId
-    )
+    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+
     updateUrlParams({
       sort,
       q: searchValue,
       column: sortColumn,
       status: currentStatus,
       page: paginationModel.page,
-      startDate: filterDates.startDate,
-      endDate: filterDates.endDate,
       limit: paginationModel.pageSize,
-      days: selectDays,
       filterSwitch
-
-      // store: filterByStoreId,
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch, selectedPharmacy.id, filterDates])
+  }, [
+    sort,
+    sortColumn,
+    status,
+    fetchTableData,
+    filterSwitch,
+    searchValue,
+    paginationModel.page,
+    paginationModel.pageSize
+  ])
 
   const onRowClick = params => {
     var data = params.row
@@ -287,56 +183,11 @@ const DirectDispatchList = () => {
     })
   }
 
-  const filterByDays = days => {
-    if (days !== 'all') {
-      setTotal(0)
-      setPaginationModel({ page: 0, pageSize: 10 })
-      const currentDate = new Date()
-      const selectedDays = parseInt(days)
-      let startDate
-      let endDate
-
-      switch (selectedDays) {
-        case 3:
-          startDate = Utility.getPreviousDaysDate(currentDate, 3)
-          endDate = Utility.formattedPresentDate()
-          setFilterDates({ startDate, endDate })
-          break
-        case 7:
-          startDate = Utility.getPreviousDaysDate(currentDate, 7)
-          endDate = Utility.getPreviousDaysDate(currentDate, 3)
-          setFilterDates({ startDate, endDate })
-
-          break
-        case 15:
-          startDate = Utility.getPreviousDaysDate(currentDate, 15)
-          endDate = Utility.getPreviousDaysDate(currentDate, 7)
-          setFilterDates({ startDate, endDate })
-          break
-        case 16:
-          startDate = Utility.getPreviousDaysDate(currentDate, 16)
-          endDate = Utility.getPreviousDaysDate(currentDate, 1)
-          setFilterDates({ startDate, endDate })
-          break
-        default:
-          startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
-          endDate = Utility.formattedPresentDate()
-          setFilterDates({ startDate, endDate })
-          break
-      }
-    } else {
-      // setFilterDates({sta})
-
-      setFilterDates({ startDate: '', endDate: '' })
-      fetchTableData(sort, searchValue, sortColumn, status)
-    }
-  }
-
   const headerAction = (
     <div>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButtonContained
+          <AddButton
             title='Add Local Dispatch'
             action={() =>
               Router.push({
@@ -348,9 +199,14 @@ const DirectDispatchList = () => {
     </div>
   )
 
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, 'request_number', status)
+  // }
+
   const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
+    setSearchValue(value) // Update search value state
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }) // Reset pagination to the first page
   }
 
   const columns = [
@@ -358,10 +214,10 @@ const DirectDispatchList = () => {
       flex: 0.1,
       Width: 40,
       field: 'id',
-      headerName: 'S.NO',
+      headerName: 'SL No',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no) + '.'}
+          {parseInt(params.row.sl_no)}
         </Typography>
       )
     },
@@ -408,7 +264,7 @@ const DirectDispatchList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'to_store',
-      headerName: 'Dispatch To',
+      headerName: 'Dispatched To',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -439,7 +295,7 @@ const DirectDispatchList = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'total_qty',
-      headerName: 'Total Quantity',
+      headerName: 'Total Qty',
       type: 'number',
       headerAlign: 'left',
       align: 'left',
@@ -464,7 +320,15 @@ const DirectDispatchList = () => {
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params.row.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
@@ -477,7 +341,7 @@ const DirectDispatchList = () => {
                   <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  {/* added for partial shipping */}
+                  {/ added for partial shipping /}
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
               </>
@@ -506,12 +370,20 @@ const DirectDispatchList = () => {
       flex: 0.3,
       Width: 40,
       field: 'created_by_user_name',
-      headerName: 'Returned by ',
+      headerName: 'Dispatched by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
@@ -558,7 +430,9 @@ const DirectDispatchList = () => {
 
   const title = (
     <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Direct Dispatch</Typography>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+        Local Dispatch List
+      </Typography>
     </>
   )
 
@@ -571,128 +445,67 @@ const DirectDispatchList = () => {
           <>
             <Card>
               <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
+              <Box
+                sx={{
+                  display: 'flex', // Makes child elements align in a row
+                  justifyContent: 'space-between', // Adjusts spacing between the components
+                  alignItems: 'center', // Vertically aligns components
+                  width: '100%', // Ensure the container spans full width
+                  padding: '8px' // Optional: Adds some padding
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px'
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+
+                {status === 'all' || status === 'completed' ? (
                   <Box
                     sx={{
                       display: 'flex',
+                      justifyContent: 'flex-end',
                       alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '8px',
-
-                      // borderRadius: '4px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Full width within the grid item
+                      marginLeft: 'auto' // Push the switch to the far-right
                     }}
                   >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      fullWidth
-                      onChange={e => handleSearch(e.target.value)}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
+                    <FormControlLabel
+                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
                     />
                   </Box>
-                </Grid>
-
-                {/* Group of two boxes on the right */}
-                <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
-                  {selectedPharmacy.type === 'central' && (
-                    <Grid
-                      item
-                      sx={{
-                        width: '245px',
-                        height: '50px', // Increased height
-                        borderRadius: '8px',
-                        paddingLeft: '12px',
-                        paddingRight: '12px'
-                      }}
-                    >
-                      <FormControl fullWidth size='small'>
-                        <InputLabel>Filter by Stores</InputLabel>
-                        <Select
-                          fullWidth
-                          size='small'
-                          value={filterByStoreId}
-                          label='Filter by Stores'
-                          onChange={e => {
-                            setTotal(0)
-                            setPaginationModel({ page: 0, pageSize: 10 })
-                            setFilterByStoreId(e.target.value)
-                          }}
-                        >
-                          <MenuItem value='all'>All</MenuItem>
-                          {stores.length > 0 &&
-                            stores.map(store => (
-                              <MenuItem key={store?.id} value={store?.id}>
-                                {store?.name}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  )}
-
-                  <Grid
-                    item
-                    sx={{
-                      width: '245px',
-                      height: '50px', // Increased height
-                      borderRadius: '8px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px',
-                      mr: 1
-                    }}
-                  >
-                    <FormControl fullWidth size='small'>
-                      <InputLabel id='filter-days-label'>Filter by days</InputLabel>
-                      <Select
-                        size='small'
-                        value={''}
-                        label='Filter by days'
-                        onChange={e => {
-                          filterByDays(e.target.value)
-                          setSelectDays(e.target.value)
-                        }}
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value='3'>3 Days</MenuItem>
-                        <MenuItem value='7'>3 to 7 Days</MenuItem>
-                        <MenuItem value='15'>7 to 15 Days</MenuItem>
-                        <MenuItem value='16'>15 Days</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                  {status === 'all' || status === 'completed' ? (
-                    <Box sx={{ float: 'right', mt: 1 }}>
-                      <FormControlLabel
-                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                        label='Completed'
-                        labelPlacement='end'
-                      />
-                    </Box>
-                  ) : null}
-                </Grid>
+                ) : null}
               </Box>
 
               <Grid
                 sx={{
-                  mx: 4 // Add margin to both left and right
+                  mx: 4
                 }}
               >
                 <CommonTable
@@ -720,7 +533,6 @@ const DirectDispatchList = () => {
         <TabContext value={status}>
           <TabList onChange={handleChange} aria-label='simple tabs example'>
             <Tab
-              sx={{ ml: 3 }}
               value='pending'
               label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
@@ -737,7 +549,7 @@ const DirectDispatchList = () => {
               value='cancel'
               label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
             />
-            {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}
+            {/* {/ <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> /} */}
             <Tab
               value={'all' ? 'all' : 'completed'}
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
@@ -749,7 +561,7 @@ const DirectDispatchList = () => {
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
 
-          {/* <TabPanel value='all'>{tableData()}</TabPanel> */}
+          {/* {/ <TabPanel value='all'>{tableData()} */}
           {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
           {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
         </TabContext>
@@ -757,5 +569,4 @@ const DirectDispatchList = () => {
     </>
   )
 }
-
 export default DirectDispatchList

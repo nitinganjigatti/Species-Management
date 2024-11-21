@@ -77,7 +77,7 @@ const ExpiredMedicine = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id])
 
@@ -97,7 +97,7 @@ const ExpiredMedicine = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)  
     } else {
     }
   }
@@ -139,7 +139,15 @@ const ExpiredMedicine = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_item_name}
           </Typography>
         </Tooltip>
@@ -151,7 +159,15 @@ const ExpiredMedicine = () => {
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -162,7 +178,15 @@ const ExpiredMedicine = () => {
       field: 'supplier_name',
       headerName: 'Supplier name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.supplier_name ? params.row.supplier_name : 'NA'}
         </Typography>
       )
@@ -173,7 +197,15 @@ const ExpiredMedicine = () => {
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
@@ -188,7 +220,15 @@ const ExpiredMedicine = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -276,6 +316,7 @@ const ExpiredMedicine = () => {
                   <TextField
                     variant='outlined'
                     placeholder='Search...'
+                    value={searchValue}
                     onChange={e => handleSearch(e.target.value)}
                     fullWidth
                     sx={{

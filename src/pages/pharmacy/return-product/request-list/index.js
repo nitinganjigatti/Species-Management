@@ -291,7 +291,7 @@ const ReturnRequestList = () => {
 
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch, filterByStoreId, filterDates])
+  }, [status, fetchTableData, filterSwitch, filterByStoreId, filterDates, selectedPharmacy.id])
 
   const onRowClick = params => {
     Router.push({
