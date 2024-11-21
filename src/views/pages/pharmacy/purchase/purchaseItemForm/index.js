@@ -85,7 +85,7 @@ const PurchaseItemForm = props => {
 
     purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
       if (stockType[0] === 'non_medical') {
-        return schema.notRequired()
+        return schema?.notRequired()
       } else {
         return schema
           .required('Please enter the expiry date')
@@ -98,8 +98,8 @@ const PurchaseItemForm = props => {
         const isDuplicate = purchase_details?.some(
           (entry, index) =>
             index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
-            entry.purchase_unit_id === parent?.product?.value &&
-            entry.purchase_batch_no.toLowerCase() === value.toLowerCase()
+            entry?.purchase_unit_id === parent?.product?.value &&
+            entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
         )
 
         return !isDuplicate
