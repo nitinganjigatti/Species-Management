@@ -234,6 +234,8 @@ const AddSample = props => {
   const [sampleTypes, setSampleTypes] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
+  // console.log('editParams', editParams)
+
   const {
     control,
     handleSubmit,
@@ -258,7 +260,8 @@ const AddSample = props => {
         id
       }
       const response = await getLabSampleListById(params)
-      console.log('add state comp', response)
+
+      // console.log('add state comp', response)
       if (response?.success) {
         // const sampleIdsName = response?.data?.sample_types.map(sample => sample.name)
         // const testIdsName = response?.data?.child_tests.map(test => test.name)
@@ -287,7 +290,7 @@ const AddSample = props => {
   }, [resetForm, editParams, reset, getLabTestById])
 
   const onSubmit = async params => {
-    console.log(params, 'log')
+    // console.log(params, 'log')
 
     // const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
     // const payload = {
@@ -302,7 +305,8 @@ const AddSample = props => {
 
       // description: description
     }
-    console.log(payload, 'Submission Data')
+
+    // console.log(payload, 'Submission Data')
 
     await handleSubmitData(payload)
   }
@@ -594,38 +598,40 @@ const AddSample = props => {
               </FormControl> */}
 
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    right: 0,
-                    height: '6rem',
-                    width: '100%',
-                    maxWidth: '500px',
-                    position: 'fixed',
-                    bottom: 0,
-                    px: 4,
-                    bgcolor: 'white',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    display: 'flex',
-                    zIndex: 1234,
-                    gap: 2
-                  }}
-                >
-                  <Button
-                    fullWidth
-                    onClick={() => setOpenDrawer(false)}
-                    size='large'
-                    type='reset'
-                    color='error'
-                    variant='outlined'
+                {editParams?.zoo_id !== 0 && (
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      right: 0,
+                      height: '6rem',
+                      width: '100%',
+                      maxWidth: '500px',
+                      position: 'fixed',
+                      bottom: 0,
+                      px: 4,
+                      bgcolor: 'white',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      display: 'flex',
+                      zIndex: 1234,
+                      gap: 2
+                    }}
                   >
-                    Cancel
-                  </Button>
-                  <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
-                    {editParams?.id !== null ? `Update` : `Submit`}
-                  </LoadingButton>
-                </Box>
+                    <Button
+                      fullWidth
+                      onClick={() => setOpenDrawer(false)}
+                      size='large'
+                      type='reset'
+                      color='error'
+                      variant='outlined'
+                    >
+                      Cancel
+                    </Button>
+                    <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
+                      {editParams?.id !== null ? `Update` : `Submit`}
+                    </LoadingButton>
+                  </Box>
+                )}
               </Box>
             </Box>
           </form>
