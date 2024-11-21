@@ -19,7 +19,7 @@ const SpeciesReport = () => {
   const [selectedSite, setSelectedSite] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
   const [total, setTotal] = useState(0)
 
   const [popoverData, setPopoverData] = useState({
@@ -154,7 +154,7 @@ const SpeciesReport = () => {
       return updatedData
     })
     setPaginationModel({ ...paginationModel, page: 0 })
-    await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
+    // await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
   }
 
   const handleSelectedSite = async e => {
@@ -205,7 +205,7 @@ const SpeciesReport = () => {
     debugger
     setPaginationModel({ ...paginationModel, page: 0 })
     setApiFilterParams(params)
-    await fetchData({ ...params }, { ...paginationModel, page: 0 })
+    // await fetchData({ ...params }, { ...paginationModel, page: 0 })
   }
 
   function loadServerRows(currentPage, data) {
@@ -238,27 +238,7 @@ const SpeciesReport = () => {
   useEffect(() => {
     debugger
     fetchData(apiFilterParams, paginationModel)
-  }, [])
-
-  // useEffect(() => {
-  //   if (reports_module) {
-  //     if (!initialLoad.current) {
-  //       const fetchFilterData = async () => {
-  //         setIsLoading(true)
-  //         const response = await getReportFilterList(apiFilterParams)
-  //         if (response) {
-  // setIsLoading(false)
-  // const { header, datalist } = response.data
-  // setHeaderList(header)
-  // setAnchorEl(null)
-  // setDataList(datalist)
-  // setDataList(loadServerRows(paginationModel.page, datalist))
-  //         }
-  //       }
-  //       fetchFilterData()
-  //     }
-  //   }
-  // }, [popoverData])
+  }, [fetchData])
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
