@@ -209,7 +209,7 @@ const TestDetails = props => {
             )}
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {editParams?.zoo_id != '0' && (
+              {editParams?.row?.zoo_id != '0' && (
                 <Box
                   sx={{
                     position: 'relative',
