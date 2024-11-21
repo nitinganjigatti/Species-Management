@@ -395,23 +395,25 @@ const AddDiscardProducts = () => {
     try {
       const result = await getDiscardItemsListById(id)
       if (result.success === true && result?.data?.item_details?.length > 0) {
+        console.log('result', result.data?.item_details)
+
         const lineItems = result?.data?.item_details?.map(el => {
           return {
-            stock_id: el.product_id,
-            // medicine_name: el.stock_name,
-            medicine_name: el.stock_name,
-            quantity: el.quantity,
-            request_item_leaf_id: el.stock_item_id,
-            priority_item: el.priority,
-            control_substance: el.control_substance === '0' ? false : true,
-            control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-            id: el.id,
-            request_item_detail_id: el.id,
-            batch_no: el.batch_no,
-            expiry_date: el.expiry_date,
+            stock_id: el?.product_id,
+            // medicine_name: el?.stock_name,
+            medicine_name: el?.stock_name,
+            quantity: el?.quantity,
+            request_item_leaf_id: el?.stock_item_id,
+            priority_item: el?.priority,
+            control_substance: el?.control_substance === '1' ? true : false,
+            control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
+            id: el?.id,
+            request_item_detail_id: el?.id,
+            batch_no: el?.batch_no,
+            expiry_date: el?.expiry_date,
             uuid: uuidv4(),
             available_item_qty: el?.batch_available_qty,
-            dispatch_item_id: el.dispatch_item_id,
+            dispatch_item_id: el?.dispatch_item_id,
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer_name,
@@ -419,6 +421,7 @@ const AddDiscardProducts = () => {
             reason: el?.reason
           }
         })
+        console.log('lineItems', lineItems)
 
         setEditParams({
           ...editParams,
@@ -676,6 +679,7 @@ const AddDiscardProducts = () => {
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
                               {el.medicine_name}
                             </Typography>
+
                             {el.control_substance ? (
                               <CustomChip label='CS' skin='light' color='success' size='small' />
                             ) : null}
@@ -690,7 +694,9 @@ const AddDiscardProducts = () => {
 
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
+                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date'
+                                ? 'NA'
+                                : Utility.formatDisplayDate(el.expiry_date)}
                             </Typography>
                           </TableCell>
                           <TableCell>{el.comments ? <TextEllipsisWithModal text={el.comments} /> : 'NA'}</TableCell>
