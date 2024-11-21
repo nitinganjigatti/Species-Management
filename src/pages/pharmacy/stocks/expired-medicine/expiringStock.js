@@ -31,6 +31,7 @@ const ExpiringMedicine = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
+  const [searchTriggered, setSearchTriggered] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
@@ -48,8 +49,43 @@ const ExpiringMedicine = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  // const fetchTableData = useCallback(
+  //   async (sort, q, column, startDate, endDate, id) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         q,
+  //         column,
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize,
+  //         pending_days_start: startDate ? startDate : filterDates?.startDate,
+  //         pending_days_end: endDate ? endDate : filterDates?.endDate
+  //       }
+  //       await aboutExpiringProduct(id, params).then(res => {
+  //         if (res?.data?.length > 0) {
+  //           setTotal(parseInt(res?.count))
+  //           setRows(loadServerRows(paginationModel.page, res?.data))
+  //         } else {
+  //           setTotal(0)
+  //           setRows([])
+  //         }
+  //       })
+  //       setLoading(false)
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setTotal(0)
+  //       setRows([])
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
   const fetchTableData = useCallback(
     async (sort, q, column, startDate, endDate, id) => {
+      if (!searchTriggered && q) return // Prevent searching unless explicitly triggered
       try {
         setLoading(true)
 
@@ -59,28 +95,32 @@ const ExpiringMedicine = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          pending_days_start: startDate ? startDate : filterDates?.startDate,
-          pending_days_end: endDate ? endDate : filterDates?.endDate
+          pending_days_start: startDate || filterDates?.startDate,
+          pending_days_end: endDate || filterDates?.endDate
         }
-        await aboutExpiringProduct(id, params).then(res => {
-          if (res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
-          } else {
-            setTotal(0)
-            setRows([])
-          }
-        })
+
+        const res = await aboutExpiringProduct(id, params)
+        if (res?.data?.length > 0) {
+          setTotal(parseInt(res?.count))
+          setRows(loadServerRows(paginationModel.page, res?.data))
+        } else {
+          setTotal(0)
+          setRows([])
+        }
         setLoading(false)
       } catch (error) {
-        console.log('error', error)
+        console.error('Error fetching table data:', error)
         setTotal(0)
         setRows([])
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, filterDates, searchTriggered]
   )
+
+  useEffect(() => {
+    fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
+  }, [fetchTableData, selectedPharmacy?.id, filterDates])
 
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
@@ -94,6 +134,22 @@ const ExpiringMedicine = () => {
     id: getSlNo(index)
   }))
 
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(
+  //       newModel[0].sort,
+  //       searchValue,
+  //       newModel[0].field,
+  //       filterDates.startDate,
+  //       filterDates.endDate,
+  //       selectedPharmacy.id
+  //     )
+  //   } else {
+  //   }
+  // }
+
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
@@ -102,30 +158,47 @@ const ExpiringMedicine = () => {
         newModel[0].sort,
         searchValue,
         newModel[0].field,
-        filterDates.startDate,
-        filterDates.endDate,
-        selectedPharmacy.id
+        filterDates?.startDate,
+        filterDates?.endDate,
+        selectedPharmacy?.id
       )
-    } else {
     }
   }
 
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column, startDate, endDate, id) => {
-      try {
-        await fetchTableData(sort, q, column, startDate, endDate, id)
-      } catch (error) {
-        console.error('Error in searchTableData:', error)
-      }
+  const debouncedSearch = useCallback(
+    debounce(value => {
+      setSearchTriggered(true) // Trigger the search explicitly
+      fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
     }, 1000),
-    [] // Include fetchTableData as a dependency
+    [fetchTableData, sort, sortColumn, filterDates, selectedPharmacy]
   )
 
   const handleSearch = value => {
     setSearchValue(value)
+    setSearchTriggered(false) // Ensure no search is triggered while typing
     setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
-    searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
+
+    if (value.trim()) {
+      debouncedSearch(value) // Trigger the debounced search
+    }
   }
+
+  // const searchTableData = useCallback(
+  //   debounce(async (sort, q, column, startDate, endDate, id) => {
+  //     try {
+  //       await fetchTableData(sort, q, column, startDate, endDate, id)
+  //     } catch (error) {
+  //       console.error('Error in searchTableData:', error)
+  //     }
+  //   }, 1000),
+  //   [] // Include fetchTableData as a dependency
+  // )
+
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
+  //   searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
+  // }
 
   const filterByDays = days => {
     const currentDate = new Date()
