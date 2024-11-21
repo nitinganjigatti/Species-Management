@@ -272,7 +272,7 @@ function Dispense() {
   )
 
   const handleSortModel = newModel => {
-    debugger
+
     if (newModel.length) {
       const newSort = newModel[0].sort // This will give 'asc' or 'desc'
       const newColumn = newModel[0].field // This is the field by which you're sorting

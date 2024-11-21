@@ -153,7 +153,7 @@ const IndividualDispense = () => {
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
                         if (searchTerm) {
-                          debugger
+                      
                           Router.push({
                             pathname: `/pharmacy/dispense`,
                             query: {

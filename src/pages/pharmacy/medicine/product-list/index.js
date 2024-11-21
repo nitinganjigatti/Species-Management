@@ -270,7 +270,7 @@ const ListOfMedicine = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status, page, pageSize }) => {
-      debugger
+  
       let params = {}
       const activeStatus = status ?? statusFilter
       try {
@@ -355,7 +355,7 @@ const ListOfMedicine = () => {
   // }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
-    debugger
+
     fetchTableData({
       sort,
       q: searchValue,

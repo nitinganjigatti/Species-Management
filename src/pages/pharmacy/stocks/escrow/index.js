@@ -193,7 +193,7 @@ function Escrow({ value }) {
   }, [])
 
   useEffect(() => {
-    debugger
+   
     fetchScrewTableData({
       sort,
       searchValue: searchValue,
