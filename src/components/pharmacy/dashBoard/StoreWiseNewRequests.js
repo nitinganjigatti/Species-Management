@@ -145,6 +145,12 @@ const StoreWiseNewRequests = () => {
             disableColumnMenu
             paginationModel={false}
             pagination={false}
+            hideFooter
+            sx={{
+              '& .MuiDataGrid-row:last-of-type': {
+                borderBottom: '1px solid rgba(224, 224, 224, 1)'
+              }
+            }}
           />
         ) : null}
       </CardContent>

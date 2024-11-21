@@ -176,7 +176,7 @@ const MonthWisePurchase = () => {
 
       let params = {
         page,
-        limit: 10, // You can also make this dynamic if needed
+        limit: 15, // You can also make this dynamic if needed
         q
       }
       const medicineListResponse = await getMedicineList({
