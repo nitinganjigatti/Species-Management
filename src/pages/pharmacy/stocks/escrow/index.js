@@ -72,7 +72,15 @@ function Escrow({ value }) {
       field: 'request_id',
       headerName: 'Request Id',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_id}
         </Typography>
       )
@@ -83,7 +91,15 @@ function Escrow({ value }) {
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_number}
         </Typography>
       )
@@ -94,7 +110,15 @@ function Escrow({ value }) {
       field: 'from_store',
       headerName: 'From Store',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.from_store}
         </Typography>
       )
@@ -105,7 +129,15 @@ function Escrow({ value }) {
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.quantity}
         </Typography>
       )
@@ -116,7 +148,15 @@ function Escrow({ value }) {
       field: 'to_store',
       headerName: 'To Store',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.to_store}
         </Typography>
       )
@@ -127,7 +167,15 @@ function Escrow({ value }) {
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -138,7 +186,15 @@ function Escrow({ value }) {
       field: 'status',
       headerName: 'Stock Related To ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.status === 'Dispatched' ? 'Transit' : 'Dispute'}
         </Typography>
       )
@@ -149,7 +205,15 @@ function Escrow({ value }) {
       field: 'no_of_days_exist',
       headerName: 'Exist from',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.customHeadingTextColor }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.no_of_days_exist === '0'
             ? 'Today'
             : params.row.no_of_days_exist === null
@@ -162,18 +226,19 @@ function Escrow({ value }) {
     // no_of_days_exist
   ]
 
-  const fetchScrewTableData = useCallback(async ({ sort, q, column, type, page, pageSize }) => {
+  const fetchScrewTableData = useCallback(async ({ sort, searchValue, column, type, page, pageSize }) => {
     try {
       setLoading(true)
 
       const params = {
         sort,
-        q,
+        q: searchValue, // Correctly map `searchValue` to `q`
         column,
         page: page + 1, // 1-based page index for API
         limit: pageSize,
         type
       }
+
       const res = await getScrewList({ params })
 
       if (res?.data?.length > 0) {
@@ -191,18 +256,27 @@ function Escrow({ value }) {
       setLoading(false)
     }
   }, [])
+  // useEffect(() => {
+  //   fetchScrewTableData({
+  //     sort,
+  //     searchValue: searchValue,
+  //     column: sortColumn,
+  //     type: stockType,
+  //     page: paginationModel.page,
+  //     pageSize: paginationModel.pageSize
+  //   })
+  // }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
 
   useEffect(() => {
-   
     fetchScrewTableData({
       sort,
-      searchValue: searchValue,
+      searchValue, // Pass `searchValue` correctly
       column: sortColumn,
       type: stockType,
       page: paginationModel.page,
       pageSize: paginationModel.pageSize
     })
-  }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
+  }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
     router.replace({
