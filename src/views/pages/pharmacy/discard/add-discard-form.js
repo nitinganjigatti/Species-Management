@@ -13,7 +13,8 @@ import {
   MenuItem,
   Button,
   Typography,
-  Box
+  Box,
+  Tooltip
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -377,22 +378,30 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
               )}
               {watch('packageDetails') && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={watch('packageDetails')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
-                  />
-                  <Chip
-                    label={watch('manufacture')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
+                <Grid container item sx={{ my: { xs: 0, md: 1 }, gap: { md: 1, lg: 1, xs: 0 } }}>
+                  <Grid item xs={12} md={5} sx={{ my: { xs: 1, md: 0 } }}>
+                    <Tooltip title={watch('packageDetails')}>
+                      <Chip
+                        label={watch('packageDetails')}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={12} md={5}>
+                    <Tooltip title={watch('manufacture')}>
+                      <Chip
+                        label={watch('manufacture')}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
               )}
             </FormControl>
             {watch('packageDetails') && (
