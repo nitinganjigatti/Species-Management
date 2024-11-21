@@ -871,7 +871,7 @@ const AddReturnRequest = () => {
                         <TableCell>Action</TableCell>
                       </TableRow>
                     </TableHead>
-                    <TableBody x={{ borderColor: 'customColors.customTableBorderBg' }}>
+                    <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
                       {editParams.request_item_details
                         ? editParams.request_item_details.map((el, index) => {
                             return (

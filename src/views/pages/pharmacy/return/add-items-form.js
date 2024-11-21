@@ -529,7 +529,7 @@ export const AddItemsForm = ({
                 sx={{
                   backgroundColor: '#F2FFF8',
                   padding: 3,
-                  borderRadius: 2,
+                  borderRadius: 1,
                   border: '1px solid #37BD69',
                   mt: 5
                 }}
@@ -556,7 +556,12 @@ export const AddItemsForm = ({
             )}
           </Grid>
           <Grid item xs={12} sm={12}>
-            <Typography variant='subtitle1'>Batch No and Expiry Date</Typography>
+            <Typography
+              variant='subtitle1'
+              sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
+            >
+              Batch No and Expiry Date
+            </Typography>
           </Grid>
 
           <Grid item xs={12} sm={6}>
@@ -727,7 +732,12 @@ export const AddItemsForm = ({
           )}
 
           <Grid item xs={12} sm={12}>
-            <Typography variant='subtitle1'> Quantity</Typography>
+            <Typography
+              variant='subtitle1'
+              sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
+            >
+              Quantity
+            </Typography>
           </Grid>
 
           <Grid item xs={12} sm={12}>

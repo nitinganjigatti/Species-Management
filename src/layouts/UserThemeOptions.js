@@ -89,7 +89,8 @@ const UserThemeOptions = () => {
         customDropdownColor: '#FA6140',
 
         // **
-        moderateSecondary: '#E4B819'
+        moderateSecondary: '#E4B819',
+        moderateTableRed: ' #FB4364'
       },
       primary: {
         // light: '#20DE67',
