@@ -171,7 +171,7 @@ const ReceivedMedicinesReport = () => {
       setisFetching(true)
       let params = {
         page,
-        limit: 10,
+        limit: 15,
         q
       }
       const medicineListResponse = await getMedicineList({

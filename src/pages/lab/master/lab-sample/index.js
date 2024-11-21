@@ -169,7 +169,6 @@ const LabSamples = () => {
     console.log('Delete:', testId)
     setIsModalOpenDelete(true)
     setSelectedId(testId?.id)
-    // Add your logic to handle the delete action
   }
 
   const columns = [
@@ -187,6 +186,7 @@ const LabSamples = () => {
         </Box>
       )
     },
+
     // {
     //   flex: 0.3,
     //   Width: 30,
@@ -262,15 +262,18 @@ const LabSamples = () => {
       field: 'Action',
       headerName: 'Action',
       sortable: false,
+
       // headerAlign: 'center',
       renderCell: params => (
         <>
           <Box>
             {/* <FormControlLabel control={<Switch defaultChecked size='small' />} /> */}
 
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
+            {params?.row?.zoo_id !== '0' ? (
+              <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            ) : null}
             {/* <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleDelete(e, params.row)} aria-label='delete'>
               <Icon icon='mdi:delete-outline' />
             </IconButton> */}
