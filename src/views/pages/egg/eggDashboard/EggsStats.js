@@ -6,7 +6,6 @@ import Icon from 'src/@core/components/icon'
 
 const StatBox = ({ avatarSrc, value, label, tooltipContent, onClick, valueColor }) => {
   const theme = useTheme()
-
   return (
     <Box
       onClick={onClick}
@@ -31,7 +30,7 @@ const StatBox = ({ avatarSrc, value, label, tooltipContent, onClick, valueColor 
               lineHeight: '19.36px'
             }}
           >
-            {value}
+            {value ? value : 0}
           </Typography>
           {tooltipContent && (
             <Tooltip placement='top' title={tooltipContent}>
@@ -67,7 +66,11 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
     },
     {
       avatarSrc: '/icons/egg_dashboard/eggToNursery.png',
-      value: allStats?.total_eggs_to_nursery,
+      value:
+        (Number.isNaN(allStats?.total_eggs_to_nursery) ? 0 : Number(allStats?.total_eggs_to_nursery)) +
+        (Number.isNaN(allStats?.total_eggs_in_transit) ? 0 : Number(allStats?.total_eggs_in_transit)) +
+        (Number.isNaN(allStats?.total_eggs_in_nursery) ? 0 : Number(allStats?.total_eggs_in_nursery)) +
+        (Number.isNaN(allStats?.total_eggs_in_incubators) ? 0 : Number(allStats?.total_eggs_in_incubators)),
       label: 'Eggs to Nursery',
       tooltipContent: (
         <>
@@ -76,6 +79,13 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
           </p>
           <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
             In transit: <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_eggs_in_transit}</span>
+          </p>
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+            To nursery: <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_eggs_to_nursery}</span>
+          </p>
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+            In Incubator:
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_eggs_in_incubators}</span>
           </p>
         </>
       ),
