@@ -50,8 +50,10 @@ const MonthlyDispatchChart = () => {
     December: 'Dec'
   }
 
-  // Dynamically get the months from the API response
-  const monthsFromApi = purchaseList?.dispatch_count[0] ? Object.keys(purchaseList.dispatch_count[0]) : []
+  // Extract and dynamically sort months
+  const monthsFromApi = purchaseList?.dispatch_count[0]
+    ? Object.keys(purchaseList.dispatch_count[0]).sort((a, b) => new Date(`1 ${a}`) - new Date(`1 ${b}`)) // Sort by date
+    : []
 
   // Map the dispatch count and value based on the dynamic month order from API
   const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)?.reverse()
@@ -60,8 +62,11 @@ const MonthlyDispatchChart = () => {
     .map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
     ?.reverse()
 
-  // Convert full month names to short month names for the x-axis labels
-  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)?.reverse()
+  // Convert to formatted short month and year (e.g., "Jan '24")
+  const shortMonths = monthsFromApi.map(month => {
+    const [monthName, year] = month.split(' ')
+    return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
+  })
 
   // Conditionally add series based on checkbox selections
   const series = []

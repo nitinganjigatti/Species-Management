@@ -172,7 +172,7 @@ const DoctorWiseRequest = () => {
 
       let params = {
         page,
-        limit: 10,
+        limit: 15,
         q
       }
 
