@@ -42,6 +42,8 @@ const AddTest = props => {
   const [sampleTypes, setSampleTypes] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
+  // console.log('editParams', editParams)
+
   const {
     control,
     handleSubmit,
@@ -418,38 +420,40 @@ const AddTest = props => {
               </FormControl>
 
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    position: 'relative',
-                    right: 0,
-                    height: '6rem',
-                    width: '100%',
-                    maxWidth: '500px',
-                    position: 'fixed',
-                    bottom: 0,
-                    px: 4,
-                    bgcolor: 'white',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    display: 'flex',
-                    zIndex: 1234,
-                    gap: 2
-                  }}
-                >
-                  <Button
-                    fullWidth
-                    onClick={() => setOpenDrawer(false)}
-                    size='large'
-                    type='reset'
-                    color='error'
-                    variant='outlined'
+                {editParams?.zoo_id != '0' && (
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      right: 0,
+                      height: '6rem',
+                      width: '100%',
+                      maxWidth: '500px',
+                      position: 'fixed',
+                      bottom: 0,
+                      px: 4,
+                      bgcolor: 'white',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      display: 'flex',
+                      zIndex: 1234,
+                      gap: 2
+                    }}
                   >
-                    Cancel
-                  </Button>
-                  <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
-                    {editParams?.id !== null ? `Update` : `Submit`}
-                  </LoadingButton>
-                </Box>
+                    <Button
+                      fullWidth
+                      onClick={() => setOpenDrawer(false)}
+                      size='large'
+                      type='reset'
+                      color='error'
+                      variant='outlined'
+                    >
+                      Cancel
+                    </Button>
+                    <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
+                      {editParams?.id !== null ? `Update` : `Submit`}
+                    </LoadingButton>
+                  </Box>
+                )}
               </Box>
             </Box>
           </form>
