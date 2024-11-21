@@ -75,7 +75,6 @@ const PurchaseItemForm = props => {
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
-  console.log('nestedRowMedicine', nestedRowMedicine)
 
   const schema = yup.object().shape({
     product: yup.object().shape({
@@ -85,7 +84,7 @@ const PurchaseItemForm = props => {
     }),
 
     purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
-      if (stockType === 'non_medical') {
+      if (stockType[0] === 'non_medical') {
         return schema.notRequired()
       } else {
         return schema
@@ -100,7 +99,7 @@ const PurchaseItemForm = props => {
           (entry, index) =>
             index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
             entry.purchase_unit_id === parent?.product?.value &&
-            entry.purchase_batch_no === value
+            entry.purchase_batch_no.toLowerCase() === value.toLowerCase()
         )
 
         return !isDuplicate
@@ -269,7 +268,7 @@ const PurchaseItemForm = props => {
       purchase_unit_id: value,
       purchase_stock_item_id: value,
       purchase_batch_no,
-      purchase_expiry_date: stock_type !== 'non_medical' ? Utility.formatDate(purchase_expiry_date) : '',
+      purchase_expiry_date: stock_type === 'non_medical' ? null : Utility.formatDate(purchase_expiry_date),
       purchase_unit_price,
       purchase_qty,
       purchase_free_quantity,
@@ -490,8 +489,6 @@ const PurchaseItemForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        {console.log('in addform medicineItemId', medicineItemId)}
-
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
@@ -530,7 +527,9 @@ const PurchaseItemForm = props => {
                         setNonMedicalProduct(true)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
-                        setValue('purchase_expiry_date', dayjs(Date()))
+
+                        // setValue('purchase_expiry_date', dayjs(Date()))
+                        setValue('purchase_expiry_date', null)
                       } else {
                         setNonMedicalProduct(false)
                         setValue('package_details', val?.package_details)
