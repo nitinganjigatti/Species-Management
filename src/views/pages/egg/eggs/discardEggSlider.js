@@ -35,6 +35,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
+  console.log('discardList', discardList)
 
   // console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
@@ -77,8 +78,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [filterList, setFilterList] = useState([])
 
   const handleDropDownChange = event => {
-    setSelectedDropDown(event.target.value)
     setDiscardList([])
+    setSelectedDropDown(event.target.value)
+
     setListCount('')
     const currentDate = moment().format('YYYY-MM-DD')
 
@@ -92,6 +94,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       DiscardList(search, currentDate, fromDate)
     }
   }
+
+  useEffect(() => {
+    setDiscardList([])
+  }, [selectedDropDown])
 
   const handleTabChange = (event, value) => {
     setTabStatus(value)
@@ -202,7 +208,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 labelId='dropdown-label'
                 id='dropdown'
                 value={selectedDropDown}
-                onChange={handleDropDownChange}
+                onChange={event => {
+                  handleDropDownChange(event) // Call the function with the event
+                }}
                 sx={{ height: '36px' }}
               >
                 <MenuItem value='all'>All</MenuItem>
@@ -724,7 +732,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   bgcolor: '#eff5f2',
                   py: 2,
                   pb: 20,
-                  height: 'calc(100vh - 310px)',
+                  height: '535px',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
@@ -775,7 +783,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   bgcolor: '#eff5f2',
                   py: 2,
                   pb: 20,
-                  height: 'calc(100vh - 310px)',
+                  height: '535px',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
@@ -818,7 +826,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         </Box>
 
         {/* bottom buttons */}
-        <Box
+        {/* <Box
           sx={{
             height: '122px',
             width: '100%',
@@ -846,7 +854,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           >
             VIEW DETAILS
           </LoadingButton>
-        </Box>
+        </Box> */}
       </Drawer>
       {isFilterOpen && (
         <DashboardFilter
