@@ -6,6 +6,7 @@ import Icon from 'src/@core/components/icon'
 
 const StatBox = ({ avatarSrc, value, label, tooltipContent, onClick, valueColor }) => {
   const theme = useTheme()
+
   return (
     <Box
       onClick={onClick}
