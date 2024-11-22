@@ -110,7 +110,7 @@ const StoreWisedispatchFilter = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '525px',
-                height: '490px',
+                height: { xs: 'calc(100vh - 150px)', md: 'calc(100vh - 200px)' },
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,

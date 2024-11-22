@@ -25,19 +25,20 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 export default function DetailsTable({ ...props }) {
   const theme = useTheme()
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(5)
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
+  // const [page, setPage] = useState(0)
+  // const [rowsPerPage, setRowsPerPage] = useState(5)
 
-  const handleChangeRowsPerPage = event => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
+  // const handleChangePage = (event, newPage) => {
+  //   setPage(newPage)
+  // }
 
-  const paginatedItems = props?.items.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+  // const handleChangeRowsPerPage = event => {
+  //   setRowsPerPage(parseInt(event.target.value, 10))
+  //   setPage(0)
+  // }
+
+  // const paginatedItems = props?.items.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
 
   const renderTableCellContent = (el, props) => (
     <>
@@ -161,8 +162,8 @@ export default function DetailsTable({ ...props }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginatedItems?.length > 0
-              ? paginatedItems?.map((el, index) => {
+            {props?.items?.length > 0
+              ? props?.items?.map((el, index) => {
                   return (
                     <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                       <TableCell
@@ -193,7 +194,7 @@ export default function DetailsTable({ ...props }) {
                           verticalAlign: 'top'
                         }}
                       >
-                        {console.log('items', paginatedItems)}
+                        {/* {console.log('items', paginatedItems)} */}
                         {el.priority == 'high' ? (
                           <Box
                             sx={{
@@ -930,7 +931,7 @@ export default function DetailsTable({ ...props }) {
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
+      {/* <TablePagination
         component='div'
         count={props.items.length}
         page={page}
@@ -938,7 +939,7 @@ export default function DetailsTable({ ...props }) {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      /> */}
     </Card>
   )
 }

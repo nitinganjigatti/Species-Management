@@ -32,14 +32,16 @@ const SampleDetails = props => {
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
 
+  // console.log('sampleDetails', sampleDetails)
+
   const getLabTestById = useCallback(async id => {
     const params = {
       id
     }
     setLoading(true)
     const response = await getLabSampleListById(params)
-    console.log('add state comp', response?.data?.result)
     if (response?.success) {
+      // console.log('add state comp', response?.data?.result)
       setSampleDetails(response.data?.result)
       setLoading(false)
     } else {
@@ -77,7 +79,7 @@ const SampleDetails = props => {
   }
 
   const handleDelete = sample => {
-    console.log('Delete:', sample)
+    // console.log('Delete:', sample)
     setIsModalOpenDelete(true)
     setSelectedId(sampleDetails?.id)
 
@@ -200,40 +202,42 @@ const SampleDetails = props => {
             )}
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box
-                sx={{
-                  position: 'relative',
-                  right: 0,
-                  height: '6rem',
-                  width: '100%',
-                  maxWidth: '500px',
-                  position: 'fixed',
-                  bottom: 0,
-                  px: 4,
-                  bgcolor: 'white',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  display: 'flex',
-                  zIndex: 1234,
-                  gap: 2
-                }}
-              >
-                <Button fullWidth onClick={handleDelete} size='large' type='reset' color='error' variant='outlined'>
-                  Delete
-                </Button>
-                <LoadingButton
-                  fullWidth
-                  variant='contained'
-                  onClick={() => {
-                    setOpenDrawer(true)
-                    setOpenDetailsDrawer(false)
+              {sampleDetails != null && sampleDetails?.zoo_id != '0' ? (
+                <Box
+                  sx={{
+                    position: 'relative',
+                    right: 0,
+                    height: '6rem',
+                    width: '100%',
+                    maxWidth: '500px',
+                    position: 'fixed',
+                    bottom: 0,
+                    px: 4,
+                    bgcolor: 'white',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    display: 'flex',
+                    zIndex: 1234,
+                    gap: 2
                   }}
-                  size='large'
-                  loading={submitLoader}
                 >
-                  {editParams?.id !== null && `Edit`}
-                </LoadingButton>
-              </Box>
+                  <Button fullWidth onClick={handleDelete} size='large' type='reset' color='error' variant='outlined'>
+                    Delete
+                  </Button>
+                  <LoadingButton
+                    fullWidth
+                    variant='contained'
+                    onClick={() => {
+                      setOpenDrawer(true)
+                      setOpenDetailsDrawer(false)
+                    }}
+                    size='large'
+                    loading={submitLoader}
+                  >
+                    {editParams?.id !== null && `Edit`}
+                  </LoadingButton>
+                </Box>
+              ) : null}
             </Box>
           </Box>
         </Box>
