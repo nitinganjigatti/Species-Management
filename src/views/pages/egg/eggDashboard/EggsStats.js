@@ -6,6 +6,7 @@ import Icon from 'src/@core/components/icon'
 
 const StatBox = ({ avatarSrc, value, label, tooltipContent, onClick, valueColor }) => {
   const theme = useTheme()
+
   return (
     <Box
       onClick={onClick}
@@ -103,15 +104,15 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
       onClick: () => setOpenDiscard(true),
       tooltipContent: (
         <>
-          {/* {allStats?.total_egg_discarded && (
+          {allStats?.total_egg_discarded && (
             <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
               Discarded: <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded}</span>
             </p>
-          )} */}
+          )}
           {allStats?.total_egg_ready_to_be_discarded && (
             <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
               Marked for Discard:{' '}
-              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?. }</span>
+              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_ready_to_be_discarded}</span>
             </p>
           )}
           {allStats?.total_egg_discarded_at_site && (
