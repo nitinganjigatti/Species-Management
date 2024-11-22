@@ -77,7 +77,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const [filterList, setFilterList] = useState([])
 
-  const handleDropDownChange = event => {
+  const handleDropDownChange = async event => {
     setDiscardList([])
     setSelectedDropDown(event.target.value)
 
@@ -91,7 +91,66 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     if (event.target.value === 'all') {
       DiscardList(search, '', '')
     } else {
-      DiscardList(search, currentDate, fromDate)
+      // DiscardList(search, currentDate, fromDate)
+
+      try {
+        const nurseryIds = applyFilters.Nursery?.map(option => option.id)
+        const speciesIds = applyFilters.Species?.map(option => option.id)
+        const batchIds = applyFilters.Batch?.map(option => option.id)
+
+        // const conditionIds = applyFilters.Condition?.map(option => option.id)
+        const SecurityIds = applyFilters['Security status']?.map(option => option.id)
+        const reasonIds = applyFilters.Reason?.map(option => option.id)
+        const siteIds = applyFilters.Site?.map(option => option.id)
+
+        const param = {
+          ref_type: tabStatus,
+          sort: 'desc',
+          q: search,
+          page_no: page,
+          from_date: fromDate ? fromDate : '',
+          to_date: currentDate ? currentDate : '',
+          taxonomy_id: speciesIds.length > 0 ? JSON.stringify(speciesIds) : '',
+          batch_id: batchIds.length > 0 ? JSON.stringify(batchIds) : '',
+          nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
+          security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
+
+          // egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
+          egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : '',
+          site_id: siteIds.length > 0 ? JSON.stringify(siteIds) : ''
+        }
+
+        // console.log('param :>> ', param)
+
+        await getDashboardDiscardList(param).then(res => {
+          const list = res?.data?.data?.data
+
+          if (res?.data?.data.success) {
+            // setDiscardList(list?.result)
+            if (list?.result?.length > 0) {
+              if (showFilters) {
+                setDiscardList(list?.result)
+              } else {
+                setDiscardList(list?.result)
+              }
+
+              setListCount(list?.total_count)
+            } else {
+              // setDiscardList([discardList])
+              setListCount('0')
+            }
+            setReachedEnd(false)
+
+            // setLoader(false)
+          }
+        })
+      } catch (error) {
+        setLoader(false)
+
+        console.log('error :>> ', error)
+      } finally {
+        setLoader(false)
+      }
     }
   }
 
@@ -567,6 +626,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
+        console.log('...list?.result', ...list?.result)
 
         if (res?.data?.data.success) {
           // setDiscardList(list?.result)
