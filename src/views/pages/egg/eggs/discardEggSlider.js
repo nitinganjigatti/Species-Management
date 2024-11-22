@@ -932,6 +932,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setDiscardList={setDiscardList}
           setSearch={setSearch}
           setIsSearchOpen={setIsSearchOpen}
+          setSelectedDropDown={setSelectedDropDown}
         />
       )}
     </>

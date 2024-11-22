@@ -46,7 +46,8 @@ const DashboardFilter = ({
   filterList,
   setDiscardList,
   setSearch,
-  setIsSearchOpen
+  setIsSearchOpen,
+  setSelectedDropDown
 }) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
@@ -267,6 +268,7 @@ const DashboardFilter = ({
       ...selectedOptions.Reason,
       ...selectedOptions.Site
     ]
+    setSelectedDropDown('all')
 
     setFilterList(combinedSelectedOptions)
     setApplyFilters(selectedOptions)
