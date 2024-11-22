@@ -31,11 +31,13 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
   const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  console.log('isSearchOpen', isSearchOpen)
+
+  // console.log('isSearchOpen', isSearchOpen)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
-  console.log('discardList', discardList)
+
+  // console.log('discardList', discardList)
 
   // console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
@@ -223,7 +225,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         <Stack
           direction='row'
           sx={{
-            width: '562px',
+            width: filterList?.length ? '545px' : '562px',
             height: '60px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -283,7 +285,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                gap: 2,
+                gap: 1,
                 width: filterList?.length > 0 ? '50px' : '34px',
                 height: '36px',
                 border: 1,
@@ -626,7 +628,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
-        console.log('...list?.result', ...list?.result)
+
+        // console.log('...list?.result', ...list?.result)
 
         if (res?.data?.data.success) {
           // setDiscardList(list?.result)
