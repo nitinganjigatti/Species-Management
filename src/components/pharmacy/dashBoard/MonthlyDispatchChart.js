@@ -56,11 +56,9 @@ const MonthlyDispatchChart = () => {
     : []
 
   // Map the dispatch count and value based on the dynamic month order from API
-  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)?.reverse()
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
 
-  const purchaseValues = monthsFromApi
-    .map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
-    ?.reverse()
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
 
   // Convert to formatted short month and year (e.g., "Jan '24")
   const shortMonths = monthsFromApi.map(month => {
