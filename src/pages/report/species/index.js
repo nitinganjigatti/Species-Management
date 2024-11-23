@@ -24,32 +24,32 @@ const SpeciesReport = () => {
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: true },
-      { label: 'Order', key: 'include_order', checked: true },
-      { label: 'Family', key: 'include_family', checked: true },
-      { label: 'Genus', key: 'include_genus', checked: true }
+      { label: 'Class', key: 'include_class', checked: false },
+      { label: 'Order', key: 'include_order', checked: false },
+      { label: 'Family', key: 'include_family', checked: false },
+      { label: 'Genus', key: 'include_genus', checked: false }
     ],
     Housing: [
-      { label: 'Site', key: 'include_site', checked: true },
-      { label: 'Section', key: 'include_section', checked: true },
-      { label: 'Enclosure', key: 'include_enclosure', checked: true },
-      { label: 'Cluster', key: 'include_cluster', checked: true },
-      { label: 'Organisation', key: 'include_organization', checked: true }
+      { label: 'Site', key: 'include_site', checked: false },
+      { label: 'Section', key: 'include_section', checked: false },
+      { label: 'Enclosure', key: 'include_enclosure', checked: false },
+      { label: 'Cluster', key: 'include_cluster', checked: false },
+      { label: 'Organisation', key: 'include_organization', checked: false }
     ]
   })
 
   const [apiFilterParams, setApiFilterParams] = useState({
-    include_housing: 1,
-    include_enclosure: 1,
-    include_section: 1,
-    include_cluster: 1,
-    include_class: 1,
-    include_organization: 1,
-    include_order: 1,
-    include_family: 1,
-    include_genus: 1,
-    include_site: 1,
-    include_genus: 1
+    include_housing: 0,
+    include_enclosure: 0,
+    include_section: 0,
+    include_cluster: 0,
+    include_class: 0,
+    include_organization: 0,
+    include_order: 0,
+    include_family: 0,
+    include_genus: 0,
+    include_site: 0,
+    include_genus: 0
   })
 
   const handleClick = event => {
@@ -105,7 +105,6 @@ const SpeciesReport = () => {
         const csvUrl = response.data
         const link = document.createElement('a')
         link.href = csvUrl
-        debugger
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -202,7 +201,31 @@ const SpeciesReport = () => {
       setSelectedSite(value)
     }
 
-    debugger
+    // if (value.length > 1 && !value.includes('All Sites')) {
+    //   setPopoverData(prevData => {
+    //     const updatedData = {
+    //       ...prevData,
+    //       ['Housing']: prevData['Housing'].map((el, index) =>
+    //         el?.key === 'include_site' ? { ...el, checked: true } : el
+    //       )
+    //     }
+
+    //     return updatedData
+    //   })
+    //   params = { ...params, include_site: 1 }
+    // } else {
+    //   setPopoverData(prevData => {
+    //     const updatedData = {
+    //       ...prevData,
+    //       ['Housing']: prevData['Housing'].map((el, index) =>
+    //         el?.key === 'include_site' ? { ...el, checked: false } : el
+    //       )
+    //     }
+
+    //     return updatedData
+    //   })
+    //   params = { ...params, include_site: 0 }
+    // }
     setPaginationModel({ ...paginationModel, page: 0 })
     setApiFilterParams(params)
     // await fetchData({ ...params }, { ...paginationModel, page: 0 })
@@ -219,7 +242,6 @@ const SpeciesReport = () => {
 
   const fetchData = useCallback(
     async (param, paginationModel) => {
-      debugger
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
@@ -236,7 +258,6 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    debugger
     fetchData(apiFilterParams, paginationModel)
   }, [fetchData])
 
