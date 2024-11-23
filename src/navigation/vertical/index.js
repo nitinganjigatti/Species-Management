@@ -35,6 +35,11 @@ const ComposeNavigation = () => {
   const dashboardNav = dashboardNavigation()
   navigationArray.push(...dashboardNav)
 
+  if (reports_module) {
+    const reportNav = reportNavigation({ reports_module })
+    navigationArray.push(...reportNav)
+  }
+
   if (pharmacyList?.length > 0 || pharmacyRole) {
     const pharmacyNav = pharmacyNavigation({ pharmacyList, pharmacyRole, selectedPharmacy: selectedPharmacy })
     navigationArray.push(...pharmacyNav)
@@ -57,11 +62,6 @@ const ComposeNavigation = () => {
   if (pariveshAccess) {
     const pariveshNav = pariveshNavigation()
     navigationArray.push(...pariveshNav)
-  }
-
-  if (reports_module) {
-    const reportNav = reportNavigation({ reports_module })
-    navigationArray.push(...reportNav)
   }
 
   const medicalNav = medicalNavigation({
