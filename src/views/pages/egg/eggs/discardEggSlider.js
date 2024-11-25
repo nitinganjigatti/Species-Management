@@ -82,6 +82,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const handleDropDownChange = async event => {
     setDiscardList([])
     setSelectedDropDown(event.target.value)
+    setLoader(true)
 
     setListCount('')
     const currentDate = moment().format('YYYY-MM-DD')
@@ -143,7 +144,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             }
             setReachedEnd(false)
 
-            // setLoader(false)
+            setLoader(false)
           }
         })
       } catch (error) {
@@ -800,32 +801,30 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {
-                  discardList?.map((item, index) => (
-                    <Card key={index} list={item} />
-                  ))
+                {discardList?.map((item, index) => (
+                  <Card key={index} list={item} />
+                ))}
 
-                  // listCount > 0 ? (
-                  // ) : (
-                  //   <Typography
-                  //     sx={{
-                  //       color: '#000000',
-                  //       fontSize: '16px',
-                  //       fontWeight: '500',
-                  //       lineHeight: '19.36px',
-                  //       overflow: 'hidden',
-                  //       textAlign: 'center',
-                  //       mt: 5,
+                {listCount == 0 && !loader && (
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textAlign: 'center',
+                      mt: 5,
 
-                  //       // textOverflow: 'ellipsis',
-                  //       whiteSpace: 'nowrap',
-                  //       boxSizing: 'border-box'
-                  //     }}
-                  //   >
-                  //     No records
-                  //   </Typography>
-                  // )
-                }
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    No records
+                  </Typography>
+                )}
+
                 {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     {/* {console.log('loader when scroll', loader)} */}
@@ -851,32 +850,30 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   scrollbarWidth: 'none'
                 }}
               >
-                {
-                  discardList?.map((item, index) => (
-                    <Card key={index} list={item} />
-                  ))
+                {discardList?.map((item, index) => (
+                  <Card key={index} list={item} />
+                ))}
 
-                  // listCount > 0 ? (
-                  // ) : (
-                  //   <Typography
-                  //     sx={{
-                  //       color: '#000000',
-                  //       fontSize: '16px',
-                  //       fontWeight: '500',
-                  //       lineHeight: '19.36px',
-                  //       overflow: 'hidden',
-                  //       textAlign: 'center',
-                  //       mt: 5,
+                {listCount == 0 && !loader && (
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textAlign: 'center',
+                      mt: 5,
 
-                  //       // textOverflow: 'ellipsis',
-                  //       whiteSpace: 'nowrap',
-                  //       boxSizing: 'border-box'
-                  //     }}
-                  //   >
-                  //     No records
-                  //   </Typography>
-                  // )
-                }
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    No records
+                  </Typography>
+                )}
+
                 {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     {console.log('loader when scroll', loader)}
