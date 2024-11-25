@@ -720,6 +720,14 @@ const RequestDetails = () => {
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
+                        Medical Record{' '}
+                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                          {item?.medical_record_id}
+                        </span>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                      <Typography>
                         Requested By{' '}
                         <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
                           {item?.user_first_name}
