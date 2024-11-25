@@ -515,9 +515,9 @@ const AddRequestForm = () => {
           request_item_qty: el?.qty,
           request_item_leaf_id: el?.stock_item_id,
           priority_item: el?.priority,
-          control_substance: el?.control_substance === '0' ? false : true,
+          control_substance: el?.control_substance === '1' ? true : false,
           control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
-          prescription_required: el?.prescription_required === '0' ? false : true,
+          prescription_required: el?.prescription_required === '1' ? true : false,
           prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
           id: el?.id,
           request_item_detail_id: el?.id,
@@ -771,12 +771,12 @@ const AddRequestForm = () => {
                 //   </Box>
                 // )}
               />
-              {nestedRowMedicine.medicine_name && (
-                <Grid container item sx={{ my: 2 }}>
-                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
-                    <Tooltip title={nestedRowMedicine.package}>
+              {nestedRowMedicine?.medicine_name && (
+                <Grid container item sx={{ my: { xs: 0, md: 1 }, gap: { md: 1, lg: 1, xs: 0 } }}>
+                  <Grid item xs={12} md={5} sx={{ my: { xs: 1, md: 0 } }}>
+                    <Tooltip title={nestedRowMedicine?.package}>
                       <Chip
-                        label={nestedRowMedicine.package}
+                        label={nestedRowMedicine?.package}
                         color='primary'
                         variant='outlined'
                         size='sm'
@@ -785,9 +785,9 @@ const AddRequestForm = () => {
                     </Tooltip>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <Tooltip title={nestedRowMedicine.manufacture}>
+                    <Tooltip title={nestedRowMedicine?.manufacture}>
                       <Chip
-                        label={nestedRowMedicine.manufacture}
+                        label={nestedRowMedicine?.manufacture}
                         color='primary'
                         variant='outlined'
                         size='sm'
@@ -795,10 +795,10 @@ const AddRequestForm = () => {
                       />
                     </Tooltip>
                   </Grid>
-                  {nestedRowMedicine.control_substance === true && (
+                  {nestedRowMedicine?.control_substance === true && (
                     <CustomChip sx={{ mt: 1, mx: 1 }} label='CS' skin='light' color='success' size='small' />
                   )}
-                  {nestedRowMedicine.prescription_required === true && (
+                  {nestedRowMedicine?.prescription_required === true && (
                     <CustomChip sx={{ mt: 1 }} label='PR' skin='light' color='success' size='small' />
                   )}
                 </Grid>
@@ -815,7 +815,7 @@ const AddRequestForm = () => {
               )}
             </FormControl>
           </Grid>
-          {console.log('optionsMedicineList', optionsMedicineList)}
+
           <Grid item xs={12} sm={1}>
             <Typography sx={{ my: 4, textAlign: 'center' }}>OR</Typography>
           </Grid>
@@ -892,8 +892,8 @@ const AddRequestForm = () => {
                 // )}
               />
               {nestedRowMedicine.medicine_name && (
-                <Grid container item sx={{ my: 2 }}>
-                  <Grid item xs={12} md={6} sx={{ my: { xs: 4, md: 0 } }}>
+                <Grid container item sx={{ my: { xs: 0, md: 1 }, gap: { md: 1, lg: 1, xs: 0 } }}>
+                  <Grid item xs={12} md={5} sx={{ my: { xs: 1, md: 0 } }}>
                     <Tooltip title={nestedRowMedicine.package}>
                       <Chip
                         label={nestedRowMedicine.package}

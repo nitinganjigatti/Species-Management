@@ -12,6 +12,7 @@ import {
   MenuItem,
   Button,
   Typography,
+  Tooltip,
   Box
 } from '@mui/material'
 import * as yup from 'yup'
@@ -352,9 +353,12 @@ export const AddItemsForm = ({
   return (
     <>
       {/* <CardContent> */}
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={6}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} sm={12} xs={12}>
+          <Grid item xs={12} sm={6} lg={6}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
@@ -422,26 +426,34 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
               )}
               {watch('packageDetails') && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={watch('packageDetails')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
-                  />
-                  <Chip
-                    label={watch('manufacture')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
+                <Grid container item sx={{ my: { xs: 0, md: 1 }, gap: { md: 1, lg: 1, xs: 0 } }}>
+                  <Grid item xs={12} md={5} sx={{ my: { xs: 1, md: 0 } }}>
+                    <Tooltip title={watch('packageDetails')}>
+                      <Chip
+                        label={watch('packageDetails')}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                  <Grid item xs={12} md={5}>
+                    <Tooltip title={watch('manufacture')}>
+                      <Chip
+                        label={watch('manufacture')}
+                        color='primary'
+                        variant='outlined'
+                        size='sm'
+                        sx={{ mr: 2, fontSize: 11, height: '22px', width: 'full' }}
+                      />
+                    </Tooltip>
+                  </Grid>
+                </Grid>
               )}
             </FormControl>
             {watch('packageDetails') && (
-              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+              <Typography sx={{ color: 'primary.main', fontSize: 14, textAlign: 'start', mx: '5px' }}>
                 {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
               </Typography>
             )}
@@ -469,9 +481,7 @@ export const AddItemsForm = ({
                       clearErrors('request_item_batch_no')
                       setQuantityError(false)
                       checkTotalCount()
-
-                      // seValu
-                    }} // Set selected value
+                    }}
                     loading={batchLoading}
                     noOptionsText='Type to search'
                     renderInput={params => (
@@ -489,7 +499,7 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
                   Available Quantity:{getValues('available_item_qty')}
                 </Typography>
               ) : null}
