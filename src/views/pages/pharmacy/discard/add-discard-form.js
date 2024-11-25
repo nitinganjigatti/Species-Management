@@ -308,8 +308,11 @@ export const AddItemsForm = ({
   return (
     <>
       {/* <CardContent> */}
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
@@ -405,7 +408,7 @@ export const AddItemsForm = ({
               )}
             </FormControl>
             {watch('packageDetails') && (
-              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+              <Typography sx={{ color: 'primary.main', fontSize: 14, textAlign: 'start', mx: '5px' }}>
                 {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
               </Typography>
             )}
@@ -451,7 +454,7 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
                   Available Quantity:{getValues('available_item_qty')}
                 </Typography>
               ) : null}
