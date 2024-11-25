@@ -47,24 +47,47 @@ const MonthlyPurchaseChart = () => {
     December: 'Dec'
   }
 
-  // Extract and dynamically sort months
+  // Use a more concise month-to-index map
+  const monthToIndex = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
+  }
+
+  // Sort the keys in chronological order
   const monthsFromApi = purchaseList?.purchase_count[0]
-    ? Object.keys(purchaseList.purchase_count[0]).sort((a, b) => new Date(`1 ${a}`) - new Date(`1 ${b}`)) // Sort by date
+    ? Object.keys(purchaseList.purchase_count[0]).sort((a, b) => {
+        const parseMonthYear = monthYear => {
+          const [month, year] = monthYear.split(" '")
+          const monthIndex = monthToIndex[month] // Map month to index
+          const fullYear = parseInt(year, 10) + 2000 // Convert 'YY to YYYY
+          return new Date(fullYear, monthIndex) // Create Date object for accurate comparison
+        }
+
+        const dateA = parseMonthYear(a)
+        const dateB = parseMonthYear(b)
+
+        return dateA - dateB // Sort using the Date objects
+      })
     : []
 
-  // Map the purchase count and value based on the dynamic month order from API
-  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.purchase_count[0]?.[month]) || 0)?.reverse()
+  // Map the data into sorted arrays
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList.purchase_count[0][month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList.purchase_value[0][month]) / 100000 || 0)
 
-  const purchaseValues = monthsFromApi
-    .map(month => parseFloat(purchaseList?.purchase_value[0]?.[month] || 0) / 100000)
-    ?.reverse()
-
-  // Convert to formatted short month and year (e.g., "Jan '24")
   const shortMonths = monthsFromApi.map(month => {
     const [monthName, year] = month.split(' ')
     return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
   })
-
   // Conditionally add series based on checkbox selections
   const series = []
   if (showPurchaseCount) {
