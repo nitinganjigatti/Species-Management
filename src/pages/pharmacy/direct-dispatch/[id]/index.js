@@ -1069,158 +1069,169 @@ const IndividualRequest = () => {
                 </Box>
                 <Box>
                   <TabContext value={value}>
-                    <TabList onChange={handleChange} sx={{ p: 4 }}>
-                      <Tab value='dispatch' label='Dispatch items' />
-                      <Tab value='shipment' label='Shipment' />
-                    </TabList>
-                    <TabPanel value='dispatch'>
-                      <CardHeader
+                    <Box sx={{ width: '100%' }}>
+                      <TabList
+                        onChange={handleChange}
                         sx={{
-                          p: 0,
-                          mb: 6,
-                          color: 'customColors.customTextColorGray2',
-                          fontSize: '16px',
-                          fontWeight: 500
-                        }}
-                        title={`Dispatch Items`}
-                        action={
-                          selectedPharmacy?.type === 'central' &&
-                          shippedItems.length === 0 &&
-                          requestItems.status !== 'Cancelled' &&
-                          (selectedPharmacy?.permission.key === 'allow_full_access' ||
-                            selectedPharmacy?.permission.key === 'ADD') ? (
-                            <Button
-                              size='large'
-                              variant='contained'
-                              onClick={() => {
-                                handleEdit(id)
-                              }}
-                            >
-                              Edit
-                            </Button>
-                          ) : null
-                        }
-                      />
-
-                      {requestItems?.request_item_details?.length > 0 ? (
-                        <TableBasic
-                          rowHeight={90}
-                          columns={columns}
-                          rows={requestItems?.request_item_details}
-                          backgroundColor={'customColors.customTableHeaderBg'}
-                        ></TableBasic>
-                      ) : (
-                        <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No shipped items' />
-                      )}
-                    </TabPanel>
-                    <TabPanel value='shipment'>
-                      <Grid
-                        sx={{
-                          width: '100%',
-                          px: '0 !important'
+                          p: 4,
+                          [`& .css-1pyy021-MuiTabs-flexContainer`]: {
+                            borderBottom: '1px solid',
+                            borderColor: 'customColors.neutral05'
+                          }
                         }}
                       >
-                        <TabContext value={shipmentTab}>
-                          <TabLists
-                            onChange={(event, newValue) => {
-                              setShipmentTab(newValue)
-                            }}
-                            sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
-                          >
-                            <Tab
+                        <Tab value='dispatch' label='Dispatch items' />
+                        <Tab value='shipment' label='Shipment' />
+                      </TabList>
+                      <TabPanel value='dispatch'>
+                        <CardHeader
+                          sx={{
+                            p: 0,
+                            mb: 6,
+                            color: 'customColors.customTextColorGray2',
+                            fontSize: '16px',
+                            fontWeight: 500
+                          }}
+                          title={`Dispatch Items`}
+                          action={
+                            selectedPharmacy?.type === 'central' &&
+                            shippedItems.length === 0 &&
+                            requestItems.status !== 'Cancelled' &&
+                            (selectedPharmacy?.permission.key === 'allow_full_access' ||
+                              selectedPharmacy?.permission.key === 'ADD') ? (
+                              <Button
+                                size='large'
+                                variant='contained'
+                                onClick={() => {
+                                  handleEdit(id)
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            ) : null
+                          }
+                        />
+
+                        {requestItems?.request_item_details?.length > 0 ? (
+                          <TableBasic
+                            rowHeight={90}
+                            columns={columns}
+                            rows={requestItems?.request_item_details}
+                            backgroundColor={'customColors.customTableHeaderBg'}
+                          ></TableBasic>
+                        ) : (
+                          <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No shipped items' />
+                        )}
+                      </TabPanel>
+                      <TabPanel value='shipment'>
+                        <Grid
+                          sx={{
+                            width: '100%',
+                            px: '0 !important'
+                          }}
+                        >
+                          <TabContext value={shipmentTab}>
+                            <TabLists
+                              onChange={(event, newValue) => {
+                                setShipmentTab(newValue)
+                              }}
+                              sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
+                            >
+                              <Tab
+                                value='Ready To Ship'
+                                label={
+                                  <TabBadge
+                                    label='Ready To Ship'
+                                    totalCount={shipmentTab === 'Ready To Ship' ? 0 : null}
+                                  />
+                                }
+                              />
+                              <Tab
+                                value='Shipped'
+                                label={<TabBadge label='Shipped' totalCount={shipmentTab === 'Shipped' ? 0 : null} />}
+                              />
+                            </TabLists>
+                            <TabPanel
                               value='Ready To Ship'
-                              label={
-                                <TabBadge
-                                  label='Ready To Ship'
-                                  totalCount={shipmentTab === 'Ready To Ship' ? 0 : null}
-                                />
-                              }
-                            />
-                            <Tab
+                              sx={{
+                                padding: '0px !important'
+                              }}
+                            >
+                              {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' ? (
+                                <>
+                                  <CardHeader
+                                    sx={{ p: 0, mb: 6 }}
+                                    // title={`Fulfillment`}
+                                    action={
+                                      selectedPharmacy.type === 'central' &&
+                                      requestItems.status !== 'Cancelled' &&
+                                      (selectedPharmacy.permission.key === 'ADD' ||
+                                        selectedPharmacy.permission.key === 'allow_full_access') && (
+                                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                          <Button
+                                            size='large'
+                                            variant='contained'
+                                            // onClick={() => {
+                                            //   // openShipDialog()
+
+                                            //   Router.push({
+                                            //     pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
+                                            //     query: {}
+                                            //   })
+                                            // }}
+                                            onClick={handleNavigate}
+                                          >
+                                            {/* Ship */}
+                                            Ship all items
+                                          </Button>
+                                        </Grid>
+                                      )
+                                    }
+                                  ></CardHeader>
+                                  <TableBasic
+                                    rowHeight={90}
+                                    columns={fulfillColumns}
+                                    rows={dispatchedItems}
+                                    backgroundColor={'customColors.customTableHeaderBg'}
+                                  ></TableBasic>
+                                </>
+                              ) : (
+                                <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No ship items' />
+                              )}
+                            </TabPanel>
+                            <TabPanel
                               value='Shipped'
-                              label={<TabBadge label='Shipped' totalCount={shipmentTab === 'Shipped' ? 0 : null} />}
-                            />
-                          </TabLists>
-                          <TabPanel
-                            value='Ready To Ship'
-                            sx={{
-                              padding: '0px !important'
-                            }}
-                          >
-                            {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' ? (
-                              <>
-                                <CardHeader
-                                  sx={{ p: 0, mb: 6 }}
-                                  // title={`Fulfillment`}
-                                  action={
-                                    selectedPharmacy.type === 'central' &&
-                                    requestItems.status !== 'Cancelled' &&
-                                    (selectedPharmacy.permission.key === 'ADD' ||
-                                      selectedPharmacy.permission.key === 'allow_full_access') && (
-                                      <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                                        <Button
-                                          size='large'
-                                          variant='contained'
-                                          // onClick={() => {
-                                          //   // openShipDialog()
+                              sx={{
+                                padding: '0px !important'
+                              }}
+                            >
+                              {shippedItems?.length > 0 ? (
+                                <>
+                                  {/* <CardHeader title={`Shipment`}></CardHeader> */}
 
-                                          //   Router.push({
-                                          //     pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
-                                          //     query: {}
-                                          //   })
-                                          // }}
-                                          onClick={handleNavigate}
-                                        >
-                                          {/* Ship */}
-                                          Ship all items
-                                        </Button>
-                                      </Grid>
-                                    )
-                                  }
-                                ></CardHeader>
-                                <TableBasic
-                                  rowHeight={90}
-                                  columns={fulfillColumns}
-                                  rows={dispatchedItems}
-                                  backgroundColor={'customColors.customTableHeaderBg'}
-                                ></TableBasic>
-                              </>
-                            ) : (
-                              <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No ship items' />
-                            )}
-                          </TabPanel>
-                          <TabPanel
-                            value='Shipped'
-                            sx={{
-                              padding: '0px !important'
-                            }}
-                          >
-                            {shippedItems?.length > 0 ? (
-                              <>
-                                {/* <CardHeader title={`Shipment`}></CardHeader> */}
-
-                                <TableBasic
-                                  columns={shippedColumns}
-                                  rows={shippedItems}
-                                  backgroundColor={'customColors.customTableHeaderBg'}
-                                  onRowClick={e => {
-                                    setOrderId(e.id)
-                                    // showOrderFormDialog()
-                                    setOrderId(e.id)
-                                    Router.push({
-                                      pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
-                                      query: { orderId: e.id }
-                                    })
-                                  }}
-                                ></TableBasic>
-                              </>
-                            ) : (
-                              <EmptyStateBox imageSrc='/images/out-of-stock.png' text=' No shipped items' />
-                            )}
-                          </TabPanel>
-                        </TabContext>
-                      </Grid>
-                    </TabPanel>
+                                  <TableBasic
+                                    columns={shippedColumns}
+                                    rows={shippedItems}
+                                    backgroundColor={'customColors.customTableHeaderBg'}
+                                    onRowClick={e => {
+                                      setOrderId(e.id)
+                                      // showOrderFormDialog()
+                                      setOrderId(e.id)
+                                      Router.push({
+                                        pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
+                                        query: { orderId: e.id }
+                                      })
+                                    }}
+                                  ></TableBasic>
+                                </>
+                              ) : (
+                                <EmptyStateBox imageSrc='/images/out-of-stock.png' text=' No shipped items' />
+                              )}
+                            </TabPanel>
+                          </TabContext>
+                        </Grid>
+                      </TabPanel>
+                    </Box>
                   </TabContext>
                 </Box>
               </Card>

@@ -972,7 +972,16 @@ const IndividualReturnRequest = () => {
                 </Box>
 
                 <TabContext value={value}>
-                  <TabList onChange={handleChange} sx={{ p: 4 }}>
+                  <TabList
+                    onChange={handleChange}
+                    sx={{
+                      p: 4,
+                      [`& .css-1pyy021-MuiTabs-flexContainer`]: {
+                        borderBottom: '1px solid',
+                        borderColor: 'customColors.neutral05'
+                      }
+                    }}
+                  >
                     <Tab value='returnItems' label='Return Items' />
                     <Tab value='shipment' label='shipment' />
                   </TabList>

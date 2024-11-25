@@ -1029,7 +1029,22 @@ const AddDiscardProducts = () => {
                 Reason for Discard:
               </Typography>
             </Box>
-            <Typography variant='body1' sx={{ fontSize: '16px', fontWeight: 600, color: 'customColors.moderateRed' }}>
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '16px',
+                fontWeight: 600,
+                color: () => {
+                  if (selectedComment?.reason === 'Expired') {
+                    return 'customColors.moderateTableRed'
+                  } else if (selectedComment?.reason === 'About to expire') {
+                    return 'customColors.customDropdownColor'
+                  } else {
+                    return 'customColors.moderateSecondary'
+                  }
+                }
+              }}
+            >
               {selectedComment?.reason}
             </Typography>
           </Box>
