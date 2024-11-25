@@ -50,7 +50,6 @@ const MonthlyDispatchChart = () => {
     December: 'Dec'
   }
 
-  // Use a more concise month-to-index map
   const monthToIndex = {
     Jan: 0,
     Feb: 1,
@@ -71,19 +70,18 @@ const MonthlyDispatchChart = () => {
     ? Object.keys(purchaseList.dispatch_count[0]).sort((a, b) => {
         const parseMonthYear = monthYear => {
           const [month, year] = monthYear.split(" '")
-          const monthIndex = monthToIndex[month] // Map month to index
-          const fullYear = parseInt(year, 10) + 2000 // Convert 'YY to YYYY
-          return new Date(fullYear, monthIndex) // Create Date object for accurate comparison
+          const monthIndex = monthToIndex[month]
+          const fullYear = parseInt(year, 10) + 2000
+          return new Date(fullYear, monthIndex)
         }
 
         const dateA = parseMonthYear(a)
         const dateB = parseMonthYear(b)
 
-        return dateA - dateB // Sort using the Date objects
+        return dateA - dateB
       })
     : []
 
-  // Map the data into sorted arrays
   const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList.dispatch_count[0][month]) || 0)
   const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList.dispatch_value[0][month]) / 100000 || 0)
 
@@ -92,7 +90,6 @@ const MonthlyDispatchChart = () => {
     return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
   })
 
-  // Conditionally add series based on checkbox selections
   const series = []
   if (showDispatchCount) {
     series.push({

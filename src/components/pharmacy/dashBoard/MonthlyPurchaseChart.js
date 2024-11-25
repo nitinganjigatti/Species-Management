@@ -31,7 +31,6 @@ const MonthlyPurchaseChart = () => {
     getMonthlyPurchases()
   }, [])
 
-  // Create a mapping for full month names to short month names
   const monthMapping = {
     January: 'Jan',
     February: 'Feb',
@@ -47,7 +46,6 @@ const MonthlyPurchaseChart = () => {
     December: 'Dec'
   }
 
-  // Use a more concise month-to-index map
   const monthToIndex = {
     Jan: 0,
     Feb: 1,
@@ -63,20 +61,19 @@ const MonthlyPurchaseChart = () => {
     Dec: 11
   }
 
-  // Sort the keys in chronological order
   const monthsFromApi = purchaseList?.purchase_count[0]
     ? Object.keys(purchaseList.purchase_count[0]).sort((a, b) => {
         const parseMonthYear = monthYear => {
           const [month, year] = monthYear.split(" '")
-          const monthIndex = monthToIndex[month] // Map month to index
-          const fullYear = parseInt(year, 10) + 2000 // Convert 'YY to YYYY
-          return new Date(fullYear, monthIndex) // Create Date object for accurate comparison
+          const monthIndex = monthToIndex[month]
+          const fullYear = parseInt(year, 10) + 2000
+          return new Date(fullYear, monthIndex)
         }
 
         const dateA = parseMonthYear(a)
         const dateB = parseMonthYear(b)
 
-        return dateA - dateB // Sort using the Date objects
+        return dateA - dateB
       })
     : []
 
