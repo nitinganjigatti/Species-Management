@@ -220,9 +220,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                                {formData.portion_size
-                                  ? formData.portion_size + ' ' + formData.portion_uom_name
-                                  : '0' + formData.portion_uom_name}
+                                {formData.portion_size !== '0'
+                                  ? formData.portion_size + ' ' + (formData.portion_uom_name || '')
+                                  : '0' + ' g'}
                               </Typography>
                             </Box>
                           </Box>
@@ -264,7 +264,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                                {formData.kcal + ' Kcal'}
+                                {formData.kcal ? formData.kcal + ' Kcal' : ' 0 Kcal'}
                               </Typography>
                             </Box>
                           </Box>
