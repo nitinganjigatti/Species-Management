@@ -26,7 +26,8 @@ import {
   AccordionDetails,
   FormControlLabel,
   Button,
-  Breadcrumbs
+  Breadcrumbs,
+  Tooltip
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
@@ -1523,7 +1524,14 @@ const AddLab = () => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                     >
-                      <Typography variant='h6'>{sample?.sample_name}</Typography>
+                      <Tooltip title={sample?.sample_name ? sample?.sample_name : '-'}>
+                        <Typography
+                          variant='h6'
+                          sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}
+                        >
+                          {sample?.sample_name}
+                        </Typography>
+                      </Tooltip>
                       <Typography sx={{ alignItems: 'center', display: 'flex' }}>
                         Select All
                         <Switch
@@ -1542,7 +1550,19 @@ const AddLab = () => {
                               aria-controls='panel1a-content'
                               id='panel1a-header'
                             >
-                              <Typography variant='h6'>{parent?.test_name}</Typography>
+                              <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
+                                <Typography
+                                  variant='h6'
+                                  sx={{
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxWidth: 200
+                                  }}
+                                >
+                                  {parent?.test_name}
+                                </Typography>
+                              </Tooltip>
                             </AccordionSummary>
                             <AccordionDetails>
                               <Stack
@@ -1564,7 +1584,18 @@ const AddLab = () => {
                                     key={child?.test_id}
                                     sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}
                                   >
-                                    <Typography>{child?.test_name}</Typography>
+                                    <Tooltip title={child?.test_name ? child?.test_name : '-'}>
+                                      <Typography
+                                        sx={{
+                                          whiteSpace: 'nowrap',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          maxWidth: 200
+                                        }}
+                                      >
+                                        {child?.test_name}
+                                      </Typography>
+                                    </Tooltip>
                                     <Checkbox
                                       checked={child?.value}
                                       onClick={(e, v) => {
@@ -1583,9 +1614,20 @@ const AddLab = () => {
                             direction='row'
                             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
                           >
-                            <Typography variant='h6' ml={4}>
-                              {parent?.test_name}
-                            </Typography>
+                            <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
+                              <Typography
+                                variant='h6'
+                                ml={4}
+                                sx={{
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  maxWidth: 200
+                                }}
+                              >
+                                {parent?.test_name}
+                              </Typography>
+                            </Tooltip>
                             <Checkbox
                               checked={parent?.full_test}
                               onClick={(e, v) => handleTestFullTestSwitch(sample, parent, e.target.checked)}

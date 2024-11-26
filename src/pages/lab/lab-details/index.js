@@ -1,5 +1,5 @@
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { Box, Breadcrumbs, Grid, Tab, Typography } from '@mui/material'
+import { Box, Breadcrumbs, Card, Grid, Tab, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Equipments from 'src/components/lab/lab-details/Equipments'
 import OverView from 'src/components/lab/lab-details/OverView'
@@ -70,6 +70,7 @@ const LabDetails = () => {
               Lab details
             </Typography>
           </Breadcrumbs>
+
           <Grid container spacing={2}>
             <Grid item md={3}>
               <ShowLabCard data={showLabDetails} />
