@@ -271,7 +271,7 @@ const ListOfLab = () => {
                   Labs
                 </Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-                  Lab list
+                  Labs list
                 </Typography>
               </Breadcrumbs>
               <Card>

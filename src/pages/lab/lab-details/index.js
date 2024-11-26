@@ -64,7 +64,7 @@ const LabDetails = () => {
                 })
               }
             >
-              Labs lists
+              Labs list
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
               Lab details

@@ -440,7 +440,7 @@ const ListOfRequest = () => {
               Labs
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-              Requests lists
+              Requests list
             </Typography>
           </Breadcrumbs>
           <Card key={selectedLab}>

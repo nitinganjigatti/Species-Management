@@ -936,7 +936,7 @@ const AddLab = () => {
                     })
                   }
                 >
-                  Lab lists
+                  Lab list
                 </Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
                   Add lab

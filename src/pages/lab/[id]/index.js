@@ -708,7 +708,7 @@ const RequestDetails = () => {
                 })
               }
             >
-              Request lists
+              Requests list
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
               Lab request details
