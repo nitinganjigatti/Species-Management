@@ -31,10 +31,13 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
   const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
-  console.log('isSearchOpen', isSearchOpen)
+
+  // console.log('isSearchOpen', isSearchOpen)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [discardList, setDiscardList] = useState([])
+
+  // console.log('discardList', discardList)
 
   // console.log('discardList :>> ', discardList)
   const [listCount, setListCount] = useState('')
@@ -76,9 +79,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const [filterList, setFilterList] = useState([])
 
-  const handleDropDownChange = event => {
-    setSelectedDropDown(event.target.value)
+  const handleDropDownChange = async event => {
     setDiscardList([])
+    setSelectedDropDown(event.target.value)
+    setLoader(true)
+
     setListCount('')
     const currentDate = moment().format('YYYY-MM-DD')
 
@@ -89,9 +94,72 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     if (event.target.value === 'all') {
       DiscardList(search, '', '')
     } else {
-      DiscardList(search, currentDate, fromDate)
+      // DiscardList(search, currentDate, fromDate)
+
+      try {
+        const nurseryIds = applyFilters.Nursery?.map(option => option.id)
+        const speciesIds = applyFilters.Species?.map(option => option.id)
+        const batchIds = applyFilters.Batch?.map(option => option.id)
+
+        // const conditionIds = applyFilters.Condition?.map(option => option.id)
+        const SecurityIds = applyFilters['Security status']?.map(option => option.id)
+        const reasonIds = applyFilters.Reason?.map(option => option.id)
+        const siteIds = applyFilters.Site?.map(option => option.id)
+
+        const param = {
+          ref_type: tabStatus,
+          sort: 'desc',
+          q: search,
+          page_no: page,
+          from_date: fromDate ? fromDate : '',
+          to_date: currentDate ? currentDate : '',
+          taxonomy_id: speciesIds.length > 0 ? JSON.stringify(speciesIds) : '',
+          batch_id: batchIds.length > 0 ? JSON.stringify(batchIds) : '',
+          nursery_id: nurseryIds.length > 0 ? JSON.stringify(nurseryIds) : '',
+          security_status: SecurityIds.length > 0 ? JSON.stringify(SecurityIds) : '',
+
+          // egg_condition_id: conditionIds.length > 0 ? JSON.stringify(conditionIds) : '',
+          egg_state_id: reasonIds.length > 0 ? JSON.stringify(reasonIds) : '',
+          site_id: siteIds.length > 0 ? JSON.stringify(siteIds) : ''
+        }
+
+        // console.log('param :>> ', param)
+
+        await getDashboardDiscardList(param).then(res => {
+          const list = res?.data?.data?.data
+
+          if (res?.data?.data.success) {
+            // setDiscardList(list?.result)
+            if (list?.result?.length > 0) {
+              if (showFilters) {
+                setDiscardList(list?.result)
+              } else {
+                setDiscardList(list?.result)
+              }
+
+              setListCount(list?.total_count)
+            } else {
+              // setDiscardList([discardList])
+              setListCount('0')
+            }
+            setReachedEnd(false)
+
+            setLoader(false)
+          }
+        })
+      } catch (error) {
+        setLoader(false)
+
+        console.log('error :>> ', error)
+      } finally {
+        setLoader(false)
+      }
     }
   }
+
+  useEffect(() => {
+    setDiscardList([])
+  }, [selectedDropDown])
 
   const handleTabChange = (event, value) => {
     setTabStatus(value)
@@ -158,7 +226,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         <Stack
           direction='row'
           sx={{
-            width: '562px',
+            width: filterList?.length ? '545px' : '562px',
             height: '60px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -202,7 +270,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 labelId='dropdown-label'
                 id='dropdown'
                 value={selectedDropDown}
-                onChange={handleDropDownChange}
+                onChange={event => {
+                  handleDropDownChange(event) // Call the function with the event
+                }}
                 sx={{ height: '36px' }}
               >
                 <MenuItem value='all'>All</MenuItem>
@@ -216,7 +286,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                gap: 2,
+                gap: 1,
                 width: filterList?.length > 0 ? '50px' : '34px',
                 height: '36px',
                 border: 1,
@@ -560,6 +630,8 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
       await getDashboardDiscardList(param).then(res => {
         const list = res?.data?.data?.data
 
+        // console.log('...list?.result', ...list?.result)
+
         if (res?.data?.data.success) {
           // setDiscardList(list?.result)
           if (list?.result?.length > 0) {
@@ -724,37 +796,35 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   bgcolor: '#eff5f2',
                   py: 2,
                   pb: 20,
-                  height: 'calc(100vh - 310px)',
+                  height: '535px',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
               >
-                {
-                  discardList?.map((item, index) => (
-                    <Card key={index} list={item} />
-                  ))
+                {discardList?.map((item, index) => (
+                  <Card key={index} list={item} />
+                ))}
 
-                  // listCount > 0 ? (
-                  // ) : (
-                  //   <Typography
-                  //     sx={{
-                  //       color: '#000000',
-                  //       fontSize: '16px',
-                  //       fontWeight: '500',
-                  //       lineHeight: '19.36px',
-                  //       overflow: 'hidden',
-                  //       textAlign: 'center',
-                  //       mt: 5,
+                {listCount == 0 && !loader && (
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textAlign: 'center',
+                      mt: 5,
 
-                  //       // textOverflow: 'ellipsis',
-                  //       whiteSpace: 'nowrap',
-                  //       boxSizing: 'border-box'
-                  //     }}
-                  //   >
-                  //     No records
-                  //   </Typography>
-                  // )
-                }
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    No records
+                  </Typography>
+                )}
+
                 {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     {/* {console.log('loader when scroll', loader)} */}
@@ -775,37 +845,35 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   bgcolor: '#eff5f2',
                   py: 2,
                   pb: 20,
-                  height: 'calc(100vh - 310px)',
+                  height: '535px',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
               >
-                {
-                  discardList?.map((item, index) => (
-                    <Card key={index} list={item} />
-                  ))
+                {discardList?.map((item, index) => (
+                  <Card key={index} list={item} />
+                ))}
 
-                  // listCount > 0 ? (
-                  // ) : (
-                  //   <Typography
-                  //     sx={{
-                  //       color: '#000000',
-                  //       fontSize: '16px',
-                  //       fontWeight: '500',
-                  //       lineHeight: '19.36px',
-                  //       overflow: 'hidden',
-                  //       textAlign: 'center',
-                  //       mt: 5,
+                {listCount == 0 && !loader && (
+                  <Typography
+                    sx={{
+                      color: '#000000',
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textAlign: 'center',
+                      mt: 5,
 
-                  //       // textOverflow: 'ellipsis',
-                  //       whiteSpace: 'nowrap',
-                  //       boxSizing: 'border-box'
-                  //     }}
-                  //   >
-                  //     No records
-                  //   </Typography>
-                  // )
-                }
+                      // textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    No records
+                  </Typography>
+                )}
+
                 {loader && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     {console.log('loader when scroll', loader)}
@@ -818,7 +886,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         </Box>
 
         {/* bottom buttons */}
-        <Box
+        {/* <Box
           sx={{
             height: '122px',
             width: '100%',
@@ -846,7 +914,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           >
             VIEW DETAILS
           </LoadingButton>
-        </Box>
+        </Box> */}
       </Drawer>
       {isFilterOpen && (
         <DashboardFilter
@@ -861,6 +929,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           setDiscardList={setDiscardList}
           setSearch={setSearch}
           setIsSearchOpen={setIsSearchOpen}
+          setSelectedDropDown={setSelectedDropDown}
         />
       )}
     </>

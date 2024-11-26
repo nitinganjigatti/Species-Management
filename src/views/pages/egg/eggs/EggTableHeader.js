@@ -10,6 +10,7 @@ import ExcelExportButton from './exportEggListExcel'
 import Utility from 'src/utility'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
+import dayjs from 'dayjs'
 
 const EggTableHeader = ({
   totalCount,

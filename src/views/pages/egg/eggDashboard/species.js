@@ -307,6 +307,118 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 160,
+      field: 'hatched_percentage',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {/* total_hatched_eggs */}
+            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)} */}
+            {Number(params.row.total_hatch) + Number(params.row.total_discarded) + 0
+              ? Math.round(
+                  (Number(params.row.total_hatch) /
+                    (Number(params.row.total_hatch) + Number(params.row.total_discarded))) *
+                    100
+                )
+              : 0}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'total_hatch',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 140,
+      field: 'total_discarded',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_discarded ? params.row.total_discarded : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 160,
       field: 'currently_in_nest',
       sortable: true,
       disableColumnMenu: true,
@@ -393,84 +505,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
       )
     },
-    {
-      width: 160,
-      field: 'hatched_percentage',
-      sortable: false,
-      disableColumnMenu: true,
-      headerName: 'TOTAL HATCHED %',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#37BD691A'
-            }
-          }}
-        >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
-          >
-            {/* total_hatched_eggs */}
-            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
-              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
-                100
-              : 0
-            ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)} */}
-            {Number(params.row.total_hatch) + Number(params.row.total_discarded) + 0
-              ? Math.round(
-                  (Number(params.row.total_hatch) /
-                    (Number(params.row.total_hatch) + Number(params.row.total_discarded))) *
-                    100
-                )
-              : 0}
-            %
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 160,
-      field: 'total_hatch',
-      sortable: true,
-      disableColumnMenu: true,
-      headerName: 'TOTAL HATCHED',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#37BD691A'
-            }
-          }}
-        >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.total_hatch ? `${params.row.total_hatch}` : '-'}
-          </Typography>
-        </Box>
-      )
-    },
+
     {
       width: 200,
       field: 'hatched_in_nursery_percentage',
@@ -719,38 +754,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
       )
     },
-    {
-      width: 140,
-      field: 'total_discarded',
-      sortable: true,
-      disableColumnMenu: true,
-      headerName: 'TOTAL DISCARDED',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#FA61401A'
-            }
-          }}
-        >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.total_discarded ? params.row.total_discarded : '-'}
-          </Typography>
-        </Box>
-      )
-    },
+
     {
       width: 120,
       field: 'in_transit',
@@ -881,6 +885,119 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
       )
     },
+
+    {
+      width: 160,
+      field: 'hatched_percentage',
+      sortable: false,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED %',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {/* total_hatched_eggs */}
+            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
+              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
+                100
+              : 0
+            ) // Fallback to 0 if values are not valid numbers
+              .toPrecision(3)} */}
+            {Number(params?.row?.total_hatch) + Number(params?.row?.total_discarded) > 0
+              ? Math.round(
+                  (Number(params?.row?.total_hatch) /
+                    (Number(params?.row?.total_hatch) + Number(params?.row?.total_discarded))) *
+                    100
+                )
+              : 0}
+            %
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'total_hatch',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL HATCHED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#37BD691A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params?.row?.total_hatch ? `${params?.row?.total_hatch}` : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 160,
+      field: 'total_discarded',
+      sortable: true,
+      disableColumnMenu: true,
+      headerName: 'TOTAL DISCARDED',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: 40,
+            borderRadius: '4px',
+            paddingLeft: 2,
+            alignContent: 'center',
+            '&:hover': {
+              backgroundColor: '#FA61401A'
+            }
+          }}
+        >
+          <Typography
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '600',
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.total_discarded ? params.row.total_discarded : '-'}
+          </Typography>
+        </Box>
+      )
+    },
+
     {
       width: 160,
       field: 'currently_in_nest',
@@ -964,84 +1081,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }}
           >
             {params.row.currently_in_nursery ? params.row.currently_in_nursery : '-'}
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 160,
-      field: 'hatched_percentage',
-      sortable: false,
-      disableColumnMenu: true,
-      headerName: 'TOTAL HATCHED %',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#37BD691A'
-            }
-          }}
-        >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
-          >
-            {/* total_hatched_eggs */}
-            {/* {(Number(params.row.total_hatch) > 0 && Number(params.row.total_discard) >= 0
-              ? (Number(params.row.total_hatch) / (Number(params.row.total_hatch) + Number(params.row.total_discard))) *
-                100
-              : 0
-            ) // Fallback to 0 if values are not valid numbers
-              .toPrecision(3)} */}
-            {Number(params?.row?.total_hatch) + Number(params?.row?.total_discarded) > 0
-              ? Math.round(
-                  (Number(params?.row?.total_hatch) /
-                    (Number(params?.row?.total_hatch) + Number(params?.row?.total_discarded))) *
-                    100
-                )
-              : 0}
-            %
-          </Typography>
-        </Box>
-      )
-    },
-    {
-      width: 160,
-      field: 'total_hatch',
-      sortable: true,
-      disableColumnMenu: true,
-      headerName: 'TOTAL HATCHED',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#37BD691A'
-            }
-          }}
-        >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params?.row?.total_hatch ? `${params?.row?.total_hatch}` : '-'}
           </Typography>
         </Box>
       )
@@ -1300,38 +1339,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
       )
     },
-    {
-      width: 160,
-      field: 'total_discarded',
-      sortable: true,
-      disableColumnMenu: true,
-      headerName: 'TOTAL DISCARDED',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: '100%',
-            height: 40,
-            borderRadius: '4px',
-            paddingLeft: 2,
-            alignContent: 'center',
-            '&:hover': {
-              backgroundColor: '#FA61401A'
-            }
-          }}
-        >
-          <Typography
-            style={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '600',
-              lineHeight: '19.36px'
-            }}
-          >
-            {params.row.total_discarded ? params.row.total_discarded : '-'}
-          </Typography>
-        </Box>
-      )
-    },
+
     {
       width: 120,
       field: 'in_transit',

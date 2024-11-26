@@ -1171,7 +1171,7 @@ const EggList = () => {
     },
     {
       // flex: 0.15,
-      width: 180,
+      width: 110,
       sortable: false,
       field: 'days_in_incubation',
       headerName: 'Days In Incubation',
@@ -1239,10 +1239,22 @@ const EggList = () => {
 
     {
       // flex: 0.15,
-      width: 180,
+      width: 150,
       sortable: false,
       field: 'initial_weight',
       headerName: 'Initial weight in gm',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            INITIAL WEIGHT
+          </Typography>
+          <Typography
+            sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500, textAlign: 'center' }}
+          >
+            IN GM
+          </Typography>
+        </Box>
+      ),
       align: 'center',
       renderCell: params => (
         <Typography
@@ -1259,11 +1271,23 @@ const EggList = () => {
     },
     {
       // flex: 0.15,
-      width: 180,
+      width: 150,
       sortable: false,
       field: 'current_weight',
       headerName: 'current weight in gm',
       align: 'center',
+      renderHeader: () => (
+        <Box>
+          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+            CURRENT WEIGHT
+          </Typography>
+          <Typography
+            sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500, textAlign: 'center' }}
+          >
+            IN GM
+          </Typography>
+        </Box>
+      ),
 
       renderCell: params => (
         <Typography
