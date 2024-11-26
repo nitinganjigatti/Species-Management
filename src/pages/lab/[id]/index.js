@@ -45,7 +45,8 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Popover
+  Popover,
+  Breadcrumbs
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -691,13 +692,36 @@ const RequestDetails = () => {
         <FallbackSpinner />
       ) : (
         <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Labs
+            </Typography>
+            <Typography
+              sx={{ cursor: 'pointer' }}
+              color='inherit'
+              onClick={() =>
+                router.push({
+                  pathname: '/lab/request'
+                })
+              }
+            >
+              Request lists
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Lab request details
+            </Typography>
+          </Breadcrumbs>
+
           <Card sx={{ p: 5 }}>
             {request?.map((item, index) => (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {' '}
+                      {/* {' '}
                       <IconButton
                         sx={{ mr: 1 }}
                         onClick={() =>
@@ -707,7 +731,7 @@ const RequestDetails = () => {
                         }
                       >
                         <Icon icon='ep:back' fontSize={25} />
-                      </IconButton>
+                      </IconButton> */}
                       <Typography variant='h6'>
                         Request ID -{' '}
                         <span
@@ -739,7 +763,7 @@ const RequestDetails = () => {
                       Site :{' '}
                       <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
                     </Typography>
-                    <Typography sx={{ mt: 2 }}>
+                    <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
                     </Typography>
                   </Box>

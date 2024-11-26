@@ -16,7 +16,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Stack, CircularProgress } from '@mui/material'
+import { Box, Avatar, Badge, Stack, CircularProgress, Breadcrumbs } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 
 // import Router from 'next/router'
@@ -432,6 +432,17 @@ const ListOfRequest = () => {
         <FallbackSpinner />
       ) : (
         <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Labs
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Requests lists
+            </Typography>
+          </Breadcrumbs>
           <Card key={selectedLab}>
             <CardHeader title='Lab Requests' />
 

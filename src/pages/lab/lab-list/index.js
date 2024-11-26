@@ -17,7 +17,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge } from '@mui/material'
+import { Box, Avatar, Badge, Breadcrumbs } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -263,6 +263,17 @@ const ListOfLab = () => {
             close={closeDialog}
             show={showDialog}
           /> */}
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Labs
+                </Typography>
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                  Lab list
+                </Typography>
+              </Breadcrumbs>
               <Card>
                 <CardHeader title='Lab List' action={headerAction} />
                 <DataGrid

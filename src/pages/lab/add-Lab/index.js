@@ -25,7 +25,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   FormControlLabel,
-  Button
+  Button,
+  Breadcrumbs
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
@@ -919,13 +920,35 @@ const AddLab = () => {
             <FallbackSpinner />
           ) : (
             <>
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Labs
+                </Typography>
+                <Typography
+                  sx={{ cursor: 'pointer' }}
+                  color='inherit'
+                  onClick={() =>
+                    router.push({
+                      pathname: '/lab/lab-list'
+                    })
+                  }
+                >
+                  Lab lists
+                </Typography>
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                  Add lab
+                </Typography>
+              </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
                 <Grid item xs={12}>
                   <Card>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <IconButton sx={{ ml: 2 }} onClick={() => router.back()}>
+                      {/* <IconButton sx={{ ml: 2 }} onClick={() => router.back()}>
                         <Icon icon='ep:back' />
-                      </IconButton>
+                      </IconButton> */}
                       <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
                     </Box>
                     <CardContent>
