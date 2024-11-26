@@ -49,11 +49,11 @@ const SpeciesReport = () => {
       { label: 'Genus', key: 'include_genus', checked: true }
     ],
     Housing: [
-      { label: 'Site', key: 'include_site', checked: true },
-      { label: 'Section', key: 'include_section', checked: true },
-      { label: 'Enclosure', key: 'include_enclosure', checked: true },
-      { label: 'Cluster', key: 'include_cluster', checked: true },
-      { label: 'Organisation', key: 'include_organization', checked: true }
+      { label: 'Site', key: 'include_site', checked: false },
+      { label: 'Section', key: 'include_section', checked: false },
+      { label: 'Enclosure', key: 'include_enclosure', checked: false },
+      { label: 'Cluster', key: 'include_cluster', checked: false },
+      { label: 'Organisation', key: 'include_organization', checked: false }
     ]
   })
 
@@ -73,17 +73,16 @@ const SpeciesReport = () => {
   }
 
   const [apiFilterParams, setApiFilterParams] = useState({
-    include_housing: 1,
-    include_enclosure: 1,
-    include_section: 1,
-    include_cluster: 1,
+    include_housing: 0,
+    include_enclosure: 0,
+    include_section: 0,
+    include_cluster: 0,
     include_class: 1,
-    include_organization: 1,
+    include_organization: 0,
     include_order: 1,
     include_family: 1,
     include_genus: 1,
-    include_site: 1,
-    include_genus: 1
+    include_site: 0
   })
 
   const handleClick = event => {
@@ -297,6 +296,31 @@ const SpeciesReport = () => {
       setSelectedSites(selectedSiteIDs)
     }
 
+    // if (value.length > 1 && !value.includes('All Sites')) {
+    //   setPopoverData(prevData => {
+    //     const updatedData = {
+    //       ...prevData,
+    //       ['Housing']: prevData['Housing'].map((el, index) =>
+    //         el?.key === 'include_site' ? { ...el, checked: true } : el
+    //       )
+    //     }
+
+    //     return updatedData
+    //   })
+    //   params = { ...params, include_site: 1 }
+    // } else {
+    //   setPopoverData(prevData => {
+    //     const updatedData = {
+    //       ...prevData,
+    //       ['Housing']: prevData['Housing'].map((el, index) =>
+    //         el?.key === 'include_site' ? { ...el, checked: false } : el
+    //       )
+    //     }
+
+    //     return updatedData
+    //   })
+    //   params = { ...params, include_site: 0 }
+    // }
     setPaginationModel({ ...paginationModel, page: 0 })
     setApiFilterParams(params)
 
