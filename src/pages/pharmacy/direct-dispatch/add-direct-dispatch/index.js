@@ -80,6 +80,8 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import { Stack } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
+import { readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -91,6 +93,7 @@ const editParamsInitialState = {
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   priority_item: 'Normal',
+  user_id: '',
   request_item_details: []
 }
 
@@ -134,6 +137,7 @@ const AddDirectDispatch = () => {
   // const [deleteItemId, setDeleteItemId] = useState('')
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+  const [users, setUsers] = useState([])
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -435,9 +439,50 @@ const AddDirectDispatch = () => {
     }
   }
 
+  const getUserLists = async (searchText, limit, page) => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        let zoo_id = userDetails?.user?.zoos[0].zoo_id
+
+        const params = {
+          zoo_id,
+          length: limit ? limit : null,
+          page_no: page ? page : null,
+          q: searchText
+        }
+        await getUserList(params).then(res => {
+          if (res?.data?.length > 0) {
+            setUsers(
+              res?.data?.map(item => ({
+                label: item?.user_name,
+                value: item?.user_id,
+                id: item?.user_id
+              }))
+            )
+          }
+        })
+      }
+    } catch (error) {
+      console.log('user error', error)
+    }
+  }
+
+  const searchUsersList = useCallback(
+    debounce(async searchText => {
+      try {
+        await getUserLists(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
   useEffect(() => {
     getStoresLists()
     fetchMedicineData()
+    getUserLists()
   }, [])
 
   const searchBatchData = useCallback(
@@ -500,6 +545,7 @@ const AddDirectDispatch = () => {
           ro_date: result.data.request_date,
           // from_store_type: result.data.from_store_type,
           to_store_type: result?.data?.to_store_type,
+          user_id: result?.data?.user_id,
           request_item_details: lineItems
         })
       }
@@ -746,58 +792,108 @@ const AddDirectDispatch = () => {
             </Grid>
           </CardContent>
           <CardContent>
-            <form>
-              <Grid container spacing={5}>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Dispatch to :
-                      </Typography>
-                    </Grid>
-                    <FormControl fullWidth>
-                      <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                        Store*
-                      </InputLabel>
-
-                      <Select
-                        error={Boolean(errors.to_store_id)}
-                        value={editParams.to_store_id}
-                        label='Store*'
-                        disabled={id ? true : false}
-                        onChange={e => {
-                          setEditParams({
-                            ...editParams,
-                            to_store_id: e.target.value,
-                            to_store_type: storesType[filteredStoreType(e.target.value)]
-                          })
-                          setErrors({})
-                        }}
-                        // error={Boolean(errors?.state_id)}
-                        // labelId='state_id'
-                      >
-                        {toStocks?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-
-                      {errors.to_store_id && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+            <form
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                margin: 'auto'
+              }}
+            >
+              <Grid container rowSpacing={4} columnSpacing={2}>
+                {/* <Grid item xs={12} sm={12} sx={{ border: '1px solid red' }}> */}
+                <Grid item xs={12} sm={12}>
+                  <Typography variant='subtitle2' sx={{ color: 'text.primary', letterSpacing: '.1px', float: 'left' }}>
+                    Dispatch to :
+                  </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
+                  <FormControl fullWidth>
+                    <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                      Store*
+                    </InputLabel>
+
+                    <Select
+                      fullWidth
+                      error={Boolean(errors.to_store_id)}
+                      value={editParams.to_store_id}
+                      label='Store*'
+                      disabled={id ? true : false}
+                      onChange={e => {
+                        setEditParams({
+                          ...editParams,
+                          to_store_id: e.target.value,
+                          to_store_type: storesType[filteredStoreType(e.target.value)]
+                        })
+                        setErrors({})
+                      }}
+                      // error={Boolean(errors?.state_id)}
+                      // labelId='state_id'
+                    >
+                      {toStocks?.map((item, index) => (
+                        <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                          {item?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+
+                    {errors.to_store_id && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6} sx={{ mb: 5 }}>
+                  <Autocomplete
+                    fullWidth
+                    disablePortal
+                    options={users}
+                    value={users?.find(user => user?.value === editParams?.user_id) || null}
+                    getOptionLabel={option => option?.label || ''}
+                    isOptionEqualToValue={(option, value) => option.value === value.value}
+                    onKeyUp={e => {
+                      searchUsersList(e.target.value)
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        fullWidth
+                        {...params}
+                        name='search'
+                        label='Search & Select'
+                        error={Boolean(errors.search)}
+                        helperText={errors.search}
+                        placeholder='Search & Select'
+                      />
+                    )}
+                    onBlur={async () => {
+                      await searchUsersList()
+                    }}
+                    onChange={(event, value) => {
+                      if (value) {
+                        setEditParams({
+                          ...editParams,
+                          user_id: value?.value
+                        })
+                      } else {
+                        setEditParams({
+                          ...editParams,
+                          user_id: null
+                        })
+                      }
+                    }}
+                  />
+                </Grid>
+                {/* </Grid> */}
+                {/* <Grid item xs={12} sm={6}>
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                       &nbsp;
                     </Typography>
-                  </Grid>
-                  {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+                  </Grid> */}
+                {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
                   <Select
@@ -831,7 +927,7 @@ const AddDirectDispatch = () => {
                   )}
                 </FormControl>
               </Grid> */}
-                  {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -854,7 +950,7 @@ const AddDirectDispatch = () => {
                       )}
                     </FormControl>
                   </Grid> */}
-                </Grid>
+                {/* </Grid> */}
               </Grid>
             </form>
           </CardContent>
@@ -1095,7 +1191,7 @@ const AddDirectDispatch = () => {
                            {totalQty}
                          </Typography>
                        </CalcWrapper>
-     
+
                        <Divider
                          sx={{
                            mt: theme => `${theme.spacing(5)} !important`,

@@ -1024,10 +1024,10 @@ const AddRequestForm = () => {
                 </FormHelperText>
               )}
 
-              {nestedRowMedicine.unit_price > 0 ? (
+              {nestedRowMedicine?.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
-                    label={`Unit Price - ${nestedRowMedicine.unit_price}`}
+                    label={`Unit Price - ${nestedRowMedicine?.unit_price}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1042,7 +1042,7 @@ const AddRequestForm = () => {
                     }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                    label={`Total QTY Price - ${nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1584,8 +1584,6 @@ const AddRequestForm = () => {
     )
   }
 
-  console.log(editParams, 'qwert')
-
   return (
     <Card>
       <Grid
@@ -1676,23 +1674,7 @@ const AddRequestForm = () => {
                   &nbsp;
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                <Autocomplete
-                  options={[]}
-                  getOptionLabel={option => option.name || ''}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      name='search'
-                      label='Search & Select'
-                      error={Boolean(errors.search)}
-                      helperText={errors.search}
-                      placeholder='Search & Select'
-                    />
-                  )}
-                  onChange={(event, value) => {}}
-                />
-              </Grid>
+
               {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.to_store_id)}>Store*</InputLabel>
@@ -1889,6 +1871,7 @@ const AddRequestForm = () => {
               {editParams?.request_item_details
                 ? editParams?.request_item_details.map((el, index) => {
                     const isLastRow = index === editParams.request_item_details.length - 1
+
                     return (
                       <TableRow key={index}>
                         <TableCell align='left'>
