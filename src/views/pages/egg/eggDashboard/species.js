@@ -648,7 +648,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 170,
-      field: 'discarded_at_site',
+      field: 'total_discard_at_site',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT SITE',
@@ -680,7 +680,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 200,
-      field: 'discarded_at_nursery',
+      field: 'total_discard_at_nursery',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
@@ -1220,7 +1220,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     {
       width: 170,
-      field: 'discarded_at_site',
+      field: 'total_discard_at_site',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT SITE',
@@ -1261,7 +1261,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 200,
-      field: 'discarded_at_nursery',
+      field: 'total_discard_at_nursery',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
@@ -1625,7 +1625,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     },
     {
       width: 200,
-      field: 'discarded_at_nursery',
+      field: 'total_discard_at_nursery',
       sortable: true,
       disableColumnMenu: true,
       headerName: 'DISCARDED AT NURSERY',
