@@ -141,9 +141,9 @@ const ReturnRequestList = () => {
         let params = {}
 
         if (
-          startDate &&
-          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
-          filterDates?.startDate &&
+          startDate ||
+          endDate || // Checks if startDate and endDate are truthy (not empty or undefined)
+          filterDates?.startDate ||
           filterDates?.endDate // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
@@ -550,8 +550,8 @@ const ReturnRequestList = () => {
           setFilterDates({ startDate, endDate })
           break
         case 16:
-          startDate = Utility.getPreviousDaysDate(currentDate, 16)
-          endDate = Utility.getPreviousDaysDate(currentDate, 1)
+          startDate = Utility.getPreviousDaysDate(currentDate, 15)
+          endDate = ''
           setFilterDates({ startDate, endDate })
           break
         default:

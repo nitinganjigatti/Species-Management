@@ -122,9 +122,9 @@ const RequestList = () => {
         // )
 
         if (
-          startDate &&
-          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
-          filterDates?.startDate &&
+          startDate ||
+          endDate || // Checks if startDate and endDate are truthy (not empty or undefined)
+          filterDates?.startDate ||
           filterDates?.endDate // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
@@ -325,8 +325,8 @@ const RequestList = () => {
           setFilterDates({ startDate, endDate })
           break
         case 16:
-          startDate = Utility.getPreviousDaysDate(currentDate, 16)
-          endDate = Utility.getPreviousDaysDate(currentDate, 1)
+          startDate = Utility.getPreviousDaysDate(currentDate, 15)
+          endDate = ''
           setFilterDates({ startDate, endDate })
           break
         default:
@@ -386,9 +386,9 @@ const RequestList = () => {
       headerName: '',
       type: 'number',
       headerAlign: 'left',
-      textAlign:"left",
+      textAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' ,mt:1.5}}>
+        <Typography variant='body2' sx={{ color: 'text.primary', mt: 1.5 }}>
           {params.row.priority !== null ? (
             <Box sx={{ color: 'error.main' }}>
               <Icon icon={'mdi:dot'} style={{ color: 'primary.error', fontSize: '50px' }}></Icon>
