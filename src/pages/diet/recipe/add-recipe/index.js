@@ -21,6 +21,7 @@ import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from '
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
+import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const steps = [
   {
@@ -42,6 +43,7 @@ const AddRecipe = () => {
   const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
+  const [cutsizeList, setcutSize] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [fullIngredientList, setFullIngredientList] = useState([])
   const [urlType, seturlType] = useState('')
@@ -62,7 +64,9 @@ const AddRecipe = () => {
         feed_type_label: '',
         quantity: '',
         preparation_type_id: '',
-        preparation_type: ''
+        preparation_type: '',
+        cut_size: '',
+        cut_size_id: ''
       }
     ],
     by_quantity: [
@@ -73,7 +77,9 @@ const AddRecipe = () => {
         uom_id: '',
         quantity: '',
         preparation_type_id: '',
-        preparation_type: ''
+        preparation_type: '',
+        cut_size: '',
+        cut_size_id: ''
       }
     ],
     desc: ''
@@ -81,6 +87,7 @@ const AddRecipe = () => {
 
   useEffect(() => {
     getUnitsList()
+    getCutsizeListdata()
     callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [activeStep == 0])
 
@@ -93,6 +100,20 @@ const AddRecipe = () => {
       }
       await getUnitsForRecipe({ params: params }).then(res => {
         setUom(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getCutsizeListdata = async () => {
+    try {
+      const params = {
+        page: 1,
+        limit: 100
+      }
+      await getCutsizeList(params).then(res => {
+        setcutSize(res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -173,13 +194,15 @@ const AddRecipe = () => {
           by_percentage: data.by_percentage.map(item => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
-            preparation_type_id: String(item.preparation_type_id)
+            preparation_type_id: String(item.preparation_type_id),
+            cut_size_id: String(item.cut_size_id)
           })),
           by_quantity: data.by_quantity.map(item => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id),
-            uom_id: String(item.uom_id)
+            uom_id: String(item.uom_id),
+            cut_size_id: String(item.cut_size_id)
           }))
         }
 
@@ -293,7 +316,9 @@ const AddRecipe = () => {
             feed_type_label: item.feed_type_label,
             quantity: parseFloat(item.quantity).toFixed(2),
             preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
+            preparation_type: item.preparation_type,
+            cut_size: item.cut_size,
+            cut_size_id: item.cut_size_id
           }))
         ),
         by_quantity: JSON.stringify(
@@ -304,7 +329,9 @@ const AddRecipe = () => {
             uom_id: item.uom_id,
             quantity: item.quantity,
             preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
+            preparation_type: item.preparation_type,
+            cut_size: item.cut_size,
+            cut_size_id: item.cut_size_id
           }))
         )
       }
@@ -340,7 +367,9 @@ const AddRecipe = () => {
             feed_type_label: item.feed_type_label,
             quantity: parseFloat(item.quantity).toFixed(2),
             preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
+            preparation_type: item.preparation_type,
+            cut_size: item.cut_size,
+            cut_size_id: item.cut_size_id
           }))
         ),
         by_quantity: JSON.stringify(
@@ -351,7 +380,9 @@ const AddRecipe = () => {
             uom_id: item.uom_id,
             quantity: item.quantity,
             preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
+            preparation_type: item.preparation_type,
+            cut_size: item.cut_size,
+            cut_size_id: item.cut_size_id
           }))
         )
       }
@@ -396,7 +427,9 @@ const AddRecipe = () => {
             feed_type_label: item.feed_type_label,
             quantity: parseFloat(item.quantity).toFixed(2),
             preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
+            preparation_type: item.preparation_type,
+            cut_size: item.cut_size,
+            cut_size_id: item.cut_size_id
           }))
         ),
         by_quantity: JSON.stringify(
@@ -407,7 +440,9 @@ const AddRecipe = () => {
             uom_id: item.uom_id,
             quantity: item.quantity,
             preparation_type_id: parseInt(item.preparation_type_id),
-            preparation_type: item.preparation_type
+            preparation_type: item.preparation_type,
+            cut_size: item.cut_size,
+            cut_size_id: item.cut_size_id
           }))
         )
       }
@@ -465,6 +500,7 @@ const AddRecipe = () => {
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
+            cutsizeList={cutsizeList}
             fullIngredientList={fullIngredientList}
             setFullIngredientList={setFullIngredientList}
             IngredientTypeListSearch={IngredientTypeListSearch}

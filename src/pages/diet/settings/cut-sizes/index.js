@@ -1,4 +1,4 @@
-import { Card, CardHeader, Box, debounce } from '@mui/material'
+import { Card, CardHeader, Box, debounce, Hidden, Tooltip } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { AddButton } from 'src/components/Buttons'
@@ -7,15 +7,12 @@ import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import UserSnackbar from 'src/components/utility/snackbar'
-import {
-  UpdatePreparationType,
-  addPreparationType,
-  getPreparationTypeList
-} from 'src/lib/api/diet/settings/preparationTypes'
+import { getCutsizeList, addCutSize, UpdateCutsize } from 'src/lib/api/diet/settings/cutSizes'
 import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
+import AddCutSize from 'src/views/pages/diet/cutSizes/addCutSizes'
 import Toaster from 'src/components/Toaster'
 
-const PreparationTypes = () => {
+const CutSizes = () => {
   const editParamsInitialState = { id: null, label: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -62,7 +59,7 @@ const PreparationTypes = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'uid',
       headerName: 'SL No',
@@ -73,14 +70,29 @@ const PreparationTypes = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'label',
       headerName: 'NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.label}
-        </Typography>
+        <Tooltip title={params.row.cut_size?.length > 30 ? params.row.cut_size : ''}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 1 }} className='text_overflow_moduled'>
+            {params.row.cut_size}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.5,
+      minWidth: 20,
+      field: 'comment',
+      headerName: 'COMMENT',
+      renderCell: params => (
+        <Tooltip title={params.row.comment?.length > 40 ? params.row.comment : ''}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.comment}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -90,7 +102,7 @@ const PreparationTypes = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
@@ -101,7 +113,7 @@ const PreparationTypes = () => {
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', pl: 2 }}>
           {parseInt(params.row.zoo_id) === 0 ? null : (
             <IconButton
               size='small'
@@ -119,24 +131,24 @@ const PreparationTypes = () => {
 
   const headerAction = (
     <div>
-      <AddButton title='Add Preparation Type' action={() => addEventSidebarOpen()} />
+      <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
     </div>
   )
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sortBy, q, column) => {
       try {
         setLoading(true)
 
         const params = {
-          sort,
+          sortBy,
           q,
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
-        await getPreparationTypeList(params).then(res => {
+        await getCutsizeList(params).then(res => {
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.result.map((el, i) => {
@@ -168,10 +180,10 @@ const PreparationTypes = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sortBy, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sortBy, q, column)
       } catch (error) {
         console.error(error)
       }
@@ -189,12 +201,12 @@ const PreparationTypes = () => {
       setSubmitLoader(true)
       var response
       if (editParams?.id !== null) {
-        response = await UpdatePreparationType(editParams?.id, payload)
+        response = await UpdateCutsize(editParams?.id, payload)
       } else {
-        response = await addPreparationType(payload)
+        response = await addCutSize(payload)
       }
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Preparation type' + ' ' + response?.message })
+        Toaster({ type: 'success', message: response?.message })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -221,7 +233,7 @@ const PreparationTypes = () => {
   return (
     <>
       <Card>
-        <CardHeader title='Preparation Type List' action={headerAction} />
+        <CardHeader title='Cut Sizes' action={headerAction} />
         <DataGrid
           columnVisibilityModel={{
             id: false
@@ -254,7 +266,7 @@ const PreparationTypes = () => {
         />
       </Card>
 
-      <AddPreparationType
+      <AddCutSize
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
@@ -268,4 +280,4 @@ const PreparationTypes = () => {
   )
 }
 
-export default PreparationTypes
+export default CutSizes

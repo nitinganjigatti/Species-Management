@@ -285,3 +285,11 @@ export const UPLOAD_ATTACHMENT_BATCH = 'v1/parivesh/species/site/uploadattachmen
 export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmentforbatch'
 
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
+
+export const CUT_SIZE = 'diet/recipes/master/cutsizeList'
+
+export const ADD_CUT_SIZE = 'diet/recipes/master/cutsizeadd'
+
+export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
+
+export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'

@@ -130,6 +130,12 @@ const DietDetail = () => {
     return day ? day.name : ''
   }
 
+  const handleclickRecipeDetail = val => {
+    Router.push({
+      pathname: `/diet/recipe/${val}`
+    })
+  }
+
   return (
     <>
       {dietModule ? (
@@ -1726,8 +1732,12 @@ const DietDetail = () => {
                                                                             color: '#000',
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
-                                                                            fontSize: '16px'
+                                                                            fontSize: '16px',
+                                                                            cursor: 'pointer'
                                                                           }}
+                                                                          onClick={() =>
+                                                                            handleclickRecipeDetail(item.recipe_id)
+                                                                          }
                                                                         >
                                                                           {item?.recipe_name}
                                                                         </Typography>
