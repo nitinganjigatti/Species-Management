@@ -857,7 +857,7 @@ const RequestDetails = () => {
 
             {/* allow user Only if user hand upload permissions */}
 
-            {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
+            {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
               <UploadReports
                 animalID={animanlId}
                 labTestId={LabRequestId}
