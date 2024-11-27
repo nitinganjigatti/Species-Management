@@ -49,11 +49,11 @@ const SpeciesReport = () => {
       { label: 'Genus', key: 'include_genus', checked: true }
     ],
     Housing: [
-      { label: 'Site', key: 'include_site', checked: false },
-      { label: 'Section', key: 'include_section', checked: false },
-      { label: 'Enclosure', key: 'include_enclosure', checked: false },
-      { label: 'Cluster', key: 'include_cluster', checked: false },
-      { label: 'Organisation', key: 'include_organization', checked: false }
+      { label: 'Site', key: 'include_site', checked: true },
+      { label: 'Section', key: 'include_section', checked: true },
+      { label: 'Enclosure', key: 'include_enclosure', checked: true },
+      { label: 'Cluster', key: 'include_cluster', checked: true },
+      { label: 'Organisation', key: 'include_organization', checked: true }
     ]
   })
 
