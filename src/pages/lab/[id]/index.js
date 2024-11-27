@@ -876,14 +876,17 @@ const RequestDetails = () => {
 
       <>
         {/* Open PopUp On Clicking Request Id */}
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 2, py: 3, bgcolor: '#e8f4f2' }}>
+            <Typography variant='h6' sx={{ ml: 3 }}>
+              Tests list
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
+            </IconButton>
+          </Box>
           {requestById?.map((item, index) => (
-            <Card key={index} sx={{ p: 2, minWidth: 600 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <IconButton onClick={handleClose}>
-                  <Icon icon='ep:close-bold' fontSize={15} color={'red'} />
-                </IconButton>
-              </Box>
+            <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
               <Box ml={3}>
                 <Typography variant='h6'>
                   Request - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{item.request_id}</span>
@@ -893,7 +896,7 @@ const RequestDetails = () => {
                   Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, ml: 3, mr: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
                 <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography>
                     No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
@@ -920,11 +923,11 @@ const RequestDetails = () => {
                     <TableBody>
                       {item?.test_reports?.map((data, dataID) => (
                         <TableRow key={dataID}>
-                          <TableCell>{data?.test_name}</TableCell>
-                          <TableCell>{data?.lab_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
                             {' '}
-                            <span
+                            {/* <span
                               style={{
                                 color:
                                   data?.status === 'transferred' || data?.status === 'pending'
@@ -937,7 +940,44 @@ const RequestDetails = () => {
                               }}
                             >
                               {data?.status === 'transferred' ? 'pending' : data?.status}
-                            </span>{' '}
+                            </span>{' '} */}
+                            <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+                              <span
+                                alt={data?.status}
+                                style={{
+                                  color:
+                                    data?.status === 'pending' ||
+                                    data?.status === 'transferred' ||
+                                    data?.status === 'awaiting_sample' ||
+                                    data?.status === 'sample_rejected' ||
+                                    data?.status === 'sample_received'
+                                      ? '#FA6140'
+                                      : data?.status === 'completed'
+                                      ? '#37BD69'
+                                      : data?.status === 'inprogress'
+                                      ? '#00AFD6'
+                                      : '#37BD69'
+                                }}
+                              >
+                                {data?.status === 'awaiting_sample'
+                                  ? 'Awaiting sample'
+                                  : data?.status === 'sample_received'
+                                  ? 'Sample received'
+                                  : data?.status === 'sample_rejected'
+                                  ? 'sample rejected'
+                                  : data?.status === 'completed_positive'
+                                  ? 'completed positive'
+                                  : data?.status === 'completed_negative'
+                                  ? 'completed negative'
+                                  : data?.status === 'completed_detected'
+                                  ? 'completed detected'
+                                  : data?.status === 'completed_not_detected'
+                                  ? 'completed not detected'
+                                  : data?.status === 'completed_inconclusive'
+                                  ? 'completed inconclusive'
+                                  : 'inprogress'}
+                              </span>
+                            </Typography>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -945,27 +985,35 @@ const RequestDetails = () => {
                   </Table>
                 </TableContainer>
               </Box>
-            </Card>
+            </Box>
           ))}
         </Dialog>
       </>
 
       <>
         <Dialog open={openTransfer} onClose={handleCloseTransfer}>
-          <Card sx={{ p: 5, minWidth: 500 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton onClick={handleCloseTransfer}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-              </IconButton>
-            </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 4,
+              pt: 2,
+              pb: 2,
+              bgcolor: '#e8f4f2'
+            }}
+          >
+            <Typography variant='h6'>Transfer test to another lab</Typography>
+            <IconButton onClick={handleCloseTransfer}>
+              <Icon icon='ic:baseline-close' fontSize={20} color={'red'} />
+            </IconButton>
+          </Box>
+          <Box sx={{ px: 5, pb: 5, minWidth: 500 }}>
             <Box>
-              <Typography variant='h6' sx={{ mb: 2 }}>
-                Transfer test to another lab
-              </Typography>
-
-              <Box>
+              <Box sx={{ py: 4 }}>
                 <Typography>
-                  Test name - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{testName}</span>
+                  Test name -{' '}
+                  <span style={{ color: '#37BD69', fontWeight: 'bold', textTransform: 'capitalize' }}>{testName}</span>
                 </Typography>
                 <Typography>
                   Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.request_id}</span>
@@ -976,7 +1024,7 @@ const RequestDetails = () => {
               </Box>
 
               <form onSubmit={handleSubmit(onSubmit)}>
-                <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
+                <Grid item xs={12} md={6} sm={6} sx={{ mb: 2 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='lab_name'
@@ -1007,7 +1055,7 @@ const RequestDetails = () => {
                 </Grid>
                 <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
                   <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.lab_type)} id='lab_type'>
+                    <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                       Transfer To
                     </InputLabel>
                     <Controller
@@ -1051,7 +1099,7 @@ const RequestDetails = () => {
                           value={value}
                           label='Transfer Reason'
                           name='transfer_reason'
-                          error={Boolean(errors.lab_name)}
+                          error={Boolean(errors.transfer_reason)}
                           onChange={onChange}
                           placeholder='Add transfer reason'
                         />
@@ -1075,17 +1123,17 @@ const RequestDetails = () => {
                 </Box>
               </form>
             </Box>
-          </Card>
+          </Box>
         </Dialog>
       </>
       <>
-        <Dialog open={openUploader} onClose={() => setOpenUploader(false)}>
-          <Card sx={{ width: 600, height: 'auto' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton onClick={() => setOpenUploader(false)}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-              </IconButton>
-            </Box>
+        <Dialog open={openUploader} onClose={() => setOpenUploader(false)} fullWidth maxWidth='sm'>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => setOpenUploader(false)}>
+              <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+            </IconButton>
+          </Box>
+          <Box sx={{ height: 'auto' }}>
             <UploadReports
               animalID={animanlId}
               labTestId={LabRequestId}
@@ -1097,7 +1145,7 @@ const RequestDetails = () => {
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
             />
-          </Card>
+          </Box>
         </Dialog>
       </>
       <>
