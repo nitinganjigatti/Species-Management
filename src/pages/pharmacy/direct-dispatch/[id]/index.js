@@ -1074,7 +1074,7 @@ const IndividualRequest = () => {
                         onChange={handleChange}
                         sx={{
                           p: 4,
-                          [`& .css-1pyy021-MuiTabs-flexContainer`]: {
+                          '& .MuiTabs-flexContainer': {
                             borderBottom: '1px solid',
                             borderColor: 'customColors.neutral05'
                           }

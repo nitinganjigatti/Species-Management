@@ -792,22 +792,22 @@ const AddDirectDispatch = () => {
             </Grid>
           </CardContent>
           <CardContent>
-            <form
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: '100%',
-                margin: 'auto'
-              }}
-            >
-              <Grid container rowSpacing={4} columnSpacing={2}>
-                {/* <Grid item xs={12} sm={12} sx={{ border: '1px solid red' }}> */}
+            <form>
+              <Grid container spacing={5}>
                 <Grid item xs={12} sm={12}>
-                  <Typography variant='subtitle2' sx={{ color: 'text.primary', letterSpacing: '.1px', float: 'left' }}>
+                  <Typography
+                    variant='subtitle2'
+                    sx={{
+                      color: 'customColors.customTextColorGray2',
+                      letterSpacing: '.1px',
+                      fontSize: '16px',
+                      fontWeight: 500
+                    }}
+                  >
                     Dispatch to :
                   </Typography>
                 </Grid>
+
                 <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
                   <FormControl fullWidth>
                     <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
@@ -815,7 +815,6 @@ const AddDirectDispatch = () => {
                     </InputLabel>
 
                     <Select
-                      fullWidth
                       error={Boolean(errors.to_store_id)}
                       value={editParams.to_store_id}
                       label='Store*'
@@ -1242,7 +1241,7 @@ const AddDirectDispatch = () => {
               </Grid>
             </Box>
           ) : (
-            <EmptyStateBox text='No Orders Found' imageSrc='/images/out-of-stock.png' />
+            <EmptyStateBox text='No Dispatch Found' imageSrc='/images/out-of-stock.png' />
           )}
 
           {/* <ConfirmDialogBox

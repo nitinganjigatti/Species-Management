@@ -12,7 +12,8 @@ import {
   FormHelperText,
   FormControlLabel,
   Tooltip,
-  Box
+  Box,
+  CardHeader
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -23,12 +24,14 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Typography from '@mui/material/Typography'
+import Icon from 'src/@core/components/icon'
 
 import UserSnackbar from 'src/components/utility/snackbar'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import Utility from 'src/utility'
 import { shipRequestedItems } from 'src/lib/api/pharmacy/getRequestItemsList'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // import { RadioGroup, FormLabel, FormControlLabel, Radio } from '@mui/material'
 
@@ -112,6 +115,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const router = useRouter()
   const { id, action } = router.query
 
+  const { selectedPharmacy } = usePharmacyContext()
+
   const shipRequest = async payload => {
     try {
       setSubmitLoader(true)
@@ -121,7 +126,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
-        close()
+        // close()
+        Router.back()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
@@ -336,15 +342,41 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
   return (
     <>
+      {/* <CardHeader
+        avatar={
+          <Icon
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              Router.back()
+            }}
+            icon='ep:back'
+          />
+        }
+        title={`Shipment`}
+        action={
+          selectedPharmacy?.type === 'local' &&
+          storeDetails?.status === 'request' &&
+          storeDetails?.is_modified !== '1' ? (
+            <Button
+              size='big'
+              variant='contained'
+              onClick={() => {
+                handleRequestEdit()
+              }}
+            >
+              Edit
+            </Button>
+          ) : (
+            <></>
+          )
+        }
+        sx={{ p: 0 }}
+      /> */}
+
       <Grid container spacing={6} className='match-height'>
         <Grid item xs={12}>
           <CardContent>
-            {dispatchedItems?.length > 0 ? (
-              <Grid md={12} sm={12} xs={12} sx={{ mb: 14 }}>
-                <TableBasic columns={columns} rows={dispatchedItems}></TableBasic>
-              </Grid>
-            ) : null}
-            <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
+            {/* <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
               <FormControlLabel
                 value={deliveryType.Ship}
                 label='Ship'
@@ -371,8 +403,68 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   />
                 }
               />
-            </Grid>
+            </Grid> */}
             <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <CardHeader
+                  avatar={
+                    <Icon
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        Router.back()
+                      }}
+                      icon='ep:back'
+                    />
+                  }
+                  title={`Shipment`}
+                  sx={{ p: 0 }}
+                />
+                <Grid>
+                  <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
+                    Submit
+                  </LoadingButton>
+                  {openSnackbar.open ? (
+                    <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
+                  ) : null}
+                </Grid>
+              </Box>
+
+              <Grid container sx={{ my: 6 }}>
+                <Grid md={3} sm={12} xs={12}>
+                  <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}> Shipped To:</Typography>
+                  <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '1rem', py: 2 }}>Joy Local</Typography>
+                </Grid>
+                <Grid md={7} sm={12} xs={12}>
+                  <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}>Delivery Type</Typography>
+                  <FormControlLabel
+                    value={deliveryType.Ship}
+                    label='Ship'
+                    control={
+                      <Radio
+                        onChange={() => {
+                          handleDeliveryTypeChange('Ship')
+                        }}
+                        checked={deliveryType.Ship}
+                        sx={deliveryType.Ship ? { color: 'error.main' } : null}
+                      />
+                    }
+                  />
+                  <FormControlLabel
+                    value={deliveryType.pickUp}
+                    label='Pickup'
+                    control={
+                      <Radio
+                        onChange={() => {
+                          handleDeliveryTypeChange('pickUp')
+                        }}
+                        checked={deliveryType.pickUp}
+                        sx={deliveryType.pickUp ? { color: 'error.main' } : null}
+                      />
+                    }
+                  />
+                </Grid>
+              </Grid>
+
               <Grid container spacing={5}>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
@@ -514,16 +606,32 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                   <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
                     Submit
                   </LoadingButton>
                   {openSnackbar.open ? (
                     <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
                   ) : null}
-                </Grid>
+                </Grid> */}
               </Grid>
             </form>
+            <Box mt={6}>
+              <Typography sx={{ fontSize: '16px', fontWeight: 500, color: 'customColors.customHeadingTextColor' }}>
+                Items to be Shipped{' '}
+              </Typography>
+            </Box>
+            <Box mt={6}>
+              {dispatchedItems?.length > 0 ? (
+                <Grid md={12} sm={12} xs={12} sx={{ mb: 14 }}>
+                  <TableBasic
+                    columns={columns}
+                    rows={dispatchedItems}
+                    backgroundColor={'customColors.customTableHeaderBg'}
+                  ></TableBasic>
+                </Grid>
+              ) : null}
+            </Box>
           </CardContent>
         </Grid>
       </Grid>
