@@ -111,12 +111,17 @@ const DashboardFilter = ({
 
   const getTaxonomyListFunc = async q => {
     try {
-      getSpecieList(q).then(res => {
-        if (res.result.length > 0) {
+      const params = {
+        q: q ? q : ''
+      }
+      await getSpecieList(params).then(res => {
+        if (res?.result?.length > 0) {
           setTaxonomyList(res?.result)
         }
       })
-    } catch (error) {}
+    } catch (error) {
+      console.log('error', error)
+    }
   }
 
   const getBatchList = async q => {
