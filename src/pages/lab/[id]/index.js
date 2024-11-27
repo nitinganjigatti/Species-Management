@@ -321,7 +321,7 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'Test Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           {params?.row?.test_name}
         </Typography>
       )
@@ -334,7 +334,7 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'Sample',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           <span alt={params?.row.sample_name}>{params.row.sample_name}</span>
         </Typography>
       )
@@ -1101,24 +1101,41 @@ const RequestDetails = () => {
         </Dialog>
       </>
       <>
-        <Dialog open={showTestFile} onClose={() => setShowTestFile(false)}>
-          <Box sx={{ py: 2, minWidth: 200 }}>
+        <Dialog open={showTestFile} onClose={() => setShowTestFile(false)} fullWidth maxWidth='lg' sx={{ py: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              px: 5,
+              py: 3,
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              bgcolor: '#e8f4f2'
+            }}
+          >
+            <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>Reports</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <IconButton onClick={() => setShowTestFile(false)}>
+                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+              </IconButton>
+            </Box>
+          </Box>
+          <Box sx={{ py: 2, mb: 5 }}>
             {testImage || testDoc ? (
               <>
-                <Box sx={{ display: 'flex', px: 5, justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <IconButton onClick={() => setShowTestFile(false)}>
-                      <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-                    </IconButton>
-                  </Box>
-                </Box>
                 <Box sx={{ px: 5 }}>
                   {/* <CommonMediaView /> */}
                   {testImage ? (
                     <Box>
                       <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          gap: 4,
+                          minWidth: 500
+                        }}
+                      >
                         <CommonMediaView image={testImage} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
                       </Box>
                     </Box>
