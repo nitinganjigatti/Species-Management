@@ -18,7 +18,9 @@ import {
   InputAdornment,
   FormGroup,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Alert,
+  AlertTitle
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -1572,81 +1574,115 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
   }
 
+  console.log(disputeItemDetails?.item_details, 'disputeItemDetails')
+
+  const isStoreMatch = () => {
+    return disputeItemDetails?.item_details?.some(
+      item => item.to_store === selectedPharmacy?.id || item.from_store === selectedPharmacy?.id
+    )
+  }
+
   return (
     <>
-      <div>
-        <Box sx={{ pb: 6 }}>
-          <Grid container justifyContent='space-between'>
-            <Grid item xs={12} sm='auto'>
-              <CardHeader
-                sx={{ padding: 0 }}
-                avatar={
-                  <Icon
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      router.back()
-                    }}
-                    icon='ep:back'
-                  />
-                }
-                title={`Shipment Details - ${orderData?.shipment_id || ''}`}
-              />
-            </Grid>
-
-            <Grid container item xs={12} sm='auto' spacing={2}>
-              <Grid item>
-                <Button
-                  size='large'
-                  variant='outlined'
-                  fullWidth
-                  target='_blank'
-                  sx={{ mb: 3.5 }}
-                  // component={Link}
-                  // href={`/pharmacy/request/${id}/shipment-details?orderId=${orderId}`}
-                  startIcon={<Icon icon='material-symbols:print' />}
-                  // onClick={e => {
-                  //   e.preventDefault()
-                  //   handlePrint()
-                  // }}
-                  onClick={handlePrint}
-                >
-                  print
-                </Button>
+      {isStoreMatch() ? (
+        <div>
+          <Box sx={{ pb: 6 }}>
+            <Grid container justifyContent='space-between'>
+              <Grid item xs={12} sm='auto'>
+                <CardHeader
+                  sx={{ padding: 0 }}
+                  avatar={
+                    <Icon
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        router.back()
+                      }}
+                      icon='ep:back'
+                    />
+                  }
+                  title={`Shipment Details - ${orderData?.shipment_id || ''}`}
+                />
               </Grid>
-              <Grid item>
-                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-                  <LoadingButton
+
+              <Grid container item xs={12} sm='auto' spacing={2}>
+                <Grid item>
+                  <Button
                     size='large'
-                    disabled={disableButton() || submitLoader}
-                    variant='contained'
-                    onClick={() => {
-                      if (!submitLoader) {
-                        updateStatus()
-                      }
-                    }}
-                    loading={submitLoader}
+                    variant='outlined'
+                    fullWidth
+                    target='_blank'
+                    sx={{ mb: 3.5 }}
+                    // component={Link}
+                    // href={`/pharmacy/request/${id}/shipment-details?orderId=${orderId}`}
+                    startIcon={<Icon icon='material-symbols:print' />}
+                    // onClick={e => {
+                    //   e.preventDefault()
+                    //   handlePrint()
+                    // }}
+                    onClick={handlePrint}
                   >
-                    Save
-                  </LoadingButton>
-                ) : null}
+                    print
+                  </Button>
+                </Grid>
+                <Grid item>
+                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                    <LoadingButton
+                      size='large'
+                      disabled={disableButton() || submitLoader}
+                      variant='contained'
+                      onClick={() => {
+                        if (!submitLoader) {
+                          updateStatus()
+                        }
+                      }}
+                      loading={submitLoader}
+                    >
+                      Save
+                    </LoadingButton>
+                  ) : null}
+                </Grid>
               </Grid>
+
+              {/* <Grid item xs={12} sm='auto'></Grid> */}
             </Grid>
+          </Box>
+          <DisputeItemDetails
+            ref={printRef}
+            disputeItemDetails={disputeItemDetails}
+            orderData={orderData}
+            selectedPharmacy={selectedPharmacy}
+            checked={checked}
+            handleChange={handleChange}
+            setDisputeItemDetails={setDisputeItemDetails}
+            columns={columns}
+          />
 
-            {/* <Grid item xs={12} sm='auto'></Grid> */}
-          </Grid>
-        </Box>
-        <DisputeItemDetails
-          ref={printRef}
-          disputeItemDetails={disputeItemDetails}
-          orderData={orderData}
-          selectedPharmacy={selectedPharmacy}
-          checked={checked}
-          handleChange={handleChange}
-          setDisputeItemDetails={setDisputeItemDetails}
-          columns={columns}
-        />
+          {commentDialog && commentDialogBox()}
+        </div>
+      ) : (
+        <Alert severity='warning'>
+          <AlertTitle>Warning</AlertTitle>
+          You don't have an access to view this request
+          <Button
+            onClick={() => {
+              router.push('/pharmacy/request/request-list/')
+            }}
+            variant='contained'
+            size='small'
+            sx={{ mx: 4 }}
+          >
+            Back to list
+          </Button>
+        </Alert>
+      )}
+    </>
+  )
+}
 
-        {/* <div ref={printRef}>
+export default OrderReceiveForm
+
+{
+  /* <div ref={printRef}>
           {disputeItemDetails?.item_details?.length > 0 ? (
             <Grid container xs={12} sx={{ mx: 'auto' }}>
               <Grid item xs={12}>
@@ -1787,11 +1823,5 @@ function OrderReceiveForm({ orderId, requestId }) {
               <CircularProgress />
             </Box>
           )}
-        </div> */}
-        {commentDialog && commentDialogBox()}
-      </div>
-    </>
-  )
+        </div> */
 }
-
-export default OrderReceiveForm
