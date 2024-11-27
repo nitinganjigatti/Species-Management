@@ -315,12 +315,6 @@ const ListOfRequest = () => {
     }
   }
 
-  useEffect(() => {
-    oldstoredData()
-
-    // setSelectLoader(true)
-  }, [])
-
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
@@ -368,19 +362,19 @@ const ListOfRequest = () => {
     GetLabRequestStatus(params2)
   }
 
-  const handlePaginationModelChange = async newModel => {
-    setPaginationModel(newModel)
+  // const handlePaginationModelChange = async newModel => {
+  //   setPaginationModel(newModel)
 
-    const params = {
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
-      lab_id: selectedLab
-    }
-    await fetchData(params)
-  }
+  //   const params = {
+  //     sort,
+  //     q: searchValue,
+  //     column: sortColumn,
+  //     page: paginationModel.page + 1,
+  //     limit: paginationModel.pageSize,
+  //     lab_id: selectedLab
+  //   }
+  //   await fetchData(params)
+  // }
 
   const handleSearch = async value => {
     setSearchValue(value)
@@ -425,6 +419,10 @@ const ListOfRequest = () => {
     //   pathname: `/egg/incubator-rooms/${data?.id}`
     // })
   }
+  useEffect(() => {
+    oldstoredData()
+    // setSelectLoader(true)
+  }, [paginationModel])
 
   return (
     <>
@@ -546,11 +544,12 @@ const ListOfRequest = () => {
               columns={columns}
               disableColumnMenu
               sortingMode='server'
+              paginationMode='server'
               pageSizeOptions={[10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={handlePaginationModelChange}
+              onPaginationModelChange={setPaginationModel}
               loading={loading}
               onCellClick={onCellClick}
               slotProps={{
