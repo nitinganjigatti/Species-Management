@@ -275,6 +275,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   const [markReceived, setMarkReceived] = useState([])
 
   const [orderData, setOrderData] = useState([])
+  const [showSpinner, setShowSpinner] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
   const { id } = router.query
@@ -337,6 +338,7 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const getOrderDetails = async orderId => {
     try {
+      setShowSpinner(true)
       const response = await getShipmentOrderDetails(orderId)
 
       if (response?.success === true && response?.data !== '') {
@@ -394,10 +396,13 @@ function OrderReceiveForm({ orderId, requestId }) {
 
         setDisputeItemDetails(disputesData)
         setTempDisputeItemDetails(disputesData)
+        setShowSpinner(false)
       } else {
+        setShowSpinner(false)
       }
     } catch (error) {
-      console.log('error', error)
+      setShowSpinner(false)
+      console.error('error', error)
     }
   }
 
@@ -1584,96 +1589,102 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   return (
     <>
-      {isStoreMatch() ? (
-        <div>
-          <Box sx={{ pb: 6 }}>
-            <Grid container justifyContent='space-between'>
-              <Grid item xs={12} sm='auto'>
-                <CardHeader
-                  sx={{ padding: 0 }}
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        router.back()
-                      }}
-                      icon='ep:back'
-                    />
-                  }
-                  title={`Shipment Details - ${orderData?.shipment_id || ''}`}
-                />
-              </Grid>
-
-              <Grid container item xs={12} sm='auto' spacing={2}>
-                <Grid item>
-                  <Button
-                    size='large'
-                    variant='outlined'
-                    fullWidth
-                    target='_blank'
-                    sx={{ mb: 3.5 }}
-                    // component={Link}
-                    // href={`/pharmacy/request/${id}/shipment-details?orderId=${orderId}`}
-                    startIcon={<Icon icon='material-symbols:print' />}
-                    // onClick={e => {
-                    //   e.preventDefault()
-                    //   handlePrint()
-                    // }}
-                    onClick={handlePrint}
-                  >
-                    print
-                  </Button>
-                </Grid>
-                <Grid item>
-                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
-                    <LoadingButton
-                      size='large'
-                      disabled={disableButton() || submitLoader}
-                      variant='contained'
-                      onClick={() => {
-                        if (!submitLoader) {
-                          updateStatus()
-                        }
-                      }}
-                      loading={submitLoader}
-                    >
-                      Save
-                    </LoadingButton>
-                  ) : null}
-                </Grid>
-              </Grid>
-
-              {/* <Grid item xs={12} sm='auto'></Grid> */}
-            </Grid>
-          </Box>
-          <DisputeItemDetails
-            ref={printRef}
-            disputeItemDetails={disputeItemDetails}
-            orderData={orderData}
-            selectedPharmacy={selectedPharmacy}
-            checked={checked}
-            handleChange={handleChange}
-            setDisputeItemDetails={setDisputeItemDetails}
-            columns={columns}
-          />
-
-          {commentDialog && commentDialogBox()}
-        </div>
+      {showSpinner ? (
+        <FallbackSpinner />
       ) : (
-        <Alert severity='warning'>
-          <AlertTitle>Warning</AlertTitle>
-          You don't have an access to view this request
-          <Button
-            onClick={() => {
-              router.push('/pharmacy/request/request-list/')
-            }}
-            variant='contained'
-            size='small'
-            sx={{ mx: 4 }}
-          >
-            Back to list
-          </Button>
-        </Alert>
+        <>
+          {isStoreMatch() ? (
+            <div>
+              <Box sx={{ pb: 6 }}>
+                <Grid container justifyContent='space-between'>
+                  <Grid item xs={12} sm='auto'>
+                    <CardHeader
+                      sx={{ padding: 0 }}
+                      avatar={
+                        <Icon
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            router.back()
+                          }}
+                          icon='ep:back'
+                        />
+                      }
+                      title={`Shipment Details - ${orderData?.shipment_id || ''}`}
+                    />
+                  </Grid>
+
+                  <Grid container item xs={12} sm='auto' spacing={2}>
+                    <Grid item>
+                      <Button
+                        size='large'
+                        variant='outlined'
+                        fullWidth
+                        target='_blank'
+                        sx={{ mb: 3.5 }}
+                        // component={Link}
+                        // href={`/pharmacy/request/${id}/shipment-details?orderId=${orderId}`}
+                        startIcon={<Icon icon='material-symbols:print' />}
+                        // onClick={e => {
+                        //   e.preventDefault()
+                        //   handlePrint()
+                        // }}
+                        onClick={handlePrint}
+                      >
+                        print
+                      </Button>
+                    </Grid>
+                    <Grid item>
+                      {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                        <LoadingButton
+                          size='large'
+                          disabled={disableButton() || submitLoader}
+                          variant='contained'
+                          onClick={() => {
+                            if (!submitLoader) {
+                              updateStatus()
+                            }
+                          }}
+                          loading={submitLoader}
+                        >
+                          Save
+                        </LoadingButton>
+                      ) : null}
+                    </Grid>
+                  </Grid>
+
+                  {/* <Grid item xs={12} sm='auto'></Grid> */}
+                </Grid>
+              </Box>
+              <DisputeItemDetails
+                ref={printRef}
+                disputeItemDetails={disputeItemDetails}
+                orderData={orderData}
+                selectedPharmacy={selectedPharmacy}
+                checked={checked}
+                handleChange={handleChange}
+                setDisputeItemDetails={setDisputeItemDetails}
+                columns={columns}
+              />
+
+              {commentDialog && commentDialogBox()}
+            </div>
+          ) : (
+            <Alert severity='warning'>
+              <AlertTitle>Warning</AlertTitle>
+              You don't have an access to view this request
+              <Button
+                onClick={() => {
+                  router.push('/pharmacy/request/request-list/')
+                }}
+                variant='contained'
+                size='small'
+                sx={{ mx: 4 }}
+              >
+                Back to list
+              </Button>
+            </Alert>
+          )}
+        </>
       )}
     </>
   )
