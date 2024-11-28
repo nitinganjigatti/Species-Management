@@ -143,7 +143,7 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    AAID: {item?.animal_id}
+                    AID: {item?.animal_id}
                     {/* {Utility?.toPascalSentenceCase(item?.common_name)} */}
                   </Typography>
                   {item?.breed_name && (
