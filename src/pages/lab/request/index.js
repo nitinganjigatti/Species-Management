@@ -100,7 +100,7 @@ const ListOfRequest = () => {
     },
 
     {
-      width: 230,
+      width: 200,
       sortable: false,
       field: 'site_name',
       headerName: 'Site',
@@ -112,7 +112,7 @@ const ListOfRequest = () => {
     },
 
     {
-      width: 220,
+      width: 150,
       field: 'created_at',
       sortable: false,
       headerName: 'Date',
@@ -123,7 +123,7 @@ const ListOfRequest = () => {
       )
     },
     {
-      width: 220,
+      width: 150,
       field: 'total_test',
       headerName: 'No. of Tests ',
       sortable: false,
@@ -135,66 +135,66 @@ const ListOfRequest = () => {
       )
     },
 
-    // {
-    //   width: 200,
-    //   field: 'status',
-    //   sortable: false,
-    //   headerName: 'Status',
-    //   renderCell: params => (
-    //     <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
-    //       {params.row.total_tests_pending > 0 && (
-    //         <Box
-    //           sx={{
-    //             bgcolor: '#E93353',
-    //             color: 'white',
-    //             borderRadius: '50px',
-    //             height: 20,
-    //             width: 20,
-    //             display: 'flex',
-    //             alignItems: 'center',
-    //             justifyContent: 'center'
-    //           }}
-    //         >
-    //           {params.row.total_tests_pending}
-    //         </Box>
-    //       )}
+    {
+      width: 200,
+      field: 'status',
+      sortable: false,
+      headerName: 'Status',
+      renderCell: params => (
+        <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+          {params.row.total_tests_pending > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#E93353',
+                color: 'white',
+                borderRadius: '50px',
+                height: 20,
+                width: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {params.row.total_tests_pending}
+            </Box>
+          )}
 
-    //       {params.row.total_tests_inprogress > 0 && (
-    //         <Box
-    //           sx={{
-    //             bgcolor: '#00AEA4',
-    //             color: 'white',
-    //             borderRadius: '50px',
-    //             height: 20,
-    //             width: 20,
-    //             display: 'flex',
-    //             alignItems: 'center',
-    //             justifyContent: 'center'
-    //           }}
-    //         >
-    //           {params.row.total_tests_inprogress}
-    //         </Box>
-    //       )}
+          {params.row.total_tests_inprogress > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#00AEA4',
+                color: 'white',
+                borderRadius: '50px',
+                height: 20,
+                width: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {params.row.total_tests_inprogress}
+            </Box>
+          )}
 
-    //       {params.row.total_tests_completed > 0 && (
-    //         <Box
-    //           sx={{
-    //             bgcolor: '#2A9D0D',
-    //             color: 'white',
-    //             borderRadius: '50px',
-    //             height: 20,
-    //             width: 20,
-    //             display: 'flex',
-    //             alignItems: 'center',
-    //             justifyContent: 'center'
-    //           }}
-    //         >
-    //           {params.row.total_tests_completed}
-    //         </Box>
-    //       )}
-    //     </Stack>
-    //   )
-    // },
+          {params.row.total_tests_completed > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#2A9D0D',
+                color: 'white',
+                borderRadius: '50px',
+                height: 20,
+                width: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {params.row.total_tests_completed}
+            </Box>
+          )}
+        </Stack>
+      )
+    },
 
     {
       width: 220,
@@ -421,6 +421,7 @@ const ListOfRequest = () => {
   }
   useEffect(() => {
     oldstoredData()
+
     // setSelectLoader(true)
   }, [paginationModel])
 
@@ -494,7 +495,7 @@ const ListOfRequest = () => {
                   Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
 
-                {/* <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
+                <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#E93353', fontSize: '12px' }}>
                     Pending Test - {stats?.total_tests_pending}
                   </Typography>
@@ -508,33 +509,32 @@ const ListOfRequest = () => {
                   <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
                     Completed Test - {stats?.total_tests_completed}
                   </Typography>
-                </Box> */}
+                </Box>
               </Stack>
             </Box>
             {/* Status */}
-            {/* <Box>
-              <Stack
-                direction={{ md: 'row', sm: 'row', sx: 'column' }}
-                spacing={4}
-                sx={{ alignItems: 'center', justifyContent: 'flex-end', m: 5 }}
-              >
-                <>
-                  <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
-                </>
-                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#E93353'} />
-                  <Typography variant='subtitle1'>Pending</Typography>
-                </Box>
-                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#00AEA4'} />
-                  <Typography variant='subtitle1'>In Progress</Typography>
-                </Box>
-                <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Icon icon='ic:baseline-circle' fontSize={15} color={'#2A9D0D'} />
-                  <Typography variant='subtitle1'>Completed</Typography>
-                </Box>
-              </Stack>
-            </Box> */}
+
+            <Stack
+              direction={{ md: 'row', sm: 'row', sx: 'column' }}
+              spacing={4}
+              sx={{ alignItems: 'center', justifyContent: 'flex-end', m: 5 }}
+            >
+              <>
+                <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
+              </>
+              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#E93353'} />
+                <Typography variant='subtitle1'>Pending</Typography>
+              </Box>
+              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#00AEA4'} />
+                <Typography variant='subtitle1'>In Progress</Typography>
+              </Box>
+              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#2A9D0D'} />
+                <Typography variant='subtitle1'>Completed</Typography>
+              </Box>
+            </Stack>
 
             <DataGrid
               autoHeight
