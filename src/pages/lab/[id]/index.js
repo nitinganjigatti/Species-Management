@@ -46,7 +46,8 @@ import {
   MenuItem,
   FormHelperText,
   Popover,
-  Breadcrumbs
+  Breadcrumbs,
+  Divider
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -83,6 +84,8 @@ const RequestDetails = () => {
   const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
+  const [medicalImage, setMedicalImage] = useState()
+  const [medicalDocument, setMedicalDocument] = useState()
   const [testImage, setTestImage] = useState()
 
   const [testDoc, setTestDoc] = useState()
@@ -225,6 +228,8 @@ const RequestDetails = () => {
         setTotal(parseInt(res?.data?.total_count))
         setImage(res?.data?.result[0]?.files?.images)
         setDocument(res?.data?.result[0]?.files?.files)
+        setMedicalDocument(res?.data?.result[0]?.medical_attachements?.files)
+        setMedicalImage(res?.data?.result[0]?.medical_attachements?.images)
         setLoading(false)
       })
     } catch (error) {
@@ -829,13 +834,15 @@ const RequestDetails = () => {
             />
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5, mb: 6 }}>
-                <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+              <Box sx={{ px: 5, mb: 3 }}>
+                <Divider />
+                <Typography sx={{ fontSize: '20px', py: 2 }}>Lab Reports</Typography>
+                <Divider />
 
                 {/* <CommonMediaView /> */}
                 {image ? (
                   <Box>
-                    <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
+                    <Typography sx={{ fontSize: '18px', py: 2 }}>Images</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                       <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
                     </Box>
@@ -852,6 +859,44 @@ const RequestDetails = () => {
                 ) : null}
               </Box>
             ) : null}
+
+            <Box sx={{ px: 5, mb: 3, mt: 5 }}>
+              <Divider />
+              <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Reports</Typography>
+              <Divider />
+
+              <>
+                {medicalImage && (
+                  <Box>
+                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Images</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      <CommonMediaView
+                        image={medicalImage}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        type='medical'
+                      />
+                    </Box>
+                  </Box>
+                )}
+              </>
+
+              <>
+                {medicalDocument && (
+                  <Box>
+                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      <CommonMediaView
+                        document={medicalDocument}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        type='medical'
+                      />
+                    </Box>
+                  </Box>
+                )}
+              </>
+            </Box>
 
             {/* allow user Only if user hand upload permissions */}
 
