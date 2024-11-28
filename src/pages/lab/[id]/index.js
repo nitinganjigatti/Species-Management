@@ -859,44 +859,46 @@ const RequestDetails = () => {
                 ) : null}
               </Box>
             ) : null}
+            {medicalDocument ||
+              (medicalImage && (
+                <Box sx={{ px: 5, mb: 3, mt: 5 }}>
+                  <Divider />
+                  <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Reports</Typography>
+                  <Divider />
 
-            <Box sx={{ px: 5, mb: 3, mt: 5 }}>
-              <Divider />
-              <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Reports</Typography>
-              <Divider />
+                  <>
+                    {medicalImage && (
+                      <Box>
+                        <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Images</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                          <CommonMediaView
+                            image={medicalImage}
+                            handleDeleteImg={handleDeleteImg}
+                            fileViews={fileViews}
+                            type='medical'
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                  </>
 
-              <>
-                {medicalImage && (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Images</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView
-                        image={medicalImage}
-                        handleDeleteImg={handleDeleteImg}
-                        fileViews={fileViews}
-                        type='medical'
-                      />
-                    </Box>
-                  </Box>
-                )}
-              </>
-
-              <>
-                {medicalDocument && (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView
-                        document={medicalDocument}
-                        handleDeleteImg={handleDeleteImg}
-                        fileViews={fileViews}
-                        type='medical'
-                      />
-                    </Box>
-                  </Box>
-                )}
-              </>
-            </Box>
+                  <>
+                    {medicalDocument && (
+                      <Box>
+                        <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                          <CommonMediaView
+                            document={medicalDocument}
+                            handleDeleteImg={handleDeleteImg}
+                            fileViews={fileViews}
+                            type='medical'
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                  </>
+                </Box>
+              ))}
 
             {/* allow user Only if user hand upload permissions */}
 
