@@ -368,9 +368,11 @@ const RecipeCard = ({
   const sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
 
   const calculateTotalQuantity = ingredients => {
-    return ingredients.reduce((total, ingredient) => {
+    const total = ingredients.reduce((total, ingredient) => {
       return total + parseFloat(ingredient.quantity)
     }, 0)
+
+    return Math.round(total)
   }
 
   return (
