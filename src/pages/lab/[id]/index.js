@@ -834,29 +834,17 @@ const RequestDetails = () => {
             />
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5, mb: 3 }}>
+              <Box sx={{ px: 5 }}>
                 <Divider />
                 <Typography sx={{ fontSize: '20px', py: 2 }}>Lab Reports</Typography>
                 <Divider />
 
-                {/* <CommonMediaView /> */}
-                {image ? (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px', py: 2 }}>Images</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
-                    </Box>
-                  </Box>
-                ) : null}
-
-                {document ? (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
-                    </Box>
-                  </Box>
-                ) : null}
+                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                  {image && <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />}
+                  {document && (
+                    <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                  )}
+                </Box>
               </Box>
             ) : null}
             {(medicalDocument || medicalImage) && (
@@ -866,36 +854,27 @@ const RequestDetails = () => {
                 <Divider />
 
                 <>
-                  {medicalImage && (
-                    <Box>
-                      <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Images</Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                        <CommonMediaView
-                          image={medicalImage}
-                          handleDeleteImg={handleDeleteImg}
-                          fileViews={fileViews}
-                          type='medical'
-                        />
-                      </Box>
-                    </Box>
-                  )}
+                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                    {medicalImage && (
+                      <CommonMediaView
+                        image={medicalImage}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        type='medical'
+                      />
+                    )}
+                    {medicalDocument && (
+                      <CommonMediaView
+                        document={medicalDocument}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        type='medical'
+                      />
+                    )}
+                  </Box>
                 </>
 
-                <>
-                  {medicalDocument && (
-                    <Box>
-                      <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                        <CommonMediaView
-                          document={medicalDocument}
-                          handleDeleteImg={handleDeleteImg}
-                          fileViews={fileViews}
-                          type='medical'
-                        />
-                      </Box>
-                    </Box>
-                  )}
-                </>
+                <></>
               </Box>
             )}
 
