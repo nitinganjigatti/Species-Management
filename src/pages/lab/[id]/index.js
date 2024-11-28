@@ -349,11 +349,12 @@ const RequestDetails = () => {
       field: 'status',
       sortable: false,
       headerName: 'STATUS',
+      align: 'center',
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 120 }}>
             {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
-              <FormControl fullWidth size='small'>
+              <FormControl fullWidth>
                 <Select
                   size='small'
                   labelId='demo-simple-select-label'
@@ -362,6 +363,7 @@ const RequestDetails = () => {
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
+                    width: 200,
                     backgroundColor:
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
