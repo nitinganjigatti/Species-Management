@@ -77,8 +77,6 @@ const statusData = [
 const RequestDetails = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
-
-  console.log('authData :>> ', authData?.userData?.modules?.lab_data?.lab)
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
