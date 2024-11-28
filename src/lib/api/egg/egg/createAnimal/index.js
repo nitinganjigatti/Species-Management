@@ -93,7 +93,7 @@ export async function getSpecieList(params) {
   try {
     const response = await axiosGet({
       url: 'species-list-egg-wise',
-      body: params
+      params: params
     })
 
     return response?.data
