@@ -7,7 +7,6 @@ import Utility from 'src/utility'
 
 const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) => {
   // console.log('image :>> ', image)
-  // console.log('document :>> ', document)
 
   function extractHoursAndMinutes(date) {
     //9:21 PM
@@ -35,7 +34,15 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
             <Card
               sx={{ p: '16px', display: 'flex', flexDirection: 'column', gap: '8px', width: '271px', height: '224px' }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: -2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mt: -2,
+                  py: type === 'medical' ? 2 : 0
+                }}
+              >
                 <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
                   <Typography
                     sx={{
@@ -49,9 +56,11 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                     {item?.file_original_name}
                   </Typography>
                 </Tooltip>
-                <IconButton onClick={e => handleDeleteImg(e, item)}>
-                  <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
-                </IconButton>
+                {type !== 'medical' && (
+                  <IconButton onClick={e => handleDeleteImg(e, item)}>
+                    <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
+                  </IconButton>
+                )}
               </Box>
               <Box
                 sx={{
@@ -111,7 +120,15 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
             <Card
               sx={{ p: '16px', display: 'flex', flexDirection: 'column', gap: '8px', width: '271px', height: '224px' }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: -2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mt: -2,
+                  py: type === 'medical' ? 2 : 0
+                }}
+              >
                 <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
                   <Typography
                     sx={{
@@ -125,9 +142,11 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                     {item?.file_original_name}
                   </Typography>
                 </Tooltip>
-                <IconButton onClick={e => handleDeleteImg(e, item)}>
-                  <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
-                </IconButton>
+                {type !== 'medical' && (
+                  <IconButton onClick={e => handleDeleteImg(e, item)}>
+                    <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
+                  </IconButton>
+                )}
               </Box>
               <Box
                 sx={{
@@ -181,7 +200,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                     {item?.user_profile?.name}
                   </Typography>
                 </Box>
-                <Box>{moment(item?.user_profile?.created_at).format('hh:mm A')}</Box>
+                <Box>{extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}</Box>
               </Box>
             </Card>
           </a>

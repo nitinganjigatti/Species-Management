@@ -34,7 +34,7 @@ const MonthlyDispatchChart = () => {
     getMonthlyDispatches()
   }, [])
 
-  // Create a mapping for full month names to short month names
+  // Ensure month mapping exists
   const monthMapping = {
     January: 'Jan',
     February: 'Feb',
@@ -50,23 +50,46 @@ const MonthlyDispatchChart = () => {
     December: 'Dec'
   }
 
-  // Extract and dynamically sort months
+  const monthToIndex = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
+  }
+
+  // Sort the keys in chronological order
   const monthsFromApi = purchaseList?.dispatch_count[0]
-    ? Object.keys(purchaseList.dispatch_count[0]).sort((a, b) => new Date(`1 ${a}`) - new Date(`1 ${b}`)) // Sort by date
+    ? Object.keys(purchaseList.dispatch_count[0]).sort((a, b) => {
+        const parseMonthYear = monthYear => {
+          const [month, year] = monthYear.split(" '")
+          const monthIndex = monthToIndex[month]
+          const fullYear = parseInt(year, 10) + 2000
+          return new Date(fullYear, monthIndex)
+        }
+
+        const dateA = parseMonthYear(a)
+        const dateB = parseMonthYear(b)
+
+        return dateA - dateB
+      })
     : []
 
-  // Map the dispatch count and value based on the dynamic month order from API
-  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList?.dispatch_count[0]?.[month]) || 0)
+  const purchaseCounts = monthsFromApi.map(month => parseInt(purchaseList.dispatch_count[0][month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList.dispatch_value[0][month]) / 100000 || 0)
 
-  const purchaseValues = monthsFromApi.map(month => parseFloat(purchaseList?.dispatch_value[0]?.[month] || 0) / 100000)
-
-  // Convert to formatted short month and year (e.g., "Jan '24")
   const shortMonths = monthsFromApi.map(month => {
     const [monthName, year] = month.split(' ')
     return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
   })
 
-  // Conditionally add series based on checkbox selections
   const series = []
   if (showDispatchCount) {
     series.push({

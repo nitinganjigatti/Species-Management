@@ -99,34 +99,44 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
     },
     {
       avatarSrc: '/icons/egg_dashboard/eggDiscard.png',
-      value: allStats?.total_egg_discard,
+      value:
+        (Number.isNaN(allStats?.total_egg_ready_to_be_discarded_site)
+          ? 0
+          : Number(allStats?.total_egg_ready_to_be_discarded_site)) +
+        (Number.isNaN(allStats?.total_egg_discarded_at_site) ? 0 : Number(allStats?.total_egg_discarded_at_site)) +
+        (Number.isNaN(allStats?.total_egg_discarded_at_nursery)
+          ? 0
+          : Number(allStats?.total_egg_discarded_at_nursery)) +
+        (Number.isNaN(allStats?.total_egg_ready_to_be_discarded_nursery)
+          ? 0
+          : Number(allStats?.total_egg_ready_to_be_discarded_nursery)),
       label: 'Egg Discard',
       onClick: () => setOpenDiscard(true),
       tooltipContent: (
         <>
-          {allStats?.total_egg_discarded && (
-            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-              Discarded: <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded}</span>
-            </p>
-          )}
-          {allStats?.total_egg_ready_to_be_discarded && (
-            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-              Marked for Discard:{' '}
-              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_ready_to_be_discarded}</span>
-            </p>
-          )}
-          {allStats?.total_egg_discarded_at_site && (
-            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-              Discarded in site:{' '}
-              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded_at_site}</span>
-            </p>
-          )}
-          {allStats?.total_egg_discarded_at_nursery && (
-            <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-              Discarded in nursery:{' '}
-              <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded_at_nursery}</span>
-            </p>
-          )}
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+            Ready to be discarded at site:{' '}
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>
+              {allStats?.total_egg_ready_to_be_discarded_site}
+            </span>
+          </p>
+
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+            Discarded at site:{' '}
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded_at_site}</span>
+          </p>
+
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+            Ready to be discarded at nursery:{' '}
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>
+              {allStats?.total_egg_ready_to_be_discarded_nursery}
+            </span>
+          </p>
+
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
+            Discarded at nursery:{' '}
+            <span style={{ fontSize: '12px', fontWeight: '500' }}>{allStats?.total_egg_discarded_at_nursery}</span>
+          </p>
         </>
       ),
       valueColor: theme.palette.formContent.tertiary
