@@ -111,8 +111,6 @@ const RequestDetails = () => {
 
   const [permissions, setPermissions] = useState(null)
 
-  // console.log('permissions :>> ', permissions)
-
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
   const [status, setStatus] = React.useState()
@@ -159,8 +157,6 @@ const RequestDetails = () => {
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
 
-    // console.log('localLabData :>> ', localLabData)
-
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
@@ -174,8 +170,6 @@ const RequestDetails = () => {
     const payload = {
       status: event.target.value
     }
-
-    // console.log('payload', payload)
 
     const response = await UpdateStatus(id, payload)
     if (response?.success) {
@@ -534,8 +528,6 @@ const RequestDetails = () => {
                     : null
 
                   // params?.row?.attachments?.docs?.length
-
-                  // console.log(' params.row.attachments.docs.length :>> ', params.row.attachments)
                 }
               </Typography>
             </Box>
@@ -626,8 +618,6 @@ const RequestDetails = () => {
       transfer_reason
     }
 
-    // console.log('payload', payload)
-
     if (transferStatus !== 'completed') {
       const response = await transferLab(id, payload)
       if (response?.success) {
@@ -653,7 +643,6 @@ const RequestDetails = () => {
   }
 
   const handleDeleteImg = async (e, item) => {
-    // console.log('Delete id :>> ', item)
     e.preventDefault()
     e.stopPropagation()
 
