@@ -4,11 +4,9 @@ import { GetEggDetails } from 'src/lib/api/egg/egg'
 
 const AnimalCard = ({ animalDetails }) => {
   const theme = useTheme()
-  console.log('animalDetails :>> ', animalDetails)
 
   return (
     <Box
-      // key={i}
       sx={{
         backgroundColor: '#fff',
         borderRadius: '8px',

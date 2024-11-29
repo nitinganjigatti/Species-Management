@@ -14,8 +14,8 @@ const ShowLabCard = ({ data }) => {
     <>
       <Card sx={{ px: 5, py: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-            <IconButton
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'center' }}>
+            {/* <IconButton
               sx={{ mr: 1, alignItems: 'flex-start' }}
               onClick={() =>
                 router.push({
@@ -24,7 +24,7 @@ const ShowLabCard = ({ data }) => {
               }
             >
               <Icon icon='ep:back' fontSize={25} />
-            </IconButton>
+            </IconButton> */}
             <Typography sx={{ fontWeight: 'bold', ml: 2 }}>{data?.lab_name}</Typography>
           </Box>
           <Box sx={{ maxWidth: 130, height: 100 }}>

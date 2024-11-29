@@ -251,7 +251,7 @@ const UploadReports = ({
                     >
                       <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
-                      <Typography>Drop your files here</Typography>
+                      <Typography>Drop your lab files here</Typography>
                     </Box>
                   </Grid>
                   {/* )} */}
