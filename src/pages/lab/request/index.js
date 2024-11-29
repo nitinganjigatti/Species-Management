@@ -330,7 +330,6 @@ const ListOfRequest = () => {
     write('selectedLAB', event.target.value)
     setLabSelected(event.target.value)
     const storedLabData = await readAsync('selectedLAB')
-    console.log('storedLabData', storedLabData)
     if (storedLabData) {
       setSelectedLab(event.target.value)
 

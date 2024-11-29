@@ -27,7 +27,6 @@ const LabDetails = () => {
     try {
       const res = await getLabDeatilsById(id)
       if (res) {
-        // console.log('res show', res?.data[0])
         setShowLabDetails(res?.data[0])
         setLabTests(res?.data[0]?.lab_details)
         setLoader(false)
