@@ -1,5 +1,5 @@
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { Box, Grid, Tab } from '@mui/material'
+import { Box, Breadcrumbs, Card, Grid, Tab, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Equipments from 'src/components/lab/lab-details/Equipments'
 import OverView from 'src/components/lab/lab-details/OverView'
@@ -47,30 +47,55 @@ const LabDetails = () => {
       {loader ? (
         <FallbackSpinner />
       ) : (
-        <Grid container spacing={2}>
-          <Grid item md={3}>
-            <ShowLabCard data={showLabDetails} />
-          </Grid>
-          <Grid item md={9}>
-            <TabContext value={status}>
-              <TabList onChange={handleChange}>
-                <Tab value='site' label='SITES' sx={{ ml: 5 }} />
-                <Tab value='tests' label='TESTS' />
-                <Tab value='users' label='USERS' />
-              </TabList>
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Labs
+            </Typography>
+            <Typography
+              sx={{ cursor: 'pointer' }}
+              color='inherit'
+              onClick={() =>
+                router.push({
+                  pathname: '/lab/lab-list'
+                })
+              }
+            >
+              Labs list
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Lab details
+            </Typography>
+          </Breadcrumbs>
 
-              <TabPanel value='site'>
-                <Site labId={id} />
-              </TabPanel>
-              <TabPanel value='tests'>
-                <Tests labTest={labTests} />
-              </TabPanel>
-              <TabPanel value='users'>
-                <Users labId={id} />
-              </TabPanel>
-            </TabContext>
+          <Grid container spacing={2}>
+            <Grid item md={3}>
+              <ShowLabCard data={showLabDetails} />
+            </Grid>
+            <Grid item md={9}>
+              <TabContext value={status}>
+                <TabList onChange={handleChange}>
+                  <Tab value='site' label='SITES' sx={{ ml: 5 }} />
+                  <Tab value='tests' label='TESTS' />
+                  <Tab value='users' label='USERS' />
+                </TabList>
+
+                <TabPanel value='site'>
+                  <Site labId={id} />
+                </TabPanel>
+                <TabPanel value='tests'>
+                  <Tests labTest={labTests} />
+                </TabPanel>
+                <TabPanel value='users'>
+                  <Users labId={id} />
+                </TabPanel>
+              </TabContext>
+            </Grid>
           </Grid>
-        </Grid>
+        </>
       )}
     </>
   )

@@ -45,7 +45,9 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Popover
+  Popover,
+  Breadcrumbs,
+  Divider
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -76,14 +78,14 @@ const statusData = [
 const RequestDetails = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
-
-  console.log('authData :>> ', authData?.userData?.modules?.lab_data?.lab)
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
   const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
+  const [medicalImage, setMedicalImage] = useState()
+  const [medicalDocument, setMedicalDocument] = useState()
   const [testImage, setTestImage] = useState()
 
   const [testDoc, setTestDoc] = useState()
@@ -226,6 +228,8 @@ const RequestDetails = () => {
         setTotal(parseInt(res?.data?.total_count))
         setImage(res?.data?.result[0]?.files?.images)
         setDocument(res?.data?.result[0]?.files?.files)
+        setMedicalDocument(res?.data?.result[0]?.medical_attachements?.files)
+        setMedicalImage(res?.data?.result[0]?.medical_attachements?.images)
         setLoading(false)
       })
     } catch (error) {
@@ -320,7 +324,7 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'Test Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           {params?.row?.test_name}
         </Typography>
       )
@@ -333,7 +337,7 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'Sample',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           <span alt={params?.row.sample_name}>{params.row.sample_name}</span>
         </Typography>
       )
@@ -345,11 +349,12 @@ const RequestDetails = () => {
       field: 'status',
       sortable: false,
       headerName: 'STATUS',
+      align: 'center',
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 120 }}>
             {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
-              <FormControl fullWidth size='small'>
+              <FormControl fullWidth>
                 <Select
                   size='small'
                   labelId='demo-simple-select-label'
@@ -358,6 +363,7 @@ const RequestDetails = () => {
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
+                    width: 200,
                     backgroundColor:
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
@@ -691,13 +697,36 @@ const RequestDetails = () => {
         <FallbackSpinner />
       ) : (
         <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+              Labs
+            </Typography>
+            <Typography
+              sx={{ cursor: 'pointer' }}
+              color='inherit'
+              onClick={() =>
+                router.push({
+                  pathname: '/lab/request'
+                })
+              }
+            >
+              Requests list
+            </Typography>
+            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              Lab request details
+            </Typography>
+          </Breadcrumbs>
+
           <Card sx={{ p: 5 }}>
             {request?.map((item, index) => (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {' '}
+                      {/* {' '}
                       <IconButton
                         sx={{ mr: 1 }}
                         onClick={() =>
@@ -707,7 +736,7 @@ const RequestDetails = () => {
                         }
                       >
                         <Icon icon='ep:back' fontSize={25} />
-                      </IconButton>
+                      </IconButton> */}
                       <Typography variant='h6'>
                         Request ID -{' '}
                         <span
@@ -715,6 +744,14 @@ const RequestDetails = () => {
                           style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
                         >
                           {item?.request_id}
+                        </span>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                      <Typography>
+                        Medical Record{' '}
+                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                          {item?.medical_record_id}
                         </span>
                       </Typography>
                     </Box>
@@ -731,7 +768,7 @@ const RequestDetails = () => {
                       Site :{' '}
                       <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
                     </Typography>
-                    <Typography sx={{ mt: 2 }}>
+                    <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
                     </Typography>
                   </Box>
@@ -799,33 +836,53 @@ const RequestDetails = () => {
             />
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5, mb: 6 }}>
-                <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
+              <Box sx={{ px: 5 }}>
+                <Divider />
+                <Typography sx={{ fontSize: '20px', py: 2 }}>Lab Reports</Typography>
+                <Divider />
 
-                {/* <CommonMediaView /> */}
-                {image ? (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
-                    </Box>
-                  </Box>
-                ) : null}
-
-                {document ? (
-                  <Box>
-                    <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                      <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
-                    </Box>
-                  </Box>
-                ) : null}
+                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                  {image && <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />}
+                  {document && (
+                    <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                  )}
+                </Box>
               </Box>
             ) : null}
+            {(medicalDocument || medicalImage) && (
+              <Box sx={{ px: 5, mb: 3, mt: 5 }}>
+                <Divider />
+                <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Reports</Typography>
+                <Divider />
+
+                <>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                    {medicalImage && (
+                      <CommonMediaView
+                        image={medicalImage}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        type='medical'
+                      />
+                    )}
+                    {medicalDocument && (
+                      <CommonMediaView
+                        document={medicalDocument}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        type='medical'
+                      />
+                    )}
+                  </Box>
+                </>
+
+                <></>
+              </Box>
+            )}
 
             {/* allow user Only if user hand upload permissions */}
 
-            {permissions?.perform_tests === true && permissions?.allow_full_access === true ? (
+            {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
               <UploadReports
                 animalID={animanlId}
                 labTestId={LabRequestId}
@@ -844,14 +901,17 @@ const RequestDetails = () => {
 
       <>
         {/* Open PopUp On Clicking Request Id */}
-        <Dialog open={open} onClose={handleClose}>
+        <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 2, py: 3, bgcolor: '#e8f4f2' }}>
+            <Typography variant='h6' sx={{ ml: 3 }}>
+              Tests list
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
+            </IconButton>
+          </Box>
           {requestById?.map((item, index) => (
-            <Card key={index} sx={{ p: 2, minWidth: 600 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <IconButton onClick={handleClose}>
-                  <Icon icon='ep:close-bold' fontSize={15} color={'red'} />
-                </IconButton>
-              </Box>
+            <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
               <Box ml={3}>
                 <Typography variant='h6'>
                   Request - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{item.request_id}</span>
@@ -861,7 +921,7 @@ const RequestDetails = () => {
                   Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, ml: 3, mr: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
                 <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography>
                     No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
@@ -888,11 +948,11 @@ const RequestDetails = () => {
                     <TableBody>
                       {item?.test_reports?.map((data, dataID) => (
                         <TableRow key={dataID}>
-                          <TableCell>{data?.test_name}</TableCell>
-                          <TableCell>{data?.lab_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
                             {' '}
-                            <span
+                            {/* <span
                               style={{
                                 color:
                                   data?.status === 'transferred' || data?.status === 'pending'
@@ -905,7 +965,44 @@ const RequestDetails = () => {
                               }}
                             >
                               {data?.status === 'transferred' ? 'pending' : data?.status}
-                            </span>{' '}
+                            </span>{' '} */}
+                            <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+                              <span
+                                alt={data?.status}
+                                style={{
+                                  color:
+                                    data?.status === 'pending' ||
+                                    data?.status === 'transferred' ||
+                                    data?.status === 'awaiting_sample' ||
+                                    data?.status === 'sample_rejected' ||
+                                    data?.status === 'sample_received'
+                                      ? '#FA6140'
+                                      : data?.status === 'completed'
+                                      ? '#37BD69'
+                                      : data?.status === 'inprogress'
+                                      ? '#00AFD6'
+                                      : '#37BD69'
+                                }}
+                              >
+                                {data?.status === 'awaiting_sample'
+                                  ? 'Awaiting sample'
+                                  : data?.status === 'sample_received'
+                                  ? 'Sample received'
+                                  : data?.status === 'sample_rejected'
+                                  ? 'sample rejected'
+                                  : data?.status === 'completed_positive'
+                                  ? 'completed positive'
+                                  : data?.status === 'completed_negative'
+                                  ? 'completed negative'
+                                  : data?.status === 'completed_detected'
+                                  ? 'completed detected'
+                                  : data?.status === 'completed_not_detected'
+                                  ? 'completed not detected'
+                                  : data?.status === 'completed_inconclusive'
+                                  ? 'completed inconclusive'
+                                  : 'inprogress'}
+                              </span>
+                            </Typography>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -913,27 +1010,35 @@ const RequestDetails = () => {
                   </Table>
                 </TableContainer>
               </Box>
-            </Card>
+            </Box>
           ))}
         </Dialog>
       </>
 
       <>
         <Dialog open={openTransfer} onClose={handleCloseTransfer}>
-          <Card sx={{ p: 5, minWidth: 500 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton onClick={handleCloseTransfer}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-              </IconButton>
-            </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 4,
+              pt: 2,
+              pb: 2,
+              bgcolor: '#e8f4f2'
+            }}
+          >
+            <Typography variant='h6'>Transfer test to another lab</Typography>
+            <IconButton onClick={handleCloseTransfer}>
+              <Icon icon='ic:baseline-close' fontSize={20} color={'red'} />
+            </IconButton>
+          </Box>
+          <Box sx={{ px: 5, pb: 5, minWidth: 500 }}>
             <Box>
-              <Typography variant='h6' sx={{ mb: 2 }}>
-                Transfer test to another lab
-              </Typography>
-
-              <Box>
+              <Box sx={{ py: 4 }}>
                 <Typography>
-                  Test name - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{testName}</span>
+                  Test name -{' '}
+                  <span style={{ color: '#37BD69', fontWeight: 'bold', textTransform: 'capitalize' }}>{testName}</span>
                 </Typography>
                 <Typography>
                   Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.request_id}</span>
@@ -944,7 +1049,7 @@ const RequestDetails = () => {
               </Box>
 
               <form onSubmit={handleSubmit(onSubmit)}>
-                <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
+                <Grid item xs={12} md={6} sm={6} sx={{ mb: 2 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='lab_name'
@@ -975,7 +1080,7 @@ const RequestDetails = () => {
                 </Grid>
                 <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
                   <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.lab_type)} id='lab_type'>
+                    <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                       Transfer To
                     </InputLabel>
                     <Controller
@@ -1019,7 +1124,7 @@ const RequestDetails = () => {
                           value={value}
                           label='Transfer Reason'
                           name='transfer_reason'
-                          error={Boolean(errors.lab_name)}
+                          error={Boolean(errors.transfer_reason)}
                           onChange={onChange}
                           placeholder='Add transfer reason'
                         />
@@ -1043,17 +1148,17 @@ const RequestDetails = () => {
                 </Box>
               </form>
             </Box>
-          </Card>
+          </Box>
         </Dialog>
       </>
       <>
-        <Dialog open={openUploader} onClose={() => setOpenUploader(false)}>
-          <Card sx={{ width: 600, height: 'auto' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <IconButton onClick={() => setOpenUploader(false)}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-              </IconButton>
-            </Box>
+        <Dialog open={openUploader} onClose={() => setOpenUploader(false)} fullWidth maxWidth='sm'>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton onClick={() => setOpenUploader(false)}>
+              <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+            </IconButton>
+          </Box>
+          <Box sx={{ height: 'auto' }}>
             <UploadReports
               animalID={animanlId}
               labTestId={LabRequestId}
@@ -1065,28 +1170,45 @@ const RequestDetails = () => {
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
             />
-          </Card>
+          </Box>
         </Dialog>
       </>
       <>
-        <Dialog open={showTestFile} onClose={() => setShowTestFile(false)}>
-          <Box sx={{ py: 2, minWidth: 200 }}>
+        <Dialog open={showTestFile} onClose={() => setShowTestFile(false)} fullWidth maxWidth='lg' sx={{ py: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              px: 5,
+              py: 3,
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              bgcolor: '#e8f4f2'
+            }}
+          >
+            <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>Reports</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <IconButton onClick={() => setShowTestFile(false)}>
+                <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
+              </IconButton>
+            </Box>
+          </Box>
+          <Box sx={{ py: 2, mb: 5 }}>
             {testImage || testDoc ? (
               <>
-                <Box sx={{ display: 'flex', px: 5, justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ fontSize: '20px', fontWeight: 'bold', mb: 3 }}>Reports</Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <IconButton onClick={() => setShowTestFile(false)}>
-                      <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-                    </IconButton>
-                  </Box>
-                </Box>
                 <Box sx={{ px: 5 }}>
                   {/* <CommonMediaView /> */}
                   {testImage ? (
                     <Box>
                       <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          gap: 4,
+                          minWidth: 500
+                        }}
+                      >
                         <CommonMediaView image={testImage} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
                       </Box>
                     </Box>

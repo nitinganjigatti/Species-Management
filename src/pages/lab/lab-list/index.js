@@ -17,7 +17,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge } from '@mui/material'
+import { Box, Avatar, Badge, Breadcrumbs, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -107,9 +107,11 @@ const ListOfLab = () => {
       field: 'address',
       headerName: 'Address',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.address}>{params.row.address}</span>
-        </Typography>
+        <Tooltip title={params.row?.address ? params.row?.address : '-'}>
+          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {params?.row?.address ? params?.row?.address : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -263,6 +265,17 @@ const ListOfLab = () => {
             close={closeDialog}
             show={showDialog}
           /> */}
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Labs
+                </Typography>
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                  Labs list
+                </Typography>
+              </Breadcrumbs>
               <Card>
                 <CardHeader title='Lab List' action={headerAction} />
                 <DataGrid

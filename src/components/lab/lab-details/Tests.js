@@ -1,11 +1,23 @@
 import { Icon } from '@iconify/react'
-import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Card,
+  CardHeader,
+  Divider,
+  IconButton,
+  Stack,
+  Typography
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 const Tests = ({ labTest }) => {
-  // console.log('labTest', labTest)
+  console.log('labTest', labTest)
 
   const columns = [
     // {
@@ -123,7 +135,140 @@ const Tests = ({ labTest }) => {
 
         //    action={headerAction}
       />
-      <DataGrid
+      <Box sx={{ px: 5, mb: 5 }}>
+        {labTest?.map((list, index) => (
+          <Box key={index} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 'bold', m: 2, textTransform: 'capitalize' }}>
+              {list?.sample_name}
+            </Typography>
+            {list?.tests?.map((parent, index) =>
+              parent?.child_tests?.length > 0 ? (
+                <>
+                  <Box
+                    sx={{
+                      // border: '1px solid #e0e0e0',
+                      bgcolor: '#e8f4f2',
+
+                      borderRadius: '4px',
+
+                      p: 1,
+                      mb: 1
+                    }}
+                  >
+                    <Typography
+                      ml={4}
+                      sx={{
+                        display: 'flex',
+                        py: 2,
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {parent?.test_name}
+                    </Typography>
+                    <Divider />
+                    {parent?.child_tests?.map((child, id) => {
+                      return (
+                        <Typography
+                          key={child?.test_id}
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            ml: 4,
+                            py: 2,
+                            textTransform: 'capitalize'
+                          }}
+                        >
+                          {child?.test_name}
+                        </Typography>
+                      )
+                    })}
+                  </Box>
+                  {/* <Accordion
+                    key={parent?.test_id}
+                    defaultExpanded
+                    disableGutters
+                    sx={{
+                      bgcolor: '#e8f4f2',
+                      boxShadow: 'none',
+                      border: 'none',
+                      m: 0.5,
+
+                      '&:not(:last-of-type)': {
+                        borderBottom: 'none',
+                        borderTop: 'none'
+                      },
+
+                      '&:first-of-type': {
+                        borderTopLeftRadius: '4px',
+                        borderTopRightRadius: '4px'
+                      },
+                      '&:last-of-type': {
+                        borderBottomLeftRadius: '4px',
+                        borderBottomRightRadius: '4px'
+                      }
+                    }}
+                  >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography
+                        sx={{ overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', fontSize: '15px' }}
+                      >
+                        {parent?.test_name}
+                      </Typography>
+                    </AccordionSummary>
+                    <Divider sx={{ bgcolor: '#bdbdbd', opacity: 0.2 }} />
+                    <AccordionDetails>
+                      {parent?.child_tests?.map((child, id) => {
+                        return (
+                          <Typography
+                            key={child?.test_id}
+                            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                          >
+                            {child?.test_name}
+                          </Typography>
+                        )
+                      })}
+                    </AccordionDetails>
+                  </Accordion> */}
+                </>
+              ) : (
+                <>
+                  <Box
+                    sx={{
+                      // border: '1px solid #e0e0e0',
+                      bgcolor: '#e8f4f2',
+
+                      borderRadius: '4px',
+                      p: 1,
+                      mb: 1
+                    }}
+                  >
+                    <Typography
+                      ml={4}
+                      sx={{
+                        display: 'flex',
+                        py: 2,
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {parent?.test_name}
+                    </Typography>
+                  </Box>
+                </>
+              )
+            )}
+          </Box>
+        ))}
+      </Box>
+      {/* <DataGrid
         autoHeight
         hideFooterPagination
         getRowId={getRowId}
@@ -148,7 +293,7 @@ const Tests = ({ labTest }) => {
           //   }
           // }
         }}
-      />
+      /> */}
     </Card>
   )
 }
