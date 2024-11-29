@@ -250,6 +250,8 @@ const ListOfRequest = () => {
     }
     refreshToken()
 
+    setSelectedLab(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
+
     // const options = authData?.userData?.modules?.lab_data?.lab
     // setLab(options)
   }, [])
