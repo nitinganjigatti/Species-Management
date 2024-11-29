@@ -38,14 +38,9 @@ const ListOfRequest = () => {
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
-
-  // console.log('labSelected', labSelected)
   const [lab, setLab] = React.useState([])
-
-  // console.log('lab :>> ', lab)
   const authData = useContext(AuthContext)
 
-  // console.log('authData :>> ', authData)
   const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
 
   const [storedData, setStoredData] = useState()
@@ -60,8 +55,8 @@ const ListOfRequest = () => {
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
-    console.log('id click req :>> ', id)
-    write('selectedLAB', labSelected)
+
+    // write('selectedLAB', labSelected)
     if (labSelected) {
       router.push({
         pathname: `/lab/${id}`,
@@ -249,8 +244,6 @@ const ListOfRequest = () => {
   useEffect(() => {
     const refreshToken = async () => {
       const res = await callRefreshToken()
-
-      // console.log('res :>> ', res)
       if (res?.success) {
         setLab(res?.modules?.lab_data?.lab)
       }
@@ -258,17 +251,13 @@ const ListOfRequest = () => {
     refreshToken()
 
     // const options = authData?.userData?.modules?.lab_data?.lab
-
-    // console.log('options :>> ', authData?.userData?.modules?.lab_data?.lab)
     // setLab(options)
   }, [])
 
   const GetLabRequestStatus = async params => {
-    console.log('params2', params)
     try {
       const res = await GetLabRequestTestStatusById({ params })
       setStats(res?.data?.stats)
-      console.log('res', res?.data?.stats)
     } catch (error) {
       console.log('error', error)
     }
@@ -276,8 +265,6 @@ const ListOfRequest = () => {
 
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
-
-    // console.log('Data :>> ', Data)
 
     setLabSelected(Data)
     if (Data) {
@@ -340,11 +327,14 @@ const ListOfRequest = () => {
 
   const handleLabChange = async event => {
     // setSelectedLab(event.target.value)
+    write('selectedLAB', event.target.value)
     setLabSelected(event.target.value)
     const storedLabData = await readAsync('selectedLAB')
+    console.log('storedLabData', storedLabData)
     if (storedLabData) {
       setSelectedLab(event.target.value)
-      remove('selectedLAB')
+
+      // remove('selectedLAB')
     } else {
       setSelectedLab(event.target.value)
     }
@@ -362,24 +352,23 @@ const ListOfRequest = () => {
     GetLabRequestStatus(params2)
   }
 
-  // const handlePaginationModelChange = async newModel => {
-  //   setPaginationModel(newModel)
-
-  //   const params = {
-  //     sort,
-  //     q: searchValue,
-  //     column: sortColumn,
-  //     page: paginationModel.page + 1,
-  //     limit: paginationModel.pageSize,
-  //     lab_id: selectedLab
-  //   }
-  //   await fetchData(params)
-  // }
+  const handlePaginationModelChange = async () => {
+    const params = {
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      lab_id: selectedLab
+    }
+    await fetchData(params)
+  }
+  useEffect(() => {
+    handlePaginationModelChange()
+  }, [paginationModel])
 
   const handleSearch = async value => {
     setSearchValue(value)
-    console.log('value', value)
-
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
 
@@ -423,7 +412,7 @@ const ListOfRequest = () => {
     oldstoredData()
 
     // setSelectLoader(true)
-  }, [paginationModel])
+  }, [])
 
   return (
     <>
