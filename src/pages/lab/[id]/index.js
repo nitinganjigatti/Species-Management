@@ -347,7 +347,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 120 }}>
-            {permissions?.allow_full_access === true || permissions?.perform_tests === true ? (
+            {permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests ? (
               <FormControl fullWidth>
                 <Select
                   size='small'
@@ -831,9 +831,21 @@ const RequestDetails = () => {
                 <Divider />
 
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
-                  {image && <CommonMediaView image={image} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />}
+                  {image && (
+                    <CommonMediaView
+                      image={image}
+                      handleDeleteImg={handleDeleteImg}
+                      fileViews={fileViews}
+                      permissions={permissions}
+                    />
+                  )}
                   {document && (
-                    <CommonMediaView document={document} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                    <CommonMediaView
+                      document={document}
+                      handleDeleteImg={handleDeleteImg}
+                      fileViews={fileViews}
+                      permissions={permissions}
+                    />
                   )}
                 </Box>
               </Box>
@@ -852,6 +864,7 @@ const RequestDetails = () => {
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
                         type='medical'
+                        permissions={permissions}
                       />
                     )}
                     {medicalDocument && (
@@ -860,6 +873,7 @@ const RequestDetails = () => {
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
                         type='medical'
+                        permissions={permissions}
                       />
                     )}
                   </Box>
@@ -1198,7 +1212,12 @@ const RequestDetails = () => {
                           minWidth: 500
                         }}
                       >
-                        <CommonMediaView image={testImage} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                        <CommonMediaView
+                          image={testImage}
+                          handleDeleteImg={handleDeleteImg}
+                          fileViews={fileViews}
+                          permissions={permissions}
+                        />
                       </Box>
                     </Box>
                   ) : null}
@@ -1207,7 +1226,12 @@ const RequestDetails = () => {
                     <Box>
                       <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                        <CommonMediaView document={testDoc} handleDeleteImg={handleDeleteImg} fileViews={fileViews} />
+                        <CommonMediaView
+                          document={testDoc}
+                          handleDeleteImg={handleDeleteImg}
+                          fileViews={fileViews}
+                          permissions={permissions}
+                        />
                       </Box>
                     </Box>
                   ) : null}

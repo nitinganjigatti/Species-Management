@@ -5,7 +5,7 @@ import React from 'react'
 import moment from 'moment'
 import Utility from 'src/utility'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) => {
+const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions }) => {
   // console.log('image :>> ', image)
 
   function extractHoursAndMinutes(date) {
@@ -39,8 +39,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  mt: -2,
-                  py: type === 'medical' ? 2 : 0
+                  mt: -2
                 }}
               >
                 <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
@@ -50,16 +49,21 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                       fontWeight: '400',
                       lineHeight: '19.36px',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      textOverflow: 'ellipsis',
+                      p: 2
                     }}
                   >
                     {item?.file_original_name}
                   </Typography>
                 </Tooltip>
                 {type !== 'medical' && (
-                  <IconButton onClick={e => handleDeleteImg(e, item)}>
-                    <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
-                  </IconButton>
+                  <>
+                    {(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests) && (
+                      <IconButton onClick={e => handleDeleteImg(e, item)}>
+                        <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
+                      </IconButton>
+                    )}
+                  </>
                 )}
               </Box>
               <Box
@@ -125,8 +129,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  mt: -2,
-                  py: type === 'medical' ? 2 : 0
+                  mt: -2
                 }}
               >
                 <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
@@ -136,16 +139,21 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews }) 
                       fontWeight: '400',
                       lineHeight: '19.36px',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
+                      textOverflow: 'ellipsis',
+                      p: 2
                     }}
                   >
                     {item?.file_original_name}
                   </Typography>
                 </Tooltip>
                 {type !== 'medical' && (
-                  <IconButton onClick={e => handleDeleteImg(e, item)}>
-                    <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
-                  </IconButton>
+                  <>
+                    {(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests) && (
+                      <IconButton onClick={e => handleDeleteImg(e, item)}>
+                        <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
+                      </IconButton>
+                    )}
+                  </>
                 )}
               </Box>
               <Box
