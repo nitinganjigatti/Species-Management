@@ -34,8 +34,6 @@ const ListOfLab = () => {
   const [storedData, setStoredData] = useState()
   const authData = useContext(AuthContext) || {}
 
-  // console.log('authData :>> ', authData?.userData?.roles?.settings?.add_lab)
-
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
     setStoredData(JSON.parse(Data))
@@ -51,7 +49,7 @@ const ListOfLab = () => {
 
   const handleEdit = async (e, params) => {
     e.stopPropagation()
-    console.log('params Lab', params.row.id)
+
     Router.push({
       pathname: '/lab/add-Lab',
       query: { id: params.row.id, action: 'edit' }
@@ -211,8 +209,6 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
-
-    // console.log('SearchValue', value)
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
