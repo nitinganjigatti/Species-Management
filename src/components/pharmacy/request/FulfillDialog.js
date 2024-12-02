@@ -73,7 +73,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           .required('Quantity is required')
           .typeError('Quantity should be a number')
           .positive('Quantity must be a positive number')
-          .moreThan(0, 'Quantity must be greater than zero')
+          .moreThan(0, 'Quantity must be greater than 0')
       })
     )
   })
@@ -88,7 +88,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     getValues,
     watch,
 
-    setError
+    setError,
+    clearErrors
   } = useForm({
     defaultValues,
     resolver: yupResolver(schema),
@@ -366,6 +367,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   })
 
   const handleAddRemoveSalts = (fields, index) => {
+    if (fields.length === 1) {
+      return <>{addSaltButton()}</>
+    }
     if (fields.length - 1 === index && index > 0) {
       return (
         <>
@@ -391,6 +395,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
     return (
       <Button
         variant='outlined'
+        startIcon={<Icon icon='material-symbols-light:add' />}
         onClick={() => {
           //setSalts([])
           append({
@@ -399,9 +404,26 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             qty: 0
           })
         }}
-        sx={{ marginRight: '4px', borderRadius: 6 }}
+        sx={{
+          marginRight: '4px',
+          borderRadius: '8px',
+          height: '50px',
+          padding: '8px',
+
+          width: '100%',
+          backgroundColor: '#FFFFFF !important',
+
+          color: 'customColors.Secondary',
+
+          // border: '1px solid customColors.Secondary'
+          border: '1px solid #00D6C9',
+          '&:hover': {
+            backgroundColor: '#FFFFFF !important',
+            border: '1px solid #00D6C9'
+          }
+        }}
       >
-        Add Another
+        Add
       </Button>
     )
   }
@@ -580,54 +602,194 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         <Box sx={{ padding: '24px' }}>
           <Card
             sx={{
-              backgroundColor: 'customColors.lightBg'
+              backgroundColor: 'customColors.lightBg',
+              minWidth: '100% !important',
+              boxShadow: 'none !important'
             }}
           >
             <CardContent>
               <Grid container sx={{ flexGrow: 1, m: 'auto' }}>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Requested From</Typography>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
+                >
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400',
+                      lineHeight: '14.52px'
+                    }}
+                  >
+                    Requested By
+                  </Typography>
 
-                  <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
-                    <strong>{storeDetails?.to_store}</strong>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500',
+                      lineHeight: '16.94px'
+                    }}
+                  >
+                    {storeDetails?.to_store}
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px' }}>Product Name</Typography>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{
+                    mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
+                    Product Name
+                  </Typography>
 
-                  <Typography sx={{ color: 'primary.light', marginTop: '0px' }}>
-                    <strong>{fulfillMedicine?.stock_name}</strong>{' '}
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {fulfillMedicine?.stock_name}
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{
+                    textAlign: { xs: 'left', sx: 'right' },
+                    mt: { mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
                     QTY Requested
                   </Typography>
-                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
-                    <strong>{fulfillMedicine?.requested_qty}</strong>{' '}
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {fulfillMedicine?.requested_qty}
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>Balance</Typography>
-                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
-                    <strong>
-                      {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
-                    </strong>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{
+                    textAlign: { sm: 'left', sx: 'right' },
+                    mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
+                    Balance
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      marginTop: '0px',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {checkNumber(fulfillMedicine?.requested_qty) - checkNumber(fulfillMedicine?.dispatch_qty)}
                   </Typography>
                 </Grid>
-                <Grid item xs={12 / 5}>
-                  <Typography sx={{ color: 'text.primary', marginTop: '0px', textAlign: 'right' }}>
+                <Grid
+                  item
+                  xs={12 / 1}
+                  sm={12 / 3}
+                  md={12 / 5}
+                  lg={12 / 5}
+                  sx={{
+                    textAlign: { sm: 'left', sx: 'right' },
+                    mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: 'customColors.neutral_50',
+                      lineHeight: '14.52px',
+                      fontSize: '12px !important',
+                      fontWeight: '400'
+                    }}
+                  >
                     Total Qty Available
                   </Typography>
-                  <Typography sx={{ color: 'primary.light', float: 'right' }}>
-                    <strong>{totalProductCount}</strong>
+                  <Typography
+                    sx={{
+                      color: 'primary.light',
+                      lineHeight: '16.94px',
+                      fontSize: '14px !important',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {totalProductCount}
                   </Typography>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
           <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-            <Grid sx={{ my: '24px' }}>
+            <Grid sx={{ my: '28px' }}>
               <Grid item xs={12} sm={12}>
                 <FormGroup>
                   {fields.map((field, index) => (
@@ -636,20 +798,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       key={field.id}
                       sx={{
                         marginTop: '0px',
-
-                        // my: 2,
-                        py: '12px',
+                        mb: 4,
                         backgroundColor: 'customColors.neutral05',
                         borderRadius: 1,
                         display: 'flex',
                         flexDirection: 'row',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        gap: 4
+                        justifyItems: 'center',
+
+                        // gap: 1,
+                        padding: '16px',
+                        justifyContent: 'space-between'
+
+                        // minHeight: '136px'
                       }}
                     >
-                      <Grid item xs={2.7}>
-                        <FormControl fullWidth>
+                      <Grid item xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2.6}>
+                        <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].batch_no`}
                             control={control}
@@ -665,19 +831,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     parseInt(option?.batch_no) === parseInt(value?.batch_no)
                                   }
                                   onChange={(e, val) => {
-                                    // if (val === null) {
-                                    //   setValue(`product_batches[${index}].expiry_date`, '')
-
-                                    //   return onChange('')
-                                    // } else {
-                                    //
-                                    //   const expiryDate = val.expiry_date
-                                    //   const quantity = parseInt(val?.qty)
-                                    //   setValue(`product_batches[${index}].expiry_date`, expiryDate)
-                                    //   setValue(`product_batches[${index}].quantityAvailable`, quantity)
-
-                                    //   return onChange(val.batch_no)
-                                    // }
                                     if (val === null) {
                                       setValue(`product_batches[${index}].expiry_date`, '')
                                       setValue(`product_batches[${index}].quantityAvailable`, '')
@@ -687,6 +840,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       setValue(`product_batches[${index}].expiry_date`, expiry_date)
                                       setValue(`product_batches[${index}].quantityAvailable`, parseInt(qty))
                                       onChange(val.batch_no)
+                                      clearErrors()
                                     }
                                   }}
                                   renderInput={params => {
@@ -700,21 +854,114 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                       />
                                     )
                                   }}
+                                  renderOption={(props, option) => (
+                                    <li
+                                      {...props}
+                                      style={{
+                                        Width: '100%!important',
+                                        padding: '0px',
+                                        margin: '5px',
+                                        background: 'white'
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          backgroundColor: '#0000000D',
+                                          width: '100%',
+
+                                          // minWidth: '196px !important',
+                                          // height: '71px !important',
+                                          padding: '8px !important',
+                                          borderRadius: '4px',
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          justifyContent: 'start',
+                                          items: 'start',
+                                          gap: '8px'
+                                        }}
+                                      >
+                                        <Typography
+                                          sx={{
+                                            color: 'customColors.OnSurfaceVariant',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            lineHeight: '16.94px'
+                                          }}
+                                        >
+                                          {option?.batch_no}
+                                        </Typography>
+                                        {batchItems[index]?.stock_type !== 'non_medical' && (
+                                          <Typography
+                                            sx={{
+                                              fontSize: '12px',
+                                              fontWeight: '400',
+                                              lineHeight: '14.52px',
+                                              color: 'customColors.neutralSecondary'
+                                            }}
+                                          >
+                                            Expiry Date:
+                                            <Box
+                                              component='span'
+                                              sx={{
+                                                fontWeight: '600',
+                                                fontSize: '12px',
+                                                color: 'customColors.neutralSecondary',
+                                                lineHeight: '14.52px'
+                                              }}
+                                            >
+                                              {Utility.formatDisplayDate(option?.expiry_date)}
+                                            </Box>
+                                          </Typography>
+                                        )}
+                                        <Typography
+                                          sx={{
+                                            fontSize: '12px',
+                                            fontWeight: '400',
+                                            lineHeight: '14.52px',
+                                            color: 'error.main'
+                                          }}
+                                        >
+                                          Availability:
+                                          <Box
+                                            component='span'
+                                            sx={{
+                                              fontSize: '12px',
+
+                                              fontWeight: '600',
+                                              color: 'error.main',
+                                              lineHeight: '14.52px'
+                                            }}
+                                          >
+                                            {option?.qty}
+                                          </Box>
+                                        </Typography>
+                                      </Box>
+                                    </li>
+                                  )}
                                 />
                               )
                             }}
                           />
 
                           {errors?.product_batches?.[index]?.batch_no && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
+                            <FormHelperText
+                              sx={{
+                                color: 'error.main',
+                                position: 'absolute',
+
+                                bottom: '-30px',
+                                left: 0,
+                                width: '100%'
+                              }}
+                            >
                               {errors?.product_batches?.[index]?.batch_no?.message}
                             </FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
                       {batchItems[index]?.stock_type === 'non_medical' ? null : (
-                        <Grid item xs={2.7}>
-                          <FormControl fullWidth>
+                        <Grid item xs={2.6}>
+                          <FormControl fullWidth sx={{ position: 'relative' }}>
                             <Controller
                               name={`product_batches[${index}].expiry_date`}
                               control={control}
@@ -733,15 +980,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               )}
                             />
                             {errors?.product_batches?.[index]?.expiry_date && (
-                              <FormHelperText sx={{ color: 'error.main' }}>
+                              <FormHelperText
+                                sx={{
+                                  color: 'error.main',
+                                  position: 'absolute',
+
+                                  bottom: '-16px',
+                                  left: 0,
+                                  width: '100%'
+                                }}
+                              >
                                 {errors?.product_batches?.[index]?.expiry_date?.message}
                               </FormHelperText>
                             )}
                           </FormControl>
                         </Grid>
                       )}
-                      <Grid item xs={2.7}>
-                        <FormControl fullWidth>
+                      <Grid item xs={batchItems[index]?.stock_type === 'non_medical' ? 4 : 2.6}>
+                        <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].qty`}
                             control={control}
@@ -754,7 +1010,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='text'
-                                value={value}
+                                value={value == '0' ? '' : value}
                                 label='Quantity'
                                 onChange={e => {
                                   onChange(e)
@@ -770,24 +1026,45 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               />
                             )}
                           />
-                          {errors?.product_batches?.[index]?.qty && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.product_batches?.[index]?.qty?.message}
-                            </FormHelperText>
-                          )}
-                          {}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: '55px',
+                              left: 0,
+                              width: '100%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'flex-start'
+                            }}
+                          >
+                            {errors?.product_batches?.[index]?.qty && (
+                              <FormHelperText
+                                sx={{
+                                  color: 'error.main',
+                                  width: '100%'
+                                }}
+                              >
+                                {errors?.product_batches?.[index]?.qty?.message}
+                              </FormHelperText>
+                            )}
 
-                          {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
-                            <FormHelperText sx={{ color: 'primary.main' }}>
-                              Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
-                            </FormHelperText>
-                          ) : null}
+                            {/* {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
+                              <FormHelperText
+                                sx={{
+                                  color: 'primary.main',
+                                  width: '100%'
+                                }}
+                              >
+                                Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
+                              </FormHelperText>
+                            ) : null} */}
+                          </Box>
                         </FormControl>
                       </Grid>
 
                       <Grid
                         item
-                        xs={2.7}
+                        xs={batchItems[index]?.stock_type === 'non_medical' ? 2.5 : 2}
                         alignSelf='center'
                         sx={{
                           display: 'flex',

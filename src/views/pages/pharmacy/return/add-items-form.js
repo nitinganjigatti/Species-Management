@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { useForm, Controller, get } from 'react-hook-form'
-import { Grid, FormControl, Autocomplete, TextField, FormHelperText, Button, Typography, Paper } from '@mui/material'
+import {
+  Grid,
+  FormControl,
+  Autocomplete,
+  Tooltip,
+  TextField,
+  FormHelperText,
+  Button,
+  Typography,
+  Paper
+} from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
@@ -410,9 +420,12 @@ export const AddItemsForm = ({
   return (
     <>
       {/* <CardContent> */}
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={12}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
+          <Grid item xs={12} sm={6} lg={6}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
@@ -603,7 +616,7 @@ export const AddItemsForm = ({
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
               {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
                   Available Quantity:{getValues('available_item_qty')}
                 </Typography>
               ) : null}
@@ -652,6 +665,7 @@ export const AddItemsForm = ({
                         {...props}
                         sx={{
                           border: '1px solid transparent',
+
                           // border: '1px solid #0000000D',
                           // borderBottom: '1px solid #e0e0e0',
                           '&:last-child': {

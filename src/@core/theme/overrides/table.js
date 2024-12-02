@@ -59,7 +59,7 @@ const Table = () => {
           paddingLeft: theme.spacing(2)
         }),
         stickyHeader: ({ theme }) => ({
-          backgroundColor: theme.palette.customColors.tableHeaderBg
+          backgroundColor: theme.palette.customColors.customTableHeaderBg
         })
       }
     },

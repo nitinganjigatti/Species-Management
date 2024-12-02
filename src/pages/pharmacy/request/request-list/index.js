@@ -543,6 +543,21 @@ const RequestList = () => {
         </Typography>
       )
     },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'fulfilled_qty',
+
+    //   headerName: 'Balance',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,

@@ -28,6 +28,7 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import CustomChip from 'src/@core/components/mui/chip'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -76,7 +77,11 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-
+    if (values.control_substance === true) {
+      if (values.prescription_required_file?.length === 0) {
+        itemErrors.prescription_required_file = 'This field is required'
+      }
+    }
     if (values.prescription_required === true) {
       if (values.prescription_required_file.length === 0) {
         itemErrors.prescription_required_file = 'This field is required'
@@ -112,7 +117,11 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           manufacture: item.manufacturer_name,
           control_substance: item.controlled_substance === '1' ? true : false,
           status: item?.active === '0' ? 0 : 1,
-          prescription_required: item?.prescription_required === '1' ? true : false,
+
+          // prescription_required: item?.prescription_required === '1' ? true : false,
+          // making prescription true if product is control substance
+          prescription_required:
+            item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
           genericName: item?.generic_name,
           availAbleQty: item?.available_qty
@@ -158,7 +167,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            prescription_required: item?.prescription_required === '1' ? true : false,
+
+            // prescription_required: item?.prescription_required === '1' ? true : false,
+            // making prescription true if product is control substance
+
+            prescription_required:
+              item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0,
             availAbleQty: item?.available_qty
           }))
@@ -219,6 +233,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
 
       return
     }
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
+
+        return
+      }
+    }
 
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
@@ -265,7 +286,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           mb: 10,
           width: '100%',
           backgroundColor: 'customColors.lightBg',
-          border: '1px solid #00D6C9'
+          border: '1px solid #00D6C9',
+          boxShadow: 'none !important'
         }}
       >
         <CardContent>
@@ -290,13 +312,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
       <Grid sx={{ my: 6 }} xs={12}>
         <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
           <Typography
-            variant='button' // Use the button variant for styling
+            variant='button'
             onClick={() => setTabStatus('By product')}
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By product' ? '5px solid' : '',
-              color: 'primary.main', // Ensure this matches your button's color
-              padding: '8px 16px' // Match the button padding
+              color: 'primary.main',
+              padding: '8px 16px'
             }}
           >
             By Product Name
@@ -307,8 +329,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
-              color: 'primary.main', // Ensure this matches your button's color
-              padding: '8px 16px' // Match the button padding
+              color: 'primary.main',
+              padding: '8px 16px'
             }}
           >
             By Generic Name
@@ -335,6 +357,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}{' '}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}
@@ -424,9 +452,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     <Box>
                       <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
+                      {option.control_substance === true && (
+                        <CustomChip label='CS' skin='light' color='success' size='small' />
+                      )}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
                     </Box>
                   </li>
                 )}
@@ -510,7 +543,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               backgroundColor: '#F2FFF8', // Light green background
               padding: '16px',
               borderRadius: '8px',
-              marginTop: '5px',
               border: '0.5px solid #37BD69',
               borderRadius: '8px'
             }}
@@ -598,7 +630,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={12}>
+        {/* <Grid item xs={12} sm={12}>
           <Typography>Priority</Typography>
           <RadioGroup
             row
@@ -612,12 +644,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             <FormControlLabel value='high' control={<Radio />} label='High' />
             <FormControlLabel value='Normal' control={<Radio />} label='Normal' />
           </RadioGroup>
-        </Grid>
+        </Grid> */}
 
         {/* // file uploader */}
         {/* <Grid item xs={12} sm={1}></Grid> */}
 
-        {nestedRowMedicine.control_substance === true ? (
+        {/* {nestedRowMedicine.control_substance === true ? (
           nestedRowMedicine.control_substance_file ? (
             <Grid item xs={12} sm={12}>
               {nestedRowMedicine.control_substance_file?.type === 'application/pdf' ? (
@@ -711,8 +743,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               </FormControl>
             </Grid>
           )
-        ) : null}
-        {nestedRowMedicine.prescription_required === true ? (
+        ) : null} */}
+        {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
             <Grid item xs={12} sm={12}>
               {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
@@ -771,11 +803,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             </Grid>
           ) : (
             <Grid item xs={12} sm={12}>
-              <Typography sx={{ mb: 2 }}>Attach prescription </Typography>
+              <Typography sx={{ mb: 2 }}>Attach prescription details (Mandatory)</Typography>
               <FormControl fullWidth>
                 <TextField
                   type='file'
-                  accept='.pdf, .jpeg, .jpg, .png'
+                  // eslint-disable-next-line lines-around-comment
+                  // accept='.pdf, .jpeg, .jpg, .png'
+                  accept='.pdf, image/jpeg, .png'
                   error={Boolean(itemErrors.prescription_required_file)}
                   onChange={e => {
                     const file = e.target.files[0]

@@ -10,10 +10,12 @@ import CardContent from '@mui/material/CardContent'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import { getNewRequestsList } from 'src/lib/api/pharmacy/dashboard'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 
 const StoreWiseNewRequests = () => {
   const [requestList, setRequestList] = useState([])
+  const { selectedPharmacy } = usePharmacyContext()
 
   const getNewRequestsLists = async () => {
     try {
@@ -27,7 +29,7 @@ const StoreWiseNewRequests = () => {
 
   useEffect(() => {
     getNewRequestsLists()
-  }, [])
+  }, [selectedPharmacy.type, selectedPharmacy.id])
 
   const columns = [
     {
@@ -53,7 +55,7 @@ const StoreWiseNewRequests = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'request_date',
       headerName: 'Requested on',
@@ -64,10 +66,11 @@ const StoreWiseNewRequests = () => {
       )
     },
     {
-      flex: 0.1,
+      flex: 0.2,
       minWidth: 20,
       field: 'priority',
       headerName: 'Priority',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {priorityBadge(params?.row?.priority)}
@@ -76,10 +79,10 @@ const StoreWiseNewRequests = () => {
     },
     {
       flex: 0.2,
-      minWidth: 10,
+      minWidth: 20,
       field: 'total_qty',
       headerName: 'Total items',
-      align: 'right',
+      align: 'center',
 
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -94,32 +97,20 @@ const StoreWiseNewRequests = () => {
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params?.row?.status ? params?.row?.status : 'NA'}
+          {params?.row?.status === 'request' ? 'Pending' : params?.row?.status}
         </Typography>
       )
     }
   ]
 
   const priorityBadge = priority => {
-    if (priority === '') {
-      return (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          NA
-        </Typography>
-      )
-    } else if (priority === 'high') {
+    if (priority === 'High') {
       return (
         <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' variant='outlined' label={priority} color='error' />
       )
-    } else if (priority === 'low') {
-      return (
-        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' variant='outlined' label={priority} color='success' />
-      )
     } else {
       return (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          NA
-        </Typography>
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' variant='outlined' label={priority} color='success' />
       )
     }
   }
@@ -127,7 +118,7 @@ const StoreWiseNewRequests = () => {
   return (
     <Card>
       <CardHeader
-        title='Store wise new requests'
+        title='Recent requests'
         titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
         action={
           <OptionsMenu options={['Refresh']} iconButtonProps={{ size: 'small', className: 'card-more-options' }} />

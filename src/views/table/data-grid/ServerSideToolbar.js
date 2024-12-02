@@ -10,7 +10,7 @@ import Icon from 'src/@core/components/icon'
 
 const ServerSideToolbar = props => {
   const inputRef1 = useRef()
-
+  console.log(props, 'props')
   const handleFocus = () => {
     inputRef1.current.focus()
   }
@@ -22,7 +22,7 @@ const ServerSideToolbar = props => {
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
-        justifyContent: 'flex-end',
+        justifyContent: props.checkval === 'reports' ? 'flex-start' : 'flex-end',
         p: theme => theme.spacing(2, 5, 4, 5)
       }}
     >

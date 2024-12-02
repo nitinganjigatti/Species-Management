@@ -8,7 +8,13 @@ import MuiTabList from '@mui/lab/TabList'
 
 import TabList from '@mui/lab/TabList'
 
-import { getStocksReportById, getLocalStocksReportById } from 'src/lib/api/pharmacy/getStocksReportById'
+import {
+  getStocksReportById,
+  getLocalStocksReportById,
+  getStockReport,
+  getStockReportByBatch,
+  getPurchaseListByProduct
+} from 'src/lib/api/pharmacy/getStocksReportById'
 import { getStocksByBatch } from 'src/lib/api/pharmacy/getStocksByBatch'
 
 import TableWithFilter from 'src/components/TableWithFilter'
@@ -59,6 +65,8 @@ import ExpiringMedicine from '../expired-medicine/expiringStock'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
+import { minWidth, width } from '@mui/system'
+import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -95,8 +103,20 @@ const ListOfStocks = () => {
   const [value, setValue] = useState(router.query.value || '1')
   const [stores, setStores] = useState([])
   const [errors, setErrors] = useState('')
-  const [changeSwitch, setChangeSwitch] = useState()
+  const [changeSwitch, setChangeSwitch] = useState(true)
   const [stockType, setStockType] = useState(selectedPharmacy?.type)
+
+  const editParamsInitialState = { id: null, name: null, active: null }
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  // const [purchaseByStockId, setPurchaseByStockId] = useState(null)
+  const [purchaseByStockId, setPurchaseByStockId] = useState({ batch_no: null, stock_id: null })
+  const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [searchPurchase, setSearchPurchase] = useState('')
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -181,11 +201,11 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type, page }) => {
       let storeId = id === 'all' ? '' : id
-
       if (id) {
         try {
           setLoading(true)
           let result
+
           const params = {
             sort,
             q,
@@ -240,27 +260,30 @@ const ListOfStocks = () => {
         page: batchPaginationModel.page + 1,
         limit: batchPaginationModel.pageSize
       }
-      if (selectedPharmacy?.type === 'local') {
-        try {
-          const result = await getStocksByBatch(id, batchParams)
-          if (result.success === true) {
-            setBatchTotal(parseInt(result?.count))
 
-            let listWithId = result.data
-              ? result.data.map((el, i) => {
-                  return { ...el, uid: i + 1 }
-                })
-              : []
-            setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-            setBatchLoading(false)
-          }
-        } catch (error) {
-          console.log('error', error)
-          setBatchLoading(false)
-        }
-      } else {
+      // if (selectedPharmacy?.type === 'local') {
+      //   try {
+      //     const result = await getStockReportByBatch(id, batchParams)
+      //     if (result.success === true) {
+      //       setBatchTotal(parseInt(result?.count))
+
+      //       let listWithId = result.data
+      //         ? result.data.map((el, i) => {
+      //             return { ...el, uid: i + 1 }
+      //           })
+      //         : []
+      //       setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
+      //       setBatchLoading(false)
+      //     }
+      //   } catch (error) {
+      //     console.log('error', error)
+      //     setBatchLoading(false)
+      //   }
+      // } else {
+
+      if (id !== undefined) {
         try {
-          const result = await getStocksByBatch(id, batchParams)
+          const result = await getStockReportByBatch(id, batchParams)
 
           if (result?.success === true) {
             setBatchTotal(parseInt(result?.count))
@@ -274,10 +297,12 @@ const ListOfStocks = () => {
             setBatchLoading(false)
           }
         } catch (error) {
-          console.log('error', error)
+          console.error('error', error)
           setBatchLoading(false)
         }
       }
+
+      // }
     },
     [batchPaginationModel]
   )
@@ -331,8 +356,9 @@ const ListOfStocks = () => {
   }, [])
 
   useEffect(() => {
-    if (selectedPharmacy?.id !== '' || undefined) {
+    if (selectedPharmacy?.id !== '') {
       // getStocksReport(selectedPharmacy?.id)
+
       setStockType(selectedPharmacy?.type)
 
       setStockId(selectedPharmacy?.id)
@@ -355,7 +381,7 @@ const ListOfStocks = () => {
         })
       }
 
-      setStockId(selectedPharmacy?.id)
+      // setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, value])
@@ -385,30 +411,68 @@ const ListOfStocks = () => {
   // }, [])
   const getBatchWiseDataToExport = async () => {
     try {
-      setExcelLoader(true)
+      if (!changeSwitch) {
+        setExcelLoader(true)
+        const result = await getStockReport(stockId, { sort, q: searchValue, column: sortColumn })
 
-      const result = await getStocksByBatch(stockId, { params: '' })
-      if (result?.success === true && result?.data?.length > 0) {
-        const data = result?.data?.map(el => {
-          return {
-            ['Medicine Name']: el?.stock_items_name,
-            ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${el?.package_uom_label} ${
-              el?.product_form_label
-            }`,
-            ['Manufacture Name']: el?.manufacturer_name,
-            ['Expiry Date']: el?.expiry_date,
-            ['Batch Number']: el?.batch_no,
-            ['Quantity']: el?.stock_qty
-          }
-        })
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Id']: Number(el?.stock_item_id),
+              ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['value']: Number(el?.total_cost),
+              ['Average price']: Number(
+                Number.isInteger(el.total_cost / el.stock_qty)
+                  ? el.total_cost / el.stock_qty
+                  : parseFloat(el.total_cost / el.stock_qty).toFixed(2)
+              ),
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`
+            }
+          })
 
-        Utility.exportToCSV(data, 'Batch wise Products')
+          Utility.exportToCSV(data, 'Stock Report')
+        }
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(true)
+
+        const batchParams = {
+          sort: batchSort,
+          q: batchSearchValue,
+          column: batchSortColumn
+
+          // page: batchPaginationModel.page + 1,
+          // limit: batchPaginationModel.pageSize
+        }
+        const result = await getStockReportByBatch(stockId, batchParams)
+
+        if (result?.success === true && result?.data?.length > 0) {
+          const data = result?.data?.map(el => {
+            return {
+              ['Id']: Number(el?.stock_item_id),
+              ['Medicine Name']: el?.stock_items_name,
+              ['Quantity']: Number(el?.stock_qty),
+              ['Unit Price']: Number(el?.unit_price),
+              ['value']: Number(el?.total_cost),
+              ['Batch Number']: el?.batch_no,
+              ['Expiry Date']: el?.expiry_date,
+              ['Package details']: `${el?.package} of ${Utility.formatNumber(el?.package_qty)}${
+                el?.package_uom_label
+              } ${el?.product_form_label}`
+            }
+          })
+
+          Utility.exportToCSV(data, 'Stock Report Batch wise')
+        }
+        setExcelLoader(false)
       }
-      setExcelLoader(false)
     } catch (error) {
       setExcelLoader(false)
 
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -425,7 +489,7 @@ const ListOfStocks = () => {
     //   )
     // },
     {
-      flex: 0.12,
+      // flex: 0.12,
       minWidth: 20,
       field: 'image',
       headerName: 'IMAGE',
@@ -448,8 +512,8 @@ const ListOfStocks = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -581,8 +645,8 @@ const ListOfStocks = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
@@ -598,6 +662,50 @@ const ListOfStocks = () => {
           }}
         >
           {params.row.stock_qty}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'total_cost',
+      headerName: 'Value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.total_cost.toLocaleString()}
+        </Typography>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 160,
+      field: 'stock_item_id',
+      headerName: 'Average Price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Number.isInteger(params.row.total_cost / params.row.stock_qty)
+            ? params.row.total_cost / params.row.stock_qty
+            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)}
+          {/* {parseFloat(params.row.total_cost / params.row.stock_qty).toPrecision(2)} */}
+          {/* {params.row.total_cost / params.row.stock_qty} */}
+        </Typography>
+      )
+    },
+    {
+      // flex: 0.4,
+      width: 260,
+      field: 'package',
+      headerName: 'PACKAGE',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
         </Typography>
       )
     },
@@ -798,6 +906,33 @@ const ListOfStocks = () => {
       )
     },
 
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'procured_date',
+    //   headerName: 'PROCURED DATE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {Utility.formatDisplayDate(params.row.procured_date)}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'purchase_price',
+    //   headerName: 'Purchase Price',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseFloat(params.row.unit_price) > 0 && parseFloat(params?.row?.stock_qty) > 0
+    //         ? (parseFloat(params.row.unit_price) * parseFloat(params.row.stock_qty)).toFixed(2)
+    //         : 'NA'}
+    //     </Typography>
+    //   )
+    // },
+
     {
       flex: 0.4,
       minWidth: 20,
@@ -865,6 +1000,8 @@ const ListOfStocks = () => {
       flex: 0.35,
       minWidth: 20,
       field: 'batch_no',
+      type: 'text',
+      align: 'center',
       headerName: 'BATCH NUMBER',
       renderCell: params => (
         <Typography
@@ -900,7 +1037,6 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.3,
       minWidth: 20,
@@ -1011,6 +1147,58 @@ const ListOfStocks = () => {
         </>
       )
     }
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'rack_info',
+    //   headerName: 'Rack',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.rack}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // },
+
+    // {
+    //   // flex: 0.2,
+    //   minWidth: 160,
+    //   field: 'stock_config',
+    //   headerName: 'Shelf',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.stock_config ? (
+    //         params?.row?.stock_config?.map(el => {
+    //           return (
+    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //               {el.shelf}
+    //             </Typography>
+    //           )
+    //         })
+    //       ) : (
+    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
+    //           NA
+    //         </Typography>
+    //       )}
+    //     </>
+    //   )
+    // }
   ]
 
   const getStoresLists = async () => {
@@ -1028,7 +1216,7 @@ const ListOfStocks = () => {
       }
     } catch (error) {
       setLoader(false)
-      console.log('error', error)
+      console.error('error', error)
     }
   }
 
@@ -1050,7 +1238,7 @@ const ListOfStocks = () => {
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
-              let storeId = id === 'all' ? null : id
+              let storeId = id === 'all' ? 'all' : id
 
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
@@ -1086,6 +1274,7 @@ const ListOfStocks = () => {
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
     setSearchValue('')
+    setBatchSearchValue('')
   }
 
   const headerAction = (
@@ -1120,19 +1309,23 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
+
       showDialog()
     }
   }
 
   const handleBatchSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, id) => {
       setBatchSearchValue(value)
+
       try {
         await getStocksReportBatchWise({
           batchSort: batchSort,
           batchQ: value,
           batchColumn: batchSortColumn,
-          id: stockId
+
+          // id: stockId
+          id: id
         })
       } catch (error) {
         console.error(error)
@@ -1223,6 +1416,7 @@ const ListOfStocks = () => {
   const handleSearch = useCallback(
     debounce(async value => {
       setSearchValue(value)
+
       try {
         // Reset the page to 0 for new search queries
         setPaginationModel(prev => ({ ...prev, page: 0 }))
@@ -1254,6 +1448,121 @@ const ListOfStocks = () => {
       )}
     </>
   )
+
+  const handleBatchSortModel = newModel => {
+    if (newModel.length) {
+      setBatchSort(newModel[0].sort)
+      setBatchSortColumn(newModel[0].field)
+      getStocksReportBatchWise({
+        batchSort: newModel[0].sort,
+        batchQ: batchSearchValue,
+        batchColumn: newModel[0].field,
+        id: stockId,
+        type: stockType
+      })
+    } else {
+      setBatchSort(null)
+      getStocksReportBatchWise({
+        batchSort: null,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId,
+        type: stockType
+      })
+    }
+  }
+
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     getStocksReport({
+  //       sort: newModel[0].sort,
+  //       q: searchValue,
+  //       column: newModel[0].field,
+  //       id: stockId,
+  //       type: stockType
+  //     })
+  //   } else {
+  //     setSort(null)
+  //     getStocksReport({
+  //       sort: null,
+  //       q: searchValue,
+  //       column: sortColumn,
+  //       id: stockId,
+  //       type: stockType
+  //     })
+  //   }
+  // }
+
+  const addEventSidebarOpen = params => {
+    setEditParams({ id: null, name: null, status: null })
+    setResetForm(true)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    // setPurchaseByStockId({ batch_no: null, stock_id: null })
+    setSearchPurchase('')
+    setPurchaseByStockIdList([])
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async payload => {
+    try {
+    } catch (e) {}
+  }
+
+  const handleSearchPurchase = useCallback(
+    debounce(async (stock_id, batch_no, value) => {
+      setSearchPurchase(value)
+      try {
+        await getPurchaseListByStockId(stock_id, batch_no, value)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const getPurchaseListByStockId = useCallback(
+    async (stock_id, batch_no, q) => {
+      const params = { stock_id, q }
+      if (changeSwitch) {
+        params.batch_no = batch_no
+      }
+      try {
+        setPurchaseLoading(true)
+        const result = await getPurchaseListByProduct(params)
+        if (result !== undefined) {
+          // console.log(result, 'res')
+          setPurchaseByStockIdList(result.data)
+          setPurchaseLoading(false)
+        }
+      } catch (error) {
+        console.error('error', error)
+        setPurchaseLoading(false)
+      }
+    },
+    [changeSwitch]
+  )
+
+  useEffect(() => {
+    if (purchaseByStockId && purchaseByStockId.stock_id) {
+      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
+    }
+  }, [purchaseByStockId, getPurchaseListByStockId])
+
+  const handleInputChange = event => {
+    const value = event.target.value
+    setSearchPurchase(value)
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, value)
+  }
+
+  const handleClearSearch = event => {
+    setSearchPurchase('')
+    handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, '')
+  }
 
   return (
     <>
@@ -1430,8 +1739,9 @@ const ListOfStocks = () => {
                       rows={batchIndexedRows === undefined ? [] : batchIndexedRows}
                       rowCount={batchTotal}
                       columns={batchWiseColumn}
-                      sortingMode='server'
+                      onSortModelChange={handleBatchSortModel}
                       paginationMode='server'
+                      sortingMode='server'
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={batchPaginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -1444,15 +1754,32 @@ const ListOfStocks = () => {
                         },
                         toolbar: {
                           value: batchSearchValue,
-                          clearSearch: () => handleBatchSearch(''),
+
+                          clearSearch: () => handleBatchSearch('', stockId),
                           onChange: event => {
                             setBatchSearchValue(event.target.value)
 
-                            return handleBatchSearch(event.target.value)
+                            return handleBatchSearch(event.target.value, stockId)
                           }
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+
+                        // Custom logic for cell clicks
+                        if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   ) : (
                     <DataGrid
@@ -1469,6 +1796,7 @@ const ListOfStocks = () => {
                       columns={columns}
                       sortingMode='server'
                       paginationMode='server'
+                      onSortModelChange={handleSortModel}
                       pageSizeOptions={[7, 10, 25, 50]}
                       paginationModel={paginationModel}
                       slots={{ toolbar: ServerSideToolbarWithFilter }}
@@ -1484,12 +1812,28 @@ const ListOfStocks = () => {
                           onChange: event => {
                             setSearchValue(event.target.value)
 
-                            return handleSearch(event.target.value, stockId, 
+                            return handleSearch(event.target.value, stockId,
                          )
                           }
                         }
                       }}
                       onRowClick={handleStockRowClick}
+                      onCellClick={(params, event) => {
+                        event.stopPropagation()
+                        event.preventDefault()
+
+                        // Custom logic for cell clicks
+                        if (params.field === 'stock_items_name') {
+                          addEventSidebarOpen()
+                          setPurchaseByStockId({
+                            batch_no: params.row?.batch_no,
+                            stock_id: params.row?.stock_item_id
+                          })
+                          event.ignoreRowClick = true
+                        } else {
+                          handleStockRowClick(params)
+                        }
+                      }}
                     />
                   )} */}
                 </Card>
@@ -1535,6 +1879,23 @@ const ListOfStocks = () => {
           <TabPanel value='5'>{loader ? <FallbackSpinner /> : <Escrow value={value} />}</TabPanel>
         </TabContext>
       </Grid>
+
+      <StockReportDetails
+        drawerWidth={400}
+        addEventSidebarOpen={openDrawer}
+        handleSidebarClose={handleSidebarClose}
+        handleSubmitData={handleSubmitData}
+        resetForm={resetForm}
+        submitLoader={submitLoader}
+        editParams={editParams}
+        purchaseByStockIdList={purchaseByStockIdList}
+        purchaseLoading={purchaseLoading}
+        setPurchaseLoading={setPurchaseLoading}
+        handleInputChange={handleInputChange}
+        searchPurchase={searchPurchase}
+        setSearchPurchase={setSearchPurchase}
+        handleClearSearch={handleClearSearch}
+      />
     </>
   )
 }

@@ -289,25 +289,18 @@ const ExpiringMedicine = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'Supplier name',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'supplier_name',
+    //   headerName: 'Supplier name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -353,20 +346,53 @@ const ExpiringMedicine = () => {
   ]
 
   const getDataToExport = async () => {
-    setExcelLoader(true)
-    if (indexedRows?.length > 0) {
-      const data = indexedRows?.map(el => {
-        return {
-          ['Medicine Name']: el?.stock_items_name,
-          ['Stock Quantity']: el?.stock_qty
-        }
-      })
+    try {
+      setExcelLoader(true)
 
-      Utility.exportToCSV(data, 'Expiring Products')
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        pending_days_start: filterDates?.startDate,
+        pending_days_end: filterDates?.endDate
+      }
+      const result = await aboutExpiringProduct(selectedPharmacy?.id, params)
+      if (result?.data.length > 0) {
+        const data = result?.data.map(el => {
+          return {
+            ['Medicine Name']: el?.stock_items_name,
+            ['Batch']: el?.batch_no,
+            ['Expire Date']: el?.expiry_date,
+            ['Quantity']: el?.stock_qty
+          }
+        })
+
+        Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(false)
+      }
+    } catch (error) {
       setExcelLoader(false)
-    } else {
-      setExcelLoader(false)
+
+      console.log('error', error)
     }
+
+    // if (indexedRows?.length > 0) {
+    //   const data = indexedRows?.map(el => {
+    //     return {
+    //       ['Medicine Name']: el?.stock_items_name,
+    //       ['Stock Quantity']: el?.stock_qty,
+    //       ['Batch Number']: el?.batch_no,
+    //       ['Expiry Date']: el?.expiry_date
+    //     }
+    //   })
+
+    //   Utility.exportToCSV(data, 'Expiring Products')
+    //   setExcelLoader(false)
+    // } else {
+    //   setExcelLoader(false)
+    // }
   }
 
   const handleHeaderAction = () => {

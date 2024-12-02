@@ -84,8 +84,8 @@ const PurchaseItemForm = props => {
     }),
 
     purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
-      if (stockType === 'non_medical') {
-        return schema.notRequired()
+      if (stockType[0] === 'non_medical') {
+        return schema?.notRequired()
       } else {
         return schema
           .required('Please enter the expiry date')
@@ -98,8 +98,8 @@ const PurchaseItemForm = props => {
         const isDuplicate = purchase_details?.some(
           (entry, index) =>
             index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
-            entry.purchase_unit_id === parent?.product?.value &&
-            entry.purchase_batch_no === value
+            entry?.purchase_unit_id === parent?.product?.value &&
+            entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
         )
 
         return !isDuplicate
@@ -268,7 +268,7 @@ const PurchaseItemForm = props => {
       purchase_unit_id: value,
       purchase_stock_item_id: value,
       purchase_batch_no,
-      purchase_expiry_date: stock_type !== 'non_medical' ? Utility.formatDate(purchase_expiry_date) : '',
+      purchase_expiry_date: stock_type === 'non_medical' ? null : Utility.formatDate(purchase_expiry_date),
       purchase_unit_price,
       purchase_qty,
       purchase_free_quantity,
@@ -494,8 +494,10 @@ const PurchaseItemForm = props => {
             <Controller
               name='product'
               control={control}
+              disabled={nestedRowMedicine?.id ? true : false}
               render={({ field: { value, onChange } }) => (
                 <Autocomplete
+                  disabled={nestedRowMedicine?.id ? true : false}
                   options={optionsMedicineList}
                   value={value}
                   renderOption={(props, option) => (
@@ -525,7 +527,9 @@ const PurchaseItemForm = props => {
                         setNonMedicalProduct(true)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
-                        setValue('purchase_expiry_date', dayjs(Date()))
+
+                        // setValue('purchase_expiry_date', dayjs(Date()))
+                        setValue('purchase_expiry_date', null)
                       } else {
                         setNonMedicalProduct(false)
                         setValue('package_details', val?.package_details)
@@ -586,6 +590,7 @@ const PurchaseItemForm = props => {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  disabled={nestedRowMedicine?.id ? true : false}
                   label='Batch Number*'
                   error={Boolean(errors.purchase_batch_no)}
                   helperText={errors.purchase_batch_no?.message}
@@ -619,6 +624,7 @@ const PurchaseItemForm = props => {
                 render={({ field: { value, onChange } }) => (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DesktopDatePicker
+                      disabled={nestedRowMedicine?.id ? true : false}
                       label='Expiry Date*'
                       inputFormat='MM/DD/YYYY'
                       value={value}
@@ -669,6 +675,7 @@ const PurchaseItemForm = props => {
               control={control}
               render={({ field }) => (
                 <TextField
+                  disabled={nestedRowMedicine?.id ? true : false}
                   {...field}
                   label='Purchase Quantity*'
                   onKeyUp={e => {
@@ -1043,6 +1050,7 @@ const PurchaseItemForm = props => {
                   }}
                   size='large'
                   variant='outlined'
+                  git
                 >
                   Reset
                 </Button>

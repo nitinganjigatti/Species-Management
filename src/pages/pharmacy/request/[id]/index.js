@@ -59,6 +59,7 @@ import MuiTabList from '@mui/lab/TabList'
 
 import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
 import CloseIcon from '@mui/icons-material/Close'
+import RenderUtility from 'src/utility/render'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -1764,22 +1765,30 @@ const IndividualRequest = () => {
                             sx={{
                               display: 'flex',
                               flexDirection: 'column',
-                              height: '36px',
 
-                              // gap: '4px'
+                              // height: '36px',
                               gap: '10px'
                             }}
                           >
-                            <Typography
-                              sx={{
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                lineHeight: '16.94px',
-                                color: 'customColors.OnSurfaceVariant'
-                              }}
+                            <Tooltip
+                              title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              placement='top'
+                              arrow
                             >
-                              {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                            </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  lineHeight: '16.94px',
+                                  color: 'customColors.OnSurfaceVariant',
+
+                                  ...RenderUtility?.getEllipsisStyleForText(100)
+                                }}
+                              >
+                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              </Typography>
+                            </Tooltip>
+
                             <Typography
                               sx={{
                                 fontSize: '12px',

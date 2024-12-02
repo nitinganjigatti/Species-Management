@@ -40,7 +40,14 @@ function formattedPresentDate() {
 }
 
 function formatDisplayDate(date) {
-  return moment(date).format('DD MMM YYYY')
+  const result = moment(date).format('DD MMM YYYY')
+  if (result === 'Invalid date') {
+    return 'NA'
+  } else {
+    return result
+  }
+
+  // return moment(date).format('DD MMM YYYY')
 }
 
 function errorMessageExtractorFromObject(errorMessages) {

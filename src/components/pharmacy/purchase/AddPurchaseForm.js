@@ -40,7 +40,13 @@ import Icon from 'src/@core/components/icon'
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { addPurchase, getPurchaseListById, updatePurchase, getBatchExpiry } from 'src/lib/api/pharmacy/getPurchaseList'
+import {
+  addPurchase,
+  getPurchaseListById,
+  updatePurchase,
+  updatePurchasePrice,
+  getBatchExpiry
+} from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
 import Utility from 'src/utility'
@@ -130,7 +136,7 @@ const AddPurchaseForm = () => {
   const [supplierDialog, setSupplierDialog] = useState(false)
 
   const router = useRouter()
-  const { id, action } = router.query
+  const { id, action, navigatedFrom } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
   const authData = useContext(AuthContext)
@@ -512,13 +518,19 @@ const AddPurchaseForm = () => {
     // console.log('postData', postData)
     if (id) {
       postData.antz_pharmacy_purchase_id = id
-      const response = await updatePurchase(id, postData)
+      // const response = await updatePurchase(id, postData)
+
+      const response = await updatePurchasePrice(id, postData)
 
       if (response?.success) {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        if (navigatedFrom === 'stockReport') {
+          Router.push('/pharmacy/stocks/stocksReport/')
+        } else {
+          Router.push('/pharmacy/purchase/purchase-list/')
+        }
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -702,7 +714,8 @@ const AddPurchaseForm = () => {
             id: el?.id,
             stock_type: el?.stock_type,
             package_details: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-            manufacture: el?.manufacturer
+            manufacture: el?.manufacturer,
+            purchase_expiry_date: el?.stock_type === 'non_medical' ? null : el?.purchase_expiry_date
             // medicine_name: el?.stock_item_name,
             // stock_type: el?.stock_type,
             // purchase_batch_no: el?.purchase_batch_no,
@@ -794,27 +807,28 @@ const AddPurchaseForm = () => {
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
         purchase_unit_id: getItems[0]?.purchase_unit_id,
-        purchase_stock_item_id: getItems[0].purchase_stock_item_id
-          ? getItems[0].purchase_stock_item_id
-          : getItems[0].purchase_unit_id,
-        purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
-        purchase_unit_price: getItems[0].purchase_unit_price,
-        purchase_qty: getItems[0].purchase_qty,
-        purchase_free_quantity: getItems[0].purchase_free_quantity,
-        purchase_discount: getItems[0].purchase_discount,
-        purchase_cgst: getItems[0].purchase_cgst,
-        purchase_gst: getItems[0].purchase_gst,
-        purchase_sgst: getItems[0].purchase_sgst,
-        purchase_igst: getItems[0].purchase_igst,
-        purchase_cgst_amount: getItems[0].purchase_cgst_amount,
-        purchase_sgst_amount: getItems[0].purchase_sgst_amount,
-        purchase_igst_amount: getItems[0].purchase_igst_amount,
-        purchase_gross_amount: getItems[0].purchase_gross_amount,
-        purchase_discount_amount: getItems[0].purchase_discount_amount,
-        purchase_taxable_amount: getItems[0].purchase_taxable_amount,
-        purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        purchase_stock_item_id: getItems[0]?.purchase_stock_item_id
+          ? getItems[0]?.purchase_stock_item_id
+          : getItems[0]?.purchase_unit_id,
+        purchase_batch_no: getItems[0]?.purchase_batch_no,
+        purchase_expiry_date:
+          getItems[0]?.stock_type === 'non_medical' ? null : moment(getItems[0]?.purchase_expiry_date),
+        purchase_unit_price: getItems[0]?.purchase_unit_price,
+        purchase_qty: getItems[0]?.purchase_qty,
+        purchase_free_quantity: getItems[0]?.purchase_free_quantity,
+        purchase_discount: getItems[0]?.purchase_discount,
+        purchase_cgst: getItems[0]?.purchase_cgst,
+        purchase_gst: getItems[0]?.purchase_gst,
+        purchase_sgst: getItems[0]?.purchase_sgst,
+        purchase_igst: getItems[0]?.purchase_igst,
+        purchase_cgst_amount: getItems[0]?.purchase_cgst_amount,
+        purchase_sgst_amount: getItems[0]?.purchase_sgst_amount,
+        purchase_igst_amount: getItems[0]?.purchase_igst_amount,
+        purchase_gross_amount: getItems[0]?.purchase_gross_amount,
+        purchase_discount_amount: getItems[0]?.purchase_discount_amount,
+        purchase_taxable_amount: getItems[0]?.purchase_taxable_amount,
+        purchase_net_amount: getItems[0]?.purchase_net_amount,
+        purchase_purchase_price: getItems[0]?.purchase_purchase_price,
         package_details: getItems[0]?.package_details,
         manufacture: getItems[0]?.manufacture
 
@@ -843,29 +857,30 @@ const AddPurchaseForm = () => {
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
         index,
-        purchase_unit_id: getItems[0].purchase_unit_id,
-        purchase_stock_item_id: getItems[0].purchase_stock_item_id
-          ? getItems[0].purchase_stock_item_id
-          : getItems[0].purchase_unit_id,
-        purchase_batch_no: getItems[0].purchase_batch_no,
-        purchase_expiry_date: moment(getItems[0].purchase_expiry_date),
-        purchase_unit_price: getItems[0].purchase_unit_price,
-        purchase_qty: getItems[0].purchase_qty,
-        purchase_free_quantity: getItems[0].purchase_free_quantity,
-        purchase_discount: getItems[0].purchase_discount,
-        purchase_cgst: getItems[0].purchase_cgst,
-        purchase_gst: getItems[0].purchase_gst,
-        purchase_sgst: getItems[0].purchase_sgst,
-        purchase_igst: getItems[0].purchase_igst,
+        purchase_unit_id: getItems[0]?.purchase_unit_id,
+        purchase_stock_item_id: getItems[0]?.purchase_stock_item_id
+          ? getItems[0]?.purchase_stock_item_id
+          : getItems[0]?.purchase_unit_id,
+        purchase_batch_no: getItems[0]?.purchase_batch_no,
+        purchase_expiry_date:
+          getItems[0]?.stock_type === 'non_medical' ? null : moment(getItems[0]?.purchase_expiry_date),
+        purchase_unit_price: getItems[0]?.purchase_unit_price,
+        purchase_qty: getItems[0]?.purchase_qty,
+        purchase_free_quantity: getItems[0]?.purchase_free_quantity,
+        purchase_discount: getItems[0]?.purchase_discount,
+        purchase_cgst: getItems[0]?.purchase_cgst,
+        purchase_gst: getItems[0]?.purchase_gst,
+        purchase_sgst: getItems[0]?.purchase_sgst,
+        purchase_igst: getItems[0]?.purchase_igst,
 
-        purchase_cgst_amount: getItems[0].purchase_cgst_amount,
-        purchase_sgst_amount: getItems[0].purchase_sgst_amount,
-        purchase_igst_amount: getItems[0].purchase_igst_amount,
-        purchase_gross_amount: getItems[0].purchase_gross_amount,
-        purchase_discount_amount: getItems[0].purchase_discount_amount,
-        purchase_taxable_amount: getItems[0].purchase_taxable_amount,
-        purchase_net_amount: getItems[0].purchase_net_amount,
-        purchase_purchase_price: getItems[0].purchase_purchase_price,
+        purchase_cgst_amount: getItems[0]?.purchase_cgst_amount,
+        purchase_sgst_amount: getItems[0]?.purchase_sgst_amount,
+        purchase_igst_amount: getItems[0]?.purchase_igst_amount,
+        purchase_gross_amount: getItems[0]?.purchase_gross_amount,
+        purchase_discount_amount: getItems[0]?.purchase_discount_amount,
+        purchase_taxable_amount: getItems[0]?.purchase_taxable_amount,
+        purchase_net_amount: getItems[0]?.purchase_net_amount,
+        purchase_purchase_price: getItems[0]?.purchase_purchase_price,
         package_details: getItems[0]?.package_details,
         manufacture: getItems[0]?.manufacture
       })
@@ -970,8 +985,11 @@ const AddPurchaseForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                router.back()
-                // Router.push('/pharmacy/purchase/purchase-list/')
+                if (navigatedFrom === 'stockReport') {
+                  Router.push('/pharmacy/stocks/stocksReport/')
+                } else {
+                  Router.push('/pharmacy/purchase/purchase-list/')
+                }
               }}
               icon='ep:back'
             />
@@ -1042,6 +1060,7 @@ const AddPurchaseForm = () => {
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                      isClearable={false}
                     />
                   )}
                 />
@@ -1242,6 +1261,15 @@ const AddPurchaseForm = () => {
                   Net Amount
                 </TableCell>
                 <TableCell
+                  align='right'
+                  sx={{
+                    minWidth: 130,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Gross Amount
+                </TableCell>
+                <TableCell
                   sx={{
                     minWidth: 130,
                     textAlign: 'center'
@@ -1294,20 +1322,23 @@ const AddPurchaseForm = () => {
                     return (
                       <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                         <TableCell>
-                          {el.medicine_name}
-                          <Typography variant='body2'>{el.package_details}</Typography>
-                          <Typography variant='body2'>{el.manufacture}</Typography>
+                          {el?.medicine_name}
+                          <Typography variant='body2'>{el?.package_details}</Typography>
+                          <Typography variant='body2'>{el?.manufacture}</Typography>
                         </TableCell>
-                        <TableCell>{el.purchase_batch_no}</TableCell>
+                        <TableCell>{el?.purchase_batch_no}</TableCell>
                         <TableCell>
-                          {el?.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(el.purchase_expiry_date)}
+                          {el?.stock_type === 'non_medical'
+                            ? 'NA'
+                            : Utility.formatDisplayDate(el?.purchase_expiry_date)}
                         </TableCell>
-                        <TableCell align='right'>{el.purchase_qty}</TableCell>
+                        <TableCell align='right'>{el?.purchase_qty}</TableCell>
                         {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
-                        <TableCell align='right'>{el.purchase_unit_price}</TableCell>
-                        <TableCell align='right'>{el.purchase_discount}%</TableCell>
+                        <TableCell align='right'>{el?.purchase_unit_price}</TableCell>
+                        <TableCell align='right'>{el?.purchase_discount}%</TableCell>
                         {/* <TableCell align='right'>{el.purchase_igst}%</TableCell> */}
-                        <TableCell align='right'>{el.purchase_net_amount}</TableCell>
+                        <TableCell align='right'>{el?.purchase_net_amount}</TableCell>
+                        <TableCell align='right'>{el?.purchase_gross_amount}</TableCell>
                         <TableCell>
                           <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
                             {el?.purchase_cgst}%
@@ -1333,7 +1364,7 @@ const AddPurchaseForm = () => {
                           </TableCell>
                         </TableCell>
                         <TableCell align='center'>
-                          {el.id ? null : (
+                          <Box sx={{ display: 'flex' }}>
                             <IconButton
                               size='small'
                               sx={{ mr: 0.5 }}
@@ -1346,19 +1377,19 @@ const AddPurchaseForm = () => {
                             >
                               <Icon icon='mdi:pencil-outline' />
                             </IconButton>
-                          )}
 
-                          {id && el.id ? null : (
-                            <IconButton
-                              onClick={() => {
-                                removeItemsFroTable(el.purchase_unit_id)
-                              }}
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                            >
-                              <Icon icon='mdi:delete-outline' />
-                            </IconButton>
-                          )}
+                            {id && el.id ? null : (
+                              <IconButton
+                                onClick={() => {
+                                  removeItemsFroTable(el.purchase_unit_id)
+                                }}
+                                size='small'
+                                sx={{ mr: 0.5 }}
+                              >
+                                <Icon icon='mdi:delete-outline' />
+                              </IconButton>
+                            )}
+                          </Box>
                         </TableCell>
                       </TableRow>
                     )

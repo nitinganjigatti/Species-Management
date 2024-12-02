@@ -62,13 +62,19 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
+
+        displaybgPrimary: '#E8F4F2',
         tableHeaderBg: '#E8F4F2',
+        Secondary: '#00D6C9',
+        Surface: '#F2FFF8',
+        Outline: '#839D8D',
 
         // *** name required
 
         textLabel: '#00ABAB',
 
         // **
+        OnSurfaceVariant: '#44544A',
 
         // *** name required
         customTableCellBg: '#FCF4AE33',
@@ -78,7 +84,6 @@ const UserThemeOptions = () => {
         customCardBorder: '#00ABAB',
         OnSecondaryContainer: '#1F415B',
         neutralSecondary: '#7A8684',
-        OutlineVariant: '#F2FFF8',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
 
@@ -90,7 +95,8 @@ const UserThemeOptions = () => {
 
         // **
         moderateSecondary: '#E4B819',
-        moderateTableRed: ' #FB4364'
+        neutral_50: '#00000066',
+        Tertiary: '#FA6140'
       },
       primary: {
         // light: '#20DE67',

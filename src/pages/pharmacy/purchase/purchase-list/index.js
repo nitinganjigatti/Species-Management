@@ -7,20 +7,9 @@ import { debounce } from 'lodash'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import {
-  Card,
-  CardHeader,
-  Typography,
-  CardContent,
-  Grid,
-  FormHelperText,
-  FormControl,
-  TextField,
-  Button
-} from '@mui/material'
+import { Card, CardHeader, Typography, Grid, TextField } from '@mui/material'
 
 // ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 
 import Router from 'next/router'
@@ -50,10 +39,11 @@ const ListOfPurchase = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'label')
+
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10 
+    pageSize: parseInt(router.query.pageSize, 10) || 10
   })
   const [loading, setLoading] = useState(false)
 
@@ -93,6 +83,7 @@ const ListOfPurchase = () => {
   // )
   const fetchTableData = useCallback(async (sortOrder, query, column, page, pageSize) => {
     setLoading(true)
+
     const params = {
       sort: sortOrder,
       q: query,
@@ -144,6 +135,7 @@ const ListOfPurchase = () => {
       setSortColumn(newModel[0].field)
     }
   }
+
   // useEffect(() => {
   //   // Update the URL with the current page whenever paginationModel.page changes
   //   router.push({
@@ -159,13 +151,13 @@ const ListOfPurchase = () => {
       query: {
         ...router.query,
         page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize, 
+        pageSize: paginationModel.pageSize,
         searchValue,
         sort,
         sortColumn
       }
     })
-  }, [paginationModel.page,  paginationModel.pageSize, searchValue, sort, sortColumn])
+  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
@@ -192,28 +184,27 @@ const ListOfPurchase = () => {
   // }
 
   const handleSearch = useCallback(
-    debounce((value) => {
-      setSearchValue(value);
-  
+    debounce(value => {
+      setSearchValue(value)
+
       // Reset the page to the first page (page 0 in your `paginationModel`)
-      setPaginationModel((prevModel) => ({
+      setPaginationModel(prevModel => ({
         ...prevModel,
-        page: 0,
-      }));
-  
+        page: 0
+      }))
+
       // Update the URL query parameters
       router.replace({
         pathname: router.pathname,
         query: {
           ...router.query,
           searchValue: value,
-          page: 1, // Update to 1-indexed for the URL
-        },
-      });
+          page: 1 // Update to 1-indexed for the URL
+        }
+      })
     }, 500),
     [router]
-  );
-  
+  )
 
   // Handle page or query param change in URL to update paginationModel state
   useEffect(() => {
@@ -334,6 +325,46 @@ const ListOfPurchase = () => {
         >
           {params?.row?.net_amount}
         </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'created_by',
+      headerName: 'Created by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {Utility.formatDisplayDate(params.row.created_at)}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      Width: 40,
+      field: 'updated_by',
+      headerName: 'Updated by ',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
+            </Typography>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+              {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
   ]

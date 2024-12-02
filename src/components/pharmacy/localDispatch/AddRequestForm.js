@@ -499,9 +499,9 @@ const AddRequestForm = () => {
           request_item_qty: el?.qty,
           request_item_leaf_id: el?.stock_item_id,
           priority_item: el?.priority,
-          control_substance: el?.control_substance === '0' ? false : true,
+          control_substance: el?.control_substance === '1' ? true : false,
           control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
-          prescription_required: el?.prescription_required === '0' ? false : true,
+          prescription_required: el?.prescription_required === '1' ? true : false,
           prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
           id: el?.id,
           request_item_detail_id: el?.id,
@@ -1278,6 +1278,7 @@ const AddRequestForm = () => {
                       setErrors({})
                     }}
                     customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                    isClearable={false}
                   />
                   {errors.ro_date && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>

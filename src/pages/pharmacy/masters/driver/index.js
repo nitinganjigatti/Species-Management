@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver'
-import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -24,8 +22,6 @@ import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
 
 import toast from 'react-hot-toast'
-
-import Router from 'next/router'
 import AddDriver from 'src/views/pages/pharmacy/medicine/driver/addDriverForm'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 

@@ -64,6 +64,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import RenderUtility from 'src/utility/render'
 import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const editParamsInitialState = {
   supplier_id: '',
@@ -397,23 +398,25 @@ const AddDiscardProducts = () => {
     try {
       const result = await getDiscardItemsListById(id)
       if (result.success === true && result?.data?.item_details?.length > 0) {
+        console.log('result', result.data?.item_details)
+
         const lineItems = result?.data?.item_details?.map(el => {
           return {
-            stock_id: el.product_id,
-            // medicine_name: el.stock_name,
-            medicine_name: el.stock_name,
-            quantity: el.quantity,
-            request_item_leaf_id: el.stock_item_id,
-            priority_item: el.priority,
-            control_substance: el.control_substance === '0' ? false : true,
-            control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-            id: el.id,
-            request_item_detail_id: el.id,
-            batch_no: el.batch_no,
-            expiry_date: el.expiry_date,
+            stock_id: el?.product_id,
+            // medicine_name: el?.stock_name,
+            medicine_name: el?.stock_name,
+            quantity: el?.quantity,
+            request_item_leaf_id: el?.stock_item_id,
+            priority_item: el?.priority,
+            control_substance: el?.control_substance === '1' ? true : false,
+            control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
+            id: el?.id,
+            request_item_detail_id: el?.id,
+            batch_no: el?.batch_no,
+            expiry_date: el?.expiry_date,
             uuid: uuidv4(),
             available_item_qty: el?.batch_available_qty,
-            dispatch_item_id: el.dispatch_item_id,
+            dispatch_item_id: el?.dispatch_item_id,
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer_name,
@@ -421,6 +424,7 @@ const AddDiscardProducts = () => {
             reason: el?.reason
           }
         })
+        console.log('lineItems', lineItems)
 
         setEditParams({
           ...editParams,
@@ -480,38 +484,38 @@ const AddDiscardProducts = () => {
     const postData = editParams
     // postData.total_qty = totalQty
 
-    if (id) {
-      try {
-        const response = await updateDirectDispatchItems(id, postData)
+    // if (id) {
+    //   try {
+    //     const response = await updateDirectDispatchItems(id, postData)
 
-        if (response?.success) {
-          toast.success(response?.msg)
-          setSubmitLoader(false)
-          getListOfItemsById(id)
-          Router.push(`/pharmacy/discard/discard-list`)
-        } else {
-          setSubmitLoader(false)
-          toast.error(response?.msg)
-        }
-      } catch (error) {
-        console.log('error', error)
+    //     if (response?.success) {
+    //       toast.success(response?.msg)
+    //       setSubmitLoader(false)
+    //       getListOfItemsById(id)
+    //       Router.push(`/pharmacy/discard/discard-list`)
+    //     } else {
+    //       setSubmitLoader(false)
+    //       toast.error(response?.msg)
+    //     }
+    //   } catch (error) {
+    //     console.log('error', error)
+    //   }
+    // } else {
+    try {
+      const response = await addDiscard(editParams)
+      if (response?.success) {
+        toast.success(response?.msg)
+        setEditParams(editParamsInitialState)
+        setSubmitLoader(false)
+        Router.push(`/pharmacy/discard/discard-list`)
+      } else {
+        setSubmitLoader(false)
+        toast.error(response?.message)
       }
-    } else {
-      try {
-        const response = await addDiscard(editParams)
-        if (response?.success) {
-          toast.success(response?.msg)
-          setEditParams(editParamsInitialState)
-          setSubmitLoader(false)
-          Router.push(`/pharmacy/discard/discard-list`)
-        } else {
-          setSubmitLoader(false)
-          toast.error(response?.message)
-        }
-      } catch (error) {
-        console.log('error', error)
-      }
+    } catch (error) {
+      console.log('error', error)
     }
+    // }
   }
 
   const [commentDrawerOpen, setCommentDrawerOpen] = useState(false)
@@ -621,7 +625,7 @@ const AddDiscardProducts = () => {
                       >
                         {supplierList?.map((item, index) => (
                           <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.name}
+                            {item?.company_name}
                           </MenuItem>
                         ))}
                       </Select>
@@ -649,6 +653,7 @@ const AddDiscardProducts = () => {
                         }}
                         maxDate={new Date()}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.discarded_date)} />}
+                        isClearable={false}
                       />
                       {errors.discarded_date && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -796,7 +801,7 @@ const AddDiscardProducts = () => {
                               <Typography variant='body2' sx={{ color: 'customColors.moderateRed' }}>
                                 {el.reason ? el.reason : 'NA'}
                               </Typography>
-                            
+
                               <Typography variant='body2'>{el.comments ? el.comments : ''}</Typography>
                             </TableCell> */}
 
@@ -958,28 +963,30 @@ const AddDiscardProducts = () => {
           </CardContent> */}
           <Grid item xs={12}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
-              <LoadingButton
-                disabled={editParams?.items?.length < 0 || id ? true : false}
-                sx={{ marginRight: '8px' }}
-                size='large'
-                onClick={() => {
-                  postItemsData()
-                }}
-                variant='contained'
-                loading={submitLoader}
-              >
-                Save
-              </LoadingButton>
               {id ? null : (
-                <Button
-                  onClick={() => {
-                    setEditParams(editParamsInitialState)
-                  }}
-                  size='large'
-                  variant='outlined'
-                >
-                  Reset
-                </Button>
+                <>
+                  <LoadingButton
+                    disabled={editParams?.items?.length > 0 ? false : true}
+                    sx={{ marginRight: '8px' }}
+                    size='large'
+                    onClick={() => {
+                      postItemsData()
+                    }}
+                    variant='contained'
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
+                  <Button
+                    onClick={() => {
+                      setEditParams(editParamsInitialState)
+                    }}
+                    size='large'
+                    variant='outlined'
+                  >
+                    Reset
+                  </Button>
+                </>
               )}
             </Box>
           </Grid>

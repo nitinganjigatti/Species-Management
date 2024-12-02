@@ -14,7 +14,8 @@ import {
   Button,
   Typography,
   Box,
-  Paper
+  Paper,
+  Tooltip
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -314,9 +315,12 @@ export const AddItemsForm = ({
   return (
     <>
       {/* <CardContent> */}
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={12}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
+          <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
@@ -519,6 +523,7 @@ export const AddItemsForm = ({
                         {...props}
                         sx={{
                           border: '1px solid transparent',
+
                           // border: '1px solid #0000000D',
                           // borderBottom: '1px solid #e0e0e0',
                           '&:last-child': {

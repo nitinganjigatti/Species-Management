@@ -368,16 +368,8 @@ const ReturnRequestList = () => {
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
         </Typography>
       )
     },

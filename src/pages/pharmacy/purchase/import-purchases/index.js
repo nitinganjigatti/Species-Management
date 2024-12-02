@@ -312,8 +312,12 @@ const ImportPurchase = () => {
                           <Table stickyHeader sx={{ minWidth: 650, overflowX: 'scroll' }} aria-label='simple table'>
                             <TableHead sx={{ backgroundColor: 'primary.bg' }}>
                               <TableRow>
-                                <TableCell width={100}>Purchase invoice no</TableCell>
-                                <TableCell width={100}>Error Details</TableCell>
+                                <TableCell width={100} maxWidth={100}>
+                                  Purchase invoice no
+                                </TableCell>
+                                <TableCell width={100} maxWidth={100}>
+                                  Error Details
+                                </TableCell>
                                 {/* <TableCell>Error Details</TableCell> */}
                                 <TableCell width={'100%'}></TableCell>
                                 <TableCell></TableCell>

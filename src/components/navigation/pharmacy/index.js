@@ -5,6 +5,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     sectionTitle: 'Pharmacy'
   }
 
+  // const dashboard = {
+  //   title: 'Dashboard',
+  //   path: '/pharmacy/dashboard',
+  //   icon: 'lets-icons:home-duotone'
+  // }
+
   const dashboard = {
     title: 'Dashboard',
     path: '/pharmacy/dashboard',
@@ -304,7 +310,14 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       // state
     )
 
-    pharmacyNavigationArray.push(dashboard, stockReport, requestListing, returnListing, directDispatchList)
+    pharmacyNavigationArray.push(
+      dashboard,
+      //dashboardnew,
+      stockReport,
+      requestListing,
+      returnListing,
+      directDispatchList
+    )
 
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
@@ -334,6 +347,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
       dashboard,
+      //dashboardnew,
       requestListing,
       returnListing,
 
@@ -359,7 +373,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.push(stocksAdjustment)
     }
-    pharmacyNavigationArray.push(discard, settingsParent)
+    pharmacyNavigationArray.push(settingsParent)
   }
 
   if (pharmacyRole) {

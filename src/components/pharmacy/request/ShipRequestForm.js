@@ -823,6 +823,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                         setDate(date)
                       }}
                       customInput={<CustomInput label='Shipment Date*' auto />}
+                      isClearable={false}
                     />
                     {errors.shipment_date && (
                       <FormHelperText sx={{ color: 'error.main' }}>Shipment Date is required</FormHelperText>

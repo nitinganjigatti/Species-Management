@@ -116,6 +116,8 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
+export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
+
 export const RETURN_REQUEST = 'return-item'
 
 export const REQUEST_ITEMS_NOT_AVAILABLE = 'dispatch/not-available'
@@ -144,6 +146,8 @@ export const DASHBOARD_REPORT = 'reports'
 
 export const DASHBOARD_FAST_MOVING = 'fastmoving-stocks?page=1&limit=10'
 
+export const DASHBOARD_EXPIRED_STOCKS = 'expired-stocks?page=1&limit=10'
+
 export const DASHBOARD_NEW_REQUEST = 'new-request?page=1&limit=10'
 
 export const DASHBOARD_COMPLETED_REQUESTS = 'completed-request'
@@ -170,4 +174,34 @@ export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
 
 export const DISCARD_PRODUCT = 'discard'
 
+export const DASHBOARD_STORE_WISE_DISPATCH_REPORT = 'storewise-dispatch-report'
+
+export const DASHBOARD_STORE_DISPATCH_REPORT = 'store-dispatch-report'
+
+export const DASHBOARD_MONTH_WISE_DISPATCH_REPORT = 'monthly-dispatch-report'
+
+export const DASHBOARD_MONTH_WISE_PURCHASE_REPORT = 'monthly-purchase-report'
+
+export const DASHBOARD_DOCTOR_DISPATCH_FILTER = 'store-doctor-dispatch-filter'
+
+export const DASHBOARD_DOCTORWISE_MEDICINE_FILTER = 'doctorwise-medicine-filter'
+
+export const DASHBOARD_COMPLETED_PENDING_REQUEST = 'completed-pending-request'
+
+export const DASHBOARD_DOCTOR_WISE_REQUEST = 'doctorwise-request'
+
+export const DASHBOARD_REQUEST_SENT = 'request-sent'
+
+export const DASHBOARD_RECEIVED_MEDICINES = 'received-medicines'
+
+export const DASHBOARD_RECEIVED_MEDICINE_REPORT = 'received-medicine-report'
+
+export const DASHBOARD_MEDICINEWISE_DOCTOR_FILTER = 'medicinewise-doctor-filter'
+
 export const DISCARD_REASON = 'discard-reason'
+
+export const STOCK = 'pharmacy/stock'
+
+export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
+
+export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'

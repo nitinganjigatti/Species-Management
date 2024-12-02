@@ -41,6 +41,7 @@ function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvail
   const onSubmit = async params => {
     if (payload?.request_item_id) {
       try {
+        setSubmitLoader(true)
         const response = await makeProductNotAvailable(params, payload?.request_item_id)
         if (response?.success) {
           toast.success(response?.message)
@@ -67,7 +68,8 @@ function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvail
           mb: 10,
 
           backgroundColor: 'customColors.lightBg',
-          border: '1px solid #00D6C9'
+          border: '1px solid #00D6C9',
+          boxShadow: 'none !important'
         }}
       >
         <CardContent>

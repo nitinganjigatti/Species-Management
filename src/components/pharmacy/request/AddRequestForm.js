@@ -248,12 +248,12 @@ const AddRequestForm = () => {
     if (!values.priority_item) {
       itemErrors.priority_item = 'This field is required'
     }
-    // removing mandatory conation
-    // if (values.control_substance === true) {
-    //   if (values.control_substance_file.length === 0) {
-    //     itemErrors.control_substance_file = 'This field is required'
-    //   }
-    // }
+
+    if (values.control_substance === true) {
+      if (values.prescription_required_file?.length === 0) {
+        itemErrors.prescription_required_file = 'This field is required'
+      }
+    }
     if (values.prescription_required === true) {
       if (values.prescription_required_file.length === 0) {
         itemErrors.prescription_required_file = 'This field is required'
@@ -295,15 +295,14 @@ const AddRequestForm = () => {
 
       return
     }
-    // removing mandatory conation
 
-    // if (nestedRowMedicine.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
 
-    //     return
-    //   }
-    // }
+        return
+      }
+    }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -363,15 +362,14 @@ const AddRequestForm = () => {
 
       return
     }
-    // removing mandatory conation
 
-    // if (nestedRowMedicine.control_substance === true) {
-    //   if (nestedRowMedicine.control_substance_file.length === 0) {
-    //     setItemErrors(validate(nestedRowMedicine))
+    if (nestedRowMedicine.control_substance === true) {
+      if (nestedRowMedicine.prescription_required_file.length === 0) {
+        setItemErrors(validate(nestedRowMedicine))
 
-    //     return
-    //   }
-    // }
+        return
+      }
+    }
     if (nestedRowMedicine.prescription_required === true) {
       if (nestedRowMedicine.prescription_required_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -443,7 +441,10 @@ const AddRequestForm = () => {
           manufacture: item.manufacturer_name,
           control_substance: item.controlled_substance === '1' ? true : false,
           status: item?.active === '0' ? 0 : 1,
-          prescription_required: item?.prescription_required === '1' ? true : false,
+          // prescription_required: item?.prescription_required === '1' ? true : false,
+          // making prescription true if product is control substance
+          prescription_required:
+            item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
           genericName: item?.generic_name
         }))
@@ -488,7 +489,9 @@ const AddRequestForm = () => {
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            prescription_required: item?.prescription_required === '1' ? true : false,
+            // prescription_required: item?.prescription_required === '1' ? true : false,
+            prescription_required:
+              item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0
           }))
         )
@@ -526,9 +529,9 @@ const AddRequestForm = () => {
           request_item_qty: el?.qty,
           request_item_leaf_id: el?.stock_item_id,
           priority_item: el?.priority,
-          control_substance: el?.control_substance === '0' ? false : true,
+          control_substance: el?.control_substance === '1' ? true : false,
           control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
-          prescription_required: el?.prescription_required === '0' ? false : true,
+          prescription_required: el?.prescription_required === '1' ? true : false,
           prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
           id: el?.id,
           request_item_detail_id: el?.id,
@@ -619,8 +622,11 @@ const AddRequestForm = () => {
 
   const postItemsData = async () => {
     setSubmitLoader(true)
+
     const postData = editParams
     postData.total_qty = totalQty
+    console.log('edit', postData)
+    debugger
 
     if (id) {
       try {
@@ -633,10 +639,10 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          toast.error(response?.message)
+          toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('error', error)
+        toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     } else {
       try {
@@ -648,10 +654,12 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          toast.error(response?.message)
+          console.log(JSON.stringify(response))
+          toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('error', error)
+        console.log('error', JSON.stringify(error))
+        toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     }
   }
@@ -1222,7 +1230,7 @@ const AddRequestForm = () => {
               </Grid>
             )
           ) : null} */}
-          {nestedRowMedicine.prescription_required === true ? (
+          {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
               <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
                 <Typography
@@ -1724,6 +1732,7 @@ const AddRequestForm = () => {
                       setErrors({})
                     }}
                     customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                    isClearable={false}
                   />
                   {errors.ro_date && (
                     <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>

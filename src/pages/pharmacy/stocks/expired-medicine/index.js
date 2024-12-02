@@ -77,7 +77,7 @@ const ExpiredMedicine = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn) 
+    fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id])
 
@@ -97,7 +97,7 @@ const ExpiredMedicine = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)  
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
     } else {
     }
   }
@@ -172,25 +172,18 @@ const ExpiredMedicine = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'supplier_name',
-      headerName: 'Supplier name',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.supplier_name ? params.row.supplier_name : 'NA'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'supplier_name',
+    //   headerName: 'Supplier name',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.supplier_name ? params.row.supplier_name : 'NA'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -238,19 +231,29 @@ const ExpiredMedicine = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
-      const result = await getExpiredMedicine({ params: '' })
+
+      const params = {
+        sort,
+        q: searchValue,
+        column: sortColumn
+      }
+      const result = await getExpiredMedicine({ params: params })
 
       if (result?.list_items.length > 0) {
         const data = result?.list_items.map(el => {
           return {
             ['Medicine Name']: el?.stock_item_name,
-            ['Supplier name']: el?.supplier_name
+            ['Batch']: el?.batch_no,
+            ['Expire Date']: el?.expiry_date,
+            ['Quantity']: el?.stock_qty
           }
         })
 
-        Utility.exportToCSV(data, 'Expired Products')
+        Utility.exportToCSV(data, `expired_products_datetime ${Utility.convertUTCToLocal(new Date())}`)
+        setExcelLoader(false)
+      } else {
+        setExcelLoader(false)
       }
-      setExcelLoader(false)
     } catch (error) {
       setExcelLoader(false)
 

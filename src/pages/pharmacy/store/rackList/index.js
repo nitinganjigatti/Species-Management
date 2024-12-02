@@ -83,9 +83,8 @@ const ListOfRacks = () => {
       } else {
         response = await addRackList(payload)
       }
-      console.log('rack list', response)
       if (response?.success) {
-        toast.success(response?.data)
+        toast.success(response?.message)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
