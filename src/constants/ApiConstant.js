@@ -110,6 +110,8 @@ export const STORAGE = 'storage'
 
 export const DRIVER = 'driver'
 
+export const VARIANTS = 'variants'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
