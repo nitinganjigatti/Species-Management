@@ -330,6 +330,7 @@ const ListOfRequest = () => {
   const handleLabChange = async event => {
     // setSelectedLab(event.target.value)
     write('selectedLAB', event.target.value)
+    setPaginationModel({ page: 0, pageSize: 10 })
     setLabSelected(event.target.value)
     const storedLabData = await readAsync('selectedLAB')
     if (storedLabData) {
@@ -354,6 +355,8 @@ const ListOfRequest = () => {
   }
 
   const handlePaginationModelChange = async () => {
+    if (paginationModel?.page == 0) return
+
     const params = {
       sort,
       q: searchValue,
@@ -364,6 +367,7 @@ const ListOfRequest = () => {
     }
     await fetchData(params)
   }
+
   useEffect(() => {
     handlePaginationModelChange()
   }, [paginationModel])
