@@ -56,7 +56,6 @@ const DietDetail = () => {
           setLoaderTwo(true)
           getDietDetails(id, { week_day: value === 'full' ? '' : value }).then(response => {
             if (response.success === true) {
-              // console.log('response', response.data)
               setDietDetails(response?.data)
               setLoaderTwo(false)
               setLoader(false)
@@ -65,7 +64,6 @@ const DietDetail = () => {
             setLoader(false)
           })
         } catch (error) {
-          // console.log('DietDetals', error)
           setLoaderTwo(false)
           setLoader(false)
         }
@@ -201,7 +199,6 @@ const DietDetail = () => {
                       </TabList>
                       {tabs.map((item, index) => (
                         <>
-                          {console.log(item, 'item')}
                           {item?.value === value && (
                             <TabPanel sx={{ overflowX: 'auto', pb: 0, pl: '0px' }} key={index} value={item?.value}>
                               {loaderTwo ? (
@@ -223,7 +220,7 @@ const DietDetail = () => {
                                 >
                                   {console.log(dietDetails, 'dietDetails')}
                                   <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
-                                    {dietDetails.meal_data.every(
+                                    {dietDetails?.meal_data?.every(
                                       all =>
                                         (!all?.ingredient || all?.ingredient?.length === 0) &&
                                         (!all?.ingredientwithchoice || all?.ingredientwithchoice?.length === 0) &&
@@ -1226,7 +1223,7 @@ const DietDetail = () => {
                                                           }}
                                                         ></Box>
                                                       </Box>
-                                                      {console.log(endTimes, 'endTimes')}
+
                                                       <Box
                                                         sx={{
                                                           borderRadius: '25px',
@@ -1504,7 +1501,6 @@ const DietDetail = () => {
                                                                   height: '100%'
                                                                 }}
                                                               >
-                                                                {/* {console.log(item.meal_type, 'eee')} */}
                                                                 <Box
                                                                   sx={{
                                                                     backgroundColor: '#0000000d',
@@ -1538,7 +1534,6 @@ const DietDetail = () => {
                                                                       fontSize: '14px'
                                                                     }}
                                                                   >
-                                                                    {/* {console.log(index, 'index')} */}
                                                                     {item.meal_type
                                                                       ? item.meal_type.map((meal, i) => {
                                                                           return meal.meal_value_header === 'Generic'
@@ -1743,7 +1738,7 @@ const DietDetail = () => {
                                                                         </Typography>
                                                                       )}
                                                                     </Box>
-                                                                    {/* {console.log(item, 'kkkk')} */}
+
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                                                                       {item.ingredient_name &&
                                                                         item?.ingredient_name?.length > 0 && (
@@ -1975,7 +1970,6 @@ const DietDetail = () => {
                                                                   height: '100%'
                                                                 }}
                                                               >
-                                                                {/* {console.log(item.meal_type, 'eee')} */}
                                                                 <Box
                                                                   sx={{
                                                                     backgroundColor: '#0000000d',
@@ -2008,7 +2002,6 @@ const DietDetail = () => {
                                                                       fontSize: '14px'
                                                                     }}
                                                                   >
-                                                                    {/* {console.log(index, 'index')} */}
                                                                     {item.meal_type
                                                                       ? item.meal_type.map((meal, i) => {
                                                                           return meal.meal_value_header === 'Generic'
@@ -2350,7 +2343,6 @@ const DietDetail = () => {
                                                                 height: '100%'
                                                               }}
                                                             >
-                                                              {/* {console.log(item.meal_type, 'eee')} */}
                                                               <Box
                                                                 sx={{
                                                                   backgroundColor: '#0000000d',
@@ -2383,7 +2375,6 @@ const DietDetail = () => {
                                                                     fontSize: '14px'
                                                                   }}
                                                                 >
-                                                                  {/* {console.log(index, 'index')} */}
                                                                   {item.meal_type
                                                                     ? item.meal_type.map((meal, i) => {
                                                                         return meal.meal_value_header === 'Generic'
