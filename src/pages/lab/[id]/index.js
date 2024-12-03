@@ -400,6 +400,7 @@ const RequestDetails = () => {
                           ? '#E4B819'
                           : '#37BD69'
                     },
+
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '0'
 

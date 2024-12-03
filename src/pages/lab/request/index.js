@@ -192,10 +192,11 @@ const ListOfRequest = () => {
     },
 
     {
-      width: 220,
+      width: 200,
       field: 'Action',
       headerName: 'Action',
-      align: 'center',
+
+      // align: 'center',
       sortable: false,
 
       renderCell: params => (
@@ -531,6 +532,11 @@ const ListOfRequest = () => {
             </Stack>
 
             <DataGrid
+              sx={{
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
