@@ -11,7 +11,8 @@ const CommonTable = ({
   handleSortModel,
   setPaginationModel,
   loading,
-  searchValue
+  searchValue,
+  onCellClick
 }) => {
   const theme = useTheme()
 
@@ -25,7 +26,7 @@ const CommonTable = ({
 
         '& .MuiDataGrid-columnHeaders': {
           backgroundColor: theme.palette.customColors.customTableHeaderBg,
-          color: theme.palette.customColors.customHeadingTextColor // Your desired background color
+          color: theme.palette.customColors.customHeadingTextColor
         },
         '& .MuiDataGrid-row:hover': {
           cursor: 'pointer'
@@ -65,10 +66,11 @@ const CommonTable = ({
       sortingMode='server'
       paginationMode='server'
       pageSizeOptions={[7, 10, 25, 50]}
+      onCellClick={onCellClick ? onCellClick : null}
       paginationModel={paginationModel}
       onSortModelChange={handleSortModel}
       onPaginationModelChange={setPaginationModel}
-      loading={loading}
+      loading={loading ? loading : null}
       disableColumnMenu
       slotProps={{
         baseButton: {
@@ -80,7 +82,7 @@ const CommonTable = ({
           onChange: event => handleSearch(event.target.value)
         }
       }}
-      onRowClick={onRowClick}
+      onRowClick={onRowClick ? onRowClick : null}
     />
   )
 }

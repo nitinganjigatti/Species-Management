@@ -532,26 +532,27 @@ const ListOfStocks = () => {
         </Tooltip>
       )
     },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'package',
-      headerName: 'PACKAGE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.4,
+    //   minWidth: 20,
+    //   field: 'package',
+    //   headerName: 'PACKAGE',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+    //     ${params.row.package_uom_label} ${params.row.product_form_label}`}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.2,
@@ -723,49 +724,6 @@ const ListOfStocks = () => {
     //     </Typography>
     //   )
     // },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'rack_info',
-      headerName: 'Rack',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <>
-          {params?.row?.stock_config ? (
-            params?.row?.stock_config?.map(el => {
-              return (
-                <Typography
-                  key={el}
-                  variant='body2'
-                  sx={{
-                    color: theme.palette.customColors.customHeadingTextColor,
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    fontFamily: 'Inter'
-                  }}
-                >
-                  {el.rack}
-                </Typography>
-              )
-            })
-          ) : (
-            <Typography
-              key={el}
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
-              }}
-            >
-              NA
-            </Typography>
-          )}
-        </>
-      )
-    },
 
     {
       flex: 0.2,
@@ -1705,6 +1663,22 @@ const ListOfStocks = () => {
                         setPaginationModel={setBatchPaginationModel}
                         loading={batchLoading}
                         searchValue={batchSearchValue}
+                        onCellClick={(params, event) => {
+                          event.stopPropagation()
+                          event.preventDefault()
+
+                          // Custom logic for cell clicks
+                          if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
+                            addEventSidebarOpen()
+                            setPurchaseByStockId({
+                              batch_no: params.row?.batch_no,
+                              stock_id: params.row?.stock_item_id
+                            })
+                            event.ignoreRowClick = true
+                          } else {
+                            handleStockRowClick(params)
+                          }
+                        }}
                       />
                     </Grid>
                   ) : (
@@ -1720,6 +1694,22 @@ const ListOfStocks = () => {
                         columns={columns}
                         paginationModel={paginationModel}
                         handleSortModel={handleSortModel}
+                        onCellClick={(params, event) => {
+                          event.stopPropagation()
+                          event.preventDefault()
+
+                          // Custom logic for cell clicks
+                          if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
+                            addEventSidebarOpen()
+                            setPurchaseByStockId({
+                              batch_no: params.row?.batch_no,
+                              stock_id: params.row?.stock_item_id
+                            })
+                            event.ignoreRowClick = true
+                          } else {
+                            handleStockRowClick(params)
+                          }
+                        }}
                         setPaginationModel={setPaginationModel}
                         loading={loading}
                         searchValue={searchValue}
