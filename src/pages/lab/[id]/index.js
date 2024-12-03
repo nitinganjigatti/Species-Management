@@ -62,6 +62,7 @@ import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import AnimalCard from 'src/views/pages/lab/AnimalCard'
+import { borderColor } from '@mui/system'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -400,33 +401,24 @@ const RequestDetails = () => {
                           : '#37BD69'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor:
-                        params.row.status === 'pending' ||
-                        params.row.status === 'transferred' ||
-                        params.row.status === 'awaiting_sample' ||
-                        params.row.status === 'sample_rejected' ||
-                        params.row.status === 'sample_received'
-                          ? '#FA6140' // Custom red border for these statuses
-                          : params.row.status === 'completed'
-                          ? '#37BD69' // Custom green border for completed
-                          : params.row.status === 'inprogress'
-                          ? '#E4B819' // Custom yellow border for in progress
-                          : '#37BD69' // Default green border
+                      border: '0'
+
+                      // borderColor:
+                      //   params.row.status === 'pending' ||
+                      //   params.row.status === 'transferred' ||
+                      //   params.row.status === 'awaiting_sample' ||
+                      //   params.row.status === 'sample_rejected' ||
+                      //   params.row.status === 'sample_received'
+                      //     ? '#FA6140' // Custom red border for these statuses
+                      //     : params.row.status === 'completed'
+                      //     ? '#37BD69' // Custom green border for completed
+                      //     : params.row.status === 'inprogress'
+                      //     ? '#E4B819' // Custom yellow border for in progress
+                      //     : '#37BD69' // Default green border
                     },
 
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor:
-                        params.row.status === 'pending' ||
-                        params.row.status === 'transferred' ||
-                        params.row.status === 'awaiting_sample' ||
-                        params.row.status === 'sample_rejected' ||
-                        params.row.status === 'sample_received'
-                          ? '#FA6140' // Custom red border for these statuses
-                          : params.row.status === 'completed'
-                          ? '#37BD69' // Custom green border for completed
-                          : params.row.status === 'inprogress'
-                          ? '#E4B819' // Custom yellow border for in progress
-                          : '#37BD69' // Default green border
+                      border: '0'
                     }
                   }}
                 >
