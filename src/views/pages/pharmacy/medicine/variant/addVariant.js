@@ -37,7 +37,7 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  unit_multiplier: 0,
+  unit_multiplier: '',
   description: '',
   active: '1'
 }
@@ -88,7 +88,7 @@ const AddVariant = props => {
     if (editParams?.id !== null) {
       getSpecificVariant(editParams?.id)
     }
-  }, [resetForm, reset, editParams])
+  }, [reset, editParams])
 
   const RenderSidebarFooter = () => {
     return (
@@ -170,6 +170,8 @@ const AddVariant = props => {
                 <TextField
                   label='Description*'
                   value={value}
+                  multiline
+                  rows={4}
                   onChange={onChange}
                   placeholder='Description'
                   error={Boolean(errors.description)}

@@ -510,7 +510,7 @@ const ListOfMedicine = () => {
                         border: '1px solid #C3CEC7',
                         borderRadius: '8px',
                         padding: '0 8px',
-                        ml: 3,
+                        ml: 5,
                         height: '40px',
                         width: '250px' // Set a fixed width for all status
                       }}
