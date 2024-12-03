@@ -348,7 +348,7 @@ const RequestDetails = () => {
         <>
           <Box sx={{ minWidth: 120 }}>
             {permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests ? (
-              <FormControl fullWidth>
+              <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
                   labelId='demo-simple-select-label'
@@ -366,9 +366,9 @@ const RequestDetails = () => {
                       params.row.status === 'sample_received'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
-                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                        ? '#37BD69' // light green background for completed
                         : params.row.status === 'inprogress'
-                        ? 'rgba(0, 191, 255, 0.1)' // light blue background for in progress
+                        ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
                         : 'rgba(0, 128, 0, 0.1)',
 
                     color:
@@ -381,7 +381,7 @@ const RequestDetails = () => {
                         : params.row.status === 'completed'
                         ? '#37BD69'
                         : params.row.status === 'inprogress'
-                        ? '#00AFD6'
+                        ? '#E4B819 '
                         : '#37BD69',
 
                     borderRadius: '8px',
@@ -396,8 +396,37 @@ const RequestDetails = () => {
                           : params.row.status === 'completed'
                           ? '#37BD69'
                           : params.row.status === 'inprogress'
-                          ? '#00AFD6'
+                          ? '#E4B819'
                           : '#37BD69'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_rejected' ||
+                        params.row.status === 'sample_received'
+                          ? '#FA6140' // Custom red border for these statuses
+                          : params.row.status === 'completed'
+                          ? '#37BD69' // Custom green border for completed
+                          : params.row.status === 'inprogress'
+                          ? '#E4B819' // Custom yellow border for in progress
+                          : '#37BD69' // Default green border
+                    },
+
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor:
+                        params.row.status === 'pending' ||
+                        params.row.status === 'transferred' ||
+                        params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_rejected' ||
+                        params.row.status === 'sample_received'
+                          ? '#FA6140' // Custom red border for these statuses
+                          : params.row.status === 'completed'
+                          ? '#37BD69' // Custom green border for completed
+                          : params.row.status === 'inprogress'
+                          ? '#E4B819' // Custom yellow border for in progress
+                          : '#37BD69' // Default green border
                     }
                   }}
                 >

@@ -140,7 +140,7 @@ const ListOfRequest = () => {
           {params.row.total_tests_pending > 0 && (
             <Box
               sx={{
-                bgcolor: '#E93353',
+                bgcolor: '#FA6140 ',
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
@@ -157,7 +157,7 @@ const ListOfRequest = () => {
           {params.row.total_tests_inprogress > 0 && (
             <Box
               sx={{
-                bgcolor: '#00AEA4',
+                bgcolor: '#E4B819',
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
@@ -174,7 +174,7 @@ const ListOfRequest = () => {
           {params.row.total_tests_completed > 0 && (
             <Box
               sx={{
-                bgcolor: '#2A9D0D',
+                bgcolor: '#37BD69',
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
@@ -489,19 +489,19 @@ const ListOfRequest = () => {
                   Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
 
-                <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#E93353', fontSize: '12px' }}>
-                    Pending Test - {stats?.total_tests_pending}
+                <Box sx={{ border: '1px solid', borderColor: '#FA6140', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#FA6140', fontSize: '12px' }}>
+                    Pending Tests - {stats?.total_tests_pending}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#00AEA4', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#00AEA4', fontSize: '12px' }}>
-                    Test in Progress - {stats?.total_tests_inprogress}
+                <Box sx={{ border: '1px solid', borderColor: '#E4B819 ', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#E4B819 ', fontSize: '12px' }}>
+                    Tests in Progress - {stats?.total_tests_inprogress}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#2A9D0D', borderRadius: '15px', px: 3, py: 1 }}>
+                <Box sx={{ border: '1px solid', borderColor: '#37BD69', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
-                    Completed Test - {stats?.total_tests_completed}
+                    Completed Tests - {stats?.total_tests_completed}
                   </Typography>
                 </Box>
               </Stack>
@@ -517,15 +517,15 @@ const ListOfRequest = () => {
                 <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
               </>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#E93353'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#FA6140'} />
                 <Typography variant='subtitle1'>Pending</Typography>
               </Box>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#00AEA4'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#E4B819 '} />
                 <Typography variant='subtitle1'>In Progress</Typography>
               </Box>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#2A9D0D'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#37BD69'} />
                 <Typography variant='subtitle1'>Completed</Typography>
               </Box>
             </Stack>
