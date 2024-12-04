@@ -662,6 +662,7 @@ const AddLocalDispatch = () => {
                     error={duplicateMedError}
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
+                    closeDialog={closeDialog}
                   />
                 }
                 close={closeDialog}
