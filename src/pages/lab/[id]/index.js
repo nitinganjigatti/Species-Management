@@ -47,7 +47,8 @@ import {
   FormHelperText,
   Popover,
   Breadcrumbs,
-  Divider
+  Divider,
+  Tooltip
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -62,7 +63,7 @@ import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import AnimalCard from 'src/views/pages/lab/AnimalCard'
-import { borderColor } from '@mui/system'
+import { borderColor, width } from '@mui/system'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -233,14 +234,20 @@ const RequestDetails = () => {
     }
   }
 
-  const handleOpenTransfer = async () => {
+  const handleOpenTransfer = async params => {
+    setTestId(params?.row?.id)
+    setTransferTestId(params?.row?.test_id)
+    const transferId = params?.row?.test_id
+    setTransferStatus(params?.row?.status)
+    setTestName(params?.row?.test_name)
+
     if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
 
       const params = {
-        test_id: transferTestId,
+        test_id: transferTestId || transferId,
         lab_id: labId
       }
       await GetLabListByTestId({ params: params }).then(res => {
@@ -249,7 +256,6 @@ const RequestDetails = () => {
         // setRows(loadServerRows(paginationModel.page, res?.data?.result))
       })
     }
-    handleClosePopover()
   }
 
   useEffect(() => {
@@ -288,9 +294,9 @@ const RequestDetails = () => {
 
   const openPopover = Boolean(anchorEl)
 
-  const handleOpenUploader = () => {
+  const handleOpenUploader = (e, params) => {
     setOpenUploader(true)
-    handleClosePopover()
+    setTestId(params?.row?.id)
   }
 
   const handleOpenShowFile = (e, params) => {
@@ -313,8 +319,8 @@ const RequestDetails = () => {
     //   )
     // },
     {
-      flex: 0.8,
-      minWidth: 20,
+      // flex: 0.8,
+      width: 300,
       field: 'test_name',
       sortable: false,
       headerName: 'Test Name',
@@ -326,8 +332,8 @@ const RequestDetails = () => {
     },
 
     {
-      flex: 0.4,
-      minWidth: 20,
+      // flex: 0.4,
+      width: 300,
       field: 'sample_name',
       sortable: false,
       headerName: 'Sample',
@@ -339,15 +345,14 @@ const RequestDetails = () => {
     },
 
     {
-      flex: 0.4,
-      minWidth: 20,
+      width: 300,
       field: 'status',
       sortable: false,
       headerName: 'STATUS',
       align: 'center',
       renderCell: params => (
         <>
-          <Box sx={{ minWidth: 120 }}>
+          <Box sx={{ minWidth: 260 }}>
             {permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
@@ -358,7 +363,8 @@ const RequestDetails = () => {
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
-                    width: 200,
+                    width: 237,
+                    fontSize: '14px',
                     backgroundColor:
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
@@ -476,18 +482,47 @@ const RequestDetails = () => {
     ...(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests
       ? [
           {
-            flex: 0.2,
-            minWidth: 20,
-            field: 'Action',
-            headerName: 'Action',
+            // flex: 0.2,
+            width: 300,
+            field: 'References',
+            headerName: 'References',
             sortable: false,
             renderCell: params => (
               <>
-                <Box>
-                  <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
+                <Box sx={{ display: 'flex', gap: 4 }}>
+                  {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        justifyContent: 'center',
+                        bgcolor: 'rgba(0, 0, 0, 0.05)',
+                        p: 2,
+                        borderRadius: '15px',
+                        width: 50
+                      }}
+                    >
+                      <img src='/images/attach_file.png' alt='default icon' style={{ width: 12 }} />
+                      <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: '15px' }}>
+                        {
+                          params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
+                            ? params.row.attachments.images.length + params.row.attachments.docs.length
+                            : params?.row?.attachments?.images?.length > 0
+                            ? params.row.attachments.images.length
+                            : params?.row?.attachments?.docs
+                            ? params.row.attachments.docs.length
+                            : null
+
+                          // params?.row?.attachments?.docs?.length
+                        }
+                      </Typography>
+                    </Box>
+                  ) : null}
+                  {/* <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
                     <Icon icon='charm:menu-kebab' />
-                  </IconButton>
-                  <Popover
+                  </IconButton> */}
+                  {/* <Popover
                     sx={{
                       '& .MuiPaper-root': {
                         minWidth: 140,
@@ -515,48 +550,106 @@ const RequestDetails = () => {
                     {(permissions?.allow_full_access || permissions?.perform_tests) && (
                       <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
                     )}
-                  </Popover>
+                  </Popover> */}
+
+                  <Stack
+                    direction='row'
+                    className='customButton'
+                    spacing={3}
+                    sx={{
+                      ml:
+                        params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0
+                          ? 0
+                          : 16
+                    }}
+                  >
+                    <>
+                      {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                        <Tooltip title='Upload' arrow placement='top-start'>
+                          <IconButton
+                            variant='outlined'
+                            size='small'
+                            sx={{
+                              p: 2,
+                              '&:hover': {
+                                backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                              }
+                            }}
+                            onClick={e => handleOpenUploader(e, params)}
+                          >
+                            <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </>
+                    <>
+                      {(permissions?.allow_full_access || permissions?.transfer_tests) && (
+                        <Tooltip title='Transfer' arrow placement='top-start'>
+                          <IconButton
+                            variant='outlined'
+                            size='small'
+                            sx={{
+                              p: 2,
+                              '&:hover': {
+                                backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                              }
+                            }}
+                            onClick={() => handleOpenTransfer(params)}
+                          >
+                            <Icon
+                              icon='mingcute:transfer-3-line'
+                              width='24'
+                              height='24'
+                              color={'rgba(68, 84, 74, 1)'}
+                            />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </>
+                  </Stack>
                 </Box>
               </>
             )
           }
         ]
       : []),
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 10,
+    //   sortable: false,
+
+    //   // field: 'Action',
+    //   // headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
+    //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //           <IconButton onClick={e => handleOpenShowFile(e, params)}>
+    //             <Icon icon='et:attachments' fontSize={15} />
+    //           </IconButton>
+
+    //           <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //             {
+    //               params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
+    //                 ? params.row.attachments.images.length + params.row.attachments.docs.length
+    //                 : params?.row?.attachments?.images?.length > 0
+    //                 ? params.row.attachments.images.length
+    //                 : params?.row?.attachments?.docs
+    //                 ? params.row.attachments.docs.length
+    //                 : null
+
+    //               // params?.row?.attachments?.docs?.length
+    //             }
+    //           </Typography>
+    //         </Box>
+    //       ) : null}
+    //     </>
+    //   )
+    // }
+
     ,
-    {
-      flex: 0.2,
-      minWidth: 10,
-      sortable: false,
-
-      // field: 'Action',
-      // headerName: 'Action',
-
-      renderCell: params => (
-        <>
-          {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton onClick={e => handleOpenShowFile(e, params)}>
-                <Icon icon='et:attachments' fontSize={15} />
-              </IconButton>
-
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                {
-                  params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
-                    ? params.row.attachments.images.length + params.row.attachments.docs.length
-                    : params?.row?.attachments?.images?.length > 0
-                    ? params.row.attachments.images.length
-                    : params?.row?.attachments?.docs
-                    ? params.row.attachments.docs.length
-                    : null
-
-                  // params?.row?.attachments?.docs?.length
-                }
-              </Typography>
-            </Box>
-          ) : null}
-        </>
-      )
-    }
   ]
 
   const handleSortModel = async newModel => {
@@ -817,11 +910,20 @@ const RequestDetails = () => {
           />
 
           <Card sx={{ mt: 5 }}>
-            <CardHeader title='Test Reports' />
+            <CardHeader title='Lab Tests' />
 
             <DataGrid
+              sx={{
+                '& .MuiDataGrid-row:hover .customButton': {
+                  display: 'block'
+                },
+                '& .MuiDataGrid-row .customButton': {
+                  display: 'none'
+                }
+              }}
               autoHeight
               hideFooterPagination
+              hideFooterSelectedRowCount
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
@@ -845,14 +947,33 @@ const RequestDetails = () => {
                 // }
               }}
             />
+          </Card>
+
+          <Card sx={{ mt: 5 }}>
+            <Box sx={{ py: 5, px: 4 }}>
+              <Typography sx={{ fontSize: 20, mb: 2 }}>Lab Attachments</Typography>
+              <Divider />
+            </Box>
+            <Box>
+              {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
+                <UploadReports
+                  animalID={animanlId}
+                  labTestId={LabRequestId}
+                  medicalRecordId={medicineId}
+                  type='lab_test_request'
+                  id={requestId === null ? '0' : requestId}
+                  handleCloseUploader={setOpenUploader}
+                  setAlertDefaults={setAlertDefaults}
+                  handleClosePopover={handleClosePopover}
+                  fetchRequestDetails={fetchRequestDetails}
+                />
+              ) : null}
+            </Box>
+
             {/* image or Doc View */}
             {image || document ? (
               <Box sx={{ px: 5 }}>
-                <Divider />
-                <Typography sx={{ fontSize: '20px', py: 2 }}>Lab Reports</Typography>
-                <Divider />
-
-                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
                       image={image}
@@ -874,7 +995,6 @@ const RequestDetails = () => {
             ) : null}
             {(medicalDocument || medicalImage) && (
               <Box sx={{ px: 5, mb: 3, mt: 5 }}>
-                <Divider />
                 <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Report Attachments</Typography>
                 <Divider />
 
@@ -904,22 +1024,7 @@ const RequestDetails = () => {
                 <></>
               </Box>
             )}
-
             {/* allow user Only if user hand upload permissions */}
-
-            {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
-              <UploadReports
-                animalID={animanlId}
-                labTestId={LabRequestId}
-                medicalRecordId={medicineId}
-                type='lab_test_request'
-                id={requestId === null ? '0' : requestId}
-                handleCloseUploader={setOpenUploader}
-                setAlertDefaults={setAlertDefaults}
-                handleClosePopover={handleClosePopover}
-                fetchRequestDetails={fetchRequestDetails}
-              />
-            ) : null}
           </Card>
         </>
       )}
@@ -1190,7 +1295,7 @@ const RequestDetails = () => {
               medicalRecordId={medicineId}
               type='lab_test'
               id={testId}
-              handleCloseUploader={setOpenUploader}
+              handleCloseUploader={() => setOpenUploader(false)}
               setAlertDefaults={setAlertDefaults}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
