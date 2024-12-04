@@ -875,7 +875,7 @@ const RequestDetails = () => {
             {(medicalDocument || medicalImage) && (
               <Box sx={{ px: 5, mb: 3, mt: 5 }}>
                 <Divider />
-                <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Reports</Typography>
+                <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Report Attachments</Typography>
                 <Divider />
 
                 <>
