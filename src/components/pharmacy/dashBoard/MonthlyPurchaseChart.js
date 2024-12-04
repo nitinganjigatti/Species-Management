@@ -85,21 +85,21 @@ const MonthlyPurchaseChart = () => {
     const [monthName, year] = month.split(' ')
     return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
   })
-  // Conditionally add series based on checkbox selections
+
   const series = []
-  if (showPurchaseCount) {
-    series.push({
-      name: 'Purchase Count',
-      type: 'bar',
-      data: purchaseCounts,
-      color: '#FA6140'
-    })
-  }
   if (showPurchaseValue) {
     series.push({
       name: 'Purchase Value',
-      type: 'line',
+      type: 'bar',
       data: purchaseValues,
+      color: ' #FA6140 '
+    })
+  }
+  if (showPurchaseCount) {
+    series.push({
+      name: 'Purchase Count',
+      type: 'line',
+      data: purchaseCounts,
       color: '#FFBDA8'
     })
   }
@@ -114,11 +114,10 @@ const MonthlyPurchaseChart = () => {
       enabled: true,
       y: {
         formatter: (value, { seriesIndex }) => {
-          if (seriesIndex === 1 || series[0].name === 'Purchase Value') {
-            return `₹${value.toFixed(2)} lac`
+          if (series[seriesIndex]?.name === 'Purchase Count') {
+            return value?.toFixed(0)
           }
-
-          return value.toFixed(0)
+          return `₹${value?.toFixed(2)} lac`
         }
       }
     },
@@ -154,18 +153,30 @@ const MonthlyPurchaseChart = () => {
       axisTicks: { show: true },
       axisBorder: { show: true }
     },
-
     yaxis: [
-      {
-        title: { text: 'Purchase Count' },
-        labels: { formatter: val => val.toFixed(0) }
-      },
-      {
-        opposite: true,
-        title: { text: 'Purchase Value (₹)' },
-        labels: { formatter: val => `₹${val.toFixed(2)} lac` }
-      }
-    ],
+      showPurchaseValue
+        ? {
+            title: {
+              text: 'Purchase Value (₹)'
+            },
+            labels: {
+              formatter: val => `₹${val.toFixed(2)} lac`
+            },
+            opposite: false
+          }
+        : null,
+      showPurchaseCount
+        ? {
+            title: {
+              text: 'Purchase Count'
+            },
+            labels: {
+              formatter: val => val.toFixed(0)
+            },
+            opposite: true
+          }
+        : null
+    ].filter(Boolean),
     markers: {
       size: 4,
       colors: ['#FFFFFF'],
@@ -207,8 +218,8 @@ const MonthlyPurchaseChart = () => {
           <FormControlLabel
             control={
               <Checkbox
-                checked={showPurchaseCount}
-                onChange={() => setShowPurchaseCount(prev => !prev)}
+                checked={showPurchaseValue}
+                onChange={() => setShowPurchaseValue(prev => !prev)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
@@ -218,13 +229,13 @@ const MonthlyPurchaseChart = () => {
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Purchase Count</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Value</span>}
           />
           <FormControlLabel
             control={
               <Checkbox
-                checked={showPurchaseValue}
-                onChange={() => setShowPurchaseValue(prev => !prev)}
+                checked={showPurchaseCount}
+                onChange={() => setShowPurchaseCount(prev => !prev)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
@@ -234,12 +245,30 @@ const MonthlyPurchaseChart = () => {
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Purchase Value</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Purchase Count</span>}
           />
         </Box>
 
         {/* Chart */}
-        <ReactApexcharts type='line' height={300} options={options} series={series} />
+        {showPurchaseValue || showPurchaseCount ? (
+          <ReactApexcharts type='line' height={300} options={options} series={series} />
+        ) : (
+          <Box
+            sx={{
+              height: 300,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.background.default,
+              border: `1px dashed ${theme.palette.divider}`,
+              borderRadius: 2
+            }}
+          >
+            <Typography variant='body2' color='textSecondary'>
+              No data to show
+            </Typography>
+          </Box>
+        )}
       </CardContent>
     </Card>
   )

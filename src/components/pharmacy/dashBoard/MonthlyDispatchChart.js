@@ -34,7 +34,6 @@ const MonthlyDispatchChart = () => {
     getMonthlyDispatches()
   }, [])
 
-  // Ensure month mapping exists
   const monthMapping = {
     January: 'Jan',
     February: 'Feb',
@@ -65,7 +64,6 @@ const MonthlyDispatchChart = () => {
     Dec: 11
   }
 
-  // Sort the keys in chronological order
   const monthsFromApi = purchaseList?.dispatch_count[0]
     ? Object.keys(purchaseList.dispatch_count[0]).sort((a, b) => {
         const parseMonthYear = monthYear => {
@@ -91,19 +89,19 @@ const MonthlyDispatchChart = () => {
   })
 
   const series = []
-  if (showDispatchCount) {
-    series.push({
-      name: 'Dispatch Count',
-      type: 'bar',
-      data: purchaseCounts,
-      color: '#006D35'
-    })
-  }
   if (showDispatchValue) {
     series.push({
       name: 'Dispatch Value',
-      type: 'line',
+      type: 'bar',
       data: purchaseValues,
+      color: '#006D35'
+    })
+  }
+  if (showDispatchCount) {
+    series.push({
+      name: 'Dispatch Count',
+      type: 'line',
+      data: purchaseCounts,
       color: '#37BD69'
     })
   }
@@ -118,18 +116,16 @@ const MonthlyDispatchChart = () => {
       enabled: true,
       y: {
         formatter: (value, { seriesIndex }) => {
-          console.log(series, 'seriesIndex')
-          if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
-            return `₹${value?.toFixed(2)} lac`
+          if (series[seriesIndex]?.name === 'Dispatch Count') {
+            return value?.toFixed(0)
           }
-
-          return value?.toFixed(0)
+          return `₹${value?.toFixed(2)} lac`
         }
       }
     },
     dataLabels: { enabled: false },
     stroke: {
-      width: [0, 3], // Adjust the thickness of the bar and line
+      width: [0, 3],
       curve: 'smooth',
       colors: ['#006D35', '#37BD69']
     },
@@ -161,24 +157,29 @@ const MonthlyDispatchChart = () => {
     },
 
     yaxis: [
-      {
-        title: {
-          text: 'Dispatch Count'
-        },
-        labels: {
-          formatter: val => val.toFixed(0)
-        }
-      },
-      {
-        opposite: true,
-        title: {
-          text: 'Dispatch Value (₹)'
-        },
-        labels: {
-          formatter: val => `₹${val.toFixed(2)} lac`
-        }
-      }
-    ],
+      showDispatchValue
+        ? {
+            title: {
+              text: 'Dispatch Value (₹)'
+            },
+            labels: {
+              formatter: val => `₹${val.toFixed(2)} lac`
+            },
+            opposite: false
+          }
+        : null,
+      showDispatchCount
+        ? {
+            title: {
+              text: 'Dispatch Count'
+            },
+            labels: {
+              formatter: val => val.toFixed(0)
+            },
+            opposite: true
+          }
+        : null
+    ].filter(Boolean),
     markers: {
       size: 4,
       colors: ['#FFFFFF'],
@@ -222,24 +223,24 @@ const MonthlyDispatchChart = () => {
           <FormControlLabel
             control={
               <Checkbox
-                checked={showDispatchCount}
-                onChange={() => setShowDispatchCount(prev => !prev)}
+                checked={showDispatchValue}
+                onChange={() => setShowDispatchValue(prev => !prev)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
                   '&.Mui-checked': {
-                    color: '#006D35'
+                    color: ' #006D35 '
                   }
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Dispatch Count</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Dispatch Value</span>}
           />
           <FormControlLabel
             control={
               <Checkbox
-                checked={showDispatchValue}
-                onChange={() => setShowDispatchValue(prev => !prev)}
+                checked={showDispatchCount}
+                onChange={() => setShowDispatchCount(prev => !prev)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
@@ -249,11 +250,29 @@ const MonthlyDispatchChart = () => {
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>Show Dispatch Value</span>}
+            label={<span style={{ fontSize: '12px' }}>Show Dispatch Count</span>}
           />
         </Box>
-        {/* Chart */}
-        <ReactApexcharts type='line' height={300} options={options} series={series} />
+
+        {showDispatchValue || showDispatchCount ? (
+          <ReactApexcharts type='line' height={300} options={options} series={series} />
+        ) : (
+          <Box
+            sx={{
+              height: 300,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.background.default,
+              border: `1px dashed ${theme.palette.divider}`,
+              borderRadius: 2
+            }}
+          >
+            <Typography variant='body2' color='textSecondary'>
+              No data to show
+            </Typography>
+          </Box>
+        )}
       </CardContent>
     </Card>
   )
