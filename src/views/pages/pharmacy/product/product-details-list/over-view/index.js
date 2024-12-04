@@ -231,7 +231,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell>6 Days</TableCell>
+                <TableCell sx={{ color: '#FA6140' }}>6 Days</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>BAT-0001</TableCell>
@@ -239,7 +239,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell>8 Days</TableCell>
+                <TableCell sx={{ color: '#FA6140' }}>8 Days</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -277,7 +277,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell>6 Days</TableCell>
+                <TableCell sx={{ color: '#E93353' }}>6 Days</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>BAT-0001</TableCell>
@@ -285,7 +285,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell>8 Days</TableCell>
+                <TableCell sx={{ color: '#E93353' }}>8 Days</TableCell>
               </TableRow>
             </TableBody>
           </Table>
