@@ -64,6 +64,12 @@ const ListOfMedicine = () => {
     }
   }
 
+  const handleRowClick = params => {
+    Router.push({
+      pathname: `/pharmacy/medicine/${params.row?.id}`
+    })
+  }
+
   const columns = [
     {
       flex: 0.15,
@@ -270,7 +276,6 @@ const ListOfMedicine = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status, page, pageSize }) => {
-  
       let params = {}
       const activeStatus = status ?? statusFilter
       try {
@@ -355,7 +360,6 @@ const ListOfMedicine = () => {
   // }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize])
 
   useEffect(() => {
-
     fetchTableData({
       sort,
       q: searchValue,
@@ -559,7 +563,8 @@ const ListOfMedicine = () => {
                   }}
                 >
                   <CommonTable
-                    onRowClick={handleEdit}
+                    onRowClick={handleRowClick}
+                    // onRowClick={handleEdit}
                     indexedRows={indexedRows}
                     total={total}
                     columns={columns}
