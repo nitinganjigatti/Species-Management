@@ -16,7 +16,7 @@ import Purchase from 'src/views/pages/pharmacy/product/product-details-list/purc
 import Dispatch from 'src/views/pages/pharmacy/product/product-details-list/dispatch'
 import Ledger from 'src/views/pages/pharmacy/product/product-details-list/ledger'
 
-const TabsSimple = () => {
+const TabsSimple = ({ productDetails }) => {
   const [value, setValue] = useState('overview')
 
   const handleChange = (event, newValue) => {
@@ -40,7 +40,7 @@ const TabsSimple = () => {
         <Tab value='ledger' label='Ledger' />
       </TabList>
       <TabPanel value='overview' sx={{ p: 0 }}>
-        <Overview />
+        <Overview productDetails={productDetails} />
       </TabPanel>
       <TabPanel value='purchase'>
         <Purchase />
@@ -61,7 +61,7 @@ const ProductDetailsList = () => {
   const { selectedPharmacy } = usePharmacyContext()
   const [uploadedImage, setUploadedImage] = useState()
   const [loader, setLoader] = useState(false)
-  const [productDetails, setProductDetails] = useState([])
+  const [productDetails, setProductDetails] = useState()
 
   const handleEdit = async row => {
     if (
@@ -191,7 +191,7 @@ const ProductDetailsList = () => {
                           component='span'
                           sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
                         >
-                          {productDetails?.generic_name}
+                          {productDetails?.generic_name || 'NA'}
                         </Box>
                       </Typography>
                       <Typography
@@ -199,7 +199,15 @@ const ProductDetailsList = () => {
                         sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 400, fontSize: '14px' }}
                         mt={0.5}
                       >
-                        Composition - {productDetails?.salts || 'NA'}
+                        Composition -
+                        {productDetails?.salts && productDetails?.salts?.length > 0
+                          ? productDetails?.salts?.map((salt, index) => (
+                              <span key={salt?.id}>
+                                {salt?.label} {salt?.qty}
+                                {index < productDetails?.salts?.length - 1 && ', '}
+                              </span>
+                            ))
+                          : 'NA'}
                       </Typography>
                     </Box>
                   </Grid>
@@ -288,7 +296,7 @@ const ProductDetailsList = () => {
                         sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
                       >
                         {/* Non-steroidal anti-inflammatory */}
-                        {productDetails?.drug_class || 'NA'}
+                        {productDetails?.drug_class_label || 'NA'}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sm={4}>
@@ -303,7 +311,7 @@ const ProductDetailsList = () => {
                         sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
                       >
                         {/* Below 25°C */}
-                        {productDetails?.storage || 'NA'}
+                        {productDetails?.storage_value || 'NA'}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -312,7 +320,7 @@ const ProductDetailsList = () => {
             </Grid>
           </Card>
           <Card sx={{ p: 6 }}>
-            <TabsSimple />
+            <TabsSimple productDetails={productDetails} />
           </Card>
         </>
       )}

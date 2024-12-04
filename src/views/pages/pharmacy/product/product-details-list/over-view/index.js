@@ -23,9 +23,6 @@ import {
 import Icon from 'src/@core/components/icon'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import InfoIcon from '@mui/icons-material/Info'
-import MedicationIcon from '@mui/icons-material/Medication'
-import WarningIcon from '@mui/icons-material/Warning'
-import ShieldIcon from '@mui/icons-material/Shield'
 import CommonDrawerBox from 'src/components/CommonDrawerBox'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
@@ -51,7 +48,7 @@ const validationSchema = yup.object().shape({
   )
 })
 
-const Overview = () => {
+const Overview = ({ productDetails }) => {
   const dispatchData = [
     { month: 'Jan', dispatchCount: 60, dispatchValue: 1.2 },
     { month: 'Feb', dispatchCount: 80, dispatchValue: 1.5 },
@@ -138,17 +135,35 @@ const Overview = () => {
         marginBottom={2}
         boxShadow='0px 4px 8px rgba(0, 0, 0, 0.1)'
       >
-        <Typography variant='subtitle1' fontWeight='bold'>
+        <Typography
+          variant='subtitle1'
+          sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px' }}
+        >
           Central Pharmacy
         </Typography>
-        <Typography variant='body1' fontWeight='bold'>
-          Total Quantity: 2300
-        </Typography>
+        <Typography variant='body1' component='div'>
+          <Typography
+            component='span'
+            sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+          >
+            Total Quantity:
+          </Typography>
+          <Typography
+            component='span'
+            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px', ml: 1 }}
+          >
+            2300
+          </Typography>
+        </Typography>{' '}
       </Box>
 
       {/* Table Section */}
       <Card sx={{ p: 4 }}>
-        <Typography variant='subtitle1' marginBottom={1}>
+        <Typography
+          variant='subtitle1'
+          marginBottom={2}
+          sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+        >
           Other Pharmacy Quantity Details
         </Typography>
         <Card
@@ -317,7 +332,7 @@ const Overview = () => {
       contentComponent: centralPharmacyContent,
       style: '#F5F9F6',
       bgColor: '#AFEFEB4D',
-      icon: '/images/medicare.png',
+      icon: '/images/medicare.svg',
       value: 2300,
       description: 'Quantity in Store'
     },
@@ -329,7 +344,7 @@ const Overview = () => {
       contentComponent: expireContent,
       style: '#F5F9F6',
       bgColor: '#FA61401A',
-      icon: '/images/calendar.png',
+      icon: '/images/calendar.svg',
       value: 56,
       description: 'About to Expire Quantity'
     },
@@ -341,7 +356,7 @@ const Overview = () => {
       contentComponent: expiredBatchesContent,
       style: '#F5F9F6',
       bgColor: '#E933531A',
-      icon: '/images/Incubator_ICON.png',
+      icon: '/images/Incubator_ICON.svg',
       value: 300,
       description: 'Expired Quantity'
     }
@@ -395,6 +410,8 @@ const Overview = () => {
     console.log('Submitted Alternatives:', data.alternatives)
     reset()
   }
+
+  console.log(productDetails, 'overview')
 
   return (
     <>
@@ -661,11 +678,17 @@ const Overview = () => {
                 <Divider sx={{ mb: 3 }} />
 
                 <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <MedicationIcon color='success' sx={{ mr: 1 }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, p: 2 }}>
+                    {/* <MedicationIcon color='success' sx={{ mr: 1 }} /> */}
+                    <Avatar
+                      variant='square'
+                      alt=''
+                      src={'/images/uses.svg'}
+                      sx={{ width: '26px', height: '28px', mr: 1 }}
+                    />
                     <Typography
                       variant='subtitle1'
-                      sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
+                      sx={{ color: 'custoColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
                     >
                       Uses
                     </Typography>
@@ -674,13 +697,19 @@ const Overview = () => {
                     variant='body2'
                     sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
                   >
-                    Take one tablet every 4-6 hours as needed. Do not exceed 8 tablets in 24 hours.
+                    {productDetails?.uses}
                   </Typography>
                 </Box>
 
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <WarningIcon color='error' sx={{ mr: 1 }} />
+                    {/* <WarningIcon color='error' sx={{ mr: 1 }} /> */}
+                    <Avatar
+                      variant='square'
+                      alt=''
+                      src={'/images/side_effect.svg'}
+                      sx={{ width: '28px', height: '28px', mr: 1 }}
+                    />
                     <Typography
                       variant='subtitle1'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
@@ -692,13 +721,19 @@ const Overview = () => {
                     variant='body2'
                     sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
                   >
-                    Nausea, allergic reactions, liver damage with prolonged use.
+                    {productDetails?.side_effects}
                   </Typography>
                 </Box>
 
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <ShieldIcon color='info' sx={{ mr: 1 }} />
+                    {/* <ShieldIcon color='info' sx={{ mr: 1 }} /> */}
+                    <Avatar
+                      variant='square'
+                      alt=''
+                      src={'/images/safety.svg'}
+                      sx={{ width: '24px', height: '28px', mr: 1 }}
+                    />
                     <Typography
                       variant='subtitle1'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
@@ -707,22 +742,26 @@ const Overview = () => {
                     </Typography>
                   </Box>
                   <List dense>
-                    <ListItem>
-                      <Typography
-                        variant='body2'
-                        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 3 }}
-                      >
-                        Do not exceed dosage
-                      </Typography>
-                    </ListItem>
-                    <ListItem>
-                      <Typography
-                        variant='body2'
-                        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 3 }}
-                      >
-                        Avoid alcohol
-                      </Typography>
-                    </ListItem>
+                    {productDetails?.safety_advice?.split(',').map((advice, index) => {
+                      const trimmedAdvice = advice.trim()
+                      if (!trimmedAdvice) return null
+
+                      return (
+                        <ListItem key={index}>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'customColors.customHeadingTextColor',
+                              fontSize: '15px',
+                              fontWeight: 500,
+                              ml: 3
+                            }}
+                          >
+                            {`${index + 1}. ${trimmedAdvice}`}
+                          </Typography>
+                        </ListItem>
+                      )
+                    })}
                   </List>
                 </Box>
               </CardContent>
