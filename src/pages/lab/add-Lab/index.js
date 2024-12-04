@@ -1526,19 +1526,28 @@ const AddLab = () => {
                     >
                       <Tooltip title={sample?.sample_name ? sample?.sample_name : '-'}>
                         <Typography
-                          variant='h6'
-                          sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}
+                          sx={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: 200,
+                            fontSize: '16px',
+                            fontWeight: '600'
+                          }}
                         >
                           {sample?.sample_name}
                         </Typography>
                       </Tooltip>
-                      <Typography sx={{ alignItems: 'center', display: 'flex' }}>
-                        Select All
+
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography sx={{ alignItems: 'center', display: 'flex', fontSize: '15px' }}>
+                          Select All
+                        </Typography>
                         <Switch
                           checked={sample?.value}
                           onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)}
                         />
-                      </Typography>
+                      </Box>
                     </Stack>
 
                     {sample?.tests?.map((parent, index) =>
@@ -1552,12 +1561,13 @@ const AddLab = () => {
                             >
                               <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
                                 <Typography
-                                  variant='h6'
                                   sx={{
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
-                                    maxWidth: 200
+                                    maxWidth: 200,
+                                    fontSize: '15px',
+                                    fontWeight: '500'
                                   }}
                                 >
                                   {parent?.test_name}
@@ -1569,7 +1579,7 @@ const AddLab = () => {
                                 direction='row'
                                 sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                               >
-                                <Typography>Full Test</Typography>
+                                <Typography sx={{ fontSize: '15px' }}>Full Test</Typography>
                                 <Switch
                                   checked={parent?.full_test}
                                   onChange={(e, v) => {
@@ -1590,7 +1600,8 @@ const AddLab = () => {
                                           whiteSpace: 'nowrap',
                                           overflow: 'hidden',
                                           textOverflow: 'ellipsis',
-                                          maxWidth: 200
+                                          maxWidth: 200,
+                                          fontSize: '15px'
                                         }}
                                       >
                                         {child?.test_name}
@@ -1616,13 +1627,13 @@ const AddLab = () => {
                           >
                             <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
                               <Typography
-                                variant='h6'
                                 ml={4}
                                 sx={{
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
-                                  maxWidth: 200
+                                  maxWidth: 200,
+                                  fontSize: '15px'
                                 }}
                               >
                                 {parent?.test_name}
