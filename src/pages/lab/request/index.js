@@ -34,24 +34,13 @@ import { callRefreshToken } from 'src/lib/api/auth'
 
 const ListOfRequest = () => {
   const router = useRouter()
-
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
   const [lab, setLab] = React.useState([])
   const authData = useContext(AuthContext)
-
   const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-
-  const [storedData, setStoredData] = useState()
-
   const [stats, setStats] = useState()
-
-  useEffect(() => {
-    const Data = window.localStorage.getItem('userDetails')
-
-    setStoredData(JSON.parse(Data))
-  }, [])
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
@@ -216,11 +205,8 @@ const ListOfRequest = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  const [status, setStatus] = useState()
-
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -250,11 +236,7 @@ const ListOfRequest = () => {
       }
     }
     refreshToken()
-
     setSelectedLab(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-
-    // const options = authData?.userData?.modules?.lab_data?.lab
-    // setLab(options)
   }, [])
 
   const GetLabRequestStatus = async params => {
@@ -315,11 +297,11 @@ const ListOfRequest = () => {
   const fetchData = async params => {
     try {
       setLoading(true)
-
       const response = await GetLabReportById({ params })
-      setTotal(parseInt(response?.data?.total_count))
-      setRows(loadServerRows(paginationModel.page, response?.data?.result))
-      setStatus(response?.data?.stats)
+      if (response?.success) {
+        setTotal(parseInt(response?.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, response?.data?.result))
+      }
 
       setLoading(false)
     } catch (error) {
@@ -371,53 +353,36 @@ const ListOfRequest = () => {
 
   useEffect(() => {
     handlePaginationModelChange()
-  }, [paginationModel])
+  }, [paginationModel.pageSize, paginationModel.page])
 
   const handleSearch = async value => {
     setSearchValue(value)
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
 
-  const getSlNo = (index, labTestId) => {
-    if (labTestId !== null) {
-      return labTestId + '_' + index
-    }
+  // const getSlNo = (index, labTestId) => {
+  //   if (labTestId !== null) {
+  //     return labTestId + '_' + index
+  //   }
 
-    return 'no_lab_test_id_' + index
-  }
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: getSlNo(index, row.lab_test_id),
-    sl_no: index + 1
-  }))
-
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  //   return 'no_lab_test_id_' + index
+  // }
 
   // const indexedRows = rows?.map((row, index) => ({
   //   ...row,
-  //   sl_no: getSlNo(index)
+  //   id: getSlNo(index, row.lab_test_id),
+  //   sl_no: index + 1
   // }))
 
-  // useEffect(() => {
-  //   if (labSelected) {
-  //     const params = { lab_id: labSelected }
-  //     const res = GetLabRequestTestStatusById({ params })
-  //     console.log('res', res)
-  //   }
-  // }, [])
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const onCellClick = params => {
-    handleClickRequestId(params)
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
 
-    // Router.push({
-    //   pathname: `/egg/incubator-rooms/${data?.id}`
-    // })
-  }
   useEffect(() => {
     oldstoredData()
-
-    // setSelectLoader(true)
   }, [])
 
   return (
@@ -551,7 +516,7 @@ const ListOfRequest = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
-              onCellClick={onCellClick}
+              onCellClick={handleClickRequestId}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
