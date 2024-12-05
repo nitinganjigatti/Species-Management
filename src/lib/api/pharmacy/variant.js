@@ -1,4 +1,11 @@
-import { PHARMACY_MASTER_BASE_URL, VARIANTS } from 'src/constants/ApiConstant'
+import {
+  PHARMACY_MASTER_BASE_URL,
+  VARIANTS,
+  STOCK,
+  VARIANTS_MAPPING,
+  PHARMACY_BASE_URL,
+  MEDICINE
+} from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function addVariant(payload) {
@@ -40,4 +47,21 @@ export async function updateVariant(id, payload) {
 
     return error
   }
+}
+
+export async function mapVariantForProduct(payload) {
+  const url = `${PHARMACY_BASE_URL}${MEDICINE}/${VARIANTS_MAPPING}`
+  var data = payload
+  const response = await axiosPost({ url, body: data, pharmacy: true })
+
+  return response?.data
+}
+
+export async function getVariantFOrProduct(id) {
+  const response = await axiosGet({
+    url: `${PHARMACY_BASE_URL}${MEDICINE}/${VARIANTS_MAPPING}?stock_item_id=${id}`,
+    pharmacy: true
+  })
+
+  return response.data
 }
