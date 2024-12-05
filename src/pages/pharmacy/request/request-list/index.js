@@ -122,10 +122,9 @@ const RequestList = () => {
         // )
 
         if (
-          startDate ||
-          endDate || // Checks if startDate and endDate are truthy (not empty or undefined)
-          filterDates?.startDate ||
-          filterDates?.endDate // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
+          startDate &&
+          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
+          (filterDates?.startDate || filterDates?.endDate) // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             type: 'request',
@@ -137,7 +136,7 @@ const RequestList = () => {
             status: filterSwitch === true ? 'completed' : status,
             pending_days_start: startDate ? startDate : filterDates?.startDate,
             pending_days_end: endDate ? endDate : filterDates?.endDate,
-            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId 
           }
         } else {
           params = {
@@ -326,7 +325,7 @@ const RequestList = () => {
           break
         case 16:
           startDate = Utility.getPreviousDaysDate(currentDate, 15)
-          endDate = ''
+          endDate = Utility.formattedPresentDate()
           setFilterDates({ startDate, endDate })
           break
         default:

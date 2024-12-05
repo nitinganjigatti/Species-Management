@@ -84,7 +84,7 @@ const ListOfStocks = () => {
   const [sortColumn, setSortColumn] = useState('stock_items_name')
   const [total, setTotal] = useState(0)
 
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
 
   const [batchLoading, setBatchLoading] = useState(false)
   const [batchSort, setBatchSort] = useState('asc')
@@ -92,7 +92,7 @@ const ListOfStocks = () => {
   const [batchSearchValue, setBatchSearchValue] = useState('')
   const [batchSortColumn, setBatchSortColumn] = useState('stock_items_name')
   const [batchTotal, setBatchTotal] = useState(0)
-  const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [batchPaginationModel, setBatchPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [excelLoader, setExcelLoader] = useState(false)
 
   const [stockId, setStockId] = useState(selectedPharmacy?.id)

@@ -32,7 +32,8 @@ const CommonTable = ({
           cursor: 'pointer'
         },
         '.MuiDataGrid-virtualScroller': {
-          overflow: 'hidden'
+          // overflow: 'hidden',
+          overflowX: 'auto'
         },
         '.MuiDataGrid-main': {
           margin: '2px',
