@@ -55,7 +55,7 @@ import moment from 'moment'
 import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
-import AnimalParentCard from './animalParentCard'
+import AnimalParentCard from '../../../utility/animalParentCard'
 
 const ConditionSlider = ({
   getActivityLogsFunc,

@@ -2,7 +2,7 @@ import { Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import React from 'react'
-import AnimalParentCard from '../animalParentCard'
+import AnimalParentCard from '../../../../utility/animalParentCard'
 
 const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, parent, parentList }) => {
   return (

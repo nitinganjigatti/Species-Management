@@ -41,7 +41,7 @@ import { GetEggDetails } from 'src/lib/api/egg/egg'
 import moment from 'moment'
 import dayjs from 'dayjs'
 import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
-import AnimalParentCard from '../animalParentCard'
+import AnimalParentCard from '../../../../utility/animalParentCard'
 
 const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }) => {
   const theme = useTheme()
