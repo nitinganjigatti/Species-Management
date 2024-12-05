@@ -951,6 +951,15 @@ const StepBasicDetails = ({
                               : recipe.label === 'Recipe'
                               ? 2.2
                               : recipe.label === 'Ingredients'
+                              ? 1.9
+                              : 3.7
+                          }
+                          md={
+                            recipe.label === 'No'
+                              ? 0.5
+                              : recipe.label === 'Recipe'
+                              ? 2.2
+                              : recipe.label === 'Ingredients'
                               ? 1.5
                               : 3.7
                           }
@@ -971,7 +980,7 @@ const StepBasicDetails = ({
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
-                              <Grid item xs={12} sm={0.5}>
+                              <Grid item xs={12} sm={0.5} md={0.5}>
                                 <Avatar
                                   variant='square'
                                   alt='Diet Image'
@@ -986,7 +995,7 @@ const StepBasicDetails = ({
                                   src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                 ></Avatar>
                               </Grid>
-                              <Grid item xs={12} sm={2.2}>
+                              <Grid item xs={12} sm={2.2} md={2.2}>
                                 <Tooltip title={all.recipe_name}>
                                   <Typography
                                     className='recipe_name'
@@ -1002,7 +1011,7 @@ const StepBasicDetails = ({
                                 </Typography>
                               </Grid>
 
-                              <Grid item xs={12} sm={1.0} sx={{ pl: 2 }}>
+                              <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
                                 <Typography>{all?.ingredients_count}</Typography>
                                 {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1010,7 +1019,7 @@ const StepBasicDetails = ({
                                   <Typography>{all?.ingredient_name?.length}</Typography>
                                 )} */}
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={3.7} md={3.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
                                   {days.map((day, index) => (
                                     <Grid item key={index}>
@@ -1026,7 +1035,7 @@ const StepBasicDetails = ({
                                   ))}
                                 </Grid>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={3.7} md={3.7}>
                                 <Grid sx={{ pl: 7 }}>
                                   <Typography className='w_280'>
                                     <Tooltip title={all?.remarks} arrow placement='bottom'>
@@ -1071,10 +1080,19 @@ const StepBasicDetails = ({
                             ingredient.label === 'No'
                               ? 0.5
                               : ingredient.label === 'Ingredient'
+                              ? 2.4
+                              : ingredient.label === 'Prep types'
+                              ? 2.0
+                              : 3.3
+                          }
+                          md={
+                            ingredient.label === 'No'
+                              ? 0.5
+                              : ingredient.label === 'Ingredient'
                               ? 2.2
                               : ingredient.label === 'Prep types'
                               ? 1.5
-                              : 3.7
+                              : 3.8
                           }
                           key={index}
                           sx={{ py: 4, px: 2, textAlign: 'center' }}
@@ -1092,7 +1110,7 @@ const StepBasicDetails = ({
                         if (matchingField) {
                           return (
                             <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
-                              <Grid item xs={12} sm={0.5}>
+                              <Grid item xs={12} sm={0.5} md={0.5}>
                                 <Avatar
                                   variant='square'
                                   alt='Diet Image'
@@ -1107,7 +1125,7 @@ const StepBasicDetails = ({
                                   src={all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'}
                                 ></Avatar>
                               </Grid>
-                              <Grid item xs={12} sm={1.8}>
+                              <Grid item xs={12} sm={2.2} md={1.8}>
                                 <Tooltip title={all.ingredient_name}>
                                   <Typography className='recipe_name' sx={{ pl: 3 }}>
                                     {all.ingredient_name}
@@ -1117,10 +1135,10 @@ const StepBasicDetails = ({
                                   {'ING' + all?.ingredient_id}
                                 </Typography>
                               </Grid>
-                              <Grid item xs={12} sm={1.5} sx={{ pl: 2 }}>
+                              <Grid item xs={12} sm={1.7} md={1.5} sx={{ pl: 2 }}>
                                 <Typography>{all.preparation_type}</Typography>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={3.3} md={3.7}>
                                 <Grid container spacing={1} sx={{ pl: 2 }}>
                                   {days.map((day, index) => (
                                     <Grid item key={day}>
@@ -1136,7 +1154,7 @@ const StepBasicDetails = ({
                                   ))}
                                 </Grid>
                               </Grid>
-                              <Grid item xs={12} sm={3.7}>
+                              <Grid item xs={12} sm={3.6} md={3.7}>
                                 <Grid sx={{ pl: 7 }}>
                                   <Typography className='w_280'>
                                     <Tooltip title={all?.remarks} arrow placement='bottom'>

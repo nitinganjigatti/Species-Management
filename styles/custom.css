@@ -54,6 +54,12 @@
   white-space: nowrap;
   width: 140px;
 }
+.ing_byperc {
+  margin-left: 20px;
+}
+.ing_byquan {
+  margin-left: 12px;
+}
 @media (min-width: 768px) and (max-width: 1023px) {
   .cellmodule5 {
     width: 465px !important;
@@ -115,6 +121,12 @@
   .w_280 {
     width: 180px;
   }
+  .ing_byperc {
+    margin-left: 8px;
+  }
+  .ing_byquan {
+    margin-left: 2px;
+  }
 }
 
 @media (min-width: 1024px) and (max-width: 1199px) {
@@ -161,7 +173,7 @@
     width: 570px;
   }
   .cell_gend {
-    width: 580px;
+    width: 560px;
   }
   .diet_gender {
     width: 121px;
@@ -227,7 +239,7 @@
     width: 575px;
   }
   .cell_gend {
-    width: 580px;
+    width: 570px;
   }
   .diet_gender {
     width: 121px;
@@ -247,6 +259,12 @@
 }
 
 @media (min-width: 1300px) and (max-width: 1400px) {
+  .ing_byperc {
+    margin-left: 16px;
+  }
+  .ing_byquan {
+    margin-left: 10px;
+  }
   .cellmodule6 {
     width: 560px !important;
   }

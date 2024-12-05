@@ -6,9 +6,11 @@ import {
   DELETE,
   RECIPE_LIST,
   INGREDIENTS,
+  INGREDIENT,
   LIST,
   RECIPE,
-  REPARATION_ACTIVITY_LOGS
+  REPARATION_ACTIVITY_LOGS,
+  RECIPE_PARTOF_DIET_LIST
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -60,6 +62,14 @@ export async function deleteIngredient(id) {
 
 export async function getRecipeListonIngredientDtl(id, params) {
   return await axiosGet({ url: `${DIET}/${RECIPE}/${RECIPE_LIST}/${id}`, params })
+}
+
+export async function getDietListonRecipeDtl(id, params) {
+  return await axiosGet({ url: `${DIET}/${RECIPE_PARTOF_DIET_LIST}/${RECIPE}/${id}`, params })
+}
+
+export async function getDietListonIngredientDtl(id, params) {
+  return await axiosGet({ url: `${DIET}/${RECIPE_PARTOF_DIET_LIST}/${INGREDIENT}/${id}`, params })
 }
 
 export async function getDietActivityLogs(params) {

@@ -31,7 +31,9 @@ const defaultValues = {
       feed_type_label: '',
       quantity: '',
       preparation_type_id: '',
-      preparation_type: ''
+      preparation_type: '',
+      cut_size: '',
+      cut_size_id: ''
     }
   ],
   by_quantity: [
@@ -42,7 +44,9 @@ const defaultValues = {
       uom_id: '',
       quantity: '',
       preparation_type_id: '',
-      preparation_type: ''
+      preparation_type: '',
+      cut_size: '',
+      cut_size_id: ''
     }
   ],
   desc: ''
@@ -81,19 +85,26 @@ const StepAddIngredients = ({
   handleNext,
   handlePrev,
   uomList,
+  cutsizeList,
   fullIngredientList,
   IngredientTypeListSearch,
   setFullIngredientList,
   onCancelIconClick,
   handleIngredientChange
 }) => {
-  const ingredients = [{ label: ' Ingredients' }, { label: 'Quantity' }, { label: 'Preparation Type' }]
+  const ingredients = [
+    { label: ' Ingredients' },
+    { label: 'Quantity' },
+    { label: 'Preparation Type' },
+    { label: 'Cut Size' }
+  ]
 
   const ingredientsbyqun = [
     { label: ' Ingredients' },
     { label: 'Quantity' },
     { label: 'Unit of Measurement' },
-    { label: 'Preparation Type' }
+    { label: 'Preparation Type' },
+    { label: 'Cut Size' }
   ]
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
@@ -152,7 +163,8 @@ const StepAddIngredients = ({
             appendIngredients({
               ingredient_id: '',
               quantity: '',
-              preparation_type_id: ''
+              preparation_type_id: '',
+              cut_size_id: ''
             })
           }}
         >
@@ -189,7 +201,8 @@ const StepAddIngredients = ({
           appendByQuantity({
             ingredient_id: '',
             quantity: '',
-            preparation_type_id: ''
+            preparation_type_id: '',
+            cut_size_id: ''
           })
         }}
       >
@@ -204,7 +217,8 @@ const StepAddIngredients = ({
 
     return (
       <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
+        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
+        className='ing_byperc'
         onClick={() => {
           removeIngredients(index)
         }}
@@ -219,7 +233,8 @@ const StepAddIngredients = ({
 
     return (
       <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: '20px', marginTop: '35px' }}
+        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
+        className='ing_byquan'
         onClick={() => {
           removeByQuantity(index)
         }}
@@ -467,10 +482,10 @@ const StepAddIngredients = ({
   useEffect(() => {
     // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
     if (fieldsByQuantity.length === 0) {
-      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '' })
+      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '', cut_size_id: '' })
     }
     if (fieldsIngredients.length === 0) {
-      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '' })
+      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '', cut_size_id: '' })
     }
   }, [fieldsByQuantity, fieldsIngredients, appendByQuantity, appendIngredients])
 
@@ -523,7 +538,7 @@ const StepAddIngredients = ({
           </Box>
           <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 1, borderRadius: 0.5, mx: 4 }}>
             {ingredients.map((ingredient, index) => (
-              <Grid item xs={12} sm={3.6} key={index} sx={{ py: 4, px: 2 }}>
+              <Grid item xs={12} sm={2.85} key={index} sx={{ py: 4 }}>
                 <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {ingredient.label}{' '}
@@ -555,7 +570,7 @@ const StepAddIngredients = ({
               {fieldsIngredients.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
-                  <Grid item xs={12} sm={3.6}>
+                  <Grid item xs={12} sm={2.85}>
                     {console.log(fullIngredientList, 'fullIngredientList')}
                     <FormControl fullWidth>
                       <Controller
@@ -601,7 +616,7 @@ const StepAddIngredients = ({
                             renderInput={params => (
                               <TextField
                                 {...params}
-                                label='Select Ingredient *'
+                                label='Select Ingredient*'
                                 placeholder='Search & Select'
                                 error={
                                   errors.by_percentage &&
@@ -624,7 +639,7 @@ const StepAddIngredients = ({
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} sm={3.6}>
+                  <Grid item xs={12} sm={2.85}>
                     <FormControl fullWidth>
                       <Controller
                         name={`by_percentage[${index}].quantity`}
@@ -692,7 +707,7 @@ const StepAddIngredients = ({
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} sm={3.6}>
+                  <Grid item xs={12} sm={2.85}>
                     <FormControl fullWidth>
                       <Controller
                         name={`by_percentage[${index}].preparation_type_id`}
@@ -739,6 +754,41 @@ const StepAddIngredients = ({
                       )}
                     </FormControl>
                   </Grid>
+
+                  <Grid item xs={12} sm={2.85}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name={`by_percentage[${index}].cut_size`}
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => {
+                          console.log(value, 'value')
+                          return (
+                            <Autocomplete
+                              id={`by_percentage[${index}].cut_size`}
+                              getOptionLabel={option => option.cut_size}
+                              renderInput={params => <TextField {...params} label='Select Cut size' />}
+                              options={cutsizeList || []}
+                              onChange={(e, val) => {
+                                console.log(val, 'val')
+                                if (val === null) {
+                                  onChange('')
+                                  setFormValue(`by_percentage[${index}].cut_size`, '')
+                                  setFormValue(`by_percentage[${index}].cut_size_id`, '')
+                                } else {
+                                  onChange(val.id)
+                                  setFormValue(`by_percentage[${index}].cut_size`, val?.cut_size)
+                                  setFormValue(`by_percentage[${index}].cut_size_id`, val?.id)
+                                }
+                              }}
+                              value={cutsizeList.find(option => option.cut_size === value) || null}
+                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                            />
+                          )
+                        }}
+                      />
+                    </FormControl>
+                  </Grid>
                   {fieldsIngredients.length - 1 === index && index > 0 ? (
                     <Grid>{removeIngredientButton(index)}</Grid>
                   ) : (
@@ -754,7 +804,7 @@ const StepAddIngredients = ({
             </Box>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 4, borderRadius: 0.5, mx: 4 }}>
               {ingredientsbyqun.map((ingredient, index) => (
-                <Grid item xs={12} sm={2.9} key={index} sx={{ py: 4, px: 2 }}>
+                <Grid item xs={12} sm={ingredient.label !== 'Quantity' ? 2.4 : 2} key={index} sx={{ py: 4 }}>
                   <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                     {ingredient.label}
                   </Typography>
@@ -766,7 +816,7 @@ const StepAddIngredients = ({
               {fieldsByQuantity.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'testnew' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
-                  <Grid item xs={12} sm={2.9}>
+                  <Grid item xs={12} sm={2.3}>
                     <FormControl fullWidth>
                       <Controller
                         name={`by_quantity[${index}].ingredient_id`}
@@ -803,7 +853,7 @@ const StepAddIngredients = ({
                             renderInput={params => (
                               <TextField
                                 {...params}
-                                label='Select Ingredient *'
+                                label='Select Ingredient*'
                                 placeholder='Search & Select'
                                 error={
                                   errors.by_quantity &&
@@ -825,7 +875,7 @@ const StepAddIngredients = ({
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} sm={2.8}>
+                  <Grid item xs={12} sm={2.3}>
                     <FormControl fullWidth>
                       <Controller
                         name={`by_quantity[${index}].quantity`}
@@ -861,13 +911,14 @@ const StepAddIngredients = ({
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={2.8}>
+                  <Grid item xs={12} sm={2.3}>
                     <FormControl fullWidth>
                       <Controller
                         name={`by_quantity[${index}].uom_id`}
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => {
+                          console.log(value, 'value')
                           return (
                             <Autocomplete
                               id={`by_quantity[${index}].uom_id`}
@@ -888,9 +939,11 @@ const StepAddIngredients = ({
                               options={uomList || []}
                               onChange={(e, val) => {
                                 if (val === null) {
-                                  return onChange('')
+                                  onChange('')
+                                  setFormValue(`by_quantity[${index}].uom_text`, '')
                                 } else {
-                                  return onChange(val._id)
+                                  onChange(val._id)
+                                  setFormValue(`by_quantity[${index}].uom_text`, val?.name || '')
                                 }
                               }}
                               value={uomList.find(option => option._id === value) || null}
@@ -906,7 +959,7 @@ const StepAddIngredients = ({
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={2.9}>
+                  <Grid item xs={12} sm={2.3}>
                     <FormControl fullWidth>
                       <Controller
                         name={`by_quantity[${index}].preparation_type_id`}
@@ -948,6 +1001,40 @@ const StepAddIngredients = ({
                           {errors.by_quantity[index].preparation_type_id?.message}
                         </FormHelperText>
                       )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={2.3}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name={`by_quantity[${index}].cut_size`}
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => {
+                          console.log(value, 'value')
+                          return (
+                            <Autocomplete
+                              id={`by_quantity[${index}].cut_size`}
+                              getOptionLabel={option => option.cut_size}
+                              renderInput={params => <TextField {...params} label='Select Cut size' />}
+                              options={cutsizeList || []}
+                              onChange={(e, val) => {
+                                if (val === null) {
+                                  onChange('')
+                                  setFormValue(`by_quantity[${index}].cut_size`, '')
+                                  setFormValue(`by_quantity[${index}].cut_size_id`, '')
+                                } else {
+                                  onChange(val.id)
+                                  setFormValue(`by_quantity[${index}].cut_size`, val?.cut_size)
+                                  setFormValue(`by_quantity[${index}].cut_size_id`, val?.id)
+                                }
+                              }}
+                              value={cutsizeList.find(option => option.cut_size === value) || null}
+                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                            />
+                          )
+                        }}
+                      />
                     </FormControl>
                   </Grid>
                   {fieldsByQuantity.length - 1 === index && index > 0 ? (

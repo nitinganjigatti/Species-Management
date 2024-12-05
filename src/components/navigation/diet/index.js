@@ -42,7 +42,12 @@ const composeDietNavigation = () => {
     path: '/diet/settings/preparation-types'
   }
 
-  settingsParent.children.push(preparationTypes)
+  const cutSize = {
+    title: 'Cut Sizes',
+    path: '/diet/settings/cut-sizes'
+  }
+
+  settingsParent.children.push(preparationTypes, cutSize)
   const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, dietList, recipeList, settingsParent]
 
   return dietNavigation
