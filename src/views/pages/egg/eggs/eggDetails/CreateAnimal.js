@@ -961,10 +961,193 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           labelId='parentMother'
                           error={Boolean(errors?.parentMother)}
                         >
-                          {eggDetails?.parent_list?.mother_list?.map(val => (
-                            <MenuItem key={val?._id} value={val?.animal_id}>
+                          {eggDetails?.parent_list?.mother_list?.map(item => (
+                            <MenuItem key={item?._id} value={item?.animal_id}>
                               {/* {val?.common_name} */}
                               <Box
+                                sx={{
+                                  width: '100%',
+                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                  borderRadius: '8px',
+                                  paddingY: '20px',
+                                  paddingX: '16px',
+                                  border: '1px solid #C3CEC7',
+                                  display: 'flex',
+                                  gap: '10px'
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '10px',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <Avatar
+                                    sx={{
+                                      '& > img': {
+                                        objectFit: item?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
+                                      },
+                                      width: 44,
+                                      height: 44,
+                                      border: '1px solid #C3CEC7'
+                                    }}
+                                    alt={item?.default_icon}
+                                    src={item?.default_icon}
+                                  />
+                                  <Avatar
+                                    sx={{
+                                      width: 24,
+                                      height: 24,
+                                      bgcolor: item?.type === 'group' ? '#00AFD6' : '#AFEFEB',
+                                      objectFit: 'cover'
+                                    }}
+                                    variant='rounded'
+                                  >
+                                    {item?.type === 'group' ? (
+                                      <Typography sx={{ fontSize: 14, color: '#fff' }}>G</Typography>
+                                    ) : item?.sex === 'male' ? (
+                                      <Typography sx={{ fontSize: 14 }}>M</Typography>
+                                    ) : item?.sex === 'female' ? (
+                                      <Typography sx={{ fontSize: 14 }}>F</Typography>
+                                    ) : item?.sex === 'undetermined' ? (
+                                      <Typography sx={{ fontSize: 14 }}>UD</Typography>
+                                    ) : item?.sex === 'indeterminate' ? (
+                                      <Typography sx={{ fontSize: 14 }}>ID</Typography>
+                                    ) : (
+                                      <Typography sx={{ fontSize: 14 }}>-</Typography>
+                                    )}
+                                  </Avatar>
+                                </Box>
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '6px'
+                                  }}
+                                >
+                                  {item?.local_id_type && item?.local_identifier_value && (
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      <span> {item?.local_id_type}: </span>
+                                      <span> {item?.local_identifier_value}</span>
+                                    </Typography>
+                                  )}
+
+                                  <Typography
+                                    sx={{
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: '19.36px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    AID: {item?.animal_id}
+                                  </Typography>
+                                  {item?.breed_name && (
+                                    <Typography
+                                      sx={{
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        lineHeight: '19.36px',
+                                        color: theme.palette.customColors.OnSurfaceVariant
+                                      }}
+                                    >
+                                      Breed: {item?.breed_name}
+                                    </Typography>
+                                  )}
+                                  {item?.morph_name && (
+                                    <Typography
+                                      sx={{
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        lineHeight: '19.36px',
+                                        color: theme.palette.customColors.OnSurfaceVariant
+                                      }}
+                                    >
+                                      Morph: {item?.morph_name}
+                                    </Typography>
+                                  )}
+                                  <Typography
+                                    sx={{
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: '19.36px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.common_name}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '16px',
+                                      fontWeight: 500,
+                                      lineHeight: '19.36px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.scientific_name}
+                                    {/* {Utility?.toPascalSentenceCase(item?.scientific_name)} */}
+                                  </Typography>
+                                  {item?.type === 'group' && (
+                                    <Typography
+                                      sx={{
+                                        width: '250px',
+                                        paddingY: '4px',
+                                        borderRadius: '5px',
+                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                        textAlign: 'center',
+                                        fontSize: '16px',
+                                        fontWeight: 500,
+                                        lineHeight: '19.36px',
+                                        color: 'black'
+                                      }}
+                                    >
+                                      Count {item?.total_animal}
+                                    </Typography>
+                                  )}
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      lineHeight: '16.94px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600 }}> Encl: </span>
+                                    {item?.user_enclosure_name}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      lineHeight: '16.94px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600 }}>Sec: </span> {item?.section_name}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      lineHeight: '16.94px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600 }}>Site: </span>
+                                    {item?.site_name}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              {/* <Box
                                 sx={{
                                   backgroundColor: theme.palette.customColors.tableHeaderBg,
                                   display: 'flex',
@@ -1024,17 +1207,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  {/* <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
-                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
-                                  </Typography> */}
+                                  
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,
@@ -1077,7 +1250,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                     {val?.section_name ? val?.section_name : '-'}
                                   </Typography>
                                 </Box>
-                              </Box>
+                              </Box> */}
                             </MenuItem>
                           ))}
                         </Select>
@@ -1102,10 +1275,9 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           labelId='parentFather'
                           error={Boolean(errors?.parentFather)}
                         >
-                          {eggDetails?.parent_list?.father_list?.map(val => (
-                            <MenuItem key={val?._id} value={val?.animal_id}>
-                              {/* {val?.common_name} */}
-                              <Box
+                          {eggDetails?.parent_list?.father_list?.map(item => (
+                            <MenuItem key={item?._id} value={item?.animal_id}>
+                              {/* <Box
                                 sx={{
                                   backgroundColor: theme.palette.customColors.tableHeaderBg,
                                   display: 'flex',
@@ -1137,9 +1309,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                         }
                                       }}
                                       src={val?.default_icon}
-                                      // src={
-                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                      // }
                                     />
                                   </Box>
                                   <Typography
@@ -1165,17 +1334,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  {/* <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
-                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
-                                  </Typography> */}
                                   <Typography
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,
@@ -1216,6 +1374,189 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                     }}
                                   >
                                     {val?.section_name ? val?.section_name : '-'}
+                                  </Typography>
+                                </Box>
+                              </Box> */}
+                              <Box
+                                sx={{
+                                  width: '100%',
+                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                  borderRadius: '8px',
+                                  paddingY: '20px',
+                                  paddingX: '16px',
+                                  border: '1px solid #C3CEC7',
+                                  display: 'flex',
+                                  gap: '10px'
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '10px',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <Avatar
+                                    sx={{
+                                      '& > img': {
+                                        objectFit: item?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
+                                      },
+                                      width: 44,
+                                      height: 44,
+                                      border: '1px solid #C3CEC7'
+                                    }}
+                                    alt={item?.default_icon}
+                                    src={item?.default_icon}
+                                  />
+                                  <Avatar
+                                    sx={{
+                                      width: 24,
+                                      height: 24,
+                                      bgcolor: item?.type === 'group' ? '#00AFD6' : '#AFEFEB',
+                                      objectFit: 'cover'
+                                    }}
+                                    variant='rounded'
+                                  >
+                                    {item?.type === 'group' ? (
+                                      <Typography sx={{ fontSize: 14, color: '#fff' }}>G</Typography>
+                                    ) : item?.sex === 'male' ? (
+                                      <Typography sx={{ fontSize: 14 }}>M</Typography>
+                                    ) : item?.sex === 'female' ? (
+                                      <Typography sx={{ fontSize: 14 }}>F</Typography>
+                                    ) : item?.sex === 'undetermined' ? (
+                                      <Typography sx={{ fontSize: 14 }}>UD</Typography>
+                                    ) : item?.sex === 'indeterminate' ? (
+                                      <Typography sx={{ fontSize: 14 }}>ID</Typography>
+                                    ) : (
+                                      <Typography sx={{ fontSize: 14 }}>-</Typography>
+                                    )}
+                                  </Avatar>
+                                </Box>
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '6px'
+                                  }}
+                                >
+                                  {item?.local_id_type && item?.local_identifier_value && (
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      <span> {item?.local_id_type}: </span>
+                                      <span> {item?.local_identifier_value}</span>
+                                    </Typography>
+                                  )}
+
+                                  <Typography
+                                    sx={{
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: '19.36px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    AID: {item?.animal_id}
+                                  </Typography>
+                                  {item?.breed_name && (
+                                    <Typography
+                                      sx={{
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        lineHeight: '19.36px',
+                                        color: theme.palette.customColors.OnSurfaceVariant
+                                      }}
+                                    >
+                                      Breed: {item?.breed_name}
+                                    </Typography>
+                                  )}
+                                  {item?.morph_name && (
+                                    <Typography
+                                      sx={{
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        lineHeight: '19.36px',
+                                        color: theme.palette.customColors.OnSurfaceVariant
+                                      }}
+                                    >
+                                      Morph: {item?.morph_name}
+                                    </Typography>
+                                  )}
+                                  <Typography
+                                    sx={{
+                                      fontSize: '16px',
+                                      fontWeight: 600,
+                                      lineHeight: '19.36px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.common_name}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '16px',
+                                      fontWeight: 500,
+                                      lineHeight: '19.36px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    {item?.scientific_name}
+                                    {/* {Utility?.toPascalSentenceCase(item?.scientific_name)} */}
+                                  </Typography>
+                                  {item?.type === 'group' && (
+                                    <Typography
+                                      sx={{
+                                        width: '250px',
+                                        paddingY: '4px',
+                                        borderRadius: '5px',
+                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                        textAlign: 'center',
+                                        fontSize: '16px',
+                                        fontWeight: 500,
+                                        lineHeight: '19.36px',
+                                        color: 'black'
+                                      }}
+                                    >
+                                      Count {item?.total_animal}
+                                    </Typography>
+                                  )}
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      lineHeight: '16.94px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600 }}> Encl: </span>
+                                    {item?.user_enclosure_name}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      lineHeight: '16.94px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600 }}>Sec: </span> {item?.section_name}
+                                  </Typography>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '14px',
+                                      fontWeight: 400,
+                                      lineHeight: '16.94px',
+                                      color: theme.palette.customColors.OnSurfaceVariant
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 600 }}>Site: </span>
+                                    {item?.site_name}
                                   </Typography>
                                 </Box>
                               </Box>
