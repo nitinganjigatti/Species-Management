@@ -492,6 +492,7 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', gap: 4 }}>
                   {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
                     <Box
+                      onClick={e => handleOpenShowFile(e, params)}
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -500,7 +501,8 @@ const RequestDetails = () => {
                         bgcolor: 'rgba(0, 0, 0, 0.05)',
                         p: 2,
                         borderRadius: '15px',
-                        width: 50
+                        width: 50,
+                        cursor: 'pointer'
                       }}
                     >
                       <img src='/images/attach_file.png' alt='default icon' style={{ width: 12 }} />
@@ -565,7 +567,18 @@ const RequestDetails = () => {
                   >
                     <>
                       {(permissions?.allow_full_access || permissions?.perform_tests) && (
-                        <Tooltip title='Upload' arrow placement='top-start'>
+                        <Tooltip
+                          title='Upload'
+                          arrow
+                          placement='top-start'
+                          sx={{
+                            bgColor: 'red',
+                            '& .MuiTooltip-tooltip': {
+                              backgroundColor: 'blue', // Set your desired color
+                              color: 'white' // Change text color if needed
+                            }
+                          }}
+                        >
                           <IconButton
                             variant='outlined'
                             size='small'
