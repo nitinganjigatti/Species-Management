@@ -182,8 +182,8 @@ const ListOfRequest = () => {
 
     {
       width: 200,
-      field: 'Action',
-      headerName: 'Action',
+      field: 'Reports',
+      headerName: 'Reports',
 
       // align: 'center',
       sortable: false,
@@ -191,10 +191,21 @@ const ListOfRequest = () => {
       renderCell: params => (
         <>
           {params?.row?.total_attachments > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', p: 1 }}>
-              <Icon icon='et:attachments' fontSize={15} />
-              <Typography variant='body2' sx={{ color: 'text.primary', ml: 1 }}>
-                <span alt={params.row.total_attachments}>{params.row.total_attachments}</span>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                justifyContent: 'center',
+                bgcolor: 'rgba(0, 0, 0, 0.05)',
+                p: 2,
+                borderRadius: '15px',
+                width: 50
+              }}
+            >
+              <img src='/images/attach_file.png' alt='default icon' style={{ width: 12 }} />
+              <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: '15px' }}>
+                {params.row.total_attachments}
               </Typography>
             </Box>
           )}
