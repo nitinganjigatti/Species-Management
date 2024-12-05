@@ -160,17 +160,17 @@ const ListOfPurchase = () => {
     })
   }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
 
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(sort, q, column)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
+  // const searchTableData = useCallback(
+  //   debounce(async (sort, q, column) => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchTableData(sort, q, column)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
 
   const handleEdit = id => {
     Router.push({
@@ -184,28 +184,57 @@ const ListOfPurchase = () => {
   //   searchTableData(sort, value, sortColumn)
   // }
 
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+
+  //     // Reset the page to the first page (page 0 in your `paginationModel`)
+  //     setPaginationModel(prevModel => ({
+  //       ...prevModel,
+  //       page: 0
+  //     }))
+
+  //     // Update the URL query parameters
+  //     router.replace({
+  //       pathname: router.pathname,
+  //       query: {
+  //         ...router.query,
+  //         searchValue: value,
+  //         page: 1 // Update to 1-indexed for the URL
+  //       }
+  //     })
+  //   }, 500),
+  //   [router]
+  // )
+
   const handleSearch = useCallback(
-    debounce(value => {
+    debounce(async value => {
+      // Update the search value state
       setSearchValue(value)
 
-      // Reset the page to the first page (page 0 in your `paginationModel`)
+      // Reset the page to the first page
       setPaginationModel(prevModel => ({
         ...prevModel,
         page: 0
       }))
 
       // Update the URL query parameters
-      router.replace({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          searchValue: value,
-          page: 1 // Update to 1-indexed for the URL
-        }
-      })
-    }, 500),
-    [router]
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            searchValue: value,
+            page: 1 // 1-indexed for user-friendly URL
+          }
+        },
+        undefined,
+        { shallow: true } // Avoid full page reload
+      )
+    })
   )
+
+  // Optionally trigger re-fetching or any side effects if necessary
 
   // Handle page or query param change in URL to update paginationModel state
   useEffect(() => {

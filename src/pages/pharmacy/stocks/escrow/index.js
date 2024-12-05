@@ -256,21 +256,11 @@ function Escrow({ value }) {
       setLoading(false)
     }
   }, [])
-  // useEffect(() => {
-  //   fetchScrewTableData({
-  //     sort,
-  //     searchValue: searchValue,
-  //     column: sortColumn,
-  //     type: stockType,
-  //     page: paginationModel.page,
-  //     pageSize: paginationModel.pageSize
-  //   })
-  // }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
 
   useEffect(() => {
     fetchScrewTableData({
       sort,
-      searchValue, // Pass `searchValue` correctly
+      searchValue,
       column: sortColumn,
       type: stockType,
       page: paginationModel.page,
@@ -282,26 +272,46 @@ function Escrow({ value }) {
     router.replace({
       pathname: router.pathname,
       query: {
-        ...router.query, // Preserve existing query parameters
+        ...router.query,
         stockType,
-        value,
         page: paginationModel.page + 1, // Convert back to 1-indexed
-        pageSize: paginationModel.pageSize, // Include the current limit
+        pageSize: paginationModel.pageSize,
         searchValue,
         sort,
         sortColumn
       }
     })
-  }, [stockType, value, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
+  }, [stockType, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
 
-  const handleSortModel = useCallback(newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+  //     setPaginationModel(prevModel => ({
+  //       ...prevModel,
+  //       page: 0
+  //     }))
 
-      // Reset to the first page (0) on new sort
-    }
-  }, [])
+  //     router.replace({
+  //       pathname: router.pathname,
+  //       query: {
+  //         ...router.query,
+  //         searchValue: value,
+  //         page: 1 // Update to 1-indexed for the URL
+  //       }
+  //     })
+  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+  //   [router]
+  // )
+
+  // const handleSortModel = useCallback(newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+
+  //     // Reset to the first page (0) on new sort
+  //   }
+  // }, [])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -323,18 +333,37 @@ function Escrow({ value }) {
   //   }, 500),
   //   []
   // )
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+
+  //     // Reset to the first page (page 0 in your `paginationModel`)
+  //     setPaginationModel(prevModel => ({
+  //       ...prevModel,
+  //       page: 0
+  //     }))
+
+  //     // Update the URL query parameters
+  //     router.replace({
+  //       pathname: router.pathname,
+  //       query: {
+  //         ...router.query,
+  //         searchValue: value,
+  //         page: 1 // Update to 1-indexed for the URL
+  //       }
+  //     })
+  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+  //   [router]
+  // )
 
   const handleSearch = useCallback(
     debounce(value => {
       setSearchValue(value)
-
-      // Reset the page to the first page (page 0 in your `paginationModel`)
       setPaginationModel(prevModel => ({
         ...prevModel,
         page: 0
       }))
 
-      // Update the URL query parameters
       router.replace({
         pathname: router.pathname,
         query: {
@@ -343,9 +372,17 @@ function Escrow({ value }) {
           page: 1 // Update to 1-indexed for the URL
         }
       })
-    }, 500),
+    }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
     [router]
   )
+
+  const handleSortModel = useCallback(newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) // Reset to the first page
+    }
+  }, [])
 
   const title = (
     <>

@@ -198,19 +198,28 @@ const ReturnRequestList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const currentStatus = filterSwitch === true ? 'completed' : status
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(
-        newModel[0].sort,
-        searchValue,
-        newModel[0].field,
-        currentStatus,
-        filterDates.startDate,
-        filterDates.endDate,
-        filterByStoreId
+      const newSort = newModel[0].sort
+      const newColumn = newModel[0].field
+      const currentStatus = filterSwitch ? 'completed' : status
+
+      setSort(newSort)
+      setSortColumn(newColumn)
+
+      router.replace(
+        {
+          pathname: router.pathname, 
+          query: {
+            ...router.query,
+            sort: newSort,
+            column: newColumn,
+            status: currentStatus
+          }
+        },
+        undefined,
+        { shallow: true }
       )
-    } else {
+
+      fetchTableData(newSort, searchValue, newColumn, filterDates.endDate, filterByStoreId)
     }
   }
 

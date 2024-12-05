@@ -7,6 +7,7 @@ import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
 
 // ** MUI Imports
 
@@ -21,7 +22,6 @@ import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, TextField } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
@@ -36,6 +36,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
+  const router = useRouter()
 
   const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
@@ -57,7 +58,7 @@ const ListOfMedicine = () => {
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
     ) {
-      Router.push({
+      router.push({
         pathname: '/pharmacy/medicine/add-product',
         query: { id: row?.row?.id, action: 'edit' }
       })
@@ -260,13 +261,13 @@ const ListOfMedicine = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState(Router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(Router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState(Router.query.sortColumn || 'name')
+  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(Router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(Router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page, 10) - 1 || 0,
+    pageSize: parseInt(router.query.pageSize, 10) || 10
   })
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState(true)
@@ -371,8 +372,8 @@ const ListOfMedicine = () => {
   }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
 
   useEffect(() => {
-    Router.replace({
-      pathname: Router.pathname,
+    router.replace({
+      pathname: router.pathname,
       query: {
         page: paginationModel.page + 1,
         pageSize: paginationModel.pageSize,
@@ -385,7 +386,7 @@ const ListOfMedicine = () => {
   }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn, statusFilter])
 
   useEffect(() => {
-    const { q, page, pageSize, sort, column, status } = Router.query
+    const { q, page, pageSize, sort, column, status } = router.query
 
     setSearchValue(q || '')
     setSort(sort || 'asc')
@@ -397,18 +398,40 @@ const ListOfMedicine = () => {
     })
   }, [])
 
-  const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
-      setSort(newModel[0].sort)
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
-    } else {
+  // const handleSortModel = async newModel => {
+  //   if (newModel.length > 0) {
+  //     setSort(newModel[0].sort)
+  //     await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+  //   } else {
+  //   }
+  // }
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const newSort = newModel[0].sort
+      const newColumn = newModel[0].field
+      setSort(newSort)
+      setSortColumn(newColumn)
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            sort: newSort,
+            column: newColumn
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+      fetchTableData(newSort, searchValue, newColumn)
     }
   }
 
-  // const handleSearch = async value => {
-  //   setSearchValue(value)
-  //   await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
-  // }
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
+  }
   // const handleSearch = useCallback(
   //   debounce(value => {
   //     setSearchValue(value)
@@ -432,19 +455,19 @@ const ListOfMedicine = () => {
   //   []
   // )
 
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
-      fetchTableData({
-        sort,
-        q: value,
-        column: sortColumn,
-        page: paginationModel.page,
-        pageSize: paginationModel.pageSize
-      })
-    }, 500),
-    [sort, sortColumn, paginationModel]
-  )
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+  //     fetchTableData({
+  //       sort,
+  //       q: value,
+  //       column: sortColumn,
+  //       page: paginationModel.page,
+  //       pageSize: paginationModel.pageSize
+  //     })
+  //   }, 500),
+  //   [sort, sortColumn, paginationModel]
+  // )
 
   const handleStatusFilterChange = newFilter => {
     setStatusFilter(newFilter)
@@ -458,7 +481,7 @@ const ListOfMedicine = () => {
           <AddButtonContained
             title='Add Product'
             action={() => {
-              Router.push('/pharmacy/medicine/add-product')
+              router.push('/pharmacy/medicine/add-product')
             }}
           />
         )}
