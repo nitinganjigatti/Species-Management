@@ -34,24 +34,13 @@ import { callRefreshToken } from 'src/lib/api/auth'
 
 const ListOfRequest = () => {
   const router = useRouter()
-
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
   const [lab, setLab] = React.useState([])
   const authData = useContext(AuthContext)
-
   const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-
-  const [storedData, setStoredData] = useState()
-
   const [stats, setStats] = useState()
-
-  useEffect(() => {
-    const Data = window.localStorage.getItem('userDetails')
-
-    setStoredData(JSON.parse(Data))
-  }, [])
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
@@ -140,7 +129,7 @@ const ListOfRequest = () => {
           {params.row.total_tests_pending > 0 && (
             <Box
               sx={{
-                bgcolor: '#E93353',
+                bgcolor: '#FA6140 ',
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
@@ -157,7 +146,7 @@ const ListOfRequest = () => {
           {params.row.total_tests_inprogress > 0 && (
             <Box
               sx={{
-                bgcolor: '#00AEA4',
+                bgcolor: '#E4B819',
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
@@ -174,7 +163,7 @@ const ListOfRequest = () => {
           {params.row.total_tests_completed > 0 && (
             <Box
               sx={{
-                bgcolor: '#2A9D0D',
+                bgcolor: '#37BD69',
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
@@ -192,10 +181,11 @@ const ListOfRequest = () => {
     },
 
     {
-      width: 220,
+      width: 200,
       field: 'Action',
       headerName: 'Action',
-      align: 'center',
+
+      // align: 'center',
       sortable: false,
 
       renderCell: params => (
@@ -215,11 +205,8 @@ const ListOfRequest = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  const [status, setStatus] = useState()
-
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -249,11 +236,7 @@ const ListOfRequest = () => {
       }
     }
     refreshToken()
-
     setSelectedLab(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-
-    // const options = authData?.userData?.modules?.lab_data?.lab
-    // setLab(options)
   }, [])
 
   const GetLabRequestStatus = async params => {
@@ -314,11 +297,11 @@ const ListOfRequest = () => {
   const fetchData = async params => {
     try {
       setLoading(true)
-
       const response = await GetLabReportById({ params })
-      setTotal(parseInt(response?.data?.total_count))
-      setRows(loadServerRows(paginationModel.page, response?.data?.result))
-      setStatus(response?.data?.stats)
+      if (response?.success) {
+        setTotal(parseInt(response?.data?.total_count))
+        setRows(loadServerRows(paginationModel.page, response?.data?.result))
+      }
 
       setLoading(false)
     } catch (error) {
@@ -330,6 +313,7 @@ const ListOfRequest = () => {
   const handleLabChange = async event => {
     // setSelectedLab(event.target.value)
     write('selectedLAB', event.target.value)
+    setPaginationModel({ page: 0, pageSize: 10 })
     setLabSelected(event.target.value)
     const storedLabData = await readAsync('selectedLAB')
     if (storedLabData) {
@@ -354,6 +338,8 @@ const ListOfRequest = () => {
   }
 
   const handlePaginationModelChange = async () => {
+    if (paginationModel?.page == 0) return
+
     const params = {
       sort,
       q: searchValue,
@@ -364,55 +350,39 @@ const ListOfRequest = () => {
     }
     await fetchData(params)
   }
+
   useEffect(() => {
     handlePaginationModelChange()
-  }, [paginationModel])
+  }, [paginationModel.pageSize, paginationModel.page])
 
   const handleSearch = async value => {
     setSearchValue(value)
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
 
-  const getSlNo = (index, labTestId) => {
-    if (labTestId !== null) {
-      return labTestId + '_' + index
-    }
+  // const getSlNo = (index, labTestId) => {
+  //   if (labTestId !== null) {
+  //     return labTestId + '_' + index
+  //   }
 
-    return 'no_lab_test_id_' + index
-  }
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: getSlNo(index, row.lab_test_id),
-    sl_no: index + 1
-  }))
-
-  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  //   return 'no_lab_test_id_' + index
+  // }
 
   // const indexedRows = rows?.map((row, index) => ({
   //   ...row,
-  //   sl_no: getSlNo(index)
+  //   id: getSlNo(index, row.lab_test_id),
+  //   sl_no: index + 1
   // }))
 
-  // useEffect(() => {
-  //   if (labSelected) {
-  //     const params = { lab_id: labSelected }
-  //     const res = GetLabRequestTestStatusById({ params })
-  //     console.log('res', res)
-  //   }
-  // }, [])
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const onCellClick = params => {
-    handleClickRequestId(params)
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
 
-    // Router.push({
-    //   pathname: `/egg/incubator-rooms/${data?.id}`
-    // })
-  }
   useEffect(() => {
     oldstoredData()
-
-    // setSelectLoader(true)
   }, [])
 
   return (
@@ -485,19 +455,19 @@ const ListOfRequest = () => {
                   Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
 
-                <Box sx={{ border: '1px solid', borderColor: '#E93353', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#E93353', fontSize: '12px' }}>
-                    Pending Test - {stats?.total_tests_pending}
+                <Box sx={{ border: '1px solid', borderColor: '#FA6140', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#FA6140', fontSize: '12px' }}>
+                    Pending Tests - {stats?.total_tests_pending}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#00AEA4', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#00AEA4', fontSize: '12px' }}>
-                    Test in Progress - {stats?.total_tests_inprogress}
+                <Box sx={{ border: '1px solid', borderColor: '#E4B819 ', borderRadius: '15px', px: 3, py: 1 }}>
+                  <Typography sx={{ color: '#E4B819 ', fontSize: '12px' }}>
+                    Tests in Progress - {stats?.total_tests_inprogress}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#2A9D0D', borderRadius: '15px', px: 3, py: 1 }}>
+                <Box sx={{ border: '1px solid', borderColor: '#37BD69', borderRadius: '15px', px: 3, py: 1 }}>
                   <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
-                    Completed Test - {stats?.total_tests_completed}
+                    Completed Tests - {stats?.total_tests_completed}
                   </Typography>
                 </Box>
               </Stack>
@@ -513,20 +483,25 @@ const ListOfRequest = () => {
                 <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
               </>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#E93353'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#FA6140'} />
                 <Typography variant='subtitle1'>Pending</Typography>
               </Box>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#00AEA4'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#E4B819 '} />
                 <Typography variant='subtitle1'>In Progress</Typography>
               </Box>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#2A9D0D'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={'#37BD69'} />
                 <Typography variant='subtitle1'>Completed</Typography>
               </Box>
             </Stack>
 
             <DataGrid
+              sx={{
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
               autoHeight
               pagination
               rows={indexedRows === undefined ? [] : indexedRows}
@@ -541,7 +516,7 @@ const ListOfRequest = () => {
               slots={{ toolbar: ServerSideToolbar }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
-              onCellClick={onCellClick}
+              onCellClick={handleClickRequestId}
               slotProps={{
                 baseButton: {
                   variant: 'outlined'
