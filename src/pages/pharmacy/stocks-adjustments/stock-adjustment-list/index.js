@@ -12,7 +12,7 @@ import { Card, CardHeader, Typography, Grid, Tooltip, TextField } from '@mui/mat
 // ** Icon Imports
 import { Box } from '@mui/material'
 
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
@@ -37,6 +37,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
+  const router = useRouter()
 
   /***** Server side pagination */
 
@@ -49,7 +50,7 @@ const ListOfStockAdjusted = () => {
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('Missing stock')
+  const [status, setStatus] = useState(router.query.status || 'Missing stock')
   const [expandedText, setExpandedText] = useState('')
   const [notesDialog, setNotesDialog] = useState(false)
 
@@ -66,8 +67,18 @@ const ListOfStockAdjusted = () => {
     setTotal(0)
     setSearchValue('')
 
+    // Update status state and URL query
     setStatus(newValue)
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, status: newValue }
+      },
+      undefined,
+      { shallow: true }
+    )
   }
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -112,6 +123,12 @@ const ListOfStockAdjusted = () => {
     fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, status])
+
+  useEffect(() => {
+    if (router.query.status) {
+      setStatus(router.query.status)
+    }
+  }, [router.query.status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -351,7 +368,7 @@ const ListOfStockAdjusted = () => {
     <Grid sx={{ display: 'flex', gap: 2 }}>
       <AddButtonContained
         title='Add Stock Adjustment'
-        action={() => Router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
+        action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
       />
     </Grid>
   )

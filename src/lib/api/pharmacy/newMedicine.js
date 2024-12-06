@@ -9,6 +9,7 @@ export async function addNonExistingProduct(params) {
 }
 
 export async function getNonExistingProductList({ params }) {
+
   console.log('endpoint', `${MEDICINES_STOCK}`)
 
   const response = await axiosGet({ url: `${MEDICINES_STOCK}`, params, pharmacy: true })

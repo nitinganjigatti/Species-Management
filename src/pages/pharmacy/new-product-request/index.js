@@ -288,6 +288,7 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
+     
       try {
         setLoading(true)
 
@@ -350,6 +351,7 @@ export default function NewProductList() {
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column, status }) => {
+      debugger
       setSearchValue(q)
       try {
         await fetchTableData({ sort, q, column, status })
@@ -361,6 +363,7 @@ export default function NewProductList() {
   )
 
   const handleSearch = async value => {
+    debugger
     setSearchValue(value)
     if (value === '') {
       await searchTableData({ sort, q: value, column: 'id', status })
