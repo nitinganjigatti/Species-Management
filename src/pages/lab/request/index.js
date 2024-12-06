@@ -49,19 +49,10 @@ const ListOfRequest = () => {
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
-
-    // write('selectedLAB', labSelected)
-    if (labSelected) {
-      router.push({
-        pathname: `/lab/${id}`,
-        query: { lab_id: labSelected }
-      })
-    } else {
-      router.push({
-        pathname: `/lab/${id}`,
-        query: { lab_id: authData?.userData?.modules?.lab_data?.lab[0]?.lab_id }
-      })
-    }
+    router.push({
+      pathname: `/lab/${id}`,
+      query: { lab_id: params.row.lab_id }
+    })
   }
 
   const columns = [
