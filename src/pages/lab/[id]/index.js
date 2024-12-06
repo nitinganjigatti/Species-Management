@@ -251,7 +251,8 @@ const RequestDetails = () => {
 
       const params = {
         test_id: transferTestId || transferId,
-        lab_id: labId
+        lab_id: labId,
+        show_external_labs: 1
       }
       await GetLabListByTestId({ params: params }).then(res => {
         setLab(res?.data?.result)
