@@ -274,6 +274,7 @@ function Escrow({ value }) {
       query: {
         ...router.query,
         stockType,
+        value,
         page: paginationModel.page + 1, // Convert back to 1-indexed
         pageSize: paginationModel.pageSize,
         searchValue,
@@ -372,7 +373,7 @@ function Escrow({ value }) {
           page: 1 // Update to 1-indexed for the URL
         }
       })
-    }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+    }, 40), // Adjust debounce delay to a reasonable value (e.g., 300ms)
     [router]
   )
 
