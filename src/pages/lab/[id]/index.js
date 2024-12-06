@@ -47,7 +47,9 @@ import {
   FormHelperText,
   Popover,
   Breadcrumbs,
-  Divider
+  Divider,
+  Tooltip,
+  DialogContent
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -62,6 +64,7 @@ import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import AnimalCard from 'src/views/pages/lab/AnimalCard'
+import { borderColor, width } from '@mui/system'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -137,6 +140,7 @@ const RequestDetails = () => {
 
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
+  const [testSampleName, setTestSampleName] = useState('')
 
   // ........... snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -232,14 +236,21 @@ const RequestDetails = () => {
     }
   }
 
-  const handleOpenTransfer = async () => {
+  const handleOpenTransfer = async params => {
+    setTestId(params?.row?.id)
+    setTransferTestId(params?.row?.test_id)
+    const transferId = params?.row?.test_id
+    setTransferStatus(params?.row?.status)
+    setTestName(params?.row?.test_name)
+    setTestSampleName(params?.row?.sample_name)
+
     if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
       setOpenTransfer(true)
 
       // setSelectedLab(params.row)
 
       const params = {
-        test_id: transferTestId,
+        test_id: transferTestId || transferId,
         lab_id: labId
       }
       await GetLabListByTestId({ params: params }).then(res => {
@@ -248,7 +259,6 @@ const RequestDetails = () => {
         // setRows(loadServerRows(paginationModel.page, res?.data?.result))
       })
     }
-    handleClosePopover()
   }
 
   useEffect(() => {
@@ -287,9 +297,9 @@ const RequestDetails = () => {
 
   const openPopover = Boolean(anchorEl)
 
-  const handleOpenUploader = () => {
+  const handleOpenUploader = (e, params) => {
     setOpenUploader(true)
-    handleClosePopover()
+    setTestId(params?.row?.id)
   }
 
   const handleOpenShowFile = (e, params) => {
@@ -312,8 +322,8 @@ const RequestDetails = () => {
     //   )
     // },
     {
-      flex: 0.8,
-      minWidth: 20,
+      // flex: 0.8,
+      width: 300,
       field: 'test_name',
       sortable: false,
       headerName: 'Test Name',
@@ -325,8 +335,8 @@ const RequestDetails = () => {
     },
 
     {
-      flex: 0.4,
-      minWidth: 20,
+      // flex: 0.4,
+      width: 300,
       field: 'sample_name',
       sortable: false,
       headerName: 'Sample',
@@ -338,17 +348,16 @@ const RequestDetails = () => {
     },
 
     {
-      flex: 0.4,
-      minWidth: 20,
+      width: 300,
       field: 'status',
       sortable: false,
       headerName: 'STATUS',
       align: 'center',
       renderCell: params => (
         <>
-          <Box sx={{ minWidth: 120 }}>
+          <Box sx={{ minWidth: 260 }}>
             {permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests ? (
-              <FormControl fullWidth>
+              <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
                   labelId='demo-simple-select-label'
@@ -357,7 +366,8 @@ const RequestDetails = () => {
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
-                    width: 200,
+                    width: 237,
+                    fontSize: '14px',
                     backgroundColor:
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
@@ -366,9 +376,9 @@ const RequestDetails = () => {
                       params.row.status === 'sample_received'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
-                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                        ? '#37BD69' // light green background for completed
                         : params.row.status === 'inprogress'
-                        ? 'rgba(0, 191, 255, 0.1)' // light blue background for in progress
+                        ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
                         : 'rgba(0, 128, 0, 0.1)',
 
                     color:
@@ -381,7 +391,7 @@ const RequestDetails = () => {
                         : params.row.status === 'completed'
                         ? '#37BD69'
                         : params.row.status === 'inprogress'
-                        ? '#00AFD6'
+                        ? '#E4B819 '
                         : '#37BD69',
 
                     borderRadius: '8px',
@@ -396,8 +406,29 @@ const RequestDetails = () => {
                           : params.row.status === 'completed'
                           ? '#37BD69'
                           : params.row.status === 'inprogress'
-                          ? '#00AFD6'
+                          ? '#E4B819'
                           : '#37BD69'
+                    },
+
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      border: '0'
+
+                      // borderColor:
+                      //   params.row.status === 'pending' ||
+                      //   params.row.status === 'transferred' ||
+                      //   params.row.status === 'awaiting_sample' ||
+                      //   params.row.status === 'sample_rejected' ||
+                      //   params.row.status === 'sample_received'
+                      //     ? '#FA6140' // Custom red border for these statuses
+                      //     : params.row.status === 'completed'
+                      //     ? '#37BD69' // Custom green border for completed
+                      //     : params.row.status === 'inprogress'
+                      //     ? '#E4B819' // Custom yellow border for in progress
+                      //     : '#37BD69' // Default green border
+                    },
+
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '0'
                     }
                   }}
                 >
@@ -454,18 +485,49 @@ const RequestDetails = () => {
     ...(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests
       ? [
           {
-            flex: 0.2,
-            minWidth: 20,
-            field: 'Action',
-            headerName: 'Action',
+            // flex: 0.2,
+            width: 300,
+            field: 'References',
+            headerName: 'References',
             sortable: false,
             renderCell: params => (
               <>
-                <Box>
-                  <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
+                <Box sx={{ display: 'flex', gap: 4 }}>
+                  {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
+                    <Box
+                      onClick={e => handleOpenShowFile(e, params)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        justifyContent: 'center',
+                        bgcolor: 'rgba(0, 0, 0, 0.05)',
+                        p: 2,
+                        borderRadius: '15px',
+                        width: 50,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img src='/images/attach_file.png' alt='default icon' style={{ width: 12 }} />
+                      <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: '15px' }}>
+                        {
+                          params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
+                            ? params.row.attachments.images.length + params.row.attachments.docs.length
+                            : params?.row?.attachments?.images?.length > 0
+                            ? params.row.attachments.images.length
+                            : params?.row?.attachments?.docs
+                            ? params.row.attachments.docs.length
+                            : null
+
+                          // params?.row?.attachments?.docs?.length
+                        }
+                      </Typography>
+                    </Box>
+                  ) : null}
+                  {/* <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
                     <Icon icon='charm:menu-kebab' />
-                  </IconButton>
-                  <Popover
+                  </IconButton> */}
+                  {/* <Popover
                     sx={{
                       '& .MuiPaper-root': {
                         minWidth: 140,
@@ -493,48 +555,117 @@ const RequestDetails = () => {
                     {(permissions?.allow_full_access || permissions?.perform_tests) && (
                       <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
                     )}
-                  </Popover>
+                  </Popover> */}
+
+                  <Stack
+                    direction='row'
+                    className='customButton'
+                    spacing={3}
+                    sx={{
+                      ml:
+                        params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0
+                          ? 0
+                          : 16
+                    }}
+                  >
+                    <>
+                      {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                        <Tooltip
+                          title='Upload'
+                          arrow
+                          placement='top-start'
+                          sx={{
+                            bgColor: 'red',
+                            '& .MuiTooltip-tooltip': {
+                              backgroundColor: 'blue', // Set your desired color
+                              color: 'white' // Change text color if needed
+                            }
+                          }}
+                        >
+                          <IconButton
+                            variant='outlined'
+                            size='small'
+                            sx={{
+                              p: 2,
+                              '&:hover': {
+                                backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                              }
+                            }}
+                            onClick={e => handleOpenUploader(e, params)}
+                          >
+                            <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </>
+                    <>
+                      {(permissions?.allow_full_access || permissions?.transfer_tests) && (
+                        <Tooltip title='Transfer' arrow placement='top-start'>
+                          <IconButton
+                            variant='outlined'
+                            size='small'
+                            sx={{
+                              p: 2,
+                              '&:hover': {
+                                backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                              }
+                            }}
+                            onClick={() => handleOpenTransfer(params)}
+                          >
+                            <Icon
+                              icon='mingcute:transfer-3-line'
+                              width='24'
+                              height='24'
+                              color={'rgba(68, 84, 74, 1)'}
+                            />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </>
+                  </Stack>
                 </Box>
               </>
             )
           }
         ]
       : []),
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 10,
+    //   sortable: false,
+
+    //   // field: 'Action',
+    //   // headerName: 'Action',
+
+    //   renderCell: params => (
+    //     <>
+    //       {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
+    //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //           <IconButton onClick={e => handleOpenShowFile(e, params)}>
+    //             <Icon icon='et:attachments' fontSize={15} />
+    //           </IconButton>
+
+    //           <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //             {
+    //               params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
+    //                 ? params.row.attachments.images.length + params.row.attachments.docs.length
+    //                 : params?.row?.attachments?.images?.length > 0
+    //                 ? params.row.attachments.images.length
+    //                 : params?.row?.attachments?.docs
+    //                 ? params.row.attachments.docs.length
+    //                 : null
+
+    //               // params?.row?.attachments?.docs?.length
+    //             }
+    //           </Typography>
+    //         </Box>
+    //       ) : null}
+    //     </>
+    //   )
+    // }
+
     ,
-    {
-      flex: 0.2,
-      minWidth: 10,
-      sortable: false,
-
-      // field: 'Action',
-      // headerName: 'Action',
-
-      renderCell: params => (
-        <>
-          {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton onClick={e => handleOpenShowFile(e, params)}>
-                <Icon icon='et:attachments' fontSize={15} />
-              </IconButton>
-
-              <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                {
-                  params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
-                    ? params.row.attachments.images.length + params.row.attachments.docs.length
-                    : params?.row?.attachments?.images?.length > 0
-                    ? params.row.attachments.images.length
-                    : params?.row?.attachments?.docs
-                    ? params.row.attachments.docs.length
-                    : null
-
-                  // params?.row?.attachments?.docs?.length
-                }
-              </Typography>
-            </Box>
-          ) : null}
-        </>
-      )
-    }
   ]
 
   const handleSortModel = async newModel => {
@@ -687,9 +818,6 @@ const RequestDetails = () => {
       ) : (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>
@@ -765,23 +893,6 @@ const RequestDetails = () => {
                   <Box>
                     <AnimalCard animalDetails={item?.animal_details} />
                   </Box>
-                  {/* <Box gap={2} sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          bgcolor: '#EDEDFF',
-                          display: 'flex',
-                          width: 40,
-                          height: 40,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRadius: '10px'
-                        }}
-                      >
-                        <Icon icon='ion:location-outline' fontSize={25} color={'#37BD69'} />
-                      </Box>
-                    </Box>
-                  </Box> */}
                 </Box>
               </>
             ))}
@@ -795,11 +906,20 @@ const RequestDetails = () => {
           />
 
           <Card sx={{ mt: 5 }}>
-            <CardHeader title='Test Reports' />
+            <CardHeader title='Lab Tests' />
 
             <DataGrid
+              sx={{
+                '& .MuiDataGrid-row:hover .customButton': {
+                  display: 'block'
+                },
+                '& .MuiDataGrid-row .customButton': {
+                  display: 'none'
+                }
+              }}
               autoHeight
               hideFooterPagination
+              hideFooterSelectedRowCount
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
@@ -823,14 +943,38 @@ const RequestDetails = () => {
                 // }
               }}
             />
+          </Card>
+
+          <Card sx={{ mt: 5 }}>
+            <Box sx={{ py: 5, px: 8 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
+                <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
+                <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
+              </Box>
+
+              <Divider />
+            </Box>
+            <Box sx={{ mb: '20px', px: 4 }}>
+              {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
+                <UploadReports
+                  animalID={animanlId}
+                  labTestId={LabRequestId}
+                  medicalRecordId={medicineId}
+                  type='lab_test_request'
+                  id={requestId === null ? '0' : requestId}
+                  handleCloseUploader={setOpenUploader}
+                  setAlertDefaults={setAlertDefaults}
+                  handleClosePopover={handleClosePopover}
+                  fetchRequestDetails={fetchRequestDetails}
+                  buttonText='Submit Reports'
+                />
+              ) : null}
+            </Box>
+
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5 }}>
-                <Divider />
-                <Typography sx={{ fontSize: '20px', py: 2 }}>Lab Reports</Typography>
-                <Divider />
-
-                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+              <Box sx={{ px: 8, mb: 8 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
                       image={image}
@@ -850,14 +994,22 @@ const RequestDetails = () => {
                 </Box>
               </Box>
             ) : null}
-            {(medicalDocument || medicalImage) && (
-              <Box sx={{ px: 5, mb: 3, mt: 5 }}>
-                <Divider />
-                <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Reports</Typography>
+
+            {/* allow user Only if user hand upload permissions */}
+          </Card>
+
+          {(medicalDocument || medicalImage) && (
+            <Card sx={{ mt: 5 }}>
+              <Box sx={{ px: 5, mb: 10, mt: 5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
+
+                  <Typography sx={{ fontSize: '20px', py: 2, fontWeight: 500 }}> Medical Report Attachments</Typography>
+                </Box>
                 <Divider />
 
                 <>
-                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: '16px' }}>
                     {medicalImage && (
                       <CommonMediaView
                         image={medicalImage}
@@ -881,24 +1033,8 @@ const RequestDetails = () => {
 
                 <></>
               </Box>
-            )}
-
-            {/* allow user Only if user hand upload permissions */}
-
-            {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
-              <UploadReports
-                animalID={animanlId}
-                labTestId={LabRequestId}
-                medicalRecordId={medicineId}
-                type='lab_test_request'
-                id={requestId === null ? '0' : requestId}
-                handleCloseUploader={setOpenUploader}
-                setAlertDefaults={setAlertDefaults}
-                handleClosePopover={handleClosePopover}
-                fetchRequestDetails={fetchRequestDetails}
-              />
-            ) : null}
-          </Card>
+            </Card>
+          )}
         </>
       )}
 
@@ -1019,131 +1155,175 @@ const RequestDetails = () => {
       </>
 
       <>
-        <Dialog open={openTransfer} onClose={handleCloseTransfer}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 4,
-              pt: 2,
-              pb: 2,
-              bgcolor: '#e8f4f2'
-            }}
-          >
-            <Typography variant='h6'>Transfer test to another lab</Typography>
-            <IconButton onClick={handleCloseTransfer}>
-              <Icon icon='ic:baseline-close' fontSize={20} color={'red'} />
-            </IconButton>
-          </Box>
-          <Box sx={{ px: 5, pb: 5, minWidth: 500 }}>
-            <Box>
-              <Box sx={{ py: 4 }}>
-                <Typography>
-                  Test name -{' '}
-                  <span style={{ color: '#37BD69', fontWeight: 'bold', textTransform: 'capitalize' }}>{testName}</span>
-                </Typography>
-                <Typography>
-                  Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.request_id}</span>
-                </Typography>
-                <Typography>
-                  Site- <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.site_name}</span>
-                </Typography>
+        <Dialog open={openTransfer} onClose={handleCloseTransfer} maxWidth='md' fullWidth sx={{ bgColor: '#FFFFFF' }}>
+          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pb: 1
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Icon icon='mingcute:transfer-3-line' width='24' height='24' color='#44544A' />
+                <Typography sx={{ fontSize: '20px', color: '#44544A', fontWeight: 500 }}>Lab Test Transfer</Typography>
               </Box>
-
+              <IconButton onClick={handleCloseTransfer}>
+                <Icon icon='ic:baseline-close' fontSize={24} color={'#44544A'} />
+              </IconButton>
+            </Box>
+            <Divider />
+            <Box
+              sx={{
+                bgcolor: 'rgba(0, 0, 0, 0.05)',
+                p: 5,
+                px: 8,
+                mt: 4,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderRadius: '8px'
+              }}
+            >
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName ? testName : '-'}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
+                  {testSampleName ? testSampleName : '-'}
+                </Typography>
+              </Box>{' '}
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Site : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.site_name || '-'}</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
-                <Grid item xs={12} md={6} sm={6} sx={{ mb: 2 }}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='lab_name'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={request[0]?.lab_name}
-                          disabled
-                          label='Transfer From*'
-                          name='lab_name'
-                          error={Boolean(errors.lab_name)}
-                          onChange={onChange}
-                          InputProps={{ readOnly: true }}
-                          placeholder=''
-                        />
-                      )}
-                    />
-                    {errors.lab_name && (
-                      <FormHelperText
+                <Grid container spacing={4}>
+                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='lab_name'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={request[0]?.lab_name}
+                            disabled
+                            label='Transfer From*'
+                            name='lab_name'
+                            error={Boolean(errors.lab_name)}
+                            onChange={onChange}
+                            InputProps={{ readOnly: true }}
+                            placeholder=''
+                          />
+                        )}
+                      />
+                      {errors.lab_name && (
+                        <FormHelperText
 
-                      //  sx={{ color: 'error.main' }}
-                      >
-                        {errors?.lab_name?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
-                      Transfer To
-                    </InputLabel>
-                    <Controller
-                      name='replaced_lab_id'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='replaced_lab_id'
-                          value={value}
-                          label='Transfer To*'
-                          onChange={e => {
-                            onChange(e.target.value)
-
-                            // setLabType(e.target.value)
-                          }}
-                          error={Boolean(errors?.replaced_lab_id)}
-                          labelId='replaced_lab_id'
+                        //  sx={{ color: 'error.main' }}
                         >
-                          {lab?.map(item => (
-                            <MenuItem key={item?.lab_id} value={item?.lab_id}>
-                              {item?.lab_name}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                          {errors?.lab_name?.message}
+                        </FormHelperText>
                       )}
-                    />
-                    {errors?.replaced_lab_id && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.replaced_lab_id?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
-                  <FormControl fullWidth mt={2}>
-                    <Controller
-                      name='transfer_reason'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={value}
-                          label='Transfer Reason'
-                          name='transfer_reason'
-                          error={Boolean(errors.transfer_reason)}
-                          onChange={onChange}
-                          placeholder='Add transfer reason'
-                        />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                    <FormControl fullWidth>
+                      <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
+                        Transfer To
+                      </InputLabel>
+                      <Controller
+                        name='replaced_lab_id'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='replaced_lab_id'
+                            value={value}
+                            label='Transfer To*'
+                            onChange={e => {
+                              onChange(e.target.value)
+
+                              // setLabType(e.target.value)
+                            }}
+                            error={Boolean(errors?.replaced_lab_id)}
+                            labelId='replaced_lab_id'
+                          >
+                            {lab?.length > 0 ? (
+                              lab.map(item => (
+                                <MenuItem key={item?.lab_id} value={item?.lab_id}>
+                                  {item?.lab_name}
+                                </MenuItem>
+                              ))
+                            ) : (
+                              <MenuItem disabled value=''>
+                                No labs to transfer
+                              </MenuItem>
+                            )}
+                          </Select>
+                        )}
+                      />
+                      {errors?.replaced_lab_id && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.replaced_lab_id?.message}</FormHelperText>
                       )}
-                    />
-                    {errors.transfer_reason && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.transfer_reason?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                    <FormControl fullWidth mt={2}>
+                      <Controller
+                        name='transfer_reason'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={value}
+                            label='Transfer Reason'
+                            name='transfer_reason'
+                            error={Boolean(errors.transfer_reason)}
+                            onChange={onChange}
+                            placeholder='Add transfer reason'
+                          />
+                        )}
+                      />
+                      {errors.transfer_reason && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.transfer_reason?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
                 </Grid>
-                <Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 4,
+                    mt: 10,
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end' // Align buttons to the right
+                  }}
+                >
+                  <LoadingButton
+                    onClick={handleCloseTransfer}
+                    variant='outlined'
+                    size='large'
+                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+                  >
+                    Cancel
+                  </LoadingButton>
+
                   <LoadingButton
                     onClick={handleSubmitData}
                     type='submit'
                     variant='contained'
-                    sx={{ bgcolor: '#1F515B' }}
+                    size='large'
                     disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     CONFIRM
@@ -1151,29 +1331,46 @@ const RequestDetails = () => {
                 </Box>
               </form>
             </Box>
-          </Box>
+          </DialogContent>
         </Dialog>
       </>
       <>
-        <Dialog open={openUploader} onClose={() => setOpenUploader(false)} fullWidth maxWidth='sm'>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton onClick={() => setOpenUploader(false)}>
-              <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-            </IconButton>
-          </Box>
-          <Box sx={{ height: 'auto' }}>
+        <Dialog
+          open={openUploader}
+          onClose={() => setOpenUploader(false)}
+          fullWidth
+          maxWidth='md'
+          sx={{
+            '& .MuiPaper-root': {
+              minHeight: '200px' // Set your desired min-height here
+            }
+          }}
+        >
+          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 5, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <Icon icon='lucide:upload' fontSize={25} color={'#44544A'} />
+                <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
+              </Box>
+
+              <IconButton onClick={() => setOpenUploader(false)} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Icon icon='ic:baseline-close' fontSize={25} color={'#44544A'} />
+              </IconButton>
+            </Box>
+            <Divider sx={{ mx: 5 }} />
             <UploadReports
               animalID={animanlId}
               labTestId={LabRequestId}
               medicalRecordId={medicineId}
               type='lab_test'
               id={testId}
-              handleCloseUploader={setOpenUploader}
+              handleCloseUploader={() => setOpenUploader(false)}
               setAlertDefaults={setAlertDefaults}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
+              buttonText='Upload'
             />
-          </Box>
+          </DialogContent>
         </Dialog>
       </>
       <>
