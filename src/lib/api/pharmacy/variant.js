@@ -15,7 +15,7 @@ export async function addVariant(payload) {
 
   return response?.data
 }
-
+//  list
 export async function getVariants({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_MASTER_BASE_URL}${VARIANTS}/list`, params: params })
 
@@ -48,7 +48,7 @@ export async function updateVariant(id, payload) {
     return error
   }
 }
-
+/// add
 export async function mapVariantForProduct(payload) {
   const url = `${PHARMACY_BASE_URL}${MEDICINE}/${VARIANTS_MAPPING}`
   var data = payload

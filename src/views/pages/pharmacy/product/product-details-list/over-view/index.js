@@ -429,7 +429,7 @@ const Overview = ({ productDetails }) => {
             description={card.description}
             icon={card.icon}
             bgColor={card.bgColor}
-            onClick={() => onClick(card.id)}
+            onClick={() => openDrawer(card.id)}
             showIcon={true}
           />
         ))}
@@ -687,26 +687,42 @@ const Overview = ({ productDetails }) => {
                     </Typography>
                   </Box>
                   <List dense>
-                    {productDetails?.safety_advice?.split(',').map((advice, index) => {
-                      const trimmedAdvice = advice.trim()
-                      if (!trimmedAdvice) return null
+                    {productDetails?.safety_advice ? (
+                      productDetails.safety_advice.split(',').map((advice, index) => {
+                        const trimmedAdvice = advice.trim()
+                        if (!trimmedAdvice) return null
 
-                      return (
-                        <ListItem key={index}>
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              color: 'customColors.customHeadingTextColor',
-                              fontSize: '15px',
-                              fontWeight: 500,
-                              ml: 3
-                            }}
-                          >
-                            {`${index + 1}. ${trimmedAdvice}`}
-                          </Typography>
-                        </ListItem>
-                      )
-                    })}
+                        return (
+                          <ListItem key={index}>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'customColors.customHeadingTextColor',
+                                fontSize: '15px',
+                                fontWeight: 500,
+                                ml: 3
+                              }}
+                            >
+                              {`${index + 1}. ${trimmedAdvice}`}
+                            </Typography>
+                          </ListItem>
+                        )
+                      })
+                    ) : (
+                      <ListItem>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '15px',
+                            fontWeight: 500,
+                            ml: 3
+                          }}
+                        >
+                          NA
+                        </Typography>
+                      </ListItem>
+                    )}
                   </List>
                 </Box>
               </CardContent>
