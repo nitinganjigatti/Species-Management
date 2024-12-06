@@ -818,9 +818,6 @@ const RequestDetails = () => {
       ) : (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>
@@ -896,23 +893,6 @@ const RequestDetails = () => {
                   <Box>
                     <AnimalCard animalDetails={item?.animal_details} />
                   </Box>
-                  {/* <Box gap={2} sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          bgcolor: '#EDEDFF',
-                          display: 'flex',
-                          width: 40,
-                          height: 40,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRadius: '10px'
-                        }}
-                      >
-                        <Icon icon='ion:location-outline' fontSize={25} color={'#37BD69'} />
-                      </Box>
-                    </Box>
-                  </Box> */}
                 </Box>
               </>
             ))}
@@ -966,15 +946,15 @@ const RequestDetails = () => {
           </Card>
 
           <Card sx={{ mt: 5 }}>
-            <Box sx={{ py: 5, px: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 2 }}>
+            <Box sx={{ py: 5, px: 8 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
                 <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
                 <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
               </Box>
 
               <Divider />
             </Box>
-            <Box sx={{ mb: '20px' }}>
+            <Box sx={{ mb: '20px', px: 4 }}>
               {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
                 <UploadReports
                   animalID={animanlId}
@@ -993,7 +973,7 @@ const RequestDetails = () => {
 
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5, mb: 5 }}>
+              <Box sx={{ px: 8, mb: 8 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
@@ -1020,7 +1000,7 @@ const RequestDetails = () => {
 
           {(medicalDocument || medicalImage) && (
             <Card sx={{ mt: 5 }}>
-              <Box sx={{ px: 5, mb: 5, mt: 5 }}>
+              <Box sx={{ px: 5, mb: 10, mt: 5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
 
@@ -1029,7 +1009,7 @@ const RequestDetails = () => {
                 <Divider />
 
                 <>
-                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: 5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: '16px' }}>
                     {medicalImage && (
                       <CommonMediaView
                         image={medicalImage}
@@ -1367,7 +1347,7 @@ const RequestDetails = () => {
           }}
         >
           <DialogContent sx={{ bgcolor: '#ffffff' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 5, mb: 2 }}>
               <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <Icon icon='lucide:upload' fontSize={25} color={'#44544A'} />
                 <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
@@ -1377,7 +1357,7 @@ const RequestDetails = () => {
                 <Icon icon='ic:baseline-close' fontSize={25} color={'#44544A'} />
               </IconButton>
             </Box>
-            <Divider />
+            <Divider sx={{ mx: 5 }} />
             <UploadReports
               animalID={animanlId}
               labTestId={LabRequestId}
