@@ -48,7 +48,8 @@ import {
   Popover,
   Breadcrumbs,
   Divider,
-  Tooltip
+  Tooltip,
+  DialogContent
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -139,6 +140,7 @@ const RequestDetails = () => {
 
   const [fileId, setFileId] = useState()
   const [testName, setTestName] = useState()
+  const [testSampleName, setTestSampleName] = useState('')
 
   // ........... snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -240,6 +242,7 @@ const RequestDetails = () => {
     const transferId = params?.row?.test_id
     setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
+    setTestSampleName(params?.row?.sample_name)
 
     if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
       setOpenTransfer(true)
@@ -1159,131 +1162,175 @@ const RequestDetails = () => {
       </>
 
       <>
-        <Dialog open={openTransfer} onClose={handleCloseTransfer}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 4,
-              pt: 2,
-              pb: 2,
-              bgcolor: '#e8f4f2'
-            }}
-          >
-            <Typography variant='h6'>Transfer test to another lab</Typography>
-            <IconButton onClick={handleCloseTransfer}>
-              <Icon icon='ic:baseline-close' fontSize={20} color={'red'} />
-            </IconButton>
-          </Box>
-          <Box sx={{ px: 5, pb: 5, minWidth: 500 }}>
-            <Box>
-              <Box sx={{ py: 4 }}>
-                <Typography>
-                  Test name -{' '}
-                  <span style={{ color: '#37BD69', fontWeight: 'bold', textTransform: 'capitalize' }}>{testName}</span>
-                </Typography>
-                <Typography>
-                  Request - <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.request_id}</span>
-                </Typography>
-                <Typography>
-                  Site- <span style={{ fontSize: 15, fontWeight: 'bold' }}>{request[0]?.site_name}</span>
-                </Typography>
+        <Dialog open={openTransfer} onClose={handleCloseTransfer} maxWidth='md' fullWidth sx={{ bgColor: '#FFFFFF' }}>
+          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pb: 1
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Icon icon='mingcute:transfer-3-line' width='24' height='24' color='#44544A' />
+                <Typography sx={{ fontSize: '20px', color: '#44544A', fontWeight: 500 }}>Lab Test Transfer</Typography>
               </Box>
-
+              <IconButton onClick={handleCloseTransfer}>
+                <Icon icon='ic:baseline-close' fontSize={24} color={'#44544A'} />
+              </IconButton>
+            </Box>
+            <Divider />
+            <Box
+              sx={{
+                bgcolor: 'rgba(0, 0, 0, 0.05)',
+                p: 5,
+                px: 8,
+                mt: 4,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderRadius: '8px'
+              }}
+            >
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName ? testName : '-'}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
+                  {testSampleName ? testSampleName : '-'}
+                </Typography>
+              </Box>{' '}
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                <Typography sx={{ fontSize: '14px' }}>Site : </Typography>
+                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.site_name || '-'}</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
-                <Grid item xs={12} md={6} sm={6} sx={{ mb: 2 }}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name='lab_name'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={request[0]?.lab_name}
-                          disabled
-                          label='Transfer From*'
-                          name='lab_name'
-                          error={Boolean(errors.lab_name)}
-                          onChange={onChange}
-                          InputProps={{ readOnly: true }}
-                          placeholder=''
-                        />
-                      )}
-                    />
-                    {errors.lab_name && (
-                      <FormHelperText
+                <Grid container spacing={4}>
+                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='lab_name'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={request[0]?.lab_name}
+                            disabled
+                            label='Transfer From*'
+                            name='lab_name'
+                            error={Boolean(errors.lab_name)}
+                            onChange={onChange}
+                            InputProps={{ readOnly: true }}
+                            placeholder=''
+                          />
+                        )}
+                      />
+                      {errors.lab_name && (
+                        <FormHelperText
 
-                      //  sx={{ color: 'error.main' }}
-                      >
-                        {errors?.lab_name?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
-                  <FormControl fullWidth>
-                    <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
-                      Transfer To
-                    </InputLabel>
-                    <Controller
-                      name='replaced_lab_id'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='replaced_lab_id'
-                          value={value}
-                          label='Transfer To*'
-                          onChange={e => {
-                            onChange(e.target.value)
-
-                            // setLabType(e.target.value)
-                          }}
-                          error={Boolean(errors?.replaced_lab_id)}
-                          labelId='replaced_lab_id'
+                        //  sx={{ color: 'error.main' }}
                         >
-                          {lab?.map(item => (
-                            <MenuItem key={item?.lab_id} value={item?.lab_id}>
-                              {item?.lab_name}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                          {errors?.lab_name?.message}
+                        </FormHelperText>
                       )}
-                    />
-                    {errors?.replaced_lab_id && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.replaced_lab_id?.message}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6} sm={6} sx={{ mt: 2, mb: 2 }}>
-                  <FormControl fullWidth mt={2}>
-                    <Controller
-                      name='transfer_reason'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={value}
-                          label='Transfer Reason'
-                          name='transfer_reason'
-                          error={Boolean(errors.transfer_reason)}
-                          onChange={onChange}
-                          placeholder='Add transfer reason'
-                        />
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                    <FormControl fullWidth>
+                      <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
+                        Transfer To
+                      </InputLabel>
+                      <Controller
+                        name='replaced_lab_id'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='replaced_lab_id'
+                            value={value}
+                            label='Transfer To*'
+                            onChange={e => {
+                              onChange(e.target.value)
+
+                              // setLabType(e.target.value)
+                            }}
+                            error={Boolean(errors?.replaced_lab_id)}
+                            labelId='replaced_lab_id'
+                          >
+                            {lab?.length > 0 ? (
+                              lab.map(item => (
+                                <MenuItem key={item?.lab_id} value={item?.lab_id}>
+                                  {item?.lab_name}
+                                </MenuItem>
+                              ))
+                            ) : (
+                              <MenuItem disabled value=''>
+                                No labs to transfer
+                              </MenuItem>
+                            )}
+                          </Select>
+                        )}
+                      />
+                      {errors?.replaced_lab_id && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.replaced_lab_id?.message}</FormHelperText>
                       )}
-                    />
-                    {errors.transfer_reason && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.transfer_reason?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                    <FormControl fullWidth mt={2}>
+                      <Controller
+                        name='transfer_reason'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={value}
+                            label='Transfer Reason'
+                            name='transfer_reason'
+                            error={Boolean(errors.transfer_reason)}
+                            onChange={onChange}
+                            placeholder='Add transfer reason'
+                          />
+                        )}
+                      />
+                      {errors.transfer_reason && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.transfer_reason?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
                 </Grid>
-                <Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 4,
+                    mt: 10,
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end' // Align buttons to the right
+                  }}
+                >
+                  <LoadingButton
+                    onClick={handleCloseTransfer}
+                    variant='outlined'
+                    size='large'
+                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+                  >
+                    Cancel
+                  </LoadingButton>
+
                   <LoadingButton
                     onClick={handleSubmitData}
                     type='submit'
                     variant='contained'
-                    sx={{ bgcolor: '#1F515B' }}
+                    size='large'
                     disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     CONFIRM
@@ -1291,7 +1338,7 @@ const RequestDetails = () => {
                 </Box>
               </form>
             </Box>
-          </Box>
+          </DialogContent>
         </Dialog>
       </>
       <>
