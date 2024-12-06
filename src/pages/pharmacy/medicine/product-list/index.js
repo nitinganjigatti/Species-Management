@@ -66,7 +66,7 @@ const ListOfMedicine = () => {
   }
 
   const handleRowClick = params => {
-    Router.push({
+    router.push({
       pathname: `/pharmacy/medicine/${params.row?.id}`
     })
   }
@@ -418,13 +418,14 @@ const ListOfMedicine = () => {
           query: {
             ...router.query,
             sort: newSort,
-            column: newColumn
+            column: newColumn,
+            status: statusFilter
           }
         },
         undefined,
         { shallow: true }
       )
-      fetchTableData(newSort, searchValue, newColumn)
+      fetchTableData(newSort, searchValue, newColumn, statusFilter)
     }
   }
 

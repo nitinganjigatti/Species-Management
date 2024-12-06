@@ -267,12 +267,11 @@ function Dispense() {
           // page: 1, // Update to 1-indexed for the URL
         }
       })
-    }, 500),
+    }, 50),
     [router]
   )
 
   const handleSortModel = newModel => {
-
     if (newModel.length) {
       const newSort = newModel[0].sort // This will give 'asc' or 'desc'
       const newColumn = newModel[0].field // This is the field by which you're sorting

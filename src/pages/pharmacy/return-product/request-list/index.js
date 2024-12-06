@@ -207,7 +207,7 @@ const ReturnRequestList = () => {
 
       router.replace(
         {
-          pathname: router.pathname, 
+          pathname: router.pathname,
           query: {
             ...router.query,
             sort: newSort,
@@ -219,7 +219,7 @@ const ReturnRequestList = () => {
         { shallow: true }
       )
 
-      fetchTableData(newSort, searchValue, newColumn, filterDates.endDate, filterByStoreId)
+      fetchTableData(newSort, searchValue, newColumn, status, filterDates.endDate, filterByStoreId)
     }
   }
 

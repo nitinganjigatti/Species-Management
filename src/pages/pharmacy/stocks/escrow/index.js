@@ -27,7 +27,7 @@ function Escrow({ value }) {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   // const [searchValue, setSearchValue] = useState('')
-  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [searchValue, setSearchValue] = useState(router.query.searchValue || '') 
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
   const [paginationModel, setPaginationModel] = useState({
