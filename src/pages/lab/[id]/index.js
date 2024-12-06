@@ -967,10 +967,14 @@ const RequestDetails = () => {
 
           <Card sx={{ mt: 5 }}>
             <Box sx={{ py: 5, px: 4 }}>
-              <Typography sx={{ fontSize: 20, mb: 2 }}>Lab Attachments</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 2 }}>
+                <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
+                <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
+              </Box>
+
               <Divider />
             </Box>
-            <Box>
+            <Box sx={{ mb: '20px' }}>
               {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
                 <UploadReports
                   animalID={animanlId}
@@ -982,13 +986,14 @@ const RequestDetails = () => {
                   setAlertDefaults={setAlertDefaults}
                   handleClosePopover={handleClosePopover}
                   fetchRequestDetails={fetchRequestDetails}
+                  buttonText='Submit Reports'
                 />
               ) : null}
             </Box>
 
             {/* image or Doc View */}
             {image || document ? (
-              <Box sx={{ px: 5 }}>
+              <Box sx={{ px: 5, mb: 5 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
@@ -1009,9 +1014,18 @@ const RequestDetails = () => {
                 </Box>
               </Box>
             ) : null}
-            {(medicalDocument || medicalImage) && (
-              <Box sx={{ px: 5, mb: 3, mt: 5 }}>
-                <Typography sx={{ fontSize: '20px', py: 2 }}> Medical Report Attachments</Typography>
+
+            {/* allow user Only if user hand upload permissions */}
+          </Card>
+
+          {(medicalDocument || medicalImage) && (
+            <Card sx={{ mt: 5 }}>
+              <Box sx={{ px: 5, mb: 5, mt: 5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
+
+                  <Typography sx={{ fontSize: '20px', py: 2, fontWeight: 500 }}> Medical Report Attachments</Typography>
+                </Box>
                 <Divider />
 
                 <>
@@ -1039,9 +1053,8 @@ const RequestDetails = () => {
 
                 <></>
               </Box>
-            )}
-            {/* allow user Only if user hand upload permissions */}
-          </Card>
+            </Card>
+          )}
         </>
       )}
 
@@ -1342,13 +1355,29 @@ const RequestDetails = () => {
         </Dialog>
       </>
       <>
-        <Dialog open={openUploader} onClose={() => setOpenUploader(false)} fullWidth maxWidth='sm'>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton onClick={() => setOpenUploader(false)}>
-              <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
-            </IconButton>
-          </Box>
-          <Box sx={{ height: 'auto' }}>
+        <Dialog
+          open={openUploader}
+          onClose={() => setOpenUploader(false)}
+          fullWidth
+          maxWidth='md'
+          sx={{
+            '& .MuiPaper-root': {
+              minHeight: '200px' // Set your desired min-height here
+            }
+          }}
+        >
+          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <Icon icon='lucide:upload' fontSize={25} color={'#44544A'} />
+                <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
+              </Box>
+
+              <IconButton onClick={() => setOpenUploader(false)} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Icon icon='ic:baseline-close' fontSize={25} color={'#44544A'} />
+              </IconButton>
+            </Box>
+            <Divider />
             <UploadReports
               animalID={animanlId}
               labTestId={LabRequestId}
@@ -1359,8 +1388,9 @@ const RequestDetails = () => {
               setAlertDefaults={setAlertDefaults}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
+              buttonText='Upload'
             />
-          </Box>
+          </DialogContent>
         </Dialog>
       </>
       <>
