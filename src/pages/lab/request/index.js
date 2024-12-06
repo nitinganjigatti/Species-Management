@@ -267,7 +267,7 @@ const ListOfRequest = () => {
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
 
-    // setLabSelected(Data)
+    setLabSelected(Data)
     if (Data) {
       const labList = authData?.userData?.modules?.lab_data?.lab
       const firstLab = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
