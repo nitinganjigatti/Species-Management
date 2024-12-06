@@ -30,16 +30,21 @@ import { AuthContext } from 'src/context/AuthContext'
 import { readAsync, write, remove } from 'src/lib/windows/utils'
 
 import moment from 'moment'
-import { callRefreshToken } from 'src/lib/api/auth'
+
+// import { callRefreshToken } from 'src/lib/api/auth'
 
 const ListOfRequest = () => {
   const router = useRouter()
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
-  const [lab, setLab] = React.useState([])
+
   const authData = useContext(AuthContext)
-  const [selectedLab, setSelectedLab] = useState(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
+  const [lab, setLab] = useState(authData?.userData?.modules?.lab_data?.lab)
+
+  const [selectedLab, setSelectedLab] = useState(
+    authData?.userData?.modules?.lab_data?.lab.length > 0 ? authData?.userData?.modules?.lab_data?.lab[0]?.lab_id : null
+  )
   const [stats, setStats] = useState()
 
   const handleClickRequestId = params => {
@@ -239,16 +244,16 @@ const ListOfRequest = () => {
     []
   )
 
-  useEffect(() => {
-    const refreshToken = async () => {
-      const res = await callRefreshToken()
-      if (res?.success) {
-        setLab(res?.modules?.lab_data?.lab)
-      }
-    }
-    refreshToken()
-    setSelectedLab(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
-  }, [])
+  // useEffect(() => {
+  // const refreshToken = async () => {
+  //   const res = await callRefreshToken()
+  //   if (res?.success) {
+  //     setLab(res?.modules?.lab_data?.lab)
+  //   }
+  // }
+  // refreshToken()
+  // setSelectedLab(authData?.userData?.modules?.lab_data?.lab[0]?.lab_id)
+  // }, [])
 
   const GetLabRequestStatus = async params => {
     try {
@@ -262,22 +267,30 @@ const ListOfRequest = () => {
   const oldstoredData = async () => {
     const Data = await readAsync('selectedLAB')
 
-    setLabSelected(Data)
+    // setLabSelected(Data)
     if (Data) {
-      setSelectedLab(Data)
+      const labList = authData?.userData?.modules?.lab_data?.lab
+      const firstLab = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
+      const labExists = labList.some(lab => lab.lab_id === Data)
 
-      const params = {
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        page: paginationModel.page + 1,
-        limit: paginationModel.pageSize,
-        lab_id: Data
+      if (labExists) {
+        setSelectedLab(Data)
+
+        const params = {
+          sort,
+          q: searchValue,
+          column: sortColumn,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          lab_id: Data
+        }
+        const params2 = { lab_id: Data }
+        GetLabRequestStatus(params2)
+        fetchData(params)
+        setSelectLoader(false)
+      } else {
+        handleLabChange(firstLab)
       }
-      const params2 = { lab_id: Data }
-      GetLabRequestStatus(params2)
-      fetchData(params)
-      setSelectLoader(false)
     } else {
       const data = authData?.userData?.modules?.lab_data?.lab[0]?.lab_id
 
@@ -305,7 +318,23 @@ const ListOfRequest = () => {
     }
   }
 
-  const fetchData = async params => {
+  // const fetchData = async params => {
+  //   try {
+  //     setLoading(true)
+  //     const response = await GetLabReportById({ params })
+  //     if (response?.success) {
+  //       setTotal(parseInt(response?.data?.total_count))
+  //       setRows(loadServerRows(paginationModel.page, response?.data?.result))
+  //     }
+
+  //     setLoading(false)
+  //   } catch (error) {
+  //     console.error(error)
+  //     setLoading(false)
+  //   }
+  // }
+
+  const fetchData = useCallback(async params => {
     try {
       setLoading(true)
       const response = await GetLabReportById({ params })
@@ -319,20 +348,20 @@ const ListOfRequest = () => {
       console.error(error)
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleLabChange = async event => {
+  const handleLabChange = async value => {
     // setSelectedLab(event.target.value)
-    write('selectedLAB', event.target.value)
+    write('selectedLAB', value)
     setPaginationModel({ page: 0, pageSize: 10 })
-    setLabSelected(event.target.value)
+    setLabSelected(value)
     const storedLabData = await readAsync('selectedLAB')
     if (storedLabData) {
-      setSelectedLab(event.target.value)
+      setSelectedLab(value)
 
       // remove('selectedLAB')
     } else {
-      setSelectedLab(event.target.value)
+      setSelectedLab(value)
     }
 
     const params = {
@@ -341,30 +370,32 @@ const ListOfRequest = () => {
       column: sortColumn,
       page: paginationModel.page + 1,
       limit: paginationModel.pageSize,
-      lab_id: event.target.value
+      lab_id: value
     }
     await fetchData(params)
-    const params2 = { lab_id: event.target.value }
+    const params2 = { lab_id: value }
     GetLabRequestStatus(params2)
   }
 
-  const handlePaginationModelChange = async () => {
-    if (paginationModel?.page == 0) return
-
+  const handlePaginationModelChange = async data => {
+    // if (paginationModel?.page == 0) return
     const params = {
       sort,
       q: searchValue,
       column: sortColumn,
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
+      page: data.page + 1,
+      limit: data.pageSize,
       lab_id: selectedLab
     }
+
+    setPaginationModel(data)
+
     await fetchData(params)
   }
 
-  useEffect(() => {
-    handlePaginationModelChange()
-  }, [paginationModel.pageSize, paginationModel.page])
+  // useEffect(() => {
+  //   handlePaginationModelChange()
+  // }, [paginationModel])
 
   const handleSearch = async value => {
     setSearchValue(value)
@@ -431,7 +462,7 @@ const ListOfRequest = () => {
                       id='lab-select'
                       value={selectedLab}
                       label='All Labs'
-                      onChange={handleLabChange}
+                      onChange={event => handleLabChange(event.target.value)}
                       sx={{ fontWeight: 'bold', borderRadius: '5px' }}
                     >
                       {lab?.map((item, index) => (
@@ -525,7 +556,8 @@ const ListOfRequest = () => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}
-              onPaginationModelChange={setPaginationModel}
+              // onPaginationModelChange={setPaginationModel}
+              onPaginationModelChange={handlePaginationModelChange}
               loading={loading}
               onCellClick={handleClickRequestId}
               slotProps={{
