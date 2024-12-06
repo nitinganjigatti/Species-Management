@@ -456,12 +456,12 @@ const ListOfRequest = () => {
                   <CircularProgress color='success' />
                 ) : (
                   <FormControl fullWidth size='small'>
-                    <InputLabel id='lab-select-label'>All Labs</InputLabel>
+                    <InputLabel id='lab-select-label'>Select Lab</InputLabel>
                     <Select
                       labelId='lab-select-label'
                       id='lab-select'
                       value={selectedLab}
-                      label='All Labs'
+                      label='Select Lab'
                       onChange={event => handleLabChange(event.target.value)}
                       sx={{ fontWeight: 'bold', borderRadius: '5px' }}
                     >
