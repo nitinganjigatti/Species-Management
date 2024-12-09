@@ -20,7 +20,6 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
-import { useRouter } from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
@@ -264,7 +263,7 @@ const ListOfMedicine = () => {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(Router.query.sortColumn || 'name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'name')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -308,14 +307,15 @@ const ListOfMedicine = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
-            updateUrlParams({
-              sort,
-              q: q,
-              column: column,
-              status: status,
-              page: paginationModel?.page,
-              limit: paginationModel?.pageSize
-            })
+
+            // updateUrlParams({
+            //   sort,
+            //   q: searchValue,
+            //   column: column,
+            //   status: status,
+            //   page: paginationModel?.page,
+            //   limit: paginationModel?.pageSize
+            // })
           } else {
             setTotal(parseInt(res?.data?.total_count))
             setRows([])
@@ -327,7 +327,7 @@ const ListOfMedicine = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, statusFilter]
   )
 
   const searchTableData = useCallback(
@@ -339,7 +339,7 @@ const ListOfMedicine = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [fetchTableData, statusFilter]
   )
 
   useEffect(() => {
@@ -352,7 +352,7 @@ const ListOfMedicine = () => {
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
     })
-  }, [fetchTableData])
+  }, [fetchTableData, statusFilter])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
@@ -371,7 +371,16 @@ const ListOfMedicine = () => {
   const handleStatusFilterChange = newFilter => {
     setSearchValue('')
     setStatusFilter(newFilter)
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
+
+    // updateUrlParams({
+    //   sort,
+    //   q: '',
+    //   column: sortColumn,
+    //   status: newFilter,
+    //   page: paginationModel?.page,
+    //   limit: paginationModel?.pageSize
+    // })
+    fetchTableData({ sort, q: '', column: sortColumn, status: newFilter })
   }
 
   const headerAction = (
