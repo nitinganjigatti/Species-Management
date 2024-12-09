@@ -12,12 +12,12 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
         <Box
           sx={{
             width: '100%',
-            backgroundColor: backgroundColor ? backgroundColor : theme.palette.customColors.tableHeaderBg,
+            backgroundColor: backgroundColor ? backgroundColor : '#fff',
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
 
-            border: '1px solid #C3CEC7',
+            // border: '1px solid #C3CEC7',
             display: 'flex',
             gap: '10px'
           }}
