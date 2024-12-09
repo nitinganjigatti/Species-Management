@@ -40,15 +40,24 @@ const ListOfStockAdjusted = () => {
   const router = useRouter()
 
   /***** Server side pagination */
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
+  console.log(router.query)
 
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'label')
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(router.query.status || 'Missing stock')
   const [expandedText, setExpandedText] = useState('')
@@ -121,6 +130,14 @@ const ListOfStockAdjusted = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize,
+      reason: status
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, status])
 
@@ -149,8 +166,18 @@ const ListOfStockAdjusted = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
+      setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
         await fetchTableData(sort, q, column, status)
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          reason: status
+        })
       } catch (error) {
         console.error(error)
       }
