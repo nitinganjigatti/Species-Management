@@ -212,7 +212,7 @@ function Dispense() {
       page: paginationModel.page,
       limit: paginationModel.pageSize
     })
-  }, [selectedPharmacy.id, getDipsense])
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -229,6 +229,13 @@ function Dispense() {
       setSearchValue(q)
       try {
         await getDipsense({ sort, q, column })
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
       } catch (error) {
         console.error(error)
       }
@@ -249,22 +256,14 @@ function Dispense() {
       setSort(newSort)
       setSortColumn(newColumn)
 
-      // Update the router query with the current sort and column
-      // router.replace(
-      //   {
-      //     pathname: router.pathname,
-      //     query: {
-      //       ...router.query,
-      //       sort: newSort, // Ensure 'sort' is either 'asc' or 'desc'
-      //       column: newColumn // Ensure the column being sorted is also passed
-      //     }
-      //   },
-      //   undefined,
-      //   { shallow: true } // Avoid full page reload
-      // )
-
-      // Pass the updated sort, search value, and column to the getDipsense function
       getDipsense({ sort: newSort, q: searchValue, column: newColumn })
+      updateUrlParams({
+        sort: newSort,
+        q: searchValue,
+        column: newColumn,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     }
   }
 
