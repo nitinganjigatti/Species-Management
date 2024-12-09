@@ -5,12 +5,13 @@ import React from 'react'
 
 const AnimalParentCard = ({ data, backgroundColor }) => {
   const theme = useTheme()
+
   return (
     <>
       <Box
         sx={{
           width: '100%',
-          backgroundColor: backgroundColor ? theme.palette.customColors.tableHeaderBg : '#fff',
+          backgroundColor: backgroundColor ? backgroundColor : theme.palette.customColors.tableHeaderBg,
           borderRadius: '8px',
           paddingY: '20px',
           paddingX: '16px',
