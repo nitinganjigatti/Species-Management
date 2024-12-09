@@ -12,7 +12,8 @@ const CommonTable = ({
   setPaginationModel,
   loading,
   searchValue,
-  onCellClick
+  onCellClick,
+  columnVisibilityModel
 }) => {
   const theme = useTheme()
 
@@ -54,9 +55,7 @@ const CommonTable = ({
           borderBottom: 'none' // Make sure no extra bottom border is applie
         }
       }}
-      // columnVisibilityModel={{
-      //   sl_no: false
-      // }}
+      columnVisibilityModel={columnVisibilityModel ? columnVisibilityModel : {}}
       hideFooterSelectedRowCount
       disableColumnSelector={true}
       autoHeight
