@@ -872,7 +872,8 @@ const IndividualRequest = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push('/pharmacy/local-dispatch/local-dispatch-list/')
+                        // Router.push('/pharmacy/local-dispatch/local-dispatch-list/')
+                        Router.back()
                       }}
                       icon='ep:back'
                     />

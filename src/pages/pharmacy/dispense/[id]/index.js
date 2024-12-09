@@ -152,17 +152,7 @@ const IndividualDispense = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        if (searchTerm) {
-                      
-                          Router.push({
-                            pathname: `/pharmacy/dispense`,
-                            query: {
-                              searchTerm: searchTerm
-                            }
-                          })
-                        } else {
-                          Router?.push('/pharmacy/dispense')
-                        }
+                        Router.back()
                       }}
                       icon='ep:back'
                     />

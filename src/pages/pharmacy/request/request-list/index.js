@@ -82,7 +82,7 @@ const RequestList = () => {
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
-    setFilterByStoreId('')
+    setFilterByStoreId('all')
     setPaginationModel({ page: 0, pageSize: 10 })
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
@@ -210,18 +210,36 @@ const RequestList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
+      const newSort = newModel[0].sort // 'asc' or 'desc'
+      const newColumn = newModel[0].field // Column to sort by
+
+      // Update state for sort and column
+      setSort(newSort)
+      setSortColumn(newColumn)
+
+      // Update the router query with the current sort and column
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            sort: newSort,
+            column: newColumn
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+
       fetchTableData(
-        newModel[0].sort,
+        newSort,
         searchValue,
-        newModel[0].field,
+        newColumn,
         status,
         filterDates.startDate,
-        filterDates.endDate,
+        filterDates.endDate, 
         filterByStoreId
       )
-    } else {
     }
   }
 

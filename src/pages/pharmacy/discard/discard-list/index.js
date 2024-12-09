@@ -149,26 +149,31 @@ const ListOfDiscardProducts = () => {
   }
 
   const handleSearch = useCallback(
-    debounce(value => {
+    debounce(async value => {
+      // Update the search value state
       setSearchValue(value)
 
-      // Reset to first page when search is triggered
-      setPaginationModel(prev => ({
-        ...prev,
+      // Reset the page to the first page
+      setPaginationModel(prevModel => ({
+        ...prevModel,
         page: 0
       }))
 
-      fetchTableData({
-        sort,
-        q: value,
-        column: sortColumn,
-        page: 1, // 1-based index for API
-        pageSize: paginationModel.pageSize
-      })
-    }, 500),
-    [sort, sortColumn, paginationModel.pageSize]
+      // Update the URL query parameters
+      Router.replace(
+        {
+          pathname: Router.pathname,
+          query: {
+            ...Router.query,
+            searchValue: value,
+            page: 1 // 1-indexed for user-friendly URL
+          }
+        },
+        undefined,
+        { shallow: true } // Avoid full page reload
+      )
+    })
   )
-
   const handleEdit = id => {
     Router.push({
       pathname: '/pharmacy/discard/add-discard/',

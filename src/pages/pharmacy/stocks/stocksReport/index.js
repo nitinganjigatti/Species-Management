@@ -198,47 +198,99 @@ const ListOfStocks = () => {
   //   [paginationModel, stockId]
   // )
 
+  // const getStocksReport = useCallback(
+  //   async ({ sort, q, column, id, type, page }) => {
+  //     let storeId = id === 'all' ? '' : id
+  //     if (id) {
+  //       try {
+  //         setLoading(true)
+  //         let result
+
+  //         const params = {
+  //           sort,
+  //           q,
+  //           column,
+  //           page: page || paginationModel.page + 1, // Use passed page or fallback
+  //           limit: paginationModel.pageSize,
+  //           store_id: type === 'local' ? storeId : undefined
+  //         }
+
+  //         if (type === 'local') {
+  //           result = await getLocalStocksReportById(params)
+  //         } else {
+  //           result = await getStocksReportById(storeId, params)
+  //         }
+
+  //         if (result.success && result.data.length > 0) {
+  //           setTotal(parseInt(result.count))
+  //           const listWithId = result.data.map((el, i) => ({ ...el, uid: i + 1 }))
+  //           setStockReport(loadServerRows(page || paginationModel.page, listWithId))
+  //         } else {
+  //           setTotal(0)
+  //           setStockReport([])
+  //         }
+  //       } catch (error) {
+  //         setTotal(0)
+  //         setStockReport([])
+  //         console.error('error', error)
+  //       } finally {
+  //         setLoading(false)
+  //       }
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id, type, page }) => {
+    async ({ sort, q, column, id, type }) => {
       let storeId = id === 'all' ? '' : id
+
       if (id) {
+        console.log('id callback', id)
         try {
           setLoading(true)
           let result
-
-          const params = {
-            sort,
-            q,
-            column,
-            page: page || paginationModel.page + 1, // Use passed page or fallback
-            limit: paginationModel.pageSize,
-            store_id: type === 'local' ? storeId : undefined
-          }
-
           if (type === 'local') {
+            const params = {
+              sort,
+              q,
+              column,
+              page: paginationModel.page + 1,
+              limit: paginationModel.pageSize,
+              store_id: storeId
+            }
+
             result = await getLocalStocksReportById(params)
           } else {
+            const params = {
+              sort,
+              q,
+              column,
+              page: paginationModel.page + 1,
+              limit: paginationModel.pageSize
+            }
+
             result = await getStocksReportById(storeId, params)
           }
 
-          if (result.success && result.data.length > 0) {
+          if (result.success === true) {
             setTotal(parseInt(result.count))
-            const listWithId = result.data.map((el, i) => ({ ...el, uid: i + 1 }))
-            setStockReport(loadServerRows(page || paginationModel.page, listWithId))
-          } else {
-            setTotal(0)
-            setStockReport([])
+
+            let listWithId = result.data
+              ? result.data.map((el, i) => {
+                  return { ...el, uid: i + 1 }
+                })
+              : []
+            setStockReport(loadServerRows(paginationModel.page, listWithId))
           }
+          setLoading(false)
         } catch (error) {
-          setTotal(0)
-          setStockReport([])
-          console.error('error', error)
-        } finally {
+          console.log('error', error)
           setLoading(false)
         }
       }
     },
-    [paginationModel]
+    [paginationModel, stockId]
   )
 
   console.log('stock Reports >', stockReport)
@@ -1659,7 +1711,7 @@ const ListOfStocks = () => {
                         total={batchTotal}
                         columns={batchWiseColumn}
                         paginationModel={batchPaginationModel}
-                        handleSortModel={''}
+                        handleSortModel={handleBatchSortModel}
                         setPaginationModel={setBatchPaginationModel}
                         loading={batchLoading}
                         searchValue={batchSearchValue}

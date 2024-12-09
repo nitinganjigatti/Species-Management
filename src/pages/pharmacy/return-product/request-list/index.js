@@ -213,7 +213,8 @@ const ReturnRequestList = () => {
         filterDates.endDate,
         filterByStoreId
       )
-    } else {
+
+      fetchTableData(newSort, searchValue, newColumn, status, filterDates.endDate, filterByStoreId)
     }
   }
 

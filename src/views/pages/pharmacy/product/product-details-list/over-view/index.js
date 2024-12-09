@@ -21,7 +21,6 @@ import {
   Autocomplete
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import InfoIcon from '@mui/icons-material/Info'
 import CommonDrawerBox from 'src/components/CommonDrawerBox'
 import Table from '@mui/material/Table'
@@ -35,6 +34,8 @@ import { Controller, useForm } from 'react-hook-form'
 import IconButton from '@mui/material/IconButton'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import ProductsChart from 'src/components/pharmacy/medicine/ProductsChart'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -49,36 +50,6 @@ const validationSchema = yup.object().shape({
 })
 
 const Overview = ({ productDetails }) => {
-  const dispatchData = [
-    { month: 'Jan', dispatchCount: 60, dispatchValue: 1.2 },
-    { month: 'Feb', dispatchCount: 80, dispatchValue: 1.5 },
-    { month: 'Mar', dispatchCount: 100, dispatchValue: 1.8 },
-    { month: 'Apr', dispatchCount: 90, dispatchValue: 1.4 },
-    { month: 'May', dispatchCount: 70, dispatchValue: 1.3 },
-    { month: 'Jun', dispatchCount: 110, dispatchValue: 2.0 },
-    { month: 'Jul', dispatchCount: 120, dispatchValue: 2.1 },
-    { month: 'Aug', dispatchCount: 80, dispatchValue: 1.6 },
-    { month: 'Sep', dispatchCount: 90, dispatchValue: 1.7 },
-    { month: 'Oct', dispatchCount: 85, dispatchValue: 1.4 },
-    { month: 'Nov', dispatchCount: 95, dispatchValue: 1.6 },
-    { month: 'Dec', dispatchCount: 70, dispatchValue: 1.3 }
-  ]
-
-  const purchaseData = [
-    { month: 'Jan', purchaseCount: 50, purchaseValue: 1.1 },
-    { month: 'Feb', purchaseCount: 70, purchaseValue: 1.4 },
-    { month: 'Mar', purchaseCount: 85, purchaseValue: 1.6 },
-    { month: 'Apr', purchaseCount: 90, purchaseValue: 1.7 },
-    { month: 'May', purchaseCount: 80, purchaseValue: 1.5 },
-    { month: 'Jun', purchaseCount: 95, purchaseValue: 1.9 },
-    { month: 'Jul', purchaseCount: 110, purchaseValue: 2.0 },
-    { month: 'Aug', purchaseCount: 100, purchaseValue: 1.8 },
-    { month: 'Sep', purchaseCount: 90, purchaseValue: 1.7 },
-    { month: 'Oct', purchaseCount: 95, purchaseValue: 1.8 },
-    { month: 'Nov', purchaseCount: 85, purchaseValue: 1.5 },
-    { month: 'Dec', purchaseCount: 75, purchaseValue: 1.3 }
-  ]
-
   const medicines = [
     {
       name: 'Genimol 650 Tablet',
@@ -413,60 +384,54 @@ const Overview = ({ productDetails }) => {
 
   console.log(productDetails, 'overview')
 
+  const dummyData = {
+    dispatch_count: [
+      {
+        January: 1200,
+        February: 1300,
+        March: 1100,
+        April: 1400,
+        May: 1600,
+        June: 1700,
+        July: 1800,
+        August: 2000,
+        September: 2100,
+        October: 2200,
+        November: 2300,
+        December: 2400
+      }
+    ],
+    dispatch_value: [
+      {
+        January: 500000,
+        February: 600000,
+        March: 450000,
+        April: 700000,
+        May: 800000,
+        June: 750000,
+        July: 900000,
+        August: 950000,
+        September: 1000000,
+        October: 1100000,
+        November: 1200000,
+        December: 1300000
+      }
+    ]
+  }
+
   return (
     <>
       <Grid container spacing={4} pt={6}>
         {drawerData.map(card => (
-          <Grid item xs={12} sm={4} key={card.id}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                bgcolor: card.bgColor,
-                borderRadius: '8px',
-                p: 4,
-                cursor: 'pointer'
-              }}
-              onClick={() => openDrawer(card.id)}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: 2,
-                  borderRadius: '8px',
-                  backgroundColor: '#FFFFFF80',
-                  width: '60px',
-                  height: '60px',
-                  justifyContent: 'center'
-                }}
-              >
-                <Avatar variant='square' alt='' src={card.icon} sx={{ width: '34px', height: '34px' }} />
-              </Box>
-              <Box flex='1' ml={2}>
-                <Typography
-                  variant='body1'
-                  sx={{
-                    color: 'customColors.customHeadingTextColor',
-                    fontWeight: 500,
-                    fontSize: '20px'
-                  }}
-                >
-                  {card.value}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                >
-                  {card.description}
-                </Typography>
-              </Box>
-              <Typography variant='body2' color='customColors.customHeadingTextColor'>
-                <Icon icon='weui:arrow-filled' />
-              </Typography>
-            </Box>
-          </Grid>
+          <StyleWithIconCardComponent
+            key={card.id}
+            value={card.value}
+            description={card.description}
+            icon={card.icon}
+            bgColor={card.bgColor}
+            onClick={() => openDrawer(card.id)}
+            showIcon={true}
+          />
         ))}
       </Grid>
 
@@ -476,59 +441,39 @@ const Overview = ({ productDetails }) => {
         <Grid container spacing={3} marginTop={3} sx={{ display: 'flex', alignItems: 'stretch' }}>
           <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 6 }}>
-                  <Typography
-                    component='div'
-                    sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
-                  >
-                    Dispatches
-                  </Typography>
-                  <Grid item>
-                    <Button variant='text' sx={{ fontSize: '14px', fontWeight: 500 }}>
-                      View More
-                    </Button>
-                  </Grid>
-                </Box>
-
-                <Grid container spacing={2} alignItems='center' mb={6}>
-                  <Grid item>
-                    <FormControl variant='outlined' size='small'>
-                      <InputLabel>Location</InputLabel>
-                      <Select label='Location' defaultValue='Central Pharmacy'>
-                        <MenuItem value='Central Pharmacy'>Central Pharmacy</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item>
-                    <FormControl variant='outlined' size='small'>
-                      <InputLabel>Frequency</InputLabel>
-                      <Select label='Frequency' defaultValue='Monthly'>
-                        <MenuItem value='Monthly'>Monthly</MenuItem>
-                        <MenuItem value='Weekly'>Weekly</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-
-                {/* Dispatches Chart */}
-                <ResponsiveContainer width='100%' height={300}>
-                  <LineChart data={dispatchData}>
-                    <CartesianGrid strokeDasharray='3 3' />
-                    <XAxis dataKey='month' />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type='monotone' dataKey='dispatchCount' stroke='#388E3C' />
-                    <Line type='monotone' dataKey='dispatchValue' stroke='#81C784' />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
+              <ProductsChart
+                title='Dispatch'
+                data={dummyData}
+                locations={['Central Pharmacy', 'East Pharmacy']}
+                frequencies={['Monthly', 'Weekly']}
+                barColor={'#006D35'}
+                lineColor={'#37BD69'}
+                yAxisTitle='Dispatch Count'
+                yAxisOppositeTitle='Dispatch Value (₹)'
+                seriesBarName='Dispatch Count'
+                seriesLineName='Dispatch Value'
+                countLabel='Show Dispatch Count'
+                valueLabel='Show Dispatch Value'
+              />
             </Card>
           </Grid>
 
           <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
+              <ProductsChart
+                title='Purchases'
+                data={dummyData}
+                frequencies={['Monthly', 'Weekly']}
+                barColor={'#00AFD699'}
+                lineColor={'#AFEFEB'}
+                yAxisTitle='Purchase count'
+                yAxisOppositeTitle='Purchase Value (₹)'
+                seriesBarName='Purchase Count'
+                seriesLineName='Purchase Value'
+                countLabel='Show Purchase Count'
+                valueLabel='Show Purchase Value'
+              />
+              {/* <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 6 }}>
                   <Typography
                     component='div'
@@ -544,14 +489,14 @@ const Overview = ({ productDetails }) => {
                 </Box>
 
                 <Grid container spacing={2} alignItems='center' mb={6}>
-                  {/* <Grid item>
+                 <Grid item>
                     <FormControl variant='outlined' size='small'>
                       <InputLabel>Location</InputLabel>
                       <Select label='Location' defaultValue='Central Pharmacy'>
                         <MenuItem value='Central Pharmacy'>Central Pharmacy</MenuItem>
                       </Select>
                     </FormControl>
-                  </Grid> */}
+                  </Grid>
                   <Grid item>
                     <FormControl variant='outlined' size='small'>
                       <InputLabel>Frequency</InputLabel>
@@ -563,7 +508,7 @@ const Overview = ({ productDetails }) => {
                   </Grid>
                 </Grid>
 
-                {/* Purchases Chart */}
+               
                 <ResponsiveContainer width='100%' height={300}>
                   <LineChart data={purchaseData}>
                     <CartesianGrid strokeDasharray='3 3' />
@@ -574,7 +519,7 @@ const Overview = ({ productDetails }) => {
                     <Line type='monotone' dataKey='purchaseValue' stroke='#64B5F6' />
                   </LineChart>
                 </ResponsiveContainer>
-              </CardContent>
+              </CardContent> */}
             </Card>
           </Grid>
 
@@ -697,7 +642,7 @@ const Overview = ({ productDetails }) => {
                     variant='body2'
                     sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
                   >
-                    {productDetails?.uses}
+                    {productDetails?.uses || 'NA'}
                   </Typography>
                 </Box>
 
@@ -721,7 +666,7 @@ const Overview = ({ productDetails }) => {
                     variant='body2'
                     sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
                   >
-                    {productDetails?.side_effects}
+                    {productDetails?.side_effects || 'NA'}
                   </Typography>
                 </Box>
 
@@ -742,26 +687,42 @@ const Overview = ({ productDetails }) => {
                     </Typography>
                   </Box>
                   <List dense>
-                    {productDetails?.safety_advice?.split(',').map((advice, index) => {
-                      const trimmedAdvice = advice.trim()
-                      if (!trimmedAdvice) return null
+                    {productDetails?.safety_advice ? (
+                      productDetails.safety_advice.split(',').map((advice, index) => {
+                        const trimmedAdvice = advice.trim()
+                        if (!trimmedAdvice) return null
 
-                      return (
-                        <ListItem key={index}>
-                          <Typography
-                            variant='body2'
-                            sx={{
-                              color: 'customColors.customHeadingTextColor',
-                              fontSize: '15px',
-                              fontWeight: 500,
-                              ml: 3
-                            }}
-                          >
-                            {`${index + 1}. ${trimmedAdvice}`}
-                          </Typography>
-                        </ListItem>
-                      )
-                    })}
+                        return (
+                          <ListItem key={index}>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'customColors.customHeadingTextColor',
+                                fontSize: '15px',
+                                fontWeight: 500,
+                                ml: 3
+                              }}
+                            >
+                              {`${index + 1}. ${trimmedAdvice}`}
+                            </Typography>
+                          </ListItem>
+                        )
+                      })
+                    ) : (
+                      <ListItem>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '15px',
+                            fontWeight: 500,
+                            ml: 3
+                          }}
+                        >
+                          NA
+                        </Typography>
+                      </ListItem>
+                    )}
                   </List>
                 </Box>
               </CardContent>

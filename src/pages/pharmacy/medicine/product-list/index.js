@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
 
 // ** MUI Imports
 
@@ -14,7 +15,6 @@ import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import { Box, Avatar, Badge, TextField } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
@@ -56,7 +56,7 @@ const ListOfMedicine = () => {
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
     ) {
-      Router.push({
+      router.push({
         pathname: '/pharmacy/medicine/add-product',
         query: { id: row?.row?.id, action: 'edit' }
       })
@@ -64,7 +64,7 @@ const ListOfMedicine = () => {
   }
 
   const handleRowClick = params => {
-    Router.push({
+    router.push({
       pathname: `/pharmacy/medicine/${params.row?.id}`
     })
   }
@@ -381,7 +381,7 @@ const ListOfMedicine = () => {
           <AddButtonContained
             title='Add Product'
             action={() => {
-              Router.push('/pharmacy/medicine/add-product')
+              router.push('/pharmacy/medicine/add-product')
             }}
           />
         )}
