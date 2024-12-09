@@ -359,6 +359,14 @@ const ListOfMedicine = () => {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        status: statusFilter,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
     } else {
     }
   }

@@ -44,7 +44,7 @@ const ListOfPurchase = () => {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'label')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -59,7 +59,8 @@ const ListOfPurchase = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async ({ sort, q, column }) => {
+
       try {
         setLoading(true)
 
@@ -98,7 +99,7 @@ const ListOfPurchase = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
     updateUrlParams({
       sort,
       q: searchValue,
@@ -108,7 +109,7 @@ const ListOfPurchase = () => {
     })
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -118,10 +119,18 @@ const ListOfPurchase = () => {
   }))
 
   const handleSortModel = newModel => {
+   
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
     } else {
     }
   }
@@ -129,8 +138,16 @@ const ListOfPurchase = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
       setSearchValue(q)
+      setPaginationModel({ page: 0, pageSize: 10 })
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData({ sort, q, column })
+        updateUrlParams({
+          sort: newModel[0].sort,
+          q: q,
+          column: newModel[0].field,
+          page: paginationModel?.page,
+          limit: paginationModel?.pageSize
+        })
       } catch (error) {
         console.error(error)
       }
