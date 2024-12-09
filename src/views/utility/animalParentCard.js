@@ -57,9 +57,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                     ? '#DDEBE9'
                     : '#AFEFEB',
                 objectFit: 'contain',
-
                 pt: 0.2,
-                pl: 0.2,
                 height: 24,
                 display: 'flex',
                 justifyContent: 'center',
