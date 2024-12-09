@@ -136,7 +136,7 @@ const RequestList = () => {
             status: filterSwitch === true ? 'completed' : status,
             pending_days_start: startDate ? startDate : filterDates?.startDate,
             pending_days_end: endDate ? endDate : filterDates?.endDate,
-            search_store: filterByStoreId === 'all' ? '' : filterByStoreId 
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
           }
         } else {
           params = {
@@ -172,8 +172,6 @@ const RequestList = () => {
     [paginationModel]
   )
   useEffect(() => {
-    console.log('useEffect', 1)
-
     const currentStatus = filterSwitch === true ? 'completed' : status
 
     fetchTableData(
@@ -277,6 +275,7 @@ const RequestList = () => {
   const handleSwitchChange = event => {
     console.log('event', event.target.checked)
     setTotal(0)
+    setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 10 })
     setFilterSwitch(prev => event.target.checked)
 
@@ -298,6 +297,7 @@ const RequestList = () => {
   }
 
   const filterByDays = days => {
+    setSearchValue('')
     if (days !== 'all') {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
@@ -341,23 +341,6 @@ const RequestList = () => {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
-
-  // console.log("Rows List >>", rows)
-
-  // useEffect(() => {
-  //   console.log('useEffect', 2)
-
-  //   // setStatus(requestPageStatus ? requestPageStatus : status)
-
-  //   const currentStatus = filterSwitch === true ? 'completed' : status
-
-  //   if (filterDates.startDate && filterDates.endDate) {
-  //     fetchTableData(sort, searchValue, sortColumn, currentStatus, filterDates.startDate, filterDates.endDate)
-  //   } else {
-  //     fetchTableData(sort, searchValue, sortColumn, currentStatus)
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [filterDates])
 
   useEffect(() => {
     getStoresLists()
@@ -728,6 +711,7 @@ const RequestList = () => {
                           setTotal(0)
                           setPaginationModel({ page: 0, pageSize: 10 })
                           setFilterByStoreId(e.target.value)
+                          setSearchValue('')
                         }}
                       >
                         <MenuItem value='all'>All</MenuItem>

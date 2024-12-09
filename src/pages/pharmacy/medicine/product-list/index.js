@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
-// import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { useTheme } from '@emotion/react'
 
@@ -12,9 +7,7 @@ import { useTheme } from '@emotion/react'
 
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
 
 // ** Icon Imports
@@ -27,6 +20,7 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { useRouter } from 'next/router'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
@@ -36,7 +30,12 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
+  const router = useRouter()
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
   const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -258,24 +257,30 @@ const ListOfMedicine = () => {
     // }
   ]
 
-  /***** Serverside pagination */
+  // /***** Serverside pagination */
+
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState(Router.query.sort || 'asc')
+
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(Router.query.searchValue || '')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(Router.query.sortColumn || 'name')
+
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(Router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(Router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
+
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState(true)
+
+  const [statusFilter, setStatusFilter] = useState(router.query.status || true)
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, status, page, pageSize }) => {
+    async ({ sort, q, column, status }) => {
       let params = {}
       const activeStatus = status ?? statusFilter
       try {
@@ -285,24 +290,32 @@ const ListOfMedicine = () => {
             sort,
             q,
             column,
-            page: page + 1, // 1-based page index for API
-            limit: pageSize
+            page: paginationModel?.page + 1,
+            limit: paginationModel?.pageSize
           }
         } else {
           params = {
             sort,
             q,
             column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize,
+            page: paginationModel?.page + 1,
+            limit: paginationModel?.pageSize,
             active: activeStatus
           }
         }
 
-        await getMedicineList({ params }).then(res => {
+        await getMedicineList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(page, res?.data?.list_items))
+            setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
+            updateUrlParams({
+              sort,
+              q: q,
+              column: column,
+              status: status,
+              page: paginationModel?.page,
+              limit: paginationModel?.pageSize
+            })
           } else {
             setTotal(parseInt(res?.data?.total_count))
             setRows([])
@@ -317,25 +330,6 @@ const ListOfMedicine = () => {
     [paginationModel]
   )
 
-  // Fetching Data
-  // const fetchTableData = useCallback(
-  //   async (params = { sort, q, column, status, page, pageSize }) => {
-  //     try {
-  //       setLoading(true)
-  //       const response = await getMedicineList({ params })
-  //       const { list_items, total_count } = response?.data || {}
-
-  //       setRows(list_items || [])
-  //       setTotal(total_count || 0)
-  //     } catch (error) {
-  //       console.error('Failed to fetch medicine data:', error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -348,113 +342,42 @@ const ListOfMedicine = () => {
     []
   )
 
-  // useEffect(() => {
-  //   fetchTableData({
-  //     sort,
-  //     q: searchValue,
-  //     column: sortColumn,
-  //     status: statusFilter,
-  //     page: paginationModel.page,
-  //     pageSize: paginationModel.pageSize
-  //   })
-  // }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize])
-
   useEffect(() => {
-    fetchTableData({
+    fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
+    updateUrlParams({
       sort,
       q: searchValue,
-      status: statusFilter,
       column: sortColumn,
-      page: paginationModel.page + 1, // API expects 1-based index
-      pageSize: paginationModel.pageSize
+      status: statusFilter,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
     })
-  }, [sort, searchValue, sortColumn, statusFilter, paginationModel.page, paginationModel.pageSize, selectedPharmacy])
-
-  useEffect(() => {
-    Router.replace({
-      pathname: Router.pathname,
-      query: {
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize,
-        q: searchValue,
-        sort,
-        column: sortColumn,
-        status: statusFilter
-      }
-    })
-  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn, statusFilter])
-
-  useEffect(() => {
-    const { q, page, pageSize, sort, column, status } = Router.query
-
-    setSearchValue(q || '')
-    setSort(sort || 'asc')
-    setSortColumn(column || 'name')
-    setStatusFilter(status || true)
-    setPaginationModel({
-      page: parseInt(page, 10) - 1 || 0,
-      pageSize: parseInt(pageSize, 10) || 10
-    })
-  }, [])
+  }, [fetchTableData])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
       setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
     } else {
     }
   }
 
-  // const handleSearch = async value => {
-  //   setSearchValue(value)
-  //   await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
-  // }
-  // const handleSearch = useCallback(
-  //   debounce(value => {
-  //     setSearchValue(value)
-
-  //     // Reset the page to the first page (page 0 in your `paginationModel`)
-  //     setPaginationModel(prevModel => ({
-  //       ...prevModel,
-  //       page: 0
-  //     }))
-
-  //     // Update the URL query parameters
-  //     Router.replace({
-  //       pathname: Router.pathname,
-  //       query: {
-  //         ...Router.query,
-  //         q: value,
-  //         page: 1 // Update to 1-indexed for the URL
-  //       }
-  //     })
-  //   }, 500),
-  //   []
-  // )
-
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
-      fetchTableData({
-        sort,
-        q: value,
-        column: sortColumn,
-        page: paginationModel.page,
-        pageSize: paginationModel.pageSize
-      })
-    }, 500),
-    [sort, sortColumn, paginationModel]
-  )
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
+  }
 
   const handleStatusFilterChange = newFilter => {
+    setSearchValue('')
     setStatusFilter(newFilter)
     fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
   }
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+      {selectedPharmacy?.type === 'central' &&
+        (selectedPharmacy?.permission?.key === 'allow_full_access' || selectedPharmacy?.permission.key === 'ADD') && (
           <AddButtonContained
             title='Add Product'
             action={() => {
@@ -462,19 +385,10 @@ const ListOfMedicine = () => {
             }}
           />
         )}
-      {/* <Button
-        size='big'
-        variant='contained'
-        onClick={() => {
-          Router.push('/pharmacy/medicine/add-product')
-        }}
-      >
-        Add Product
-      </Button> */}
     </div>
   )
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
@@ -489,7 +403,7 @@ const ListOfMedicine = () => {
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {selectedPharmacy?.type === 'central' ? (
         <>
           {loader ? (
             <FallbackSpinner />
@@ -564,6 +478,7 @@ const ListOfMedicine = () => {
                 >
                   <CommonTable
                     onRowClick={handleRowClick}
+                    // eslint-disable-next-line lines-around-comment
                     // onRowClick={handleEdit}
                     indexedRows={indexedRows}
                     total={total}

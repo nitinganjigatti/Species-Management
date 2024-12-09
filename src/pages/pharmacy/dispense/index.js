@@ -30,18 +30,29 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 function Dispense() {
   const router = useRouter()
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
   const isInitialLoad = useRef(true)
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  // const [searchValue, setSearchValue] = useState('')
-  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
   const [total, setTotal] = useState(0)
+
+  // const [paginationModel, setPaginationModel] = useState({
+  //   page: parseInt(router.query.page, 10) - 1 || 0,
+  //   pageSize: parseInt(router.query.pageSize, 10) || 10
+  // })
+
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -191,42 +202,17 @@ function Dispense() {
     [paginationModel]
   )
 
-  // useEffect(() => {
-  //   getDipsense({ sort, q: searchValue, column: sortColumn })
-  // }, [getDipsense, selectedPharmacy.id])
-
-  // useEffect(() => {
-  //   if (searchTerm) {
-  //     debugger
-  //     setSearchValue(searchTerm)
-  //     getDipsense({ sort, q: searchTerm, column: sortColumn })
-  //   }
-  // }, [searchTerm, getDipsense])
-
-  // useEffect(() => {
-  //   if (isInitialLoad.current && searchTerm) {
-  //     setSearchValue(searchTerm)
-  //     getDipsense({ sort, q: searchTerm, column: sortColumn })
-  //     isInitialLoad.current = false
-  //   }
-  // }, [searchTerm, getDipsense])
-
-  useEffect(() => {
-    router.replace({
-      pathname: router.pathname,
-      query: {
-        ...router.query, // Preserve existing query parameters
-        searchValue,
-        page: paginationModel.page + 1, // Convert back to 1-indexed
-        pageSize: paginationModel.pageSize
-      }
-    })
-  }, [paginationModel.page, paginationModel.pageSize])
-
-  // Fetch data when the selected pharmacy changes
   useEffect(() => {
     getDipsense({ sort, q: searchValue, column: sortColumn })
-  }, [getDipsense, selectedPharmacy.id])
+
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize
+    })
+  }, [selectedPharmacy.id, getDipsense])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -236,43 +222,26 @@ function Dispense() {
     sl_no: getSlNo(index)
   }))
 
-  // const handleSearch = useCallback(
-  //   debounce(async value => {
-  //     setSearchValue(value)
-  //     try {
-  //       await getDipsense({ sort, q: value, column: sortColumn })
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 500),
-  //   []
-  // )
-
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
-
-      // Reset the page to the first page (page 0 in your `paginationModel`)
-      setPaginationModel(prevModel => ({
-        ...prevModel,
-        page: 0
-      }))
-
-      // Update the URL query parameters
-      router.replace({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          searchValue: value
-          // page: 1, // Update to 1-indexed for the URL
-        }
-      })
-    }, 500),
-    [router]
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column) => {
+      setTotal(0)
+      setPaginationModel({ page: 0, pageSize: 10 })
+      setSearchValue(q)
+      try {
+        await getDipsense({ sort, q, column })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
   )
 
-  const handleSortModel = newModel => {
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
 
+  const handleSortModel = newModel => {
     if (newModel.length) {
       const newSort = newModel[0].sort // This will give 'asc' or 'desc'
       const newColumn = newModel[0].field // This is the field by which you're sorting
@@ -281,18 +250,18 @@ function Dispense() {
       setSortColumn(newColumn)
 
       // Update the router query with the current sort and column
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: {
-            ...router.query,
-            sort: newSort, // Ensure 'sort' is either 'asc' or 'desc'
-            column: newColumn // Ensure the column being sorted is also passed
-          }
-        },
-        undefined,
-        { shallow: true } // Avoid full page reload
-      )
+      // router.replace(
+      //   {
+      //     pathname: router.pathname,
+      //     query: {
+      //       ...router.query,
+      //       sort: newSort, // Ensure 'sort' is either 'asc' or 'desc'
+      //       column: newColumn // Ensure the column being sorted is also passed
+      //     }
+      //   },
+      //   undefined,
+      //   { shallow: true } // Avoid full page reload
+      // )
 
       // Pass the updated sort, search value, and column to the getDipsense function
       getDipsense({ sort: newSort, q: searchValue, column: newColumn })

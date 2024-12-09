@@ -127,8 +127,9 @@ const ReturnRequestList = () => {
     setTotal(0)
     setFilterSwitch(false)
     setPaginationModel({ page: 0, pageSize: 10 })
-    setFilterDates({ startDate: '', endDate: '' })
     setSearchValue('')
+    setFilterDates({ startDate: '', endDate: '' })
+    setSelectDays('all')
     setStatus(newValue)
   }
 
@@ -201,6 +202,8 @@ const ReturnRequestList = () => {
       const currentStatus = filterSwitch === true ? 'completed' : status
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
+      setSearchValue('')
+
       fetchTableData(
         newModel[0].sort,
         searchValue,
@@ -244,6 +247,7 @@ const ReturnRequestList = () => {
     if (event.target.checked === false) {
       setStatus(prev => 'all')
     }
+    setSearchValue('')
     updateUrlParams({
       sort,
       q: searchValue,
@@ -333,7 +337,10 @@ const ReturnRequestList = () => {
         <Typography
           variant='body2'
           sx={{
-            color: 'text.primary'
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
           }}
         >
           {parseInt(params.row.sl_no) + '.'}
@@ -367,7 +374,15 @@ const ReturnRequestList = () => {
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
         </Typography>
       )
@@ -443,12 +458,12 @@ const ReturnRequestList = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.shipping_status === 'Fully Shipped' && (
+            {params?.row?.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
               </Box>
             )}
-            {params.row.shipping_status === 'Partially Shipped' && (
+            {params?.row?.shipping_status === 'Partially Shipped' && (
               <>
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
@@ -459,23 +474,23 @@ const ReturnRequestList = () => {
                 </Box>
               </>
             )}
-            {params.row.dispute_status === 'Dispute Pending' && (
+            {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.dispute_status === 'Dispute Resolved' && (
+            {params?.row?.dispute_status === 'Dispute Resolved' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.delivery_status === 'Delivered' && (
+            {params?.row?.delivery_status === 'Delivered' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
           </div>
-          {params.row.status === 'Cancelled' ? params.row.status : null}
+          {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
         </Typography>
       )
     },
@@ -515,6 +530,8 @@ const ReturnRequestList = () => {
   )
 
   const filterByDays = days => {
+    setSearchValue('')
+
     if (days !== 'all') {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
@@ -634,6 +651,7 @@ const ReturnRequestList = () => {
                             setTotal(0)
                             setPaginationModel({ page: 0, pageSize: 10 })
                             setFilterByStoreId(e.target.value)
+                            setSearchValue('')
                           }}
                         >
                           <MenuItem value='all'>All</MenuItem>

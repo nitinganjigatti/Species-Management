@@ -96,7 +96,8 @@ const UserThemeOptions = () => {
         // **
         moderateSecondary: '#E4B819',
         neutral_50: '#00000066',
-        Tertiary: '#FA6140'
+        Tertiary: '#FA6140',
+        neutralPrimary: '#000000'
       },
       primary: {
         // light: '#20DE67',

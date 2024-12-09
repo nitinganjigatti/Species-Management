@@ -149,13 +149,13 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const newSort = newModel[0].sort;
-      const newColumn = newModel[0].field;
-      const currentStatus = filterSwitch === true ? 'completed' : status;
-  
-      setSort(newSort);
-      setSortColumn(newColumn);
-  
+      const newSort = newModel[0].sort
+      const newColumn = newModel[0].field
+      const currentStatus = filterSwitch === true ? 'completed' : status
+
+      setSort(newSort)
+      setSortColumn(newColumn)
+
       // Update the router query
       router.push(
         {
@@ -163,17 +163,16 @@ const DirectDispatchList = () => {
           query: {
             ...router.query,
             sort: newSort,
-            column: newColumn,
-          },
+            column: newColumn
+          }
         },
         undefined,
         { shallow: true } // Use shallow routing to avoid full page reload
-      );
-  
-      fetchTableData(newSort, searchValue, newColumn, currentStatus);
+      )
+
+      fetchTableData(newSort, searchValue, newColumn, currentStatus)
     }
-  };
-  
+  }
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
@@ -194,6 +193,8 @@ const DirectDispatchList = () => {
   const handleSwitchChange = event => {
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 10 })
+    setSearchValue('')
+
     setFilterSwitch(prev => event.target.checked)
     if (event.target.checked === false) {
       setStatus(prev => 'all')

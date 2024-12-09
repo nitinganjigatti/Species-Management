@@ -31,6 +31,11 @@ const ListOfPurchase = () => {
   const router = useRouter()
   const theme = useTheme()
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
   /***** Server side pagination */
 
   const [loader, setLoader] = useState(false)
@@ -38,13 +43,12 @@ const ListOfPurchase = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'label')
 
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
   const [loading, setLoading] = useState(false)
 
@@ -54,65 +58,57 @@ const ListOfPurchase = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  // const fetchTableData = useCallback(
-  //   async (sort, q, column) => {
-  //     try {
-  //       setLoading(true)
+  const fetchTableData = useCallback(
+    async (sort, q, column) => {
+      try {
+        setLoading(true)
 
-  //       const params = {
-  //         sort,
-  //         q,
-  //         column,
-  //         page: paginationModel.page + 1,
-  //         limit: paginationModel.pageSize
-  //       }
+        const params = {
+          sort,
+          q,
+          column,
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
 
-  //       await getPurchaseList({ params: params }).then(res => {
-  //         // console.log('getPurchaseList', res)
-  //         if (res?.success === true && res?.data?.length > 0) {
-  //           setTotal(parseInt(res?.count))
-  //           setRows(loadServerRows(paginationModel.page, res?.data))
-  //         }
-  //       })
-  //       setLoading(false)
-  //     } catch (error) {
-  //       console.log('error', error)
-  //       setLoading(false)
-  //     }
-  //   },
-  //   [paginationModel]
-  // )
-  const fetchTableData = useCallback(async (sortOrder, query, column, page, pageSize) => {
-    setLoading(true)
-
-    const params = {
-      sort: sortOrder,
-      q: query,
-      column,
-      page: page + 1,
-      limit: pageSize
-    }
-
-    try {
-      const res = await getPurchaseList({ params })
-      if (res?.success && res?.data?.length > 0) {
-        setTotal(parseInt(res.count, 10))
-        setRows(loadServerRows(page, res.data))
-      } else {
+        await getPurchaseList({ params: params }).then(res => {
+          if (res?.success === true && res?.data?.length > 0) {
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel.page, res?.data))
+            updateUrlParams({
+              sort,
+              q: q,
+              column: column,
+              page: paginationModel?.page,
+              limit: paginationModel?.pageSize
+            })
+          } else {
+            setTotal(0)
+            setRows([])
+          }
+        })
+        setLoading(false)
+      } catch (error) {
+        console.log('error', error)
+        setLoading(false)
         setTotal(0)
         setRows([])
       }
-    } catch (error) {
-      console.log('error', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
+    },
+    [paginationModel]
+  )
   useEffect(() => {
-    console.log('Fetching data with updated parameters...')
-    fetchTableData(sort, searchValue, sortColumn, paginationModel.page, paginationModel.pageSize)
-  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn, fetchTableData])
+    fetchTableData(sort, searchValue, sortColumn)
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchTableData, selectedPharmacy.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -121,44 +117,14 @@ const ListOfPurchase = () => {
     sl: getSlNo(index)
   }))
 
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-  //   } else {
-  //   }
-  // }
-
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+    } else {
     }
   }
-
-  // useEffect(() => {
-  //   // Update the URL with the current page whenever paginationModel.page changes
-  //   router.push({
-  //     pathname: router.pathname,
-  //     query: { ...router.query, page: paginationModel.page + 1 } // Add 1 to match expected 1-indexed page
-  //   })
-  // }, [paginationModel.page])
-
-  useEffect(() => {
-    console.log('Api caleed 2111>>')
-    router.replace({
-      pathname: router.pathname,
-      query: {
-        ...router.query,
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize,
-        searchValue,
-        sort,
-        sortColumn
-      }
-    })
-  }, [paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
@@ -179,44 +145,10 @@ const ListOfPurchase = () => {
     })
   }
 
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(sort, value, sortColumn)
-  // }
-
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
-
-      // Reset the page to the first page (page 0 in your `paginationModel`)
-      setPaginationModel(prevModel => ({
-        ...prevModel,
-        page: 0
-      }))
-
-      // Update the URL query parameters
-      router.replace({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          searchValue: value,
-          page: 1 // Update to 1-indexed for the URL
-        }
-      })
-    }, 500),
-    [router]
-  )
-
-  // Handle page or query param change in URL to update paginationModel state
-  useEffect(() => {
-    console.log('Api caleed >>')
-    if (router.query.page) {
-      setPaginationModel(prevModel => ({
-        ...prevModel,
-        page: parseInt(router.query.page, 10) - 1 // 0-indexed
-      }))
-    }
-  }, [router.query.page])
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
 
   const columns = [
     {

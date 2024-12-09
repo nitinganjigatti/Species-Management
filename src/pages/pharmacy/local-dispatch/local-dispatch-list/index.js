@@ -134,6 +134,7 @@ const DirectDispatchList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
+    setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 10 })
     setFilterSwitch(prev => event.target.checked)
     if (event.target.checked === false) {
@@ -569,4 +570,5 @@ const DirectDispatchList = () => {
     </>
   )
 }
+
 export default DirectDispatchList
