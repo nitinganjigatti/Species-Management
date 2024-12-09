@@ -198,7 +198,6 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
           </Typography>
         </Box>
       </Box>
-      )}
     </>
   )
 }
