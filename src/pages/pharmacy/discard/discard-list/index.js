@@ -132,7 +132,7 @@ const ListOfDiscardProducts = () => {
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
-        await fetchTableData({ sort, q, column, page: 0 })
+        await fetchTableData({ sort, q, column, page: paginationModel.page, limit: paginationModel.pageSize })
         updateUrlParams({
           sort,
           q: q,
