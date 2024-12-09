@@ -17,7 +17,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             paddingY: '20px',
             paddingX: '16px',
 
-            // border: '1px solid #C3CEC7',
+            border: '1px solid #C3CEC7',
             display: 'flex',
             gap: '10px'
           }}
