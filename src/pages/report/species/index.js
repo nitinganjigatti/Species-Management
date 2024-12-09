@@ -1,4 +1,15 @@
-import { Card, CardHeader, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  Button,
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox
+} from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import { TabContext, TabList } from '@mui/lab'
@@ -9,6 +20,8 @@ import CheckIcon from '@mui/icons-material/Check'
 import toast from 'react-hot-toast'
 import { getReportFilterList } from 'src/lib/api/report'
 import Error404 from 'src/pages/404'
+import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
+import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 
 const SpeciesReport = () => {
   const theme = useTheme()
@@ -16,18 +29,24 @@ const SpeciesReport = () => {
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
 
   const [status, setStatus] = useState('statistics')
-  const [selectedSite, setSelectedSite] = useState([])
+  const [selectedSites, setSelectedSites] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
+  const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [sites, setSites] = useState(
+    authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
+  )
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
+  const [selectedOptions, setSelectedOptions] = useState([])
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: true },
-      { label: 'Order', key: 'include_order', checked: true },
-      { label: 'Family', key: 'include_family', checked: true },
-      { label: 'Genus', key: 'include_genus', checked: true }
+      { label: 'Class', key: 'include_class', checked: false },
+      { label: 'Order', key: 'include_order', checked: false },
+      { label: 'Family', key: 'include_family', checked: false },
+      { label: 'Genus', key: 'include_genus', checked: false }
     ],
     Housing: [
       { label: 'Site', key: 'include_site', checked: false },
@@ -38,17 +57,33 @@ const SpeciesReport = () => {
     ]
   })
 
+  const categories = ['Site']
+  const options = {
+    // Gender: ['Male', 'Female'],
+    // Weight: ['Light', 'Medium', 'Heavy'],
+    // Age: ['Young', 'Adult', 'Old'],
+    Site:
+      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
+      [] ||
+      []
+    // Section: ['North', 'South', 'East', 'West'],
+    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
+    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
+    // Breed: ['Breed A', 'Breed B']
+  }
+
   const [apiFilterParams, setApiFilterParams] = useState({
     include_housing: 0,
     include_enclosure: 0,
     include_section: 0,
     include_cluster: 0,
-    include_class: 1,
+    include_class: 0,
     include_organization: 0,
-    include_order: 1,
-    include_family: 1,
-    include_genus: 1,
-    include_site: 0
+    include_order: 0,
+    include_family: 0,
+    include_genus: 0,
+    include_site: 0,
+    include_genus: 0
   })
 
   const handleClick = event => {
@@ -78,6 +113,8 @@ const SpeciesReport = () => {
 
     await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
+
+  console.log('Selected Sites >>', selectedSites)
 
   const title = (
     <>
@@ -131,73 +168,133 @@ const SpeciesReport = () => {
     }
   }
 
-  const handleOptions = async (category, item, itemIndex) => {
-    let updatedApiParams
+  // const handleOptions = async (category, item, itemIndex) => {
+  //   debugger
+  //   // let updatedApiParams
 
+  //   setPopoverData(prevData => {
+  //     const updatedData = {
+  //       ...prevData,
+  //       [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
+  //     }
+
+  //     updatedApiParams = { ...apiFilterParams }
+  //     Object.keys(updatedData).forEach(cat => {
+  //       updatedData[cat].forEach(el => {
+  //         updatedApiParams[el.key] = el.checked ? 1 : 0
+  //       })
+  //     })
+
+  //     setApiFilterParams(updatedApiParams)
+
+  //     return updatedData
+  //   })
+  //   setPaginationModel({ ...paginationModel, page: 0 })
+  //   // await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
+  // }
+
+  // const handleSelectedSite = async e => {
+  //   const value = e.target.value
+  //   let params = {}
+
+  //   if (value.includes('All Sites') && !selectedSite.includes('All Sites')) {
+  //     params = {
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSite(['All Sites'])
+  //   } else if (value.includes('All Sites')) {
+  //     const filteredSiteIDs = value.filter(id => id !== 'All Sites')
+  //     params = {
+  //       site_ids: filteredSiteIDs.toString(),
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSite(filteredSiteIDs)
+  //   } else if (value.length === 0) {
+  //     params = {
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSite(['All Sites'])
+  //   } else {
+  //     params = {
+  //       site_ids: value.toString(),
+  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
+  //         if (apiFilterParams[key] === 1) acc[key] = 1
+
+  //         return acc
+  //       }, {})
+  //     }
+  //     setSelectedSite(value)
+  //   }
+
+  //   setPaginationModel({ ...paginationModel, page: 0 })
+  //   setApiFilterParams(params)
+  //   // await fetchData({ ...params }, { ...paginationModel, page: 0 })
+  // }
+
+  const handleOptionChange = (category, itemIndex) => {
     setPopoverData(prevData => {
       const updatedData = {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
-
-      updatedApiParams = { ...apiFilterParams }
-      Object.keys(updatedData).forEach(cat => {
-        updatedData[cat].forEach(el => {
-          updatedApiParams[el.key] = el.checked ? 1 : 0
-        })
-      })
-
-      setApiFilterParams(updatedApiParams)
-
       return updatedData
     })
-    setPaginationModel({ ...paginationModel, page: 0 })
-    // await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
   }
 
-  const handleSelectedSite = async e => {
-    const value = e.target.value
+  const handleSelectedSite = async selectedSiteIDs => {
     let params = {}
 
-    if (value.includes('All Sites') && !selectedSite.includes('All Sites')) {
+    if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
+      // "All Sites" selected and was not already selected
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
-
           return acc
         }, {})
       }
-      setSelectedSite(['All Sites'])
-    } else if (value.includes('All Sites')) {
-      const filteredSiteIDs = value.filter(id => id !== 'All Sites')
+      setSelectedSites(['All Sites'])
+    } else if (selectedSiteIDs.includes('All Sites')) {
+      // Remove "All Sites" and use specific site IDs
+      const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
       params = {
         site_ids: filteredSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
-
           return acc
         }, {})
       }
-      setSelectedSite(filteredSiteIDs)
-    } else if (value.length === 0) {
+      setSelectedSites(filteredSiteIDs)
+    } else if (selectedSiteIDs.length === 0) {
+      // No sites selected, fallback to "All Sites"
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
-
           return acc
         }, {})
       }
-      setSelectedSite(['All Sites'])
+      setSelectedSites(['All Sites'])
     } else {
+      // Specific site IDs selected
       params = {
-        site_ids: value.toString(),
+        site_ids: selectedSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
-
           return acc
         }, {})
       }
-      setSelectedSite(value)
+      setSelectedSites(selectedSiteIDs)
     }
 
     // if (value.length > 1 && !value.includes('All Sites')) {
@@ -227,7 +324,9 @@ const SpeciesReport = () => {
     // }
     setPaginationModel({ ...paginationModel, page: 0 })
     setApiFilterParams(params)
-    // await fetchData({ ...params }, { ...paginationModel, page: 0 })
+
+    // Optionally fetch the data
+    // await fetchData({ ...params }, { ...paginationModel, page: 0 });
   }
 
   function loadServerRows(currentPage, data) {
@@ -374,6 +473,23 @@ const SpeciesReport = () => {
     sl_no: getSlNo(index)
   }))
 
+  console.log('selectedSites>', selectedSites)
+
+  const handleConfirm = async () => {
+    let updatedApiParams = { ...apiFilterParams }
+
+    // Process `popoverData` to extract selected options
+    Object.keys(popoverData).forEach(category => {
+      popoverData[category].forEach(option => {
+        updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+      })
+    })
+
+    // Update API parameters and reset pagination
+    setApiFilterParams(updatedApiParams)
+    setPaginationModel({ ...paginationModel, page: 0 })
+  }
+
   return (
     <>
       {reports_module ? (
@@ -412,11 +528,12 @@ const SpeciesReport = () => {
                       display: 'flex',
                       flexDirection: { xs: 'column', sm: 'row' },
                       alignItems: 'center',
+                      borderRadius: '8px',
                       gap: 4,
                       mr: 2
                     }}
                   >
-                    <FormControl fullWidth sx={{ maxWidth: '200px' }}>
+                    {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
                       <InputLabel
                         sx={{
                           fontSize: '14px',
@@ -450,10 +567,83 @@ const SpeciesReport = () => {
                           </MenuItem>
                         ))}
                       </Select>
+                    </FormControl> */}
+
+                    <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                      <Button
+                        variant='outlined'
+                        onClick={() => setOpenSiteDrawer(true)}
+                        sx={{
+                          height: '40px',
+                          width: '200px',
+                          borderRadius: '8px',
+                          borderRadius: '4px',
+                          textTransform: 'none',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0 12px' // Ensure space for text and icon
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            overflow: 'hidden',
+                            borderRadius: '8px',
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            flex: 1, // Ensures it uses remaining space
+                            textAlign: 'left', // Align text to the left
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              overflow: 'hidden',
+                              borderRadius: '8px',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                              flex: 1, // Ensures it uses remaining space
+                              textAlign: 'left', // Align text to the left
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            {selectedSites.length > 0 && selectedSites[0] !== 'All Sites' ? (
+                              <>
+                                {
+                                  authData?.userData?.user?.zoos[0].sites?.find(
+                                    site => site.site_id === selectedSites[0]
+                                  )?.site_name
+                                }
+                                {selectedSites.length > 1 && ` ...+${selectedSites.length - 1}`}
+                              </>
+                            ) : (
+                              `Select Site (${sites.length})`
+                            )}
+                          </Box>
+                        </Box>
+                        <Box component='span' sx={{ ml: 1, color: 'black' }}>
+                          <img
+                            src='/images/All.png'
+                            style={{ width: '20px', height: '20px', marginTop: 7 }}
+                            alt='Filter Icon'
+                          />
+                        </Box>
+                      </Button>
                     </FormControl>
 
-                    <Button
-                      onClick={handleClick}
+                    <SiteSheet
+                      openSiteDrawer={openSiteDrawer}
+                      setOpenSiteDrawer={setOpenSiteDrawer}
+                      sites={sites}
+                      setSites={setSites}
+                      selectedSites={selectedSites}
+                      setSelectedSites={setSelectedSites}
+                      handleSelectedSite={handleSelectedSite}
+                    />
+
+                    {/* <Button
+                      onClick={() => setOpenFilterDrawer(true)}
                       variant='outlined'
                       sx={{
                         width: '120px',
@@ -466,12 +656,52 @@ const SpeciesReport = () => {
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 3,
+                        gap: 4,
                         minWidth: '100px'
                       }}
                     >
-                      <img src='/images/filterIcon.png' style={{ width: '24px', height: '24px' }} alt='Filter Icon' />
-                      Filter
+                      <img
+                        src='/images/filterIcon.png'
+                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        alt='Filter Icon'
+                      />
+
+                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Filter</Typography>
+                    </Button> */}
+                    {/* <FilterSheet
+                      open={openFilterDrawer}
+                      setOpenFilterDrawer={setOpenFilterDrawer}
+                      categories={categories}
+                      options={options}
+                      selectedOptions={selectedOptions}
+                      setSelectedOptions={setSelectedOptions}
+                    /> */}
+
+                    <Button
+                      onClick={handleClick}
+                      variant='outlined'
+                      sx={{
+                        width: '180px',
+                        height: '40px',
+                        mt: 2,
+                        display: 'flex',
+                        color: '#44544A',
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img
+                        src='/images/ShowPop.png'
+                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        alt='Filter Icon'
+                      />
+
+                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                     </Button>
                     <Popover
                       id={id}
@@ -488,31 +718,50 @@ const SpeciesReport = () => {
                       }}
                     >
                       <Box sx={{ p: 2, width: 300 }}>
-                        {Object?.keys(popoverData).map(category => (
-                          <div key={category}>
-                            <Typography
-                              variant='subtitle1'
-                              sx={{
-                                fontWeight: 500,
-                                mt: 3,
-                                ml: 3,
-                                fontFamily: 'Inter',
-                                fontSize: '16px',
-                                color: 'yourTheme.palette.customColors.OnSurfaceVariant'
-                              }}
-                            >
-                              {category}
-                            </Typography>
-                            <List sx={{ cursor: 'pointer' }}>
-                              {popoverData[category].map((item, index) => (
-                                <ListItem key={item.key} onClick={() => handleOptions(category, item, index)}>
-                                  <ListItemIcon>{item.checked && <CheckIcon sx={{ color: 'green' }} />}</ListItemIcon>
-                                  <ListItemText primary={item.label} />
-                                </ListItem>
-                              ))}
-                            </List>
-                          </div>
+                        {Object.keys(popoverData).map(category => (
+                          <Box key={category}>
+                            <Typography variant='h6'>{category}</Typography>
+                            {popoverData[category].map((item, index) => (
+                              <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
+                                <Typography>{item.label}</Typography>
+                              </Box>
+                            ))}
+                          </Box>
                         ))}
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          alignItems: 'center',
+                          gap: 2,
+                          mb: 5,
+                          mr: 14
+                        }}
+                      >
+                        <Button
+                          variant='outlined'
+                          onClick={() => {
+                            setAnchorEl(null)
+                          }}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant='contained'
+                          onClick={handleConfirm}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Confirm
+                        </Button>
                       </Box>
                     </Popover>
                   </Box>

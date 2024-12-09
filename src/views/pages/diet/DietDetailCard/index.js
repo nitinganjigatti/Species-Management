@@ -25,6 +25,7 @@ import ChangeDietName from 'src/components/diet/ChangeDietname'
 
 const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess }) => {
   const router = useRouter()
+  const { source, recipeId, ingId } = router.query
   const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -49,7 +50,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
       setConfirmDialogBox(true)
     }
   }
-
   const handleClosenew = () => {
     setConfirmDialogBox(false)
   }
@@ -104,8 +104,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
     } catch (error) {
       console.log('error', error)
     }
-
-    // console.log('first')
   }
 
   // const handleSearch = value => {
@@ -118,7 +116,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
       setConfirmDialogBox(false)
       const response = await dietStatusChange({ status: activePayload }, dietDetails?.id)
 
-      console.log(response, 'response')
       if (response.success) {
         setIsActive(isActive === '0' ? '1' : '0')
         Toaster({ type: 'success', message: response.message })
@@ -130,10 +127,43 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
     }
   }
 
+  const handlebackClick = () => {
+    if (source !== undefined && source === 'recipedetail') {
+      Router.push({
+        pathname: `/diet/recipe/${recipeId}`,
+        query: { source: 'fromdiet' }
+      })
+    } else if (source !== undefined && source === 'ingdetail') {
+      Router.push({
+        pathname: `/diet/ingredient/${ingId}`,
+        query: { source: 'fromdiet' }
+      })
+    } else {
+      Router.push('/diet/diet')
+    }
+  }
+
   return (
     <Card>
-      {/* {console.log(dietDetails, 'dietDetails')} */}
       <CardContent>
+        <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', pb: 4, pl: 1 }}>
+          <Icon
+            style={{ cursor: 'pointer' }}
+            onClick={handlebackClick}
+            color={theme.palette.customColors.OnSurfaceVariant}
+            icon='material-symbols:arrow-back'
+          />
+          <Typography
+            sx={{
+              color: theme.palette.secondary.dark,
+              fontWeight: 500,
+              fontSize: '24px',
+              lineHeight: '29.05px'
+            }}
+          >
+            Diet Details
+          </Typography>
+        </Box>
         <Grid sx={{ justifyContent: 'center', gap: '24px', boxSizing: 'border-box' }} container>
           <Grid md={3.8} item>
             <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
@@ -206,10 +236,12 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '24px', color: '#44544A', lineHeight: '29.05px' }}>
+                  <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
                     {dietDetails?.diet_name}
                   </Typography>
-                  <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A', lineHeight: '19.36px' }}>
+                  <Typography
+                    sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A', lineHeight: '19.36px', pt: 2 }}
+                  >
                     {dietDetails?.diet_no}
                   </Typography>
                 </Box>

@@ -306,7 +306,7 @@ const LabTest = () => {
 
   return (
     <>
-      {medical_add_tests && medical_add_samples ? (
+      {medical_add_tests ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>

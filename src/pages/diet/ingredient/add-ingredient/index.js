@@ -397,9 +397,8 @@ const AddIngredient = () => {
       var response
 
       response = await addPreparationType(payload)
-
       if (response?.success) {
-        Toaster({ type: 'success', message: JSON?.stringify(response?.message) })
+        Toaster({ type: 'success', message: `Preparation type ${response?.message || ''}` })
 
         setPreparationTypeSubmitLoader(false)
         handleSidebarClose()

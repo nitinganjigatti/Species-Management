@@ -55,6 +55,7 @@ import moment from 'moment'
 import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import AnimalParentCard from '../../../utility/animalParentCard'
 
 const ConditionSlider = ({
   getActivityLogsFunc,
@@ -303,143 +304,6 @@ const ConditionSlider = ({
     setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
     setValue('image', '')
   }
-
-  // const onSubmit = async values => {
-  //   try {
-  //     setLoader(true)
-  //     let payload
-  //     if (Number(getValues('current_state')) === 1) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         comment: getValues('comment'),
-  //         egg_attachment: imgArr
-  //       }
-  //     } else if (Number(getValues('current_state')) === 2) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         egg_state_id: getValues('select_stage'),
-  //         comment: getValues('comment'),
-  //         egg_attachment: imgArr
-  //       }
-  //     } else if (Number(getValues('current_state')) === 3) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         egg_state_id: getValues('select_stage'),
-  //         comment: getValues('comment'),
-  //         egg_attachment: imgArr
-  //       }
-  //     } else if (Number(getValues('current_state')) === 4) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         hatched_method: hatched,
-  //         egg_shell_thickness: getValues('shell_thickness'),
-  //         comment: getValues('comment'),
-  //         egg_assisted_by: getValues('assisted_by'),
-  //         egg_attachment: imgArr
-  //       }
-  //     }
-
-  //     const animalPayload = {
-  //       accession_type: values?.accessionType,
-  //       accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
-  //       taxonomy_id: values?.species,
-  //       enclosure_id: values?.enclosure,
-  //       sex: values?.sextype,
-  //       collection_type: values?.collectionType,
-  //       organization_id: values?.mastersOrganization,
-  //       from_institution: values?.institution,
-  //       birth_date: moment(values?.birthDate).format('YYYY-MM-DD'),
-  //       local_id_type: values?.localIdentifierType,
-  //       local_id: values?.localIdentifier,
-  //       age: values?.age,
-  //       parent_female: values?.parentMother,
-  //       parent_male: values?.parentFather,
-  //       ownership_term: values?.animalOwnershipTerms,
-  //       sexing_type: values?.sexingType,
-  //       life_stage: values?.lifeStage,
-  //       contraception_type: values.contraceptionType,
-  //       description: '',
-  //       form_type: 'single',
-  //       zoo_id: '',
-  //       site_id: eggDetails?.enclosure_data[0]?.site_id,
-  //       section_id: eggDetails?.enclosure_data[0]?.section_id,
-  //       egg_id: eggId
-  //     }
-
-  //     if (isAnimal && statusID === '4') {
-  //       const ress = await AddEggStatusAndCondition(payload)
-  //       if (ress?.success) {
-  //         // setLoader(false)
-  //         Toaster({ type: 'success', message: res.message })
-  //         const res = await createAnimal(animalPayload)
-  //         if (res.success) {
-  //           setLoader(false)
-  //           setDefaultSpecies(null)
-
-  //           reset()
-  //           setImgSrc('')
-  //           if (getDetails) {
-  //             getDetails(eggId)
-  //           }
-  //           if (GetGalleryImgList) {
-  //             GetGalleryImgList()
-  //           }
-  //           if (getActivityLogsFunc) {
-  //             getActivityLogsFunc()
-  //           }
-
-  //           setOpenDrawer(false)
-
-  //           Toaster({ type: 'success', message: res.message })
-  //         } else {
-  //           setLoader(false)
-  //           // setDefaultSpecies(null)
-  //           Toaster({ type: 'error', message: res.message })
-  //         }
-  //       } else {
-  //         setLoader(false)
-  //         // setDefaultSpecies(null)
-  //         Toaster({ type: 'error', message: res.message })
-  //       }
-  //     } else {
-  //       const res = await AddEggStatusAndCondition(payload)
-  //       if (res.success) {
-  //         setLoader(false)
-
-  //         // console.log('res on submit :>> ', res)
-  //         setImgSrc('')
-  //         reset()
-
-  //         if (getDetails) {
-  //           getDetails(eggId)
-  //         }
-  //         if (GetGalleryImgList) {
-  //           GetGalleryImgList()
-  //         }
-  //         if (getActivityLogsFunc) {
-  //           getActivityLogsFunc()
-  //         }
-  //         setOpenDrawer(false)
-  //         Toaster({ type: 'success', message: res.message })
-  //       } else {
-  //         setLoader(false)
-  //         Toaster({ type: 'error', message: res.message })
-  //       }
-  //     }
-
-  //     // Perform any additional operations, e.g., API call
-  //   } catch (error) {
-  //     setLoader(false)
-  //     if (getDetails) {
-  //       getDetails(eggId)
-  //     }
-  //     Toaster({ type: 'error', message: 'An error occurred while creating animal' })
-  //   }
-  // }
 
   const onSubmit = values => {
     try {
@@ -1224,20 +1088,6 @@ const ConditionSlider = ({
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
-                            // <Select
-                            //   name='species'
-                            //   value={value}
-                            //   label='Add Species'
-                            //   onChange={onChange}
-                            //   labelId='species'
-                            //   error={Boolean(errors?.species)}
-                            // >
-                            //   {[{ id: 1, name: 'dog' }].map(val => (
-                            //     <MenuItem key={val?.id} value={val?.id}>
-                            //       {val?.name}
-                            //     </MenuItem>
-                            //   ))}
-                            // </Select>
                             <Autocomplete
                               sx={{
                                 '& .MuiOutlinedInput-root': {
@@ -1467,89 +1317,6 @@ const ConditionSlider = ({
                         </div>
                       )}
 
-                      {/* <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
-                        <Controller
-                          name='enclosure'
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
-                            <Select
-                              name='enclosure'
-                              value={value}
-                              label='Select Enclosure *'
-                              onChange={onChange}
-                              labelId='enclosure'
-                              error={Boolean(errors?.enclosure)}
-                            >
-                              {eggDetails?.enclosure_data?.map(val => (
-                                <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-
-                                  <Box
-                                    sx={{
-                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                      display: 'flex',
-                                      padding: '12px',
-                                      width: '100%',
-                                      alignItems: 'center',
-                                      borderRadius: '8px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <Avatar
-                                      variant='rounded'
-                                      alt='Medicine Image'
-                                      sx={{
-                                        width: '48px',
-                                        height: '48px',
-                                        borderRadius: '50%'
-                                      }}
-                                      src={val?.enclosure_qr_image}
-                                    />
-
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                      </Typography>
-
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        Sec: {val?.section_name ? val?.section_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        Site: {val?.site_name ? val?.site_name : '-'}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          )}
-                        />
-                        {errors?.enclosure && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
-                        )}
-                      </FormControl> */}
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='enclosure'>Sex Type *</InputLabel>
                         <Controller
@@ -1788,119 +1555,12 @@ const ConditionSlider = ({
                               labelId='parentMother'
                               error={Boolean(errors?.parentMother)}
                             >
-                              {eggDetails?.parent_list?.mother_list?.map(val => (
-                                <MenuItem key={val?._id} value={val?.animal_id}>
-                                  {/* {val?.common_name} */}
-                                  <Box
-                                    sx={{
-                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                      display: 'flex',
-                                      padding: '12px',
-                                      width: '100%',
-                                      borderRadius: '10px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        alignItems: 'center',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '10px'
-                                      }}
-                                    >
-                                      <Avatar
-                                        variant='rounded'
-                                        alt='Medicine Image'
-                                        sx={{
-                                          width: '44px',
-                                          height: '44px',
-                                          borderRadius: '50%',
-                                          border: '1px',
-                                          overflow: 'hidden'
-                                        }}
-                                        src={val?.default_icon}
-                                        // src={
-                                        //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                        // }
-                                      />
-                                      <Typography
-                                        sx={{
-                                          height: '22px',
-                                          width: '22px',
-                                          textAlign: 'center',
-                                          backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                        }}
-                                      >
-                                        {val?.sex === 'female'
-                                          ? 'F'
-                                          : val?.sex === 'male'
-                                          ? 'M'
-                                          : val?.sex === 'undetermined'
-                                          ? 'UD'
-                                          : val?.sex === 'indeterminate'
-                                          ? 'ID'
-                                          : val?.sex === 'group'
-                                          ? 'G'
-                                          : '-'}
-                                      </Typography>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                      {/* <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
-                                        <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
-                                      </Typography> */}
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        {val?.animal_id ? val?.animal_id : '-'}
-                                      </Typography>
-
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '500',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.common_name ? val?.common_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.section_name ? val?.section_name : '-'}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
+                              {eggDetails?.parent_list?.mother_list?.map(item => (
+                                <MenuItem key={item?._id} value={item?.animal_id}>
+                                  <AnimalParentCard
+                                    data={item}
+                                    backgroundColor={theme.palette.customColors.tableHeaderBg}
+                                  />
                                 </MenuItem>
                               ))}
                             </Select>
@@ -1925,119 +1585,12 @@ const ConditionSlider = ({
                               labelId='parentFather'
                               error={Boolean(errors?.parentFather)}
                             >
-                              {eggDetails?.parent_list?.father_list?.map(val => (
-                                <MenuItem key={val?._id} value={val?.animal_id}>
-                                  {/* {val?.common_name} */}
-                                  <Box
-                                    sx={{
-                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                      display: 'flex',
-                                      padding: '12px',
-                                      width: '100%',
-                                      borderRadius: '10px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        alignItems: 'center',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '10px'
-                                      }}
-                                    >
-                                      <Avatar
-                                        variant='rounded'
-                                        alt='Medicine Image'
-                                        sx={{
-                                          width: '44px',
-                                          height: '44px',
-                                          borderRadius: '50%',
-                                          border: '1px',
-                                          overflow: 'hidden'
-                                        }}
-                                        src={val?.default_icon}
-                                        // src={
-                                        //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                        // }
-                                      />
-                                      <Typography
-                                        sx={{
-                                          height: '22px',
-                                          width: '22px',
-                                          textAlign: 'center',
-                                          backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                        }}
-                                      >
-                                        {val?.sex === 'female'
-                                          ? 'F'
-                                          : val?.sex === 'male'
-                                          ? 'M'
-                                          : val?.sex === 'undetermined'
-                                          ? 'UD'
-                                          : val?.sex === 'indeterminate'
-                                          ? 'ID'
-                                          : val?.sex === 'group'
-                                          ? 'G'
-                                          : '-'}
-                                      </Typography>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                      {/* <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
-                                        <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
-                                      </Typography> */}
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        {val?.animal_id ? val?.animal_id : '-'}
-                                      </Typography>
-
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '500',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.common_name ? val?.common_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.section_name ? val?.section_name : '-'}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
+                              {eggDetails?.parent_list?.father_list?.map(item => (
+                                <MenuItem key={item?._id} value={item?.animal_id}>
+                                  <AnimalParentCard
+                                    data={item}
+                                    backgroundColor={theme.palette.customColors.tableHeaderBg}
+                                  />
                                 </MenuItem>
                               ))}
                             </Select>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getRecipeListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
+import { getDietListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
@@ -9,40 +9,32 @@ import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
-import { Avatar, Box, CardContent } from '@mui/material'
+import { Avatar, Box } from '@mui/material'
 
 // ** MUI Imports
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import Drawer from '@mui/material/Drawer'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import SwapIngredient from './swapIngredient'
 
-const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
+const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
   const [loader, setLoader] = useState(false)
   const router = useRouter()
   const { id } = router.query
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
+  const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
   const [status, setStatus] = useState('1')
   const [showSwapBtn, setshowSwapBtn] = useState([])
-  const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
-  const [searchSwapIngredientValue, setSearchSwapIngredientValue] = useState('')
-
-  const handleSidebarClose = () => {
-    setActivitySidebarOpen(false)
-  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -52,7 +44,6 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     setTotal(0)
     setStatus(newValue)
   }
-
   const fetchTableData = useCallback(
     async (sortBy, q, status) => {
       try {
@@ -65,30 +56,19 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
           q,
           status
         }
-        await getRecipeListonIngredientDtl(id, params).then(res => {
+        await getDietListonIngredientDtl(id, params).then(res => {
           console.log('response', res)
-          setTotal(parseInt(res?.data?.data?.count))
-
-          const result = res?.data?.data?.result
-
-          if (Array.isArray(result)) {
-            // If result is an array, update rows directly
-            const startingIndex = paginationModel.page * paginationModel.pageSize
-            let listWithId = res.data.data.result.map((el, i) => {
-              return { ...el, uid: startingIndex + i + 1 }
-            })
-            setRows(loadServerRows(paginationModel.page, listWithId))
-          } else if (typeof result === 'object') {
-            // If result is an object, convert it to an array of one object
-            setRows([result])
-          } else {
-            // Handle other cases
-            console.error('Unexpected result type:', result)
-          }
+          // Generate uid field based on the index
+          const startingIndex = paginationModel.page * paginationModel.pageSize
+          let listWithId = res.data.data.result.map((el, i) => {
+            return { ...el, uid: startingIndex + i + 1 }
+          })
+          setTotal(parseInt(res?.data?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
         })
         setLoading(false)
       } catch (e) {
-        console.error(e)
+        console.log(e)
         setLoading(false)
       }
     },
@@ -97,6 +77,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   useEffect(() => {
     fetchTableData(sort, searchValue, status)
   }, [fetchTableData, status])
+
   useEffect(() => {
     onTotalChange(total)
   }, [total, onTotalChange])
@@ -147,16 +128,16 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     searchTableData(sort, value, status)
   }
 
-  const handleclickChange = (data, val) => {
+  const handlechangecheck = (data, val) => {
     Router.push({
-      pathname: `/diet/recipe/${data?.id}`
-      //query: { source: val, ingId: id }
+      pathname: `/diet/diet/${data?.id}`,
+      query: { source: val, ingId: id }
     })
   }
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -167,10 +148,10 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.3,
       minWidth: 40,
-      field: 'recipe_name',
-      headerName: 'RECIPE',
+      field: 'diet_name',
+      headerName: 'DIET NAME',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -178,19 +159,15 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
             variant='square'
             alt='Recipe Image'
             sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_ingredient_fill.png'}
+            src={params.row.image ? params.row.image : '/icons/icon_diet_fill.png'}
+          ></Avatar>
+
+          <Box
+            sx={{ display: 'flex', flexDirection: 'column' }}
+            onClick={() => handlechangecheck(params.row, 'ingdetail')}
           >
-            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              noWrap
-              variant='body2'
-              sx={{ color: 'text.primary' }}
-              className='text_overflow_moduled'
-              onClick={() => handleclickChange(params.row, 'ingdetail')}
-            >
-              {params.row.recipe_name ? params.row.recipe_name : '-'}
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.diet_name ? params.row.diet_name : '-'}
             </Typography>
           </Box>
         </Box>
@@ -198,24 +175,17 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     },
     {
       flex: 0.3,
-      minWidth: 10,
-      field: 'total_kcal',
-      headerName: 'KCAL',
+      minWidth: 40,
+      field: 'diet_no',
+      headerName: 'DIET NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.total_kcal ? params.row.total_kcal + ' ' + 'Kcal' : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'ingredient_count',
-      headerName: 'NO OF INGREDIENTS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 10 }}>
-          {params.row.ingredient_count ? params.row.ingredient_count : '-'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.diet_no ? params.row.diet_no : '-'}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
   ]
@@ -237,40 +207,18 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         ) : (
           <>
             <div>
-              {/* {showSwapBtn.length > 0 ? ( */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <div></div>
-                {/* <Button
-                  size='small'
-                  variant='contained'
-                  onClick={() => setActivitySidebarOpen(true)}
-                  sx={{ px: 4, py: 2, cursor: 'pointer', position: 'relative', top: 8 }}
-                >
-                  <Icon icon='mdi:add' fontSize={20} />
-                  &nbsp; SWAP {IngredientName}
-                </Button> */}
-                <Box sx={{ px: 4, py: 4, cursor: 'pointer', position: 'relative', top: 8 }}></Box>
-                {/* /////////////// */}
-                <Drawer
-                  anchor='right'
-                  open={activitySidebarOpen}
-                  ModalProps={{ keepMounted: true }}
-                  sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
-                >
-                  <CardContent>
-                    <SwapIngredient
-                      handleSidebarClose={handleSidebarClose}
-                      setActivitySidebarOpen={setActivitySidebarOpen}
-                    />
-                  </CardContent>
-                </Drawer>
-                {/* //////////////////// */}
-              </div>
-              {/* ) : (
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '38px' }}
-                ></div>
-              )} */}
+              {/* {showSwapBtn.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <Button size='small' variant='contained' sx={{ px: 4, py: 2, cursor: 'pointer' }}>
+                    <Icon icon='mdi:add' fontSize={20} />
+                    &nbsp; SWAP {IngredientName}
+                  </Button>
+                </div>
+              )  */}
+              <div
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '38px' }}
+              ></div>
+
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -286,7 +234,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
-                checkboxSelection={false}
+                //checkboxSelection={true}
                 disableColumnMenu={true}
                 onRowSelectionModelChange={handleSelectionChange}
                 selectionModel={selectedRows}
@@ -295,9 +243,9 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 columns={columns}
-                paginationMode='server'
                 sortingMode='server'
                 onSortModelChange={handleSortModel}
+                paginationMode='server'
                 pageSizeOptions={[7, 10, 25, 50]}
                 paginationModel={paginationModel}
                 slots={{ toolbar: ServerSideToolbar }}
@@ -347,4 +295,4 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   )
 }
 
-export default RecipeListTabview
+export default IngredientDetialDietListTabview

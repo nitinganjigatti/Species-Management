@@ -41,6 +41,7 @@ import { GetEggDetails } from 'src/lib/api/egg/egg'
 import moment from 'moment'
 import dayjs from 'dayjs'
 import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
+import AnimalParentCard from '../../../../utility/animalParentCard'
 
 const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }) => {
   const theme = useTheme()
@@ -961,123 +962,12 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           labelId='parentMother'
                           error={Boolean(errors?.parentMother)}
                         >
-                          {eggDetails?.parent_list?.mother_list?.map(val => (
-                            <MenuItem key={val?._id} value={val?.animal_id}>
-                              {/* {val?.common_name} */}
-                              <Box
-                                sx={{
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  display: 'flex',
-                                  padding: '12px',
-                                  width: '100%',
-                                  borderRadius: '10px',
-                                  gap: '12px'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '10px'
-                                  }}
-                                >
-                                  <Box sx={{ height: '44px', width: '44px' }}>
-                                    <Avatar
-                                      variant='square'
-                                      alt='parent Image'
-                                      sx={{
-                                        height: '100%',
-                                        width: '100%',
-                                        borderRadius: '50%',
-                                        border: '1px',
-                                        '& .MuiAvatar-img': {
-                                          objectFit: 'contain'
-                                        }
-                                      }}
-                                      src={val?.default_icon}
-                                      // src={
-                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                      // }
-                                    />
-                                  </Box>
-                                  <Typography
-                                    sx={{
-                                      height: '22px',
-                                      width: '22px',
-                                      textAlign: 'center',
-                                      backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                    }}
-                                  >
-                                    {val?.sex === 'female'
-                                      ? 'F'
-                                      : val?.sex === 'male'
-                                      ? 'M'
-                                      : val?.sex === 'undetermined'
-                                      ? 'UD'
-                                      : val?.sex === 'indeterminate'
-                                      ? 'ID'
-                                      : val?.sex === 'group'
-                                      ? 'G'
-                                      : '-'}
-                                  </Typography>
-                                </Box>
-
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  {/* <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
-                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
-                                  </Typography> */}
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    {val?.animal_id ? val?.animal_id : '-'}
-                                  </Typography>
-
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '500',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.common_name ? val?.common_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.section_name ? val?.section_name : '-'}
-                                  </Typography>
-                                </Box>
-                              </Box>
+                          {eggDetails?.parent_list?.mother_list?.map(item => (
+                            <MenuItem key={item?._id} value={item?.animal_id}>
+                              <AnimalParentCard
+                                data={item}
+                                backgroundColor={theme.palette.customColors.tableHeaderBg}
+                              />
                             </MenuItem>
                           ))}
                         </Select>
@@ -1102,123 +992,12 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           labelId='parentFather'
                           error={Boolean(errors?.parentFather)}
                         >
-                          {eggDetails?.parent_list?.father_list?.map(val => (
-                            <MenuItem key={val?._id} value={val?.animal_id}>
-                              {/* {val?.common_name} */}
-                              <Box
-                                sx={{
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  display: 'flex',
-                                  padding: '12px',
-                                  width: '100%',
-                                  borderRadius: '10px',
-                                  gap: '12px'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '10px'
-                                  }}
-                                >
-                                  <Box sx={{ height: '44px', width: '44px' }}>
-                                    <Avatar
-                                      variant='square'
-                                      alt='parent Image'
-                                      sx={{
-                                        height: '100%',
-                                        width: '100%',
-                                        borderRadius: '50%',
-                                        border: '1px',
-                                        '& .MuiAvatar-img': {
-                                          objectFit: 'contain'
-                                        }
-                                      }}
-                                      src={val?.default_icon}
-                                      // src={
-                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                      // }
-                                    />
-                                  </Box>
-                                  <Typography
-                                    sx={{
-                                      height: '22px',
-                                      width: '22px',
-                                      textAlign: 'center',
-                                      backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                    }}
-                                  >
-                                    {val?.sex === 'female'
-                                      ? 'F'
-                                      : val?.sex === 'male'
-                                      ? 'M'
-                                      : val?.sex === 'undetermined'
-                                      ? 'UD'
-                                      : val?.sex === 'indeterminate'
-                                      ? 'ID'
-                                      : val?.sex === 'group'
-                                      ? 'G'
-                                      : '-'}
-                                  </Typography>
-                                </Box>
-
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  {/* <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    <span> {val?.local_id_type ? val?.local_id_type : '-'}: </span>
-                                    <span> {val?.local_identifier_value ? val?.local_identifier_value : '-'}</span>
-                                  </Typography> */}
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    {val?.animal_id ? val?.animal_id : '-'}
-                                  </Typography>
-
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '500',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.common_name ? val?.common_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.section_name ? val?.section_name : '-'}
-                                  </Typography>
-                                </Box>
-                              </Box>
+                          {eggDetails?.parent_list?.father_list?.map(item => (
+                            <MenuItem key={item?._id} value={item?.animal_id}>
+                              <AnimalParentCard
+                                data={item}
+                                backgroundColor={theme.palette.customColors.tableHeaderBg}
+                              />
                             </MenuItem>
                           ))}
                         </Select>

@@ -346,6 +346,16 @@ export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmen
 
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
 
+export const CUT_SIZE = 'diet/recipes/master/cutsizeList'
+
+export const ADD_CUT_SIZE = 'diet/recipes/master/cutsizeadd'
+
+export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
+
+export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
+
+export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
+
 export const USERS_REPORT = '/user/report'
 
 export const HOUSING_REPORT = 'v1/species/report?include_housing=1'

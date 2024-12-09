@@ -81,13 +81,13 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   <img
                     src={item.file ? item.file : null}
                     alt={item.file_original_name}
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
                 ) : (
                   <img
                     src={fileViews?.image?.image_path}
                     alt={item.file_original_name}
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
                 )}
                 {/* <img src='/icons/document_icon.png' alt='Icon' style={{ width: '56px', height: '60px' }} /> */}
@@ -190,7 +190,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                       : '/icons/document_icon.png'
                   }
                   alt='Icon'
-                  style={{ width: '56px', height: '60px' }}
+                  style={{ width: '56px', height: '60px', objectFit: 'contain' }}
                 />
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

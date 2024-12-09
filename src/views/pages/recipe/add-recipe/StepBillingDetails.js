@@ -22,29 +22,29 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.4,
+      flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
       headerName: 'Ingredient ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
           {params.row.ingredient_id}
         </Typography>
       )
     },
     {
-      flex: 0.4,
+      flex: 0.3,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.feed_type_label}
         </Typography>
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'quantity',
       headerName: 'Quantity',
@@ -61,8 +61,19 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'preparation_type',
       headerName: 'Preparation Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.preparation_type}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'cut_size',
+      headerName: 'Cut Size',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
         </Typography>
       )
     }
@@ -81,29 +92,29 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.4,
+      flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
       headerName: 'Ingredient ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
           {params.row.ingredient_id}
         </Typography>
       )
     },
     {
-      flex: 0.4,
+      flex: 0.3,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.feed_type_label}
         </Typography>
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'quantity',
       headerName: `Quantity (100%)`,
@@ -120,8 +131,19 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'preparation_type',
       headerName: 'Preparation Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.preparation_type}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'cut_size',
+      headerName: 'Cut Size',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
         </Typography>
       )
     }
@@ -220,9 +242,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                                {formData.portion_size
-                                  ? formData.portion_size + ' ' + formData.portion_uom_name
-                                  : '0' + formData.portion_uom_name}
+                                {formData.portion_size !== '0'
+                                  ? formData.portion_size + ' ' + (formData.portion_uom_name || '')
+                                  : '0' + ' g'}
                               </Typography>
                             </Box>
                           </Box>
@@ -264,7 +286,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                                {formData.kcal + ' Kcal'}
+                                {formData.kcal ? formData.kcal + ' Kcal' : ' 0 Kcal'}
                               </Typography>
                             </Box>
                           </Box>

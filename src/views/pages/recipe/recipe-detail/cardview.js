@@ -145,7 +145,9 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.portion_size + ' ' + IngredientsDetailsval.portion_uom_name}
+                {IngredientsDetailsval.portion_size !== '0'
+                  ? IngredientsDetailsval.portion_size + ' ' + (IngredientsDetailsval.portion_uom_name || '')
+                  : '0 g'}
               </Typography>
             </Box>
           </Box>
@@ -187,7 +189,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                {IngredientsDetailsval.total_kcal ? IngredientsDetailsval.total_kcal : 0 + ' Kcal'}
+                {IngredientsDetailsval.kcal ? IngredientsDetailsval.kcal + ' Kcal' : 0 + ' Kcal'}
               </Typography>
             </Box>
           </Box>
