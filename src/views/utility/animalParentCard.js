@@ -8,95 +8,84 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
 
   return (
     <>
-      <Box
-        sx={{
-          width: '100%',
-          backgroundColor: backgroundColor ? backgroundColor : theme.palette.customColors.tableHeaderBg,
-          borderRadius: '8px',
-          paddingY: '20px',
-          paddingX: '16px',
-          // border: '1px solid #C3CEC7',
-          display: 'flex',
-          gap: '10px'
-        }}
-      >
+      {data && (
         <Box
           sx={{
+            width: '100%',
+            backgroundColor: backgroundColor ? backgroundColor : theme.palette.customColors.tableHeaderBg,
+            borderRadius: '8px',
+            paddingY: '20px',
+            paddingX: '16px',
+            // border: '1px solid #C3CEC7',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            alignItems: 'center'
+            gap: '10px'
           }}
         >
-          <Avatar
+          <Box
             sx={{
-              '& > img': {
-                objectFit: data?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
-              },
-              width: 44,
-              height: 44,
-              border: '1px solid #C3CEC7'
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              alignItems: 'center'
             }}
-            alt={data?.default_icon}
-            src={data?.default_icon}
-          />
-          <Avatar
-            sx={{
-              width: 24,
-              height: 24,
-              bgcolor: data?.type === 'group' ? '#00AFD6' : '#AFEFEB',
-              objectFit: 'cover'
-            }}
-            variant='rounded'
           >
-            {data?.type === 'group' ? (
-              <Typography sx={{ fontSize: 14, color: '#fff' }}>G</Typography>
-            ) : data?.sex === 'male' ? (
-              <Typography sx={{ fontSize: 14 }}>M</Typography>
-            ) : data?.sex === 'female' ? (
-              <Typography sx={{ fontSize: 14 }}>F</Typography>
-            ) : data?.sex === 'undetermined' ? (
-              <Typography sx={{ fontSize: 14 }}>UD</Typography>
-            ) : data?.sex === 'indeterminate' ? (
-              <Typography sx={{ fontSize: 14 }}>ID</Typography>
-            ) : (
-              <Typography sx={{ fontSize: 14 }}>-</Typography>
+            <Avatar
+              sx={{
+                '& > img': {
+                  objectFit: data?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
+                },
+                width: 44,
+                height: 44,
+                border: '1px solid #C3CEC7'
+              }}
+              alt={data?.default_icon}
+              src={data?.default_icon}
+            />
+            <Avatar
+              sx={{
+                width: 24,
+                height: 24,
+                bgcolor: data?.type === 'group' ? '#00AFD6' : '#AFEFEB',
+                objectFit: 'cover'
+              }}
+              variant='rounded'
+            >
+              {data?.type === 'group' ? (
+                <Typography sx={{ fontSize: 14, color: '#fff' }}>G</Typography>
+              ) : data?.sex === 'male' ? (
+                <Typography sx={{ fontSize: 14 }}>M</Typography>
+              ) : data?.sex === 'female' ? (
+                <Typography sx={{ fontSize: 14 }}>F</Typography>
+              ) : data?.sex === 'undetermined' ? (
+                <Typography sx={{ fontSize: 14 }}>UD</Typography>
+              ) : data?.sex === 'indeterminate' ? (
+                <Typography sx={{ fontSize: 14 }}>ID</Typography>
+              ) : (
+                <Typography sx={{ fontSize: 14 }}>-</Typography>
+              )}
+            </Avatar>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px'
+            }}
+          >
+            {data?.local_id_type && data?.local_identifier_value && (
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  lineHeight: '19.36px'
+                }}
+              >
+                <span> {data?.local_id_type}: </span>
+                <span> {data?.local_identifier_value}</span>
+              </Typography>
             )}
-          </Avatar>
-        </Box>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '6px'
-          }}
-        >
-          {data?.local_id_type && data?.local_identifier_value && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600',
-                lineHeight: '19.36px'
-              }}
-            >
-              <span> {data?.local_id_type}: </span>
-              <span> {data?.local_identifier_value}</span>
-            </Typography>
-          )}
 
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            AID : {data?.animal_id}
-            {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-          </Typography>
-          {data?.breed_name && (
             <Typography
               sx={{
                 fontSize: '16px',
@@ -105,11 +94,35 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Breed : {data?.breed_name}
+              AID : {data?.animal_id}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
-          )}
-          {data?.morph_name && (
+            {data?.breed_name && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Breed : {data?.breed_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
+            {data?.morph_name && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Morph : {data?.morph_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
             <Typography
               sx={{
                 fontSize: '16px',
@@ -118,86 +131,75 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Morph : {data?.morph_name}
+              {data?.common_name || data?.default_common_name}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
-          )}
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: '19.36px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {data?.common_name || data?.default_common_name}
-            {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '13px',
-              fontWeight: 500,
-              fontStyle: 'italic',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {data?.scientific_name}
-            {/* {Utility?.toPascalSentenceCase(data?.scientific_name)} */}
-          </Typography>
-          {data?.type === 'group' && (
             <Typography
               sx={{
-                width: '250px',
-                paddingY: '4px',
-                borderRadius: '5px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                textAlign: 'center',
-                fontSize: '16px',
+                fontSize: '13px',
                 fontWeight: 500,
-                lineHeight: '19.36px',
-                color: 'black'
+                fontStyle: 'italic',
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Count {data?.total_animal}
+              {data?.scientific_name}
+              {/* {Utility?.toPascalSentenceCase(data?.scientific_name)} */}
             </Typography>
-          )}
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span style={{ fontWeight: 400 }}> Encl: </span>
-            {data?.user_enclosure_name}
-            {/* {Utility?.toPascalSentenceCase(data?.user_enclosure_name)} */}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span style={{ fontWeight: 400 }}>Sec: </span> {data?.section_name}
-            {/* {Utility?.toPascalSentenceCase(data?.section_name)} */}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            <span style={{ fontWeight: 400 }}>Site: </span>
-            {data?.site_name}
-            {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
-          </Typography>
+            {data?.type === 'group' && (
+              <Typography
+                sx={{
+                  width: '250px',
+                  paddingY: '4px',
+                  borderRadius: '5px',
+                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                  textAlign: 'center',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px',
+                  color: 'black'
+                }}
+              >
+                Count {data?.total_animal}
+              </Typography>
+            )}
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: '16.94px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              <span style={{ fontWeight: 400 }}> Encl: </span>
+              {data?.user_enclosure_name}
+              {/* {Utility?.toPascalSentenceCase(data?.user_enclosure_name)} */}
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: '16.94px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              <span style={{ fontWeight: 400 }}>Sec: </span> {data?.section_name}
+              {/* {Utility?.toPascalSentenceCase(data?.section_name)} */}
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: '16.94px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              <span style={{ fontWeight: 400 }}>Site: </span>
+              {data?.site_name}
+              {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
+            </Typography>
+          </Box>
         </Box>
-      </Box>
+      )}
     </>
   )
 }
