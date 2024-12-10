@@ -59,7 +59,7 @@ const ListOfStockAdjusted = () => {
     pageSize: parseInt(router.query.limit) || 10
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(router.query.status || 'Missing stock')
+  const [status, setStatus] = useState(router.query.reason || 'Missing stock')
   const [expandedText, setExpandedText] = useState('')
   const [notesDialog, setNotesDialog] = useState(false)
 
@@ -78,14 +78,6 @@ const ListOfStockAdjusted = () => {
 
     // Update status state and URL query
     setStatus(newValue)
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, status: newValue }
-      },
-      undefined,
-      { shallow: true }
-    )
   }
 
   function loadServerRows(currentPage, data) {
@@ -139,13 +131,13 @@ const ListOfStockAdjusted = () => {
       reason: status
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id, status])
+  }, [selectedPharmacy.id, status, paginationModel.page, paginationModel.pageSize])
 
-  useEffect(() => {
-    if (router.query.status) {
-      setStatus(router.query.status)
-    }
-  }, [router.query.status])
+  // useEffect(() => {
+  //   if (router.query.status) {
+  //     setStatus(router.query.status)
+  //   }
+  // }, [router.query.status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -159,6 +151,14 @@ const ListOfStockAdjusted = () => {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
       fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize,
+        reason: status
+      })
     } else {
     }
   }
