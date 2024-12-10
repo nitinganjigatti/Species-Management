@@ -725,7 +725,7 @@ const AddRequestForm = () => {
               sx={{
                 cursor: 'pointer',
                 borderBottom: tabStatus === 'By product' ? '5px solid' : '',
-                color: 'primary.main',
+                color: tabStatus === 'By product' ? 'primary.main' : '#414941',
                 padding: '8px 16px'
               }}
             >
@@ -737,7 +737,7 @@ const AddRequestForm = () => {
               sx={{
                 cursor: 'pointer',
                 borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
-                color: 'primary.main',
+                color: tabStatus === 'By generic' ? 'primary.main' : '#414941',
                 padding: '8px 16px'
               }}
             >
@@ -1044,7 +1044,7 @@ const AddRequestForm = () => {
                       height: '32px',
                       fontWeight: 400,
                       verticalAlign: 'middle',
-                      backgroundColor: 'customColors.OutlineVariant',
+                      backgroundColor: '#F2FFF8',
                       color: 'customColors.OnSurfaceVariant',
                       border: '0.5px solid #37BD69 !important'
                     }}
@@ -1058,7 +1058,7 @@ const AddRequestForm = () => {
                       height: '32px',
                       fontWeight: 400,
                       verticalAlign: 'middle',
-                      backgroundColor: 'customColors.OutlineVariant',
+                      backgroundColor: '#F2FFF8',
                       color: 'customColors.OnSurfaceVariant',
                       border: '0.5px solid #37BD69 !important'
                     }}
@@ -1103,7 +1103,8 @@ const AddRequestForm = () => {
                     ml: '8px',
                     padding: '12px',
                     '&.Mui-checked': {
-                      color: 'error.main'
+                      // color: 'error.main'
+                      color: 'primary.main'
                     }
                   }}
                   checked={nestedRowMedicine.priority_item === 'high'}

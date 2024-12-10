@@ -320,7 +320,7 @@ export const AddItemsForm = ({
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
         <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
