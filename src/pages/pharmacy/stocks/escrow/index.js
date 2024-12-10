@@ -20,20 +20,24 @@ function Escrow({ value }) {
   console.log('Value >>', value)
 
   const theme = useTheme()
+
   // const { type } = Router.query
 
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
+
   // const [searchValue, setSearchValue] = useState('')
-  const [searchValue, setSearchValue] = useState(router.query.searchValue || '') 
+  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
     pageSize: parseInt(router.query.pageSize, 10) || 10
   })
+
   // const [stockType, setStockType] = useState( 'dispute')
   const [stockType, setStockType] = useState(router.query.stockType || 'dispute')
 
