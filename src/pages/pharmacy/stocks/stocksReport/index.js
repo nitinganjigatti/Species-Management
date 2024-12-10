@@ -1050,9 +1050,17 @@ const ListOfStocks = () => {
   const handleStockRowClick = params => {
     if (selectedPharmacy?.id === stockId) {
       setConfigureMedId(params?.row?.stock_item_id)
-
       showDialog()
     }
+  }
+
+  const handleStockRowClickSideBar = async params => {
+    addEventSidebarOpen()
+    setPurchaseByStockId({
+      batch_no: params.row?.batch_no,
+      stock_id: params.row?.stock_item_id
+    })
+    await getPurchaseListByStockId(params.row?.stock_item_id, params.row?.batch_no)
   }
 
   const handleBatchSearch = useCallback(
@@ -1285,11 +1293,12 @@ const ListOfStocks = () => {
     }
   }, [])
 
-  useEffect(() => {
-    if (purchaseByStockId && purchaseByStockId.stock_id) {
-      getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
-    }
-  }, [purchaseByStockId, getPurchaseListByStockId])
+  // useEffect(() => {
+  //   debugger
+  //   if (purchaseByStockId && purchaseByStockId.stock_id) {
+  //     getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
+  //   }
+  // }, [purchaseByStockId, getPurchaseListByStockId])
 
   const handleInputChange = event => {
     const value = event.target.value
@@ -1451,11 +1460,12 @@ const ListOfStocks = () => {
 
                           // Custom logic for cell clicks
                           if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
-                            addEventSidebarOpen()
-                            setPurchaseByStockId({
-                              batch_no: params.row?.batch_no,
-                              stock_id: params.row?.stock_item_id
-                            })
+                            // addEventSidebarOpen()
+                            // setPurchaseByStockId({
+                            //   batch_no: params.row?.batch_no,
+                            //   stock_id: params.row?.stock_item_id
+                            // })
+                            handleStockRowClickSideBar(params)
                             event.ignoreRowClick = true
                           } else {
                             handleStockRowClick(params)
@@ -1483,11 +1493,12 @@ const ListOfStocks = () => {
 
                           // Custom logic for cell clicks
                           if (selectedPharmacy.type === 'central' && params.field === 'stock_items_name') {
-                            addEventSidebarOpen()
-                            setPurchaseByStockId({
-                              batch_no: params.row?.batch_no,
-                              stock_id: params.row?.stock_item_id
-                            })
+                            // addEventSidebarOpen()
+                            // setPurchaseByStockId({
+                            //   batch_no: params.row?.batch_no,
+                            //   stock_id: params.row?.stock_item_id
+                            // })
+                            handleStockRowClickSideBar(params)
                             event.ignoreRowClick = true
                           } else {
                             handleStockRowClick(params)

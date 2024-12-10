@@ -199,7 +199,15 @@ const RequestList = () => {
     })
 
     // }
-  }, [fetchTableData, status, selectedPharmacy.id, filterSwitch, filterByStoreId, filterDates])
+  }, [
+    status,
+    selectedPharmacy.id,
+    filterSwitch,
+    filterByStoreId,
+    filterDates,
+    paginationModel.page,
+    paginationModel.pageSize
+  ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -237,7 +245,7 @@ const RequestList = () => {
         newColumn,
         status,
         filterDates.startDate,
-        filterDates.endDate, 
+        filterDates.endDate,
         filterByStoreId
       )
     }
@@ -250,6 +258,19 @@ const RequestList = () => {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
+        updateUrlParams({
+          sort,
+          q: searchValue,
+          column: sortColumn,
+          status: currentStatus,
+          startDate: filterDates.startDate,
+          endDate: filterDates.endDate,
+          store: filterByStoreId,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          filterSwitch,
+          days: selectDays
+        })
       } catch (error) {
         console.error(error)
       }

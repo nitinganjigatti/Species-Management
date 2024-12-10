@@ -183,6 +183,14 @@ const DirectDispatchList = () => {
 
       try {
         await fetchTableData(sort, q, column, currentStatus)
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          status: status,
+          page: 0,
+          limit: 10
+        })
       } catch (error) {
         console.error(error)
       }
@@ -224,7 +232,7 @@ const DirectDispatchList = () => {
       filterSwitch
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch, selectedPharmacy.id])
+  }, [status, filterSwitch, selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
 
   const onRowClick = params => {
     Router.push({
@@ -250,7 +258,7 @@ const DirectDispatchList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
+    searchTableData(sort, value, sortColumn, status)
   }
 
   const getRequestedText = () => {

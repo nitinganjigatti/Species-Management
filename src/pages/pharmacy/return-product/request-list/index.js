@@ -213,8 +213,19 @@ const ReturnRequestList = () => {
         filterDates.endDate,
         filterByStoreId
       )
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        status: status,
+        startDate: filterDates.startDate,
+        endDate: filterDates.endDate,
+        store: filterByStoreId,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
 
-      fetchTableData(newSort, searchValue, newColumn, status, filterDates.endDate, filterByStoreId)
+      // fetchTableData(sort, searchValue, sortColumn, status, filterDates.endDate, filterByStoreId)
     }
   }
 
@@ -234,6 +245,15 @@ const ReturnRequestList = () => {
           filterDates.endDate,
           filterByStoreId
         )
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          status: status,
+          startDate: filterDates.startDate,
+          endDate: filterDates.endDate,
+          store: filterByStoreId
+        })
       } catch (error) {
         console.error(error)
       }
@@ -295,7 +315,15 @@ const ReturnRequestList = () => {
 
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch, filterByStoreId, filterDates, selectedPharmacy.id])
+  }, [
+    status,
+    filterSwitch,
+    filterByStoreId,
+    filterDates,
+    selectedPharmacy.id,
+    paginationModel.page,
+    paginationModel.pageSize
+  ])
 
   const onRowClick = params => {
     Router.push({

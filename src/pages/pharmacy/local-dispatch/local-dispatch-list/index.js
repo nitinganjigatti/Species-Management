@@ -115,6 +115,16 @@ const DirectDispatchList = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
+      fetchTableData(sort, searchValue, sortColumn, status)
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        status: status,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize,
+        filterSwitch
+      })
     }
   }
 
@@ -122,9 +132,18 @@ const DirectDispatchList = () => {
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       const currentStatus = filterSwitch ? 'completed' : status
-
+      setPaginationModel({ page: 0, pageSize: 10 })
       try {
         await fetchTableData(sort, q, column, currentStatus)
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          status: currentStatus,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          filterSwitch
+        })
       } catch (error) {
         console.error(error)
       }
@@ -164,16 +183,7 @@ const DirectDispatchList = () => {
       limit: paginationModel.pageSize,
       filterSwitch
     })
-  }, [
-    sort,
-    sortColumn,
-    status,
-    fetchTableData,
-    filterSwitch,
-    searchValue,
-    paginationModel.page,
-    paginationModel.pageSize
-  ])
+  }, [filterSwitch, status, paginationModel.page, paginationModel.pageSize])
 
   const onRowClick = params => {
     var data = params.row
@@ -207,7 +217,9 @@ const DirectDispatchList = () => {
 
   const handleSearch = value => {
     setSearchValue(value) // Update search value state
-    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }) // Reset pagination to the first page
+    searchTableData(sort, value, sortColumn, status)
+
+    // setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }) / Reset pagination to the first page
   }
 
   const columns = [
