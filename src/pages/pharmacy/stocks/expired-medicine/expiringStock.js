@@ -120,10 +120,6 @@ const ExpiringMedicine = () => {
 
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
-  }, [fetchTableData, selectedPharmacy?.id, filterDates])
-
-  useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, filterDates])
 

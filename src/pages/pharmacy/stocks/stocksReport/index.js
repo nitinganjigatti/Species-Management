@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
@@ -117,6 +117,7 @@ const ListOfStocks = () => {
   const [purchaseByStockIdList, setPurchaseByStockIdList] = useState([])
   const [purchaseLoading, setPurchaseLoading] = useState(false)
   const [searchPurchase, setSearchPurchase] = useState('')
+  const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
@@ -244,7 +245,7 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type }) => {
       let storeId = id === 'all' ? '' : id
-
+      debugger
       if (id) {
         try {
           setLoading(true)
@@ -298,7 +299,7 @@ const ListOfStocks = () => {
     [paginationModel, stockId]
   )
 
-  console.log('stock Reports >', stockReport)
+  // console.log('stock Reports >', stockReport)
 
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
@@ -420,14 +421,6 @@ const ListOfStocks = () => {
 
       setStockId(selectedPharmacy?.id)
 
-      getStocksReport({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        id: selectedPharmacy?.id,
-        type: selectedPharmacy?.type
-      })
-
       if (changeSwitch) {
         getStocksReportBatchWise({
           batchSort: batchSort,
@@ -436,32 +429,40 @@ const ListOfStocks = () => {
           id: selectedPharmacy?.id,
           storeType: selectedPharmacy?.type
         })
+      } else {
+        getStocksReport({
+          sort,
+          q: searchValue,
+          column: sortColumn,
+          id: selectedPharmacy?.id,
+          type: selectedPharmacy?.type
+        })
       }
 
       // setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, value])
+  }, [selectedPharmacy.id, changeSwitch])
 
-  useEffect(() => {
-    if (changeSwitch) {
-      getStocksReportBatchWise({
-        batchSort: batchSort,
-        batchQ: batchSearchValue,
-        batchColumn: batchSortColumn,
-        id: stockId
-      })
-    } else {
-      getStocksReport({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        id: stockId,
-        type: stockType
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [changeSwitch, getStocksReportBatchWise, getStocksReport])
+  // useEffect(() => {
+  //   if (changeSwitch) {
+  //     getStocksReportBatchWise({
+  //       batchSort: batchSort,
+  //       batchQ: batchSearchValue,
+  //       batchColumn: batchSortColumn,
+  //       id: stockId
+  //     })
+  //   } else {
+  //     getStocksReport({
+  //       sort,
+  //       q: searchValue,
+  //       column: sortColumn,
+  //       id: stockId,
+  //       type: stockType
+  //     })
+  //   }
+
+  // }, [changeSwitch, getStocksReportBatchWise, getStocksReport])
 
   // useEffect(() => {
   //   setStockId(selectedPharmacy?.id)
@@ -1014,6 +1015,7 @@ const ListOfStocks = () => {
     setChangeSwitch(event.target.checked)
     setSearchValue('')
     setBatchSearchValue('')
+    textFieldRef.current.value = ''
   }
 
   const headerAction = (
@@ -1158,22 +1160,22 @@ const ListOfStocks = () => {
 
       try {
         // Reset the page to 0 for new search queries
-        setPaginationModel(prev => ({ ...prev, page: 0 }))
 
+        setPaginationModel(prev => ({ ...prev, page: 0 }))
         // Call the API with the updated page index (0)
-        await getStocksReport({
-          sort,
-          q: value,
-          column: sortColumn,
-          id: stockId,
-          type: stockType,
-          page: 0 // Explicitly pass page 0 for a search
-        })
+        // await getStocksReport({
+        //   sort,
+        //   q: value,
+        //   column: sortColumn,
+        //   id: stockId,
+        //   type: stockType
+        //   // page: 0 // Explicitly pass page 0 for a search
+        // })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [getStocksReport, sort, sortColumn, stockId, stockType]
+    [getStocksReport]
   )
 
   const title = (
@@ -1264,27 +1266,24 @@ const ListOfStocks = () => {
     []
   )
 
-  const getPurchaseListByStockId = useCallback(
-    async (stock_id, batch_no, q) => {
-      const params = { stock_id, q }
-      if (changeSwitch) {
-        params.batch_no = batch_no
-      }
-      try {
-        setPurchaseLoading(true)
-        const result = await getPurchaseListByProduct(params)
-        if (result !== undefined) {
-          // console.log(result, 'res')
-          setPurchaseByStockIdList(result.data)
-          setPurchaseLoading(false)
-        }
-      } catch (error) {
-        console.error('error', error)
+  const getPurchaseListByStockId = useCallback(async (stock_id, batch_no, q) => {
+    const params = { stock_id, q }
+    if (changeSwitch) {
+      params.batch_no = batch_no
+    }
+    try {
+      setPurchaseLoading(true)
+      const result = await getPurchaseListByProduct(params)
+      if (result !== undefined) {
+        // console.log(result, 'res')
+        setPurchaseByStockIdList(result.data)
         setPurchaseLoading(false)
       }
-    },
-    [changeSwitch]
-  )
+    } catch (error) {
+      console.error('error', error)
+      setPurchaseLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (purchaseByStockId && purchaseByStockId.stock_id) {
@@ -1379,6 +1378,7 @@ const ListOfStocks = () => {
                         <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
                         <TextField
                           variant='outlined'
+                          inputRef={textFieldRef}
                           placeholder='Search...'
                           // value={searchValue}
                           onChange={e =>
@@ -1401,18 +1401,18 @@ const ListOfStocks = () => {
                     </Grid>
 
                     <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex' }}>
-                      {changeSwitch ? (
-                        <Box sx={{ ml: 'auto', float: 'right', mr: 2 }}>
-                          <ExcelExportButton
-                            disabled={total === 0 ? true : false}
-                            action={() => {
-                              getBatchWiseDataToExport()
-                            }}
-                            loader={excelLoader}
-                            title='Download'
-                          />
-                        </Box>
-                      ) : null}
+                      {/* {changeSwitch ? ( */}
+                      <Box sx={{ ml: 'auto', float: 'right', mr: 2 }}>
+                        <ExcelExportButton
+                          disabled={total === 0 ? true : false}
+                          action={() => {
+                            getBatchWiseDataToExport()
+                          }}
+                          loader={excelLoader}
+                          title='Download'
+                        />
+                      </Box>
+                      {/* ) : null} */}
 
                       <Grid>
                         {selectedPharmacy.type === 'central' && createForm()}
