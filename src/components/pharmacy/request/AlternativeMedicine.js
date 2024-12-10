@@ -327,7 +327,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By product' ? '5px solid' : '',
-              color: 'primary.main',
+              // color: 'primary.main',
+              color: tabStatus === 'By product' ? 'primary.main' : '#414941',
               padding: '8px 16px'
             }}
           >
@@ -339,7 +340,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
-              color: 'primary.main',
+              // color: 'primary.main',
+              color: tabStatus === 'By generic' ? 'primary.main' : '#414941',
               padding: '8px 16px'
             }}
           >
@@ -627,17 +629,31 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               <Box sx={{ mx: 1, my: 2, display: 'flex', gap: 2 }}>
                 <Chip
                   label={`Unit Price - ${nestedRowMedicine.unit_price}`}
-                  color='primary'
+                  // color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
+                  sx={{
+                    mr: 2,
+                    fontSize: 12,
+                    height: '32px',
+                    borderRadius: '16px',
+                    backgroundColor: '#F2FFF8',
+                    color: 'customColors.OnSurfaceVariant'
+                  }}
                 />
                 <Chip
                   label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
-                  color='primary'
+                  // color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
+                  sx={{
+                    mr: 2,
+                    fontSize: 12,
+                    height: '32px',
+                    borderRadius: '16px',
+                    backgroundColor: '#F2FFF8',
+                    color: 'customColors.OnSurfaceVariant'
+                  }}
                 />
               </Box>
             ) : null}
