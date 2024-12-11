@@ -21,7 +21,8 @@ import ScrollToTop from 'src/@core/components/scroll-to-top'
 
 const VerticalLayoutWrapper = styled('div')({
   height: '100%',
-  display: 'flex'
+  display: 'flex',
+  overflowX:'hidden'
 })
 
 const MainContentWrapper = styled(Box)({
