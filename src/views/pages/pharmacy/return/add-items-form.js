@@ -38,6 +38,7 @@ import Chip from '@mui/material/Chip'
 import Box from '@mui/material/Box'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
+import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
 
 const defaultValues = {
   request_item: {
@@ -85,7 +86,8 @@ const schema = yup.object().shape({
     .moreThan(0, 'Quantity must be greater than zero'),
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
-  expiry_date: yup.string().required('Expiry Date is required')
+  expiry_date: yup.string().required('Expiry Date is required'),
+  tablet_strip_qty: yup.string().required('Tablet Strip is required')
 })
 
 export const AddItemsForm = ({
@@ -125,6 +127,7 @@ export const AddItemsForm = ({
   const [quantityError, setQuantityError] = useState(false)
   const [invalidQty, setInvalidQty] = useState([])
   const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
+  const [variantProductList, setVariantProductList] = useState([])
 
   // const [invalidQty, setInvalidQty] = useState([])
   // const [invalidQtyDialog, setInvalidQtyDialog] = useState(false)
@@ -417,6 +420,27 @@ export const AddItemsForm = ({
     checkTotalCount()
   }, [])
 
+  const getVariantProductList = async id => {
+    try {
+      const response = await getVariantFOrProduct(id)
+      if (response.success) {
+        const transformedProductList = response?.data.map(item => ({
+          label: `${item.stock_name} - ID: ${item.stock_item_id} - Multiplier: ${item.unit_multiplier}`,
+          value: item.id, // Or use variant_id if you prefer
+          ...item // Keep the rest of the item fields as is
+        }))
+        setVariantProductList(response?.data)
+        console.log(response?.data, 'Variant')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // useEffect(() => {
+  //   getVariantProductList(id)
+  // }, [id])
+
   return (
     <>
       {/* <CardContent> */}
@@ -444,6 +468,8 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
+                      console.log(value, 'qwer')
+
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
@@ -453,6 +479,7 @@ export const AddItemsForm = ({
                       setValue('manufacture', '')
 
                       if (value !== '' && value !== null) {
+                        getVariantProductList(value.value)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
@@ -573,10 +600,81 @@ export const AddItemsForm = ({
               variant='subtitle1'
               sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
             >
+              Choose Package
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='request_item_qty'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    type='number'
+                    value={value}
+                    label='Package Count*'
+                    name='request_item_qty'
+                    error={Boolean(errors.request_item_qty)}
+                    onChange={onChange}
+                    onKeyUP={checkTotalCount}
+                    onPaste={checkTotalCount}
+                    onInput={checkTotalCount}
+                  />
+                )}
+              ></Controller>
+            </FormControl>
+            {errors.request_item_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
+            )}
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='tablet_strip_qty'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <>
+                    <Autocomplete
+                      options={variantProductList}
+                      getOptionLabel={option => `${option.unit_multiplier}`} // Modify to show unit_multiplier and stock_name
+                      value={variantProductList.find(option => option.id === value) || null}
+                      onChange={(event, newValue) => onChange(newValue ? newValue.id : null)} // Update value with 'id'
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Strip Of Tablets*'
+                          error={Boolean(errors.tablet_strip_qty)} // Show error state
+                        />
+                      )}
+                      renderOption={(props, option) => (
+                        <li {...props}>
+                          <Box>
+                            <Typography variant='subtitle1'>{option.unit_multiplier}</Typography>
+                            <Typography variant='body2'>{option.description}</Typography>
+                            {/* <Typography variant='body2'>{option.stock_name}</Typography> */}
+                          </Box>
+                        </li>
+                      )}
+                    />
+                  </>
+                )}
+              />
+            </FormControl>
+            {errors?.tablet_strip_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.tablet_strip_qty?.message}</FormHelperText>
+            )}
+          </Grid>
+
+          <Grid item xs={12} sm={12}>
+            <Typography
+              variant='subtitle1'
+              sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
+            >
               Batch No and Expiry Date
             </Typography>
           </Grid>
-
           <Grid item xs={12} sm={6}>
             {/* <FormControl fullWidth>
               <Controller
@@ -714,10 +812,10 @@ export const AddItemsForm = ({
                   />
                 )}
               />
-              {errors?.request_item_batch_no && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
-              )}
             </FormControl>
+            {errors?.request_item_batch_no && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
+            )}
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
@@ -736,11 +834,10 @@ export const AddItemsForm = ({
                       disabled
                     />
                   )}
-                >
-                  {errors.expiry_date && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                  )}
-                </Controller>
+                ></Controller>
+                {errors.expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           )}
@@ -753,8 +850,7 @@ export const AddItemsForm = ({
               Quantity
             </Typography>
           </Grid>
-
-          <Grid item xs={12} sm={12}>
+          {/* <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <Controller
                 name='request_item_qty'
@@ -779,8 +875,7 @@ export const AddItemsForm = ({
                 )}
               </Controller>
             </FormControl>
-          </Grid>
-
+          </Grid> */}
           {/* {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -806,13 +901,11 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )} */}
-
           {quantityError && (
             <Grid item xs={12}>
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
           )}
-
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={4}>
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel
