@@ -576,7 +576,6 @@ export const AddItemsForm = ({
               Batch No and Expiry Date
             </Typography>
           </Grid>
-
           <Grid item xs={12} sm={6}>
             {/* <FormControl fullWidth>
               <Controller
@@ -744,7 +743,6 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
-
           <Grid item xs={12} sm={12}>
             <Typography
               variant='subtitle1'
@@ -753,7 +751,6 @@ export const AddItemsForm = ({
               Quantity
             </Typography>
           </Grid>
-
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <Controller
@@ -780,7 +777,6 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid>
-
           {/* {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -806,13 +802,11 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )} */}
-
           {quantityError && (
             <Grid item xs={12}>
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
           )}
-
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={4}>
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel

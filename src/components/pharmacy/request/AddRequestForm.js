@@ -54,7 +54,8 @@ import {
   getRequestItemsListById,
   updateRequestItems,
   // deleteLineItem,
-  cancelRequestItems
+  cancelRequestItems,
+  getRequestPendingProductsList
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -130,6 +131,8 @@ const AddRequestForm = () => {
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [tabStatus, setTabStatus] = useState('By product')
 
+  const [showWarning, setShowWarning] = useState({})
+
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -158,6 +161,7 @@ const AddRequestForm = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setItemErrors({})
+    setShowWarning({})
   }
 
   const showDialog = () => {
@@ -710,6 +714,25 @@ const AddRequestForm = () => {
     fileInputRef.current.click()
   }
 
+  const requestPendingProducts = async id => {
+    try {
+      const result = await getRequestPendingProductsList(id)
+
+      console.log(result, 'result')
+      setShowWarning(result.data)
+    } catch (error) {
+      // toast.error(error.data)
+      console.error('error', error)
+    }
+  }
+
+  // useEffect(() => {
+  //   if (nestedRowMedicine.request_item_medicine_id) {
+  //     setShowWarning({})
+  //     requestPendingProducts(nestedRowMedicine.request_item_medicine_id)
+  //   }
+  // }, [nestedRowMedicine])
+
   // data posting section
   const createForm = () => {
     return (
@@ -789,6 +812,9 @@ const AddRequestForm = () => {
                   )}
                   value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                   onChange={(event, newValue) => {
+                    if (newValue?.value) {
+                      requestPendingProducts(newValue.value) // Only call if value is defined
+                    }
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.name,
@@ -802,6 +828,7 @@ const AddRequestForm = () => {
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
+                    setShowWarning({})
                   }}
                   onKeyUp={e => {
                     searchMedicineData(e.target.value)
@@ -920,6 +947,9 @@ const AddRequestForm = () => {
                   )}
                   value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                   onChange={(event, newValue) => {
+                    if (newValue?.value) {
+                      requestPendingProducts(newValue.value) // Only call if value is defined
+                    }
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.name,
@@ -933,6 +963,7 @@ const AddRequestForm = () => {
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
+                    setShowWarning({})
                   }}
                   onKeyUp={e => {
                     searchGenericMedicineData(e.target.value)
@@ -976,6 +1007,7 @@ const AddRequestForm = () => {
               </FormControl>
             </Grid>
           )}
+
           {nestedRowMedicine?.medicine_name && (
             <Box
               sx={{
@@ -1009,6 +1041,39 @@ const AddRequestForm = () => {
               )}
             </Box>
           )}
+          <Grid item xs={12} sm={12}>
+            {showWarning.count && (
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  color: '#FA6140'
+                }}
+              >
+                *You have{' '}
+                <Box component='span' sx={{ fontWeight: 600 }}>
+                  {showWarning?.count || 0} ongoing requests
+                </Box>{' '}
+                for this product (Qty: {showWarning?.total_pending_quantity || 0}). Please review before proceeding to
+                avoid duplicate requests.
+              </Typography>
+              // <Typography
+              //   sx={{
+              //     mb: 2,
+              //     fontSize: '12px',
+              //     fontWeight: 400,
+              //     color: '#FA6140'
+              //   }}
+              // >
+              //   {`
+              //   *You have ${showWarning?.count} ongoing requests for this product (Qty: ${
+              //     showWarning?.total_pending_quantity || 0
+              //   }). Please review before proceeding to avoid duplicate requests.
+              //   `}
+              // </Typography>
+            )}
+          </Grid>
 
           <Grid item xs={12} sm={12}>
             <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
@@ -1537,6 +1602,7 @@ const AddRequestForm = () => {
               )}
             </FormControl>
           </Grid>
+
           <Grid item xs={12}>
             <Box sx={{ float: 'right' }}>
               {medicineItemId ? (
