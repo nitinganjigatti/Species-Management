@@ -7,6 +7,7 @@ import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -35,6 +36,7 @@ const Img = styled('img')(({ theme }) => ({
 }))
 const Error404 = () => {
   const theme = useTheme()
+  const router = useRouter()
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
       <Img alt='error-illustration' src='/images/pages/warning.png' sx={{ mb: 5 }} />
@@ -54,7 +56,7 @@ const Error404 = () => {
       <Typography variant='body2' sx={{ fontSize: '16px', fontFamily: 'Inter', fontWeight: 400, mb: 2 }}>
         You don’t have access to view this request.
       </Typography>
-      <Button href='/' component={Link} variant='contained' sx={{ px: 5.5, mt: 2 }}>
+      <Button onClick={() => router.back()} variant='contained' sx={{ px: 5.5, mt: 2 }}>
         Go Back
       </Button>
     </Box>
