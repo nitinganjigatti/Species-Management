@@ -78,7 +78,6 @@ import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
-import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -102,8 +101,7 @@ const initialNestedRowMedicine = {
   control_substance: false,
   control_substance_file: '',
   uuid: '',
-  stock_type: '',
-  variant_id: ''
+  stock_type: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -132,7 +130,6 @@ const AddReturnRequest = () => {
   // const [deleteItemId, setDeleteItemId] = useState('')
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
-  const [variantProductList, setVariantProductList] = useState([])
   const router = useRouter()
   const { id, action } = router.query
 
@@ -369,7 +366,7 @@ const AddReturnRequest = () => {
         }
       }
     } catch (error) {
-      console.error('err', error)
+      console.log('err', error)
     }
   }
 
@@ -403,7 +400,7 @@ const AddReturnRequest = () => {
       }
       setProductLoading(false)
     } catch (e) {
-      console.error('error', e)
+      console.log('error', e)
       setProductLoading(false)
     }
   }
@@ -437,7 +434,7 @@ const AddReturnRequest = () => {
         }
         setBatchLoading(false)
       } catch (e) {
-        console.error('error', e)
+        console.log('error', e)
         setBatchLoading(false)
         setOptionsBatchList([])
         setTotalBatchQuantity(0)
@@ -504,8 +501,7 @@ const AddReturnRequest = () => {
             dispatch_item_id: el?.dispatch_item_id,
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-            manufacture: el?.manufacturer,
-            variant_id: el?.variant_id
+            manufacture: el?.manufacturer
           }
         })
 
@@ -530,7 +526,6 @@ const AddReturnRequest = () => {
     const getItems = editParams.request_item_details.filter(el => {
       return el.uuid === itemId
     })
-
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].product_name,
@@ -546,8 +541,7 @@ const AddReturnRequest = () => {
       available_item_qty: getItems[0]?.available_item_qty,
       stock_type: getItems[0]?.stock_type,
       packageDetails: getItems[0]?.packageDetails,
-      manufacture: getItems[0]?.manufacture,
-      variant_id: getItems[0]?.variant_id
+      manufacture: getItems[0]?.manufacture
     })
     // }
     // await searchBatchData(itemId)
@@ -576,7 +570,7 @@ const AddReturnRequest = () => {
           toast.error(response?.errors ? response?.errors : response?.message)
         }
       } catch (error) {
-        console.error('error', error)
+        console.log('error', error)
       }
     } else {
       try {
@@ -591,7 +585,7 @@ const AddReturnRequest = () => {
           toast.error(response?.message)
         }
       } catch (error) {
-        console.error('error', error)
+        console.log('error', error)
       }
     }
   }
@@ -630,7 +624,7 @@ const AddReturnRequest = () => {
         }
       } catch (error) {
         toast.error(error.data)
-        console.error('error', error)
+        console.log('error', error)
       }
     }
   }
@@ -655,18 +649,6 @@ const AddReturnRequest = () => {
   //   }
   // }
 
-  const getVariantProductList = async id => {
-    try {
-      const response = await getVariantFOrProduct(id)
-      if (response.success) {
-        setVariantProductList(response?.data)
-        // console.log(response?.data, 'Variant')
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
   // data posting section
   const createForm = () => {
     return (
@@ -684,9 +666,6 @@ const AddReturnRequest = () => {
         totalQuantity={totalBatchQuantity}
         editParams={editParams}
         closeDialog={closeDialog}
-        variantProductList={variantProductList}
-        setVariantProductList={setVariantProductList}
-        getVariantProductList={getVariantProductList}
       />
     )
   }
