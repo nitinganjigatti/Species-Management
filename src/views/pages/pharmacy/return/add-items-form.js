@@ -38,6 +38,7 @@ import Chip from '@mui/material/Chip'
 import Box from '@mui/material/Box'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
+import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
 
 const defaultValues = {
   request_item: {
@@ -55,7 +56,13 @@ const defaultValues = {
   expiry_date: '',
   packageDetails: '',
   manufacture: '',
-  control_substance: false
+  control_substance: false,
+  tablet_strip_qty: {
+    id: '',
+    variant_id: '',
+    stock_item_id: '',
+    unit_multiplier: ''
+  }
 }
 
 const schema = yup.object().shape({
@@ -86,6 +93,7 @@ const schema = yup.object().shape({
 
   // available_item_qty: yup.string().required('Available Quantity is required'),
   expiry_date: yup.string().required('Expiry Date is required')
+  // tablet_strip_qty: yup.string().required('Tablet Strip is required')
 })
 
 export const AddItemsForm = ({
@@ -101,25 +109,11 @@ export const AddItemsForm = ({
   error,
   totalQuantity,
   editParams,
-  closeDialog
+  closeDialog,
+  variantProductList,
+  setVariantProductList,
+  getVariantProductList
 }) => {
-  const {
-    reset,
-    control,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    getValues,
-    setError,
-    clearErrors,
-    watch
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onChange',
-    reValidateMode: 'onChange'
-  })
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -141,7 +135,27 @@ export const AddItemsForm = ({
   // console.log('nestedMedicine', nestedMedicine)
   // console.log('batchLoading', batchLoading)
 
+  const {
+    reset,
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    getValues,
+    setError,
+    clearErrors,
+    watch
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
+
   const onSubmit = async params => {
+    console.log(params, 'params')
+
     const {
       request_item_batch_no,
       request_item_qty,
@@ -152,10 +166,12 @@ export const AddItemsForm = ({
 
       packageDetails,
       manufacture,
-      control_substance
+      control_substance,
+      tablet_strip_qty
     } = {
       ...params
     }
+
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
     // console.log('params', params)
@@ -259,7 +275,8 @@ export const AddItemsForm = ({
 
         packageDetails,
         manufacture,
-        control_substance
+        control_substance,
+        variant_id: tablet_strip_qty?.variant_id
       },
       type
     )
@@ -383,6 +400,7 @@ export const AddItemsForm = ({
 
   useEffect(() => {
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '') {
+      const selectedVariant = variantProductList.find(variant => variant.variant_id === nestedMedicine.variant_id)
       reset({
         request_item: {
           label: nestedMedicine?.medicine_name,
@@ -398,7 +416,8 @@ export const AddItemsForm = ({
         available_item_qty: nestedMedicine?.available_item_qty,
         stock_type: nestedMedicine?.stock_type,
         packageDetails: nestedMedicine?.packageDetails,
-        manufacture: nestedMedicine?.manufacture
+        manufacture: nestedMedicine?.manufacture,
+        tablet_strip_qty: selectedVariant || null // or set default if no match
       })
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
@@ -407,15 +426,54 @@ export const AddItemsForm = ({
       async function searchBatch() {
         await searchBatchData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
       }
+      async function searchVariant() {
+        await getVariantProductList(nestedMedicine?.request_item_medicine_id)
+      }
 
       searchMedicine()
       searchBatch()
+      searchVariant()
 
       checkTotalCount()
     } else {
     }
     checkTotalCount()
   }, [])
+
+  const packageCount = watch('request_item_qty')
+  const tabletStripQty = watch('tablet_strip_qty')
+  const totalQty = packageCount && tabletStripQty ? packageCount * tabletStripQty?.unit_multiplier : 0
+
+  useEffect(() => {
+    if (variantProductList.length > 0 && nestedMedicine?.variant_id) {
+      const selectedVariant = variantProductList.find(variant => variant.variant_id === nestedMedicine.variant_id)
+
+      if (selectedVariant) {
+        setValue('tablet_strip_qty', {
+          id: selectedVariant.id,
+          variant_id: selectedVariant.variant_id,
+          stock_item_id: selectedVariant.stock_item_id,
+          unit_multiplier: selectedVariant.unit_multiplier
+        })
+      }
+    }
+  }, [variantProductList, nestedMedicine?.variant_id, setValue])
+
+  // const getVariantProductList = async id => {
+  //   try {
+  //     const response = await getVariantFOrProduct(id)
+  //     if (response.success) {
+  //       setVariantProductList(response?.data)
+  //       console.log(response?.data, 'Variant')
+  //     }
+  //   } catch (e) {
+  //     console.error(e)
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   getVariantProductList(id)
+  // }, [id])
 
   return (
     <>
@@ -444,6 +502,8 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
+                      console.log(value, 'qwer')
+
                       setValue('request_item', value)
                       setValue('request_item_batch_no', '')
                       setValue('expiry_date', '')
@@ -453,6 +513,7 @@ export const AddItemsForm = ({
                       setValue('manufacture', '')
 
                       if (value !== '' && value !== null) {
+                        getVariantProductList(value.value)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
@@ -568,6 +629,126 @@ export const AddItemsForm = ({
               </Paper>
             )}
           </Grid>
+          <Grid item xs={12} sm={12}>
+            <Typography
+              variant='subtitle1'
+              sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
+            >
+              Choose Package
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='request_item_qty'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    type='number'
+                    value={value}
+                    label='Package Count*'
+                    name='request_item_qty'
+                    error={Boolean(errors.request_item_qty)}
+                    onChange={onChange}
+                    onKeyUP={checkTotalCount}
+                    onPaste={checkTotalCount}
+                    onInput={checkTotalCount}
+                  />
+                )}
+              ></Controller>
+            </FormControl>
+            {errors.request_item_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
+            )}
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='tablet_strip_qty'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <>
+                    <Autocomplete
+                      options={variantProductList}
+                      getOptionLabel={option => `${option.unit_multiplier}`}
+                      value={variantProductList.find(option => option.id === value?.id) || null} // Controlled value
+                      onChange={(event, newValue) => {
+                        onChange(
+                          newValue
+                            ? {
+                                id: newValue.id,
+                                variant_id: newValue.variant_id,
+                                stock_item_id: newValue.stock_item_id,
+                                unit_multiplier: newValue.unit_multiplier
+                              }
+                            : null
+                        )
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Strip Of Tablets*'
+                          error={Boolean(errors.tablet_strip_qty)} // Show error state
+                        />
+                      )}
+                      renderOption={(props, option) => (
+                        <li {...props}>
+                          <Box>
+                            <Typography variant='subtitle1'>{option.unit_multiplier}</Typography>
+                            <Typography variant='body2'>{option.description}</Typography>
+                          </Box>
+                        </li>
+                      )}
+                    />
+                  </>
+                )}
+              />
+            </FormControl>
+            {errors?.tablet_strip_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.tablet_strip_qty?.message}</FormHelperText>
+            )}
+          </Grid>
+
+          {/* <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='tablet_strip_qty'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <>
+                    <Autocomplete
+                      options={variantProductList}
+                      getOptionLabel={option => `${option.unit_multiplier}`} // Modify to show unit_multiplier and stock_name
+                      value={variantProductList.find(option => option.unit_multiplier === value) || null} // Set value based
+                      onChange={(event, newValue) => onChange(newValue ? newValue.unit_multiplier : null)} // Update value
+                      renderInput={params => (
+                        <TextField
+                          {...params}
+                          label='Strip Of Tablets*'
+                          error={Boolean(errors.tablet_strip_qty)} // Show error state
+                        />
+                      )}
+                      renderOption={(props, option) => (
+                        <li {...props}>
+                          <Box>
+                            <Typography variant='subtitle1'>{option.unit_multiplier}</Typography>
+                            <Typography variant='body2'>{option.description}</Typography>
+                         
+                          </Box>
+                        </li>
+                      )}
+                    />
+                  </>
+                )}
+              />
+            </FormControl>
+            {errors?.tablet_strip_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.tablet_strip_qty?.message}</FormHelperText>
+            )}
+          </Grid> */}
+
           <Grid item xs={12} sm={12}>
             <Typography
               variant='subtitle1'
@@ -713,10 +894,10 @@ export const AddItemsForm = ({
                   />
                 )}
               />
-              {errors?.request_item_batch_no && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
-              )}
             </FormControl>
+            {errors?.request_item_batch_no && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
+            )}
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
@@ -735,23 +916,47 @@ export const AddItemsForm = ({
                       disabled
                     />
                   )}
-                >
-                  {errors.expiry_date && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                  )}
-                </Controller>
+                ></Controller>
+                {errors.expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           )}
+
           <Grid item xs={12} sm={12}>
             <Typography
               variant='subtitle1'
               sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
             >
-              Quantity
+              Total Quantity
             </Typography>
           </Grid>
           <Grid item xs={12} sm={12}>
+            <FormControl fullWidth>
+              <Controller
+                name='calculated_total'
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    value={totalQty}
+                    disabled
+                    error={false}
+                    sx={{
+                      backgroundColor: '#0000000D',
+                      borderRadius: '8px',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px'
+                      }
+                    }}
+                  />
+                )}
+              />
+            </FormControl>
+          </Grid>
+
+          {/* <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <Controller
                 name='request_item_qty'
@@ -776,7 +981,7 @@ export const AddItemsForm = ({
                 )}
               </Controller>
             </FormControl>
-          </Grid>
+          </Grid> */}
           {/* {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
