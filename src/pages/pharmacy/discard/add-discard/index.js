@@ -857,7 +857,7 @@ const AddDiscardProducts = () => {
                                     if (el.reason === 'Expired') {
                                       return 'customColors.moderateTableRed'
                                     } else if (el.reason === 'About to expire') {
-                                      return 'customColors.customDropdownColor'
+                                      return 'customColors.Tertiary'
                                     } else {
                                       return 'customColors.moderateSecondary'
                                     }
@@ -1045,7 +1045,7 @@ const AddDiscardProducts = () => {
                   if (selectedComment?.reason === 'Expired') {
                     return 'customColors.moderateTableRed'
                   } else if (selectedComment?.reason === 'About to expire') {
-                    return 'customColors.customDropdownColor'
+                    return 'customColors.Tertiary'
                   } else {
                     return 'customColors.moderateSecondary'
                   }

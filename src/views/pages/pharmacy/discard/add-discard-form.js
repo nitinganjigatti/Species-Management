@@ -548,7 +548,7 @@ export const AddItemsForm = ({
                           <Typography variant='body2' color='customColors.neutralSecondary'>
                             Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
                           </Typography>
-                          <Typography variant='body2' color='customColors.customDropdownColor'>
+                          <Typography variant='body2' color='customColors.Tertiary'>
                             Availability: {option.available_item_qty}
                           </Typography>
                         </Box>

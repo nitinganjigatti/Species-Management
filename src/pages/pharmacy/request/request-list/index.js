@@ -698,7 +698,7 @@ const RequestList = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
                     ml: 5,
@@ -706,7 +706,7 @@ const RequestList = () => {
                     width: '250px' // Set a fixed width for all status
                   }}
                 >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
                   <TextField
                     variant='outlined'
                     placeholder='Search...'
