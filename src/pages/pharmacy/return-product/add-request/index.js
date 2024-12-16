@@ -755,7 +755,7 @@ const AddReturnRequest = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-                {/* <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6}>
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                       &nbsp;
@@ -777,6 +777,7 @@ const AddReturnRequest = () => {
                         }}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
                         isClearable={false}
+                        maxDate={new Date()}
                       />
                       {errors.ro_date && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -785,7 +786,7 @@ const AddReturnRequest = () => {
                       )}
                     </FormControl>
                   </Grid>
-                </Grid> */}
+                </Grid>
               </Grid>
             </form>
           </CardContent>

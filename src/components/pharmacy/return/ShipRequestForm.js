@@ -184,6 +184,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
+
         // close()
         Router.back()
       } else {
@@ -469,6 +470,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                                 setValue('vehicle_no', '')
                                 setValue('receiver_name', '')
                                 setValue('phone_number', '')
+
                                 // setValue('driver_name', '')
 
                                 return onChange(null)
@@ -477,6 +479,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                                 setValue('vehicle_no', val.vehicle_number)
                                 setValue('receiver_name', val.driver_name)
                                 setValue('phone_number', val.phone_number)
+
                                 // setValue('driver_name', val.driver_name)
 
                                 return onChange(val)
@@ -538,6 +541,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                         name={'Shipment Date*'}
                         label='Shipment Date*'
                         placeholderText={'Shipment Date*'}
+                        maxDate={new Date()}
                         onChangeHandler={date => {
                           // console.log(date)
                           setDate(date)
@@ -610,6 +614,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           name={'Shipment Date*'}
                           label='Shipment Date*'
                           placeholderText={'Shipment Date*'}
+                          maxDate={new Date()}
                           onChangeHandler={date => {
                             // console.log(date)
                             setDate(date)
