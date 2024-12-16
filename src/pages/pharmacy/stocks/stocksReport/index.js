@@ -74,7 +74,6 @@ const ListOfStocks = () => {
   const router = useRouter()
 
   const updateUrlParams = params => {
-    debugger
     const query = { ...params }
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
@@ -122,7 +121,6 @@ const ListOfStocks = () => {
   const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
-    debugger
     setValue(newValue)
     updateUrlParams({
       value: newValue
@@ -248,7 +246,6 @@ const ListOfStocks = () => {
   const getStocksReport = useCallback(
     async ({ sort, q, column, id, type, paginationModel }) => {
       let storeId = id === 'all' ? '' : id
-      debugger
       if (id) {
         try {
           setLoading(true)
@@ -313,7 +310,6 @@ const ListOfStocks = () => {
   const getStocksReportBatchWise = useCallback(
     async ({ batchSort, batchQ, batchColumn, id, batchPaginationModel }) => {
       setBatchLoading(true)
-      debugger
       const batchParams = {
         sort: batchSort,
         q: batchQ,
@@ -1063,7 +1059,6 @@ const ListOfStocks = () => {
   }
 
   const handleBatchPaginationChange = data => {
-    debugger
     setBatchPaginationModel({ page: data.page, pageSize: data.pageSize })
     getStocksReportBatchWise({
       batchSort: batchSort,
@@ -1168,8 +1163,6 @@ const ListOfStocks = () => {
                           placeholder='Search...'
                           // value={searchValue}
                           onChange={e => {
-                            debugger
-
                             changeSwitch
                               ? handleBatchSearch(e.target.value, stockId, stockType, batchPaginationModel)
                               : handleSearch(e.target.value, stockId, stockType, paginationModel)

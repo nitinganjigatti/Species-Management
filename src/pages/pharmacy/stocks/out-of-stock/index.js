@@ -41,8 +41,6 @@ const StockOut = () => {
   const [changeSwitch, setChangeSwitch] = useState()
   const [excelLoader, setExcelLoader] = useState(false)
 
-  debugger
-
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -51,8 +49,6 @@ const StockOut = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
-      console.log('Fetching with sort:', sort) // Debugging sort order
-      debugger
       try {
         setLoading(true)
 
@@ -84,7 +80,6 @@ const StockOut = () => {
     [paginationModel]
   )
   useEffect(() => {
-    debugger
     fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, changeSwitch])
@@ -97,7 +92,6 @@ const StockOut = () => {
   }))
 
   const handleSortModel = newModel => {
-    debugger
     if (newModel.length) {
       const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
       const sortField = newModel[0]?.field || ''
@@ -120,7 +114,6 @@ const StockOut = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
-      debugger
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
