@@ -366,7 +366,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     }}
                   >
                     <Box>
-                      {/* <Typography>{option.name}</Typography>
+                      <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
                       {option.control_substance === true && (
@@ -374,8 +374,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       )}{' '}
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )} */}
-                      <Typography
+                      )}
+                      {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
                           display: 'flex',
@@ -387,7 +387,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                         {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                         {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
                         {option.name}({option.package})
-                      </Typography>
+                      </Typography> */}
                     </Box>
                   </li>
                 )}
@@ -475,7 +475,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     }}
                   >
                     <Box>
-                      {/* <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
+                      <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
@@ -484,8 +484,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       )}
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )} */}
-                      <Typography
+                      )}
+                      {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
                           display: 'flex',
@@ -497,7 +497,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                         {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                         {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
                         {option.name}({option.package})
-                      </Typography>
+                      </Typography> */}
                     </Box>
                   </li>
                 )}

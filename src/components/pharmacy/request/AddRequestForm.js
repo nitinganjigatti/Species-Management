@@ -787,7 +787,7 @@ const AddRequestForm = () => {
                       style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
                     >
                       <Box>
-                        {/* <Typography>{option.name}</Typography>
+                        <Typography>{option.name}</Typography>
                         <Typography variant='body2'>{option.package}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
                         {option.control_substance === true && (
@@ -795,8 +795,8 @@ const AddRequestForm = () => {
                         )}{' '}
                         {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )} */}
-                        <Typography
+                        )}
+                        {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
                             display: 'flex',
@@ -808,7 +808,7 @@ const AddRequestForm = () => {
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                           {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
                           {option.name}({option.package})
-                        </Typography>
+                        </Typography> */}
                       </Box>
                     </li>
                   )}
@@ -924,14 +924,14 @@ const AddRequestForm = () => {
                       style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
                     >
                       <Box>
-                        {/* <Typography>
+                        <Typography>
                           {option.genericName ? option.genericName : 'Generic name not available'}
                         </Typography>
                         <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
 
                         <Typography variant='body2'>{option.package}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography> */}
-                        <Typography
+                        <Typography variant='body2'>{option.manufacture}</Typography>
+                        {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
                             display: 'flex',
@@ -943,7 +943,7 @@ const AddRequestForm = () => {
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                           {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
                           {option.name}({option.package})
-                        </Typography>
+                        </Typography> */}
                       </Box>
                     </li>
                   )}
