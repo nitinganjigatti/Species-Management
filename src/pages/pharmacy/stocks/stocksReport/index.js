@@ -67,13 +67,15 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
 import { minWidth, width } from '@mui/system'
 import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
+import { set } from 'nprogress'
 
 const ListOfStocks = () => {
   const theme = useTheme()
   const router = useRouter()
 
   const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
+    debugger
+    const query = { ...params }
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const { selectedPharmacy } = usePharmacyContext()
@@ -120,6 +122,7 @@ const ListOfStocks = () => {
   const textFieldRef = useRef(null)
 
   const handleChange = (event, newValue) => {
+    debugger
     setValue(newValue)
     updateUrlParams({
       value: newValue
@@ -243,7 +246,7 @@ const ListOfStocks = () => {
   // )
 
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id, type }) => {
+    async ({ sort, q, column, id, type, paginationModel }) => {
       let storeId = id === 'all' ? '' : id
       debugger
       if (id) {
@@ -270,7 +273,7 @@ const ListOfStocks = () => {
             limit: paginationModel.pageSize
           }
 
-          result = await getStocksReportById(storeId, params)
+          result = await getStockReport(storeId, params)
           // }
 
           if (result.success === true && result.data.length > 0) {
@@ -308,9 +311,9 @@ const ListOfStocks = () => {
   }))
 
   const getStocksReportBatchWise = useCallback(
-    async ({ batchSort, batchQ, batchColumn, id }) => {
+    async ({ batchSort, batchQ, batchColumn, id, batchPaginationModel }) => {
       setBatchLoading(true)
-
+      debugger
       const batchParams = {
         sort: batchSort,
         q: batchQ,
@@ -318,26 +321,6 @@ const ListOfStocks = () => {
         page: batchPaginationModel.page + 1,
         limit: batchPaginationModel.pageSize
       }
-
-      // if (selectedPharmacy?.type === 'local') {
-      //   try {
-      //     const result = await getStockReportByBatch(id, batchParams)
-      //     if (result.success === true) {
-      //       setBatchTotal(parseInt(result?.count))
-
-      //       let listWithId = result.data
-      //         ? result.data.map((el, i) => {
-      //             return { ...el, uid: i + 1 }
-      //           })
-      //         : []
-      //       setStockReportBatch(loadBatchServerRows(batchPaginationModel.page, listWithId))
-      //       setBatchLoading(false)
-      //     }
-      //   } catch (error) {
-      //     console.log('error', error)
-      //     setBatchLoading(false)
-      //   }
-      // } else {
 
       if (id !== undefined) {
         try {
@@ -365,41 +348,6 @@ const ListOfStocks = () => {
     [batchPaginationModel]
   )
 
-  // const getStocksReportBatchWise = useCallback(
-  //   async ({ batchSort, batchQ, batchColumn, id, page }) => {
-  //     setBatchLoading(true)
-  //     const batchParams = {
-  //       sort: batchSort,
-  //       q: batchQ,
-  //       column: batchColumn,
-  //       page: page + 1, // API expects 1-based index
-  //       limit: batchPaginationModel.pageSize
-  //     }
-
-  //     try {
-  //       const result = await getStocksByBatch(id, batchParams)
-  //       if (result?.success) {
-  //         setBatchTotal(parseInt(result?.count, 10))
-  //         const listWithId = result.data.map((el, i) => ({
-  //           ...el,
-  //           uid: i + 1
-  //         }))
-  //         setStockReportBatch(loadBatchServerRows(page, listWithId))
-  //       } else {
-  //         setBatchTotal(0)
-  //         setStockReportBatch([])
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching batch reports:', error)
-  //       setBatchTotal(0)
-  //       setStockReportBatch([])
-  //     } finally {
-  //       setBatchLoading(false)
-  //     }
-  //   },
-  //   [batchPaginationModel]
-  // )
-
   const batchIndexedRows = stockReportBatch?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
@@ -414,7 +362,7 @@ const ListOfStocks = () => {
   }, [])
 
   useEffect(() => {
-    if (selectedPharmacy?.id !== '') {
+    if (selectedPharmacy?.id !== '' && value == 1) {
       // getStocksReport(selectedPharmacy?.id)
 
       setStockType(selectedPharmacy?.type)
@@ -427,7 +375,8 @@ const ListOfStocks = () => {
           batchQ: batchSearchValue,
           batchColumn: batchSortColumn,
           id: selectedPharmacy?.id,
-          storeType: selectedPharmacy?.type
+          storeType: selectedPharmacy?.type,
+          batchPaginationModel
         })
       } else {
         getStocksReport({
@@ -435,38 +384,16 @@ const ListOfStocks = () => {
           q: searchValue,
           column: sortColumn,
           id: selectedPharmacy?.id,
-          type: selectedPharmacy?.type
+          type: selectedPharmacy?.type,
+          paginationModel
         })
       }
 
       // setStockId(selectedPharmacy?.id)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, changeSwitch])
+  }, [selectedPharmacy.id, value])
 
-  // useEffect(() => {
-  //   if (changeSwitch) {
-  //     getStocksReportBatchWise({
-  //       batchSort: batchSort,
-  //       batchQ: batchSearchValue,
-  //       batchColumn: batchSortColumn,
-  //       id: stockId
-  //     })
-  //   } else {
-  //     getStocksReport({
-  //       sort,
-  //       q: searchValue,
-  //       column: sortColumn,
-  //       id: stockId,
-  //       type: stockType
-  //     })
-  //   }
-
-  // }, [changeSwitch, getStocksReportBatchWise, getStocksReport])
-
-  // useEffect(() => {
-  //   setStockId(selectedPharmacy?.id)
-  // }, [])
   const getBatchWiseDataToExport = async () => {
     try {
       if (!changeSwitch) {
@@ -655,102 +582,6 @@ const ListOfStocks = () => {
         </Typography>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'store_name',
-    //   headerName: 'Store Name',
-    //   align: 'right',
-    //   headerAlign: 'right',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.store_name}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'stock_config',
-    //   headerName: 'Shelf',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <>
-    //       {params?.row?.stock_config ? (
-    //         params?.row?.stock_config?.map(el => {
-    //           return (
-    //             <Typography
-    //               key={el}
-    //               variant='body2'
-    //               sx={{
-    //                 color: theme.palette.customColors.customHeadingTextColor,
-    //                 fontSize: '14px',
-    //                 fontWeight: 500,
-    //                 fontFamily: 'Inter'
-    //               }}
-    //             >
-    //               {el.shelf}
-    //             </Typography>
-    //           )
-    //         })
-    //       ) : (
-    //         <Typography
-    //           key={el}
-    //           variant='body2'
-    //           sx={{
-    //             color: theme.palette.customColors.customHeadingTextColor,
-    //             fontSize: '14px',
-    //             fontWeight: 500,
-    //             fontFamily: 'Inter'
-    //           }}
-    //         >
-    //           NA
-    //         </Typography>
-    //       )}
-    //     </>
-    //   )
-    // }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'purchase_price',
-    //   headerName: 'STOCK PURCHASE PRICE',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.purchase_price}
-    //     </Typography>
-    //   )
-    // }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //       {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-    //         <Icon icon='mdi:eye-outline' />
-    //       </IconButton> */}
-    //       <IconButton
-    //         size='small'
-    //         sx={{ mr: 0.5 }}
-    //         onClick={() => {
-    //           setConfigureMedId(params.row.stock_item_id)
-    //           showDialog()
-    //         }}
-    //       >
-    //         <Icon icon='grommet-icons:configure' />
-    //       </IconButton>
-    //     </Box>
-    //   )
-    // }
   ]
 
   const batchWiseColumn = [
@@ -887,58 +718,6 @@ const ListOfStocks = () => {
         </Typography>
       )
     }
-
-    // {
-    //   // flex: 0.2,
-    //   minWidth: 160,
-    //   field: 'rack_info',
-    //   headerName: 'Rack',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <>
-    //       {params?.row?.stock_config ? (
-    //         params?.row?.stock_config?.map(el => {
-    //           return (
-    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-    //               {el.rack}
-    //             </Typography>
-    //           )
-    //         })
-    //       ) : (
-    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-    //           NA
-    //         </Typography>
-    //       )}
-    //     </>
-    //   )
-    // },
-
-    // {
-    //   // flex: 0.2,
-    //   minWidth: 160,
-    //   field: 'stock_config',
-    //   headerName: 'Shelf',
-    //   type: 'number',
-    //   align: 'right',
-    //   renderCell: params => (
-    //     <>
-    //       {params?.row?.stock_config ? (
-    //         params?.row?.stock_config?.map(el => {
-    //           return (
-    //             <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-    //               {el.shelf}
-    //             </Typography>
-    //           )
-    //         })
-    //       ) : (
-    //         <Typography key={el} variant='body2' sx={{ color: 'text.primary' }}>
-    //           NA
-    //         </Typography>
-    //       )}
-    //     </>
-    //   )
-    // }
   ]
 
   const getStoresLists = async () => {
@@ -978,13 +757,33 @@ const ListOfStocks = () => {
               setStockReport([])
               setConfigureMedId('')
               setErrors('')
+              setBatchSearchValue('')
+              setBatchSort('asc')
+              setBatchSortColumn('stock_items_name')
+              setSort('asc')
+              setSortColumn('stock_items_name')
+
+              textFieldRef.current.value = ''
               let storeId = id === 'all' ? 'all' : id
 
               // getStocksReport({ sort, q: searchValue, column: sortColumn, id })
 
               changeSwitch
-                ? getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, storeId })
-                : getStocksReport({ sort, q: searchValue, column: sortColumn, storeId, type: type })
+                ? getStocksReportBatchWise({
+                    batchSort: 'asc',
+                    q: '',
+                    batchColumn: 'stock_items_name',
+                    id: storeId,
+                    batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
+                  })
+                : getStocksReport({
+                    sort: 'asc',
+                    q: '',
+                    column: 'stock_items_name',
+                    id: storeId,
+                    type: type,
+                    paginationModel: { page: 0, pageSize: paginationModel.pageSize }
+                  })
             }}
             label='Stores'
             value={stockId}
@@ -1016,27 +815,27 @@ const ListOfStocks = () => {
     setSearchValue('')
     setBatchSearchValue('')
     textFieldRef.current.value = ''
+    if (event.target.checked) {
+      getStocksReportBatchWise({
+        batchSort: batchSort,
+        batchQ: batchSearchValue,
+        batchColumn: batchSortColumn,
+        id: stockId,
+        batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
+      })
+    } else {
+      getStocksReport({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        id: stockId,
+        paginationModel: { page: 0, pageSize: paginationModel.pageSize }
+      })
+    }
   }
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' && (
-        <Button
-          onClick={() => Router.push({ pathname: '/pharmacy/purchase/purchase-list/' })}
-          size='large'
-          variant='outlined'
-          sx={{ mr: '6px' }}
-        >
-          Inventory List
-        </Button>
-      )}
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton
-            title='Add Inventory'
-            action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
-          />
-        )} */}
       {selectedPharmacy.type === 'central' && createForm()}
 
       <FormControlLabel
@@ -1064,9 +863,9 @@ const ListOfStocks = () => {
   }
 
   const handleBatchSearch = useCallback(
-    debounce(async (value, id) => {
+    debounce(async (value, id, stockType, batchPaginationModel) => {
       setBatchSearchValue(value)
-
+      setBatchPaginationModel(prev => ({ ...prev, page: 0 }))
       try {
         await getStocksReportBatchWise({
           batchSort: batchSort,
@@ -1074,7 +873,8 @@ const ListOfStocks = () => {
           batchColumn: batchSortColumn,
 
           // id: stockId
-          id: id
+          id: id,
+          batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
         })
       } catch (error) {
         console.error(error)
@@ -1082,51 +882,6 @@ const ListOfStocks = () => {
     }, 1000),
     []
   )
-
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     const sortOrder = newModel[0].sort
-  //     const sortField = newModel[0].field
-
-  //     // Update sorting state
-  //     setSort(sortOrder)
-  //     setSortColumn(sortField)
-
-  //     // Reset pagination to the first page for sorting
-  //     setPaginationModel(prev => ({ ...prev, page: 0 }))
-
-  //     changeSwitch
-  //       ? getStocksReportBatchWise({
-  //           sort: sortOrder,
-  //           q: searchValue, // Use the current search value
-  //           column: sortField,
-  //           id: stockId, // Use the current stock ID
-  //           type: stockType, // Use the current stock type
-  //           page: 0
-  //         })
-  //       : // Call the API directly with updated parameters
-  //         getStocksReport({
-  //           sort: sortOrder,
-  //           q: searchValue, // Use the current search value
-  //           column: sortField,
-  //           id: stockId, // Use the current stock ID
-  //           type: stockType, // Use the current stock type
-  //           page: 0 // Start from the first page
-  //         })
-  //   }
-  // }
-
-  // const handleSearch = useCallback(
-  //   debounce(async value => {
-  //     setSearchValue(value)
-  //     try {
-  //       await getStocksReport({ sort, q: value, column: sortColumn, id: stockId, type: stockType })
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   [getStocksReport]
-  // )
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -1145,7 +900,7 @@ const ListOfStocks = () => {
           batchQ: searchValue, // Use the current search value
           batchColumn: sortField,
           id: stockId, // Use the current stock ID
-          page: 0 // Start from the first page
+          batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize } // Start from the first page
         })
       } else {
         // Reset main pagination and call main API
@@ -1156,14 +911,14 @@ const ListOfStocks = () => {
           column: sortField,
           id: stockId, // Use the current stock ID
           type: stockType, // Use the current stock type
-          page: 0 // Start from the first page
+          paginationModel: { page: 0, pageSize: paginationModel.pageSize } // Start from the first page
         })
       }
     }
   }
 
   const handleSearch = useCallback(
-    debounce(async value => {
+    debounce(async (value, stockId, stockType, paginationModel) => {
       setSearchValue(value)
 
       try {
@@ -1171,19 +926,20 @@ const ListOfStocks = () => {
 
         setPaginationModel(prev => ({ ...prev, page: 0 }))
         // Call the API with the updated page index (0)
-        // await getStocksReport({
-        //   sort,
-        //   q: value,
-        //   column: sortColumn,
-        //   id: stockId,
-        //   type: stockType
-        //   // page: 0 // Explicitly pass page 0 for a search
-        // })
+        await getStocksReport({
+          sort,
+          q: value,
+          column: sortColumn,
+          id: stockId,
+          type: stockType,
+          paginationModel: { page: 0, paginationModel: paginationModel.pageSize }
+          // page: 0 // Explicitly pass page 0 for a search
+        })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [getStocksReport]
+    []
   )
 
   const title = (
@@ -1207,7 +963,8 @@ const ListOfStocks = () => {
         batchQ: batchSearchValue,
         batchColumn: newModel[0].field,
         id: stockId,
-        type: stockType
+        type: stockType,
+        batchPaginationModel
       })
     } else {
       setBatchSort(null)
@@ -1216,7 +973,8 @@ const ListOfStocks = () => {
         batchQ: batchSearchValue,
         batchColumn: batchSortColumn,
         id: stockId,
-        type: stockType
+        type: stockType,
+        batchPaginationModel
       })
     }
   }
@@ -1293,13 +1051,6 @@ const ListOfStocks = () => {
     }
   }, [])
 
-  // useEffect(() => {
-  //   debugger
-  //   if (purchaseByStockId && purchaseByStockId.stock_id) {
-  //     getPurchaseListByStockId(purchaseByStockId.stock_id, purchaseByStockId.batch_no, searchPurchase)
-  //   }
-  // }, [purchaseByStockId, getPurchaseListByStockId])
-
   const handleInputChange = event => {
     const value = event.target.value
     setSearchPurchase(value)
@@ -1309,6 +1060,32 @@ const ListOfStocks = () => {
   const handleClearSearch = event => {
     setSearchPurchase('')
     handleSearchPurchase(purchaseByStockId.stock_id, purchaseByStockId.batch_no, '')
+  }
+
+  const handleBatchPaginationChange = data => {
+    debugger
+    setBatchPaginationModel({ page: data.page, pageSize: data.pageSize })
+    getStocksReportBatchWise({
+      batchSort: batchSort,
+      batchQ: batchSearchValue,
+      batchColumn: batchSortColumn,
+      id: stockId,
+      batchPaginationModel: { page: data.page, pageSize: data.pageSize }
+      // storeType: selectedPharmacy?.type
+    })
+    // getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id: storeId })
+  }
+
+  const handlePaginationChange = data => {
+    setPaginationModel({ page: data.page, pageSize: data.pageSize })
+    getStocksReport({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      id: stockId,
+      // type: selectedPharmacy?.type
+      paginationModel: { page: data.page, pageSize: data.pageSize }
+    })
   }
 
   return (
@@ -1390,11 +1167,13 @@ const ListOfStocks = () => {
                           inputRef={textFieldRef}
                           placeholder='Search...'
                           // value={searchValue}
-                          onChange={e =>
+                          onChange={e => {
+                            debugger
+
                             changeSwitch
-                              ? handleBatchSearch(e.target.value, stockId, stockType)
-                              : handleSearch(e.target.value, stockId, stockType)
-                          }
+                              ? handleBatchSearch(e.target.value, stockId, stockType, batchPaginationModel)
+                              : handleSearch(e.target.value, stockId, stockType, paginationModel)
+                          }}
                           fullWidth
                           sx={{
                             '& .MuiOutlinedInput-root': {
@@ -1413,7 +1192,7 @@ const ListOfStocks = () => {
                       {/* {changeSwitch ? ( */}
                       <Box sx={{ ml: 'auto', float: 'right', mr: 2 }}>
                         <ExcelExportButton
-                          disabled={total === 0 ? true : false}
+                          disabled={changeSwitch ? (batchTotal === 0 ? true : false) : total === 0 ? true : false}
                           action={() => {
                             getBatchWiseDataToExport()
                           }}
@@ -1451,7 +1230,8 @@ const ListOfStocks = () => {
                         columns={batchWiseColumn}
                         paginationModel={batchPaginationModel}
                         handleSortModel={handleBatchSortModel}
-                        setPaginationModel={setBatchPaginationModel}
+                        // setPaginationModel={setBatchPaginationModel}
+                        setPaginationModel={handleBatchPaginationChange}
                         loading={batchLoading}
                         searchValue={batchSearchValue}
                         onCellClick={(params, event) => {
@@ -1504,7 +1284,7 @@ const ListOfStocks = () => {
                             handleStockRowClick(params)
                           }
                         }}
-                        setPaginationModel={setPaginationModel}
+                        setPaginationModel={handlePaginationChange}
                         loading={loading}
                         searchValue={searchValue}
                       />

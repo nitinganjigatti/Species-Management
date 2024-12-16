@@ -41,6 +41,8 @@ const StockOut = () => {
   const [changeSwitch, setChangeSwitch] = useState()
   const [excelLoader, setExcelLoader] = useState(false)
 
+  debugger
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -50,6 +52,7 @@ const StockOut = () => {
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
       console.log('Fetching with sort:', sort) // Debugging sort order
+      debugger
       try {
         setLoading(true)
 
@@ -78,17 +81,13 @@ const StockOut = () => {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize]
+    [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
+    debugger
+    fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id, status, changeSwitch])
-
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
+  }, [fetchTableData, selectedPharmacy.id, changeSwitch])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -98,6 +97,7 @@ const StockOut = () => {
   }))
 
   const handleSortModel = newModel => {
+    debugger
     if (newModel.length) {
       const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
       const sortField = newModel[0]?.field || ''
@@ -120,6 +120,7 @@ const StockOut = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
+      debugger
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
@@ -520,15 +521,15 @@ const StockOut = () => {
             </Grid>
 
             <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
+              {/* {status === 'all' || status === 'completed' ? ( */}
+              <Box sx={{ float: 'right', mt: 1 }}>
+                <FormControlLabel
+                  control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
+                  label='Out Of Stock'
+                  labelPlacement='end'
+                />
+              </Box>
+              {/* ) : null} */}
             </Grid>
           </Box>
 
