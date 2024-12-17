@@ -64,7 +64,7 @@ const LabelValues = ({ label, value }) => {
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const { disputeItemDetails, orderData, selectedPharmacy, checked, handleChange, setDisputeItemDetails, columns } =
     props
-  debugger
+
   return (
     <div ref={ref}>
       {disputeItemDetails?.item_details?.length > 0 ? (
@@ -595,6 +595,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   async function markAsReceived(itemId) {
     if (!itemId) {
       console.error('Invalid item ID.')
+
       return
     }
     console.log(itemId, 'itemId')
@@ -1331,8 +1332,6 @@ function OrderReceiveForm({ orderId, requestId }) {
       }
     }
   }
-
-  console.log(orderData, 'pppppp')
 
   const printRef = React.useRef()
 

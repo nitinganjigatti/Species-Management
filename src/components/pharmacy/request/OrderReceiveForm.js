@@ -61,6 +61,15 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
+const LabelValues = ({ label, value }) => {
+  return (
+    <Grid item md={2} sm={3} xs={6} sx={{ pt: 6 }}>
+      <p style={{ margin: '0px' }}> {label}</p>
+      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
+    </Grid>
+  )
+}
+
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const { disputeItemDetails, orderData, selectedPharmacy, checked, handleChange, setDisputeItemDetails, columns } =
     props
@@ -74,59 +83,27 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               container
               xs={12}
               className='printable-container'
-              sx={{ backgroundColor: 'customColors.bodyBg', p: 6, borderRadius: '10px' }}
+              sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
             >
-              {orderData?.from_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}> Shipped From:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.shipment_id ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Shipping id:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.shipment_id}</h4>
-                </Grid>
+              {orderData?.request_number ? (
+                <LabelValues label={'Reference No:'} value={orderData?.request_number} />
               ) : null}
               {orderData?.from_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>From Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
-                </Grid>
+                <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
               ) : null}
+              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
+              {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null}
+
               {orderData?.shipment_date ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Shipped Date:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>
-                    {Utility.formatDisplayDate(orderData.shipment_date)}
-                  </h4>
-                </Grid>
+                <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
               ) : null}
-              {orderData?.vehicle_no ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Vehicle Number:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.vehicle_no}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.to_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>To Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
-                </Grid>
-              ) : null}
+              {orderData?.vehicle_no ? <LabelValues label={'Vehicle Number:'} value={orderData.vehicle_no} /> : null}
 
               {orderData?.person_shipping ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Driver Name:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
-                </Grid>
+                <LabelValues label={'Driver Name:'} value={orderData.person_shipping} />
               ) : null}
-              {orderData?.person_shipping ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Mobile No:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.phone_number}</h4>
-                </Grid>
-              ) : null}
+              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData.phone_number} /> : null}
+              {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
             </Grid>
 
             {disputeItemDetails?.item_details?.length > 0 ? (
@@ -174,7 +151,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               </>
             ) : null}
 
-            <Grid container items>
+            <Grid container items id={'comments'}>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
                   <TextField
@@ -382,7 +359,11 @@ function OrderReceiveForm({ orderId, requestId }) {
           shipment_status: response?.data?.shipment_status,
           vehicle_no: response?.data?.vehicle_no,
           item_details: disputeLineItems,
-          phone_number: response?.data?.phone_number
+          phone_number: response?.data?.phone_number,
+          from_store_name: response?.data?.from_store_name,
+          to_store_name: response?.data?.to_store_name,
+          request_number: response?.data?.request_number,
+          carton_box: response?.data?.carton_box
         })
 
         const disputesData = {
@@ -634,6 +615,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   async function markAsReceived(itemId) {
     if (!itemId) {
       console.error('Invalid item ID.')
+
       return
     }
     console.log(itemId, 'itemId')

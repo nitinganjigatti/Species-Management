@@ -651,6 +651,11 @@ export const AddItemsForm = ({
               {errors?.request_item_batch_no && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
+              {getValues('available_item_qty') ? (
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
+                  Available Quantity:{getValues('available_item_qty')}
+                </Typography>
+              ) : null}
             </FormControl>
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (

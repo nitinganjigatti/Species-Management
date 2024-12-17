@@ -50,7 +50,7 @@ const RequestList = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [total, setTotal] = useState(0)
@@ -464,7 +464,7 @@ const RequestList = () => {
       flex: 0.5 / 2,
       minWidth: 40,
       field: 'request',
-      headerName: 'Days Since',
+      headerName: 'Days',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -522,10 +522,10 @@ const RequestList = () => {
     {
       flex: 0.35,
       minWidth: 20,
-      field: 'total_qty',
-      headerName: 'REQUESTED ITEMS',
+      field: 'product_count',
+      headerName: 'TOTAL ITEMS',
       type: 'number',
-      align: 'left',
+      align: 'right',
       headerAlign: 'left',
       renderCell: params => (
         <Typography
@@ -537,7 +537,7 @@ const RequestList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_qty}
+          {params.row?.product_count}
         </Typography>
       )
     },
@@ -545,8 +545,8 @@ const RequestList = () => {
     {
       flex: 0.35,
       minWidth: 20,
-      field: 'fulfilled_qty',
-      headerName: 'Dispatch Pending',
+      field: 'pending_count',
+      headerName: 'PENDING ITEMS',
       headerAlign: 'left',
       type: 'number',
       align: 'left',
@@ -560,7 +560,7 @@ const RequestList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
+          {params.row?.pending_count}
         </Typography>
       )
     },
