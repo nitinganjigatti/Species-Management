@@ -515,7 +515,7 @@ const PurchaseItemForm = props => {
                   getOptionLabel={option => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
-                    if (val === null) {
+                    if (val === null || val.status === 0) {
                       setValue('purchase_batch_no', '')
                       setValue('purchase_expiry_date', null)
                       setValue('package_details', '')
