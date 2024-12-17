@@ -801,7 +801,7 @@ function ProductForm({
           <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (
               <Button type='submit' variant='contained'>
-                Edit
+                Update
               </Button>
             ) : (
               <Button type='submit' variant='contained'>

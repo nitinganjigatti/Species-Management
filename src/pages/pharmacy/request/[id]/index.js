@@ -30,7 +30,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Divider, Tooltip } from '@mui/material'
+import { Box, CardContent, CardHeader, Divider, Tooltip, Paper, Drawer, Avatar } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -58,7 +58,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 
 import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
+import CloseIcon from '@mui/icons-material/Close'
 import RenderUtility from 'src/utility/render'
+import { useTheme } from '@emotion/react'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -116,6 +118,7 @@ const IndividualRequest = () => {
   const [notesDialog, setNotesDialog] = useState(false)
   const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
   const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
+  const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
 
   const [medicineParentId, setMedicineParentId] = useState({
     parentEndPointId: '',
@@ -127,6 +130,7 @@ const IndividualRequest = () => {
   const [status, setStatus] = useState('Pending')
   const [detailsTab, setDetailsTab] = useState('Pending')
   const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
+  const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -470,7 +474,7 @@ const IndividualRequest = () => {
             }}
             sx={{ display: 'flex' }}
           >
-            <Icon style={{ fontSize: '20px', color: '#00000066' }} icon='material-symbols:attachment' />
+            <Icon style={{ fontSize: '20px', color: 'customColors.neutral_50' }} icon='material-symbols:attachment' />
             <Typography
               variant='body2'
               sx={{
@@ -1414,6 +1418,8 @@ const IndividualRequest = () => {
   //   }
   // }
 
+  console.log(shippedItems, 'shippedItems')
+
   return (
     <>
       {loader ? (
@@ -1531,21 +1537,18 @@ const IndividualRequest = () => {
                           }}
                         >
                           Requested By:
-                          <Tooltip title={requestItems?.to_store} placement='top' arrow>
-                            <Box
-                              component='span'
-                              sx={{
-                                fontWeight: '500',
-                                fontSize: '16px',
-                                color: 'customColors.OnSurfaceVariant',
-                                lineHeight: '19.36px',
-                                mx: 2,
-                                ...RenderUtility?.getEllipsisStyleForText(140)
-                              }}
-                            >
-                              {requestItems?.to_store}
-                            </Box>
-                          </Tooltip>
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            {requestItems?.to_store}
+                          </Box>
                         </Typography>
                         <Typography
                           sx={{
@@ -1715,11 +1718,13 @@ const IndividualRequest = () => {
                         </Typography> */}
 
                         <Typography
+                          onClick={() => setShipmentDetailsDialog(true)}
                           sx={{
                             fontSize: '14px',
                             fontWeight: '400',
                             lineHeight: '16.94px',
-                            color: 'primary.OnSurface'
+                            color: 'primary.OnSurface',
+                            cursor: 'pointer'
                           }}
                         >
                           Shipped Value:
@@ -1815,7 +1820,7 @@ const IndividualRequest = () => {
                 >
                   <TabContext value={detailsTab}>
                     <TabList
-                      sx={{ borderBottom: '1px solid #0000000D' }}
+                      sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
                       }}
@@ -1874,7 +1879,10 @@ const IndividualRequest = () => {
                                     rows={shippedItems}
                                     onRowClick={e => {
                                       setOrderId(e.id)
-                                      showOrderFormDialog()
+                                      Router.push({
+                                        pathname: `/pharmacy/request/${id}/shipment-details`,
+                                        query: { orderId: e.id }
+                                      })
                                     }}
                                   ></TableBasic>
                                 </Card>
@@ -2020,7 +2028,13 @@ const IndividualRequest = () => {
                                               size='big'
                                               variant='contained'
                                               onClick={() => {
-                                                openShipDialog()
+                                                // openShipDialog()
+                                                Router.push({
+                                                  pathname: `/pharmacy/request/${id}/ship-all-items`,
+                                                  query: {
+                                                    // orderId: e.id,
+                                                  }
+                                                })
                                               }}
                                             >
                                               Ship All Items
@@ -2051,7 +2065,10 @@ const IndividualRequest = () => {
                                         rows={shippedItems}
                                         onRowClick={e => {
                                           setOrderId(e.id)
-                                          showOrderFormDialog()
+                                          Router.push({
+                                            pathname: `/pharmacy/request/${id}/shipment-details`,
+                                            query: { orderId: e.id }
+                                          })
                                         }}
                                       ></TableBasic>
                                     </Card>
@@ -2240,6 +2257,345 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
+
+              <Drawer
+                anchor='right'
+                open={shipmentDetailsDialog}
+                onClose={() => setShipmentDetailsDialog(false)}
+                sx={{
+                  '& .MuiDrawer-paper': {
+                    width: 500,
+                    backgroundColor: 'customColors.bodyBg'
+                  }
+                }}
+              >
+                <Box sx={{ p: 4, height: '100%', overflow: 'auto' }}>
+                  <Box
+                    sx={{
+                      position: 'sticky',
+                      zIndex: 1
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography
+                        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '20px', fontWeight: 500 }}
+                      >
+                        Shipped Items
+                      </Typography>
+                      <IconButton onClick={() => setShipmentDetailsDialog(false)}>
+                        <CloseIcon />
+                      </IconButton>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'customColors.neutral05',
+                        padding: 2,
+                        borderRadius: '4px',
+                        mb: 3
+                      }}
+                    >
+                      <Typography variant='body1'>
+                        <Box
+                          component='strong'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '14px',
+                            fontWeight: 400
+                          }}
+                        >
+                          Shipped Items:
+                        </Box>{' '}
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '16px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {shippedItems[0]?.shipment_item_details.length || '0'}
+                        </Box>
+                      </Typography>
+
+                      <Typography variant='body1'>
+                        <Box
+                          component='strong'
+                          sx={{
+                            color: 'customColors.neutralSecondary',
+                            fontSize: '14px',
+                            fontWeight: 400
+                          }}
+                        >
+                          Shipped Value:
+                        </Box>{' '}
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'primary.light',
+                            fontSize: '14px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {/* {shippedItems[0]?.shipment_item_details?.value || '0'}
+                           */}
+                          {requestItems?.shipped_amount}
+                        </Box>
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ mb: 3 }} />
+
+                  <Box
+                    sx={{
+                      height: 'calc(100% - 120px)', // Adjust this value based on your layout
+                      overflowY: 'auto',
+                      paddingTop: 3
+                    }}
+                  >
+                    {shippedItems[0]?.shipment_item_details?.length ? (
+                      shippedItems[0]?.shipment_item_details?.map((ship, index) => (
+                        <Card
+                          key={index}
+                          sx={{
+                            mb: 2,
+                            borderRadius: '8px',
+                            boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+                          }}
+                        >
+                          <CardContent>
+                            <Typography
+                              sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
+                              gutterBottom
+                            >
+                              {ship?.stock_name}
+                            </Typography>
+
+                            {/* Shipped Quantity and Value */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                              <Typography variant='body1'>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  Shipped Quantity:
+                                </Box>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontSize: '16px',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  {ship?.quantity}
+                                </Box>
+                              </Typography>
+                              <Typography variant='body1'>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  Shipped Value:
+                                </Box>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'primary.light',
+                                    fontSize: '14px',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  ₹{requestItems?.shipped_amount || '0'}
+                                </Box>
+                              </Typography>
+                            </Box>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                backgroundColor: 'customColors.tableHeaderBg',
+                                p: 2,
+                                borderRadius: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                gap: 2
+                              }}
+                            >
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Shipping ID:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.shipment_id}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Batch No:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.batch}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Shipped Quantity:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.quantity}
+                                </Typography>
+                              </Box>
+                            </Paper>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '300px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <Avatar
+                          variant='square'
+                          alt=''
+                          src={'/images/Empty-Box.png'}
+                          sx={{
+                            width: '120px',
+                            height: '120px',
+                            mb: 2
+                          }}
+                        />
+                        <Typography
+                          variant='body1'
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: 'primary.light'
+                          }}
+                        >
+                          No Shipped Items
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              </Drawer>
+              {/* <CommonDialogBox
+                title={`Shipped Items (${shippedItems[0]?.shipment_item_details.length || '0'})`}
+                dialogBoxStatus={shipmentDetailsDialog}
+                close={setShipmentDetailsDialog}
+                noWidth={'noWidth'}
+                style={'#EFF5F2'}
+                formComponent={
+                  <>
+                    {console.log('shippedItems', shippedItems)}
+
+                    {shippedItems[0]?.shipment_item_details?.map((ship, index) => {
+                      console.log(ship, 'loggss')
+
+                      return (
+                        <Card key={index} sx={{ width: 500, m: 2 }}>
+                          <CardContent>
+                            <Typography variant='h5' component='div' gutterBottom sx={{ color: '#333' }}>
+                              {ship?.stock_name}
+                            </Typography>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                              <Typography variant='body1' color='text.secondary'>
+                                Shipped Quantity: {ship?.quantity}
+                              </Typography>
+                              <Typography variant='body1' color='text.secondary'>
+                                Shipped Value:{''}
+                              </Typography>
+                            </Box>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                backgroundColor: '#E8F4F2',
+                                p: 3,
+                                display: 'flex',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Box>
+                                <Typography variant='body2' color='text.secondary'>
+                                  Shipping ID:
+                                </Typography>
+                                <Typography variant='body1'>{ship?.shipment_id}</Typography>
+                              </Box>
+
+                              <Box>
+                                <Typography variant='body2' color='text.secondary'>
+                                  Batch No:
+                                </Typography>
+                                <Typography variant='body1'>{ship?.batch}</Typography>
+                              </Box>
+
+                              <Box>
+                                <Typography variant='body2' color='text.secondary'>
+                                  Shipped Quantity:
+                                </Typography>
+                                <Typography variant='body1'>{ship?.quantity}</Typography>
+                              </Box>
+                            </Paper>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </>
+                }
+              /> */}
               {/* Fulfill Request Dialog */}
               <Dialog
                 fullWidth

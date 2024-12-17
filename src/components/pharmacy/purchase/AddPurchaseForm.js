@@ -605,7 +605,7 @@ const AddPurchaseForm = () => {
 
   const getSuppliersLists = async () => {
     try {
-      const response = await getSuppliers()
+      const response = await getSuppliers({})
 
       if (response.data.data.list_items?.length > 0) {
         setSuppliers(response.data.data.list_items)
@@ -985,10 +985,11 @@ const AddPurchaseForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
+           
                 if (navigatedFrom === 'stockReport') {
                   Router.push('/pharmacy/stocks/stocksReport/')
                 } else {
-                  Router.push('/pharmacy/purchase/purchase-list/')
+                  Router.back()
                 }
               }}
               icon='ep:back'

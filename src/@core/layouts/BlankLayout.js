@@ -11,6 +11,7 @@ const BlankLayoutWrapper = styled(Box)(({ theme }) => ({
     display: 'flex',
     minHeight: '100vh',
     alignItems: 'center',
+
     justifyContent: 'center',
     padding: theme.spacing(5)
   },
@@ -20,6 +21,7 @@ const BlankLayoutWrapper = styled(Box)(({ theme }) => ({
     display: 'flex',
     minHeight: '100vh',
     overflowX: 'hidden',
+    
     position: 'relative'
   }
 }))

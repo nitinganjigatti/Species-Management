@@ -12,9 +12,13 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
-import { Tooltip } from '@mui/material'
+import { Grid, TextField, Tooltip } from '@mui/material'
+import { useTheme } from '@emotion/react'
+import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ExpiredMedicine = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -116,18 +120,18 @@ const ExpiredMedicine = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      alignItems: 'right',
-      field: 'id',
-      headerName: 'SL',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.1,
+    //   Width: 40,
+    //   alignItems: 'right',
+    //   field: 'id',
+    //   headerName: 'SL',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.id + "."}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -135,7 +139,15 @@ const ExpiredMedicine = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_item_name}
           </Typography>
         </Tooltip>
@@ -147,7 +159,15 @@ const ExpiredMedicine = () => {
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -170,7 +190,15 @@ const ExpiredMedicine = () => {
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
@@ -182,9 +210,18 @@ const ExpiredMedicine = () => {
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -235,6 +272,12 @@ const ExpiredMedicine = () => {
   //   return <h1>{error.message}</h1>
   // }
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Expired Products</Typography>
+    </>
+  )
+
   return (
     <>
       {loader ? (
@@ -243,7 +286,7 @@ const ExpiredMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='Expired Products'
+              title={title}
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton
@@ -257,8 +300,61 @@ const ExpiredMedicine = () => {
                 </Box>
               }
             />
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+            </Box>
 
-            <DataGrid
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <CommonTable
+                onRowClick={''}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+
+            {/* <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -268,9 +364,9 @@ const ExpiredMedicine = () => {
                   cursor: 'pointer'
                 }
               }}
-              columnVisibilityModel={{
-                id: false
-              }}
+              // columnVisibilityModel={{
+              //   id: false
+              // }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               autoHeight
@@ -300,7 +396,7 @@ const ExpiredMedicine = () => {
               }}
 
               // onRowClick={onRowClick}
-            />
+            /> */}
           </Card>
         </>
       )}
