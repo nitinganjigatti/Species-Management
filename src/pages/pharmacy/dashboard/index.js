@@ -155,7 +155,7 @@ const NewDashboard = () => {
 
                   <Grid item xs={11 / 2}>
                     <CriticalInfoCards
-                      title={outOfStockMedicine?.value}
+                      title={outOfStockMedicine?.value === 0 ? '0' : outOfStockMedicine?.value}
                       subTitle={outOfStockMedicine?.name}
                       modifiedProperties={modifiedProperties}
                     />
@@ -177,6 +177,7 @@ const NewDashboard = () => {
                       ['todayDispatchedValue', 'todayRequestCount', 'todayShipmentCount'].includes(el.name)
                     )
                   : ''
+
                 //totalList?.filter(el => el.name === 'medicineCount' || el.name === 'inStockCount')
               }
               modifiedProperties={modifiedProperties}
