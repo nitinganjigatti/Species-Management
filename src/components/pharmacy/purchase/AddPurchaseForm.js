@@ -45,7 +45,8 @@ import {
   getPurchaseListById,
   updatePurchase,
   updatePurchasePrice,
-  getBatchExpiry
+  getBatchExpiry,
+  validatePurchaseProducts
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -134,6 +135,9 @@ const AddPurchaseForm = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [supplierDialog, setSupplierDialog] = useState(false)
+  const [validatePurchaseDialog, setValidatePurchaseDialog] = useState(false)
+  const [priceValidationError, setPriceValidationError] = useState(false)
+  const [currentPayload, setCurrentPayload] = useState(null)
 
   const router = useRouter()
   const { id, action, navigatedFrom } = router.query
@@ -175,6 +179,10 @@ const AddPurchaseForm = () => {
     setItemErrors({})
     setDuplicateMedError('')
     setOptionsMedicineList([])
+
+    setValidatePurchaseDialog(false)
+    setPriceValidationError(false)
+    setCurrentPayload(null)
   }
 
   const showDialog = () => {
@@ -942,6 +950,43 @@ const AddPurchaseForm = () => {
     }
   }
 
+  // validatePurchaseProducts
+
+  // const getRecentPurchasePriceOfProduct = async productDetails => {
+  //   if (productDetails) {
+  //     try {
+  //       const response = await validatePurchaseProducts(productDetails)
+  //       console.log('response,', response)
+  //       if (response?.success === false) {
+  //         setPriceValidationError(true)
+  //       } else {
+  //         setPriceValidationError(false)
+  //       }
+  //     } catch (error) {
+  //       console.log('supplier error', error)
+  //     }
+  //   }
+  // }
+  const getRecentPurchasePriceOfProduct = useCallback(
+    debounce(async productDetails => {
+      if (productDetails) {
+        try {
+          const response = await validatePurchaseProducts(productDetails)
+          console.log('response,', response)
+
+          if (response?.success === false) {
+            setPriceValidationError(true)
+          } else {
+            setPriceValidationError(false)
+          }
+        } catch (error) {
+          console.log('supplier error', error)
+        }
+      }
+    }, 500), // 500ms debounce delay
+    []
+  )
+
   // data posting section
   const createForm = () => {
     return (
@@ -957,6 +1002,13 @@ const AddPurchaseForm = () => {
           checkMedicineExpiryDate={checkMedicineExpiryDate}
           productExpiryDate={productExpiryDate}
           expiryDateLoader={expiryDateLoader}
+          getRecentPurchasePriceOfProduct={getRecentPurchasePriceOfProduct}
+          validatePurchaseDialog={validatePurchaseDialog}
+          setValidatePurchaseDialog={setValidatePurchaseDialog}
+          priceValidationError={priceValidationError}
+          setPriceValidationError={setPriceValidationError}
+          currentPayload={currentPayload}
+          setCurrentPayload={setCurrentPayload}
         ></PurchaseItemForm>
       </CardContent>
     )
@@ -985,7 +1037,6 @@ const AddPurchaseForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-           
                 if (navigatedFrom === 'stockReport') {
                   Router.push('/pharmacy/stocks/stocksReport/')
                 } else {

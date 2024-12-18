@@ -1,4 +1,10 @@
-import { PURCHASE, CHECK_BATCH, PHARMACY_BASE_URL, UPDATE_PURCHASE_BASE_URL } from 'src/constants/ApiConstant'
+import {
+  PURCHASE,
+  CHECK_BATCH,
+  PHARMACY_BASE_URL,
+  UPDATE_PURCHASE_BASE_URL,
+  VALIDATE_PURCHASE
+} from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
 export async function getPurchaseList({ params }) {
@@ -121,6 +127,25 @@ export async function ValidateUploadPurchaseFile(payload) {
 export async function saveImportFileData(payload) {
   try {
     const url = `${PHARMACY_BASE_URL}${PURCHASE}/saveImport`
+    var data = payload
+    const response = await axiosPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function validatePurchaseProducts(payload) {
+  try {
+    const url = `${PHARMACY_BASE_URL}${PURCHASE}/${VALIDATE_PURCHASE}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy: true })
 

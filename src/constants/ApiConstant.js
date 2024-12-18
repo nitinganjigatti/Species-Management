@@ -209,3 +209,5 @@ export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
 export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const VARIANTS_MAPPING = 'variantMapping'
+
+export const VALIDATE_PURCHASE = 'validate'
