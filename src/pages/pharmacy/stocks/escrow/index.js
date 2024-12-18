@@ -71,7 +71,6 @@ function Escrow({ value }) {
 
   const columns = [
     {
-      flex: 0.2,
       minWidth: 20,
       field: 'request_id',
       headerName: 'Request Id',
@@ -90,8 +89,7 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -109,8 +107,7 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'from_store',
       headerName: 'From Store',
       renderCell: params => (
@@ -128,8 +125,7 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
@@ -147,8 +143,7 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'to_store',
       headerName: 'To Store',
       renderCell: params => (
@@ -166,8 +161,25 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 200,
+      field: 'stock_name',
+      headerName: 'Product Name',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.stock_name}
+        </Typography>
+      )
+    },
+    {
+      width: 160,
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
@@ -185,10 +197,9 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
       field: 'status',
-      headerName: 'Stock Related To ',
+      headerName: 'Status',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -204,8 +215,7 @@ function Escrow({ value }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
       field: 'no_of_days_exist',
       headerName: 'Exist from',
       renderCell: params => (

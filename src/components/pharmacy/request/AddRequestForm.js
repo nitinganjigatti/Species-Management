@@ -10,7 +10,7 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import { Button, CardHeader } from '@mui/material'
@@ -54,11 +54,13 @@ import {
   getRequestItemsListById,
   updateRequestItems,
   // deleteLineItem,
-  cancelRequestItems
+  cancelRequestItems,
+  getRequestPendingProductsList
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { useTheme } from '@emotion/react'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -112,6 +114,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 })
 
 const AddRequestForm = () => {
+  const theme = useTheme()
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
@@ -129,6 +132,8 @@ const AddRequestForm = () => {
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [tabStatus, setTabStatus] = useState('By product')
+
+  const [showWarning, setShowWarning] = useState({})
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
@@ -158,6 +163,7 @@ const AddRequestForm = () => {
     setNestedRowMedicine(initialNestedRowMedicine)
     setMedicineItemId('')
     setItemErrors({})
+    setShowWarning({})
   }
 
   const showDialog = () => {
@@ -710,6 +716,25 @@ const AddRequestForm = () => {
     fileInputRef.current.click()
   }
 
+  const requestPendingProducts = async id => {
+    try {
+      const result = await getRequestPendingProductsList(id)
+
+      console.log(result, 'result')
+      setShowWarning(result.data)
+    } catch (error) {
+      // toast.error(error.data)
+      console.error('error', error)
+    }
+  }
+
+  // useEffect(() => {
+  //   if (nestedRowMedicine.request_item_medicine_id) {
+  //     setShowWarning({})
+  //     requestPendingProducts(nestedRowMedicine.request_item_medicine_id)
+  //   }
+  // }, [nestedRowMedicine])
+
   // data posting section
   const createForm = () => {
     return (
@@ -725,7 +750,7 @@ const AddRequestForm = () => {
               sx={{
                 cursor: 'pointer',
                 borderBottom: tabStatus === 'By product' ? '5px solid' : '',
-                color: tabStatus === 'By product' ? 'primary.main' : '#414941',
+                color: tabStatus === 'By product' ? 'primary.main' : 'customColors.OnSurfaceVariant',
                 padding: '8px 16px'
               }}
             >
@@ -737,7 +762,7 @@ const AddRequestForm = () => {
               sx={{
                 cursor: 'pointer',
                 borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
-                color: tabStatus === 'By generic' ? 'primary.main' : '#414941',
+                color: tabStatus === 'By generic' ? 'primary.main' : 'customColors.OnSurfaceVariant',
                 padding: '8px 16px'
               }}
             >
@@ -789,6 +814,9 @@ const AddRequestForm = () => {
                   )}
                   value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                   onChange={(event, newValue) => {
+                    if (newValue?.value) {
+                      requestPendingProducts(newValue.value) // Only call if value is defined
+                    }
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.name,
@@ -802,6 +830,7 @@ const AddRequestForm = () => {
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
+                    setShowWarning({})
                   }}
                   onKeyUp={e => {
                     searchMedicineData(e.target.value)
@@ -920,6 +949,9 @@ const AddRequestForm = () => {
                   )}
                   value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                   onChange={(event, newValue) => {
+                    if (newValue?.value) {
+                      requestPendingProducts(newValue.value) // Only call if value is defined
+                    }
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
                       medicine_name: newValue?.name,
@@ -933,6 +965,7 @@ const AddRequestForm = () => {
                     })
                     setDuplicateMedError('')
                     setItemErrors({})
+                    setShowWarning({})
                   }}
                   onKeyUp={e => {
                     searchGenericMedicineData(e.target.value)
@@ -976,39 +1009,74 @@ const AddRequestForm = () => {
               </FormControl>
             </Grid>
           )}
+
           {nestedRowMedicine?.medicine_name && (
             <Box
               sx={{
-                backgroundColor: '#F2FFF8', // Light green background
+                backgroundColor: 'customColors.Surface', // Light green background
                 padding: '16px',
                 borderRadius: '8px',
                 marginTop: '5px',
-                border: '0.5px solid #37BD69',
+                border: '0.5px solid',
+                borderColor: 'primary.main',
                 borderRadius: '8px'
               }}
             >
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
                 Available Packing:{' '}
-                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                   {nestedRowMedicine?.package}
                 </span>
               </Typography>
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
                 Manufactured by:{' '}
-                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                   {nestedRowMedicine?.manufacture}
                 </span>
               </Typography>
               {nestedRowMedicine?.availAbleQty && (
                 <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
                   Availability:{' '}
-                  <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                  <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                     {nestedRowMedicine?.availAbleQty}
                   </span>
                 </Typography>
               )}
             </Box>
           )}
+          <Grid item xs={12} sm={12}>
+            {showWarning.count && (
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  color: 'customColors.Tertiary'
+                }}
+              >
+                *You have{' '}
+                <Box component='span' sx={{ fontWeight: 600 }}>
+                  {showWarning?.count || 0} ongoing requests
+                </Box>{' '}
+                for this product (Qty: {showWarning?.total_pending_quantity || 0}). Please review before proceeding to
+                avoid duplicate requests.
+              </Typography>
+              // <Typography
+              //   sx={{
+              //     mb: 2,
+              //     fontSize: '12px',
+              //     fontWeight: 400,
+              //     color: '#FA6140'
+              //   }}
+              // >
+              //   {`
+              //   *You have ${showWarning?.count} ongoing requests for this product (Qty: ${
+              //     showWarning?.total_pending_quantity || 0
+              //   }). Please review before proceeding to avoid duplicate requests.
+              //   `}
+              // </Typography>
+            )}
+          </Grid>
 
           <Grid item xs={12} sm={12}>
             <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
@@ -1044,9 +1112,11 @@ const AddRequestForm = () => {
                       height: '32px',
                       fontWeight: 400,
                       verticalAlign: 'middle',
-                      backgroundColor: '#F2FFF8',
+                      backgroundColor: 'customColors.Surface',
                       color: 'customColors.OnSurfaceVariant',
-                      border: '0.5px solid #37BD69 !important'
+                      border: `0.5px solid ${theme.palette.primary.main} !important`
+
+                      // border: '0.5px solid #37BD69 !important'
                     }}
                   />
                   <Chip
@@ -1058,9 +1128,10 @@ const AddRequestForm = () => {
                       height: '32px',
                       fontWeight: 400,
                       verticalAlign: 'middle',
-                      backgroundColor: '#F2FFF8',
+                      backgroundColor: 'customColors.Surface',
                       color: 'customColors.OnSurfaceVariant',
-                      border: '0.5px solid #37BD69 !important'
+                      // border: '0.5px solid #37BD69 !important'
+                      border: `0.5px solid ${theme.palette.primary.main} !important`
                     }}
                   />
                 </Box>
@@ -1090,7 +1161,7 @@ const AddRequestForm = () => {
             sx={{
               // border: '0.5px solid',
               borderRadius: '8px !important',
-              backgroundColor: '#FFBDA84D',
+              backgroundColor: 'customColors.TertiaryContainer',
               display: 'flex'
               // gap: '24px'
             }}
@@ -1262,7 +1333,12 @@ const AddRequestForm = () => {
                           gap: '6px'
                         }}
                       >
-                        <Icon icon='material-symbols:description-outline' width='16' color='#7A8684' height='20' />
+                        <Icon
+                          icon='material-symbols:description-outline'
+                          width='16'
+                          color='customColors.neutralSecondary'
+                          height='20'
+                        />
                         {nestedRowMedicine.prescription_required_file?.name}
                       </Typography>
                     }
@@ -1278,7 +1354,7 @@ const AddRequestForm = () => {
                       <Icon
                         icon='mdi:close-box'
                         width='24'
-                        color='#7A8684'
+                        color='customColors.neutralSecondary'
                         height='24'
                         style={{
                           position: 'absolute',
@@ -1314,7 +1390,7 @@ const AddRequestForm = () => {
                         >
                           <Image
                             width={16}
-                            color='#7A8684'
+                            color='customColors.neutralSecondary'
                             height={20}
                             alt={nestedRowMedicine.prescription_required_file?.name}
                             src={
@@ -1338,7 +1414,7 @@ const AddRequestForm = () => {
                         <Icon
                           icon='mdi:close-box'
                           width='24'
-                          color='#7A8684'
+                          color='customColors.neutralSecondary'
                           height='24'
                           style={{
                             position: 'absolute',
@@ -1385,7 +1461,7 @@ const AddRequestForm = () => {
                       >
                         <img
                           width={16}
-                          color='#7A8684'
+                          color='customColors.neutralSecondary'
                           height={20}
                           alt={nestedRowMedicine.prescription_required_file?.name}
                           src={nestedRowMedicine.prescription_required_file}
@@ -1405,7 +1481,7 @@ const AddRequestForm = () => {
                       <Icon
                         icon='mdi:close-box'
                         width='24'
-                        color='#7A8684'
+                        color='customColors.neutralSecondary'
                         height='24'
                         style={{
                           position: 'absolute',
@@ -1537,6 +1613,7 @@ const AddRequestForm = () => {
               )}
             </FormControl>
           </Grid>
+
           <Grid item xs={12}>
             <Box sx={{ float: 'right' }}>
               {medicineItemId ? (
@@ -1788,7 +1865,7 @@ const AddRequestForm = () => {
               sx={{
                 fontSize: '1rem',
                 fontWeight: 500,
-                color: '#44544ADE',
+                color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
@@ -1803,16 +1880,17 @@ const AddRequestForm = () => {
             >
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Typography
-                  // color='#7A8684'
                   sx={{
                     fontSize: '14px',
                     fontWeight: 400,
-                    color: '#7A8684'
+                    color: 'customColors.neutralSecondary'
                   }}
                 >
                   Total Request Quantity:
                 </Typography>
-                <Typography sx={{ color: '#1F515B', fontSize: '14px', fontWeight: 400 }}>{totalQty}</Typography>
+                <Typography sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}>
+                  {totalQty}
+                </Typography>
               </Box>
               <Divider
                 orientation='vertical'
@@ -1829,14 +1907,14 @@ const AddRequestForm = () => {
                   sx={{
                     fontSize: '14px',
                     fontWeight: 400,
-                    color: '#7A8684'
+                    color: 'customColors.neutralSecondary'
                   }}
                 >
                   Total Value:
                 </Typography>
-                <Typography sx={{ color: '#1F515B', fontSize: '14px', fontWeight: 400 }}>{`₹ ${totalValue
-                  .toString()
-                  .replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`}</Typography>
+                <Typography
+                  sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}
+                >{`₹ ${totalValue.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`}</Typography>
               </Box>
             </Box>
           </Grid>
@@ -1860,10 +1938,10 @@ const AddRequestForm = () => {
           </Grid>
         </Grid>
       </CardContent>
-      <Card sx={{ mx: 6, boxShadow: 'none', border: '1px solid #DAE7DF' }}>
+      <Card sx={{ mx: 6, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}>
         <TableContainer>
           <Table>
-            <TableHead sx={{ backgroundColor: '#C1D3D0' }}>
+            <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
               <TableRow>
                 <TableCell>S.No</TableCell>
                 <TableCell>Product Name</TableCell>
@@ -1952,7 +2030,10 @@ const AddRequestForm = () => {
                                 }}
                               />
                             ) : null} */}
-                            <Typography variant='body2' sx={{ color: '#1F515B', fontSize: '16px', fontWeight: 600 }}>
+                            <Typography
+                              variant='body2'
+                              sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}
+                            >
                               {el.medicine_name}
                             </Typography>
                           </Box>
@@ -1960,13 +2041,13 @@ const AddRequestForm = () => {
                           {/* Package info */}
                           <Typography
                             variant='body2'
-                            sx={{ color: '#44544A', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
+                            sx={{ color: 'customColors.OnSurfaceVariant', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
                           >
                             {el.package}
                           </Typography>
                           <Typography
                             variant='body2'
-                            sx={{ color: '#44544A', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
+                            sx={{ color: 'customColors.OnSurfaceVariant', mb: 0.5, fontSize: '14px', fontWeight: 400 }}
                           >
                             {el.manufacture}
                           </Typography>
@@ -1984,7 +2065,7 @@ const AddRequestForm = () => {
                               limit={60}
                               icon='material-symbols:description-outline'
                               style={{
-                                color: '#00000066',
+                                color: 'customColors.neutral_50',
                                 fontStyle: 'italic',
                                 fontSize: '14px',
                                 fontWeight: 400
@@ -2034,12 +2115,12 @@ const AddRequestForm = () => {
                           {el?.prescription_required_file ? (
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Box sx={{ color: '#00000066', display: 'flex', alignItems: 'center' }}>
+                                <Box sx={{ color: 'customColors.neutral_50', display: 'flex', alignItems: 'center' }}>
                                   <Icon icon='material-symbols:attachment' width='1em' height='1em' />
                                 </Box>
                                 <Typography
                                   variant='body2'
-                                  sx={{ color: '#00000066', fontSize: '14px', fontWeight: 400 }}
+                                  sx={{ color: 'customColors.neutral_50', fontSize: '14px', fontWeight: 400 }}
                                 >
                                   {el.prescription_required_file.name}
                                 </Typography>

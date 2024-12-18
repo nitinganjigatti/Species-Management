@@ -49,7 +49,6 @@ const StockOut = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
-      console.log('Fetching with sort:', sort) // Debugging sort order
       try {
         setLoading(true)
 
@@ -78,17 +77,12 @@ const StockOut = () => {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize]
+    [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, status)
+    fetchTableData(sort, searchValue, sortColumn)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id, status, changeSwitch])
-
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
+  }, [fetchTableData, selectedPharmacy.id, changeSwitch])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -520,15 +514,15 @@ const StockOut = () => {
             </Grid>
 
             <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
+              {/* {status === 'all' || status === 'completed' ? ( */}
+              <Box sx={{ float: 'right', mt: 1 }}>
+                <FormControlLabel
+                  control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
+                  label='Out Of Stock'
+                  labelPlacement='end'
+                />
+              </Box>
+              {/* ) : null} */}
             </Grid>
           </Box>
 

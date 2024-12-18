@@ -60,6 +60,7 @@ import MuiTabList from '@mui/lab/TabList'
 import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
 import CloseIcon from '@mui/icons-material/Close'
 import RenderUtility from 'src/utility/render'
+import { useTheme } from '@emotion/react'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -129,6 +130,7 @@ const IndividualRequest = () => {
   const [status, setStatus] = useState('Pending')
   const [detailsTab, setDetailsTab] = useState('Pending')
   const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
+  const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -472,7 +474,7 @@ const IndividualRequest = () => {
             }}
             sx={{ display: 'flex' }}
           >
-            <Icon style={{ fontSize: '20px', color: '#00000066' }} icon='material-symbols:attachment' />
+            <Icon style={{ fontSize: '20px', color: 'customColors.neutral_50' }} icon='material-symbols:attachment' />
             <Typography
               variant='body2'
               sx={{
@@ -1818,7 +1820,7 @@ const IndividualRequest = () => {
                 >
                   <TabContext value={detailsTab}>
                     <TabList
-                      sx={{ borderBottom: '1px solid #0000000D' }}
+                      sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
                       }}

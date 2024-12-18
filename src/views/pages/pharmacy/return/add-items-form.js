@@ -181,33 +181,33 @@ export const AddItemsForm = ({
 
       // alert('3')
     }
-    if (request_item_qty > available_item_qty) {
-      setQuantityError(true)
+    // if (request_item_qty > available_item_qty) {
+    //   setQuantityError(true)
 
-      // const invalidItems = [
-      //   {
-      //     request_item_batch_no: request_item_batch_no?.value,
-      //     request_item_qty,
-      //     available_item_qty,
-      //     expiry_date,
-      //     request_item_medicine_id: request_item?.value,
-      //     product_name: request_item?.label,
-      //     priority_item: 'Normal',
-      //     uuid: nestedMedicine?.uuid
-      //   }
-      // ]
+    // const invalidItems = [
+    //   {
+    //     request_item_batch_no: request_item_batch_no?.value,
+    //     request_item_qty,
+    //     available_item_qty,
+    //     expiry_date,
+    //     request_item_medicine_id: request_item?.value,
+    //     product_name: request_item?.label,
+    //     priority_item: 'Normal',
+    //     uuid: nestedMedicine?.uuid
+    //   }
+    // ]
 
-      // // console.log('invalid items', invalidItems)
-      // setInvalidQty(invalidItems)
+    // // console.log('invalid items', invalidItems)
+    // setInvalidQty(invalidItems)
 
-      // setInvalidQtyDialog(true)
+    // setInvalidQtyDialog(true)
 
-      // alert('2')
+    // alert('2')
 
-      return
+    // return
 
-      // alert('3')
-    }
+    // alert('3')
+    // }
 
     // if (request_item_qty > available_item_qty) {
     //   const invalidItems = [
@@ -576,7 +576,6 @@ export const AddItemsForm = ({
               Batch No and Expiry Date
             </Typography>
           </Grid>
-
           <Grid item xs={12} sm={6}>
             {/* <FormControl fullWidth>
               <Controller
@@ -690,7 +689,7 @@ export const AddItemsForm = ({
                           <Typography variant='body2' color='customColors.neutralSecondary'>
                             Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
                           </Typography>
-                          <Typography variant='body2' color='customColors.customDropdownColor'>
+                          <Typography variant='body2' color='customColors.Tertiary'>
                             Availability: {option.available_item_qty}
                           </Typography>
                         </Box>
@@ -714,6 +713,11 @@ export const AddItemsForm = ({
                   />
                 )}
               />
+              {getValues('available_item_qty') ? (
+                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
+                  Available Quantity:{getValues('available_item_qty')}
+                </Typography>
+              ) : null}
               {errors?.request_item_batch_no && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
               )}
@@ -744,7 +748,6 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
-
           <Grid item xs={12} sm={12}>
             <Typography
               variant='subtitle1'
@@ -753,7 +756,6 @@ export const AddItemsForm = ({
               Quantity
             </Typography>
           </Grid>
-
           <Grid item xs={12} sm={12}>
             <FormControl fullWidth>
               <Controller
@@ -780,7 +782,6 @@ export const AddItemsForm = ({
               </Controller>
             </FormControl>
           </Grid>
-
           {/* {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -806,13 +807,11 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )} */}
-
           {quantityError && (
             <Grid item xs={12}>
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
           )}
-
           <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={4}>
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel

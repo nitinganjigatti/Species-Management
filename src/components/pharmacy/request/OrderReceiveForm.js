@@ -55,10 +55,20 @@ import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
 import { CheckBox } from '@mui/icons-material'
 import Link from 'next/link'
+import { useTheme } from '@emotion/react'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
+
+const LabelValues = ({ label, value }) => {
+  return (
+    <Grid item md={2} sm={3} xs={6} sx={{ pt: 6 }}>
+      <p style={{ margin: '0px' }}> {label}</p>
+      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
+    </Grid>
+  )
+}
 
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const { disputeItemDetails, orderData, selectedPharmacy, checked, handleChange, setDisputeItemDetails, columns } =
@@ -73,59 +83,27 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               container
               xs={12}
               className='printable-container'
-              sx={{ backgroundColor: '#EFF5F2', p: 6, borderRadius: '10px' }}
+              sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
             >
-              {orderData?.from_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}> Shipped From:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.shipment_id ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Shipping id:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.shipment_id}</h4>
-                </Grid>
+              {orderData?.request_number ? (
+                <LabelValues label={'Reference No:'} value={orderData?.request_number} />
               ) : null}
               {orderData?.from_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>From Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.from_store_name}</h4>
-                </Grid>
+                <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
               ) : null}
+              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
+              {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null}
+
               {orderData?.shipment_date ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Shipped Date:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>
-                    {Utility.formatDisplayDate(orderData.shipment_date)}
-                  </h4>
-                </Grid>
+                <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
               ) : null}
-              {orderData?.vehicle_no ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Vehicle Number:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.vehicle_no}</h4>
-                </Grid>
-              ) : null}
-              {orderData?.to_store_name ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>To Store: </p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
-                </Grid>
-              ) : null}
+              {orderData?.vehicle_no ? <LabelValues label={'Vehicle Number:'} value={orderData.vehicle_no} /> : null}
 
               {orderData?.person_shipping ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Driver Name:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
-                </Grid>
+                <LabelValues label={'Driver Name:'} value={orderData.person_shipping} />
               ) : null}
-              {orderData?.person_shipping ? (
-                <Grid item md={2} sm={3} xs={6}>
-                  <p style={{ margin: '0px' }}>Mobile No:</p>
-                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.phone_number}</h4>
-                </Grid>
-              ) : null}
+              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData.phone_number} /> : null}
+              {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
             </Grid>
 
             {disputeItemDetails?.item_details?.length > 0 ? (
@@ -166,14 +144,14 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     <TableBasic
                       columns={columns}
                       rows={disputeItemDetails?.item_details}
-                      backgroundColor={'#C1D3D0'}
+                      backgroundColor={'customColors.customTableHeaderBg'}
                     ></TableBasic>
                   </Box>
                 </Grid>
               </>
             ) : null}
 
-            <Grid container items>
+            <Grid container items id={'comments'}>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
                   <TextField
@@ -197,7 +175,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     name='comments'
                     InputProps={{
                       sx: {
-                        backgroundColor: '#FCF4AE33' // Setting the background color here
+                        backgroundColor: 'customColors.Notes' // Setting the background color here
                       },
                       startAdornment: (
                         <InputAdornment position='start'>
@@ -277,6 +255,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   const [orderData, setOrderData] = useState([])
   const [showSpinner, setShowSpinner] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
+  const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
@@ -380,7 +359,11 @@ function OrderReceiveForm({ orderId, requestId }) {
           shipment_status: response?.data?.shipment_status,
           vehicle_no: response?.data?.vehicle_no,
           item_details: disputeLineItems,
-          phone_number: response?.data?.phone_number
+          phone_number: response?.data?.phone_number,
+          from_store_name: response?.data?.from_store_name,
+          to_store_name: response?.data?.to_store_name,
+          request_number: response?.data?.request_number,
+          carton_box: response?.data?.carton_box
         })
 
         const disputesData = {
@@ -632,6 +615,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   async function markAsReceived(itemId) {
     if (!itemId) {
       console.error('Invalid item ID.')
+
       return
     }
     console.log(itemId, 'itemId')
@@ -661,7 +645,7 @@ function OrderReceiveForm({ orderId, requestId }) {
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2 }}>
               {/* Medicine Name */}
-              <Box sx={{ bgcolor: '#EFF5F2', px: 2, py: 2, borderRadius: '8px' }}>
+              <Box sx={{ bgcolor: 'customColors.bodyBg', px: 2, py: 2, borderRadius: '8px' }}>
                 <Typography variant='h6'>{markReceived?.stock_name}</Typography>
               </Box>
 
@@ -673,27 +657,40 @@ function OrderReceiveForm({ orderId, requestId }) {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
-                          <Typography sx={{ color: '#E93353' }}>
+                          <Typography sx={{ color: 'error.main' }}>
                             • {markReceived?.wrong_count_type} ({markReceived?.wrong_count_number})
                           </Typography>
                         </Box>
-                        <Typography sx={{ color: '#7A8684' }}>{Utility.formatDisplayDate(el?.created_at)}</Typography>
+                        <Typography sx={{ color: 'customColors.neutralSecondary' }}>
+                          {Utility.formatDisplayDate(el?.created_at)}
+                        </Typography>
                       </Box>
 
                       {/* Comment Card */}
-                      <Box sx={{ mb: 2, bgcolor: '#1F515B0D', border: '1px solid #4C4E6438', borderRadius: '8px' }}>
+                      <Box
+                        sx={{
+                          mb: 2,
+                          bgcolor: 'customColors.OnPrimarycontainer10',
+                          border: `1px solid ${theme.palette.customColors.neutral05}`,
+                          borderRadius: '8px'
+                        }}
+                      >
                         <CardContent>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography sx={{ fontWeight: '600', color: '#FA6140', fontSize: '12px' }}>
+                              <Typography
+                                sx={{ fontWeight: '600', color: 'customColors.customDropdownColor', fontSize: '12px' }}
+                              >
                                 {el?.from_store}
                               </Typography>
-                              <Typography sx={{ fontSize: '12px', color: '#7A8684' }}>
+                              <Typography sx={{ fontSize: '12px', color: 'customColors.neutralSecondary' }}>
                                 • {Utility.formatDisplayDate(el?.created_at)}
                               </Typography>
                             </Box>
                           </Box>
-                          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 400, color: 'customColors.customHeadingTextColor' }}
+                          >
                             {el?.comment}
                           </Typography>
                         </CardContent>
@@ -906,7 +903,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                           onClick={() => {
                             resolveItems(params.row)
                           }}
-                          sx={{ padding: 0, color: '#37BD69' }}
+                          sx={{ padding: 0, color: 'primary.main' }}
                           // color='success'
                         >
                           <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
@@ -918,7 +915,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                         onClick={() => {
                           rejectItems(params.row)
                         }}
-                        sx={{ padding: 0, color: '#E93353' }}
+                        sx={{ padding: 0, color: 'error.main' }}
                         size='large'
                         // color='error'
                       >
@@ -957,7 +954,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                                     }}
                                     label='Comment'
                                     sx={{
-                                      backgroundColor: '#FCF4AE33'
+                                      backgroundColor: 'customColors.Notes'
                                     }}
                                   />
 
@@ -1027,7 +1024,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                     //  sx={{ py: 4 }}
                     sx={{
                       py: 4,
-                      backgroundColor: '#f0f0f0', // Add background color
+                      // backgroundColor: '#f0f0f0', // Add background color
+                      backgroundColor: 'customColors.neutral05', // Add background color
                       borderRadius: '8px', // Add border radius
                       padding: 0, // Add padding if required
                       m: 0,
@@ -1116,7 +1114,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                     <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Button
                         // sx={{ width: 2, maxWidth: 2 }}
-                        sx={{ minWidth: 0, p: 1, m: 1, color: '#7A8684' }}
+                        sx={{ minWidth: 0, p: 1, m: 1, color: 'customColors.neutralSecondary' }}
                         // disabled={disableButton()}
                         onClick={event => {
                           clearStatus(params.row.id, event)
@@ -1251,7 +1249,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                                   inputProps={{ style: { fontSize: 12 } }}
                                 />
                               ) : (
-                                <Typography sx={{ color: '#E93353' }}> Denied</Typography>
+                                <Typography sx={{ color: 'error.main' }}> Denied</Typography>
                               )}
                             </Grid>
                             <Grid
@@ -1310,11 +1308,11 @@ function OrderReceiveForm({ orderId, requestId }) {
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
                               sx={{
-                                backgroundColor: '#E8F4F2' // Apply the background color to the Select component
+                                backgroundColor: 'customColors.displaybgPrimary' // Apply the background color to the Select component
                               }}
                             >
                               <MenuItem value='' disabled>
-                                <span style={{ color: '#00000066' }}>Select Received Status</span>
+                                <span style={{ color: 'customColors.neutral_50' }}>Select Received Status</span>
                               </MenuItem>
                               {statusOptions?.map((item, index) => (
                                 <MenuItem key={index} value={item?.label}>
@@ -1350,7 +1348,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                               avatar={
                                 <Avatar variant='square' alt='' src={'/images/sms.png'}>
                                   {/* <Icon icon='iconamoon:comment' /> */}
-                                  {/* <Icon icon='mi:message' style={{ color: '#37BD69' }} /> */}
+                                  {/* <Icon icon='mi:message' style={{ color: 'primary.main' }} /> */}
                                 </Avatar>
                               }
                               onClick={() => {

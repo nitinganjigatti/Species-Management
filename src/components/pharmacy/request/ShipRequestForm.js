@@ -186,6 +186,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
+
         // close()
         Router.back()
       } else {
@@ -491,13 +492,18 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
               </Box>
               <Grid container sx={{ my: 6 }}>
                 <Grid md={3} sm={12} xs={12}>
-                  <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}> Shipped To:</Typography>
-                  <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '1rem', py: 2 }}>
+                  <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>
+                    {' '}
+                    Shipped To:
+                  </Typography>
+                  <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '1rem', py: 2 }}>
                     {dispatchedItems?.[0]?.to_store_name}
                   </Typography>
                 </Grid>
                 <Grid md={7} sm={12} xs={12}>
-                  <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}>Delivery Type</Typography>
+                  <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>
+                    Delivery Type
+                  </Typography>
                   <FormControlLabel
                     value={deliveryType.Ship}
                     label='Ship'
@@ -555,6 +561,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                                 setValue('vehicle_no', '')
                                 setValue('receiver_name', '')
                                 setValue('phone_number', '')
+
                                 // setValue('driver_name', '')
 
                                 return onChange(null)
@@ -563,6 +570,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                                 setValue('vehicle_no', val.vehicle_number)
                                 setValue('receiver_name', val.driver_name)
                                 setValue('phone_number', val.phone_number)
+
                                 // setValue('driver_name', val.driver_name)
 
                                 return onChange(val)
@@ -647,6 +655,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                         name={'Shipment Date*'}
                         label='Shipment Date*'
                         placeholderText={'Shipment Date*'}
+                        maxDate={new Date()}
                         onChangeHandler={date => {
                           // console.log(date)
                           setDate(date)
@@ -719,6 +728,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                           name={'Shipment Date*'}
                           label='Shipment Date*'
                           placeholderText={'Shipment Date*'}
+                          maxDate={new Date()}
                           onChangeHandler={date => {
                             // console.log(date)
                             setDate(date)

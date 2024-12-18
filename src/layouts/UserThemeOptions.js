@@ -97,7 +97,12 @@ const UserThemeOptions = () => {
         moderateSecondary: '#E4B819',
         neutral_50: '#00000066',
         Tertiary: '#FA6140',
-        neutralPrimary: '#000000'
+        neutralPrimary: '#000000',
+        OnPrimaryContainer: '#1F515B',
+        TertiaryContainer: '#FFBDA84D', //opacity: '30%',
+        OutlineVariant: '#C3CEC7',
+        OnPrimarycontainer10: '#1F515B0D',
+        Notes: '#FCF4AE33' //opacity: '20%',
       },
       primary: {
         // light: '#20DE67',
