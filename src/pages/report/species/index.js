@@ -696,7 +696,7 @@ const SpeciesReport = () => {
                       }}
                     >
                       <img
-                        src='/images/ShowPop.png'
+                        src='/images/show_popup.png'
                         style={{ width: '24px', height: '24px', marginBottom: '2px' }}
                         alt='Filter Icon'
                       />
