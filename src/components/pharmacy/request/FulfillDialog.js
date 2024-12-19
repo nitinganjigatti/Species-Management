@@ -42,6 +42,7 @@ import { addDispatch } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Utility from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { useRouter } from 'next/router'
+import { useTheme } from '@emotion/react'
 
 const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
   const defaultValues = {
@@ -350,7 +351,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const toggleLocalTable = () => {
     setIsLocalTableVisible(!isLocalTableVisible)
   }
-  const theme = createTheme()
+  // const theme = createTheme()
+  const theme = useTheme()
 
   const StyledText = styled('span')({
     textDecoration: 'none',
@@ -415,11 +417,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
           color: 'customColors.Secondary',
 
-          // border: '1px solid customColors.Secondary'
-          border: '1px solid #00D6C9',
+          // border: '1px solid #00D6C9',
+          border: `1px solid ${theme.palette.customColors.Secondary}`,
           '&:hover': {
             backgroundColor: '#FFFFFF !important',
-            border: '1px solid #00D6C9'
+            // border: '1px solid #00D6C9'
+            border: `1px solid ${theme.palette.customColors.Secondary}`
           }
         }}
       >
@@ -866,7 +869,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                     >
                                       <Box
                                         sx={{
-                                          backgroundColor: '#0000000D',
+                                          backgroundColor: 'customColors.neutral05',
                                           width: '100%',
 
                                           // minWidth: '196px !important',
@@ -1129,7 +1132,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     title='Add Item'
                   />
                 ) : (
-                  <Box sx={{ float: 'right', my: 2 }}>
+                  <Box sx={{ float: 'right', my: 2, mb: 6 }}>
                     <LoadingButton
                       size='large'
                       variant='outlined'
