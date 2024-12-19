@@ -84,6 +84,7 @@ const ProductsChart = ({
           if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
             return `₹${value.toFixed(2)} lac`
           }
+
           return value.toFixed(0)
         }
       }

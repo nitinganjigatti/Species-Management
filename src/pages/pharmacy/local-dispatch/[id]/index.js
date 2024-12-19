@@ -51,6 +51,7 @@ import RenderUtility from 'src/utility/render'
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
+
 const TabLists = styled(MuiTabList)(({ theme }) => ({
   '& .MuiTabs-indicator': {
     display: 'none'
@@ -1015,14 +1016,7 @@ const IndividualRequest = () => {
                                       (selectedPharmacy.permission.key === 'ADD' ||
                                         selectedPharmacy.permission.key === 'allow_full_access') && (
                                         <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                                          <Button
-                                            size='big'
-                                            variant='contained'
-                                            // onClick={() => {
-                                            //   openShipDialog()
-                                            // }}
-                                            onClick={handleNavigate}
-                                          >
+                                          <Button size='big' variant='contained' onClick={handleNavigate}>
                                             Ship all items{' '}
                                           </Button>
                                         </Grid>
@@ -1056,6 +1050,7 @@ const IndividualRequest = () => {
                                     backgroundColor={'customColors.customTableHeaderBg'}
                                     onRowClick={e => {
                                       setOrderId(e.id)
+
                                       // showOrderFormDialog()
                                       setOrderId(e.id)
                                       Router.push({

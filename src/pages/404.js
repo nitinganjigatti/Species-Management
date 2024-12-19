@@ -34,9 +34,11 @@ const Img = styled('img')(({ theme }) => ({
     height: 400
   }
 }))
+
 const Error404 = () => {
   const theme = useTheme()
   const router = useRouter()
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
       <Img alt='error-illustration' src='/images/pages/cat-with-404-flag.png' sx={{ mb: 5 }} />

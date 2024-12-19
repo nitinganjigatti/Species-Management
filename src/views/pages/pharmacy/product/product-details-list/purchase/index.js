@@ -32,6 +32,7 @@ function Purchase() {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
+
   const [rows, setRows] = useState([
     {
       sl_no: '1',
@@ -63,6 +64,7 @@ function Purchase() {
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'invoice_number')
   const [total, setTotal] = useState(0)
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
     pageSize: parseInt(router.query.pageSize, 10) || 10
@@ -359,6 +361,7 @@ function Purchase() {
   }))
 
   console.log(indexedRows)
+
   const handleSearch = useCallback(
     debounce(value => {
       setSearchValue(value)
@@ -478,6 +481,7 @@ function Purchase() {
                 sx={{
                   borderRadius: '8px',
                   height: '40px',
+
                   //   width: '150px',
                   marginRight: '16px',
                   '& .MuiOutlinedInput-notchedOutline': {

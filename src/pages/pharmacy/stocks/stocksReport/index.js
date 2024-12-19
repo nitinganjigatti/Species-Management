@@ -250,6 +250,7 @@ const ListOfStocks = () => {
         try {
           setLoading(true)
           let result
+
           // if (type === 'local') {
           //   const params = {
           //     sort,
@@ -271,6 +272,7 @@ const ListOfStocks = () => {
           }
 
           result = await getStockReport(storeId, params)
+
           // }
 
           if (result.success === true && result.data.length > 0) {
@@ -310,6 +312,7 @@ const ListOfStocks = () => {
   const getStocksReportBatchWise = useCallback(
     async ({ batchSort, batchQ, batchColumn, id, batchPaginationModel }) => {
       setBatchLoading(true)
+
       const batchParams = {
         sort: batchSort,
         q: batchQ,
@@ -921,6 +924,7 @@ const ListOfStocks = () => {
         // Reset the page to 0 for new search queries
 
         setPaginationModel(prev => ({ ...prev, page: 0 }))
+
         // Call the API with the updated page index (0)
         await getStocksReport({
           sort,
@@ -929,6 +933,7 @@ const ListOfStocks = () => {
           id: stockId,
           type: stockType,
           paginationModel: { page: 0, paginationModel: paginationModel.pageSize }
+
           // page: 0 // Explicitly pass page 0 for a search
         })
       } catch (error) {
@@ -1066,8 +1071,10 @@ const ListOfStocks = () => {
       batchColumn: batchSortColumn,
       id: stockId,
       batchPaginationModel: { page: data.page, pageSize: data.pageSize }
+
       // storeType: selectedPharmacy?.type
     })
+
     // getStocksReportBatchWise({ sort, q: searchValue, column: sortColumn, id: storeId })
   }
 
@@ -1078,6 +1085,7 @@ const ListOfStocks = () => {
       q: searchValue,
       column: sortColumn,
       id: stockId,
+
       // type: selectedPharmacy?.type
       paginationModel: { page: data.page, pageSize: data.pageSize }
     })
@@ -1161,7 +1169,6 @@ const ListOfStocks = () => {
                           variant='outlined'
                           inputRef={textFieldRef}
                           placeholder='Search...'
-                          // value={searchValue}
                           onChange={e => {
                             changeSwitch
                               ? handleBatchSearch(e.target.value, stockId, stockType, batchPaginationModel)
@@ -1223,7 +1230,6 @@ const ListOfStocks = () => {
                         columns={batchWiseColumn}
                         paginationModel={batchPaginationModel}
                         handleSortModel={handleBatchSortModel}
-                        // setPaginationModel={setBatchPaginationModel}
                         setPaginationModel={handleBatchPaginationChange}
                         loading={batchLoading}
                         searchValue={batchSearchValue}

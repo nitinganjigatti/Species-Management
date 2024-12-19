@@ -82,6 +82,7 @@ const Supplier = () => {
       query: { id: id, action: 'edit' }
     })
   }
+
   const searchTableData = useCallback(
     debounce(async (sort, column, q) => {
       setSearchText(q)

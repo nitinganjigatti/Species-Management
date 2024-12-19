@@ -252,6 +252,7 @@ const VariantList = () => {
       toast.error(JSON.stringify(e))
     }
   }
+
   const headerAction = (
     <div>
       {/* {selectedPharmacy.type === 'central' &&
@@ -259,11 +260,13 @@ const VariantList = () => {
       {pharmacyRole && <AddButtonContained title='Add Variant' action={() => addEventSidebarOpen()} />}
     </div>
   )
+
   const title = (
     <>
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Variants</Typography>
     </>
   )
+
   return (
     <>
       {selectedPharmacy.type === 'central' ? (

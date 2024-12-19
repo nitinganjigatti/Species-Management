@@ -90,6 +90,7 @@ const ReceivedMedicines = () => {
           if (seriesIndex === 1 || series[0]?.name === 'Received Value') {
             return `₹${value.toFixed(2)} lac`
           }
+
           return value.toFixed(0)
         }
       }

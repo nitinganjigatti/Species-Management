@@ -596,7 +596,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                 ) : null}
 
                 {deliveryType.Ship && (
-                  // <Grid item xs={12} sm={3} mb={6}>
+                  <>
+                    {/* // <Grid item xs={12} sm={3} mb={6}>
                   //   <FormControl fullWidth>
                   //     <Controller
                   //       name='driver_name'
@@ -618,30 +619,31 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                   //       <FormHelperText sx={{ color: 'error.main' }}>{errors.driver_name.message}</FormHelperText>
                   //     )}
                   //   </FormControl>
-                  // </Grid>
-                  <Grid item xs={12} sm={3} mb={6}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name='person_shipping'
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            label='Driver Name*'
-                            onChange={onChange}
-                            placeholder=''
-                            error={Boolean(errors.person_shipping)}
-                            name='person_shipping'
-                            InputLabelProps={{ shrink: true }}
-                          />
+                  // </Grid> */}
+                    <Grid item xs={12} sm={3} mb={6}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name='person_shipping'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Driver Name*'
+                              onChange={onChange}
+                              placeholder=''
+                              error={Boolean(errors.person_shipping)}
+                              name='person_shipping'
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
+                        />
+                        {errors.person_shipping && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
                         )}
-                      />
-                      {errors.person_shipping && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                      </FormControl>
+                    </Grid>
+                  </>
                 )}
 
                 {!deliveryType.Ship && (

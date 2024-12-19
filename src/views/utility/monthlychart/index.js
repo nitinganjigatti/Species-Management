@@ -49,6 +49,7 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
           const [month, year] = monthYear.split(" '")
           const monthIndex = monthToIndex[month]
           const fullYear = parseInt(year, 10) + 2000
+
           return new Date(fullYear, monthIndex)
         }
 
@@ -63,6 +64,7 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
 
   const shortMonths = monthsFromApi.map(month => {
     const [monthName, year] = month.split(' ')
+
     return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
   })
 
@@ -127,6 +129,7 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
           if (series[seriesIndex]?.name === lineName) {
             return value.toFixed(0)
           }
+
           return `₹${value.toFixed(2)} lac`
         }
       }

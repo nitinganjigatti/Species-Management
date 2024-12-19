@@ -126,6 +126,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
+
         // close()
         Router.back()
       } else {
