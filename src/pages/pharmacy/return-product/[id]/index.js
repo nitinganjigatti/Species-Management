@@ -23,7 +23,7 @@ import Fade from '@mui/material/Fade'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Tab, Tooltip } from '@mui/material'
+import { Box, CardContent, CardHeader, Tab, Tooltip, Chip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -97,6 +97,7 @@ const IndividualReturnRequest = () => {
   const [permissionView, setPermissionView] = useState(false)
 
   const router = useRouter()
+
   // const { id, request_number } = router.query
   const { id, request_number } = router.query
 
@@ -935,7 +936,7 @@ const IndividualReturnRequest = () => {
                     />
                   }
                 />
-                <Box sx={{ backgroundColor: '#EFF5F2', p: 4, m: 4, borderRadius: '8px' }}>
+                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned From</h5>
@@ -1070,14 +1071,7 @@ const IndividualReturnRequest = () => {
                                   (selectedPharmacy.permission.key === 'ADD' ||
                                     selectedPharmacy.permission.key === 'allow_full_access') && (
                                     <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                                      <Button
-                                        size='big'
-                                        variant='contained'
-                                        // onClick={() => {
-                                        //   openShipDialog()
-                                        // }}
-                                        onClick={handleNavigate}
-                                      >
+                                      <Button size='big' variant='contained' onClick={handleNavigate}>
                                         Ship all items
                                       </Button>
                                     </Grid>
@@ -1111,6 +1105,7 @@ const IndividualReturnRequest = () => {
                                 backgroundColor={'customColors.customTableHeaderBg'}
                                 onRowClick={e => {
                                   setOrderId(e.id)
+
                                   // showOrderFormDialog()
                                   Router.push({
                                     pathname: `/pharmacy/return-product/${id}/shipment-details`,

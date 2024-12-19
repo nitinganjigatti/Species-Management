@@ -11,6 +11,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import { getRequestSentChart } from 'src/lib/api/pharmacy/getAllReports'
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+
 // ** Third Party Imports
 import format from 'date-fns/format'
 import subDays from 'date-fns/subDays'
@@ -32,6 +33,7 @@ const RequestSentChart = () => {
   // ** Hook
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
+
   // ** States
   const [timeperiod, setTimeperiod] = useState(30)
   const [chartData, setChartData] = useState({ categories: [], series: [] })
@@ -86,6 +88,7 @@ const RequestSentChart = () => {
         style: { colors: '#8e8da4' }
       }
     },
+
     // legend: {
     //   show: true,
     //   position: 'top', // Moves the legend above the chart
@@ -126,6 +129,7 @@ const RequestSentChart = () => {
     },
     legend: {
       show: true,
+
       // position: 'top',
       //horizontalAlign: 'left',
       markers: {

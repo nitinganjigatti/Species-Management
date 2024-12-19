@@ -942,7 +942,7 @@ const AddRequestForm = () => {
                         >
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                           {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                          {option.name}({option.package})
+                          {option.genericName}({option.package})
                         </Typography> */}
                       </Box>
                     </li>

@@ -43,6 +43,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { LoaderIcon } from 'react-hot-toast'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
+import CustomChip from 'src/@core/components/mui/chip'
 
 const defaultValues = {
   request_item: {
@@ -413,7 +414,7 @@ export const AddItemsForm = ({
                         style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
                       >
                         <Box>
-                          <Typography
+                          {/* <Typography
                             sx={{
                               color: 'customColors.OnSecondaryContainer',
                               display: 'flex',
@@ -425,10 +426,17 @@ export const AddItemsForm = ({
                             {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                             {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
                             {option.label}
-                          </Typography>
+                          </Typography> */}
+                          <Typography>{option.label}</Typography>
                           {/* <Typography>{option.label}</Typography> */}
                           <Typography variant='body2'>{option.packageDetails}</Typography>
                           <Typography variant='body2'>{option.manufacture}</Typography>
+                          {option.control_substance === true && (
+                            <CustomChip label='CS' skin='light' color='success' size='small' />
+                          )}{' '}
+                          {option.prescription_required === true && (
+                            <CustomChip label='PR' skin='light' color='success' size='small' />
+                          )}
                         </Box>
                       </li>
                     )}
@@ -448,7 +456,7 @@ export const AddItemsForm = ({
               {errors?.request_item && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
               )}
-              {/* {watch('packageDetails') && (
+              {watch('packageDetails') && (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
                     label={watch('packageDetails')}
@@ -465,7 +473,18 @@ export const AddItemsForm = ({
                     sx={{ fontSize: 11, height: '22px' }}
                   />
                 </Box>
-              )} */}
+              )}
+              {/* <Box>
+                <Typography>{option.name}</Typography>
+                <Typography variant='body2'>{option.package}</Typography>
+                <Typography variant='body2'>{option.manufacture}</Typography>
+                {option.control_substance === true && (
+                  <CustomChip label='CS' skin='light' color='success' size='small' />
+                )}{' '}
+                {option.prescription_required === true && (
+                  <CustomChip label='PR' skin='light' color='success' size='small' />
+                )}
+              </Box> */}
             </FormControl>
             {/* {watch('packageDetails') && (
               <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>

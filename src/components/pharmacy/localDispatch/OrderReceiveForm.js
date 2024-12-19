@@ -58,6 +58,15 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
+const LabelValues = ({ label, value }) => {
+  return (
+    <Grid item md={2} sm={3} xs={6} sx={{ pt: 6 }}>
+      <p style={{ margin: '0px' }}> {label}</p>
+      <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{value}</h4>
+    </Grid>
+  )
+}
+
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const { disputeItemDetails, orderData, selectedPharmacy, checked, handleChange, setDisputeItemDetails, columns } =
     props
@@ -66,8 +75,9 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
     <div ref={ref}>
       {disputeItemDetails?.item_details?.length > 0 ? (
         <Grid container xs={12} sx={{ mx: 'auto' }}>
+          {console.log('orderData', orderData)}
           <Grid item xs={12}>
-            <Grid
+            {/* <Grid
               container
               xs={12}
               className='printable-container'
@@ -109,6 +119,35 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   <h5 style={{ marginBottom: '0px' }}>Driver Name</h5>
                   <p>{orderData.person_shipping}</p>
                 </Grid>
+              ) : null}
+            </Grid> */}
+            <Grid
+              container
+              xs={12}
+              className='printable-container'
+              sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
+            >
+              {orderData?.request_number ? (
+                <LabelValues label={'Reference No:'} value={orderData?.request_number} />
+              ) : null}
+              {orderData?.from_store_name ? (
+                <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
+              ) : null}
+              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
+              {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null}
+
+              {orderData?.shipment_date ? (
+                <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
+              ) : null}
+              {orderData?.vehicle_no ? <LabelValues label={'Vehicle Number:'} value={orderData.vehicle_no} /> : null}
+
+              {orderData?.person_shipping ? (
+                <LabelValues label={'Driver Name:'} value={orderData.person_shipping} />
+              ) : null}
+              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData.phone_number} /> : null}
+              {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
+              {orderData?.requested_doctor_user_name ? (
+                <LabelValues label={'To:'} value={orderData?.requested_doctor_user_name} />
               ) : null}
             </Grid>
             {disputeItemDetails?.item_details?.length > 0 ? (
@@ -363,7 +402,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           shipment_status: response?.data?.shipment_status,
           vehicle_no: response?.data?.vehicle_no,
           item_details: disputeLineItems,
-          phone_number: response?.data?.phone_number
+          phone_number: response?.data?.phone_number,
+          from_store_name: response?.data?.from_store_name,
+          to_store_name: response?.data?.to_store_name,
+          request_number: response?.data?.request_number,
+          carton_box: response?.data?.carton_box,
+          requested_doctor_user_name: response?.data?.requested_doctor_user_name
         })
 
         const disputesData = {

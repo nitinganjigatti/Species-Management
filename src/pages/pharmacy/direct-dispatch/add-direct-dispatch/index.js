@@ -861,10 +861,10 @@ const AddDirectDispatch = () => {
                         fullWidth
                         {...params}
                         name='search'
-                        label='To Doctor'
+                        label='To '
                         error={Boolean(errors.search)}
                         helperText={errors.search}
-                        placeholder='To Doctor'
+                        placeholder='To '
                       />
                     )}
                     onBlur={async () => {

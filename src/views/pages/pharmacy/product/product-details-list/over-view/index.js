@@ -264,6 +264,7 @@ const Overview = ({ productDetails }) => {
       </Card>
     </>
   )
+
   const alternativeMedicines = (
     <>
       <Typography
@@ -357,6 +358,7 @@ const Overview = ({ productDetails }) => {
       alternatives: [{ productName: '', manufacturerName: '' }]
     }
   })
+
   const productOptions = [
     { label: 'Paracetamol', value: 'paracetamol' },
     { label: 'Ibuprofen', value: 'ibuprofen' },
@@ -366,6 +368,7 @@ const Overview = ({ productDetails }) => {
 
   // Watch alternatives field
   const alternatives = watch('alternatives', [])
+
   const handleAddAlternative = () => {
     setValue('alternatives', [...alternatives, { productName: '', manufacturerName: '' }])
   }
@@ -508,7 +511,7 @@ const Overview = ({ productDetails }) => {
                   </Grid>
                 </Grid>
 
-               
+
                 <ResponsiveContainer width='100%' height={300}>
                   <LineChart data={purchaseData}>
                     <CartesianGrid strokeDasharray='3 3' />

@@ -406,13 +406,18 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
 
               <Grid container sx={{ my: 6 }}>
                 <Grid md={3} sm={12} xs={12}>
-                  <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}> Shipped To:</Typography>
-                  <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '1rem', py: 2 }}>
+                  <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>
+                    {' '}
+                    Shipped To:
+                  </Typography>
+                  <Typography sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '1rem', py: 2 }}>
                     {dispatchedItems?.[0]?.to_store_name}
                   </Typography>
                 </Grid>
                 <Grid md={7} sm={12} xs={12}>
-                  <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}>Delivery Type</Typography>
+                  <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>
+                    Delivery Type
+                  </Typography>
                   <FormControlLabel
                     value={deliveryType.Ship}
                     label='Ship'
@@ -707,11 +712,11 @@ export default ShipRequest
 
 //  {/* <Grid container sx={{ mb: 6 }}>
 //               <Grid md={3} sm={12} xs={12}>
-//                 <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}> Shipped To:</Typography>
+//                 <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}> Shipped To:</Typography>
 //                 <Typography sx={{ color: '#7A8684', fontWeight: 400, fontSize: '1rem', py: 2 }}>Joy Local</Typography>
 //               </Grid>
 //               <Grid md={7} sm={12} xs={12}>
-//                 <Typography sx={{ color: '#44544ADE', fontWeight: 500, fontSize: '1rem' }}>Delivery Type</Typography>
+//                 <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>Delivery Type</Typography>
 //                 <FormControlLabel
 //                   value={deliveryType.Ship}
 //                   label='Ship'
