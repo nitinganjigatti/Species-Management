@@ -25,7 +25,6 @@ import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { escapeRegExp } from '@mui/x-data-grid/utils/utils'
 import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ListOfRacks = () => {
@@ -172,6 +171,11 @@ const ListOfRacks = () => {
   // useEffect(() => {
   //   getRacksLists()
   // }, [selectedPharmacy])
+
+  const escapeRegExp = value => {
+    return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+  }
+
   const handleSearch = searchValue => {
     setSearchText(searchValue)
     const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')

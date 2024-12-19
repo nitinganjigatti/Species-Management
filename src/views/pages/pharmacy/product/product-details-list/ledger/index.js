@@ -91,6 +91,7 @@ function Ledger() {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
+
   const [rows, setRows] = useState([
     {
       sl_no: 1,
@@ -130,6 +131,7 @@ function Ledger() {
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
   const [total, setTotal] = useState(0)
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
     pageSize: parseInt(router.query.pageSize, 10) || 10
@@ -546,6 +548,7 @@ function Ledger() {
 
   const [open, setOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState('Transaction Type')
+
   const [transactionTypes, setTransactionTypes] = useState({
     request: false,
     directDispatch: false,
@@ -604,6 +607,7 @@ function Ledger() {
     setSelectedDoctors(prevState => {
       const newState = [...prevState]
       newState[index] = selected
+
       return newState
     })
   }
@@ -614,6 +618,7 @@ function Ledger() {
     { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
     { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' }
   ]
+
   return (
     <>
       <Grid

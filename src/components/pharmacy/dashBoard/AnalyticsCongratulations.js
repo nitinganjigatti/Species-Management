@@ -35,6 +35,7 @@ const AnalyticsCongratulations = () => {
   // ** Hook
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
+
   return (
     <Card
       sx={{

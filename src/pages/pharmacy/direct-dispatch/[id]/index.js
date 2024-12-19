@@ -28,7 +28,7 @@ import TabContext from '@mui/lab/TabContext'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Avatar, Box, CardContent, CardHeader, Tooltip } from '@mui/material'
+import { Avatar, Box, CardContent, CardHeader, Tooltip, Chip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -108,7 +108,7 @@ const IndividualRequest = () => {
 
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
-  // const { id, request_number } = router.query
+
   const { id, request_number } = router.query
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -1161,27 +1161,13 @@ const IndividualRequest = () => {
                                 <>
                                   <CardHeader
                                     sx={{ p: 0, mb: 6 }}
-                                    // title={`Fulfillment`}
                                     action={
                                       selectedPharmacy.type === 'central' &&
                                       requestItems.status !== 'Cancelled' &&
                                       (selectedPharmacy.permission.key === 'ADD' ||
                                         selectedPharmacy.permission.key === 'allow_full_access') && (
                                         <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                                          <Button
-                                            size='large'
-                                            variant='contained'
-                                            // onClick={() => {
-                                            //   // openShipDialog()
-
-                                            //   Router.push({
-                                            //     pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
-                                            //     query: {}
-                                            //   })
-                                            // }}
-                                            onClick={handleNavigate}
-                                          >
-                                            {/* Ship */}
+                                          <Button size='large' variant='contained' onClick={handleNavigate}>
                                             Ship all items
                                           </Button>
                                         </Grid>
@@ -1215,6 +1201,7 @@ const IndividualRequest = () => {
                                     backgroundColor={'customColors.customTableHeaderBg'}
                                     onRowClick={e => {
                                       setOrderId(e.id)
+
                                       // showOrderFormDialog()
                                       setOrderId(e.id)
                                       Router.push({

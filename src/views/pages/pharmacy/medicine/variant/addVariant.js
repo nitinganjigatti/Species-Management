@@ -137,6 +137,7 @@ const AddVariant = props => {
                   value={value}
                   onChange={e => {
                     const newValue = e.target.value
+
                     // Allow only positive numbers
                     if (!isNaN(newValue) && Number(newValue) >= 0) {
                       onChange(newValue)

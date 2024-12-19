@@ -40,6 +40,7 @@ function Dispatch() {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
+
   const [rows, setRows] = useState([
     {
       sl_no: '1',
@@ -67,6 +68,7 @@ function Dispatch() {
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
   const [total, setTotal] = useState(0)
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
     pageSize: parseInt(router.query.pageSize, 10) || 10
@@ -405,6 +407,7 @@ function Dispatch() {
                 sx={{
                   borderRadius: '8px',
                   height: '40px',
+
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
                     border: '1px solid #C3CEC7'
@@ -425,6 +428,7 @@ function Dispatch() {
                 sx={{
                   borderRadius: '8px',
                   height: '40px',
+
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
                     border: '1px solid #C3CEC7'
@@ -445,6 +449,7 @@ function Dispatch() {
                 sx={{
                   borderRadius: '8px',
                   height: '40px',
+
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
                     border: '1px solid #C3CEC7'
@@ -465,6 +470,7 @@ function Dispatch() {
                 sx={{
                   borderRadius: '8px',
                   height: '40px',
+
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
                     border: '1px solid #C3CEC7'

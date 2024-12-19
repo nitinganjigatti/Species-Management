@@ -70,6 +70,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
       }
 
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
       return regex.test(value)
     }),
 
@@ -81,6 +82,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
           return true // Allow null or empty values
         }
         const regex = /^(?:(?:\+91|91|0)?[6-9]\d{9})$/
+
         return regex.test(value)
       }),
 
@@ -99,6 +101,7 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
           return true
         }
         const regex = /^(\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1})$/
+
         return regex.test(value)
       }),
 

@@ -186,6 +186,7 @@ const ProductDetailsList = () => {
     }, 1000), // 1000ms delay
     []
   )
+
   const handleSearchChange = event => {
     const query = event.target.value
     setSearchQuery(query)

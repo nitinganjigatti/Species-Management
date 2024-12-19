@@ -317,6 +317,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     pharmacyNavigationArray.push(
       dashboard,
+
       //dashboardnew,
       stockReport,
       requestListing,
@@ -352,6 +353,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
       dashboard,
+
       //dashboardnew,
       requestListing,
       returnListing,

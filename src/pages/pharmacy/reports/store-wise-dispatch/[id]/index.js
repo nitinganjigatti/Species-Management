@@ -175,17 +175,20 @@ const StoreWiseDispatchDetail = () => {
   const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
     try {
       setisFetching(true)
+
       let params = {
         page,
-        limit: 10,
+        limit: 15,
         q
       }
+
       const medicineListResponse = await getMedicineList({
         params
       })
 
       if (medicineListResponse.data && medicineListResponse.data.list_items) {
         const medicineList = medicineListResponse.data.list_items
+
         const allStores = medicineList.map(store => ({
           id: store.id,
           name: store.name
@@ -201,6 +204,7 @@ const StoreWiseDispatchDetail = () => {
             // If search is cleared (q is empty), append the results to the full list
             mergedStores = [...prevStores, ...allStores]
           }
+
           // Remove duplicates based on `id`
           const uniqueStores = mergedStores.filter(
             (store, index, self) => index === self.findIndex(s => s.id === store.id)
@@ -240,6 +244,7 @@ const StoreWiseDispatchDetail = () => {
         setLoading(true)
         if (!filtersApplied && selectedFruits.length > 0) {
           setLoading(false)
+
           return
         }
 
@@ -247,6 +252,7 @@ const StoreWiseDispatchDetail = () => {
           payload = {
             //sort,
             q,
+
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
@@ -258,6 +264,7 @@ const StoreWiseDispatchDetail = () => {
           payload = {
             //sort,
             q,
+
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
@@ -371,15 +378,18 @@ const StoreWiseDispatchDetail = () => {
                     return <span>{params.value}</span> // Show original value if it's not a number
                   }
                   const originalValue = Math.round(value)
+
                   const formattedNumber = originalValue.toLocaleString('en-IN', {
                     // style: 'currency',
                     // currency: 'INR',
                     maximumFractionDigits: 0
                   })
                   const valueInThousands = value / 1000
+
                   const formattedThousands = valueInThousands.toLocaleString('en-IN', {
                     maximumFractionDigits: 2
                   })
+
                   return (
                     <Tooltip title={`Dispatch value: ${formattedNumber}`}>
                       <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
@@ -395,10 +405,12 @@ const StoreWiseDispatchDetail = () => {
               id: row.stock_id,
               stock_name: row.stock_name,
               control_substance: row.control_substance,
+
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
+
                 return acc
               }, {})
             }))
@@ -418,6 +430,7 @@ const StoreWiseDispatchDetail = () => {
 
   const handleStatusFilterChange = newFilter => {
     setStatusFilter(newFilter)
+
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
   }
 
@@ -623,6 +636,7 @@ const StoreWiseDispatchDetail = () => {
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
               const roundedValue = parseFloat(value)
+
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
@@ -635,6 +649,7 @@ const StoreWiseDispatchDetail = () => {
 
         return rowData
       })
+
       const totalPurchaseRow = {
         Medicine: 'Total Dispatch Value '
       }
@@ -848,7 +863,6 @@ const StoreWiseDispatchDetail = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
@@ -869,6 +883,7 @@ const StoreWiseDispatchDetail = () => {
                       }
                     }
                   }}
+
                   //onRowClick={handleEdit}
                   // onCellClick={handlecheckcell}
                 />

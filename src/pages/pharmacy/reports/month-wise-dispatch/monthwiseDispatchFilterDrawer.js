@@ -49,6 +49,7 @@ const MonthWisedispatchFilter = ({
     if (filtersApplied === true) {
       setFiltersApplied(false)
     }
+
     // Ensure that we are attaching the scroll event to the correct element
     if (ref) {
       ref.addEventListener('scroll', handleScroll)
@@ -111,7 +112,7 @@ const MonthWisedispatchFilter = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '525px',
-                height: '490px',
+                height: { xs: 'calc(100vh - 150px)', md: 'calc(100vh - 200px)' },
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,
