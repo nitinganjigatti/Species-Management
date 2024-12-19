@@ -73,6 +73,14 @@ const LabelValues = ({ label, value }) => {
 const DisputeItemDetails = React.forwardRef((props, ref) => {
   const { disputeItemDetails, orderData, selectedPharmacy, checked, handleChange, setDisputeItemDetails, columns } =
     props
+  const router = useRouter()
+  const subPath = router.asPath.split('/pharmacy')[1]?.split('/')[1] || ''
+
+  const hideTheLabel = label => {
+    if (subPath === 'request') {
+      return label
+    }
+  }
 
   return (
     <div ref={ref}>
@@ -104,6 +112,13 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               ) : null}
               {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData.phone_number} /> : null}
               {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
+              {orderData?.requested_doctor_user_name ? (
+                <LabelValues label={'To:'} value={orderData?.requested_doctor_user_name} />
+              ) : null}
+
+              {orderData?.created_by_user_name
+                ? hideTheLabel(<LabelValues label={'To:'} value={orderData?.created_by_user_name} />)
+                : null}
             </Grid>
 
             {disputeItemDetails?.item_details?.length > 0 ? (
@@ -363,7 +378,9 @@ function OrderReceiveForm({ orderId, requestId }) {
           from_store_name: response?.data?.from_store_name,
           to_store_name: response?.data?.to_store_name,
           request_number: response?.data?.request_number,
-          carton_box: response?.data?.carton_box
+          carton_box: response?.data?.carton_box,
+          requested_doctor_user_name: response?.data?.requested_doctor_user_name,
+          created_by_user_name: response?.data?.created_by_user_name
         })
 
         const disputesData = {

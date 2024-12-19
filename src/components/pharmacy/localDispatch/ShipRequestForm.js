@@ -80,7 +80,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .required('Mobile Number is required')
           .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
             return /^\d{10}$/.test(value)
-          })
+          }),
+        carton_box: yup
+          .number()
+          .typeError('Carton Box must be a number')
+          .positive('Carton Box must be a positive number')
+          .integer('Carton Box must be a whole number')
+          .min(1, 'Carton Box must be greater than 0')
+          .required('Carton Box is required')
       })
     : yup.object().shape({
         receiver_name: yup
@@ -93,7 +100,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .required('Mobile Number is required')
           .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
             return /^\d{10}$/.test(value)
-          })
+          }),
+        carton_box: yup
+          .number()
+          .typeError('Carton Box must be a number')
+          .positive('Carton Box must be a positive number')
+          .integer('Carton Box must be a whole number')
+          .min(1, 'Carton Box must be greater than 0')
+          .required('Carton Box is required')
       })
 
   const {
@@ -126,6 +140,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
+
         // close()
         Router.back()
       } else {
@@ -148,7 +163,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const onSubmit = async params => {
     setSubmitLoader(true)
 
-    const { person_shipping, vehicle_no, receiver_name, phone_number } = {
+    const { person_shipping, vehicle_no, receiver_name, phone_number, carton_box } = {
       ...params
     }
 
@@ -167,7 +182,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       payloadItem.to_store_id = storeDetails.to_store_id
       payloadItem.from_store_id = storeDetails.from_store_id
       payloadItem.vehicle_no = vehicle_no
-      payloadItem.phone_number = phone_number
+      ;(payloadItem.phone_number = phone_number), (payloadItem.carton_box = carton_box)
 
       payload.push(payloadItem)
     })
@@ -477,6 +492,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       value={date}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
+                      maxDate={new Date()}
                       placeholderText={'Shipment Date*'}
                       onChangeHandler={date => {
                         // console.log(date)
@@ -605,6 +621,29 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     />
                     {errors.phone_number && (
                       <FormHelperText sx={{ color: 'error.main' }}>{errors.phone_number.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='carton_box'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          value={value}
+                          label='No of Carton Boxes *'
+                          onChange={onChange}
+                          placeholder=''
+                          error={Boolean(errors.carton_box)}
+                          name='carton_box'
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      )}
+                    />
+                    {errors.carton_box && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.carton_box.message}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
