@@ -38,6 +38,7 @@ import Chip from '@mui/material/Chip'
 import Box from '@mui/material/Box'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
+import { useTheme } from '@emotion/react'
 
 const defaultValues = {
   request_item: {
@@ -120,6 +121,7 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+  const theme = useTheme()
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -541,10 +543,11 @@ export const AddItemsForm = ({
               <Paper
                 elevation={0}
                 sx={{
-                  backgroundColor: '#F2FFF8',
+                  backgroundColor: 'customColors.Surface',
                   padding: 3,
                   borderRadius: 1,
-                  border: '1px solid #37BD69',
+                  // border: '1px solid #37BD69',
+                  border: `1px solid ${theme.palette.primary.main}`,
                   mt: 5
                 }}
               >
@@ -673,7 +676,8 @@ export const AddItemsForm = ({
                           },
                           m: 3,
                           '&:hover': {
-                            border: '1px solid #0000000D'
+                            // border: '1px solid #0000000D'
+                            border: `1px solid ${theme.palette.customColors.neutral05}`
                           },
 
                           borderRadius: '2px'

@@ -1530,10 +1530,10 @@ function OrderReceiveForm({ orderId, requestId }) {
                 padding: 0;
               }
                 .printable-container {
-              background-color: #EFF5F2;
+              background-color: ${theme.palette.customColors.lightBg};
               padding: 16px;
               border-radius: 8px;
-              border: 1px solid #e9e9ec;
+              border: 1px solid ${theme.palette.customColors.neutral05};
               margin-top: 16px;
 
             }

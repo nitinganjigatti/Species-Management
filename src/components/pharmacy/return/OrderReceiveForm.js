@@ -47,6 +47,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { useRouter } from 'next/router'
+import { useTheme } from '@emotion/react'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -74,7 +75,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               container
               xs={12}
               className='printable-container'
-              sx={{ backgroundColor: '#EFF5F2', pb: 6, px: 6, borderRadius: '10px' }}
+              sx={{ backgroundColor: 'customColors.bodyBg', pb: 6, px: 6, borderRadius: '10px' }}
             >
               {orderData?.request_number ? (
                 <LabelValues label={'Reference No:'} value={orderData?.request_number} />
@@ -145,7 +146,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     <TableBasic
                       columns={columns}
                       rows={disputeItemDetails?.item_details}
-                      backgroundColor={'#C1D3D0'}
+                      backgroundColor={'customColors.customTableHeaderBg'}
                     ></TableBasic>
                   </Box>
                 </Grid>
@@ -176,7 +177,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     name='comments'
                     InputProps={{
                       sx: {
-                        backgroundColor: '#FCF4AE33' // Setting the background color here
+                        backgroundColor: 'customColors.Notes' // Setting the background color here
                       },
                       startAdornment: (
                         <InputAdornment position='start'>
@@ -255,6 +256,7 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
+  const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
@@ -625,7 +627,7 @@ function OrderReceiveForm({ orderId, requestId }) {
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2 }}>
               {/* Medicine Name */}
-              <Box sx={{ bgcolor: '#EFF5F2', px: 2, py: 2, borderRadius: '8px' }}>
+              <Box sx={{ bgcolor: 'customColors.Background', px: 2, py: 2, borderRadius: '8px' }}>
                 <Typography variant='h6'>{markReceived?.stock_name}</Typography>
               </Box>
 
@@ -637,27 +639,40 @@ function OrderReceiveForm({ orderId, requestId }) {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
-                          <Typography sx={{ color: '#E93353' }}>
+                          <Typography sx={{ color: 'error.main' }}>
                             • {markReceived?.wrong_count_type} ({markReceived?.wrong_count_number})
                           </Typography>
                         </Box>
-                        <Typography sx={{ color: '#7A8684' }}>{Utility.formatDisplayDate(el?.created_at)}</Typography>
+                        <Typography sx={{ color: 'customColors.neutralSecondary' }}>
+                          {Utility.formatDisplayDate(el?.created_at)}
+                        </Typography>
                       </Box>
 
                       {/* Comment Card */}
-                      <Box sx={{ mb: 2, bgcolor: '#1F515B0D', border: '1px solid #4C4E6438', borderRadius: '8px' }}>
+                      <Box
+                        sx={{
+                          mb: 2,
+                          bgcolor: 'customColors.OnPrimarycontainer10',
+                          border: `1px solid ${theme.palette.customColors.neutral05}`,
+                          borderRadius: '8px'
+                        }}
+                      >
                         <CardContent>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography sx={{ fontWeight: '600', color: '#FA6140', fontSize: '12px' }}>
+                              <Typography
+                                sx={{ fontWeight: '600', color: 'customColors.customDropdownColor', fontSize: '12px' }}
+                              >
                                 {el?.from_store}
                               </Typography>
-                              <Typography sx={{ fontSize: '12px', color: '#7A8684' }}>
+                              <Typography sx={{ fontSize: '12px', color: 'customColors.neutralSecondary' }}>
                                 • {Utility.formatDisplayDate(el?.created_at)}
                               </Typography>
                             </Box>
                           </Box>
-                          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 400, color: 'customColors.customHeadingTextColor' }}
+                          >
                             {el?.comment}
                           </Typography>
                         </CardContent>
@@ -798,7 +813,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                           onClick={() => {
                             resolveItems(params.row)
                           }}
-                          sx={{ padding: 0, color: '#37BD69' }}
+                          sx={{ padding: 0, color: 'primary.main' }}
                           // color='success'
                         >
                           <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
@@ -810,7 +825,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                         onClick={() => {
                           rejectItems(params.row)
                         }}
-                        sx={{ padding: 0, color: '#E93353' }}
+                        sx={{ padding: 0, color: 'error.main' }}
                         size='large'
                         // color='error'
                       >
@@ -844,7 +859,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                                     }}
                                     label='Comment'
                                     sx={{
-                                      backgroundColor: '#FCF4AE33'
+                                      backgroundColor: 'customColors.Notes'
                                     }}
                                   />
 
@@ -898,7 +913,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                     //  sx={{ py: 4 }}
                     sx={{
                       py: 4,
-                      backgroundColor: '#f0f0f0', // Add background color
+                      backgroundColor: 'customColors.neutral05', // Add background color
                       borderRadius: '8px', // Add border radius
                       padding: 0, // Add padding if required
                       m: 0,
@@ -985,7 +1000,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                     </Grid>
                     <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Button
-                        sx={{ minWidth: 0, p: 1, m: 1, color: '#7A8684' }}
+                        sx={{ minWidth: 0, p: 1, m: 1, color: 'customColors.neutralSecondary' }}
                         onClick={event => {
                           clearStatus(params.row.id, event)
                           setWrongCountErr(prevErrors => {
@@ -1112,7 +1127,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                                   inputProps={{ style: { fontSize: 12 } }}
                                 />
                               ) : (
-                                <Typography sx={{ color: '#E93353' }}> Denied</Typography>
+                                <Typography sx={{ color: 'error.main' }}> Denied</Typography>
                               )}
                             </Grid>
                             <Grid
@@ -1164,11 +1179,11 @@ function OrderReceiveForm({ orderId, requestId }) {
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
                               sx={{
-                                backgroundColor: '#E8F4F2' // Apply the background color to the Select component
+                                backgroundColor: 'customColors.displaybgPrimary' // Apply the background color to the Select component
                               }}
                             >
                               <MenuItem value='' disabled>
-                                <span style={{ color: '#00000066' }}>Select Received Status</span>
+                                <span style={{ color: 'customColors.neutral_50' }}>Select Received Status</span>
                               </MenuItem>
                               {statusOptions?.map((item, index) => (
                                 <MenuItem key={index} value={item?.label}>
@@ -1367,10 +1382,10 @@ function OrderReceiveForm({ orderId, requestId }) {
                 padding: 0;
               }
                 .printable-container {
-              background-color: #EFF5F2;
+              background-color: ${theme.palette.customColors.lightBg};
               padding: 16px;
               border-radius: 8px;
-              border: 1px solid #e9e9ec;
+              border: 1px solid ${theme.palette.customColors.neutral05};
               margin-top: 16px;
 
             }
