@@ -1,27 +1,4 @@
-// import {
-//   Card,
-//   CardHeader,
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-//   Typography,
-//   Button,
-//   FormControl,
-//   Grid
-// } from '@mui/material'
-// // import { DataGrid } from '@mui/x-data-grid'
-// import { useEffect, useState } from 'react'
-// import { ExcelExportButton } from 'src/components/Buttons'
-// import { getHousingReport, getSpeciesReport, getUsersReportList } from 'src/lib/api/parivesh/housing'
-// import { DataGrid } from '@mui/x-data-grid'
-// import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-// import SingleDatePicker from 'src/components/SingleDatePicker'
-// import { getNatalityList } from 'src/lib/api/report'
-
+import { useContext } from 'react'
 import {
   Box,
   Button,
@@ -39,6 +16,8 @@ import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 import { getMortalityList, getNatalityList, getTransferList } from 'src/lib/api/report'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const Animal = () => {
   const [anchorEl, setAnchorEl] = useState(null)
@@ -46,6 +25,9 @@ const Animal = () => {
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
+
+  const authData = useContext(AuthContext)
+  const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
 
   const startDateRef = useRef()
   const endDateRef = useRef()
@@ -76,6 +58,7 @@ const Animal = () => {
     // Extract keys from the first object to use as headers
     const keys = Object.keys(jsonData[0])
     const header = keys.join(',')
+
     const rows = jsonData.map(item =>
       keys.map(key => (item[key] !== null && item[key] !== undefined ? `"${item[key]}"` : '')).join(',')
     )
@@ -227,6 +210,7 @@ const Animal = () => {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
+
       return updatedData
     })
   }
@@ -277,161 +261,153 @@ const Animal = () => {
     }
   ]
 
-  const HeaderAction = () => (
-    <Grid container sx={{ justifyContent: 'flex-end' }}>
-      <Grid sx={{ display: 'flex', gap: 4, mb: 3, ml: 3, height: '60px', paddingRight: '16px' }}>
-        <FormControl fullWidth>
-          <SingleDatePicker
-            value={startDate}
-            name='FromDate*'
-            onChange={handleStartDateChange}
-            customInput={<CustomInput label='Start Date*' error={Boolean(errors.startDate)} />}
-            maxDate={new Date()}
-            ref={startDateRef}
-          />
-          {errors.startDate && (
-            <FormHelperText sx={{ color: 'error.main' }}>Start date should be less than end date</FormHelperText>
-          )}
-        </FormControl>
-
-        <FormControl fullWidth>
-          <SingleDatePicker
-            value={endDate}
-            name='EndDate*'
-            onChange={handleEndDateChange}
-            customInput={<CustomInput label='End Date*' error={Boolean(errors.endDate)} />}
-            maxDate={new Date()}
-            ref={endDateRef}
-          />
-          {errors.endDate && (
-            <FormHelperText sx={{ color: 'error.main' }}>End date should be greater than start date</FormHelperText>
-          )}
-        </FormControl>
-
-        <Box
-          sx={{
-            display: 'flex',
-            mb: 3,
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            borderRadius: '8px',
-            gap: 4,
-            ml: 3
-          }}
-        >
-          <Button
-            onClick={handleClick}
-            variant='outlined'
-            sx={{
-              width: '180px',
-              height: '40px',
-              mt: 2,
-              display: 'flex',
-              color: '#44544A',
-              fontWeight: 400,
-              fontSize: '16px',
-              fontFamily: 'Inter',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 2,
-              minWidth: '100px'
-            }}
-          >
-            <img
-              src='/images/show_popup.png'
-              style={{ width: '24px', height: '24px', marginBottom: '2px' }}
-              alt='Filter Icon'
-            />
-
-            <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
-          </Button>
-          <Popover
-            id={id}
-            open={Boolean(anchorEl)}
-            anchorEl={anchorEl}
-            onClose={handleClose}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left'
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'left'
-            }}
-          >
-            <Box sx={{ p: 2, width: 300 }}>
-              {Object.keys(popoverData).map(category => (
-                <Box key={category}>
-                  <Typography variant='h6'>{category}</Typography>
-                  {popoverData[category].map((item, index) => (
-                    <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
-                      <Typography>{item.label}</Typography>
-                    </Box>
-                  ))}
-                </Box>
-              ))}
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                gap: 2,
-                mb: 5,
-                mr: 14
-              }}
-            >
-              <Button
-                variant='outlined'
-                onClick={() => {
-                  setAnchorEl(null)
-                }}
-                sx={{
-                  minWidth: '100px',
-                  padding: '6px 16px'
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant='contained'
-                onClick={handleConfirm}
-                sx={{
-                  minWidth: '100px',
-                  padding: '6px 16px'
-                }}
-              >
-                Confirm
-              </Button>
-            </Box>
-          </Popover>
-        </Box>
-      </Grid>
-    </Grid>
-  )
-
   return (
-    <Card>
-      <CardHeader title='Mortality' sx={{ mb: 10 }} />
+    <>
+      {reports_module ? (
+        <Card>
+          <CardHeader title='Animal Report' sx={{ mb: '16px' }} />
 
-      <HeaderAction />
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', px: '16px', mb: '16px' }}>
+            <Box display={{ display: 'flex', gap: 6 }}>
+              <FormControl fullWidth>
+                <SingleDatePicker
+                  value={startDate}
+                  name='FromDate*'
+                  onChange={handleStartDateChange}
+                  customInput={<CustomInput label='Start Date*' error={Boolean(errors.startDate)} />}
+                  maxDate={new Date()}
+                  ref={startDateRef}
+                />
+                {errors.startDate && (
+                  <FormHelperText sx={{ color: 'error.main' }}>Start date should be less than end date</FormHelperText>
+                )}
+              </FormControl>
+              <FormControl fullWidth>
+                <SingleDatePicker
+                  value={endDate}
+                  name='EndDate*'
+                  onChange={handleEndDateChange}
+                  customInput={<CustomInput label='End Date*' error={Boolean(errors.endDate)} />}
+                  maxDate={new Date()}
+                  ref={endDateRef}
+                />
+                {errors.endDate && (
+                  <FormHelperText sx={{ color: 'error.main' }}>
+                    End date should be greater than start date
+                  </FormHelperText>
+                )}
+              </FormControl>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}></Box>
-      <DataGrid
-        sx={{
-          '.MuiDataGrid-cell:focus': { outline: 'none' },
-          '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
-        }}
-        hideFooterPagination
-        autoHeight
-        rows={reportRows}
-        hideFooterSelectedRowCount
-        rowHeight={70}
-        columns={columns}
-      />
-    </Card>
+              <Box>
+                <Button
+                  onClick={handleClick}
+                  variant='outlined'
+                  aria-describedby={'popoverButton'}
+                  sx={{
+                    width: '180px',
+                    height: '40px',
+                    mt: 2,
+                    display: 'flex',
+                    color: '#44544A',
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    fontFamily: 'Inter',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+
+                    // gap: 2,
+                    minWidth: '100px'
+                  }}
+                >
+                  <img
+                    src='/images/show_popup.png'
+                    style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                    alt='Filter Icon'
+                  />
+
+                  <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                </Button>
+                <Popover
+                  id={'popoverButton'}
+                  open={open}
+                  anchorEl={anchorEl}
+                  onClose={handleClose}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left'
+                  }}
+                >
+                  <Box sx={{ p: 2, width: 300 }}>
+                    {Object.keys(popoverData).map(category => (
+                      <Box key={category}>
+                        <Typography variant='h6'>{category}</Typography>
+                        {popoverData[category].map((item, index) => (
+                          <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
+                            <Typography>{item.label}</Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    ))}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      gap: 2,
+                      mb: 5,
+                      mr: 14
+                    }}
+                  >
+                    <Button
+                      variant='outlined'
+                      onClick={() => {
+                        setAnchorEl(null)
+                      }}
+                      sx={{
+                        minWidth: '100px',
+                        padding: '6px 16px'
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant='contained'
+                      onClick={handleConfirm}
+                      sx={{
+                        minWidth: '100px',
+                        padding: '6px 16px'
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                  </Box>
+                </Popover>
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}></Box>
+          <DataGrid
+            sx={{
+              '.MuiDataGrid-cell:focus': { outline: 'none' },
+              '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
+            }}
+            hideFooterPagination
+            autoHeight
+            rows={reportRows}
+            hideFooterSelectedRowCount
+            rowHeight={70}
+            columns={columns}
+          />
+        </Card>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
   )
 }
 
