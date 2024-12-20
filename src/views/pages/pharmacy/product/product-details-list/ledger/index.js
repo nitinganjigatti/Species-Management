@@ -406,8 +406,7 @@ function Ledger() {
             <Typography
               sx={{
                 fontSize: '12px',
-                fontWeight: 400,
-                color: '#839D8D'
+                fontWeight: 400
               }}
             >
               {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))}
@@ -639,7 +638,7 @@ function Ledger() {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
                   ml: 5,
@@ -698,7 +697,7 @@ function Ledger() {
             variant='outlined'
             startIcon={<FilterListIcon />}
             sx={{
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               borderRadius: '8px',
               height: '40px',
               textTransform: 'none'
@@ -783,7 +782,7 @@ function Ledger() {
         PaperProps={{
           sx: {
             width: { xs: '100%', sm: 560 }, // Full width on mobile, fixed width on larger screens
-            backgroundColor: '#F5F9F6',
+            backgroundColor: 'customColors.Background',
             height: '100%',
             display: 'flex',
             flexDirection: 'column' // Ensures content stacks vertically

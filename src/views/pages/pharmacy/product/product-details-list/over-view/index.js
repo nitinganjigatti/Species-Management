@@ -18,7 +18,8 @@ import {
   CardHeader,
   Drawer,
   TextField,
-  Autocomplete
+  Autocomplete,
+  alpha
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InfoIcon from '@mui/icons-material/Info'
@@ -36,6 +37,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import ProductsChart from 'src/components/pharmacy/medicine/ProductsChart'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import { useTheme } from '@emotion/react'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -50,6 +52,7 @@ const validationSchema = yup.object().shape({
 })
 
 const Overview = ({ productDetails }) => {
+  const theme = useTheme()
   const medicines = [
     {
       name: 'Genimol 650 Tablet',
@@ -100,11 +103,13 @@ const Overview = ({ productDetails }) => {
     <>
       {/* Central Pharmacy Section */}
       <Box
-        padding='16px'
-        backgroundColor='#FFFFFF'
-        borderRadius='8px'
-        marginBottom={2}
-        boxShadow='0px 4px 8px rgba(0, 0, 0, 0.1)'
+        sx={{
+          padding: '16px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '8px',
+          marginBottom: 2,
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
       >
         <Typography
           variant='subtitle1'
@@ -148,7 +153,12 @@ const Overview = ({ productDetails }) => {
           <TableContainer component={Paper}>
             <Table>
               <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-                <TableRow sx={{ backgroundColor: '#AFEFEB99', padding: '4px 8px' }}>
+                <TableRow
+                  sx={{
+                    backgroundColor: theme => alpha(theme.palette.customColors.SecondaryContainer, 0.6),
+                    padding: '4px 8px'
+                  }}
+                >
                   <TableCell sx={{ p: '6px' }}>Store Name</TableCell>
                   <TableCell sx={{ p: '6px' }}>Quantity in Store</TableCell>
                 </TableRow>
@@ -186,7 +196,7 @@ const Overview = ({ productDetails }) => {
         <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
           <Table>
             <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-              <TableRow sx={{ backgroundColor: '#FFBDA899' }}>
+              <TableRow sx={{ backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.6) }}>
                 <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
                 <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
                 <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
@@ -202,7 +212,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: '#FA6140' }}>6 Days</TableCell>
+                <TableCell sx={{ color: 'customColors.Tertiary' }}>6 Days</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>BAT-0001</TableCell>
@@ -210,7 +220,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: '#FA6140' }}>8 Days</TableCell>
+                <TableCell sx={{ color: 'customColors.Tertiary' }}>8 Days</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -248,7 +258,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: '#E93353' }}>6 Days</TableCell>
+                <TableCell sx={{ color: 'customColors.Error' }}>6 Days</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>BAT-0001</TableCell>
@@ -256,7 +266,7 @@ const Overview = ({ productDetails }) => {
                 <TableCell>10</TableCell>
                 <TableCell>₹10</TableCell>
                 <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: '#E93353' }}>8 Days</TableCell>
+                <TableCell sx={{ color: 'customColors.Error' }}>8 Days</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -302,8 +312,8 @@ const Overview = ({ productDetails }) => {
       totalStores: 23,
       totalQuantity: 4056,
       contentComponent: centralPharmacyContent,
-      style: '#F5F9F6',
-      bgColor: '#AFEFEB4D',
+      style: 'customColors.Background',
+      bgColor: theme => alpha(theme.palette.customColors.SecondaryContainer, 0.3),
       icon: '/images/medicare.svg',
       value: 2300,
       description: 'Quantity in Store'
@@ -314,8 +324,8 @@ const Overview = ({ productDetails }) => {
       totalStores: 23,
       totalQuantity: 4056,
       contentComponent: expireContent,
-      style: '#F5F9F6',
-      bgColor: '#FA61401A',
+      style: 'customColors.Background',
+      bgColor: theme => alpha(theme.palette.customColors.Tertiary, 0.1),
       icon: '/images/calendar.svg',
       value: 56,
       description: 'About to Expire Quantity'
@@ -326,8 +336,9 @@ const Overview = ({ productDetails }) => {
       totalStores: 23,
       totalQuantity: 4056,
       contentComponent: expiredBatchesContent,
-      style: '#F5F9F6',
-      bgColor: '#E933531A',
+      style: 'customColors.Background',
+      // bgColor: '#E933531A',
+      bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
       icon: '/images/Incubator_ICON.svg',
       value: 300,
       description: 'Expired Quantity'
@@ -542,14 +553,16 @@ const Overview = ({ productDetails }) => {
                   >
                     <Box display='flex' alignItems='center'>
                       <Box
-                        display='flex'
-                        justifyContent='center'
-                        alignItems='center'
-                        bgcolor='#F86A4C'
-                        borderRadius='4px'
-                        width='30px'
-                        height='24px'
-                        marginRight='8px'
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          bgcolor: 'customColors.Tertiary',
+                          borderRadius: '4px',
+                          width: '30px',
+                          height: '24px',
+                          marginRight: '8px'
+                        }}
                       >
                         <Icon
                           icon='clarity:child-arrow-line'
@@ -618,7 +631,7 @@ const Overview = ({ productDetails }) => {
             <Card sx={{ height: '100%' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <InfoIcon sx={{ mr: 2, color: '#00AFD6', fontWeight: 'bold' }} />
+                  <InfoIcon sx={{ mr: 2, color: theme.palette.customColors.addPrimary, fontWeight: 'bold' }} />
                   <Typography sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}>
                     Additional Information
                   </Typography>
@@ -753,7 +766,7 @@ const Overview = ({ productDetails }) => {
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
         contentComponent={alternativeMedicines}
-        style='#F5F9F6'
+        style='customColors.Background'
       />
 
       <Drawer
@@ -765,7 +778,7 @@ const Overview = ({ productDetails }) => {
             width: 500,
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: '#EFF5F2'
+            backgroundColor: 'customColors.Background'
           }
         }}
       >
