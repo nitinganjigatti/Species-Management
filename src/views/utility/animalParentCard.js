@@ -12,10 +12,11 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
         <Box
           sx={{
             width: '100%',
-            backgroundColor: backgroundColor ? backgroundColor : theme.palette.customColors.tableHeaderBg,
+            backgroundColor: backgroundColor ? backgroundColor : '#fff',
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
+
             // border: '1px solid #C3CEC7',
             display: 'flex',
             gap: '10px'
@@ -45,21 +46,35 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               sx={{
                 width: 24,
                 height: 24,
-                bgcolor: data?.type === 'group' ? '#00AFD6' : '#AFEFEB',
-                objectFit: 'cover'
+                bgcolor:
+                  data?.type === 'group'
+                    ? '#00AFD6'
+                    : data?.sex === 'male'
+                    ? '#AFEFEB'
+                    : data?.sex === 'female'
+                    ? '#FFD3D3'
+                    : data?.sex === 'undetermined' || data?.sex === 'indeterminate'
+                    ? '#DDEBE9'
+                    : '#AFEFEB',
+                objectFit: 'contain',
+                pt: 0.2,
+                height: 24,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
               }}
               variant='rounded'
             >
               {data?.type === 'group' ? (
-                <Typography sx={{ fontSize: 14, color: '#fff' }}>G</Typography>
+                <Typography sx={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>G</Typography>
               ) : data?.sex === 'male' ? (
-                <Typography sx={{ fontSize: 14 }}>M</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#1F415B' }}>M</Typography>
               ) : data?.sex === 'female' ? (
-                <Typography sx={{ fontSize: 14 }}>F</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
               ) : data?.sex === 'undetermined' ? (
-                <Typography sx={{ fontSize: 14 }}>UD</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#E93353' }}>UD</Typography>
               ) : data?.sex === 'indeterminate' ? (
-                <Typography sx={{ fontSize: 14 }}>ID</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#44544A' }}>ID</Typography>
               ) : (
                 <Typography sx={{ fontSize: 14 }}>-</Typography>
               )}
@@ -69,7 +84,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '6px'
+              gap: '2px'
             }}
           >
             {data?.local_id_type && data?.local_identifier_value && (

@@ -895,7 +895,7 @@ const RequestDetails = () => {
                     </Typography>
                   </Box>
 
-                  <Box>
+                  <Box sx={{ minWidth: '345px' }}>
                     <AnimalParentCard data={item?.animal_details} backgroundColor={'#f2f2f2'} />
                     {/* <AnimalCard animalDetails={item?.animal_details} /> */}
                   </Box>
