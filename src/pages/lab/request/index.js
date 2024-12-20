@@ -454,7 +454,7 @@ const ListOfRequest = () => {
             </Typography>
           </Breadcrumbs>
           <Card key={selectedLab}>
-            <CardHeader title={title} />
+            <CardHeader title={'Requests lists'} />
 
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}
