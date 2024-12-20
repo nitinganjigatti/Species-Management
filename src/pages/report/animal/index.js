@@ -220,7 +220,7 @@ const Animal = () => {
     { id: 2, title: 'Mortality', action: 'Download Mortality' },
     { id: 3, title: 'External Transfer', action: 'Download Transfer' }
   ]
-
+  const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
   const columns = [
@@ -328,7 +328,7 @@ const Animal = () => {
                   <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                 </Button>
                 <Popover
-                  id={'popoverButton'}
+                  id={id}
                   open={open}
                   anchorEl={anchorEl}
                   onClose={handleClose}
