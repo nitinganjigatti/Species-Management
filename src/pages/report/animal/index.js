@@ -237,7 +237,6 @@ const Animal = () => {
     { id: 3, title: 'External Transfer', action: 'Download Transfer' }
   ]
 
-  const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
   const columns = [
@@ -349,7 +348,7 @@ const Animal = () => {
           </Button>
           <Popover
             id={id}
-            open={open}
+            open={Boolean(anchorEl)}
             anchorEl={anchorEl}
             onClose={handleClose}
             anchorOrigin={{
