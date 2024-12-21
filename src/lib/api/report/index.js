@@ -31,17 +31,17 @@ export async function getReportFilterList(params) {
   return reponse.data
 }
 
-export async function getNatalityList(params) {
+export async function getAnimalReport(params) {
   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
   return response.data
 }
 
-export async function getMortalityList(params) {
-  const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
-  return response.data
-}
+// export async function getMortalityList(params) {
+//   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
+//   return response.data
+// }
 
-export async function getTransferList(params) {
-  const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
-  return response.data
-}
+// export async function getTransferList(params) {
+//   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
+//   return response.data
+// }
