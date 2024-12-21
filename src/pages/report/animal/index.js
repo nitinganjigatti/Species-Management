@@ -15,7 +15,7 @@ import {
 import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { getMortalityList, getNatalityList, getTransferList } from 'src/lib/api/report'
+import { getAnimalReport } from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 
@@ -66,13 +66,13 @@ const Animal = () => {
     return [header, ...rows].join('\n')
   }
 
-  const downloadNewCSVFile = (csvContent, fileName) => {
+  const downloadNewCSVFile = csvContent => {
     try {
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
+      // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = csvContent
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', fileName)
+      link.setAttribute('download', 'download')
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -81,66 +81,21 @@ const Animal = () => {
     }
   }
 
-  const getNatalityDataToExport = async () => {
+  const getDataToExport = async type => {
     try {
-      const params = { type: 'birth', ...apiFilterParams }
+      const params = { type: type, ...apiFilterParams }
       if (startDate) {
         params.start_date = startDate
       }
       if (endDate) {
         params.end_date = endDate
       }
-      const response = await getNatalityList(params)
-      if (response?.data?.animal_list?.length > 0) {
-        const csvData = jsonToCsv(response.data.animal_list)
-        const fileName = 'natality_data.csv'
-        downloadNewCSVFile(csvData, fileName)
+      params.response_type = 'csv'
+      const response = await getAnimalReport(params)
+      if (response?.success) {
+        downloadNewCSVFile(response?.data)
       } else {
         console.warn('No natality data available to export')
-      }
-    } catch (error) {
-      console.error('Error exporting natality data:', error)
-    }
-  }
-
-  const getMortalityDataToExport = async () => {
-    try {
-      const params = { type: 'death', ...apiFilterParams }
-      if (startDate) {
-        params.start_date = startDate
-      }
-      if (endDate) {
-        params.end_date = endDate
-      }
-      const response = await getMortalityList(params)
-      if (response?.data?.animal_list?.length > 0) {
-        const csvData = jsonToCsv(response.data.animal_list)
-        const fileName = 'mortality_data.csv'
-        downloadNewCSVFile(csvData, fileName)
-      } else {
-        console.warn('No mortality data available to export')
-      }
-    } catch (error) {
-      console.error('Error exporting natality data:', error)
-    }
-  }
-
-  const getTransferDataToExport = async () => {
-    try {
-      const params = { type: 'transfer', ...apiFilterParams }
-      if (startDate) {
-        params.start_date = startDate
-      }
-      if (endDate) {
-        params.end_date = endDate
-      }
-      const response = await getTransferList(params)
-      if (response?.data?.animal_list?.length > 0) {
-        const csvData = jsonToCsv(response.data.animal_list)
-        const fileName = 'transfer_data.csv'
-        downloadNewCSVFile(csvData, fileName)
-      } else {
-        console.warn('No mortality data available to export')
       }
     } catch (error) {
       console.error('Error exporting natality data:', error)
@@ -220,7 +175,6 @@ const Animal = () => {
     { id: 2, title: 'Mortality', action: 'Download Mortality' },
     { id: 3, title: 'External Transfer', action: 'Download Transfer' }
   ]
-
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
@@ -243,13 +197,12 @@ const Animal = () => {
       renderCell: params => {
         const handleExport = () => {
           if (params.row.title === 'Natality') {
-            getNatalityDataToExport()
+            getDataToExport('birth')
           } else if (params.row.title === 'Mortality') {
-            getMortalityDataToExport()
-            console.warn('Mortality export not implemented yet')
+            // getMortalityDataToExport()
+            getDataToExport('death')
           } else if (params.row.title === 'External Transfer') {
-            getTransferDataToExport()
-            console.warn('Transfer export not implemented yet')
+            getDataToExport('transfer')
           }
         }
 
@@ -329,7 +282,7 @@ const Animal = () => {
                   <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                 </Button>
                 <Popover
-                  id={'popoverButton'}
+                  id={id}
                   open={open}
                   anchorEl={anchorEl}
                   onClose={handleClose}
