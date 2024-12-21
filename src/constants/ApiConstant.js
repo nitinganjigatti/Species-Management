@@ -352,6 +352,8 @@ export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
 
 export const SPECIES_REPORT = 'v1/species/reportv1'
 
+export const ANIMAL_REPORT = 'v1/animal/report'
+
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'

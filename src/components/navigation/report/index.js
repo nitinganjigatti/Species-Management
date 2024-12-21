@@ -6,6 +6,12 @@ const ComposeReportNavigation = reports_module => {
     sectionTitle: 'Report'
   }
 
+  const animal = {
+    title: 'Animal Report',
+    path: '/report/animal',
+    icon: 'mdi:paw-outline'
+  }
+
   const report = {
     title: 'Species Report',
     path: '/report/species',
@@ -15,7 +21,7 @@ const ComposeReportNavigation = reports_module => {
   const reportNavigationArray = []
 
   reportNavigationArray.push(reportTitle)
-  reportNavigationArray.push(report)
+  reportNavigationArray.push(report, animal)
 
   return reportNavigationArray
 }
