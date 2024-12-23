@@ -563,7 +563,7 @@ const AddReturnRequest = () => {
           setSubmitLoader(false)
           getListOfItemsById(id)
 
-          Router.push(`/pharmacy/return-product/${response.data}`)
+          Router.replace(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
 
@@ -579,7 +579,7 @@ const AddReturnRequest = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/return-product/${response.data}`)
+          Router.replace(`/pharmacy/return-product/${response.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -618,7 +618,7 @@ const AddReturnRequest = () => {
         const result = await cancelReturnItemsRequest(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/return-product/request-list/`)
+          Router.replace(`/pharmacy/return-product/request-list/`)
         } else {
           toast.error(result.data)
         }
@@ -690,7 +690,8 @@ const AddReturnRequest = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push('/pharmacy/return-product/request-list/')
+                    // Router.back('/pharmacy/return-product/request-list/')
+                    Router.back()
                   }}
                   icon='ep:back'
                 />

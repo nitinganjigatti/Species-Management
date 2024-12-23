@@ -32,7 +32,7 @@ function Dispense() {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const isInitialLoad = useRef(true)

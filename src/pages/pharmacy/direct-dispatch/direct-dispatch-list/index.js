@@ -51,7 +51,7 @@ const DirectDispatchList = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState(router.query.sort || 'desc')

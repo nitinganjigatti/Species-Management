@@ -628,7 +628,7 @@ const AddDirectDispatch = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/direct-dispatch/${response?.data}`)
+          Router.replace(`/pharmacy/direct-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -643,7 +643,7 @@ const AddDirectDispatch = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/direct-dispatch/${response?.data}`)
+          Router.replace(`/pharmacy/direct-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -704,7 +704,7 @@ const AddDirectDispatch = () => {
         const result = await cancelDirectDispatchItems(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+          Router.replace(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -756,7 +756,7 @@ const AddDirectDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                    Router.back('/pharmacy/direct-dispatch/direct-dispatch-list/')
                   }}
                   icon='ep:back'
                 />
