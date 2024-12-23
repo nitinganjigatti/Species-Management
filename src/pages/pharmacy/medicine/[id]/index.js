@@ -59,14 +59,14 @@ const TabsSimple = ({ productDetails }) => {
         }}
       >
         <Tab value='overview' label='Overview' />
-        <Tab value='purchase' label='Purchase' />
+        {/* <Tab value='purchase' label='Purchase' />
         <Tab value='dispatch' label='Dispatch' />
-        <Tab value='ledger' label='Ledger' />
+        <Tab value='ledger' label='Ledger' /> */}
       </TabList>
       <TabPanel value='overview' sx={{ p: 0 }}>
         <Overview productDetails={productDetails} />
       </TabPanel>
-      <TabPanel value='purchase'>
+      {/* <TabPanel value='purchase'>
         <Purchase />
       </TabPanel>
       <TabPanel value='dispatch'>
@@ -74,7 +74,7 @@ const TabsSimple = ({ productDetails }) => {
       </TabPanel>
       <TabPanel value='ledger'>
         <Ledger />
-      </TabPanel>
+      </TabPanel> */}
     </TabContext>
   )
 }
@@ -324,7 +324,7 @@ const ProductDetailsList = () => {
                         sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 400, fontSize: '14px' }}
                         mt={0.5}
                       >
-                        Composition -
+                        Composition -{' '}
                         {productDetails?.salts && productDetails?.salts?.length > 0
                           ? productDetails?.salts?.map((salt, index) => (
                               <span key={salt?.id}>
@@ -361,7 +361,7 @@ const ProductDetailsList = () => {
                               fontSize: '14px'
                             }}
                           >
-                            ({productDetails?.package})
+                            ({productDetails?.package}) of
                           </Box>
                         </Typography>
                         <Button
@@ -381,7 +381,7 @@ const ProductDetailsList = () => {
                         {variantProductList.map((option, inx) => (
                           <Chip
                             key={option?.id}
-                            label={option?.unit_multiplier}
+                            label={`${option?.unit_multiplier}  ${productDetails?.product_form_label}`}
                             variant='outlined'
                             clickable
                             sx={{
