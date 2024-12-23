@@ -1313,7 +1313,7 @@ const AddRequestForm = () => {
 
       <TableContainer>
         <Table>
-          <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+          <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
             <TableRow>
               <TableCell>Product Name</TableCell>
               <TableCell>Priority</TableCell>

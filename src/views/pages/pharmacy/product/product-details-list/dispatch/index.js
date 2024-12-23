@@ -221,8 +221,7 @@ function Dispatch() {
             <Typography
               sx={{
                 fontSize: '12px',
-                fontWeight: 400,
-                color: '#839D8D'
+                fontWeight: 400
               }}
             >
               {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.purchase_date))}
@@ -367,7 +366,7 @@ function Dispatch() {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
                   ml: 5,
@@ -410,7 +409,7 @@ function Dispatch() {
 
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #C3CEC7'
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }
                 }}
               >
@@ -431,7 +430,7 @@ function Dispatch() {
 
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #C3CEC7'
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }
                 }}
               >
@@ -452,7 +451,7 @@ function Dispatch() {
 
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #C3CEC7'
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }
                 }}
               >
@@ -473,7 +472,7 @@ function Dispatch() {
 
                   //   width: '150px',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    border: '1px solid #C3CEC7'
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                   }
                 }}
               >
@@ -490,7 +489,7 @@ function Dispatch() {
               variant='outlined'
               startIcon={<FilterListIcon />}
               sx={{
-                border: '1px solid #C3CEC7',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
                 textTransform: 'none'

@@ -30,12 +30,13 @@ const CommonDrawerBox = ({
       PaperProps={{
         sx: {
           width: width ? width : 560,
-          backgroundColor: style ? style : '#F5F9F6',
+          backgroundColor: style ? style : 'customColors.Background',
           display: 'flex',
           flexDirection: 'column',
           height: '100%'
         }
       }}
+      //
     >
       {/* Header Section */}
       <Box
@@ -43,7 +44,7 @@ const CommonDrawerBox = ({
           p: 4,
           position: 'sticky',
           top: 0,
-          backgroundColor: style ? style : '#F5F9F6',
+          backgroundColor: style ? style : 'customColors.Background',
           zIndex: 1,
           borderBottom: '1px solid #e0e0e0'
         }}
@@ -66,16 +67,22 @@ const CommonDrawerBox = ({
 
         {totalStores || totalQuantity ? (
           <Box
-            display='flex'
-            justifyContent='space-between'
-            alignItems='center'
-            padding='12px'
-            backgroundColor='#0000000D'
-            borderRadius='8px'
-            sx={{ mt: 2 }}
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '12px',
+              borderRadius: '8px',
+              mt: 2,
+              backgroundColor: 'customColors.neutral05'
+            }}
           >
-            <Typography>Total Stores: {totalStores}</Typography>
-            <Typography fontWeight='bold'>Total Quantity: {totalQuantity}</Typography>
+            <Typography sx={{ fontSize: '14px' }}>
+              Total Stores: <strong>{totalStores}</strong>
+            </Typography>
+            <Typography sx={{ fontSize: '14px' }}>
+              Total Quantity: <strong>{totalQuantity}</strong>
+            </Typography>
           </Box>
         ) : null}
       </Box>

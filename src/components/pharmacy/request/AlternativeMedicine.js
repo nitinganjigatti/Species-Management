@@ -32,6 +32,7 @@ import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import CustomChip from 'src/@core/components/mui/chip'
 import RenderUtility from 'src/utility/render'
 import IconButton from '@mui/material/IconButton'
+import { useTheme } from '@emotion/react'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -52,6 +53,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
     request_alt_parent_id: parentId?.request_item_id,
     availAbleQty: ''
   }
+  const theme = useTheme()
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [itemErrors, setItemErrors] = useState({})
@@ -295,8 +297,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         sx={{
           mb: 10,
           width: '100%',
-          backgroundColor: 'customColors.lightBg',
-          border: '1px solid #00D6C9',
+          backgroundColor: 'customColors.Surface',
+          // border: '1px solid #00D6C9',
+          border: `0.5px solid ${theme.palette.customColors.Secondary}`,
           boxShadow: 'none !important'
         }}
       >
@@ -305,9 +308,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             <Grid
               item
               xs={12}
-              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.Surface' }}
             >
-              <Typography sx={{ color: 'customColors.textLabel' }}>
+              <Typography sx={{ color: 'customColors.SecondaryDark' }}>
                 Product Name: <strong>{parentId?.product}</strong>
               </Typography>
               <Typography>
@@ -329,7 +332,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               borderBottom: tabStatus === 'By product' ? '5px solid' : '',
 
               // color: 'primary.main',
-              color: tabStatus === 'By product' ? 'primary.main' : '#414941',
+              color: tabStatus === 'By product' ? 'primary.main' : 'customColors.OnSurfaceVariant',
               padding: '8px 16px'
             }}
           >
@@ -343,7 +346,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
 
               // color: 'primary.main',
-              color: tabStatus === 'By generic' ? 'primary.main' : '#414941',
+              color: tabStatus === 'By generic' ? 'primary.main' : 'customColors.OnSurfaceVariant',
               padding: '8px 16px'
             }}
           >
@@ -580,27 +583,30 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         {nestedRowMedicine?.medicine_name && (
           <Box
             sx={{
-              backgroundColor: '#F2FFF8', // Light green background
+              backgroundColor: 'customColors.Surface', // Light green background
               padding: '16px',
               borderRadius: '8px',
-              border: '0.5px solid #37BD69',
+              // border: '0.5px solid #37BD69',
+              border: `0.5px solid ${theme.palette.primary.main}`,
               borderRadius: '8px'
             }}
           >
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
               Available Packing:{' '}
-              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>{nestedRowMedicine?.package}</span>
+              <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
+                {nestedRowMedicine?.package}
+              </span>
             </Typography>
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
               Manufactured by:{' '}
-              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+              <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                 {nestedRowMedicine?.manufacture}
               </span>
             </Typography>
             {nestedRowMedicine?.availAbleQty && (
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
                 Availability:{' '}
-                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                   {nestedRowMedicine?.availAbleQty}
                 </span>
               </Typography>
@@ -638,8 +644,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     fontSize: 12,
                     height: '32px',
                     borderRadius: '16px',
-                    backgroundColor: '#F2FFF8',
-                    color: 'customColors.OnSurfaceVariant'
+                    backgroundColor: 'customColors.Surface',
+                    color: 'customColors.OnSurfaceVariant',
+                    border: `0.5px solid ${theme.palette.primary.main} !important`
                   }}
                 />
                 <Chip
@@ -651,8 +658,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     fontSize: 12,
                     height: '32px',
                     borderRadius: '16px',
-                    backgroundColor: '#F2FFF8',
-                    color: 'customColors.OnSurfaceVariant'
+                    backgroundColor: 'customColors.Surface',
+                    color: 'customColors.OnSurfaceVariant',
+                    border: `0.5px solid ${theme.palette.primary.main} !important`
                   }}
                 />
               </Box>
@@ -919,7 +927,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                         gap: '6px'
                       }}
                     >
-                      <Icon icon='material-symbols:description-outline' width='16' color='#7A8684' height='20' />
+                      <Icon
+                        icon='material-symbols:description-outline'
+                        width='16'
+                        style={{ color: 'customColors.neutralSecondary' }}
+                        // color='#7A8684'
+                        height='20'
+                      />
                       {nestedRowMedicine.prescription_required_file?.name}
                     </Typography>
                   }
@@ -936,12 +950,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     <Icon
                       icon='mdi:close-box'
                       width='24'
-                      color='#7A8684'
+                      // color='#7A8684'
                       height='24'
                       style={{
                         position: 'absolute',
                         top: '-6px',
-                        right: '-9px'
+                        right: '-9px',
+                        color: 'customColors.neutralSecondary'
                       }}
                     />
                   }
@@ -972,7 +987,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       >
                         <Image
                           width={16}
-                          color='#7A8684'
+                          style={{ color: 'customColors.neutralSecondary' }}
+                          // color='#7A8684'
                           height={20}
                           alt={nestedRowMedicine.prescription_required_file?.name}
                           src={
@@ -997,12 +1013,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Icon
                         icon='mdi:close-box'
                         width='24'
-                        color='#7A8684'
+                        // color='#7A8684'
+
                         height='24'
                         style={{
                           position: 'absolute',
                           top: '-6px',
-                          right: '-9px'
+                          right: '-9px',
+                          color: 'customColors.neutralSecondary'
                         }}
                       />
                     }
@@ -1033,7 +1051,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     >
                       <img
                         width={16}
-                        color='#7A8684'
+                        // color='#7A8684'
+                        style={{ color: 'customColors.neutralSecondary' }}
                         height={20}
                         alt={nestedRowMedicine.prescription_required_file?.name}
                         src={nestedRowMedicine.prescription_required_file}
@@ -1054,12 +1073,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     <Icon
                       icon='mdi:close-box'
                       width='24'
-                      color='#7A8684'
+                      // color='#7A8684'
+
                       height='24'
                       style={{
                         position: 'absolute',
                         top: '-6px',
-                        right: '-9px'
+                        right: '-9px',
+                        color: 'customColors.neutralSecondary'
                       }}
                     />
                   }

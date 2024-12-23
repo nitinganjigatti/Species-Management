@@ -79,7 +79,7 @@ function ProductNotAvailable({ payload, updateRequestItems, closeProductNotAvail
               xs={12}
               sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
             >
-              <Typography sx={{ color: 'customColors.textLabel' }}>
+              <Typography sx={{ color: 'customColors.SecondaryDark' }}>
                 Product Name: <strong> {payload?.product}</strong>
               </Typography>
               <Typography>

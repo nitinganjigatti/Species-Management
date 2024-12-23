@@ -1031,7 +1031,7 @@ const IndividualRequest = () => {
                   }
                 />
 
-                <Box sx={{ backgroundColor: '#EFF5F2', p: 4, m: 4, borderRadius: '8px' }}>
+                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   {/* Request Basic Info */}
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>

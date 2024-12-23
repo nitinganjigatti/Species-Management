@@ -43,6 +43,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { LoaderIcon } from 'react-hot-toast'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
+import { useTheme } from '@emotion/react'
 import CustomChip from 'src/@core/components/mui/chip'
 import { useTheme } from '@emotion/react'
 
@@ -129,7 +130,6 @@ export const AddItemsForm = ({
     reValidateMode: 'onChange'
   })
   const theme = useTheme()
-
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -636,10 +636,7 @@ export const AddItemsForm = ({
                         error={Boolean(errors.request_item_batch_no)}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'white',
-                            '& fieldset': {
-                              // borderColor: '#e0e0e0'
-                            }
+                            backgroundColor: 'white'
                           }
                         }}
                       />
@@ -650,15 +647,12 @@ export const AddItemsForm = ({
                         {...props}
                         sx={{
                           border: '1px solid transparent',
-
-                          // border: '1px solid #0000000D',
-                          // borderBottom: '1px solid #e0e0e0',
                           '&:last-child': {
                             borderBottom: 'none'
                           },
                           m: 3,
                           '&:hover': {
-                            border: '1px solid #0000000D'
+                            border: `1px solid ${theme.palette.customColors.neutral05}`
                           },
 
                           borderRadius: '2px'
