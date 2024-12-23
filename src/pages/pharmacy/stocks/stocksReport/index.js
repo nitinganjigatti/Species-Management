@@ -75,7 +75,7 @@ const ListOfStocks = () => {
 
   const updateUrlParams = params => {
     const query = { ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const { selectedPharmacy } = usePharmacyContext()
   const [loading, setLoading] = useState(false)
