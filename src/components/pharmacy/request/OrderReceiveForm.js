@@ -100,7 +100,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
               ) : null}
               {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
-              {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null}
+              {/* {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null} */}
 
               {orderData?.shipment_date ? (
                 <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
@@ -119,6 +119,17 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               {orderData?.created_by_user_name
                 ? hideTheLabel(<LabelValues label={'To:'} value={orderData?.created_by_user_name} />)
                 : null}
+              {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {Utility.renderUserAvatar(orderData?.user_created_profile_pic)}
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                    {orderData?.created_by_user_name ? orderData?.created_by_user_name : 'NA'}
+                  </Typography>
+                  <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+                    {Utility.formatDisplayDate(orderData?.request_date)}
+                  </Typography>
+                </Box>
+              </Box> */}
             </Grid>
 
             {disputeItemDetails?.item_details?.length > 0 ? (

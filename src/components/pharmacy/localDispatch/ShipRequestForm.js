@@ -13,7 +13,8 @@ import {
   FormControlLabel,
   Tooltip,
   Box,
-  CardHeader
+  CardHeader,
+  Divider
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -486,8 +487,21 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   />
                 </Grid>
               </Grid>
-
-              <Grid container spacing={5}>
+              <Grid sx={{ my: 4 }}>
+                <Divider />
+              </Grid>
+              <Grid container spacing={5} sx={{ mt: 2 }}>
+                <Typography
+                  sx={{
+                    color: 'customColors.customTextColorGray2',
+                    fontWeight: 500,
+                    fontSize: '1rem',
+                    width: '100%',
+                    mx: 4
+                  }}
+                >
+                  Shipment Details
+                </Typography>
                 <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <SingleDatePicker
@@ -661,6 +675,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
                   ) : null}
                 </Grid> */}
+              </Grid>
+              <Grid sx={{ my: 8 }}>
+                <Divider />
               </Grid>
             </form>
             <Box mt={6}>

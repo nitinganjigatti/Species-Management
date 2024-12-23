@@ -297,25 +297,26 @@ const DirectDispatchList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.25,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Dispatched date',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.25,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Dispatched date',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.25,
       minWidth: 20,

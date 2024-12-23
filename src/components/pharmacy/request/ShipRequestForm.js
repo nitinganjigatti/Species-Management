@@ -16,7 +16,8 @@ import {
   Autocomplete,
   Box,
   CardHeader,
-  Button
+  Button,
+  Divider
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -533,8 +534,21 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                   />
                 </Grid>
               </Grid>
-
-              <Grid container spacing={3}>
+              <Grid sx={{ my: 4 }}>
+                <Divider />
+              </Grid>
+              <Grid container spacing={3} sx={{ mt: 2 }}>
+                <Typography
+                  sx={{
+                    color: 'customColors.customTextColorGray2',
+                    fontWeight: 500,
+                    fontSize: '1rem',
+                    width: '100%',
+                    mx: 2
+                  }}
+                >
+                  Shipment Details
+                </Typography>
                 {deliveryType.Ship ? (
                   <Grid item xs={12} sm={3} mb={6}>
                     <FormControl fullWidth>
@@ -595,7 +609,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                     </FormControl>
                   </Grid>
                 ) : null}
-
                 {deliveryType.Ship && (
                   <>
                     {/* // <Grid item xs={12} sm={3} mb={6}>
@@ -646,7 +659,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                     </Grid>
                   </>
                 )}
-
                 {!deliveryType.Ship && (
                   <Grid item xs={12} sm={6} mb={6}>
                     <FormControl fullWidth>
@@ -671,7 +683,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                     </FormControl>
                   </Grid>
                 )}
-
                 <Grid item xs={12} sm={deliveryType.Ship ? 3 : 6} mb={6}>
                   <FormControl fullWidth>
                     <Controller
@@ -695,7 +706,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                     )}
                   </FormControl>
                 </Grid>
-
                 {deliveryType.Ship ? (
                   <>
                     <Grid item xs={12} sm={3} mb={6}>
@@ -820,7 +830,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                   </FormControl>
                 </Grid>
                 {/* )} */}
-
                 {/* <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <SingleDatePicker
@@ -918,7 +927,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                     </FormControl>
                   </Grid>
                 )} */}
-
                 {/* <Grid item xs={12} sm={6}>
                <FormControl fullWidth>
                  <Controller
@@ -941,7 +949,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                  )}
                </FormControl>
              </Grid> */}
-
                 {/* <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <Controller
@@ -965,7 +972,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                     )}
                   </FormControl>
                 </Grid> */}
-
                 {/* <Grid item xs={12}>
                <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
                  Submit
@@ -974,6 +980,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                  <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
                ) : null}
              </Grid> */}
+              </Grid>
+              <Grid>
+                <Divider />
               </Grid>
             </form>
             <Box sx={{ mt: 6 }}>
