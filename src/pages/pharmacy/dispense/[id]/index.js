@@ -13,7 +13,7 @@ import Utility from 'src/utility'
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
   const router = useRouter()
-  const { id } = router.query
+  const { id, searchTerm } = router.query
   const { selectedPharmacy } = usePharmacyContext()
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const IndividualDispense = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router?.push('/pharmacy/dispense')
+                        Router.back()
                       }}
                       icon='ep:back'
                     />

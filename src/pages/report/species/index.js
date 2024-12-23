@@ -34,6 +34,7 @@ const SpeciesReport = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
@@ -58,6 +59,7 @@ const SpeciesReport = () => {
   })
 
   const categories = ['Site']
+
   const options = {
     // Gender: ['Male', 'Female'],
     // Weight: ['Light', 'Medium', 'Heavy'],
@@ -66,6 +68,7 @@ const SpeciesReport = () => {
       authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
       [] ||
       []
+
     // Section: ['North', 'South', 'East', 'West'],
     // Enclosure: ['Enclosure 1', 'Enclosure 2'],
     // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
@@ -147,6 +150,7 @@ const SpeciesReport = () => {
         URL.revokeObjectURL(csvUrl)
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
+
         // setDataList(datalist || [])
         // if (setHeaders) setHeaderList(header)
         setTotal(total_count)
@@ -155,6 +159,7 @@ const SpeciesReport = () => {
 
         setHeaderList(header)
         setAnchorEl(null)
+
         // setDataList(datalist)
 
         setDataList(loadServerRows(paginationModel.page, datalist))
@@ -168,87 +173,13 @@ const SpeciesReport = () => {
     }
   }
 
-  // const handleOptions = async (category, item, itemIndex) => {
-  //   debugger
-  //   // let updatedApiParams
-
-  //   setPopoverData(prevData => {
-  //     const updatedData = {
-  //       ...prevData,
-  //       [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
-  //     }
-
-  //     updatedApiParams = { ...apiFilterParams }
-  //     Object.keys(updatedData).forEach(cat => {
-  //       updatedData[cat].forEach(el => {
-  //         updatedApiParams[el.key] = el.checked ? 1 : 0
-  //       })
-  //     })
-
-  //     setApiFilterParams(updatedApiParams)
-
-  //     return updatedData
-  //   })
-  //   setPaginationModel({ ...paginationModel, page: 0 })
-  //   // await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
-  // }
-
-  // const handleSelectedSite = async e => {
-  //   const value = e.target.value
-  //   let params = {}
-
-  //   if (value.includes('All Sites') && !selectedSite.includes('All Sites')) {
-  //     params = {
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(['All Sites'])
-  //   } else if (value.includes('All Sites')) {
-  //     const filteredSiteIDs = value.filter(id => id !== 'All Sites')
-  //     params = {
-  //       site_ids: filteredSiteIDs.toString(),
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(filteredSiteIDs)
-  //   } else if (value.length === 0) {
-  //     params = {
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(['All Sites'])
-  //   } else {
-  //     params = {
-  //       site_ids: value.toString(),
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(value)
-  //   }
-
-  //   setPaginationModel({ ...paginationModel, page: 0 })
-  //   setApiFilterParams(params)
-  //   // await fetchData({ ...params }, { ...paginationModel, page: 0 })
-  // }
-
   const handleOptionChange = (category, itemIndex) => {
     setPopoverData(prevData => {
       const updatedData = {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
+
       return updatedData
     })
   }
@@ -261,6 +192,7 @@ const SpeciesReport = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -272,6 +204,7 @@ const SpeciesReport = () => {
         site_ids: filteredSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -281,6 +214,7 @@ const SpeciesReport = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -291,6 +225,7 @@ const SpeciesReport = () => {
         site_ids: selectedSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -696,7 +631,7 @@ const SpeciesReport = () => {
                       }}
                     >
                       <img
-                        src='/images/ShowPop.png'
+                        src='/images/show_popup.png'
                         style={{ width: '24px', height: '24px', marginBottom: '2px' }}
                         alt='Filter Icon'
                       />

@@ -60,12 +60,10 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
     company_name: yup
       .string()
       .required('Supplier name is required')
-
       .matches(/^[a-zA-Z0-9\s]+$/, 'Invalid Supplier name format')
       .min(3, 'Supplier name must be at least 3 characters')
       .max(50, 'Supplier name must be at most 50 characters'),
 
-    // email: yup.string().email('Enter valid email').nullable(),
     email: yup.string().test('valid-email', 'Invalid email format', function (value) {
       if (!value) {
         return true // Email is not required, so no validation needed
@@ -75,30 +73,26 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
 
       return regex.test(value)
     }),
+
     phone: yup
       .string()
       .nullable()
       .test('valid-phone', 'Enter valid phone number', function (value) {
         if (!value) {
-          return true
+          return true // Allow null or empty values
         }
-        const regex = /^[6-9]\d{9}$/
+        const regex = /^(?:(?:\+91|91|0)?[6-9]\d{9})$/
 
         return regex.test(value)
       }),
 
-    // .matches(
-    //   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/,
-    //   'Enter valid phone number',
-    // )
-    // .max(10, 'Maximum of 10 digits')
-    // .nullable(),
     mobile: yup
       .string()
       .required('Mobile No is required')
-      .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Mobile number')
-      .max(10, 'Maximum of 10 digits'),
-    state_id: yup.string().required('State is required'),
+      .matches(/^(?:(?:\+91|91|0)?[6-9]\d{9})$/, 'Enter a valid 10-digit Mobile number'),
+
+    state_id: yup.string().required('State is Required'),
+
     gst_number: yup
       .string()
       .nullable()
@@ -110,8 +104,6 @@ const AddSupplier = ({ supplierDialog, closeSupplierDialog }) => {
 
         return regex.test(value)
       }),
-
-    // due_balance: yup.string().required('Enter due balance'),
 
     opening_balance: yup.string().nullable(),
     address: yup.string().nullable(),

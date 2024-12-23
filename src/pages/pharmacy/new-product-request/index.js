@@ -18,7 +18,7 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
-import { Button, Card, CardContent, Grid, debounce } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid, TextField, debounce } from '@mui/material'
 
 import {
   addNonExistingProductStatus,
@@ -32,11 +32,16 @@ import Utility from 'src/utility'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import { ProductDetail } from 'src/views/pages/pharmacy/product/product-details'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { useTheme } from '@emotion/react'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 export default function NewProductList() {
+  const theme = useTheme()
+
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [detailsData, setDetailsData] = useState([])
@@ -60,7 +65,14 @@ export default function NewProductList() {
         const toastMessage = id ? 'Product Status Updated Successfully' : 'Unable to Update the Product Status'
         toast.success(toastMessage)
         setShow(false)
-        await fetchTableData({ sort, q: searchValue, column: sortColumn })
+
+        // Trigger table data refresh after status change
+        // Call fetchTableData for 'Pending' tab if the new status is 'Cancelled'
+        if (status === 'Cancelled' || 'Approved' || 'Rejected') {
+          fetchTableData({ sort, q: searchValue, column: sortColumn, status: 'Pending' }) // Refresh pending tab
+        } else {
+          fetchTableData({ sort, q: searchValue, column: sortColumn, status: status })
+        }
       }
     } catch (error) {
       console.log(error)
@@ -70,12 +82,31 @@ export default function NewProductList() {
   const columns = [
     {
       flex: 0.2,
+      Width: 40,
+      field: 'id',
+      headerName: 'S.NO',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.sl_no) + '.'}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
       Width: 10,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params?.row?.request_number}
           </Typography>
         </div>
@@ -88,7 +119,15 @@ export default function NewProductList() {
       headerName: 'From Store',
       renderCell: (params, rowId) => (
         <div>
-          <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params?.row?.from_store_name}
           </Typography>
         </div>
@@ -102,7 +141,15 @@ export default function NewProductList() {
       renderCell: params => (
         <div>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
+            <Typography
+              key={index}
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               {item?.product_name}
             </Typography>
           ))}
@@ -116,18 +163,34 @@ export default function NewProductList() {
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.priority}
         </Typography>
       )
     },
     selectedPharmacy?.type === 'central' && {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 20,
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.requested_user_name}
         </Typography>
       )
@@ -138,11 +201,20 @@ export default function NewProductList() {
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
-      align: 'right',
+      headerAlign: 'left',
+      align: 'left',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params?.row.request_items?.map((item, index) => (
-            <Typography key={index} sx={{ color: 'text.primary', fontSize: '14px' }}>
+            <Typography
+              key={index}
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               {item?.quantity}
             </Typography>
           ))}
@@ -156,7 +228,15 @@ export default function NewProductList() {
       field: 'created_at',
       headerName: 'CREATED Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params?.row?.created_at)}
         </Typography>
       )
@@ -167,7 +247,15 @@ export default function NewProductList() {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', fontSize: '14px' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.status}
         </Typography>
       )
@@ -200,6 +288,7 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
+     
       try {
         setLoading(true)
 
@@ -234,7 +323,7 @@ export default function NewProductList() {
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, status })
     } else {
     }
   }
@@ -243,10 +332,14 @@ export default function NewProductList() {
     <>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton title='Add Product' action={() => router.push('/pharmacy/new-product-request/request-product/')} />
+          <AddButtonContained
+            title='Add Product'
+            action={() => router.push('/pharmacy/new-product-request/request-product/')}
+          />
         )}
     </>
   )
+
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -255,8 +348,10 @@ export default function NewProductList() {
       ) : null}
     </div>
   )
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column, status }) => {
+      debugger
       setSearchValue(q)
       try {
         await fetchTableData({ sort, q, column, status })
@@ -268,6 +363,7 @@ export default function NewProductList() {
   )
 
   const handleSearch = async value => {
+    debugger
     setSearchValue(value)
     if (value === '') {
       await searchTableData({ sort, q: value, column: 'id', status })
@@ -288,6 +384,7 @@ export default function NewProductList() {
   }
 
   const onRowClick = async params => {
+    console.log('Status', params)
     setShow(true)
     setItemId(params.id)
     await getNonExistingProductById(params.id)
@@ -306,44 +403,84 @@ export default function NewProductList() {
     sl_no: getSlNo(index)
   }))
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+        New Product Request List
+      </Typography>
+    </>
+  )
+
   const tableData = () => {
     return (
       <>
         <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader title='New Product Request List' action={headerAction} />
-          <DataGrid
-            sx={{ cursor: 'pointer' }}
-            columnVisibilityModel={{
-              id: false
+          <CardHeader title={title} action={headerAction} />
+
+          <Box display='flex' justifyContent='space-between' alignItems='center'>
+            {/* Left Box (Search Field) */}
+            <Grid item xs={8}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  ml: 5,
+                  height: '40px',
+                  width: '250px' // Set a fixed width for all status
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+          </Box>
+          <Grid
+            sx={{
+              mx: 4
             }}
-            autoHeight
-            pagination
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbar }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            disableColumnMenu
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
-            }}
-            onRowClick={onRowClick}
-          />
+          >
+            <CommonTable
+              onRowClick={onRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
         </Card>
 
         {show && (
@@ -402,6 +539,7 @@ export default function NewProductList() {
       </>
     )
   }
+
   return (
     <>
       {loader ? (
@@ -410,6 +548,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
+              sx={{ ml: 3 }}
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

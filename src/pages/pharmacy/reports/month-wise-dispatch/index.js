@@ -175,17 +175,20 @@ const MonthWiseDispatch = () => {
   const fetchfilterValues = useCallback(async ({ q = '', page = 1 }) => {
     try {
       setisFetching(true)
+
       let params = {
         page,
         limit: 15,
         q
       }
+
       const medicineListResponse = await getMedicineList({
         params
       })
 
       if (medicineListResponse.data && medicineListResponse.data.list_items) {
         const medicineList = medicineListResponse.data.list_items
+
         const allStores = medicineList.map(store => ({
           id: store.id,
           name: store.name
@@ -200,6 +203,7 @@ const MonthWiseDispatch = () => {
             // If search is cleared (q is empty), append the results to the full list
             mergedStores = [...prevStores, ...allStores]
           }
+
           // Remove duplicates based on `id`
           const uniqueStores = mergedStores.filter(
             (store, index, self) => index === self.findIndex(s => s.id === store.id)
@@ -226,6 +230,7 @@ const MonthWiseDispatch = () => {
 
         if (!filtersApplied && selectedFruits.length > 0) {
           setLoading(false)
+
           return
         }
 
@@ -233,6 +238,7 @@ const MonthWiseDispatch = () => {
           payload = {
             //sort,
             q,
+
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
@@ -243,6 +249,7 @@ const MonthWiseDispatch = () => {
           payload = {
             //sort,
             q,
+
             //column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
@@ -385,10 +392,12 @@ const MonthWiseDispatch = () => {
               id: row.stock_id,
               stock_name: row.stock_name,
               control_substance: row.control_substance,
+
               // Iterate over each value in data_values and apply toFixed(2) after converting to number
               ...Object.keys(row.data_values).reduce((acc, key) => {
                 const value = Number(row.data_values[key]) // Convert to number
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
+
                 return acc
               }, {})
             }))
@@ -439,6 +448,7 @@ const MonthWiseDispatch = () => {
 
   const handleStatusFilterChange = newFilter => {
     setStatusFilter(newFilter)
+
     //fetchTableData({ sort, q: searchValue, column: sortColumn, filter: newFilter })
   }
 
@@ -620,6 +630,7 @@ const MonthWiseDispatch = () => {
               rowData[`${column.title} (${column.sub_title})`] = '0' //default text like '0' or 'N/A'
             } else {
               const roundedValue = parseFloat(value)
+
               const formattedValue = roundedValue.toLocaleString('en-IN', {
                 // style: 'currency',
                 // currency: 'INR',
@@ -820,7 +831,6 @@ const MonthWiseDispatch = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
@@ -841,6 +851,7 @@ const MonthWiseDispatch = () => {
                       }
                     }
                   }}
+
                   //onRowClick={handleEdit}
                   // onCellClick={handlecheckcell}
                 />

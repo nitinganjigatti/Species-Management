@@ -226,6 +226,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/masters/driver'
   }
 
+  const variant = {
+    title: 'Variants',
+    path: '/pharmacy/masters/variant'
+  }
+
   const storeList = {
     title: 'Pharmacy List',
     path: '/pharmacy/masters/store-list'
@@ -312,6 +317,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     pharmacyNavigationArray.push(
       dashboard,
+
       //dashboardnew,
       stockReport,
       requestListing,
@@ -347,6 +353,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     settingsParent.children.push(rackList)
     pharmacyNavigationArray.push(
       dashboard,
+
       //dashboardnew,
       requestListing,
       returnListing,
@@ -391,6 +398,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       state,
       driver
     )
+    if (selectedPharmacy?.type === 'central') {
+      mastersParent.children.push(variant)
+    }
     pharmacyNavigationArray.push(mastersParent)
   }
 

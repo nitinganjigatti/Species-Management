@@ -1,0 +1,148 @@
+import { useRouter } from 'next/router'
+import React, { useEffect, useState } from 'react'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { getDispatchItemsByBatchId, getRequestItemsListById } from 'src/lib/api/pharmacy/getRequestItemsList'
+import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+import { Button, Card } from '@mui/material'
+import FallbackSpinner from 'src/@core/components/spinner'
+import Alert from '@mui/material/Alert'
+import AlertTitle from '@mui/material/AlertTitle'
+
+const ShipAllItems = () => {
+  const router = useRouter()
+  const { id, storeDetails } = router.query
+  const { selectedPharmacy } = usePharmacyContext()
+  const [loader, setLoader] = useState(false)
+  const [dispatchedItems, setDispatchedItems] = useState([])
+  const [requestItems, setRequestItems] = useState([])
+  const [permissionView, setPermissionView] = useState(false)
+
+  //   console.log(id, 'idesssss')
+  //   console.log(storeDetails, 'idesssss')
+  //   console.log(dispatchedItems, 'idesssss')
+
+  //   console.log(selectedPharmacy, 'selectedPharmacy')
+
+  const getDispatchedItems = async id => {
+    setLoader(true)
+    const response = await getDispatchItemsByBatchId(id)
+    if (response.success) {
+      var responseData = response?.data
+
+      const data = responseData?.dispatch_items?.map((el, index) => {
+        const items = {
+          sl_no: index + 1,
+          id: index + 1,
+          dispatch_id: el.dispatch_id,
+          dispatch_item_id: el.dispatch_item_id,
+          stock_item_id: el.stock_item_id,
+          request_number: el.request_number,
+          medicin_name: el.medicin_name,
+          unit_price: el.unit_price,
+          mrp_price: el.mrp_price,
+          purchase_price: el.purchase_price,
+          batch_no: el.batch_no,
+          expiry_date: el.expiry_date,
+          dispatch_qty: el.dispatch_qty,
+          dispatch_box_qty: el.dispatch_box_qty,
+          unit_id: el.unit_id,
+          leaf_id: el.leaf_id,
+          leaf_name: el.leaf_name,
+          net_amount: el.net_amount,
+          dispatch_status: el.dispatch_status,
+          description: el.description,
+          stock_qty: el.stock_qty,
+          from_store_name: el.from_store_name,
+          to_store_name: el.to_store_name,
+          total_requested_qty: el.total_requested_qty,
+          total_dispatch_qty: el.total_dispatch_qty,
+          package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
+          manufacture: el?.manufacturer
+        }
+
+        return items
+      })
+      var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
+      responseData['dispatch_items'] = dispatches
+
+      setDispatchedItems(responseData.dispatch_items)
+      setLoader(false)
+    } else {
+      setLoader(false)
+    }
+  }
+
+  const getRequestItemLists = async id => {
+    setLoader(true)
+    const response = await getRequestItemsListById(id)
+    if (response.success) {
+      // console.log('Request', response.data)
+      const responseData = response.data
+
+      const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
+        ...item,
+        sl_no: index + 1
+      }))
+
+      responseData['request_item_details'] = mappedWithUid
+
+      // setRequestItems(response.data)
+      setRequestItems(responseData)
+      setLoader(false)
+      setPermissionView(true)
+    } else {
+      setLoader(false)
+      setPermissionView(false)
+    }
+  }
+
+  const init = async id => {
+    if (id !== undefined) {
+      await getRequestItemLists(id)
+      await getDispatchedItems(id)
+    }
+  }
+
+  useEffect(() => {
+    if (id !== undefined) {
+      init(id)
+    }
+  }, [id, selectedPharmacy.id])
+
+  return (
+    <>
+      {loader ? (
+        <FallbackSpinner />
+      ) : (
+        <Card>
+          {selectedPharmacy?.type === 'central' ? (
+            <ShipRequest
+              dispatchedItems={dispatchedItems}
+              storeDetails={requestItems}
+              close={false}
+              permissionView={permissionView}
+            />
+          ) : (
+            <Alert severity='warning'>
+              <AlertTitle>Warning</AlertTitle>
+              You don't have an access to view this request
+              <Button
+                onClick={() => {
+                  router.back()
+                }}
+                variant='contained'
+                size='small'
+                sx={{ mx: 4 }}
+              >
+                Back to list
+              </Button>
+              {/* <strong>check it out!</strong> */}
+            </Alert>
+          )}
+        </Card>
+      )}
+    </>
+  )
+}
+
+export default ShipAllItems

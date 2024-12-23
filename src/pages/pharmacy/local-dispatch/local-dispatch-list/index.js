@@ -15,26 +15,25 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
+import { useTheme } from '@emotion/react'
 
-// ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material'
 import { useRouter } from 'next/router'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
-
 import Utility from 'src/utility'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const DirectDispatchList = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
-  /***** Server side pagination */
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
 
@@ -57,10 +56,6 @@ const DirectDispatchList = () => {
 
   const [status, setStatus] = useState(router.query.status || 'pending')
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -109,11 +104,6 @@ const DirectDispatchList = () => {
     [paginationModel]
   )
 
-  // useEffect(() => {
-  //   // setStatus(selectedPharmacy?.type === 'central' ? 'pending' : 'shipped')
-  //   setPaginationModel({ page: 0, pageSize: 10 })
-  // }, [selectedPharmacy])
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -123,12 +113,18 @@ const DirectDispatchList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const currentStatus = filterSwitch ? 'completed' : status
-
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
-    } else {
+      fetchTableData(sort, searchValue, sortColumn, status)
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        status: status,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize,
+        filterSwitch
+      })
     }
   }
 
@@ -136,9 +132,18 @@ const DirectDispatchList = () => {
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
       const currentStatus = filterSwitch ? 'completed' : status
-
+      setPaginationModel({ page: 0, pageSize: 10 })
       try {
         await fetchTableData(sort, q, column, currentStatus)
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          status: currentStatus,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          filterSwitch
+        })
       } catch (error) {
         console.error(error)
       }
@@ -148,6 +153,7 @@ const DirectDispatchList = () => {
 
   const handleSwitchChange = event => {
     setTotal(0)
+    setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 10 })
     setFilterSwitch(prev => event.target.checked)
     if (event.target.checked === false) {
@@ -163,11 +169,11 @@ const DirectDispatchList = () => {
     })
   }
   useEffect(() => {
-    const currentStatus = filterSwitch === true ? 'completed' : status
-
+    const currentStatus = filterSwitch ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
 
     fetchTableData(sort, searchValue, sortColumn, tabStatus)
+
     updateUrlParams({
       sort,
       q: searchValue,
@@ -177,8 +183,7 @@ const DirectDispatchList = () => {
       limit: paginationModel.pageSize,
       filterSwitch
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch, selectedPharmacy.id])
+  }, [filterSwitch, status, paginationModel.page, paginationModel.pageSize])
 
   const onRowClick = params => {
     var data = params.row
@@ -205,14 +210,21 @@ const DirectDispatchList = () => {
     </div>
   )
 
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   searchTableData(sort, value, 'request_number', status)
+  // }
+
   const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
+    setSearchValue(value) // Update search value state
+    searchTableData(sort, value, sortColumn, status)
+
+    // setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }) / Reset pagination to the first page
   }
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       Width: 40,
       field: 'id',
       headerName: 'SL No',
@@ -229,29 +241,54 @@ const DirectDispatchList = () => {
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_number}
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Dispatched date',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Dispatched date',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
       field: 'to_store',
       headerName: 'Dispatched To',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.to_store}
         </Typography>
       )
@@ -274,9 +311,18 @@ const DirectDispatchList = () => {
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
-      align: 'right',
+      headerAlign: 'left',
+      align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.total_qty}
         </Typography>
       )
@@ -288,7 +334,15 @@ const DirectDispatchList = () => {
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params.row.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
@@ -301,7 +355,7 @@ const DirectDispatchList = () => {
                   <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  {/* added for partial shipping */}
+                  {/ added for partial shipping /}
                   <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                 </Box>
               </>
@@ -335,7 +389,15 @@ const DirectDispatchList = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
@@ -380,6 +442,14 @@ const DirectDispatchList = () => {
     </div>
   )
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+        Local Dispatch List
+      </Typography>
+    </>
+  )
+
   const tableData = () => {
     return (
       <>
@@ -388,58 +458,83 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={'Local Dispatch List'} action={headerAction} />
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
+              <CardHeader title={title} action={headerAction} />
+              <Box
+                sx={{
+                  display: 'flex', // Makes child elements align in a row
+                  justifyContent: 'space-between', // Adjusts spacing between the components
+                  alignItems: 'center', // Vertically aligns components
+                  width: '100%', // Ensure the container spans full width
+                  padding: '8px' // Optional: Adds some padding
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px'
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
                   />
                 </Box>
-              ) : null}
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
+                {status === 'all' || status === 'completed' ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      marginLeft: 'auto' // Push the switch to the far-right
+                    }}
+                  >
+                    <FormControlLabel
+                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                    />
+                  </Box>
+                ) : null}
+              </Box>
+
+              <Grid
+                sx={{
+                  mx: 4
                 }}
-                columnVisibilityModel={{
-                  id: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onRowClick={onRowClick}
-              />
+              >
+                <CommonTable
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
+              </Grid>
             </Card>
           </>
         )}
@@ -469,7 +564,7 @@ const DirectDispatchList = () => {
               value='cancel'
               label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
             />
-            {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}
+            {/* {/ <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> /} */}
             <Tab
               value={'all' ? 'all' : 'completed'}
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
@@ -481,7 +576,7 @@ const DirectDispatchList = () => {
           <TabPanel value='disputed'>{tableData()}</TabPanel>
           <TabPanel value='cancel'>{tableData()}</TabPanel>
 
-          {/* <TabPanel value='all'>{tableData()}</TabPanel> */}
+          {/* {/ <TabPanel value='all'>{tableData()} */}
           {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
           {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
         </TabContext>

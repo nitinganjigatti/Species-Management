@@ -12,11 +12,16 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
-import { Tooltip } from '@mui/material'
+import { TextField, Tooltip } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 import Grid from '@mui/material/Grid'
+import { useTheme } from '@emotion/react'
+
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const ExpiringMedicine = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -26,6 +31,7 @@ const ExpiringMedicine = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
+  const [searchTriggered, setSearchTriggered] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
@@ -43,8 +49,43 @@ const ExpiringMedicine = () => {
 
   const { selectedPharmacy } = usePharmacyContext()
 
+  // const fetchTableData = useCallback(
+  //   async (sort, q, column, startDate, endDate, id) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         q,
+  //         column,
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize,
+  //         pending_days_start: startDate ? startDate : filterDates?.startDate,
+  //         pending_days_end: endDate ? endDate : filterDates?.endDate
+  //       }
+  //       await aboutExpiringProduct(id, params).then(res => {
+  //         if (res?.data?.length > 0) {
+  //           setTotal(parseInt(res?.count))
+  //           setRows(loadServerRows(paginationModel.page, res?.data))
+  //         } else {
+  //           setTotal(0)
+  //           setRows([])
+  //         }
+  //       })
+  //       setLoading(false)
+  //     } catch (error) {
+  //       console.log('error', error)
+  //       setTotal(0)
+  //       setRows([])
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
   const fetchTableData = useCallback(
     async (sort, q, column, startDate, endDate, id) => {
+      if (!searchTriggered && q) return // Prevent searching unless explicitly triggered
       try {
         setLoading(true)
 
@@ -54,28 +95,29 @@ const ExpiringMedicine = () => {
           column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          pending_days_start: startDate ? startDate : filterDates?.startDate,
-          pending_days_end: endDate ? endDate : filterDates?.endDate
+          pending_days_start: startDate || filterDates?.startDate,
+          pending_days_end: endDate || filterDates?.endDate
         }
-        await aboutExpiringProduct(id, params).then(res => {
-          if (res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
-          } else {
-            setTotal(0)
-            setRows([])
-          }
-        })
+
+        const res = await aboutExpiringProduct(id, params)
+        if (res?.data?.length > 0) {
+          setTotal(parseInt(res?.count))
+          setRows(loadServerRows(paginationModel.page, res?.data))
+        } else {
+          setTotal(0)
+          setRows([])
+        }
         setLoading(false)
       } catch (error) {
-        console.log('error', error)
+        console.error('Error fetching table data:', error)
         setTotal(0)
         setRows([])
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, filterDates, searchTriggered]
   )
+
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,6 +130,22 @@ const ExpiringMedicine = () => {
     id: getSlNo(index)
   }))
 
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(
+  //       newModel[0].sort,
+  //       searchValue,
+  //       newModel[0].field,
+  //       filterDates.startDate,
+  //       filterDates.endDate,
+  //       selectedPharmacy.id
+  //     )
+  //   } else {
+  //   }
+  // }
+
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
@@ -96,30 +154,47 @@ const ExpiringMedicine = () => {
         newModel[0].sort,
         searchValue,
         newModel[0].field,
-        filterDates.startDate,
-        filterDates.endDate,
-        selectedPharmacy.id
+        filterDates?.startDate,
+        filterDates?.endDate,
+        selectedPharmacy?.id
       )
-    } else {
     }
   }
 
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(sort, q, column, filterDates?.startDate, filterDates?.endDate, selectedPharmacy.id)
-      } catch (error) {
-        console.error(error)
-      }
+  const debouncedSearch = useCallback(
+    debounce(value => {
+      setSearchTriggered(true) // Trigger the search explicitly
+      fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
     }, 1000),
-    []
+    [fetchTableData, sort, sortColumn, filterDates, selectedPharmacy]
   )
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    setSearchTriggered(false) // Ensure no search is triggered while typing
+    setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
+
+    if (value.trim()) {
+      debouncedSearch(value) // Trigger the debounced search
+    }
   }
+
+  // const searchTableData = useCallback(
+  //   debounce(async (sort, q, column, startDate, endDate, id) => {
+  //     try {
+  //       await fetchTableData(sort, q, column, startDate, endDate, id)
+  //     } catch (error) {
+  //       console.error('Error in searchTableData:', error)
+  //     }
+  //   }, 1000),
+  //   [] // Include fetchTableData as a dependency
+  // )
+
+  // const handleSearch = value => {
+  //   setSearchValue(value)
+  //   setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
+  //   searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
+  // }
 
   const filterByDays = days => {
     const currentDate = new Date()
@@ -158,18 +233,18 @@ const ExpiringMedicine = () => {
   }
 
   const columns = [
-    {
-      flex: 0.05,
-      Width: 40,
-      alignItems: 'right',
-      field: 'id',
-      headerName: 'SL',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.1,
+    //   Width: 40,
+    //   alignItems: 'right',
+    //   field: 'id',
+    //   headerName: 'SL',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.id + '.'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
@@ -177,7 +252,15 @@ const ExpiringMedicine = () => {
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_items_name}
           </Typography>
         </Tooltip>
@@ -189,7 +272,15 @@ const ExpiringMedicine = () => {
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -212,7 +303,15 @@ const ExpiringMedicine = () => {
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
@@ -224,9 +323,18 @@ const ExpiringMedicine = () => {
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -290,6 +398,14 @@ const ExpiringMedicine = () => {
     return <FallbackSpinner />
   }
 
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>About To Expire</Typography>
+    </>
+  )
+
+  console.log('Rows >', rows)
+
   return (
     <>
       {loader ? (
@@ -298,7 +414,7 @@ const ExpiringMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='About To Expire'
+              title={title}
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton
@@ -312,7 +428,141 @@ const ExpiringMedicine = () => {
                 </Box>
               }
             />
-            <Grid container sx={{ display: 'flex' }}>
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+
+              {/* Group of two boxes on the right */}
+              <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+                {/* {selectedPharmacy.type === 'central' && (
+                  <Grid
+                    item
+                    sx={{
+                      width: '245px',
+                      height: '50px', // Increased height
+                      borderRadius: '8px',
+                      paddingLeft: '12px',
+                      paddingRight: '12px'
+                    }}
+                  >
+                    <FormControl fullWidth size='small'>
+                      <InputLabel>Filter by Stores</InputLabel>
+                      <Select
+                        fullWidth
+                        size='small'
+                        value={filterByStoreId}
+                        label='Filter by Stores'
+                        onChange={e => {
+                          setTotal(0)
+                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setFilterByStoreId(e.target.value)
+                        }}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        {stores.length > 0 &&
+                          stores.map(store => (
+                            <MenuItem key={store?.id} value={store?.id}>
+                              {store?.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )} */}
+
+                <Grid
+                  item
+                  sx={{
+                    width: '245px',
+                    height: '50px', // Increased height
+                    borderRadius: '8px',
+                    paddingLeft: '12px',
+                    paddingRight: '12px',
+                    mr: 1
+                  }}
+                >
+                  <FormControl fullWidth size='small'>
+                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                    <Select
+                      size='small'
+                      value={selectDays}
+                      label='Filter by days'
+                      onChange={e => {
+                        filterByDays(e.target.value)
+                        setSelectDays(e.target.value)
+                      }}
+                    >
+                      <MenuItem value='7'>7 Days</MenuItem>
+                      <MenuItem value='15'>7 to 15 Days </MenuItem>
+                      <MenuItem value='30'>15 to 30 Days</MenuItem>
+                      <MenuItem value='60'>30 to 60 Days</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+              {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                {status === 'all' || status === 'completed' ? (
+                  <Box sx={{ float: 'right', mt: 1 }}>
+                    <FormControlLabel
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                    />
+                  </Box>
+                ) : null}
+              </Grid> */}
+            </Box>
+
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <CommonTable
+                onRowClick={''}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+
+            {/* <Grid container sx={{ display: 'flex' }}>
               <Grid item xs={12} sm={3} md={3} sx={{ ml: 4 }}>
                 <FormControl fullWidth size='small'>
                   <InputLabel id='demo-simple-select-label'>Filter by days</InputLabel>
@@ -332,8 +582,8 @@ const ExpiringMedicine = () => {
                   </Select>
                 </FormControl>
               </Grid>
-            </Grid>
-            <DataGrid
+            </Grid> */}
+            {/* <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -375,7 +625,7 @@ const ExpiringMedicine = () => {
               }}
 
               // onRowClick={onRowClick}
-            />
+            /> */}
           </Card>
         </>
       )}

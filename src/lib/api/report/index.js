@@ -27,7 +27,6 @@ export async function getReportList() {
 
 export async function getReportFilterList(params) {
   const response = await axiosGet({ url: `${SPECIES_REPORT}`, params })
-
   return response.data
 }
 
@@ -35,3 +34,13 @@ export async function getAnimalReport(params) {
   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
   return response.data
 }
+
+// export async function getMortalityList(params) {
+//   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
+//   return response.data
+// }
+
+// export async function getTransferList(params) {
+//   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
+//   return response.data
+// }

@@ -6,6 +6,8 @@ import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
+import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -33,28 +35,36 @@ const Img = styled('img')(({ theme }) => ({
   }
 }))
 
-const Error401 = () => {
+const Error404 = () => {
+  const theme = useTheme()
+  const router = useRouter()
+
   return (
-    <Box className='content-center'>
-      <Box sx={{ p: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <BoxWrapper>
-          <Typography variant='h1' sx={{ mb: 2.5 }}>
-            401
-          </Typography>
-          <Typography variant='h5' sx={{ mb: 2.5, fontSize: '1.5rem !important' }}>
-            You are not authorized! 🔐
-          </Typography>
-          <Typography variant='body2'>You don&prime;t have permission to access this page. Go Home!</Typography>
-        </BoxWrapper>
-        <Img alt='error-illustration' src='/images/pages/401.png' />
-        <Button href='/' component={Link} variant='contained' sx={{ px: 5.5 }}>
-          Back to Home
-        </Button>
-      </Box>
-      <FooterIllustrations image='/images/pages/misc-401-object.png' />
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+      <Img alt='error-illustration' src='/images/pages/warning.png' sx={{ mb: 5 }} />
+
+      <Typography
+        variant='h5'
+        sx={{
+          mb: 2.5,
+          fontSize: '24px',
+          fontFamily: 'Inter',
+          fontWeight: 600,
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
+        Permission Denied!
+      </Typography>
+      <Typography variant='body2' sx={{ fontSize: '16px', fontFamily: 'Inter', fontWeight: 400, mb: 2 }}>
+        You don’t have access to view this request.
+      </Typography>
+      <Button onClick={() => router.back()} variant='contained' sx={{ px: 5.5, mt: 2 }}>
+        Go Back
+      </Button>
     </Box>
   )
 }
-Error401.getLayout = page => <BlankLayout>{page}</BlankLayout>
 
-export default Error401
+Error404.getLayout = page => <BlankLayout>{page}</BlankLayout>
+
+export default Error404

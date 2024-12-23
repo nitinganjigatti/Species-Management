@@ -95,10 +95,24 @@ const UserThemeOptions = () => {
         // *** name required
         customTableHeaderBg: '#C1D3D0',
 
+        customTableBorderBg: '#DAE7DF',
+        customDropdownColor: '#FA6140',
+
         // **
         moderateSecondary: '#E4B819',
         neutral_50: '#00000066',
-        Tertiary: '#FA6140'
+        Tertiary: '#FA6140',
+        neutralPrimary: '#000000',
+        OnPrimaryContainer: '#1F515B',
+        TertiaryContainer: '#FFBDA8',
+        OutlineVariant: '#C3CEC7',
+        OnPrimarycontainer10: '#1F515B0D',
+        Notes: '#FCF4AE33', //opacity: '20%',
+        Background: '#EFF5F2',
+        SecondaryDark: '#00ABAB',
+        SecondaryContainer: '#AFEFEB',
+        Error: '#E93353',
+        addPrimary: '#00AFD6'
       },
       primary: {
         // light: '#20DE67',

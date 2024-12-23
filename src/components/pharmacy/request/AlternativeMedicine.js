@@ -16,9 +16,10 @@ import Avatar from '@mui/material/Avatar'
 import { Button, Tooltip } from '@mui/material'
 import { CardContent, Card } from '@mui/material'
 import Divider from '@mui/material/Divider'
+import Image from 'next/image'
 
 // ** React Imports
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { debounce } from 'lodash'
 
 import { getMedicineList, getGenericMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
@@ -29,6 +30,9 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import CustomChip from 'src/@core/components/mui/chip'
+import RenderUtility from 'src/utility/render'
+import IconButton from '@mui/material/IconButton'
+import { useTheme } from '@emotion/react'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -49,6 +53,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
     request_alt_parent_id: parentId?.request_item_id,
     availAbleQty: ''
   }
+  const theme = useTheme()
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [itemErrors, setItemErrors] = useState({})
@@ -56,6 +61,13 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
   const [submitLoader, setSubmitLoader] = useState(false)
   const [tabStatus, setTabStatus] = useState('By product')
   const [existingMedicinesList, setExistingMedicinesList] = useState([])
+
+  // for handle file upload input filed
+  const fileInputRef = useRef(null)
+
+  const handleClick = () => {
+    fileInputRef.current.click()
+  }
 
   const validate = values => {
     const itemErrors = {}
@@ -285,8 +297,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         sx={{
           mb: 10,
           width: '100%',
-          backgroundColor: 'customColors.lightBg',
-          border: '1px solid #00D6C9',
+          backgroundColor: 'customColors.Surface',
+          // border: '1px solid #00D6C9',
+          border: `0.5px solid ${theme.palette.customColors.Secondary}`,
           boxShadow: 'none !important'
         }}
       >
@@ -295,9 +308,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             <Grid
               item
               xs={12}
-              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
+              sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.Surface' }}
             >
-              <Typography sx={{ color: 'customColors.textLabel' }}>
+              <Typography sx={{ color: 'customColors.SecondaryDark' }}>
                 Product Name: <strong>{parentId?.product}</strong>
               </Typography>
               <Typography>
@@ -317,7 +330,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By product' ? '5px solid' : '',
-              color: 'primary.main',
+
+              // color: 'primary.main',
+              color: tabStatus === 'By product' ? 'primary.main' : 'customColors.OnSurfaceVariant',
               padding: '8px 16px'
             }}
           >
@@ -329,7 +344,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             sx={{
               cursor: 'pointer',
               borderBottom: tabStatus === 'By generic' ? '5px solid' : '',
-              color: 'primary.main',
+
+              // color: 'primary.main',
+              color: tabStatus === 'By generic' ? 'primary.main' : 'customColors.OnSurfaceVariant',
               padding: '8px 16px'
             }}
           >
@@ -363,6 +380,19 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
                       )}
+                      {/* <Typography
+                        sx={{
+                          color: 'customColors.OnSecondaryContainer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
+                      >
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
+                        {option.name}({option.package})
+                      </Typography> */}
                     </Box>
                   </li>
                 )}
@@ -460,6 +490,19 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
                       )}
+                      {/* <Typography
+                        sx={{
+                          color: 'customColors.OnSecondaryContainer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
+                      >
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
+                        {option.name}({option.package})
+                      </Typography> */}
                     </Box>
                   </li>
                 )}
@@ -540,27 +583,30 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         {nestedRowMedicine?.medicine_name && (
           <Box
             sx={{
-              backgroundColor: '#F2FFF8', // Light green background
+              backgroundColor: 'customColors.Surface', // Light green background
               padding: '16px',
               borderRadius: '8px',
-              border: '0.5px solid #37BD69',
+              // border: '0.5px solid #37BD69',
+              border: `0.5px solid ${theme.palette.primary.main}`,
               borderRadius: '8px'
             }}
           >
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
               Available Packing:{' '}
-              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>{nestedRowMedicine?.package}</span>
+              <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
+                {nestedRowMedicine?.package}
+              </span>
             </Typography>
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
               Manufactured by:{' '}
-              <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+              <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                 {nestedRowMedicine?.manufacture}
               </span>
             </Typography>
             {nestedRowMedicine?.availAbleQty && (
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}>
                 Availability:{' '}
-                <span style={{ fontWeight: 400, fontSize: '12px', color: '#1F515B' }}>
+                <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                   {nestedRowMedicine?.availAbleQty}
                 </span>
               </Typography>
@@ -591,17 +637,31 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               <Box sx={{ mx: 1, my: 2, display: 'flex', gap: 2 }}>
                 <Chip
                   label={`Unit Price - ${nestedRowMedicine.unit_price}`}
-                  color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
+                  sx={{
+                    mr: 2,
+                    fontSize: 12,
+                    height: '32px',
+                    borderRadius: '16px',
+                    backgroundColor: 'customColors.Surface',
+                    color: 'customColors.OnSurfaceVariant',
+                    border: `0.5px solid ${theme.palette.primary.main} !important`
+                  }}
                 />
                 <Chip
                   label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
-                  color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 12, height: '32px', borderRadius: '16px' }}
+                  sx={{
+                    mr: 2,
+                    fontSize: 12,
+                    height: '32px',
+                    borderRadius: '16px',
+                    backgroundColor: 'customColors.Surface',
+                    color: 'customColors.OnSurfaceVariant',
+                    border: `0.5px solid ${theme.palette.primary.main} !important`
+                  }}
                 />
               </Box>
             ) : null}
@@ -744,7 +804,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             </Grid>
           )
         ) : null} */}
-        {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
+        {/* {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
             <Grid item xs={12} sm={12}>
               {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
@@ -829,6 +889,287 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     }
                   }}
                 />
+                {itemErrors?.prescription_required_file && (
+                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                    {itemErrors?.prescription_required_file}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+          )
+        ) : null} */}
+        {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
+          nestedRowMedicine.prescription_required_file ? (
+            <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
+              <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
+                Add prescription*
+              </Typography>
+
+              {nestedRowMedicine.prescription_required_file?.type === 'application/pdf' ? (
+                <Chip
+                  sx={{
+                    backgroundColor: 'customColors.lightBg',
+                    height: '56px',
+                    color: 'customColors.neutralSecondary',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '400',
+                    position: 'relative'
+                  }}
+                  label={
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: '400',
+                        padding: '5px',
+                        display: 'flex',
+                        gap: '6px'
+                      }}
+                    >
+                      <Icon
+                        icon='material-symbols:description-outline'
+                        width='16'
+                        style={{ color: 'customColors.neutralSecondary' }}
+                        // color='#7A8684'
+                        height='20'
+                      />
+                      {nestedRowMedicine.prescription_required_file?.name}
+                    </Typography>
+                  }
+                  color='secondary'
+                  onDelete={() => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+
+                      // control_substance: false,
+                      prescription_required_file: ''
+                    })
+                  }}
+                  deleteIcon={
+                    <Icon
+                      icon='mdi:close-box'
+                      width='24'
+                      // color='#7A8684'
+                      height='24'
+                      style={{
+                        position: 'absolute',
+                        top: '-6px',
+                        right: '-9px',
+                        color: 'customColors.neutralSecondary'
+                      }}
+                    />
+                  }
+                />
+              ) : nestedRowMedicine.prescription_required_file?.type === 'image/png' ||
+                nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
+                <>
+                  <Chip
+                    sx={{
+                      backgroundColor: 'customColors.lightBg',
+                      height: '56px',
+                      color: 'customColors.neutralSecondary',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      position: 'relative'
+                    }}
+                    label={
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          color: 'customColors.neutralSecondary',
+                          fontWeight: '400',
+                          padding: '5px',
+                          display: 'flex',
+                          gap: '6px'
+                        }}
+                      >
+                        <Image
+                          width={16}
+                          style={{ color: 'customColors.neutralSecondary' }}
+                          // color='#7A8684'
+                          height={20}
+                          alt={nestedRowMedicine.prescription_required_file?.name}
+                          src={
+                            nestedRowMedicine.prescription_required_file
+                              ? URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                              : ''
+                          }
+                        />
+
+                        {nestedRowMedicine.prescription_required_file?.name}
+                      </Typography>
+                    }
+                    onDelete={() => {
+                      setNestedRowMedicine({
+                        ...nestedRowMedicine,
+
+                        // control_substance: false,
+                        prescription_required_file: ''
+                      })
+                    }}
+                    deleteIcon={
+                      <Icon
+                        icon='mdi:close-box'
+                        width='24'
+                        // color='#7A8684'
+
+                        height='24'
+                        style={{
+                          position: 'absolute',
+                          top: '-6px',
+                          right: '-9px',
+                          color: 'customColors.neutralSecondary'
+                        }}
+                      />
+                    }
+                  />
+                </>
+              ) : (
+                <Chip
+                  sx={{
+                    backgroundColor: 'customColors.lightBg',
+                    height: '56px',
+                    color: 'customColors.neutralSecondary',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '400',
+                    position: 'relative'
+                  }}
+                  label={
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: '400',
+                        padding: '5px',
+                        display: 'flex',
+                        gap: '6px',
+                        maxWidth: '200px'
+                      }}
+                    >
+                      <img
+                        width={16}
+                        // color='#7A8684'
+                        style={{ color: 'customColors.neutralSecondary' }}
+                        height={20}
+                        alt={nestedRowMedicine.prescription_required_file?.name}
+                        src={nestedRowMedicine.prescription_required_file}
+                      />
+
+                      {nestedRowMedicine.prescription_required_file}
+                    </Typography>
+                  }
+                  onDelete={() => {
+                    setNestedRowMedicine({
+                      ...nestedRowMedicine,
+
+                      // control_substance: false,
+                      prescription_required_file: ''
+                    })
+                  }}
+                  deleteIcon={
+                    <Icon
+                      icon='mdi:close-box'
+                      width='24'
+                      // color='#7A8684'
+
+                      height='24'
+                      style={{
+                        position: 'absolute',
+                        top: '-6px',
+                        right: '-9px',
+                        color: 'customColors.neutralSecondary'
+                      }}
+                    />
+                  }
+                />
+              )}
+            </Grid>
+          ) : (
+            <Grid item xs={12} sm={12}>
+              <Typography sx={{ mb: 2 }}>Add prescription*</Typography>
+              {/* <FormControl fullWidth>
+                  <TextField
+                    type='file'
+                    aria-hidden
+                    accept='.pdf, .jpeg, .jpg, .png'
+                    error={Boolean(itemErrors.prescription_required_file)}
+                    onChange={e => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                      if (allowedTypes.includes(file.type)) {
+                        setNestedRowMedicine(prevState => ({
+                          ...prevState,
+                          prescription_required_file: file
+                        }))
+                        setItemErrors({})
+                      } else {
+                        setItemErrors({
+                          prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                        })
+                        e.target.value = ''
+                      }
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <IconButton component='label' htmlFor='file-upload'>
+                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                        </IconButton>
+                      )
+                    }}
+                  />
+
+                  {itemErrors?.prescription_required_file && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      {itemErrors?.prescription_required_file}
+                    </FormHelperText>
+                  )}
+                </FormControl> */}
+              <FormControl fullWidth>
+                <input
+                  type='file'
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept='.pdf, .jpeg, .jpg, .png'
+                  error={Boolean(itemErrors.prescription_required_file)}
+                  onChange={e => {
+                    const file = e.target.files[0]
+                    if (!file) return
+                    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+                    if (allowedTypes.includes(file.type)) {
+                      setNestedRowMedicine(prevState => ({
+                        ...prevState,
+                        prescription_required_file: file
+                      }))
+                      setItemErrors({})
+                    } else {
+                      setItemErrors({
+                        prescription_required_file: 'File type not allowed. Please upload a PDF, JPEG, or PNG.'
+                      })
+                      e.target.value = ''
+                    }
+                  }}
+                />
+
+                <TextField
+                  onClick={handleClick}
+                  placeholder='Add Prescription *'
+                  InputProps={{
+                    readOnly: true,
+
+                    startAdornment: (
+                      <IconButton component='label' htmlFor='file-upload'>
+                        <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                      </IconButton>
+                    )
+                  }}
+                  error={Boolean(itemErrors.prescription_required_file)}
+                  readOnly
+                />
+
                 {itemErrors?.prescription_required_file && (
                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
                     {itemErrors?.prescription_required_file}

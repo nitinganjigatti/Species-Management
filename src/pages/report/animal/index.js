@@ -55,6 +55,7 @@ const Animal = () => {
   const jsonToCsv = jsonData => {
     if (!jsonData || jsonData.length === 0) return 'No data available'
 
+    // Extract keys from the first object to use as headers
     const keys = Object.keys(jsonData[0])
     const header = keys.join(',')
 
@@ -67,6 +68,7 @@ const Animal = () => {
 
   const downloadNewCSVFile = csvContent => {
     try {
+      // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
       const url = csvContent
       const link = document.createElement('a')
       link.href = url
@@ -218,6 +220,7 @@ const Animal = () => {
       {reports_module ? (
         <Card>
           <CardHeader title='Animal Report' sx={{ mb: '16px' }} />
+
           <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', px: '16px', mb: '16px' }}>
             <Box display={{ display: 'flex', gap: 6 }}>
               <FormControl fullWidth>

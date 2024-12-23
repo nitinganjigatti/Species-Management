@@ -1,25 +1,46 @@
-import { Card, CardHeader, Grid, Typography } from '@mui/material'
+import { Card, CardHeader, Grid, TextField, Typography } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import Router from 'next/router'
 import { debounce } from 'lodash'
-
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { getScrewList } from 'src/lib/api/pharmacy/escrow'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { Box } from '@mui/system'
+import Icon from 'src/@core/components/icon'
+import { useRouter } from 'next/router'
 
-function Escrow() {
+import { useTheme } from '@emotion/react'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+
+function Escrow({ value }) {
+  const router = useRouter()
+  console.log('Value >>', value)
+
+  const theme = useTheme()
+
+  // const { type } = Router.query
+
   const [loader, setLoader] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
+
+  // const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [sortColumn, setSortColumn] = useState(router.query.sortColumn || 'name')
   const [total, setTotal] = useState(0)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [stockType, setStockType] = useState('dispute')
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page, 10) - 1 || 0,
+    pageSize: parseInt(router.query.pageSize, 10) || 10
+  })
+
+  // const [stockType, setStockType] = useState( 'dispute')
+  const [stockType, setStockType] = useState(router.query.stockType || 'dispute')
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -30,7 +51,10 @@ function Escrow() {
     if (data?.request_number?.startsWith('RES')) {
       Router.push({
         pathname: `/pharmacy/request/${data?.request_id}`,
-        query: { id: data.request_id, request_number: data.request_number }
+        query: {
+          id: data.request_id,
+          request_number: data.request_number
+        }
       })
     } else if (data?.request_number?.startsWith('DD')) {
       Router.push({
@@ -47,89 +71,163 @@ function Escrow() {
 
   const columns = [
     {
-      flex: 0.2,
       minWidth: 20,
       field: 'request_id',
       headerName: 'Request Id',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_id}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_number}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'from_store',
       headerName: 'From Store',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.from_store}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.quantity}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'to_store',
       headerName: 'To Store',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.to_store}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 200,
+      field: 'stock_name',
+      headerName: 'Product Name',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.stock_name}
+        </Typography>
+      )
+    },
+    {
+      width: 160,
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
       field: 'status',
-      headerName: 'Stock Related To ',
+      headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params?.row?.status === 'Dispatched' ? 'Transit' : 'Dispute'}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
       field: 'no_of_days_exist',
       headerName: 'Exist from',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.no_of_days_exist === '0'
             ? 'Today'
             : params.row.no_of_days_exist === null
@@ -142,49 +240,93 @@ function Escrow() {
     // no_of_days_exist
   ]
 
-  const fetchScrewTableData = useCallback(
-    async ({ sort, q, column, type }) => {
-      try {
-        setLoading(true)
+  const fetchScrewTableData = useCallback(async ({ sort, searchValue, column, type, page, pageSize }) => {
+    try {
+      setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          type
-        }
-        await getScrewList({ params: params }).then(res => {
-          if (res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
-          } else {
-            setTotal(0)
-            setRows([])
-          }
-        })
-        setLoading(false)
-      } catch (e) {
+      const params = {
+        sort,
+        q: searchValue, // Correctly map `searchValue` to `q`
+        column,
+        page: page + 1, // 1-based page index for API
+        limit: pageSize,
+        type
+      }
+
+      const res = await getScrewList({ params })
+
+      if (res?.data?.length > 0) {
+        setTotal(parseInt(res?.count, 10))
+        setRows(loadServerRows(page, res?.data))
+      } else {
         setTotal(0)
         setRows([])
-        console.log(e)
-        setLoading(false)
       }
-    },
-    [paginationModel]
-  )
+    } catch (e) {
+      setTotal(0)
+      setRows([])
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type: stockType })
-  }, [fetchScrewTableData, selectedPharmacy.id])
+    fetchScrewTableData({
+      sort,
+      searchValue,
+      column: sortColumn,
+      type: stockType,
+      page: paginationModel.page,
+      pageSize: paginationModel.pageSize
+    })
+  }, [sort, searchValue, sortColumn, stockType, paginationModel.page, paginationModel.pageSize])
 
-  const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
-    } else {
-    }
-  }
+  useEffect(() => {
+    router.replace({
+      pathname: router.pathname,
+      query: {
+        ...router.query,
+        stockType,
+        value,
+        page: paginationModel.page + 1, // Convert back to 1-indexed
+        pageSize: paginationModel.pageSize,
+        searchValue,
+        sort,
+        sortColumn
+      }
+    })
+  }, [stockType, paginationModel.page, paginationModel.pageSize, searchValue, sort, sortColumn])
+
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+  //     setPaginationModel(prevModel => ({
+  //       ...prevModel,
+  //       page: 0
+  //     }))
+
+  //     router.replace({
+  //       pathname: router.pathname,
+  //       query: {
+  //         ...router.query,
+  //         searchValue: value,
+  //         page: 1 // Update to 1-indexed for the URL
+  //       }
+  //     })
+  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+  //   [router]
+  // )
+
+  // const handleSortModel = useCallback(newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+
+  //     // Reset to the first page (0) on new sort
+  //   }
+  // }, [])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -193,28 +335,75 @@ function Escrow() {
     sl_no: getSlNo(index)
   }))
 
-  const filterByStockType = type => {
-    if (type === 'all') {
-      fetchScrewTableData({ sort, q: searchValue, column: sortColumn })
-    } else {
-      fetchScrewTableData({ sort, q: searchValue, column: sortColumn, type })
-    }
-  }
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await fetchScrewTableData(sort, q, column)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
+  const filterByStockType = useCallback(type => {
+    setStockType(type)
+  }, [])
+
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+
+  //     // Reset to the first page (0) on new search
+  //     setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
+  //   }, 500),
+  //   []
+  // )
+  // const handleSearch = useCallback(
+  //   debounce(value => {
+  //     setSearchValue(value)
+
+  //     // Reset to the first page (page 0 in your `paginationModel`)
+  //     setPaginationModel(prevModel => ({
+  //       ...prevModel,
+  //       page: 0
+  //     }))
+
+  //     // Update the URL query parameters
+  //     router.replace({
+  //       pathname: router.pathname,
+  //       query: {
+  //         ...router.query,
+  //         searchValue: value,
+  //         page: 1 // Update to 1-indexed for the URL
+  //       }
+  //     })
+  //   }, 300), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+  //   [router]
+  // )
+
+  const handleSearch = useCallback(
+    debounce(value => {
+      setSearchValue(value)
+      setPaginationModel(prevModel => ({
+        ...prevModel,
+        page: 0
+      }))
+
+      router.replace({
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          searchValue: value,
+          page: 1 // Update to 1-indexed for the URL
+        }
+      })
+    }, 40), // Adjust debounce delay to a reasonable value (e.g., 300ms)
+    [router]
   )
-  const handleSearch = async value => {
-    setSearchValue(value)
-    await searchTableData({ sort, q: value, column: sortColumn })
-  }
+
+  const handleSortModel = useCallback(newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 })) // Reset to the first page
+    }
+  }, [])
+
+  const title = (
+    <>
+      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Escrow List</Typography>
+    </>
+  )
 
   return (
     <>
@@ -223,8 +412,63 @@ function Escrow() {
       ) : (
         <>
           <Card>
-            <CardHeader title='Escrow List' />
-            <FormControl size='small' sx={{ ml: 4, my: 2 }}>
+            <CardHeader title={title} />
+
+            <Box display='flex' justifyContent='space-between' alignItems='center'>
+              {/* Left Box (Search Field) */}
+              <Grid item xs={8}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    ml: 5,
+                    height: '40px',
+                    width: '250px' // Set a fixed width for all status
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    value={searchValue}
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+
+              {/* Group of two boxes on the right */}
+              <FormControl size='small' sx={{ mr: 5, my: 2 }}>
+                <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
+                <Select
+                  size='small'
+                  value={stockType}
+                  label='Filter by stock type'
+                  onChange={e => {
+                    filterByStockType(e.target.value)
+                    setStockType(e.target.value)
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='transit'>Transit</MenuItem>
+                  <MenuItem value='dispute'>Dispute</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* <FormControl size='small' sx={{ ml: 4, my: 2 }}>
               <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
               <Select
                 size='small'
@@ -239,8 +483,26 @@ function Escrow() {
                 <MenuItem value='transit'>Transit</MenuItem>
                 <MenuItem value='dispute'>Dispute</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
 
+            <Grid
+              sx={{
+                mx: 4
+              }}
+            >
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+            {/*
             <DataGrid
               autoHeight
               pagination
@@ -271,7 +533,7 @@ function Escrow() {
                 }
               }}
               onRowClick={onRowClick}
-            />
+            /> */}
           </Card>
         </>
       )}

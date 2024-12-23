@@ -832,7 +832,6 @@ const DoctorWiseRequest = () => {
                   pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: router.asPath.includes('dashboard') ? '' : ServerSideToolbar }}
                   onPaginationModelChange={setPaginationModel}
                   loading={loading}
                   columnHeaderHeight={100}
@@ -853,6 +852,7 @@ const DoctorWiseRequest = () => {
                       }
                     }
                   }}
+
                   //onRowClick={handleEdit}
                   // onCellClick={handlecheckcell}
                 />

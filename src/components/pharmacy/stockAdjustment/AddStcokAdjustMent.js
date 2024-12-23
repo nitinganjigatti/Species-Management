@@ -291,8 +291,11 @@ const AddStockAdjustment = () => {
   // data posting section
   const createForm = () => {
     return (
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller

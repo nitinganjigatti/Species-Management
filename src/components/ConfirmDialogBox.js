@@ -2,12 +2,11 @@ import { Fragment } from 'react'
 import { Dialog, DialogTitle, DialogActions, IconButton, DialogContent, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon' // Assuming you're using this custom icon component
 
-const ConfirmDialogBox = ({ closeDialog, open, action, content, title }) => { 
+const ConfirmDialogBox = ({ closeDialog, open, action, content, title }) => {
   return (
     <Fragment>
       <Dialog
         open={open}
-        // Adjust the width to medium
         fullWidth // Make the dialog take full width
         disableEscapeKeyDown
         onClose={(event, reason) => {
@@ -16,7 +15,7 @@ const ConfirmDialogBox = ({ closeDialog, open, action, content, title }) => {
           }
         }}
       >
-        <DialogTitle sx={{ p: 4, mb: 2,ml:3 }}>
+        <DialogTitle sx={{ p: 4, mb: 2, ml: 3 }}>
           {/* Dialog Title */}
           <Typography variant='h6' component='div'>
             {title}

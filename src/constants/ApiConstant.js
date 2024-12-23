@@ -112,6 +112,8 @@ export const STORAGE = 'storage'
 
 export const DRIVER = 'driver'
 
+export const VARIANTS = 'variants'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
@@ -207,6 +209,12 @@ export const STOCK = 'pharmacy/stock'
 export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
 
 export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
+
+export const VARIANTS_MAPPING = 'variantMapping'
+
+export const VALIDATE_PURCHASE = 'validate'
+
+export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
 
 export const FEED_DETAILS = 'details'
 

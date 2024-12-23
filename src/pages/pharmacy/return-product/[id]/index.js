@@ -23,7 +23,7 @@ import Fade from '@mui/material/Fade'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
+import { Box, CardContent, CardHeader, Tab, Tooltip, Chip } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -39,10 +39,41 @@ import Utility from 'src/utility'
 
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
+import RenderUtility from 'src/utility/render'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import EmptyStateBox from 'src/components/EmptyStateBox'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
+
+const TabLists = styled(MuiTabList)(({ theme }) => ({
+  '& .MuiTabs-indicator': {
+    display: 'none'
+  },
+  '& .Mui-selected': {
+    backgroundColor: theme.palette.customColors.OnSecondaryContainer,
+    color: theme.palette.common.white
+  },
+  '& .MuiTab-root': {
+    minHeight: 38,
+    minWidth: 110,
+    borderRadius: 8,
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2)
+  }
+}))
+
+const TabBadge = ({ label, totalCount }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+    {label}
+    {totalCount ? (
+      <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+    ) : null}
+  </div>
+)
 
 const IndividualReturnRequest = () => {
   const [requestItems, setRequestItems] = useState([])
@@ -66,6 +97,8 @@ const IndividualReturnRequest = () => {
   const [permissionView, setPermissionView] = useState(false)
 
   const router = useRouter()
+
+  // const { id, request_number } = router.query
   const { id, request_number } = router.query
 
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
@@ -317,15 +350,19 @@ const IndividualReturnRequest = () => {
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <Box>
+          {console.log(params, 'params')}
           <Tooltip title={params.row.stock_name} placement='top'>
             <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+              {RenderUtility?.renderControlLabel(parseInt(params?.row?.control_substance) === 1, 'CS')}
+              {RenderUtility?.renderControlLabel(parseInt(params?.row?.prescription_required) === 1, 'PR')}
+
               {params.row.stock_name}
             </Typography>
           </Tooltip>
 
-          {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
+          {/* {!isNaN(params.row.control_substance) && parseInt(params.row.control_substance) == 1 ? (
             <CustomChip label='CS' skin='light' color='success' size='small' />
-          ) : null}
+          ) : null} */}
           <Tooltip
             title={`${params?.row?.package} of ${params?.row?.package_qty} ${params?.row?.package_uom_label} ${params?.row?.product_form_label}`}
             placement='top'
@@ -835,6 +872,34 @@ const IndividualReturnRequest = () => {
     }
   ]
 
+  const [value, setValue] = useState('returnItems')
+  const [shipmentTab, setShipmentTab] = useState('readyToShip')
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: newValue }
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
+  useEffect(() => {
+    const initialTab = router.query.tab || 'returnItems'
+    setValue(initialTab)
+  }, [router.query.tab])
+
+  const handleNavigate = () => {
+    router.push({
+      pathname: `/pharmacy/return-product/${id}/ship-all-items`,
+      query: { tab: value }
+    })
+  }
+
   return (
     <>
       {loader ? (
@@ -858,9 +923,9 @@ const IndividualReturnRequest = () => {
                 show={showOrderFormDialog}
               />
 
-              <Card sx={{ mb: 6 }}>
+              <Card sx={{ p: 2 }}>
                 <CardHeader
-                  title={`Return - ${requestItems?.request_number}`}
+                  title={`Product Return Request - ${requestItems?.request_number}`}
                   avatar={
                     <Icon
                       style={{ cursor: 'pointer' }}
@@ -870,42 +935,24 @@ const IndividualReturnRequest = () => {
                       icon='ep:back'
                     />
                   }
-                  action={
-                    selectedPharmacy.type === 'local' &&
-                    shippedItems.length === 0 &&
-                    requestItems.status !== 'Cancelled' ? (
-                      <Button
-                        size='large'
-                        variant='contained'
-                        onClick={() => {
-                          handleEdit(id)
-                        }}
-                      >
-                        Edit
-                      </Button>
-                    ) : (
-                      <></>
-                    )
-                  }
                 />
-                <CardContent>
-                  {/* Request Basic Info */}
+                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned From</h5>
-                      <p>{requestItems?.from_store}</p>
+                      <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned To</h5>
-                      <p>{requestItems?.to_store}</p>
+                      <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
-                      <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
+                      <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Return ID</h5>
-                      <p>{requestItems?.request_number}</p>
+                      <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned By</h5>
@@ -923,88 +970,174 @@ const IndividualReturnRequest = () => {
                       </Box>
                     </Grid>
                   </Grid>
-                  {/* Medicine Listing */}
-                </CardContent>
-                {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-                ) : null}
-              </Card>
-              {/* Dispatch list */}
+                </Box>
 
-              {dispatchedItems?.length > 0 && selectedPharmacy.type === 'local' ? (
-                <>
-                  <Card sx={{ mb: 6 }}>
+                <TabContext value={value}>
+                  <TabList
+                    onChange={handleChange}
+                    sx={{
+                      p: 4,
+                      '& .MuiTabs-flexContainer': {
+                        borderBottom: '1px solid',
+                        borderColor: 'customColors.neutral05'
+                      }
+                    }}
+                  >
+                    <Tab value='returnItems' label='Return Items' />
+                    <Tab value='shipment' label='shipment' />
+                  </TabList>
+                  <TabPanel value='returnItems'>
                     <CardHeader
-                      title='Fulfillment'
+                      sx={{
+                        p: 0,
+                        mb: 6,
+                        color: 'customColors.customTextColorGray2',
+                        fontSize: '16px',
+                        fontWeight: 500
+                      }}
+                      title={`Return Items`}
                       action={
                         selectedPharmacy.type === 'local' &&
-                        requestItems.status !== 'Cancelled' &&
-                        (selectedPharmacy.permission.key === 'ADD' ||
-                          selectedPharmacy.permission.key === 'allow_full_access') && (
-                          <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
-                            <Button
-                              size='big'
-                              variant='contained'
-                              onClick={() => {
-                                openShipDialog()
-                              }}
-                            >
-                              Ship
-                            </Button>
-                          </Grid>
-                        )
-                      }
-                    ></CardHeader>
-                    {/* <CardContent> */}
-                    {/* <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Ready to Ship</h5>
-                    </Grid> */}
-                    {/* {selectedPharmacy.type === 'local' &&
-                      (selectedPharmacy.permission.key === 'ADD' ||
-                        selectedPharmacy.permission.key === 'allow_full_access') && (
-                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                        shippedItems.length === 0 &&
+                        requestItems.status !== 'Cancelled' ? (
                           <Button
-                            size='big'
+                            size='large'
                             variant='contained'
                             onClick={() => {
-                              openShipDialog()
+                              handleEdit(id)
                             }}
                           >
-                            Ship
+                            Edit
                           </Button>
-                        </Grid>
-                      )}
-                  </Grid> */}
-                    {/* </CardContent> */}
-                    <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-                  </Card>
-                </>
-              ) : null}
+                        ) : (
+                          <></>
+                        )
+                      }
+                    />
 
-              {/* Shipped list        */}
-              {shippedItems?.length > 0 ? (
-                <>
-                  <Card sx={{ mb: 6 }}>
-                    <CardHeader title='Shipment'></CardHeader>
-                    {/* <CardContent> */}
-                    {/* <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={6}>
-                      <h5 style={{ marginBottom: '0px' }}>Shipments</h5>
-                    </Grid>
-                  </Grid> */}
-                    {/* </CardContent> */}
-                    <TableBasic
-                      columns={shippedColumns}
-                      rows={shippedItems}
-                      onRowClick={e => {
-                        setOrderId(e.id)
-                        showOrderFormDialog()
+                    {requestItems?.request_item_details?.length > 0 ? (
+                      <TableBasic
+                        rowHeight={90}
+                        columns={columns}
+                        rows={requestItems?.request_item_details}
+                        backgroundColor={'customColors.customTableHeaderBg'}
+                      ></TableBasic>
+                    ) : (
+                      <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No Return items' />
+                    )}
+                  </TabPanel>
+                  <TabPanel value='shipment'>
+                    <Grid
+                      sx={{
+                        width: '100%',
+                        px: '0 !important'
                       }}
-                    ></TableBasic>
-                  </Card>
+                    >
+                      <TabContext value={shipmentTab}>
+                        <TabLists
+                          onChange={(event, newValue) => {
+                            setShipmentTab(newValue)
+                          }}
+                          sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
+                        >
+                          <Tab
+                            value='readyToShip'
+                            label={
+                              <TabBadge
+                                label='Items Ready to Ship'
+                                totalCount={shipmentTab === 'Ready To Ship' ? 0 : null}
+                              />
+                            }
+                          />
+                          <Tab
+                            value='Shipped'
+                            label={<TabBadge label='Shipped' totalCount={shipmentTab === 'Shipped' ? 0 : null} />}
+                          />
+                        </TabLists>
+                        <TabPanel
+                          value='readyToShip'
+                          sx={{
+                            padding: '0px !important'
+                          }}
+                        >
+                          {dispatchedItems?.length > 0 && selectedPharmacy.type === 'local' ? (
+                            <>
+                              <CardHeader
+                                sx={{ p: 0, mb: 6 }}
+                                title=''
+                                action={
+                                  selectedPharmacy.type === 'local' &&
+                                  requestItems.status !== 'Cancelled' &&
+                                  (selectedPharmacy.permission.key === 'ADD' ||
+                                    selectedPharmacy.permission.key === 'allow_full_access') && (
+                                    <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                      <Button size='big' variant='contained' onClick={handleNavigate}>
+                                        Ship all items
+                                      </Button>
+                                    </Grid>
+                                  )
+                                }
+                              ></CardHeader>
+                              <TableBasic
+                                rowHeight={90}
+                                columns={fulfillColumns}
+                                rows={dispatchedItems}
+                                backgroundColor={'customColors.customTableHeaderBg'}
+                              ></TableBasic>
+                            </>
+                          ) : (
+                            <EmptyStateBox imageSrc='/images/out-of-stock.png' text=' No ship items' />
+                          )}
+                        </TabPanel>
+                        <TabPanel
+                          value='Shipped'
+                          sx={{
+                            padding: '0px !important'
+                          }}
+                        >
+                          {shippedItems?.length > 0 ? (
+                            <>
+                              {/* <CardHeader title='Shipment'></CardHeader> */}
+
+                              <TableBasic
+                                columns={shippedColumns}
+                                rows={shippedItems}
+                                backgroundColor={'customColors.customTableHeaderBg'}
+                                onRowClick={e => {
+                                  setOrderId(e.id)
+
+                                  // showOrderFormDialog()
+                                  Router.push({
+                                    pathname: `/pharmacy/return-product/${id}/shipment-details`,
+                                    query: { orderId: e.id }
+                                  })
+                                }}
+                              ></TableBasic>
+                            </>
+                          ) : (
+                            <EmptyStateBox imageSrc='/images/out-of-stock.png' text=' No shipped items' />
+                          )}
+                        </TabPanel>
+                      </TabContext>
+                    </Grid>
+                  </TabPanel>
+                </TabContext>
+              </Card>
+
+              {/* {shippedItems?.length > 0 ? (
+                <>
+                  <CardHeader title='Shipment'></CardHeader>
+
+                  <TableBasic
+                    columns={shippedColumns}
+                    rows={shippedItems}
+                    onRowClick={e => {
+                      setOrderId(e.id)
+                      showOrderFormDialog()
+                    }}
+                  ></TableBasic>
                 </>
-              ) : null}
+              ) : null} */}
               {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>

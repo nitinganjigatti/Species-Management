@@ -80,7 +80,7 @@ function RejectRequestItem({ parentId, updateRequestItems, closeRejectMedicineDi
               xs={12}
               sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.lightBg' }}
             >
-              <Typography sx={{ color: 'customColors.textLabel' }}>
+              <Typography sx={{ color: 'customColors.SecondaryDark' }}>
                 Product Name: <strong>{parentId?.product}</strong>
               </Typography>
               <Typography>

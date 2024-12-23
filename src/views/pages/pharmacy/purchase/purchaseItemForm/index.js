@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   FormControl,
   InputLabel,
@@ -13,7 +13,10 @@ import {
   Box,
   Typography,
   Button,
-  CircularProgress
+  CircularProgress,
+  Alert,
+  AlertTitle,
+  DialogTitle
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -28,9 +31,14 @@ import InputAdornment from '@mui/material/InputAdornment'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { getValue } from '@mui/system'
+import { color, getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { debounce } from 'lodash'
 
 const defaultValues = {
   product: {
@@ -71,7 +79,14 @@ const PurchaseItemForm = props => {
     purchase_details,
     checkMedicineExpiryDate,
     productExpiryDate,
-    expiryDateLoader
+    expiryDateLoader,
+    getRecentPurchasePriceOfProduct,
+    validatePurchaseDialog,
+    setValidatePurchaseDialog,
+    priceValidationError,
+    setPriceValidationError,
+    currentPayload,
+    setCurrentPayload
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
@@ -233,6 +248,14 @@ const PurchaseItemForm = props => {
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
   const [userInteracted, setUserInteracted] = useState(false)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // const debouncedGetRecentPrice = useCallback(
+  //   debounce(productData => {
+  //     getRecentPurchasePriceOfProduct(productData)
+  //   }, 1000),
+  //   []
+  // )
+
   const onSubmit = async params => {
     const {
       product,
@@ -289,8 +312,14 @@ const PurchaseItemForm = props => {
       package_details,
       manufacture
     }
+    if (priceValidationError === true) {
+      setValidatePurchaseDialog(true)
+      setCurrentPayload(payload)
 
-    submitItems(payload)
+      return
+    } else {
+      submitItems(payload)
+    }
 
     // await handleSubmitData(payload)
   }
@@ -448,6 +477,12 @@ const PurchaseItemForm = props => {
         }
       })
 
+      const productData = {
+        purchase_stock_item_id: nestedRowMedicine.purchase_unit_id,
+        purchase_unit_price: nestedRowMedicine.purchase_unit_price
+      }
+      getRecentPurchasePriceOfProduct(productData)
+
       setValue('product', {
         label: nestedRowMedicine.medicine_name,
         value: nestedRowMedicine.purchase_unit_id,
@@ -515,7 +550,7 @@ const PurchaseItemForm = props => {
                   getOptionLabel={option => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
-                    if (val === null) {
+                    if (val === null || val.status === 0) {
                       setValue('purchase_batch_no', '')
                       setValue('purchase_expiry_date', null)
                       setValue('package_details', '')
@@ -654,6 +689,14 @@ const PurchaseItemForm = props => {
                   {...field}
                   onKeyUp={e => {
                     calculateStuff()
+
+                    const productData = {
+                      purchase_stock_item_id: watch('product')?.value,
+                      purchase_unit_price: watch('purchase_unit_price')
+                    }
+                    if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
+                      getRecentPurchasePriceOfProduct(productData)
+                    }
                   }}
                   label='Supplier Rate*'
                   error={Boolean(errors.purchase_unit_price)}
@@ -1029,6 +1072,94 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+        <ConfirmDialogBox
+          open={validatePurchaseDialog}
+          closeDialog={() => {
+            setValidatePurchaseDialog(false)
+          }}
+          action={() => {
+            setValidatePurchaseDialog(false)
+          }}
+          content={
+            <Box>
+              <DialogContent>
+                <DialogTitle
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '20px',
+                    margin: '0px',
+                    padding: '0px',
+                    mb: '6px',
+                    color: 'customColors.OnSurfaceVariant',
+                    display: 'flex',
+                    gap: 2,
+
+                    // justifyContent: 'center'
+
+                    alignItems: 'center'
+                  }}
+                >
+                  <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' /> Price
+                  Variation Detected !
+                </DialogTitle>
+                <DialogContentText
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: '16px',
+                    margin: '0px',
+                    padding: '0px',
+
+                    // gap: '12px',
+                    color: 'customColors.OnSurfaceVariant'
+                  }}
+                >
+                  {/* clarity:warning-standard-line */}
+                  The current purchase price of this product differs by more than
+                  <Typography
+                    component='span'
+                    sx={{
+                      color: 'customColors.moderateSecondary',
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      px: 2
+
+                      // padding: '4px'
+                    }}
+                  >
+                    30%
+                  </Typography>
+                  compared to the previous purchase price.
+                  <br /> Please review before proceeding.
+                </DialogContentText>
+              </DialogContent>
+
+              <DialogActions className='dialog-actions-dense'>
+                <Button
+                  variant='outlined'
+                  size='small'
+                  color='error'
+                  onClick={() => {
+                    setValidatePurchaseDialog(false)
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='warning'
+                  onClick={() => {
+                    submitItems(currentPayload)
+                    setValidatePurchaseDialog(false)
+                    setPriceValidationError(false)
+                  }}
+                >
+                  Confirm
+                </Button>
+              </DialogActions>
+            </Box>
+          }
+        />
 
         {/* // file uploader */}
         <Grid item xs={12}>
