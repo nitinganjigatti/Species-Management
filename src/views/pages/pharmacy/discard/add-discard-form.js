@@ -352,21 +352,22 @@ export const AddItemsForm = ({
 
                       if (value !== '' && value !== null) {
                         setQuantityError(false)
-                        searchBatchData(value.value, value.stock_type)
-                        setValue('stock_type', value.stock_type)
-                        setValue('packageDetails', value.packageDetails)
-                        setValue('manufacture', value.manufacture)
-                        setValue('control_substance', value.control_substance)
+                        searchBatchData(value?.value, value?.stock_type)
+                        setValue('stock_type', value?.stock_type)
+                        setValue('packageDetails', value?.packageDetails)
+                        setValue('manufacture', value?.manufacture)
+                        setValue('control_substance', value?.control_substance)
                       }
                       checkTotalCount()
                     }} // Set selected value
                     onBlur={async () => {
-                      await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
+                      await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine?.stock_type)
                     }}
                     renderOption={(props, option) => (
                       <li
                         {...props}
-                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+
+                        // style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
                       >
                         <Box>
                           <Typography
@@ -378,12 +379,12 @@ export const AddItemsForm = ({
                               fontWeight: 400
                             }}
                           >
-                            {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                            {option.label}
+                            {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
+                            {RenderUtility?.renderControlLabel(option?.prescription_required === true, 'PR')}
+                            {option?.label}
                           </Typography>
-                          <Typography variant='body2'>{option.packageDetails}</Typography>
-                          <Typography variant='body2'>{option.manufacture}</Typography>
+                          <Typography variant='body2'>{option?.packageDetails}</Typography>
+                          <Typography variant='body2'>{option?.manufacture}</Typography>
                         </Box>
                         {/* <Box>
                           <Typography>{option.label}</Typography>
