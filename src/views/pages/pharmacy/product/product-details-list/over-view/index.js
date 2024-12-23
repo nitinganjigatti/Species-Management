@@ -435,7 +435,7 @@ const Overview = ({ productDetails }) => {
 
   return (
     <>
-      <Grid container spacing={4} pt={6}>
+      <Grid container spacing={4} pt={6} sx={{ display: 'none' }}>
         {drawerData.map(card => (
           <StyleWithIconCardComponent
             key={card.id}
@@ -449,11 +449,11 @@ const Overview = ({ productDetails }) => {
         ))}
       </Grid>
 
-      <Divider sx={{ pt: 6 }} />
+      <Divider sx={{ pt: 6, display: 'none' }} />
 
       <Box>
         <Grid container spacing={3} marginTop={3} sx={{ display: 'flex', alignItems: 'stretch' }}>
-          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
               <ProductsChart
                 title='Dispatch'
@@ -472,7 +472,7 @@ const Overview = ({ productDetails }) => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
               <ProductsChart
                 title='Purchases'
@@ -487,58 +487,11 @@ const Overview = ({ productDetails }) => {
                 countLabel='Show Purchase Count'
                 valueLabel='Show Purchase Value'
               />
-              {/* <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 6 }}>
-                  <Typography
-                    component='div'
-                    sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
-                  >
-                    Purchases
-                  </Typography>
-                  <Grid item>
-                    <Button variant='text' sx={{ fontSize: '14px', fontWeight: 500 }}>
-                      View More
-                    </Button>
-                  </Grid>
-                </Box>
-
-                <Grid container spacing={2} alignItems='center' mb={6}>
-                 <Grid item>
-                    <FormControl variant='outlined' size='small'>
-                      <InputLabel>Location</InputLabel>
-                      <Select label='Location' defaultValue='Central Pharmacy'>
-                        <MenuItem value='Central Pharmacy'>Central Pharmacy</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item>
-                    <FormControl variant='outlined' size='small'>
-                      <InputLabel>Frequency</InputLabel>
-                      <Select label='Frequency' defaultValue='Monthly'>
-                        <MenuItem value='Monthly'>Monthly</MenuItem>
-                        <MenuItem value='Weekly'>Weekly</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-
-
-                <ResponsiveContainer width='100%' height={300}>
-                  <LineChart data={purchaseData}>
-                    <CartesianGrid strokeDasharray='3 3' />
-                    <XAxis dataKey='month' />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type='monotone' dataKey='purchaseCount' stroke='#1976D2' />
-                    <Line type='monotone' dataKey='purchaseValue' stroke='#64B5F6' />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent> */}
             </Card>
           </Grid>
 
           {/* Apply similar structure to the rest of the cards */}
-          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Header Section */}
