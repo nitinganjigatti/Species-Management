@@ -14,7 +14,8 @@ import {
   Tooltip,
   Autocomplete,
   Box,
-  CardHeader
+  CardHeader,
+  Divider
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -446,8 +447,21 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   />
                 </Grid>
               </Grid>
-
-              <Grid container spacing={3}>
+              <Grid sx={{ my: 4 }}>
+                <Divider />
+              </Grid>
+              <Grid container spacing={3} sx={{ mt: 2 }}>
+                <Typography
+                  sx={{
+                    color: 'customColors.customTextColorGray2',
+                    fontWeight: 500,
+                    fontSize: '1rem',
+                    width: '100%',
+                    mx: 2
+                  }}
+                >
+                  Shipment Details
+                </Typography>
                 {deliveryType.Ship ? (
                   <Grid item xs={12} sm={3} mb={6}>
                     <FormControl fullWidth>
@@ -683,6 +697,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     )}
                   </FormControl>
                 </Grid>
+              </Grid>
+              <Grid>
+                <Divider />
               </Grid>
             </form>
 

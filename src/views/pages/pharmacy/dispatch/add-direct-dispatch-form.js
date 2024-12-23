@@ -45,7 +45,6 @@ import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CustomChip from 'src/@core/components/mui/chip'
-import { useTheme } from '@emotion/react'
 
 const defaultValues = {
   request_item: {
