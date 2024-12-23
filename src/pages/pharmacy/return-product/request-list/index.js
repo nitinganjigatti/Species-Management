@@ -52,7 +52,7 @@ const ReturnRequestList = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -89,7 +89,7 @@ const ReturnRequestList = () => {
   const getStoresLists = async () => {
     try {
       setLoader(true)
-      const response = await getStoreList({ params: { column: 'type' } })
+      const response = await getStoreList({ params: { type: 'local', sort: 'asc' } })
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
         setStores(response?.data?.list_items)
@@ -230,7 +230,7 @@ const ReturnRequestList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column, status) => {
+    debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
       setSearchValue(q)
@@ -349,7 +349,7 @@ const ReturnRequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
+    searchTableData(sort, value, 'request_number', status, filterDates, filterByStoreId)
   }
 
   const getRequestedText = () => {
@@ -417,25 +417,25 @@ const ReturnRequestList = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Returned On',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Returned On',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -628,6 +628,7 @@ const ReturnRequestList = () => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
+
                       // border: '1px solid #C3CEC7',
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '8px',

@@ -74,7 +74,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
-import { borderRadius, color, padding } from '@mui/system'
+import { alpha, borderRadius, color, padding } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
@@ -1161,7 +1161,8 @@ const AddRequestForm = () => {
             sx={{
               // border: '0.5px solid',
               borderRadius: '8px !important',
-              backgroundColor: 'customColors.TertiaryContainer',
+              backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.3),
+
               display: 'flex'
               // gap: '24px'
             }}

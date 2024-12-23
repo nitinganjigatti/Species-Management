@@ -614,7 +614,7 @@ const AddLocalDispatch = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/local-dispatch/${response?.data}`)
+          Router.replace(`/pharmacy/local-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -631,7 +631,7 @@ const AddLocalDispatch = () => {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/local-dispatch/${response?.data}`)
+          Router.replace(`/pharmacy/local-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -650,7 +650,7 @@ const AddLocalDispatch = () => {
         console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
+          Router.replace(`/pharmacy/local-dispatch/local-dispatch-list/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -683,7 +683,8 @@ const AddLocalDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
+                    // Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
+                    Router.back()
                   }}
                   icon='ep:back'
                 />

@@ -93,7 +93,7 @@ const RequestList = () => {
   const getStoresLists = async () => {
     try {
       setLoader(true)
-      const response = await getStoreList({ params: { column: 'type' } })
+      const response = await getStoreList({ params: { type: 'local', sort: 'asc' } })
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
         setStores(response?.data?.list_items)
@@ -252,7 +252,7 @@ const RequestList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column, status) => {
+    debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
       setSearchValue(q)
@@ -304,7 +304,7 @@ const RequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
+    searchTableData(sort, value, 'request_number', status, filterDates, filterByStoreId)
   }
 
   const getRequestedText = () => {
@@ -479,25 +479,26 @@ const RequestList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.35,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Request Date',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Request Date',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.2,
@@ -525,7 +526,7 @@ const RequestList = () => {
       field: 'product_count',
       headerName: 'TOTAL ITEMS',
       type: 'number',
-      align: 'right',
+      align: 'left',
       headerAlign: 'left',
       renderCell: params => (
         <Typography

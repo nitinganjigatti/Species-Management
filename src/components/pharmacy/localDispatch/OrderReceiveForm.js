@@ -53,6 +53,7 @@ import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
+import { useTheme } from '@emotion/react'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -134,7 +135,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
               ) : null}
               {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
-              {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null}
+              {/* {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null} */}
 
               {orderData?.shipment_date ? (
                 <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
@@ -190,7 +191,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     <TableBasic
                       columns={columns}
                       rows={disputeItemDetails?.item_details}
-                      backgroundColor={'#C1D3D0'}
+                      backgroundColor={'customColors.customTableHeaderBg'}
                     ></TableBasic>
                   </Box>
                 </Grid>
@@ -220,7 +221,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     name='comments'
                     InputProps={{
                       sx: {
-                        backgroundColor: '#FCF4AE33'
+                        backgroundColor: 'customColors.customTableCellBg'
                       },
                       startAdornment: (
                         <InputAdornment position='start'>
@@ -299,6 +300,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const [orderData, setOrderData] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
+  const theme = useTheme()
+
   const router = useRouter()
   const { id } = router.query
 
@@ -1324,10 +1327,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 padding: 0;
               }
                 .printable-container {
-              background-color: #EFF5F2;
+              background-color: ${theme.palette.customColors.lightBg};
               padding: 16px;
               border-radius: 8px;
-              border: 1px solid #e9e9ec;
+              border: 1px solid ${theme.palette.customColors.neutral05};
               margin-top: 16px;
 
             }

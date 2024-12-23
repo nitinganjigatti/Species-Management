@@ -75,7 +75,7 @@ const ListOfStocks = () => {
 
   const updateUrlParams = params => {
     const query = { ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const { selectedPharmacy } = usePharmacyContext()
   const [loading, setLoading] = useState(false)
@@ -1156,7 +1156,8 @@ const ListOfStocks = () => {
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          border: '1px solid #C3CEC7',
+                          // border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           padding: '0 8px',
                           ml: 5,

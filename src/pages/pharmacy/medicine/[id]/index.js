@@ -17,7 +17,8 @@ import {
   ListItemText,
   debounce,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  alpha
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
@@ -37,6 +38,7 @@ import Ledger from 'src/views/pages/pharmacy/product/product-details-list/ledger
 import { getVariantFOrProduct, getVariants, mapVariantForProduct } from 'src/lib/api/pharmacy/variant'
 import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
+import { useTheme } from '@emotion/react'
 
 const TabsSimple = ({ productDetails }) => {
   const [value, setValue] = useState('overview')
@@ -78,6 +80,7 @@ const TabsSimple = ({ productDetails }) => {
 }
 
 const ProductDetailsList = () => {
+  const theme = useTheme()
   const router = useRouter()
   const { id, action } = router.query
 
@@ -383,8 +386,9 @@ const ProductDetailsList = () => {
                             clickable
                             sx={{
                               '&.MuiChip-outlined': {
-                                borderColor: '#006D3566',
-                                backgroundColor: 'customColors.tableHeaderBg'
+                                // borderColor: '#006D3566',
+                                borderColor: theme => alpha(theme.palette.primary.OnSurface, 0.4),
+                                backgroundColor: 'customColors.displaybgPrimary'
                               },
                               marginBottom: '8px'
                             }}
@@ -569,6 +573,7 @@ const ProductDetailsList = () => {
                     disablePadding
                     sx={{
                       border: '1px solid #ccc',
+                      // border: `1px solid ${theme.palette.customColors.neutral05}`,
                       borderRadius: '4px',
                       marginBottom: '8px',
                       px: 4
