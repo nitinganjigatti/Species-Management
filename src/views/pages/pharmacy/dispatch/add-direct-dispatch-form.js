@@ -67,10 +67,13 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  request_item: yup.object().shape({
-    label: yup.string().required('Product Name is required'),
-    value: yup.string().required('Product Name is required')
-  }),
+  request_item: yup
+    .object()
+    .required('Product Name is required')
+    .shape({
+      label: yup.string().required('Product Name is required'),
+      value: yup.string().required('Product Name is required')
+    }),
 
   // request_item_batch_no: yup.object().shape({
   //   label: yup.string().required('Batch no is required'),
@@ -376,13 +379,13 @@ export const AddItemsForm = ({
                 control={control}
                 defaultValue={null}
                 rules={{ required: true }}
-                render={({ field }) => (
+                render={({ field: { value, onChange } }) => (
                   <Autocomplete
-                    {...field}
+                    // {...field}
                     id='request_item'
                     options={productList}
                     getOptionLabel={option => option.label || ''}
-                    value={field.value}
+                    value={value}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onKeyUp={e => {
                       searchMedicineData(e.target.value)
@@ -396,13 +399,16 @@ export const AddItemsForm = ({
                       setValue('packageDetails', '')
                       setValue('manufacture', '')
 
-                      if (value !== '' && value !== null) {
+                      if (value === null || value.status === 0) {
+                        return onChange(null)
+                      } else if (value !== '' && value !== null) {
                         setQuantityError(false)
                         searchBatchData(value.value, value.stock_type)
                         setValue('stock_type', value.stock_type)
                         setValue('packageDetails', value.packageDetails)
                         setValue('manufacture', value.manufacture)
                         setValue('control_substance', value.control_substance)
+                      } else {
                       }
                       checkTotalCount()
                     }} // Set selected value
