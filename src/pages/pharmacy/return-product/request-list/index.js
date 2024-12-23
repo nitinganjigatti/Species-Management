@@ -587,8 +587,8 @@ const ReturnRequestList = () => {
           setFilterDates({ startDate, endDate })
           break
         case 16:
-          startDate = Utility.getPreviousDaysDate(currentDate, 15)
-          endDate = Utility.formattedPresentDate()
+          startDate = ''
+          endDate = Utility.getPreviousDaysDate(currentDate, 15)
           setFilterDates({ startDate, endDate })
           break
         default:
