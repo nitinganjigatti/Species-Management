@@ -417,25 +417,25 @@ const ReturnRequestList = () => {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Returned On',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Returned On',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -628,6 +628,7 @@ const ReturnRequestList = () => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
+
                       // border: '1px solid #C3CEC7',
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '8px',

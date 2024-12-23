@@ -24,6 +24,7 @@ import Chip from '@mui/material/Chip'
 import { LoaderIcon } from 'react-hot-toast'
 import RenderUtility from 'src/utility/render'
 import Utility from 'src/utility'
+import { useTheme } from '@emotion/react'
 
 const defaultValues = {
   request_item: {
@@ -162,6 +163,8 @@ export const AddItemsForm = ({
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
+  const theme = useTheme()
+
   const [batchError, setBatchError] = useState(false)
   const [totalAvailableCount, setTotalAvailableCount] = useState(0)
   const [quantityError, setQuantityError] = useState(false)
@@ -434,27 +437,57 @@ export const AddItemsForm = ({
               <Paper
                 elevation={0}
                 sx={{
-                  backgroundColor: '#F2FFF8',
+                  backgroundColor: 'customColors.Surface',
                   padding: 3,
                   borderRadius: 1,
-                  border: '1px solid #37BD69',
+
+                  // border: '1px solid #37BD69',
+                  border: `1px solid ${theme.palette.primary.main}`,
                   mt: 5
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <Typography color='customColors.neutralSecondary'>Available Packing:</Typography>
-                    <Typography color='primary.light'>{watch('packageDetails')}</Typography>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                    >
+                      Available Packing:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
+                      {watch('packageDetails')}
+                    </Typography>
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <Typography color='customColors.neutralSecondary'>Manufactured by:</Typography>
-                    <Typography color='primary.light'>{watch('manufacture')}</Typography>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                    >
+                      Manufactured by:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
+                      {watch('manufacture')}
+                    </Typography>
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <Typography color='customColors.neutralSecondary'>Availability:</Typography>
-                    <Typography color='primary.light'>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                    >
+                      Availability:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
                     </Typography>
                   </Box>

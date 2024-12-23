@@ -134,7 +134,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
               ) : null}
               {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
-              {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null}
+              {/* {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null} */}
 
               {orderData?.shipment_date ? (
                 <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />

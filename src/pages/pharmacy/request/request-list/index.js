@@ -479,25 +479,26 @@ const RequestList = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.35,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Request Date',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Request Date',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
 
     // {
     //   flex: 0.2,
@@ -525,7 +526,7 @@ const RequestList = () => {
       field: 'product_count',
       headerName: 'TOTAL ITEMS',
       type: 'number',
-      align: 'right',
+      align: 'left',
       headerAlign: 'left',
       renderCell: params => (
         <Typography
