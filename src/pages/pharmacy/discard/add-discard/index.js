@@ -317,6 +317,7 @@ const AddDiscardProducts = () => {
     const year = parts[0]
     const month = Number(parts[1]) - 1
     const day = parts[2]
+    console.log('new Date :-', new Date(year, month, day))
 
     return new Date(year, month, day)
   }
@@ -719,12 +720,14 @@ const AddDiscardProducts = () => {
               </Stack>
             </Box>
 
-            <AddButtonContained
-              title='Add Return Items'
-              action={() => {
-                handleSubmit()
-              }}
-            />
+            {id ? null : (
+              <AddButtonContained
+                title='Add Return Items'
+                action={() => {
+                  handleSubmit()
+                }}
+              />
+            )}
           </Box>
 
           <Card
