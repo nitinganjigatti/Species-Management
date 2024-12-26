@@ -24,6 +24,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@emotion/react'
+import RenderUtility from 'src/utility/render'
 
 const Supplier = () => {
   const theme = useTheme()
@@ -248,18 +249,6 @@ const Supplier = () => {
     console.log('Handle Header Action')
   }
 
-  const title = (
-    <>
-      {supplierList.length > 0 ? (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier List</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-          Supplier list is empty add supplier'
-        </Typography>
-      )}
-    </>
-  )
-
   return (
     <>
       {pharmacyRole ? (
@@ -276,7 +265,8 @@ const Supplier = () => {
                   padding: '16px' // Add padding if needed for spacing
                 }}
               >
-                <CardHeader title={title} sx={{ padding: 0 }} /> {/* Remove padding from CardHeader if needed */}
+                <CardHeader title={RenderUtility.pageTitle('Supplier List')} sx={{ padding: 0 }} />{' '}
+                {/* Remove padding from CardHeader if needed */}
                 <AddButtonContained
                   title='Add Supplier'
                   action={() => {

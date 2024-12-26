@@ -26,6 +26,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfRacks = () => {
   const theme = useTheme()
@@ -353,12 +354,6 @@ const ListOfRacks = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Rack List</Typography>
-    </>
-  )
-
   return (
     <>
       {loader ? (
@@ -367,7 +362,7 @@ const ListOfRacks = () => {
         <>
           {/* <TableWithFilter TableTitle={title} headerActions={addRackButton} columns={columns} rows={racks} /> */}
           <Card sx={{ cursor: 'pointer' }}>
-            <CardHeader title={title} action={addRackButton} />
+            <CardHeader title={RenderUtility.pageTitle('Rack List')} action={addRackButton} />
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}

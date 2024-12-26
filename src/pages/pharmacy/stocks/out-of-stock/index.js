@@ -23,6 +23,7 @@ import { Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -462,23 +463,15 @@ const StockOut = () => {
   //   </>
   // )
 
-  const title = (
-    <>
-      {changeSwitch ? (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Out of Stock</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Low Stock</Typography>
-      )}
-    </>
-  )
-
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <Card>
-          <CardHeader title={title} />
+          <CardHeader
+            title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
+          />
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             {/* Left Box (Search Field) */}
             <Grid item xs={8}>

@@ -26,6 +26,7 @@ import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -359,135 +360,6 @@ const ListOfPurchase = () => {
     }
   }
 
-  // const title = (
-  //   <Typography
-  //     sx={{
-  //       fontSize: { xs: '18px', sm: '20px', md: '24px' },
-  //       fontFamily: 'Inter',
-  //       fontWeight: 500
-  //       // ml: { xs: 0, sm: 1 },
-  //       // textAlign: { xs: 'center', sm: 'left' }
-  //     }}
-  //   >
-  //     Inventory List
-  //   </Typography>
-  // )
-
-  // return (
-  //   <>
-  //     {selectedPharmacy.type === 'central' ? (
-  //       loader ? (
-  //         <FallbackSpinner />
-  //       ) : (
-  //         <Card>
-  //           <CardHeader
-  //             title={title}
-  //             action={headerAction}
-  //             sx={{
-  //               display: 'flex',
-  //               justifyContent: 'space-between', // Space between title and action
-  //               flexWrap: 'wrap' // Allow wrapping on smaller screens
-  //               // alignItems: 'center'
-  //             }}
-  //           />
-  //           <Box
-  //             sx={{
-  //               display: 'flex',
-  //               justifyContent: 'space-between',
-  //               // alignItems: 'center',
-  //               flexWrap: 'wrap',
-  //               px: { xs: 2, sm: 4 },
-  //               py: 2
-  //             }}
-  //           >
-  //             {/* Left Box (Search Field) */}
-  //             <Grid item xs={12} sm={8} md={6} lg={4}>
-  //               <Box
-  //                 sx={{
-  //                   display: 'flex',
-  //                   alignItems: 'center',
-  //                   border: '1px solid #C3CEC7',
-  //                   borderRadius: '8px',
-  //                   padding: '0 8px',
-
-  //                   height: "40px",
-  //                   ml: 2
-  //                 }}
-  //               >
-  //                 <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
-  //                 <TextField
-  //                   variant='outlined'
-  //                   placeholder='Search...'
-  //                   value={searchValue}
-  //                   onChange={e => handleSearch(e.target.value)}
-  //                   fullWidth
-  //                   sx={{
-  //                     '& .MuiOutlinedInput-root': {
-  //                       border: 'none',
-  //                       padding: '0',
-  //                       '& fieldset': {
-  //                         border: 'none'
-  //                       }
-  //                     }
-  //                   }}
-  //                 />
-  //               </Box>
-  //             </Grid>
-  //           </Box>
-  //           <Grid
-  //             sx={{
-  //               px: { xs: 2, sm: 4 },
-  //               py: { xs: 2, sm: 4 },
-  //               mx: { xs: 0, sm: 2 }
-  //             }}
-  //           >
-  //             <CommonTable
-  //               onRowClick={onRowClick}
-  //               indexedRows={indexedRows}
-  //               total={total}
-  //               columns={columns}
-  //               paginationModel={paginationModel}
-  //               onPaginationModelChange={model => {
-  //                 setPaginationModel(model) // Update page and pageSize in the state
-  //                 router.replace({
-  //                   pathname: router.pathname,
-  //                   query: {
-  //                     ...router.query,
-  //                     page: model.page + 1, // API uses 1-indexed pages
-  //                     pageSize: model.pageSize,
-  //                     searchValue,
-  //                     sort,
-  //                     sortColumn
-  //                   }
-  //                 })
-  //               }}
-  //               handleSortModel={handleSortModel}
-  //               setPaginationModel={setPaginationModel}
-  //               loading={loading}
-  //               searchValue={searchValue}
-  //             />
-  //           </Grid>
-  //         </Card>
-  //       )
-  //     ) : (
-  //       <Error404 />
-  //     )}
-  //   </>
-  // )
-  const title = (
-    <Typography
-      sx={{
-        fontSize: { xs: '18px', sm: '20px', md: '24px' },
-        fontFamily: 'Inter',
-        fontWeight: 500,
-        flex: 1, // Make the title take full space
-        textAlign: { xs: 'left', sm: 'left' } // Align left on all screens
-      }}
-    >
-      Inventory List
-    </Typography>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -503,7 +375,7 @@ const ListOfPurchase = () => {
                 gap: { xs: 2, sm: 0 }, // Add space between title and buttons on small screens
                 px: { xs: 2, sm: 4 }
               }}
-              title={title}
+              title={RenderUtility.pageTitle('Inventory List')}
               action={
                 <Box
                   sx={{

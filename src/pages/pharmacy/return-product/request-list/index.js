@@ -31,6 +31,7 @@ import { useRouter } from 'next/router'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
@@ -607,22 +608,6 @@ const ReturnRequestList = () => {
     }
   }
 
-  const title = ( 
-    <>
-      <Typography
-        sx={{
-          fontSize: '24px',
-          fontFamily: 'Inter',
-          fontWeight: 500,
-          textAlign: 'left', // Ensures text alignment to the left
-          marginLeft: 0 // Reset any inherited margin
-        }}
-      >
-        Product Return Requests
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
@@ -638,7 +623,7 @@ const ReturnRequestList = () => {
                 alignItems: 'flex-start', // Align items to the top left
                 gap: { xs: 2, sm: 0 }
               }}
-              title={title}
+              title={RenderUtility.pageTitle('Product Return Requests')}
               action={headerAction}
             />
             <Box

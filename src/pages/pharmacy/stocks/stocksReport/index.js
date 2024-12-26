@@ -68,6 +68,7 @@ import { useRouter } from 'next/router'
 import { minWidth, width } from '@mui/system'
 import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 import { set } from 'nprogress'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -943,18 +944,6 @@ const ListOfStocks = () => {
     []
   )
 
-  const title = (
-    <>
-      {stockReport.length > 0 || stockReportBatch.length > 0 ? (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Stock Report</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-          Stock Report is empty
-        </Typography>
-      )}
-    </>
-  )
-
   const handleBatchSortModel = newModel => {
     if (newModel.length) {
       setBatchSort(newModel[0].sort)
@@ -1133,7 +1122,7 @@ const ListOfStocks = () => {
                 /> */}
                 <Card>
                   <CardHeader
-                    title={title}
+                    title={RenderUtility.pageTitle('Stock Report')}
 
                     // action={headerAction}
                   />
@@ -1156,6 +1145,7 @@ const ListOfStocks = () => {
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
+
                           // border: '1px solid #C3CEC7',
                           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',

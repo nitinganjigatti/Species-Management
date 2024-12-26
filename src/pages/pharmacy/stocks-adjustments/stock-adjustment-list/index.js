@@ -34,6 +34,7 @@ import { useTheme } from '@emotion/react'
 import Chip from '@mui/material/Chip'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -412,20 +413,6 @@ const ListOfStockAdjusted = () => {
     </div>
   )
 
-  const title = (
-    <Typography
-      sx={{
-        fontSize: '24px',
-        fontFamily: 'Inter',
-        fontWeight: 500,
-        textAlign: 'left', // Ensures text alignment to the left
-        marginLeft: 0 // Reset any inherited margin
-      }}
-    >
-      Stock Adjustment List
-    </Typography>
-  )
-
   const tableData = () => {
     return (
       <Card>
@@ -437,7 +424,7 @@ const ListOfStockAdjusted = () => {
             alignItems: 'flex-start', // Align items to the top left
             gap: { xs: 2, sm: 0 }
           }}
-          title={title}
+          title={RenderUtility.pageTitle('Stock Adjustment List')}
           action={headerAction}
         />
 

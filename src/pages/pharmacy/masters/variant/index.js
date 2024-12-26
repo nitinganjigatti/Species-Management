@@ -13,6 +13,7 @@ import toast from 'react-hot-toast'
 
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import RenderUtility from 'src/utility/render'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -261,17 +262,11 @@ const VariantList = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Variants</Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
         <Card>
-          <CardHeader title={title} action={headerAction} />
+          <CardHeader title={RenderUtility.pageTitle('Variants')} action={headerAction} />
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             {/* Left Box (Search Field) */}
             <Grid item xs={8}>

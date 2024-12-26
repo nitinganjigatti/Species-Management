@@ -26,6 +26,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 function Dispense() {
   const router = useRouter()
@@ -280,28 +281,6 @@ function Dispense() {
       })
     }
   }
-
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Dispense</Typography>
-    </>
-  )
-  const headerAction = (
-    <Grid sx={{ mx: 5 }} item>
-      {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
-        selectedPharmacy.permission.dispense_medicine) && (
-        <AddButtonContained
-          title='Add Dispense'
-          action={() => {
-            router.push('/pharmacy/dispense/add-dispense')
-          }}
-          sx={{
-            mr: 6
-          }}
-        />
-      )}
-    </Grid>
-  )
 
   return (
     <>

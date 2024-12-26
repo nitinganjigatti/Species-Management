@@ -31,6 +31,7 @@ import { useMediaQuery } from '@mui/material'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -465,123 +466,95 @@ const DirectDispatchList = () => {
     </div>
   )
 
-  const title = (
-    <Typography
-      sx={{
-        fontSize: '24px',
-        fontFamily: 'Inter',
-        fontWeight: 500,
-        textAlign: 'left', // Ensures text alignment to the left
-        marginLeft: 0 // Reset any inherited margin
-      }}
-    >
-      Direct Dispatch List
-    </Typography>
-  )
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Card>
+              <CardHeader title={RenderUtility.pageTitle(' Direct Dispatch List')} action={headerAction} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
 
-  const tableData = () => (
-    <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
-        <Card>
-          <CardHeader
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start', // Align content to the left
-              alignItems: 'flex-start', // Align items to the top left
-              gap: { xs: 2, sm: 0 }
-            }}
-            title={title}
-            action={headerAction}
-          />
-          <Grid
-            container
-            spacing={2}
-            alignItems='center'
-            justifyContent={isSmallScreen ? 'center' : 'space-between'}
-            sx={{ px: 3 }}
-          >
-            {/* Search Field */}
-            <Grid item xs={12} sm={6} md={8}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-                  width: isSmallScreen ? '100%' : '250px' // Full width on small screens
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
+                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                  {status === 'all' || status === 'completed' ? (
+                    <Box sx={{ float: 'right', mt: 1 }}>
+                      <FormControlLabel
+                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        label='Completed'
+                        labelPlacement='end'
+                      />
+                    </Box>
+                  ) : null}
+                </Grid>
               </Box>
-            </Grid>
 
-            {/* Completed Switch */}
-            {(status === 'all' || status === 'completed') && (
+              {/* {status === 'all' || status === 'completed' ? (
+                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null} */}
               <Grid
-                item
-                xs={12}
-                sm={12}
-                md='auto'
                 sx={{
-                  display: 'flex',
-                  justifyContent: isSmallScreen ? 'flex-start' : 'flex-end', // Align switch to the end on larger screens
-                  mt: { xs: 2, sm: 0 }
+                  mx: 4
                 }}
               >
-                <FormControlLabel
-                  control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                  label='Completed'
-                  labelPlacement='end'
-                  sx={{
-                    m: 0,
-                    '.MuiTypography-root': {
-                      fontSize: '0.875rem' // Adjust label font size
-                    }
-                  }}
+                <CommonTable
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
                 />
               </Grid>
-            )}
-          </Grid>
-
-          {/* Table */}
-          <Grid sx={{ mx: 4, mt: 2 }}>
-            <CommonTable
-              onRowClick={onRowClick}
-              indexedRows={indexedRows}
-              total={total}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-            />
-          </Grid>
-        </Card>
-      )}
-    </>
-  )
+            </Card>
+          </>
+        )}
+      </>
+    )
+  }
 
   return (
     <Grid>

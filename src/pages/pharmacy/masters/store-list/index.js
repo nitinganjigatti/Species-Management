@@ -37,6 +37,7 @@ import toast from 'react-hot-toast'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -369,12 +370,6 @@ const ListOfStores = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Pharmacy List</Typography>
-    </>
-  )
-
   return (
     <>
       {pharmacyRole ? (
@@ -384,7 +379,7 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title={title} action={headerAction} />
+                <CardHeader title={RenderUtility.pageTitle('Pharmacy List')} action={headerAction} />
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                   {/* Left Box (Search Field) */}
                   <Grid item xs={8}>

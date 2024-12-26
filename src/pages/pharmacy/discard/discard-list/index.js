@@ -22,6 +22,7 @@ import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -320,20 +321,6 @@ const ListOfDiscardProducts = () => {
     }
   }
 
-  const title = (
-    <Typography
-      sx={{
-        fontSize: '24px',
-        fontFamily: 'Inter',
-        fontWeight: 500,
-        textAlign: 'left', // Ensures text alignment to the left
-        marginLeft: 0 // Reset any inherited margin
-      }}
-    >
-      Return to Supplier List
-    </Typography>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -342,7 +329,55 @@ const ListOfDiscardProducts = () => {
         ) : (
           <>
             <Card>
-              <CardHeader
+              <CardHeader title={RenderUtility.pageTitle('Return to Supplier List')} action={headerAction} />
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                {/* Left Box (Search Field) */}
+                {/* <Grid item xs={8}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      ml: 5,
+                      height: '40px',
+                      width: '250px' // Set a fixed width for all status
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid> */}
+
+                {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+              {status === 'all' || status === 'completed' ? (
+                <Box sx={{ float: 'right', mt: 1 }}>
+                  <FormControlLabel
+                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                    label='Completed'
+                    labelPlacement='end'
+                  />
+                </Box>
+              ) : null}
+            </Grid> */}
+              </Box>
+              <Grid
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
@@ -350,8 +385,6 @@ const ListOfDiscardProducts = () => {
                   alignItems: 'flex-start', // Align items to the top left
                   gap: { xs: 2, sm: 0 }
                 }}
-                title={title}
-                action={headerAction}
               />
               <Box
                 sx={{
