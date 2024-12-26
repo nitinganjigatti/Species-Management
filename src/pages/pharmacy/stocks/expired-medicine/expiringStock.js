@@ -19,6 +19,7 @@ import { useTheme } from '@emotion/react'
 
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -398,14 +399,6 @@ const ExpiringMedicine = () => {
     return <FallbackSpinner />
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>About To Expire</Typography>
-    </>
-  )
-
-  console.log('Rows >', rows)
-
   return (
     <>
       {loader ? (
@@ -414,7 +407,7 @@ const ExpiringMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title={title}
+              title={RenderUtility.pageTitle('About To Expire')}
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton

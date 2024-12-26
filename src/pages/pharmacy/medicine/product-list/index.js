@@ -26,6 +26,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -412,12 +413,6 @@ const ListOfMedicine = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Product List</Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy?.type === 'central' ? (
@@ -434,7 +429,7 @@ const ListOfMedicine = () => {
                 show={showDialog}
               />
               <Card>
-                <CardHeader title={title} action={headerAction} />
+                <CardHeader title={RenderUtility.pageTitle('Product List')} action={headerAction} />
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                   {/* Left Box (Search Field) */}
                   <Grid item xs={8}>
@@ -442,6 +437,7 @@ const ListOfMedicine = () => {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
+
                         // border: '1px solid #C3CEC7',
                         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '8px',

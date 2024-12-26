@@ -14,6 +14,7 @@ import { useRouter } from 'next/router'
 
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 function Escrow({ value }) {
   const router = useRouter()
@@ -399,12 +400,6 @@ function Escrow({ value }) {
     }
   }, [])
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Escrow List</Typography>
-    </>
-  )
-
   return (
     <>
       {loader ? (
@@ -412,7 +407,7 @@ function Escrow({ value }) {
       ) : (
         <>
           <Card>
-            <CardHeader title={title} />
+            <CardHeader title={RenderUtility.pageTitle('Escrow List')} />
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}

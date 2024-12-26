@@ -33,6 +33,7 @@ import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { textAlign } from '@mui/system'
+import RenderUtility from 'src/utility/render'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -677,12 +678,6 @@ const RequestList = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Request List</Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
@@ -690,7 +685,7 @@ const RequestList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title={title} action={headerAction} />
+            <CardHeader title={RenderUtility.pageTitle('Request List')} action={headerAction} />
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}

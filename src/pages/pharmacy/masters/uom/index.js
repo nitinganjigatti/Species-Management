@@ -36,6 +36,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { textAlign } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfUOM = () => {
   const theme = useTheme()
@@ -305,14 +306,6 @@ const ListOfUOM = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        UOM (Unit of Measurement) List
-      </Typography>
-    </>
-  )
-
   return (
     <>
       {/* {selectedPharmacy.type === 'central' ? ( */}
@@ -323,7 +316,7 @@ const ListOfUOM = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title={title} action={headerAction} />
+                <CardHeader title={RenderUtility.pageTitle('UOM (Unit of Measurement) List')} action={headerAction} />
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                   {/* Left Box (Search Field) */}
                   <Grid item xs={8}>

@@ -26,6 +26,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 function Dispense() {
   const router = useRouter()
@@ -281,12 +282,6 @@ function Dispense() {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Dispense</Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
@@ -303,7 +298,7 @@ function Dispense() {
             }}
           >
             <Grid sx={{ mx: 1.4 }} item>
-              <CardHeader title={title} />
+              <CardHeader title={RenderUtility.pageTitle('Dispense')} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
                 {/* Left Box (Search Field) */}
                 <Grid item xs={8}>

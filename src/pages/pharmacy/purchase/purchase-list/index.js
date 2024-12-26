@@ -26,6 +26,7 @@ import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -60,7 +61,6 @@ const ListOfPurchase = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
-
       try {
         setLoading(true)
 
@@ -119,7 +119,6 @@ const ListOfPurchase = () => {
   }))
 
   const handleSortModel = newModel => {
-   
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -353,12 +352,6 @@ const ListOfPurchase = () => {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Inventory List</Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -367,7 +360,7 @@ const ListOfPurchase = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
+              <CardHeader title={RenderUtility.pageTitle('Inventory List')} action={headerAction} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
                 {/* Left Box (Search Field) */}
                 <Grid item xs={8}>

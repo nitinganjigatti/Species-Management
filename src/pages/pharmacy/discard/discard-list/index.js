@@ -22,6 +22,7 @@ import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -320,14 +321,6 @@ const ListOfDiscardProducts = () => {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Return to Supplier List
-      </Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -336,7 +329,7 @@ const ListOfDiscardProducts = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
+              <CardHeader title={RenderUtility.pageTitle('Return to Supplier List')} action={headerAction} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
                 {/* Left Box (Search Field) */}
                 <Grid item xs={8}>

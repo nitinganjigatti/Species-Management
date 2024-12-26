@@ -30,6 +30,7 @@ import { useRouter } from 'next/router'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
@@ -604,14 +605,6 @@ const ReturnRequestList = () => {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Product Return Requests
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
@@ -620,7 +613,7 @@ const ReturnRequestList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
+              <CardHeader title={RenderUtility.pageTitle('Product Return Requests')} action={headerAction} />
               <Box display='flex' justifyContent='space-between' alignItems='center'>
                 {/* Left Box (Search Field) */}
                 <Grid item xs={8}>

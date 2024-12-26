@@ -29,6 +29,7 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -442,14 +443,6 @@ const DirectDispatchList = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Local Dispatch List
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
@@ -458,7 +451,7 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
+              <CardHeader title={RenderUtility.pageTitle('Local Dispatch List')} action={headerAction} />
               <Box
                 sx={{
                   display: 'flex', // Makes child elements align in a row
@@ -472,6 +465,7 @@ const DirectDispatchList = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
+
                     // border: '1px solid #C3CEC7',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',

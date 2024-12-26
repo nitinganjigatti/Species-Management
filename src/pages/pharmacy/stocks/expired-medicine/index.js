@@ -16,6 +16,7 @@ import { Grid, TextField, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -272,12 +273,6 @@ const ExpiredMedicine = () => {
   //   return <h1>{error.message}</h1>
   // }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Expired Products</Typography>
-    </>
-  )
-
   return (
     <>
       {loader ? (
@@ -286,7 +281,7 @@ const ExpiredMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title={title}
+              title={RenderUtility.pageTitle('Expired Products')}
               action={
                 <Box sx={{ mx: 2 }}>
                   <ExcelExportButton

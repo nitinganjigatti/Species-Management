@@ -38,6 +38,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -288,7 +289,6 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-     
       try {
         setLoading(true)
 
@@ -403,19 +403,11 @@ export default function NewProductList() {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        New Product Request List
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
         <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader title={title} action={headerAction} />
+          <CardHeader title={RenderUtility.pageTitle('New Product Request List')} action={headerAction} />
 
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             {/* Left Box (Search Field) */}
