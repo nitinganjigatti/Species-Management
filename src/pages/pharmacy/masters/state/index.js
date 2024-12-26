@@ -325,7 +325,24 @@ const ListOfStates = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButtonContained title='Add State' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid
+          item
+          sx={{
+            mt: { xs: 2, md: 0 }, // Add margin-top on small screens
+            textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
+          }}
+        >
+          {' '}
+          <AddButtonContained
+            title='Add State'
+            action={() => addEventSidebarOpen()}
+            sx={{
+              mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
+            }}
+          />
+        </Grid>
+      )}
     </div>
   )
 
@@ -356,9 +373,28 @@ const ListOfStates = () => {
               /> */}
 
               <Card>
-                <CardHeader title={RenderUtility.pageTitle('State List')} action={headerAction} />
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between', // Space between title and button
+                    alignItems: 'center',
+                    px: { xs: 2, md: 5 }, // Responsive padding
+                    py: 2
+                  }}
+                  title={RenderUtility.pageTitle('State List')}
+                  action={headerAction}
+                />
 
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+                    justifyContent: 'space-between',
+                    width: '95%',
+                    padding: '3px',
+                    gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+                  }}
+                >
                   {/* Left Box (Search Field) */}
                   <Grid item xs={8}>
                     <Box
@@ -366,11 +402,11 @@ const ListOfStates = () => {
                         display: 'flex',
                         alignItems: 'center',
                         border: '1px solid #C3CEC7',
+                        m: { xs: 2 },
                         borderRadius: '8px',
                         padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
+                        width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                        height: '40px'
                       }}
                     >
                       <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />

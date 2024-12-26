@@ -297,6 +297,10 @@ const RequestList = () => {
                   pathname: '/pharmacy/request/add-request/'
                 })
               }
+              sx={{
+                mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+                alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+              }}
             />
           </>
         )}
@@ -685,7 +689,17 @@ const RequestList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title={RenderUtility.pageTitle('Request List')} action={headerAction} />
+            <CardHeader
+             sx={{
+              display: 'flex',
+              justifyContent: 'space-between', // Space between title and button
+              alignItems: 'center',
+              px: { xs: 2, md: 5 }, // Responsive padding
+              py: 2
+            }}
+              title={RenderUtility.pageTitle('Request List')}
+              action={headerAction}
+            />
 
             <Box
               sx={{

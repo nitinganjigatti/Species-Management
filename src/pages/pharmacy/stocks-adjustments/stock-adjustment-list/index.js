@@ -481,31 +481,6 @@ const ListOfStockAdjusted = () => {
               }}
             />
           </Box>
-
-          {/* Switch for Completed Filter */}
-          {['all', 'completed'].includes(status) && (
-            <Grid
-              item
-              xs={12}
-              sm={12}
-              md='auto'
-              sx={{
-                height: '50px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: { xs: 'center', sm: 'flex-end' }, // Centered on small screens
-                padding: '0 12px'
-              }}
-            >
-              <Box>
-                <FormControlLabel
-                  control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                  label='Completed'
-                  labelPlacement='end'
-                />
-              </Box>
-            </Grid>
-          )}
         </Box>
 
         <Grid

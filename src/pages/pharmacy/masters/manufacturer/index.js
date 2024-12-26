@@ -238,7 +238,16 @@ const ManufacturerList = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButtonContained title='Add Manufacturer' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <AddButtonContained
+          title='Add Manufacturer'
+          action={() => addEventSidebarOpen()}
+          sx={{
+            mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+            alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+          }}
+        />
+      )}
     </div>
   )
 
@@ -297,8 +306,27 @@ const ManufacturerList = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title={RenderUtility.pageTitle('Manufacturers')} action={headerAction} />
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 2, sm: 0 }
+                  }}
+                  title={RenderUtility.pageTitle('Manufacturers')}
+                  action={headerAction}
+                />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+                    justifyContent: 'space-between',
+                    width: '95%',
+                    padding: '3px',
+                    gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+                  }}
+                >
                   {/* Left Box (Search Field) */}
                   <Grid item xs={8}>
                     <Box
@@ -306,11 +334,11 @@ const ManufacturerList = () => {
                         display: 'flex',
                         alignItems: 'center',
                         border: '1px solid #C3CEC7',
+                        m: { xs: 2 },
                         borderRadius: '8px',
                         padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
+                        width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                        height: '40px'
                       }}
                     >
                       <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />

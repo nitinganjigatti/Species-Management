@@ -330,8 +330,6 @@ const ListOfPurchase = () => {
         // alignItems: 'center',
         justifyContent: 'flex-start', // Ensure buttons align to the right
         // flexWrap: 'wrap',
-        fontSize: { xs: '18px', sm: '10px', md: '14px' },
-        mt: { xs: 2, sm: 0 } // Add margin on small screens
       }}
     >
       <ExcelExportButton
@@ -370,33 +368,22 @@ const ListOfPurchase = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Column on small screens
-                alignItems: { xs: 'flex-start', sm: 'center' }, // Align to left on small screens
-                gap: { xs: 2, sm: 0 }, // Add space between title and buttons on small screens
-                px: { xs: 2, sm: 4 }
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start', // Align content to the left
+                alignItems: 'flex-start', // Align items to the top left
+                gap: { xs: 2, sm: 0 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
-              action={
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 2,
-                    flexDirection: { xs: 'row', sm: 'row' }, // Keep buttons in a row
-                    justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Align buttons to the left
-                    width: { xs: '100%', sm: 'auto' } // Take full width on small screens
-                  }}
-                >
-                  {headerAction}
-                </Box>
-              }
+              action={headerAction}
             />
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
                 justifyContent: 'space-between',
-                flexWrap: 'wrap', // Allow wrapping
-                px: { xs: 2, sm: 4 },
-                py: 2
+                width: '95%',
+                padding: '3px',
+                gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
               }}
             >
               {/* Left Box (Search Field) */}
@@ -406,11 +393,11 @@ const ListOfPurchase = () => {
                     display: 'flex',
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
+                    m: { xs: 2 },
                     borderRadius: '8px',
-
-                    // padding: '0 8px',
-                    height: '40px',
-                    ml: { xs: 0, sm: 2 } // Remove margin on small screens
+                    padding: '0 8px',
+                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    height: '40px'
                   }}
                 >
                   <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />

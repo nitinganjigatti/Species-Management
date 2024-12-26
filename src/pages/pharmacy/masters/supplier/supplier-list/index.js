@@ -249,65 +249,93 @@ const Supplier = () => {
     console.log('Handle Header Action')
   }
 
+  const headerAction = (
+    <div>
+      {/* {selectedPharmacy.type === 'central' &&
+          (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && (
+        <Grid
+          item
+          sx={{
+            mt: { xs: 2, md: 0 }, // Add margin-top on small screens
+            textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
+          }}
+        >
+          {' '}
+          <AddButtonContained
+            title='Add Supplier'
+            action={() => addEventSidebarOpen()}
+            sx={{
+              mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
+            }}
+          />
+        </Grid>
+      )}
+    </div>
+  )
+
   return (
     <>
       {pharmacyRole ? (
         <>
           {loader ? (
-            <FallbackSpinner />
+            <FallbackSpinner /> 
           ) : (
             <Card>
+              <CardHeader
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between', // Space between title and button
+                  alignItems: 'center',
+                  px: { xs: 2, md: 5 }, // Responsive padding
+                  py: 2
+                }}
+                title={RenderUtility.pageTitle('Supplier List')}
+                action={headerAction}
+              />{' '}
               <Box
                 sx={{
                   display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
                   justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px' // Add padding if needed for spacing
+                  width: '95%',
+                  padding: '3px',
+                  gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
                 }}
               >
-                <CardHeader title={RenderUtility.pageTitle('Supplier List')} sx={{ padding: 0 }} />{' '}
-                {/* Remove padding from CardHeader if needed */}
-                <AddButtonContained
-                  title='Add Supplier'
-                  action={() => {
-                    Router.push('/pharmacy/masters/supplier/add-supplier')
-                  }}
-                />
-              </Box>
-
-              <Grid item xs={8}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #C3CEC7',
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px' // Set a fixed width for all status
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    value={searchText}
-                    fullWidth
+                {/* Left Box (Search Field) */}
+                <Grid item xs={8}>
+                  <Box
                     sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      m: { xs: 2 },
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                      height: '40px'
                     }}
-                  />
-                </Box>
-              </Grid>
-
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+              </Box>
               <Grid sx={{ mx: 4 }}>
                 <CommonTable
                   total={total}

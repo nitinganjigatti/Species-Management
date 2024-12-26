@@ -31,6 +31,7 @@ import { Box } from '@mui/material'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
@@ -201,7 +202,7 @@ const DirectDispatchList = () => {
     <div>
       {selectedPharmacy.type === 'local' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton
+          <AddButtonContained
             title='Add Local Dispatch'
             action={() =>
               Router.push({
@@ -453,22 +454,23 @@ const DirectDispatchList = () => {
         ) : (
           <Card>
             <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start', // Align content to the left
+                alignItems: 'flex-start', // Align items to the top left
+                gap: { xs: 2, sm: 0 }
+              }}
               title={RenderUtility.pageTitle('Local Dispatch List')}
               action={headerAction}
-              sx={{
-                '& .MuiCardHeader-title': {
-                  fontSize: { xs: '18px', sm: '20px', md: '24px' } // Responsive title font size
-                }
-              }}
             />
             <Box
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                width: '100%',
-                padding: '8px',
+                width: '95%',
+                padding: '3px',
                 gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
               }}
             >
@@ -478,6 +480,7 @@ const DirectDispatchList = () => {
                   display: 'flex',
                   alignItems: 'center',
                   border: '1px solid #C3CEC7',
+                  m: { xs: 2 },
                   borderRadius: '8px',
                   padding: '0 8px',
                   width: { xs: '100%', sm: '250px' }, // Full width on small screens
