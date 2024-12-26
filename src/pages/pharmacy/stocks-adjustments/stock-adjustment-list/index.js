@@ -209,7 +209,7 @@ const ListOfStockAdjusted = () => {
   const columns = [
     {
       flex: 0.2,
-      Width: 40,
+      minWidth: 40,
       field: 'sl',
       headerName: 'S.NO ',
       renderCell: params => (
@@ -240,7 +240,7 @@ const ListOfStockAdjusted = () => {
     },
     {
       flex: 0.25,
-      Width: 40,
+      minWidth: 40,
       field: 'batch_no',
       headerName: 'Batch number ',
       renderCell: params => (
@@ -393,12 +393,14 @@ const ListOfStockAdjusted = () => {
   ]
 
   const headerAction = (
-    <Grid sx={{ display: 'flex', gap: 2 }}>
-      <AddButtonContained
-        title='Add Stock Adjustment'
-        action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
-      />
-    </Grid>
+    <AddButtonContained
+      title='Add Stock Adjustment'
+      action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
+      sx={{
+        mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+        alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+      }}
+    />
   )
 
   const TabBadge = ({ label, totalCount }) => (
@@ -411,64 +413,114 @@ const ListOfStockAdjusted = () => {
   )
 
   const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Stock Adjustment List
-      </Typography>
-    </>
+    <Typography
+      sx={{
+        fontSize: '24px',
+        fontFamily: 'Inter',
+        fontWeight: 500,
+        textAlign: 'left', // Ensures text alignment to the left
+        marginLeft: 0 // Reset any inherited margin
+      }}
+    >
+      Stock Adjustment List
+    </Typography>
   )
 
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title={title} action={headerAction} />
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          {/* Left Box (Search Field) */}
-          <Grid item xs={8}>
-            <Box
+        <CardHeader
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-start', // Align content to the left
+            alignItems: 'flex-start', // Align items to the top left
+            gap: { xs: 2, sm: 0 }
+          }}
+          title={title}
+          action={headerAction}
+        />
+
+        {/* <Grid
+          container
+         
+        >
+          <Grid item xs={12} sm='auto'>
+            {title}
+          </Grid>
+          <Grid item xs={12} sm='auto'>
+            {headerAction}
+          </Grid>
+        </Grid> */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+            padding: '8px',
+            gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+          }}
+        >
+          {/* Search Box */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              border: '1px solid #C3CEC7',
+              m: { xs: 2 },
+              borderRadius: '8px',
+              padding: '0 8px',
+              width: { xs: '100%', sm: '250px' }, // Full width on small screens
+              height: '40px'
+            }}
+          >
+            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+            <TextField
+              variant='outlined'
+              placeholder='Search...'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
               sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+                  padding: '0',
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                }
+              }}
+            />
+          </Box>
+
+          {/* Switch for Completed Filter */}
+          {['all', 'completed'].includes(status) && (
+            <Grid
+              item
+              xs={12}
+              sm={12}
+              md='auto'
+              sx={{
+                height: '50px',
                 display: 'flex',
                 alignItems: 'center',
-                border: '1px solid #C3CEC7',
-                borderRadius: '8px',
-                padding: '0 8px',
-                ml: 5,
-                height: '40px',
-                width: '250px' // Set a fixed width for all status
+                justifyContent: { xs: 'center', sm: 'flex-end' }, // Centered on small screens
+                padding: '0 12px'
               }}
             >
-              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-              <TextField
-                variant='outlined'
-                value={searchValue}
-                placeholder='Search...'
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    border: 'none',
-                    padding: '0',
-                    '& fieldset': {
-                      border: 'none'
-                    }
-                  }
-                }}
-              />
-            </Box>
-          </Grid>
-
-          {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-            </Grid> */}
+              <Box>
+                <FormControlLabel
+                  control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                  label='Completed'
+                  labelPlacement='end'
+                />
+              </Box>
+            </Grid>
+          )}
         </Box>
+
         <Grid
           sx={{
             mx: 4

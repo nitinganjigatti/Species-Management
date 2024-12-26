@@ -18,6 +18,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
 import { Switch, FormControlLabel, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { useTheme } from '@emotion/react'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -33,6 +34,8 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Detect small screens
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const [loader, setLoader] = useState(false)
@@ -604,9 +607,17 @@ const ReturnRequestList = () => {
     }
   }
 
-  const title = (
+  const title = ( 
     <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+      <Typography
+        sx={{
+          fontSize: '24px',
+          fontFamily: 'Inter',
+          fontWeight: 500,
+          textAlign: 'left', // Ensures text alignment to the left
+          marginLeft: 0 // Reset any inherited margin
+        }}
+      >
         Product Return Requests
       </Typography>
     </>
@@ -618,192 +629,217 @@ const ReturnRequestList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <>
-            <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
+          <Card>
+            <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start', // Align content to the left
+                alignItems: 'flex-start', // Align items to the top left
+                gap: { xs: 2, sm: 0 }
+              }}
+              title={title}
+              action={headerAction}
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on small screens
+                justifyContent: { xs: 'center', sm: 'space-between' }, // Adjust alignment dynamically
+                alignItems: 'center', // Align items centrally
+                width: '100%',
+                padding: '8px',
+                gap: { xs: 2, sm: 3 } // Add spacing dynamically
+              }}
+            >
+              {/* Search Field */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px',
+                  width: { xs: '100%', sm: '292px' }, // Full width on small screens
+                  marginBottom: { xs: 2, sm: 0 }, // Add spacing below for small screens
+                  margin: { xs: 1, sm: 2 }
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
 
-                      // border: '1px solid #C3CEC7',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-
-                {/* Group of two boxes on the right */}
-                <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
-                  {selectedPharmacy.type === 'central' && (
-                    <Grid
-                      item
-                      sx={{
-                        width: '245px',
-                        height: '50px', // Increased height
-                        borderRadius: '8px',
-                        paddingLeft: '12px',
-                        paddingRight: '12px'
-                      }}
-                    >
-                      <FormControl fullWidth size='small'>
-                        <InputLabel>Filter by Stores</InputLabel>
-                        <Select
-                          fullWidth
-                          size='small'
-                          value={filterByStoreId}
-                          label='Filter by Stores'
-                          onChange={e => {
-                            setTotal(0)
-                            setPaginationModel({ page: 0, pageSize: 10 })
-                            setFilterByStoreId(e.target.value)
-                            setSearchValue('')
-                          }}
-                        >
-                          <MenuItem value='all'>All</MenuItem>
-                          {stores.length > 0 &&
-                            stores.map(store => (
-                              <MenuItem key={store?.id} value={store?.id}>
-                                {store?.name}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  )}
-
+              {/* Filters */}
+              <Grid
+                container
+                spacing={2} // Consistent spacing between grid items
+                sx={{
+                  display: 'flex',
+                  justifyContent: { xs: 'center', sm: 'flex-end' }, // Adjust alignment dynamically
+                  alignItems: 'center'
+                  // width: '100%', // Ensure full width
+                  // flexWrap: 'wrap' // Allow wrapping for small screens
+                }}
+              >
+                {/* Filter by Stores */}
+                {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
+                    xs={12}
+                    sm={6}
+                    md='auto'
                     sx={{
-                      width: '245px',
-                      height: '50px', // Increased height
-                      borderRadius: '8px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px',
-                      mr: 1
+                      width: { xs: '100%', sm: '240px' }, // Full width on small screens
+                      height: '50px',
+                      borderRadius: '8px'
+
+                      // padding: '0 12px'
                     }}
                   >
                     <FormControl fullWidth size='small'>
-                      <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                      <InputLabel>Filter by Stores</InputLabel>
                       <Select
-                        size='small'
-                        value={selectDays}
-                        label='Filter by days'
+                        value={filterByStoreId}
+                        label='Filter by Stores'
                         onChange={e => {
-                          filterByDays(e.target.value)
-                          setSelectDays(e.target.value)
+                          setTotal(0)
+                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setFilterByStoreId(e.target.value)
+                          setSearchValue('')
                         }}
                       >
                         <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value='3'>3 Days</MenuItem>
-                        <MenuItem value='7'>3 to 7 Days</MenuItem>
-                        <MenuItem value='15'>7 to 15 Days</MenuItem>
-                        <MenuItem value='16'>15 Days</MenuItem>
+                        {stores.map(store => (
+                          <MenuItem key={store?.id} value={store?.id}>
+                            {store?.name}
+                          </MenuItem>
+                        ))}
                       </Select>
                     </FormControl>
                   </Grid>
+                )}
+
+                {/* Filter by Days */}
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md='auto'
+                  sx={{
+                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    height: '50px',
+                    borderRadius: '8px'
+                    // padding: '0 12px'
+                  }}
+                >
+                  <FormControl fullWidth size='small'>
+                    <InputLabel>Filter by days</InputLabel>
+                    <Select
+                      value={selectDays}
+                      label='Filter by days'
+                      onChange={e => {
+                        filterByDays(e.target.value)
+                        setSelectDays(e.target.value)
+                      }}
+                    >
+                      <MenuItem value='all'>All</MenuItem>
+                      <MenuItem value='3'>3 Days</MenuItem>
+                      <MenuItem value='7'>3 to 7 Days</MenuItem>
+                      <MenuItem value='15'>7 to 15 Days</MenuItem>
+                      <MenuItem value='16'>15 Days</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                  {status === 'all' || status === 'completed' ? (
-                    <Box sx={{ float: 'right', mt: 1 }}>
+
+                {/* Completed Switch */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={12}
+                    md='auto'
+                    sx={{
+                      height: '50px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Adjust alignment dynamically
+                      padding: '0 12px'
+                    }}
+                  >
+                    <Box>
                       <FormControlLabel
                         control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                         label='Completed'
                         labelPlacement='end'
                       />
                     </Box>
-                  ) : null}
-                </Grid>
-              </Box>
-
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
+                  </Grid>
+                )}
               </Grid>
-            </Card>
-          </>
+            </Box>
+
+            <Grid sx={{ mx: isSmallScreen ? 2 : 4 }}>
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
         )}
       </>
     )
   }
 
   return (
-    <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'local' ? (
-              <Tab
-                sx={{ ml: 3 }}
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
-            <Tab
-              sx={selectedPharmacy?.type === 'central' && { ml: 3 }}
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
-            />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
-          <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='shipped'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
-          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
-          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
-        </TabContext>
-      </Grid>
-    </>
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange}>
+          <Tab value='pending' label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />} />
+          <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
+          <Tab
+            value={'all' ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
+        <TabPanel value='pending'>{tableData()}</TabPanel>
+        <TabPanel value='shipped'>{tableData()}</TabPanel>
+        <TabPanel value='disputed'>{tableData()}</TabPanel>
+        <TabPanel value='cancel'>{tableData()}</TabPanel>
+        {status === 'all' ? (
+          <TabPanel value='all'>{tableData()}</TabPanel>
+        ) : (
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+        )}
+      </TabContext>
+    </Grid>
   )
 }
 

@@ -321,11 +321,17 @@ const ListOfDiscardProducts = () => {
   }
 
   const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Return to Supplier List
-      </Typography>
-    </>
+    <Typography
+      sx={{
+        fontSize: '24px',
+        fontFamily: 'Inter',
+        fontWeight: 500,
+        textAlign: 'left', // Ensures text alignment to the left
+        marginLeft: 0 // Reset any inherited margin
+      }}
+    >
+      Return to Supplier List
+    </Typography>
   )
 
   return (
@@ -336,59 +342,61 @@ const ListOfDiscardProducts = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-
-                {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-            </Grid> */}
-              </Box>
-              <Grid
+              <CardHeader
                 sx={{
-                  mx: 4
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'flex-start', // Align content to the left
+                  alignItems: 'flex-start', // Align items to the top left
+                  gap: { xs: 2, sm: 0 }
+                }}
+                title={title}
+                action={headerAction}
+              />
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap', // Allow wrapping on small screens
+                  gap: 2, // Add spacing between elements
+                  px: 2
                 }}
               >
+                {/* Left Box (Search Field) */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    flex: 1, // Take up available space
+                    maxWidth: { xs: '100%', sm: '250px' }, // Restrict max width
+                    minWidth: { xs: '100%', sm: '200px' }, // Set minimum width for small screens
+                    height: '40px'
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Grid sx={{ mx: 4 }}>
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}

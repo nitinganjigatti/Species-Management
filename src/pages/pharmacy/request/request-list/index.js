@@ -679,7 +679,17 @@ const RequestList = () => {
 
   const title = (
     <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Request List</Typography>
+      <Typography
+        sx={{
+          fontSize: '24px',
+          fontFamily: 'Inter',
+          fontWeight: 500,
+          textAlign: 'left', // Ensures text alignment to the left
+          marginLeft: 0 // Reset any inherited margin
+        }}
+      >
+        Request List
+      </Typography>
     </>
   )
 
@@ -690,61 +700,92 @@ const RequestList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title={title} action={headerAction} />
+            <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start', // Align content to the left
+                alignItems: 'flex-start', // Align items to the top left
+                gap: { xs: 2, sm: 0 }
+              }}
+              title={title}
+              action={headerAction}
+            />
 
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
-              {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
-                <Box
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on small screens
+                justifyContent: { xs: 'center', sm: 'space-between' }, // Adjust alignment dynamically
+                alignItems: 'center', // Align items centrally
+                width: '100%',
+                padding: '8px',
+                gap: { xs: 2, sm: 3 } // Add spacing dynamically
+              }}
+            >
+              {/* Search Field */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px',
+                  width: { xs: '100%', sm: '292px' }, // Full width on small screens
+                  marginBottom: { xs: 2, sm: 0 }, // Add spacing below for small screens
+                  margin: { xs: 1, sm: 2 }
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px' // Set a fixed width for all status
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
                       }
-                    }}
-                  />
-                </Box>
-              </Grid>
+                    }
+                  }}
+                />
+              </Box>
 
-              {/* Group of two boxes on the right */}
-              <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+              {/* Filters */}
+              <Grid
+                container
+                spacing={2} // Consistent spacing between grid items
+                sx={{
+                  display: 'flex',
+                  justifyContent: { xs: 'center', sm: 'flex-end' }, // Adjust alignment dynamically
+                  alignItems: 'center'
+                  // width: '100%', // Ensure full width
+                  // flexWrap: 'wrap' // Allow wrapping for small screens
+                }}
+              >
+                {/* Filter by Stores */}
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
+                    xs={12}
+                    sm={6}
+                    md='auto'
                     sx={{
-                      width: '245px',
-                      height: '50px', // Increased height
-                      borderRadius: '8px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px'
+                      width: { xs: '100%', sm: '240px' }, // Full width on small screens
+                      height: '50px',
+                      borderRadius: '8px'
+
+                      // padding: '0 12px'
                     }}
                   >
                     <FormControl fullWidth size='small'>
                       <InputLabel>Filter by Stores</InputLabel>
                       <Select
-                        fullWidth
-                        size='small'
                         value={filterByStoreId}
                         label='Filter by Stores'
                         onChange={e => {
@@ -755,32 +796,32 @@ const RequestList = () => {
                         }}
                       >
                         <MenuItem value='all'>All</MenuItem>
-                        {stores.length > 0 &&
-                          stores.map(store => (
-                            <MenuItem key={store?.id} value={store?.id}>
-                              {store?.name}
-                            </MenuItem>
-                          ))}
+                        {stores.map(store => (
+                          <MenuItem key={store?.id} value={store?.id}>
+                            {store?.name}
+                          </MenuItem>
+                        ))}
                       </Select>
                     </FormControl>
                   </Grid>
                 )}
 
+                {/* Filter by Days */}
                 <Grid
                   item
+                  xs={12}
+                  sm={6}
+                  md='auto'
                   sx={{
-                    width: '245px',
-                    height: '50px', // Increased height
-                    borderRadius: '8px',
-                    paddingLeft: '12px',
-                    paddingRight: '12px',
-                    mr: 1
+                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    height: '50px',
+                    borderRadius: '8px'
+                    // padding: '0 12px'
                   }}
                 >
                   <FormControl fullWidth size='small'>
-                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                    <InputLabel>Filter by days</InputLabel>
                     <Select
-                      size='small'
                       value={selectDays}
                       label='Filter by days'
                       onChange={e => {
@@ -796,17 +837,31 @@ const RequestList = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-              </Grid>
-              <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                {status === 'all' || status === 'completed' ? (
-                  <Box sx={{ float: 'right', mt: 1 }}>
-                    <FormControlLabel
-                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                      label='Completed'
-                      labelPlacement='end'
-                    />
-                  </Box>
-                ) : null}
+
+                {/* Completed Switch */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={12}
+                    md='auto'
+                    sx={{
+                      height: '50px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Adjust alignment dynamically
+                      padding: '0 12px'
+                    }}
+                  >
+                    <Box>
+                      <FormControlLabel
+                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                        label='Completed'
+                        labelPlacement='end'
+                      />
+                    </Box>
+                  </Grid>
+                )}
               </Grid>
             </Box>
 

@@ -49,6 +49,7 @@ const StockOut = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
+
       try {
         setLoading(true)
 

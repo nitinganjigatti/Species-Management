@@ -286,87 +286,128 @@ function Dispense() {
       <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Dispense</Typography>
     </>
   )
+  const headerAction = (
+    <Grid sx={{ mx: 5 }} item>
+      {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+        selectedPharmacy.permission.dispense_medicine) && (
+        <AddButtonContained
+          title='Add Dispense'
+          action={() => {
+            router.push('/pharmacy/dispense/add-dispense')
+          }}
+          sx={{
+            mr: 6
+          }}
+        />
+      )}
+    </Grid>
+  )
 
   return (
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Card>
+          {/* Title and Button */}
           <Grid
             container
-            sm={12}
-            xs={12}
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+              justifyContent: 'space-between', // Space between title and button
+              alignItems: 'center',
+              px: { xs: 2, md: 5 }, // Responsive padding
+              py: 2
             }}
           >
-            <Grid sx={{ mx: 1.4 }} item>
-              <CardHeader title={title} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      value={searchValue}
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                  {status === 'all' || status === 'completed' ? (
-                    <Box sx={{ float: 'right', mt: 1 }}>
-                      <FormControlLabel
-                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                        label='Completed'
-                        labelPlacement='end'
-                      />
-                    </Box>
-                  ) : null}
-                </Grid>
-              </Box>
+            {/* Title */}
+            <Grid item>
+              <Typography
+                sx={{
+                  fontSize: { xs: '20px', md: '24px' },
+                  fontFamily: 'Inter',
+                  fontWeight: 500
+                }}
+              >
+                Dispense
+              </Typography>
             </Grid>
-            <Grid sx={{ mx: 5 }} item>
-              {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
-                selectedPharmacy.permission.dispense_medicine) && (
-                <AddButtonContained
-                  title='Add Dispense'
-                  action={() => {
-                    router.push('/pharmacy/dispense/add-dispense')
-                  }}
-                  sx={{
-                    mr: 6
-                  }}
-                />
-              )}
+
+            {/* Add Dispense Button */}
+            <Grid
+              item
+              sx={{
+                mt: { xs: 2, md: 0 }, // Add margin-top on small screens
+                textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
+              }}
+            >
+              <AddButtonContained
+                title='Add Dispense'
+                action={() => router.push('/pharmacy/dispense/add-dispense')}
+                sx={{
+                  mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
+                }}
+              />
             </Grid>
           </Grid>
+
+          {/* Search and Switch Section */}
+          <Grid
+            container
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: { xs: 2, md: 5 },
+              py: 2
+            }}
+          >
+            {/* Search Field */}
+            <Grid item xs={12} sm={8} md={8}> 
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px',
+                  width: { xs: '100%', sm: '240px' },
+                  marginBottom: { xs: 2, sm: 0 } // Add spacing below for small screens
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  value={searchValue}
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* Switch */}
+            {status === 'all' || status === 'completed' ? (
+              <Grid item xs={12} sm='auto' sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}>
+                <FormControlLabel
+                  control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                  label='Completed'
+                  labelPlacement='end'
+                />
+              </Grid>
+            ) : null}
+          </Grid>
+
+          {/* Table */}
           <Grid
             sx={{
               mx: 4
@@ -386,9 +427,7 @@ function Dispense() {
           </Grid>
         </Card>
       ) : (
-        <>
-          <Error404></Error404>
-        </>
+        <Error404 />
       )}
     </>
   )

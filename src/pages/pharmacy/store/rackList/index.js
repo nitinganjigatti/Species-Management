@@ -30,6 +30,8 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 const ListOfRacks = () => {
   const theme = useTheme()
 
+ 
+
   const [racks, setRacks] = useState([])
   const [loader, setLoader] = useState(false)
   const [deleteRowId, setDeleteRowId] = useState('')
@@ -369,17 +371,17 @@ const ListOfRacks = () => {
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
+              <Grid item xs={8} sx={{ width: { xs: '100%', sm: '240px' } }}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
+                    m: { xs: 3 },
                     borderRadius: '8px',
                     padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px' // Set a fixed width for all status
+                    // Full width on small screens
+                    height: '40px'
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />

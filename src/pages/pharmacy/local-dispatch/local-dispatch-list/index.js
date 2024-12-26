@@ -16,6 +16,7 @@ import { AddButton } from 'src/components/Buttons'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import { useTheme } from '@emotion/react'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
@@ -32,6 +33,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Detect small screens
   const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -443,12 +445,158 @@ const DirectDispatchList = () => {
   )
 
   const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Local Dispatch List
-      </Typography>
-    </>
+    <Typography
+      sx={{
+        fontSize: { xs: '18px', sm: '20px', md: '24px' }, // Adjust font size for different screen sizes
+        fontFamily: 'Inter',
+        fontWeight: 500
+        // ml: { xs: 0, sm: 1 }, // Adjust margin for smaller screens
+        // textAlign: { xs: 'center', sm: 'left' } // Center-align on small screens
+      }}
+    >
+      Local Dispatch List
+    </Typography>
   )
+
+  // const tableData = () => {
+  //   return (
+  //     <>
+  //       {loader ? (
+  //         <FallbackSpinner />
+  //       ) : (
+  //         <>
+  //           <Card>
+  //             <CardHeader title={title} action={headerAction} />
+  //             <Box
+  //               sx={{
+  //                 display: 'flex', // Makes child elements align in a row
+  //                 justifyContent: 'space-between', // Adjusts spacing between the components
+  //                 alignItems: 'center', // Vertically aligns components
+  //                 width: '100%', // Ensure the container spans full width
+  //                 padding: '8px' // Optional: Adds some padding
+  //               }}
+  //             >
+  //               <Box
+  //                 sx={{
+  //                   display: 'flex',
+  //                   alignItems: 'center',
+  //                   border: '1px solid #C3CEC7',
+  //                   borderRadius: '8px',
+  //                   padding: '0 8px',
+  //                   ml: 5,
+  //                   height: '40px',
+  //                   width: '250px'
+  //                 }}
+  //               >
+  //                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+  //                 <TextField
+  //                   variant='outlined'
+  //                   placeholder='Search...'
+  //                   value={searchValue}
+  //                   onChange={e => handleSearch(e.target.value)}
+  //                   fullWidth
+  //                   sx={{
+  //                     '& .MuiOutlinedInput-root': {
+  //                       border: 'none',
+  //                       padding: '0',
+  //                       '& fieldset': {
+  //                         border: 'none'
+  //                       }
+  //                     }
+  //                   }}
+  //                 />
+  //               </Box>
+
+  //               {status === 'all' || status === 'completed' ? (
+  //                 <Grid
+  //                   item
+  //                   xs={12}
+  //                   sm={12}
+  //                   md='auto'
+  //                   sx={{
+  //                     height: '50px',
+  //                     display: 'flex',
+  //                     alignItems: 'center',
+  //                     justifyContent: isSmallScreen ? 'flex-start' : 'flex-end', // Center on small screens
+  //                     padding: '0 12px'
+  //                   }}
+  //                 >
+  //                   <Box>
+  //                     <FormControlLabel
+  //                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+  //                       label='Completed'
+  //                       labelPlacement='end'
+  //                     />
+  //                   </Box>
+  //                 </Grid>
+  //               ) : null}
+  //             </Box>
+
+  //             <Grid
+  //               sx={{
+  //                 mx: 4
+  //               }}
+  //             >
+  //               <CommonTable
+  //                 onRowClick={onRowClick}
+  //                 indexedRows={indexedRows}
+  //                 total={total}
+  //                 columns={columns}
+  //                 paginationModel={paginationModel}
+  //                 handleSortModel={handleSortModel}
+  //                 setPaginationModel={setPaginationModel}
+  //                 loading={loading}
+  //                 searchValue={searchValue}
+  //               />
+  //             </Grid>
+  //           </Card>
+  //         </>
+  //       )}
+  //     </>
+  //   )
+  // }
+
+  // return (
+  //   <>
+  //     <Grid>
+  //       <TabContext value={status}>
+  //         <TabList onChange={handleChange} aria-label='simple tabs example'>
+  //           <Tab
+  //             value='pending'
+  //             label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+  //           />
+
+  //           <Tab
+  //             value='shipped'
+  //             label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+  //           />
+  //           <Tab
+  //             value='disputed'
+  //             label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+  //           />
+  //           <Tab
+  //             value='cancel'
+  //             label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+  //           />
+  //           {/* {/ <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> /} */}
+  //           <Tab
+  //             value={'all' ? 'all' : 'completed'}
+  //             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+  //           />
+  //         </TabList>
+
+  //         <TabPanel value='pending'>{tableData()}</TabPanel>
+  //         <TabPanel value='shipped'>{tableData()}</TabPanel>
+  //         <TabPanel value='disputed'>{tableData()}</TabPanel>
+  //         <TabPanel value='cancel'>{tableData()}</TabPanel>
+
+  //         {/* {/ <TabPanel value='all'>{tableData()} */}
+  //         {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
+  //         {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
+  //       </TabContext>
+  //     </Grid>
+  //   </>
+  // )
 
   const tableData = () => {
     return (
@@ -456,20 +604,67 @@ const DirectDispatchList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <>
-            <Card>
-              <CardHeader title={title} action={headerAction} />
+          <Card>
+            <CardHeader
+              title={title}
+              action={headerAction}
+              sx={{
+                '& .MuiCardHeader-title': {
+                  fontSize: { xs: '18px', sm: '20px', md: '24px' } // Responsive title font size
+                }
+              }}
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                padding: '8px',
+                gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+              }}
+            >
+              {/* Search Box */}
               <Box
                 sx={{
-                  display: 'flex', // Makes child elements align in a row
-                  justifyContent: 'space-between', // Adjusts spacing between the components
-                  alignItems: 'center', // Vertically aligns components
-                  width: '100%', // Ensure the container spans full width
-                  padding: '8px' // Optional: Adds some padding
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                  height: '40px'
                 }}
               >
-                <Box
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
                   sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+
+              {/* Switch for Completed Filter */}
+              {['all', 'completed'].includes(status) && (
+                <Grid
+                  item
+                  xs={12}
+                  sm={12}
+                  md='auto'
+                  sx={{
+                    height: '50px',
                     display: 'flex',
                     alignItems: 'center',
                     // border: '1px solid #C3CEC7',
@@ -478,110 +673,78 @@ const DirectDispatchList = () => {
                     padding: '0 8px',
                     ml: 5,
                     height: '40px',
-                    width: '250px'
+                    width: '250px',
+                    justifyContent: { xs: 'center', sm: 'flex-end' }, // Centered on small screens
+                    padding: '0 12px'
                   }}
                 >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-
-                {status === 'all' || status === 'completed' ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center',
-                      marginLeft: 'auto' // Push the switch to the far-right
-                    }}
-                  >
+                  <Box>
                     <FormControlLabel
-                      control={<Switch checked={filterSwitch} onChange={handleSwitchChange} />}
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
                     />
                   </Box>
-                ) : null}
-              </Box>
+                </Grid>
+              )}
+            </Box>
 
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
-              </Grid>
-            </Card>
-          </>
+            {/* Common Table */}
+            <Grid
+              sx={{
+                mx: 4,
+                overflowX: 'auto' // Adds horizontal scroll for small screens
+              }}
+            >
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
         )}
       </>
     )
   }
 
   return (
-    <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            <Tab
-              value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-            />
+    <Grid>
+      <TabContext value={status}>
+        <TabList
+          onChange={handleChange}
+          aria-label='simple tabs example'
+          variant='scrollable' // Makes tabs scrollable for small screens
+          scrollButtons='auto'
+        >
+          <Tab value='pending' label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />} />
+          <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
+          <Tab
+            value={['all', 'completed'].includes(status) ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
 
-            <Tab
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
-            />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
-            {/* {/ <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> /} */}
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
-
-          <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='shipped'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
-
-          {/* {/ <TabPanel value='all'>{tableData()} */}
-          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
-          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
-        </TabContext>
-      </Grid>
-    </>
+        {/* Tab Panels */}
+        <TabPanel value='pending'>{tableData()}</TabPanel>
+        <TabPanel value='shipped'>{tableData()}</TabPanel>
+        <TabPanel value='disputed'>{tableData()}</TabPanel>
+        <TabPanel value='cancel'>{tableData()}</TabPanel>
+        {status === 'all' && <TabPanel value='all'>{tableData()}</TabPanel>}
+        {status === 'completed' && <TabPanel value='completed'>{tableData()}</TabPanel>}
+      </TabContext>
+    </Grid>
   )
 }
 

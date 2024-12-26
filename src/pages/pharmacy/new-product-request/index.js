@@ -38,6 +38,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import { minWidth, width } from '@mui/system'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -81,8 +82,8 @@ export default function NewProductList() {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      // flex: 0.2,
+      minWidth: 150,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -92,8 +93,8 @@ export default function NewProductList() {
       )
     },
     {
-      flex: 0.3,
-      Width: 10,
+      // flex: 0.3,
+      minWidth: 100,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
@@ -113,8 +114,8 @@ export default function NewProductList() {
       )
     },
     selectedPharmacy?.type === 'central' && {
-      flex: 0.2,
-      Width: 20,
+      // flex: 0.2,
+      minWidth: 40,
       field: 'from_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
@@ -135,7 +136,7 @@ export default function NewProductList() {
     },
     {
       flex: 0.3,
-      Width: 20,
+      minWidth: 40,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -159,7 +160,7 @@ export default function NewProductList() {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 40,
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
@@ -178,7 +179,7 @@ export default function NewProductList() {
     },
     selectedPharmacy?.type === 'central' && {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 40,
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
@@ -197,7 +198,7 @@ export default function NewProductList() {
     },
     {
       flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
-      minWidth: 20,
+      minWidth: 40,
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
@@ -288,7 +289,6 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-     
       try {
         setLoading(true)
 
@@ -411,25 +411,211 @@ export default function NewProductList() {
     </>
   )
 
+  // const tableData = () => {
+  //   return (
+  //     <>
+  //       <Card sx={{ cursor: 'pointer' }}>
+  //         <CardHeader title={title} action={headerAction} />
+
+  //         <Box display='flex' justifyContent='space-between' alignItems='center'>
+  //           {/* Left Box (Search Field) */}
+  //           <Grid item xs={8}>
+  //             <Box
+  //               sx={{
+  //                 display: 'flex',
+  //                 alignItems: 'center',
+  //                 border: '1px solid #C3CEC7',
+  //                 borderRadius: '8px',
+  //                 padding: '0 8px',
+  //                 ml: 5,
+  //                 height: '40px',
+  //                 width: '250px' // Set a fixed width for all status
+  //               }}
+  //             >
+  //               <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+  //               <TextField
+  //                 variant='outlined'
+  //                 placeholder='Search...'
+  //                 value={searchValue}
+  //                 onChange={e => handleSearch(e.target.value)}
+  //                 fullWidth
+  //                 sx={{
+  //                   '& .MuiOutlinedInput-root': {
+  //                     border: 'none',
+  //                     padding: '0',
+  //                     '& fieldset': {
+  //                       border: 'none'
+  //                     }
+  //                   }
+  //                 }}
+  //               />
+  //             </Box>
+  //           </Grid>
+
+  //           {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+  //             {status === 'all' || status === 'completed' ? (
+  //               <Box sx={{ float: 'right', mt: 1 }}>
+  //                 <FormControlLabel
+  //                   control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+  //                   label='Completed'
+  //                   labelPlacement='end'
+  //                 />
+  //               </Box>
+  //             ) : null}
+  //           </Grid> */}
+  //         </Box>
+  //         <Grid
+  //           sx={{
+  //             mx: 4
+  //           }}
+  //         >
+  //           <CommonTable
+  //             onRowClick={onRowClick}
+  //             indexedRows={indexedRows}
+  //             total={total}
+  //             columns={columns}
+  //             paginationModel={paginationModel}
+  //             handleSortModel={handleSortModel}
+  //             setPaginationModel={setPaginationModel}
+  //             loading={loading}
+  //             searchValue={searchValue}
+  //           />
+  //         </Grid>
+  //       </Card>
+
+  //       {show && (
+  //         <>
+  //           <CardContent>
+  //             <Grid container>
+  //               <CommonDialogBox
+  //                 title={
+  //                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  //                     <div>Product Details - {productDetails?.request_number}</div>
+  //                     {selectedPharmacy.type === 'local' &&
+  //                       (selectedPharmacy.permission.key === 'allow_full_access' ||
+  //                         selectedPharmacy.permission.key === 'ADD') &&
+  //                       productDetails.status === 'Pending' && (
+  //                         <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+  //                           <IconButton
+  //                             size='small'
+  //                             sx={{ mr: 0.5 }}
+  //                             aria-label='Edit'
+  //                             onClick={() => handleEdit(itemId)}
+  //                           >
+  //                             <Icon icon='mdi:pencil-outline' />
+  //                           </IconButton>
+  //                         </Grid>
+  //                       )}
+  //                   </div>
+  //                 }
+  //                 dialogBoxStatus={show}
+  //                 formComponent={
+  //                   <ProductDetail
+  //                     setShow={setShow}
+  //                     statusCall={statusCall}
+  //                     submitLoader={submitLoader}
+  //                     detailsData={detailsData}
+  //                     handleRequestStatus={handleRequestStatus}
+  //                     prescriptionImages={prescriptionImages}
+  //                     reasonText={reasonText}
+  //                     setReasonText={setReasonText}
+  //                     imgUrl={imgUrl}
+  //                     itemId={itemId}
+  //                     handleEdit={handleEdit}
+  //                     productDetails={productDetails}
+  //                   />
+  //                 }
+  //                 close={() => {
+  //                   setShow(false)
+  //                   setProductDetails({})
+  //                   setDetailsData([])
+  //                 }}
+  //                 show={() => setShow(true)}
+  //               />
+  //             </Grid>
+  //           </CardContent>
+  //         </>
+  //       )}
+  //     </>
+  //   )
+  // }
+
+  // return (
+  //   <>
+  //     {loader ? (
+  //       <FallbackSpinner />
+  //     ) : (
+  //       <TabContext value={status}>
+  //         <TabList onChange={handleChange}>
+  //           <Tab
+  //             sx={{ ml: 3 }}
+  //             value='Approved'
+  //             label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
+  //           />
+
+  //           <Tab
+  //             value='Pending'
+  //             label={<TabBadge label='Pending' totalCount={status === 'Pending' ? total : null} />}
+  //           />
+
+  //           <Tab
+  //             value='Cancelled'
+  //             label={<TabBadge label='Cancelled' totalCount={status === 'Cancelled' ? total : null} />}
+  //           />
+  //           <Tab
+  //             value='Rejected'
+  //             label={<TabBadge label='Rejected' totalCount={status === 'Rejected' ? total : null} />}
+  //           />
+  //         </TabList>
+  //         <TabPanel value='Approved'>{tableData()}</TabPanel>
+  //         <TabPanel value='Pending'>{tableData()}</TabPanel>
+
+  //         <TabPanel value='Cancelled'>{tableData()}</TabPanel>
+  //         <TabPanel value='Rejected'>{tableData()}</TabPanel>
+  //       </TabContext>
+  //     )}
+  //   </>
+  // )
+
   const tableData = () => {
     return (
       <>
         <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader title={title} action={headerAction} />
+          <CardHeader
+            title={title}
+            action={headerAction}
+            sx={{
+              display: 'flex',
+              justifyContent: { xs: 'flex-start', sm: 'space-between' }, // Title on the left for small screens
+              alignItems: { xs: 'flex-start', sm: 'flex-start' }, // Adjust vertical alignment
+              flexDirection: { xs: 'column', sm: 'row' }, // Stack action below title on small screens
+              '& .MuiCardHeader-title': {
+                fontSize: { xs: '18px', sm: '20px', md: '24px' },
+                flexGrow: 1 // Ensures the title takes up available space on small screens
+              }
+            }}
+          />
 
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
+          <Box
+            display='flex'
+            flexDirection={{ xs: 'column', sm: 'row' }}
+            justifyContent={{ xs: 'left', sm: 'space-between' }}
+            // alignItems='center'
+            sx={{ p: { xs: 1, sm: 2 } }}
+          >
             {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
+            <Grid item xs={12} sm={8} md={6}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   border: '1px solid #C3CEC7',
                   borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
+                  // padding: '0 8px',
+                  // m:2,
+                  ml: { xs: 0, sm: 5 },
                   height: '40px',
-                  width: '250px' // Set a fixed width for all status
+                  width: { xs: '100%', sm: '240px' } // Full width on small screens
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -451,22 +637,11 @@ export default function NewProductList() {
                 />
               </Box>
             </Grid>
-
-            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-            </Grid> */}
           </Box>
+
           <Grid
             sx={{
-              mx: 4
+              mx: { xs: 2, sm: 4 } // Reduced margin for smaller screens
             }}
           >
             <CommonTable
@@ -489,13 +664,25 @@ export default function NewProductList() {
               <Grid container>
                 <CommonDialogBox
                   title={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
                       <div>Product Details - {productDetails?.request_number}</div>
                       {selectedPharmacy.type === 'local' &&
                         (selectedPharmacy.permission.key === 'allow_full_access' ||
                           selectedPharmacy.permission.key === 'ADD') &&
                         productDetails.status === 'Pending' && (
-                          <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                          <Grid
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'flex-end',
+                              justifyContent: 'flex-end'
+                            }}
+                          >
                             <IconButton
                               size='small'
                               sx={{ mr: 0.5 }}
@@ -548,7 +735,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
-              sx={{ ml: 3 }}
+              sx={{ ml: { xs: 1, sm: 3 } }} // Adjust margin for tabs
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

@@ -26,6 +26,7 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
+import { useMediaQuery } from '@mui/material'
 
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -33,6 +34,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Check for small screens
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -251,6 +253,11 @@ const DirectDispatchList = () => {
                 pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
               })
             }
+            sx={{
+              width: 'auto', // Default width
+              maxWidth: '200px' // Optional: Set a max-width for the button on larger screens
+              // width: useMediaQuery(useTheme().breakpoints.down('sm')) ? '100%' : 'auto' // Responsive width
+            }}
           />
         )}
     </div>
@@ -459,144 +466,158 @@ const DirectDispatchList = () => {
   )
 
   const title = (
+    <Typography
+      sx={{
+        fontSize: '24px',
+        fontFamily: 'Inter',
+        fontWeight: 500,
+        textAlign: 'left', // Ensures text alignment to the left
+        marginLeft: 0 // Reset any inherited margin
+      }}
+    >
+      Direct Dispatch List
+    </Typography>
+  )
+
+  const tableData = () => (
     <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Direct Dispatch List
-      </Typography>
+      {loader ? (
+        <FallbackSpinner />
+      ) : (
+        <Card>
+          <CardHeader
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'flex-start', // Align content to the left
+              alignItems: 'flex-start', // Align items to the top left
+              gap: { xs: 2, sm: 0 }
+            }}
+            title={title}
+            action={headerAction}
+          />
+          <Grid
+            container
+            spacing={2}
+            alignItems='center'
+            justifyContent={isSmallScreen ? 'center' : 'space-between'}
+            sx={{ px: 3 }}
+          >
+            {/* Search Field */}
+            <Grid item xs={12} sm={6} md={8}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid #C3CEC7',
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px',
+                  width: isSmallScreen ? '100%' : '250px' // Full width on small screens
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                <TextField
+                  variant='outlined'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      border: 'none',
+                      padding: '0',
+                      '& fieldset': {
+                        border: 'none'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Grid>
+
+            {/* Completed Switch */}
+            {(status === 'all' || status === 'completed') && (
+              <Grid
+                item
+                xs={12}
+                sm={12}
+                md='auto'
+                sx={{
+                  display: 'flex',
+                  justifyContent: isSmallScreen ? 'flex-start' : 'flex-end', // Align switch to the end on larger screens
+                  mt: { xs: 2, sm: 0 }
+                }}
+              >
+                <FormControlLabel
+                  control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                  label='Completed'
+                  labelPlacement='end'
+                  sx={{
+                    m: 0,
+                    '.MuiTypography-root': {
+                      fontSize: '0.875rem' // Adjust label font size
+                    }
+                  }}
+                />
+              </Grid>
+            )}
+          </Grid>
+
+          {/* Table */}
+          <Grid sx={{ mx: 4, mt: 2 }}>
+            <CommonTable
+              onRowClick={onRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={searchValue}
+            />
+          </Grid>
+        </Card>
+      )}
     </>
   )
 
-  const tableData = () => {
-    return (
-      <>
-        {loader ? (
-          <FallbackSpinner />
-        ) : (
-          <>
-            <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                  {status === 'all' || status === 'completed' ? (
-                    <Box sx={{ float: 'right', mt: 1 }}>
-                      <FormControlLabel
-                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                        label='Completed'
-                        labelPlacement='end'
-                      />
-                    </Box>
-                  ) : null}
-                </Grid>
-              </Box>
-
-              {/* {status === 'all' || status === 'completed' ? (
-                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null} */}
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
-              </Grid>
-            </Card>
-          </>
-        )}
-      </>
-    )
-  }
-
   return (
-    <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'central' ? (
-              <Tab
-                sx={{ ml: 3 }}
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
-
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange} aria-label='simple tabs example'>
+          {selectedPharmacy?.type === 'central' && (
             <Tab
               sx={{ ml: 3 }}
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
+          )}
+          <Tab
+            sx={{ ml: 3 }}
+            value='shipped'
+            label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+          />
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
+          <Tab
+            value={status === 'all' ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
 
-          <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='shipped'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
-          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
-          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
-        </TabContext>
-      </Grid>
-    </>
+        <TabPanel value='pending'>{tableData()}</TabPanel>
+        <TabPanel value='shipped'>{tableData()}</TabPanel>
+        <TabPanel value='disputed'>{tableData()}</TabPanel>
+        <TabPanel value='cancel'>{tableData()}</TabPanel>
+        {status === 'all' && <TabPanel value='all'>{tableData()}</TabPanel>}
+        {status === 'completed' && <TabPanel value='completed'>{tableData()}</TabPanel>}
+      </TabContext>
+    </Grid>
   )
 }
 

@@ -60,7 +60,6 @@ const ListOfPurchase = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
-
       try {
         setLoading(true)
 
@@ -119,7 +118,6 @@ const ListOfPurchase = () => {
   }))
 
   const handleSortModel = newModel => {
-   
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -324,14 +322,22 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <Grid sx={{ display: 'flex', gap: 2 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2,
+        // alignItems: 'center',
+        justifyContent: 'flex-start', // Ensure buttons align to the right
+        // flexWrap: 'wrap',
+        fontSize: { xs: '18px', sm: '10px', md: '14px' },
+        mt: { xs: 2, sm: 0 } // Add margin on small screens
+      }}
+    >
       <ExcelExportButton
-        disabled={total === 0 ? true : false}
+        disabled={total === 0}
         action={() => {
           Router.push({
             pathname: '/pharmacy/purchase/import-purchases/'
-
-            // pathname: '/pharmacy/purchase/import-purchases/v2'
           })
         }}
         title='Import Inventory'
@@ -340,7 +346,7 @@ const ListOfPurchase = () => {
         title='Add Inventory'
         action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
       />
-    </Grid>
+    </Box>
   )
 
   const onRowClick = params => {
@@ -353,10 +359,133 @@ const ListOfPurchase = () => {
     }
   }
 
+  // const title = (
+  //   <Typography
+  //     sx={{
+  //       fontSize: { xs: '18px', sm: '20px', md: '24px' },
+  //       fontFamily: 'Inter',
+  //       fontWeight: 500
+  //       // ml: { xs: 0, sm: 1 },
+  //       // textAlign: { xs: 'center', sm: 'left' }
+  //     }}
+  //   >
+  //     Inventory List
+  //   </Typography>
+  // )
+
+  // return (
+  //   <>
+  //     {selectedPharmacy.type === 'central' ? (
+  //       loader ? (
+  //         <FallbackSpinner />
+  //       ) : (
+  //         <Card>
+  //           <CardHeader
+  //             title={title}
+  //             action={headerAction}
+  //             sx={{
+  //               display: 'flex',
+  //               justifyContent: 'space-between', // Space between title and action
+  //               flexWrap: 'wrap' // Allow wrapping on smaller screens
+  //               // alignItems: 'center'
+  //             }}
+  //           />
+  //           <Box
+  //             sx={{
+  //               display: 'flex',
+  //               justifyContent: 'space-between',
+  //               // alignItems: 'center',
+  //               flexWrap: 'wrap',
+  //               px: { xs: 2, sm: 4 },
+  //               py: 2
+  //             }}
+  //           >
+  //             {/* Left Box (Search Field) */}
+  //             <Grid item xs={12} sm={8} md={6} lg={4}>
+  //               <Box
+  //                 sx={{
+  //                   display: 'flex',
+  //                   alignItems: 'center',
+  //                   border: '1px solid #C3CEC7',
+  //                   borderRadius: '8px',
+  //                   padding: '0 8px',
+
+  //                   height: "40px",
+  //                   ml: 2
+  //                 }}
+  //               >
+  //                 <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
+  //                 <TextField
+  //                   variant='outlined'
+  //                   placeholder='Search...'
+  //                   value={searchValue}
+  //                   onChange={e => handleSearch(e.target.value)}
+  //                   fullWidth
+  //                   sx={{
+  //                     '& .MuiOutlinedInput-root': {
+  //                       border: 'none',
+  //                       padding: '0',
+  //                       '& fieldset': {
+  //                         border: 'none'
+  //                       }
+  //                     }
+  //                   }}
+  //                 />
+  //               </Box>
+  //             </Grid>
+  //           </Box>
+  //           <Grid
+  //             sx={{
+  //               px: { xs: 2, sm: 4 },
+  //               py: { xs: 2, sm: 4 },
+  //               mx: { xs: 0, sm: 2 }
+  //             }}
+  //           >
+  //             <CommonTable
+  //               onRowClick={onRowClick}
+  //               indexedRows={indexedRows}
+  //               total={total}
+  //               columns={columns}
+  //               paginationModel={paginationModel}
+  //               onPaginationModelChange={model => {
+  //                 setPaginationModel(model) // Update page and pageSize in the state
+  //                 router.replace({
+  //                   pathname: router.pathname,
+  //                   query: {
+  //                     ...router.query,
+  //                     page: model.page + 1, // API uses 1-indexed pages
+  //                     pageSize: model.pageSize,
+  //                     searchValue,
+  //                     sort,
+  //                     sortColumn
+  //                   }
+  //                 })
+  //               }}
+  //               handleSortModel={handleSortModel}
+  //               setPaginationModel={setPaginationModel}
+  //               loading={loading}
+  //               searchValue={searchValue}
+  //             />
+  //           </Grid>
+  //         </Card>
+  //       )
+  //     ) : (
+  //       <Error404 />
+  //     )}
+  //   </>
+  // )
   const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Inventory List</Typography>
-    </>
+    <Typography
+      sx={{
+        fontSize: { xs: '18px', sm: '20px', md: '24px' },
+        fontFamily: 'Inter',
+        fontWeight: 500,
+        flex: 1, // Make the title take full space
+        textAlign: { xs: 'left', sm: 'left' } // Align left on all screens
+      }}
+    >
+      Inventory List
+    </Typography>
   )
 
   return (
@@ -365,123 +494,109 @@ const ListOfPurchase = () => {
         loader ? (
           <FallbackSpinner />
         ) : (
-          <>
-            <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              </Box>
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={model => {
-                    setPaginationModel(model) // Update page and pageSize in the state
-                    router.replace({
-                      pathname: router.pathname,
-                      query: {
-                        ...router.query,
-                        page: model.page + 1, // API uses 1-indexed pages
-                        pageSize: model.pageSize,
-                        searchValue,
-                        sort,
-                        sortColumn
-                      }
-                    })
+          <Card>
+            <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Column on small screens
+                alignItems: { xs: 'flex-start', sm: 'center' }, // Align to left on small screens
+                gap: { xs: 2, sm: 0 }, // Add space between title and buttons on small screens
+                px: { xs: 2, sm: 4 }
+              }}
+              title={title}
+              action={
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    flexDirection: { xs: 'row', sm: 'row' }, // Keep buttons in a row
+                    justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Align buttons to the left
+                    width: { xs: '100%', sm: 'auto' } // Take full width on small screens
                   }}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
-              </Grid>
-              {/* <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+                >
+                  {headerAction}
+                </Box>
+              }
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap', // Allow wrapping
+                px: { xs: 2, sm: 4 },
+                py: 2
+              }}
+            >
+              {/* Left Box (Search Field) */}
+              <Grid item xs={12} sm={8} md={6} lg={4} sx={{ width: { xs: '100%', sm: '292px' } }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '8px',
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
+                    // padding: '0 8px',
+                    height: '40px',
+                    ml: { xs: 0, sm: 2 } // Remove margin on small screens
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+            </Box>
+            <Grid
+              sx={{
+                px: { xs: 2, sm: 4 },
+                py: { xs: 2, sm: 4 },
+                mx: { xs: 0, sm: 2 }
+              }}
+            >
+              <CommonTable
                 onRowClick={onRowClick}
-              /> */}
-            </Card>
-          </>
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                onPaginationModelChange={model => {
+                  setPaginationModel(model) // Update page and pageSize in the state
+                  router.replace({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page: model.page + 1, // API uses 1-indexed pages
+                      pageSize: model.pageSize,
+                      searchValue,
+                      sort,
+                      sortColumn
+                    }
+                  })
+                }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
         )
-      ) : (
-        <Error404 />
-      )}
+      ) : null}
     </>
   )
 }
