@@ -14,6 +14,7 @@ import toast from 'react-hot-toast'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import RenderUtility from 'src/utility/render'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -89,17 +90,30 @@ const VariantList = () => {
       headerName: 'Description',
       textAlign: 'center',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.description}
-        </Typography>
+        <>
+          {params.row?.description ? (
+            <TextEllipsisWithModal
+              text={params.row.description}
+              style={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            />
+          ) : (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              NA
+            </Typography>
+          )}
+        </>
       )
     },
 
