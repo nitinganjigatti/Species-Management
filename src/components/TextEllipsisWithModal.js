@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Typography, CardContent, Grid, Button, CardActions, Divider } from '@mui/material'
+import { Typography, CardContent, Grid, Button, CardActions, Divider, Tooltip } from '@mui/material'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import Icon from 'src/@core/components/icon'
 
@@ -26,20 +26,22 @@ const TextEllipsisWithModal = ({ ...props }) => {
         }}
       >
         {props?.icon && <Icon icon={props?.icon} style={{ fontSize: '20px', color: '#00000066' }} />}
-        <Typography
-          variant='body2'
-          sx={{
-            color: 'text.primary',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            cursor: 'pointer',
-            maxWidth: '100px',
-            ...props?.style
-          }}
-        >
-          {truncateText(props?.text, props?.limit)}
-        </Typography>
+        <Tooltip sx={{ cursor: 'pointer' }} title={props?.text}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.primary',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              cursor: 'pointer',
+              maxWidth: '100px',
+              ...props?.style
+            }}
+          >
+            {truncateText(props?.text, props?.limit)}
+          </Typography>
+        </Tooltip>
       </Grid>
 
       <ConfirmDialogBox
