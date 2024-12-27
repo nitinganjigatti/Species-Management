@@ -394,6 +394,7 @@ const ListOfPurchase = () => {
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
                     m: { xs: 2 },
+                    ml:{sm:4},
                     borderRadius: '8px',
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
@@ -422,9 +423,9 @@ const ListOfPurchase = () => {
             </Box>
             <Grid
               sx={{
-                px: { xs: 2, sm: 4 },
-                py: { xs: 2, sm: 4 },
-                mx: { xs: 0, sm: 2 }
+                // px: { xs: 2, sm: 4 },
+                // py: { xs: 2, sm: 4 },
+                mx: { xs: 0, sm: 4 }
               }}
             >
               <CommonTable

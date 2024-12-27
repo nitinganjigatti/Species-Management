@@ -412,36 +412,37 @@ export default function NewProductList() {
             action={headerAction}
             sx={{
               display: 'flex',
-              justifyContent: { xs: 'flex-start', sm: 'space-between' }, // Title on the left for small screens
-              alignItems: { xs: 'flex-start', sm: 'flex-start' }, // Adjust vertical alignment
-              flexDirection: { xs: 'column', sm: 'row' }, // Stack action below title on small screens
+              justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
+              alignItems: { xs: 'flex-start', sm: 'flex-start' }, 
+              flexDirection: { xs: 'column', sm: 'row' }, 
               '& .MuiCardHeader-title': {
                 fontSize: { xs: '18px', sm: '20px', md: '24px' },
-                flexGrow: 1 // Ensures the title takes up available space on small screens
+                flexGrow: 1
               }
             }}
           />
 
           <Box
             display='flex'
-            flexDirection={{ xs: 'column', sm: 'row' }}
-            justifyContent={{ xs: 'left', sm: 'space-between' }}
-            // alignItems='center'
-            sx={{ p: { xs: 1, sm: 2 } }}
+            justifyContent='space-between'
+          
+            flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
+            gap={2} // Gap between items on smaller screens
           >
             {/* Left Box (Search Field) */}
-            <Grid item xs={12} sm={8} md={6}>
+            <Grid item xs={12} sm={8} md={6} sx={{ margin: '11px' }}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  // border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
-                  // padding: '0 8px',
-                  // m:2,
-                  ml: { xs: 0, sm: 5 },
+
+                  padding: '0 8px',
                   height: '40px',
-                  width: { xs: '100%', sm: '240px' } // Full width on small screens
+                  width: { xs: '100%', sm: '240px' }
+                 
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -467,7 +468,7 @@ export default function NewProductList() {
 
           <Grid
             sx={{
-              mx: { xs: 2, sm: 4 } // Reduced margin for smaller screens
+              mx: { xs: 2, sm: 4 } 
             }}
           >
             <CommonTable

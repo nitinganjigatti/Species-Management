@@ -46,11 +46,6 @@ function Dispense() {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
   const [total, setTotal] = useState(0)
 
-  // const [paginationModel, setPaginationModel] = useState({
-  //   page: parseInt(router.query.page, 10) - 1 || 0,
-  //   pageSize: parseInt(router.query.pageSize, 10) || 10
-  // })
-
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
@@ -176,9 +171,9 @@ function Dispense() {
         setLoading(true)
 
         const params = {
-          sort, // Ensure 'sort' is either 'asc' or 'desc'
-          q, // Search query
-          column, // Column to sort by
+          sort,
+          q,
+          column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -282,52 +277,49 @@ function Dispense() {
     }
   }
 
+  const headerAction = (
+    <div>
+      {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
+        selectedPharmacy.permission.key === 'ADD' ||
+        selectedPharmacy.permission.dispense_medicine) && (
+        <Grid
+          item
+          sx={{
+            mt: { xs: 2, md: 0 }, // Add margin-top on small screens
+            textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
+          }}
+        >
+          {' '}
+          <AddButtonContained
+            title='Add Dispense'
+            action={() => router.push('/pharmacy/dispense/add-dispense')}
+            sx={{
+              mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
+            }}
+          />
+        </Grid>
+      )}
+    </div>
+  )
+
   return (
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
         <Card>
           {/* Title and Button */}
-          <Grid
-            container
+
+          <CardHeader
             sx={{
               display: 'flex',
-              justifyContent: 'space-between', // Space between title and button
+              justifyContent: 'space-between',
               alignItems: 'center',
-              px: { xs: 2, md: 5 }, // Responsive padding
+              px: { xs: 2, md: 5 },
               py: 2
             }}
-          >
-            {/* Title */}
-            <Grid item>
-              <Typography
-                sx={{
-                  fontSize: { xs: '20px', md: '24px' },
-                  fontFamily: 'Inter',
-                  fontWeight: 500
-                }}
-              >
-                Dispense
-              </Typography>
-            </Grid>
-
-            {/* Add Dispense Button */}
-            <Grid
-              item
-              sx={{
-                mt: { xs: 2, md: 0 }, // Add margin-top on small screens
-                textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
-              }}
-            >
-              <AddButtonContained
-                title='Add Dispense'
-                action={() => router.push('/pharmacy/dispense/add-dispense')}
-                sx={{
-                  mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
-                }}
-              />
-            </Grid>
-          </Grid>
+            title={RenderUtility.pageTitle('Dispense')}
+            action={headerAction}
+          />
 
           {/* Search and Switch Section */}
           <Grid
@@ -341,7 +333,7 @@ function Dispense() {
             }}
           >
             {/* Search Field */}
-            <Grid item xs={12} sm={8} md={8}> 
+            <Grid item xs={12} sm={8} md={8}>
               <Box
                 sx={{
                   display: 'flex',

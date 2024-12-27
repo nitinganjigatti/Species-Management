@@ -585,10 +585,9 @@ const ListOfMedicine = () => {
                         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '8px',
                         margin: 2,
+                        marginLeft: { sm: 4 },
                         padding: '0 8px',
                         height: '40px'
-                        // width: '98%', // Make width responsive
-                        // maxWidth: '200px', // Maximum width for larger screens
                       }}
                     >
                       <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -621,7 +620,8 @@ const ListOfMedicine = () => {
                       display: 'flex',
                       justifyContent: 'flex-end',
                       alignItems: 'center',
-                      marginTop: { xs: 2, sm: 0 },
+                      marginTop: { xs: 2, sm: 3 },
+                      marginRight: { sm: 5 },
                       margin: 2
                     }}
                   >

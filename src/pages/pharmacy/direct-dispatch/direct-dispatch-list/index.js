@@ -243,7 +243,7 @@ const DirectDispatchList = () => {
     })
   }
 
-  const headerAction = (
+  const headerAction = ( 
     <div>
       {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (

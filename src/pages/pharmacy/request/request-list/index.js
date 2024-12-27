@@ -690,26 +690,26 @@ const RequestList = () => {
         ) : (
           <Card>
             <CardHeader
-             sx={{
-              display: 'flex',
-              justifyContent: 'space-between', // Space between title and button
-              alignItems: 'center',
-              px: { xs: 2, md: 5 }, // Responsive padding
-              py: 2
-            }}
-              title={RenderUtility.pageTitle('Request List')}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between', // Space between title and button
+                alignItems: 'center',
+                px: { xs: 2, md: 5 }, // Responsive padding
+                py: 2
+              }}
+              title={RenderUtility.pageTitle('Request List')} 
               action={headerAction}
             />
 
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on small screens
-                justifyContent: { xs: 'center', sm: 'space-between' }, // Adjust alignment dynamically
-                alignItems: 'center', // Align items centrally
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                alignItems: 'center',
                 width: '100%',
                 padding: '8px',
-                gap: { xs: 2, sm: 3 } // Add spacing dynamically
+                gap: { xs: 2, md: 3 }
               }}
             >
               {/* Search Field */}
@@ -721,9 +721,8 @@ const RequestList = () => {
                   borderRadius: '8px',
                   padding: '0 8px',
                   height: '40px',
-                  width: { xs: '100%', sm: '292px' }, // Full width on small screens
-                  marginBottom: { xs: 2, sm: 0 }, // Add spacing below for small screens
-                  margin: { xs: 1, sm: 2 }
+                  width: { xs: '100%', md: '292px' },
+                  marginBottom: { xs: 2, md: 0 }
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -748,13 +747,13 @@ const RequestList = () => {
               {/* Filters */}
               <Grid
                 container
-                spacing={2} // Consistent spacing between grid items
+                spacing={2}
                 sx={{
                   display: 'flex',
-                  justifyContent: { xs: 'center', sm: 'flex-end' }, // Adjust alignment dynamically
-                  alignItems: 'center'
-                  // width: '100%', // Ensure full width
-                  // flexWrap: 'wrap' // Allow wrapping for small screens
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                  justifyContent: { xs: 'center', md: 'flex-end' },
+                  alignItems: 'center',
+                  width: '100%'
                 }}
               >
                 {/* Filter by Stores */}
@@ -762,14 +761,10 @@ const RequestList = () => {
                   <Grid
                     item
                     xs={12}
-                    sm={6}
                     md='auto'
                     sx={{
-                      width: { xs: '100%', sm: '240px' }, // Full width on small screens
-                      height: '50px',
-                      borderRadius: '8px'
-
-                      // padding: '0 12px'
+                      width: { xs: '100%', md: '240px' },
+                      height: '50px'
                     }}
                   >
                     <FormControl fullWidth size='small'>
@@ -799,13 +794,10 @@ const RequestList = () => {
                 <Grid
                   item
                   xs={12}
-                  sm={6}
                   md='auto'
                   sx={{
-                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
-                    height: '50px',
-                    borderRadius: '8px'
-                    // padding: '0 12px'
+                    width: { xs: '100%', md: '250px' },
+                    height: '50px'
                   }}
                 >
                   <FormControl fullWidth size='small'>
@@ -832,23 +824,20 @@ const RequestList = () => {
                   <Grid
                     item
                     xs={12}
-                    sm={12}
                     md='auto'
                     sx={{
                       height: '50px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Adjust alignment dynamically
-                      padding: '0 12px'
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      width: { xs: '100%', md: 'auto' }
                     }}
                   >
-                    <Box>
-                      <FormControlLabel
-                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                        label='Completed'
-                        labelPlacement='end'
-                      />
-                    </Box>
+                    <FormControlLabel
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                    />
                   </Grid>
                 )}
               </Grid>
