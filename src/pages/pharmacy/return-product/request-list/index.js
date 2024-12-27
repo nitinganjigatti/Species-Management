@@ -677,7 +677,7 @@ const ReturnRequestList = () => {
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
                   alignItems: 'center',
-                  width: '100%'
+                  // width: '100%'
                 }}
               >
                 {/* Filter by Stores */}

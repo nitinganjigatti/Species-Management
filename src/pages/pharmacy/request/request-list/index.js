@@ -697,7 +697,7 @@ const RequestList = () => {
                 px: { xs: 2, md: 5 }, // Responsive padding
                 py: 2
               }}
-              title={RenderUtility.pageTitle('Request List')} 
+              title={RenderUtility.pageTitle('Request List')}
               action={headerAction}
             />
 
@@ -707,7 +707,6 @@ const RequestList = () => {
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: { xs: 'center', md: 'space-between' },
                 alignItems: 'center',
-                width: '100%',
                 padding: '8px',
                 gap: { xs: 2, md: 3 }
               }}
@@ -717,11 +716,11 @@ const RequestList = () => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`, 
                   borderRadius: '8px',
                   padding: '0 8px',
                   height: '40px',
-                  width: { xs: '100%', md: '292px' },
+                  width: { xs: '100%', md: '290px' },
                   marginBottom: { xs: 2, md: 0 }
                 }}
               >
@@ -753,7 +752,7 @@ const RequestList = () => {
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
                   alignItems: 'center',
-                  width: '100%'
+                  // width: '100%'
                 }}
               >
                 {/* Filter by Stores */}

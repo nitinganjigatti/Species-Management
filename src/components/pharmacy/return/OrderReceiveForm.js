@@ -153,7 +153,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               </>
             ) : null}
 
-            <Grid container items id={'comments'}>
+            {/* <Grid container items id={'comments'}>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
                   <TextField
@@ -188,7 +188,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   />
                 </FormControl>
               </Grid>
-            </Grid>
+            </Grid> */}
           </Grid>
         </Grid>
       ) : (
@@ -700,6 +700,18 @@ function OrderReceiveForm({ orderId, requestId }) {
   }
 
   const columns = [
+    {
+      Width: 40,
+      field: 'uid`',
+      headerName: 'S.NO',
+      renderCell: params => {
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.uid + '.'}
+          </Typography>
+        )
+      }
+    },
     {
       flex: 0.5,
       Width: 100,
