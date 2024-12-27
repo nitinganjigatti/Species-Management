@@ -15,10 +15,6 @@ import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -35,6 +31,7 @@ import Chip from '@mui/material/Chip'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -62,17 +59,6 @@ const ListOfStockAdjusted = () => {
   })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(router.query.reason || 'Missing stock')
-  const [expandedText, setExpandedText] = useState('')
-  const [notesDialog, setNotesDialog] = useState(false)
-
-  const closeNotesDialog = () => {
-    setNotesDialog(false)
-    setExpandedText('')
-  }
-
-  const openNotesDialog = () => {
-    setNotesDialog(true)
-  }
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -304,28 +290,30 @@ const ListOfStockAdjusted = () => {
       field: 'comments',
       headerName: 'Comments',
       renderCell: params => (
-        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.comments}>
-          <Typography
-            sx={{
-              minWidth: 30,
-              maxWidth: 80,
-              cursor: 'pointer',
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              WebkitLineClamp: 6,
-              whiteSpace: 'nowrap'
-            }}
-            onClick={() => {
-              if (params.row?.comments) {
-                setExpandedText(params.row.comments)
-                openNotesDialog()
-              }
-            }}
-          >
-            {params.row?.comments || 'NA'}
-          </Typography>
-        </Tooltip>
+        <>
+          {params.row?.comments ? (
+            <TextEllipsisWithModal
+              text={params.row?.comments || params.row?.comments}
+              style={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            />
+          ) : (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              NA
+            </Typography>
+          )}
+        </>
       )
     },
     {
@@ -430,7 +418,7 @@ const ListOfStockAdjusted = () => {
 
         {/* <Grid
           container
-         
+
         >
           <Grid item xs={12} sm='auto'>
             {title}
@@ -577,24 +565,6 @@ const ListOfStockAdjusted = () => {
 
               <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
             </TabContext>
-            <ConfirmDialogBox
-              open={notesDialog}
-              closeDialog={() => {
-                closeNotesDialog()
-              }}
-              action={() => {
-                closeNotesDialog()
-              }}
-              content={
-                <Box>
-                  <>
-                    <DialogContent>
-                      <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
-                    </DialogContent>
-                  </>
-                </Box>
-              }
-            />
           </>
         )
       ) : (
