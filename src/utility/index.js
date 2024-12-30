@@ -120,6 +120,14 @@ function extractHoursAndMinutes(date) {
   return moment(date).format('hh:mm A')
 }
 
+function formatNumberToDisplay(number) {
+  if (number !== null && !isNaN(number)) {
+    return Number.isInteger(number) ? number.toString() : number.toFixed(2)
+  } else {
+    return '0'
+  }
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -132,7 +140,8 @@ const Utility = {
   daysFromToday,
   renderUserAvatar,
   convertUTCToLocal,
-  extractHoursAndMinutes
+  extractHoursAndMinutes,
+  formatNumberToDisplay
 }
 
 export default Utility
