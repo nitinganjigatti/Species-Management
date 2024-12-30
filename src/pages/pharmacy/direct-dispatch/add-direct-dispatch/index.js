@@ -1041,7 +1041,6 @@ const AddDirectDispatch = () => {
               }}
             />
           </Grid> */}
-
           {editParams?.request_item_details.length ? (
             <Box>
               <Card
@@ -1099,9 +1098,9 @@ const AddDirectDispatch = () => {
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                    {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date'
+                                    {el?.stock_type === 'non_medical'
                                       ? 'NA'
-                                      : el.expiry_date}
+                                      : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>

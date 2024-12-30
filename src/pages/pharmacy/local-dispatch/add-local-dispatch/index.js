@@ -971,9 +971,9 @@ const AddLocalDispatch = () => {
 
                                 <TableCell>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                    {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date'
+                                    {el?.stock_type === 'non_medical'
                                       ? 'NA'
-                                      : el.expiry_date}
+                                      : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
                                 <TableCell>{el.priority_item}</TableCell>
