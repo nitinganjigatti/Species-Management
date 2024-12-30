@@ -1645,7 +1645,7 @@ const IndividualRequest = () => {
                               mx: 2
                             }}
                           >
-                            ₹{requestItems?.requested_amount}
+                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
                           </Box>
                         </Typography>
 
@@ -1738,7 +1738,7 @@ const IndividualRequest = () => {
                               mx: 2
                             }}
                           >
-                            ₹{requestItems?.shipped_amount}
+                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
                           </Box>
                         </Typography>
                       </Grid>

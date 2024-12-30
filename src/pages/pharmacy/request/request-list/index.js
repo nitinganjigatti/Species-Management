@@ -480,7 +480,7 @@ const RequestList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.daysFromToday(params.row.request_date)}
+          {Utility.daysFromToday(params.row.created_at)}
         </Typography>
       )
     },
@@ -661,7 +661,7 @@ const RequestList = () => {
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-              {Utility.formatDisplayDate(params.row.request_date)}
+              {Utility.formatDisplayDate(params.row.created_at)}
             </Typography>
           </Box>
         </Box>
@@ -716,7 +716,7 @@ const RequestList = () => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`, 
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
                   height: '40px',
@@ -751,7 +751,7 @@ const RequestList = () => {
                   display: 'flex',
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
-                  alignItems: 'center',
+                  alignItems: 'center'
                   // width: '100%'
                 }}
               >
