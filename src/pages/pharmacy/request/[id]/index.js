@@ -1784,7 +1784,7 @@ const IndividualRequest = () => {
                                   lineHeight: '16.94px',
                                   color: 'customColors.OnSurfaceVariant',
 
-                                  ...RenderUtility?.getEllipsisStyleForText(100)
+                                  ...RenderUtility?.getEllipsisStyleForText(200)
                                 }}
                               >
                                 {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
