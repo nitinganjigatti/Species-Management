@@ -2398,7 +2398,7 @@ const IndividualRequest = () => {
                                   {ship?.quantity}
                                 </Box>
                               </Typography>
-                              <Typography variant='body1'>
+                              {/* <Typography variant='body1'>
                                 <Box
                                   component='span'
                                   sx={{
@@ -2419,7 +2419,7 @@ const IndividualRequest = () => {
                                 >
                                   ₹{requestItems?.shipped_amount || '0'}
                                 </Box>
-                              </Typography>
+                              </Typography> */}
                             </Box>
 
                             <Paper
