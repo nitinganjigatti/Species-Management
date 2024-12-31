@@ -339,7 +339,7 @@ const DirectDispatchList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+          {params?.row?.last_shipping_date ? Utility.formatDisplayDate(params?.row?.last_shipping_date) : 'NA'}
         </Typography>
       )
     },

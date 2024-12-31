@@ -480,7 +480,7 @@ const RequestList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.daysFromToday(params.row.request_date)}
+          {Utility.daysFromToday(params.row.created_at)}
         </Typography>
       )
     },
@@ -661,7 +661,7 @@ const RequestList = () => {
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-              {Utility.formatDisplayDate(params.row.request_date)}
+              {Utility.formatDisplayDate(params.row.created_at)}
             </Typography>
           </Box>
         </Box>

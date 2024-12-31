@@ -1645,7 +1645,7 @@ const IndividualRequest = () => {
                               mx: 2
                             }}
                           >
-                            ₹{requestItems?.requested_amount}
+                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
                           </Box>
                         </Typography>
 
@@ -1738,7 +1738,7 @@ const IndividualRequest = () => {
                               mx: 2
                             }}
                           >
-                            ₹{requestItems?.shipped_amount}
+                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
                           </Box>
                         </Typography>
                       </Grid>
@@ -1784,7 +1784,7 @@ const IndividualRequest = () => {
                                   lineHeight: '16.94px',
                                   color: 'customColors.OnSurfaceVariant',
 
-                                  ...RenderUtility?.getEllipsisStyleForText(100)
+                                  ...RenderUtility?.getEllipsisStyleForText(200)
                                 }}
                               >
                                 {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
@@ -2398,7 +2398,7 @@ const IndividualRequest = () => {
                                   {ship?.quantity}
                                 </Box>
                               </Typography>
-                              <Typography variant='body1'>
+                              {/* <Typography variant='body1'>
                                 <Box
                                   component='span'
                                   sx={{
@@ -2419,7 +2419,7 @@ const IndividualRequest = () => {
                                 >
                                   ₹{requestItems?.shipped_amount || '0'}
                                 </Box>
-                              </Typography>
+                              </Typography> */}
                             </Box>
 
                             <Paper

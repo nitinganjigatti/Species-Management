@@ -751,24 +751,24 @@ function OrderReceiveForm({ orderId, requestId }) {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'from_store_name',
-      headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
-      renderCell: params => (
-        <div>
-          <Tooltip
-            title={selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
-            placement='top'
-          >
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
-            </Typography>
-          </Tooltip>
-        </div>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'from_store_name',
+    //   headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
+    //   renderCell: params => (
+    //     <div>
+    //       <Tooltip
+    //         title={selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+    //         placement='top'
+    //       >
+    //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //           {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+    //         </Typography>
+    //       </Tooltip>
+    //     </div>
+    //   )
+    // },
 
     {
       flex: 0.4,

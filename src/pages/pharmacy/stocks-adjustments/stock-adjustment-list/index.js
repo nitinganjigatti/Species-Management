@@ -293,7 +293,7 @@ const ListOfStockAdjusted = () => {
         <>
           {params.row?.comments ? (
             <TextEllipsisWithModal
-              text={params.row?.comments || params.row?.comments}
+              text={params?.row?.comments}
               style={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',

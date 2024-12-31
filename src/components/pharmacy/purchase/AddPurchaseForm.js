@@ -1021,42 +1021,44 @@ const AddPurchaseForm = () => {
 
   return (
     <Card>
-      <Grid
-        item
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                if (navigatedFrom === 'stockReport') {
-                  Router.push('/pharmacy/stocks/stocksReport/')
-                } else {
-                  Router.back()
-                }
-              }}
-              icon='ep:back'
-            />
-          }
-          title={id ? 'Edit Inventory List' : 'Add Inventory'}
-        />
-        {authData?.userData?.roles?.settings?.add_pharmacy && (
-          <AddButton
-            styles={{ marginRight: 20 }}
-            title='Add Supplier'
-            action={() => {
-              setSupplierDialog(true)
-            }}
+      <Grid container spacing={6}>
+        <Grid
+          item
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mr: 5
+          }}
+        >
+          <CardHeader
+            avatar={
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  if (navigatedFrom === 'stockReport') {
+                    Router.push('/pharmacy/stocks/stocksReport/')
+                  } else {
+                    Router.back()
+                  }
+                }}
+                icon='ep:back'
+              />
+            }
+            title={id ? 'Edit Inventory List' : 'Add Inventory'}
           />
-        )}
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              // sx={{ mx: 24 }}
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
+        </Grid>
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
