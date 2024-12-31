@@ -716,11 +716,13 @@ const RequestList = () => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`, 
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
                   height: '40px',
-                  width: { xs: '100%', md: '290px' },
+                  marginLeft: { xs: 0, sm: 1, md: 4.5 },
+                  // ml: { sm: 4.5},
+                  width: { xs: '98%', md: '290px' },
                   marginBottom: { xs: 2, md: 0 }
                 }}
               >
@@ -751,7 +753,7 @@ const RequestList = () => {
                   display: 'flex',
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
-                  alignItems: 'center',
+                  alignItems: 'center'
                   // width: '100%'
                 }}
               >
@@ -762,7 +764,7 @@ const RequestList = () => {
                     xs={12}
                     md='auto'
                     sx={{
-                      width: { xs: '100%', md: '240px' },
+                      width: { xs: '98%', md: '250px' },
                       height: '50px'
                     }}
                   >
@@ -795,7 +797,9 @@ const RequestList = () => {
                   xs={12}
                   md='auto'
                   sx={{
-                    width: { xs: '100%', md: '250px' },
+                    width: { xs: '96%', md: '250px' },
+                    mr: { xs: 1, md: 3 ,sm:1},
+                    ml: { xs:1,sm: 2 },
                     height: '50px'
                   }}
                 >
@@ -829,7 +833,8 @@ const RequestList = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                      width: { xs: '100%', md: 'auto' }
+                      width: { xs: '100%', md: 'auto' },
+                      ml:{xs:2 , sm:3}
                     }}
                   >
                     <FormControlLabel
@@ -844,7 +849,7 @@ const RequestList = () => {
 
             <Grid
               sx={{
-                mx: 4
+                mx: { xs: 2, sm: 3, md: 5.5 }
               }}
             >
               <CommonTable

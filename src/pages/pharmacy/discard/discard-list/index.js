@@ -423,6 +423,7 @@ const ListOfDiscardProducts = () => {
                     border: '1px solid #C3CEC7',
                     m: { xs: 2 },
                     borderRadius: '8px',
+                    marginLeft: { sm: 4,md:5},
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
                     height: '40px'
@@ -447,7 +448,11 @@ const ListOfDiscardProducts = () => {
                   />
                 </Box>
               </Box>
-              <Grid sx={{ mx: 4 }}>
+              <Grid
+                sx={{
+                  mx: { xs: 2, sm: 3, md: 5 }
+                }}
+              >
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}

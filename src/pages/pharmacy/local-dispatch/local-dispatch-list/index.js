@@ -467,84 +467,65 @@ const DirectDispatchList = () => {
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
-                justifyContent: 'space-between',
-                width: '95%',
-                padding: '3px',
-                gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+                flexDirection: 'column',
+                width: '96%',
+                m: 2,
+                gap: 2
               }}
             >
-              {/* Search Box */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  m: { xs: 2 },
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  width: { xs: '100%', sm: '250px' }, // Full width on small screens
-                  height: '40px'
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
+              {/* Search Field and Filters */}
+              <Grid container spacing={2} alignItems='center' justifyContent='space-between' sx={{ width: '100%' }}>
+                {/* Search Field */}
+                <Grid item xs={12} sm={6}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      marginLeft: { xs: 0, sm: 1, md: 4 },
+                      width: { xs: '100%', sm: '70%', md: '40%' }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
 
-              {/* Switch for Completed Filter */}
-              {['all', 'completed'].includes(status) && (
-                <Grid
-                  item
-                  xs={12}
-                  sm={12}
-                  md='auto'
-                  sx={{
-                    height: '50px',
-                    display: 'flex',
-                    alignItems: 'center',
-
-                    // border: '1px solid #C3CEC7',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px',
-                    justifyContent: { xs: 'center', sm: 'flex-end' }, // Centered on small screens
-                    padding: '0 12px'
-                  }}
-                >
-                  <Box>
+                {/* Switch Button */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
                     />
-                  </Box>
-                </Grid>
-              )}
+                  </Grid>
+                )}
+              </Grid>
             </Box>
 
             {/* Common Table */}
             <Grid
               sx={{
-                mx: 4,
-                overflowX: 'auto' // Adds horizontal scroll for small screens
+                mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
               <CommonTable

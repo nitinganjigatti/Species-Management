@@ -293,7 +293,7 @@ const ListOfDosageForms = () => {
       {pharmacyRole ? (
         <>
           {loader ? (
-            <FallbackSpinner /> 
+            <FallbackSpinner />
           ) : (
             <>
               <Card>
@@ -319,7 +319,7 @@ const ListOfDosageForms = () => {
                   }}
                 >
                   {/* Left Box (Search Field) */}
-                  <Grid item xs={8}> 
+                  <Grid item xs={8}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -327,6 +327,7 @@ const ListOfDosageForms = () => {
                         border: '1px solid #C3CEC7',
                         m: { xs: 2 },
                         borderRadius: '8px',
+                        marginLeft: { sm: 2, md: 4 },
                         padding: '0 8px',
                         width: { xs: '100%', sm: '250px' }, // Full width on small screens
                         height: '40px'
@@ -354,7 +355,7 @@ const ListOfDosageForms = () => {
 
                 <Grid
                   sx={{
-                    mx: 4
+                    mx: { xs: 2, sm: 3, md: 5 }
                   }}
                 >
                   <CommonTable

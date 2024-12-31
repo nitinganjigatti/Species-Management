@@ -327,6 +327,7 @@ const Salts = () => {
                         alignItems: 'center',
                         border: '1px solid #C3CEC7',
                         m: { xs: 2 },
+                        marginLeft: { sm: 2,md: 5},
                         borderRadius: '8px',
                         padding: '0 8px',
                         width: { xs: '100%', sm: '250px' }, // Full width on small screens
@@ -353,9 +354,9 @@ const Salts = () => {
                   </Grid>
                 </Box>
                 <Grid
-                  sx={{
-                    mx: 4
-                  }}
+                 sx={{
+                  mx: { xs: 2, sm: 3, md: 5 }
+                }}
                 >
                   <CommonTable
                     onRowClick={''}

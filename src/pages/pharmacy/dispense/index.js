@@ -296,7 +296,7 @@ function Dispense() {
             sx={{
               mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
             }}
-          />
+          /> 
         </Grid>
       )}
     </div>
@@ -341,6 +341,7 @@ function Dispense() {
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
+                  marginLeft: { xs: 0, sm: 1, md: 1.5 },
                   height: '40px',
                   width: { xs: '100%', sm: '240px' },
                   marginBottom: { xs: 2, sm: 0 } // Add spacing below for small screens
@@ -380,9 +381,9 @@ function Dispense() {
 
           {/* Table */}
           <Grid
-            sx={{
-              mx: 4
-            }}
+              sx={{
+                mx: { xs: 2, sm: 3, md: 5 }
+              }}
           >
             <CommonTable
               onRowClick={onRowClick}

@@ -392,6 +392,19 @@ const ExpiringMedicine = () => {
     // }
   }
 
+  const headerAction = (
+    <Box sx={{ mr: { xs: 0, sm: 1 } }}>
+      <ExcelExportButton
+        disabled={total === 0 ? true : false}
+        action={() => {
+          getDataToExport()
+        }}
+        loader={excelLoader}
+        title='Download'
+      />
+    </Box>
+  )
+
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
@@ -407,33 +420,40 @@ const ExpiringMedicine = () => {
         <>
           <Card>
             <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                gap: { xs: 2, sm: 0 }
+              }}
               title={RenderUtility.pageTitle('About To Expire')}
-              action={
-                <Box sx={{ mx: 2 }}>
-                  <ExcelExportButton
-                    disabled={total === 0 ? true : false}
-                    action={() => {
-                      getDataToExport()
-                    }}
-                    loader={excelLoader}
-                    title='Download'
-                  />
-                </Box>
-              }
+              action={headerAction}
             />
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                // alignItems: 'center',
+                width: '100%',
+                padding: '8px',
+                gap: { xs: 2, md: 3 }
+              }}
+            >
               {/* Left Box (Search Field) */}
               <Grid item xs={8}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
+                    ml: { xs: 2, sm: 3.5, md: 4 },
                     padding: '0 8px',
-                    ml: 5,
                     height: '40px',
-                    width: '250px' // Set a fixed width for all status
+                    width: { xs: '96%', md: '292px' },
+                    marginBottom: { xs: 2, md: 0 }
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -457,7 +477,16 @@ const ExpiringMedicine = () => {
               </Grid>
 
               {/* Group of two boxes on the right */}
-              <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+              <Grid
+                container
+                sx={{
+                  display: 'flex',
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                  justifyContent: { xs: 'center', md: 'flex-end' },
+                  alignItems: 'center'
+                  // width: '100%'
+                }}
+              >
                 {/* {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
@@ -497,12 +526,10 @@ const ExpiringMedicine = () => {
                 <Grid
                   item
                   sx={{
-                    width: '245px',
-                    height: '50px', // Increased height
-                    borderRadius: '8px',
-                    paddingLeft: '12px',
-                    paddingRight: '12px',
-                    mr: 1
+                    width: { xs: '96%', md: '240px' },
+                    // mr: { sm: 6 },
+                    ml: { xs: 1 },
+                    height: '50px'
                   }}
                 >
                   <FormControl fullWidth size='small'>
@@ -539,7 +566,7 @@ const ExpiringMedicine = () => {
 
             <Grid
               sx={{
-                mx: 4
+                mx: { xs: 3, sm: 5 }
               }}
             >
               <CommonTable

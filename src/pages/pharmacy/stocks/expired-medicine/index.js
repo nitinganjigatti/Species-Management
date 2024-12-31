@@ -281,33 +281,51 @@ const ExpiredMedicine = () => {
         <>
           <Card>
             <CardHeader
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'flex-start', sm: 'space-between' },
+                alignItems: { xs: 'flex-start', sm: 'flex-start' },
+                flexDirection: { xs: 'column', sm: 'row' },
+                '& .MuiCardHeader-title': {
+                  fontSize: { xs: '18px', sm: '20px', md: '24px' },
+                  flexGrow: 1
+                },
+                '& .MuiCardHeader-action': {
+                  mt: 3,
+                  ml: 1
+                }
+              }}
               title={RenderUtility.pageTitle('Expired Products')}
               action={
-                <Box sx={{ mx: 2 }}>
-                  <ExcelExportButton
-                    disabled={total === 0 ? true : false}
-                    action={() => {
-                      getDataToExport()
-                    }}
-                    loader={excelLoader}
-                    title='Download'
-                  />
-                </Box>
+                <ExcelExportButton
+                  disabled={total === 0 ? true : false}
+                  action={() => {
+                    getDataToExport()
+                  }}
+                  loader={excelLoader}
+                  title='Download'
+                />
               }
             />
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
+            <Grid
+              display='flex'
+              justifyContent='space-between'
+              flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
+              gap={2} // Gap between items on smaller screens
+            >
               {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
+              <Grid item xs={12} sm={8} md={6} sx={{ margin: '11px' }}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
+                    ml: { xs: 2.5, sm: 3, xs: 0 },
                     padding: '0 8px',
-                    ml: 5,
                     height: '40px',
-                    width: '250px' // Set a fixed width for all status
+                    width: { xs: '100%', sm: '240px' }
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -329,11 +347,11 @@ const ExpiredMedicine = () => {
                   />
                 </Box>
               </Grid>
-            </Box>
+            </Grid>
 
             <Grid
               sx={{
-                mx: 4
+                mx: { xs: 2, sm: 5 }
               }}
             >
               <CommonTable

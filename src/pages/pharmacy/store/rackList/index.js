@@ -373,6 +373,7 @@ const ListOfRacks = () => {
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
                     m: { xs: 3 },
+                    marginLeft: { sm: 3,md: 5.5},
                     borderRadius: '8px',
                     padding: '0 8px',
                     // Full width on small screens
@@ -411,8 +412,8 @@ const ListOfRacks = () => {
             </Grid> */}
             </Box>
             <Grid
-              sx={{
-                mx: 4
+               sx={{
+                mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
               <CommonTable

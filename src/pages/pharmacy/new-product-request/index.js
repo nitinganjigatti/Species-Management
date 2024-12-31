@@ -412,9 +412,9 @@ export default function NewProductList() {
             action={headerAction}
             sx={{
               display: 'flex',
-              justifyContent: { xs: 'flex-start', sm: 'space-between' }, 
-              alignItems: { xs: 'flex-start', sm: 'flex-start' }, 
-              flexDirection: { xs: 'column', sm: 'row' }, 
+              justifyContent: { xs: 'flex-start', sm: 'space-between' },
+              alignItems: { xs: 'flex-start', sm: 'flex-start' },
+              flexDirection: { xs: 'column', sm: 'row' },
               '& .MuiCardHeader-title': {
                 fontSize: { xs: '18px', sm: '20px', md: '24px' },
                 flexGrow: 1
@@ -425,7 +425,6 @@ export default function NewProductList() {
           <Box
             display='flex'
             justifyContent='space-between'
-          
             flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
             gap={2} // Gap between items on smaller screens
           >
@@ -438,11 +437,10 @@ export default function NewProductList() {
                   // border: '1px solid #C3CEC7',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
-
+                  marginLeft: { xs: 0, sm: 1, md: 3},
                   padding: '0 8px',
                   height: '40px',
                   width: { xs: '100%', sm: '240px' }
-                 
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -468,7 +466,7 @@ export default function NewProductList() {
 
           <Grid
             sx={{
-              mx: { xs: 2, sm: 4 } 
+              mx: { xs: 2, sm: 3, md: 5 }
             }}
           >
             <CommonTable

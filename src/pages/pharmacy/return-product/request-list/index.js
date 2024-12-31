@@ -228,7 +228,6 @@ const ReturnRequestList = () => {
         page: paginationModel.page,
         limit: paginationModel.pageSize
       })
-
     }
   }
 
@@ -335,7 +334,7 @@ const ReturnRequestList = () => {
   }
 
   const headerAction = (
-    <div>
+    <Box sx={{ marginLeft: '4px' }}>
       {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
           <AddButtonContained
@@ -347,7 +346,7 @@ const ReturnRequestList = () => {
             }
           />
         )}
-    </div>
+    </Box>
   )
 
   const handleSearch = value => {
@@ -618,8 +617,8 @@ const ReturnRequestList = () => {
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start', 
-                alignItems: 'flex-start', 
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
                 gap: { xs: 2, sm: 0 }
               }}
               title={RenderUtility.pageTitle('Product Return Requests')}
@@ -643,9 +642,10 @@ const ReturnRequestList = () => {
                   alignItems: 'center',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
+                  marginLeft: { xs: 2.5, sm: 1, md: 3.5 },
                   padding: '0 8px',
                   height: '40px',
-                  width: { xs: '100%', md: '292px' },
+                  width: { xs: '97%', md: '292px' },
                   marginBottom: { xs: 2, md: 0 }
                 }}
               >
@@ -676,7 +676,7 @@ const ReturnRequestList = () => {
                   display: 'flex',
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
-                  alignItems: 'center',
+                  alignItems: 'center'
                   // width: '100%'
                 }}
               >
@@ -721,6 +721,8 @@ const ReturnRequestList = () => {
                   md='auto'
                   sx={{
                     width: { xs: '100%', md: '250px' },
+                    mr: { md: 3 },
+                    ml: { xs: 2.5 },
                     height: '50px'
                   }}
                 >
@@ -767,7 +769,11 @@ const ReturnRequestList = () => {
               </Grid>
             </Box>
 
-            <Grid sx={{ mx: isSmallScreen ? 2 : 4 }}>
+            <Grid
+              sx={{
+                mx: { xs: 3.5, sm: 3, md: 5 }
+              }}
+            >
               <CommonTable
                 onRowClick={onRowClick}
                 indexedRows={indexedRows}

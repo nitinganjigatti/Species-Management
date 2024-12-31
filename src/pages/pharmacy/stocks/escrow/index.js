@@ -407,21 +407,41 @@ function Escrow({ value }) {
       ) : (
         <>
           <Card>
-            <CardHeader title={RenderUtility.pageTitle('Escrow List')} />
+            <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                gap: { xs: 2, sm: 0 }
+              }}
+              title={RenderUtility.pageTitle('Escrow List')}
+            />
 
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                // alignItems: 'center',
+                width: '100%',
+                padding: '8px',
+                gap: { xs: 2, md: 3 }
+              }}
+            >
               {/* Left Box (Search Field) */}
               <Grid item xs={8}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    ml: 5,
                     height: '40px',
-                    width: '250px' // Set a fixed width for all status
+                    width: { xs: '98%', md: '292px', sm: '96%' },
+                    marginBottom: { xs: 2, md: 0 },
+                    marginLeft: { xs: 1.6, md: 4, sm: 3 }
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -445,7 +465,15 @@ function Escrow({ value }) {
               </Grid>
 
               {/* Group of two boxes on the right */}
-              <FormControl size='small' sx={{ mr: 5, my: 2 }}>
+              <FormControl
+                size='small'
+                sx={{
+                  width: { xs: '98%', md: '240px', sm: '96%' },
+                  mr: { sm: 3.5, xs: 0 },
+                  ml: { xs: 1, sm: 3 },
+                  height: '50px'
+                }}
+              >
                 <InputLabel id='demo-simple-select-label'>Filter by stock type</InputLabel>
                 <Select
                   size='small'
@@ -482,7 +510,7 @@ function Escrow({ value }) {
 
             <Grid
               sx={{
-                mx: 4
+                mx: { xs: 2, sm: 4.5 }
               }}
             >
               <CommonTable

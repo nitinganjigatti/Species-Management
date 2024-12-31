@@ -50,7 +50,6 @@ const StockOut = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
-
       try {
         setLoading(true)
 
@@ -470,21 +469,36 @@ const StockOut = () => {
       ) : (
         <Card>
           <CardHeader
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between', // Space between title and button
+              alignItems: 'center',
+              px: { xs: 2, md: 5 }, // Responsive padding
+              py: 2
+            }}
             title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
           />
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
+          <Box
+            sx={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              width: '96%',
+              m: { xs: 1, sm: 1.5, md: 3.5 },
+              gap: 2
+            }}
+          >
             {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
+            <Grid item xs={12} sm={6}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
-                  ml: 5,
                   height: '40px',
-                  width: '250px' // Set a fixed width for all status
+                  marginLeft: { xs: 1.5, sm: 2.5, md: 3 },
+                  width: { xs: '98%', sm: '30%', md: '20%' }
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -507,22 +521,28 @@ const StockOut = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {/* {status === 'all' || status === 'completed' ? ( */}
-              <Box sx={{ float: 'right', mt: 1 }}>
-                <FormControlLabel
-                  control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
-                  label='Out Of Stock'
-                  labelPlacement='end'
-                />
-              </Box>
-              {/* ) : null} */}
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              sx={{
+                textAlign: { xs: 'left', sm: 'right' },
+                ml: { xs: 3, sm: 6 },
+
+                mt: { sm: '-40px', md: '-40px' }
+              }}
+            >
+              <FormControlLabel
+                control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
+                label='Out Of Stock'
+                labelPlacement='end'
+              />
             </Grid>
           </Box>
 
           <Grid
             sx={{
-              mx: 4
+              mx: { xs: 2, sm: 3, md: 5.5 }
             }}
           >
             <CommonTable

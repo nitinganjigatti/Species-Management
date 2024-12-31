@@ -477,82 +477,62 @@ const DirectDispatchList = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start', // Align items to the top left
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start',
                   gap: { xs: 2, sm: 0 }
                 }}
-                title={RenderUtility.pageTitle(' Direct Dispatch List')}
+                title={RenderUtility.pageTitle('Direct Dispatch List')}
                 action={headerAction}
               />
               <Box
                 sx={{
                   display: 'flex',
-                  flexDirection: { xs: 'column', md: 'row' },
-                  justifyContent: { xs: 'center', md: 'space-between' },
-                  alignItems: 'center',
-                  width: '100%',
-                  padding: '8px',
-                  gap: { xs: 2, md: 3 }
+                  flexDirection: 'column',
+                  width: '96%',
+                  m: 2,
+                  gap: 2
                 }}
               >
-                {/* Search Field */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: { xs: '100%', md: '292px' },
-                    marginBottom: { xs: 2, md: 0 }
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-
-                {/* Filters */}
-                <Grid
-                  container
-                  spacing={2}
-                  sx={{
-                    display: 'flex',
-                    flexWrap: { xs: 'wrap', md: 'nowrap' },
-                    justifyContent: { xs: 'center', md: 'flex-end' },
-                    alignItems: 'center'
-                    // width: '100%'
-                  }}
-                >
-                  {/* Completed Switch */}
-                  {(status === 'all' || status === 'completed') && (
-                    <Grid
-                      item
-                      xs={12}
-                      md='auto'
+                {/* Search Field and Filters */}
+                <Grid container spacing={2} alignItems='center' justifyContent='space-between' sx={{ width: '100%' }}>
+                  {/* Search Field */}
+                  <Grid item xs={12} sm={6}>
+                    <Box
                       sx={{
-                        height: '50px',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                        width: { xs: '100%', md: 'auto' }
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRadius: '8px',
+                        marginLeft: { xs: 0, sm: 1, md: 4 },
+                        padding: '0 8px',
+                        height: '40px',
+                        // ml: { xs: 2, sm: 2, md: 2 },
+                        width: { xs: '100%', sm: '70%', md: '40%' }
                       }}
                     >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{ 
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+
+                  {/* Switch Button */}
+                  {(status === 'all' || status === 'completed') && (
+                    <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                       <FormControlLabel
                         control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                         label='Completed'
@@ -563,20 +543,10 @@ const DirectDispatchList = () => {
                 </Grid>
               </Box>
 
-              {/* {status === 'all' || status === 'completed' ? (
-                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null} */}
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
+              {/* Common Table */}
+              <Grid  sx={{
+                mx: { xs: 2, sm: 3, md: 5 }
+              }}>
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}
