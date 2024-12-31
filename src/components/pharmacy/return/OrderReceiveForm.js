@@ -18,7 +18,8 @@ import {
   InputAdornment,
   FormGroup,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  alpha
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -871,7 +872,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                                     }}
                                     label='Comment'
                                     sx={{
-                                      backgroundColor: 'customColors.Notes'
+                                      // backgroundColor: 'customColors.Notes'
+                                      backgroundColor: theme => alpha(theme.palette.customColors.Notes, 0.2)
                                     }}
                                   />
 

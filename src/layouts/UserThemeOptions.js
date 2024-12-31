@@ -102,7 +102,7 @@ const UserThemeOptions = () => {
         TertiaryContainer: '#FFBDA8',
         OutlineVariant: '#C3CEC7',
         OnPrimarycontainer10: '#1F515B0D',
-        Notes: '#FCF4AE33', //opacity: '20%',
+        Notes: '#FCF4AE',
         Background: '#EFF5F2',
         SecondaryDark: '#00ABAB',
         SecondaryContainer: '#AFEFEB',

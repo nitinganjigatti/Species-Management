@@ -420,7 +420,8 @@ const ListOfDiscardProducts = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     m: { xs: 2 },
                     borderRadius: '8px',
                     marginLeft: { sm: 4,md:5},

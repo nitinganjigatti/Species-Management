@@ -62,7 +62,7 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import RenderUtility from 'src/utility/render'
-import { Stack } from '@mui/system'
+import { alpha, Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
@@ -758,7 +758,14 @@ const AddDiscardProducts = () => {
                         console.log(el, ';;;')
 
                         return (
-                          <TableRow key={index}>
+                          <TableRow
+                            key={index}
+                            sx={{
+                              '&:last-child td, &:last-child th': {
+                                border: 0 // Removes borders for the last row
+                              }
+                            }}
+                          >
                             <TableCell>
                               <Typography
                                 variant='body2'
@@ -1007,7 +1014,8 @@ const AddDiscardProducts = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            backgroundColor: '#EFF5F2'
+            // backgroundColor: '#EFF5F2'
+            backgroundColor: 'customColors.Background'
           }}
         >
           <Box
@@ -1046,7 +1054,7 @@ const AddDiscardProducts = () => {
                 fontWeight: 600,
                 color: () => {
                   if (selectedComment?.reason === 'Expired') {
-                    return 'customColors.moderateTableRed'
+                    return 'customColors.Error'
                   } else if (selectedComment?.reason === 'About to expire') {
                     return 'customColors.Tertiary'
                   } else {
@@ -1058,14 +1066,21 @@ const AddDiscardProducts = () => {
               {selectedComment?.reason}
             </Typography>
           </Box>
-          <Box sx={{ backgroundColor: '#FCF4AE99', p: 4, m: 5, borderRadius: '8px' }}>
+          <Box
+            sx={{
+              backgroundColor: theme => alpha(theme.palette.customColors.Notes, 0.6),
+              p: 4,
+              m: 5,
+              borderRadius: '8px'
+            }}
+          >
             <Typography
               variant='body1'
               sx={{ fontSize: '16px', fontWeight: 400, color: 'customColors.neutralSecondary' }}
             >
               Comments:
             </Typography>
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#250E01' }}>
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: 'customColors.OnSurfaceVariant' }}>
               {selectedComment?.comments}
             </Typography>
           </Box>
