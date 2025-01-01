@@ -195,18 +195,10 @@ const ListOfUOM = () => {
         <Grid
           item
           sx={{
-            mt: { xs: 2, md: 0 }, // Add margin-top on small screens
-            textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
+            mb: 2
           }}
         >
-          {' '}
-          <AddButtonContained
-            title='Add UOM'
-            action={() => addEventSidebarOpen()}
-            sx={{
-              mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
-            }}
-          />
+          <AddButtonContained title='Add UOM' action={() => addEventSidebarOpen()} />
         </Grid>
       )}
     </div>
@@ -334,64 +326,56 @@ const ListOfUOM = () => {
             <>
               <Card>
                 <CardHeader
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between', // Space between title and button
-                    alignItems: 'center',
-                    px: { xs: 2, md: 5 }, // Responsive padding
-                    py: 2
-                  }}
+                  sx={{ mt: 1 }}
                   title={RenderUtility.pageTitle('UOM (Unit of Measurement) List')}
                   action={headerAction}
                 />
-                <Box
+
+                {/* Left Box (Search Field) */}
+                <Grid
+                  item
                   sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
-                    justifyContent: 'space-between',
-                    width: '95%',
-                    padding: '3px',
-                    gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+                    mx: { xs: 5 }
                   }}
                 >
-                  {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
-                    <Box
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      // border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #C3CEC7',
-                        m: { xs: 2 },
-                        borderRadius: '8px',
-                        marginLeft: { sm: 3,md:4},
-                        padding: '0 8px',
-                        width: { xs: '100%', sm: '250px' }, // Full width on small screens
-                        height: '40px'
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
                           }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                </Box>
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
                 <Grid
-                 sx={{
-                  mx: { xs: 2, sm: 3, md: 5 }
-                }}
+                  sx={{
+                    mx: { xs: 4 }
+                  }}
                 >
                   <CommonTable
                     onRowClick={''}
