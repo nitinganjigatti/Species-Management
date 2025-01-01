@@ -36,10 +36,10 @@ const ListOfDiscardProducts = () => {
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -270,7 +270,7 @@ const ListOfDiscardProducts = () => {
     {
       flex: 0.2,
       Width: 20,
-      field: 'created_by_user_name',
+      field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -420,11 +420,12 @@ const ListOfDiscardProducts = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
+
                     // border: '1px solid #C3CEC7',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     m: { xs: 2 },
                     borderRadius: '8px',
-                    marginLeft: { sm: 4,md:5},
+                    marginLeft: { sm: 4, md: 5 },
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
                     height: '40px'
