@@ -274,8 +274,7 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      width: 80,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -286,8 +285,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.25,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -325,8 +323,7 @@ const DirectDispatchList = () => {
     //   )
     // },
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 160,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
@@ -344,8 +341,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 200,
       field: 'to_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -364,8 +360,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 120,
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
@@ -387,8 +382,7 @@ const DirectDispatchList = () => {
     },
     ,
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
@@ -431,8 +425,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (
@@ -506,6 +499,7 @@ const DirectDispatchList = () => {
                         marginLeft: { xs: 0, sm: 1, md: 4 },
                         padding: '0 8px',
                         height: '40px',
+
                         // ml: { xs: 2, sm: 2, md: 2 },
                         width: { xs: '100%', sm: '70%', md: '40%' }
                       }}
@@ -517,7 +511,7 @@ const DirectDispatchList = () => {
                         value={searchValue}
                         onChange={e => handleSearch(e.target.value)}
                         fullWidth
-                        sx={{ 
+                        sx={{
                           '& .MuiOutlinedInput-root': {
                             border: 'none',
                             padding: '0',
@@ -544,9 +538,11 @@ const DirectDispatchList = () => {
               </Box>
 
               {/* Common Table */}
-              <Grid  sx={{
-                mx: { xs: 2, sm: 3, md: 5 }
-              }}>
+              <Grid
+                sx={{
+                  mx: { xs: 2, sm: 3, md: 5 }
+                }}
+              >
                 <CommonTable
                   onRowClick={onRowClick}
                   indexedRows={indexedRows}

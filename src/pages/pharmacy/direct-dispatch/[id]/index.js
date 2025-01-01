@@ -527,7 +527,6 @@ const IndividualRequest = () => {
 
   const fulfillColumns = [
     {
-      flex: 0.05,
       Width: 40,
       field: 'sl_no',
       headerName: 'Id',
@@ -539,8 +538,8 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      Width: 40,
+      flex: 1,
+      minWidth: 200,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -565,8 +564,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
@@ -576,8 +574,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -589,8 +586,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'fulfilledDate',
       headerName: 'Fulfilled Date',
       renderCell: params => (
@@ -601,8 +597,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'dispatch_qty',
       headerName: 'Fulfilled QTY',
       type: 'number',
@@ -617,8 +612,7 @@ const IndividualRequest = () => {
 
   const shippedColumns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
@@ -628,8 +622,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 200,
       field: 'shipment_id',
       headerName: 'Shipment Id',
       renderCell: (params, rowId) => (
@@ -642,8 +635,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'shipment_date',
       headerName: 'Date',
       renderCell: params => (
@@ -653,8 +645,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
       renderCell: params => (
@@ -664,8 +655,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'person_shipping',
       headerName: 'Driver Name',
       renderCell: params => (
@@ -675,8 +665,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'phone_number',
       headerName: 'Driver Number',
       renderCell: params => (
@@ -686,8 +675,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'shipment_status',
       headerName: 'Status',
       renderCell: params => (
@@ -721,8 +709,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      width: 200,
       field: 'created_by_user_name',
       headerName: 'Shipped by ',
       renderCell: params => (

@@ -228,8 +228,7 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 80,
       field: 'id',
       headerName: 'SL No',
       renderCell: params => (
@@ -240,8 +239,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -279,8 +277,7 @@ const DirectDispatchList = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'to_store',
       headerName: 'Dispatched To',
       renderCell: params => (
@@ -310,8 +307,7 @@ const DirectDispatchList = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
@@ -333,8 +329,7 @@ const DirectDispatchList = () => {
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
@@ -385,8 +380,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (

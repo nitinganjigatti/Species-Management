@@ -360,9 +360,8 @@ const ReturnRequestList = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'id',
+      width: 80,
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography
@@ -380,8 +379,7 @@ const ReturnRequestList = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       headerClassName: 'custom-header',
@@ -400,8 +398,7 @@ const ReturnRequestList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -439,8 +436,7 @@ const ReturnRequestList = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
@@ -459,8 +455,7 @@ const ReturnRequestList = () => {
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 140,
       field: 'total_qty',
       headerName: 'Total Quantity',
       type: 'number',
@@ -482,8 +477,7 @@ const ReturnRequestList = () => {
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
@@ -526,8 +520,7 @@ const ReturnRequestList = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Returned by ',
       headerAlign: 'left',
@@ -677,6 +670,7 @@ const ReturnRequestList = () => {
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
                   alignItems: 'center'
+
                   // width: '100%'
                 }}
               >

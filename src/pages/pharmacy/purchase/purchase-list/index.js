@@ -168,8 +168,7 @@ const ListOfPurchase = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 80,
       field: 'sl',
       headerName: 'SL NO',
       renderCell: params => (
@@ -179,8 +178,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 140,
       field: 'po_date',
       headerName: 'Purchase Date',
       renderCell: params => (
@@ -199,8 +197,7 @@ const ListOfPurchase = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'po_no',
       headerName: 'Invoice NO',
       renderCell: params => (
@@ -218,8 +215,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'supplier_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
@@ -237,8 +233,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'created_at',
       headerName: 'Entry Date',
       renderCell: params => (
@@ -256,8 +251,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 180,
       field: 'net_amount',
       headerName: 'Purchase Amount',
       type: 'number',
@@ -277,8 +271,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 160,
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
@@ -297,8 +290,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 160,
       field: 'updated_by',
       headerName: 'Updated by ',
       renderCell: params => (
@@ -327,8 +319,9 @@ const ListOfPurchase = () => {
       sx={{
         display: 'flex',
         gap: 2,
+
         // alignItems: 'center',
-        justifyContent: 'flex-start', // Ensure buttons align to the right
+        justifyContent: 'flex-start' // Ensure buttons align to the right
         // flexWrap: 'wrap',
       }}
     >
@@ -394,7 +387,7 @@ const ListOfPurchase = () => {
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
                     m: { xs: 2 },
-                    ml:{sm:4},
+                    ml: { sm: 4 },
                     borderRadius: '8px',
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
