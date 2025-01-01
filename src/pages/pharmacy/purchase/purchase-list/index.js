@@ -45,7 +45,7 @@ const ListOfPurchase = () => {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -327,8 +327,9 @@ const ListOfPurchase = () => {
       sx={{
         display: 'flex',
         gap: 2,
+
         // alignItems: 'center',
-        justifyContent: 'flex-start', // Ensure buttons align to the right
+        justifyContent: 'flex-start' // Ensure buttons align to the right
         // flexWrap: 'wrap',
       }}
     >
@@ -394,7 +395,7 @@ const ListOfPurchase = () => {
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
                     m: { xs: 2 },
-                    ml:{sm:4},
+                    ml: { sm: 4 },
                     borderRadius: '8px',
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
