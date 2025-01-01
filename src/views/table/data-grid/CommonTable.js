@@ -37,7 +37,7 @@ const CommonTable = ({
           overflowX: 'auto'
         },
         '.MuiDataGrid-main': {
-          margin: '2px',
+          // margin: '2px',
           borderLeft: '1px solid #0000000D',
           borderRight: '1px solid #0000000D',
 
