@@ -261,7 +261,7 @@ const ListOfMedicine = () => {
 
   const [total, setTotal] = useState(0)
 
-  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'name')

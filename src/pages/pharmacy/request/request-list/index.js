@@ -26,13 +26,13 @@ import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, InputAdornment } from '@mui/material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import { textAlign } from '@mui/system'
+import { margin, textAlign } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 
 const RequestList = () => {
@@ -392,41 +392,43 @@ const RequestList = () => {
 
   const columns = [
     {
-      flex: 0.19,
-      Width: 40,
+      width: 80,
       field: 'sl_no',
       headerName: 'S.NO',
-
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* {params.row.sl_no} */}
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box sx={{ display: 'flex' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
 
     {
-      flex: 0.1,
-      Width: 20,
+      width: 4,
       field: 'priority',
       headerName: '',
-      type: 'number',
       headerAlign: 'left',
-      textAlign: 'left',
+      textAlign: 'center',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', mt: 1.5 }}>
-          {params.row.priority !== null ? (
-            <Box sx={{ color: 'error.main' }}>
-              <Icon icon={'mdi:dot'} style={{ color: 'primary.error', fontSize: '50px' }}></Icon>
-            </Box>
-          ) : null}
-        </Typography>
+        <Box>
+          {params.row.priority !== null && (
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '100%',
+                background: theme.palette.customColors.Error,
+                display: 'inline-block'
+              }}
+            ></span>
+          )}
+        </Box>
       )
     },
 
     {
-      flex: 0.3,
-      minWidth: 30,
+      width: 120,
       field: 'request_number',
       headerName: 'REQUEST ID',
       hide: true,
@@ -447,8 +449,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.35,
-      minWidth: 20,
+      minWidth: 200,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -466,8 +467,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.5 / 2,
-      minWidth: 40,
+      minWidth: 100,
       field: 'request_date',
       headerName: 'Days',
       renderCell: params => (
@@ -526,8 +526,7 @@ const RequestList = () => {
     // },
 
     {
-      flex: 0.35,
-      minWidth: 20,
+      minWidth: 120,
       field: 'product_count',
       headerName: 'TOTAL ITEMS',
       type: 'number',
@@ -549,8 +548,7 @@ const RequestList = () => {
     },
 
     {
-      flex: 0.35,
-      minWidth: 20,
+      minWidth: 160,
       field: 'pending_count',
       headerName: 'PENDING ITEMS',
       headerAlign: 'left',
@@ -586,8 +584,7 @@ const RequestList = () => {
     //   )
     // },
     {
-      flex: 0.3,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -608,12 +605,10 @@ const RequestList = () => {
                 params.row.request_status === 'Broken' ||
                 params.row.request_status === 'Wrong Count - Accepted' ? (
                   <Box sx={{ color: 'success.main', mr: 2 }}>
-                    {/* added for partial shipping */}
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.success' }}></Icon>
                   </Box>
                 ) : (
                   <Box sx={{ color: 'warning.main', mr: 2 }}>
-                    {/* added for partial shipping */}
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                 )}
@@ -634,7 +629,7 @@ const RequestList = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-            {/*  When the items are shipped - For local pharmacy */}
+
             {params?.row?.delivery_status === 'Not Delivered' &&
               (params?.row?.request_status === '' || !params?.row?.request_status) &&
               params?.row?.shipping_status === 'Fully Shipped' && (
@@ -648,8 +643,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.5,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Requested by ',
       renderCell: params => (
@@ -660,7 +654,6 @@ const RequestList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
               {Utility.formatDisplayDate(params.row.created_at)}
             </Typography>
           </Box>
@@ -693,9 +686,10 @@ const RequestList = () => {
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between', // Space between title and button
-                alignItems: 'center',
-                px: { xs: 2, md: 5 }, // Responsive padding
-                py: 2
+                alignItems: 'center'
+
+                // px: { xs: 2, md: 5 }, // Responsive padding
+                // py: 2
               }}
               title={RenderUtility.pageTitle('Request List')}
               action={headerAction}
@@ -707,12 +701,14 @@ const RequestList = () => {
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: { xs: 'center', md: 'space-between' },
                 alignItems: 'center',
-                padding: '8px',
+
+                // padding: '2px',
+                margin:
+                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* Search Field */}
-              <Box
+              {/* <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
@@ -720,30 +716,33 @@ const RequestList = () => {
                   borderRadius: '8px',
                   padding: '0 8px',
                   height: '40px',
-                  marginLeft: { xs: 0, sm: 1, md: 4.5 },
+
                   // ml: { sm: 4.5},
-                  width: { xs: '98%', md: '290px' },
+                  width: { xs: '100%', md: '290px' },
                   marginBottom: { xs: 2, md: 0 }
                 }}
               >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  borderRadius: '8px',
+                  width: { xs: '100%', md: '290px' }
+                }}
+              />
+              {/* </Box> */}
 
               {/* Filters */}
               <Grid
@@ -754,6 +753,7 @@ const RequestList = () => {
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
                   alignItems: 'center'
+
                   // width: '100%'
                 }}
               >
@@ -762,10 +762,11 @@ const RequestList = () => {
                   <Grid
                     item
                     xs={12}
-                    md='auto'
                     sx={{
-                      width: { xs: '98%', md: '250px' },
-                      height: '50px'
+                      maxWidth: { xs: '100%', md: '250px' },
+                      width: '100%',
+                      height: '48px',
+                      mt: { xs: 2, md: 0 }
                     }}
                   >
                     <FormControl fullWidth size='small'>
@@ -797,10 +798,13 @@ const RequestList = () => {
                   xs={12}
                   md='auto'
                   sx={{
-                    width: { xs: '96%', md: '250px' },
-                    mr: { xs: 1, md: 3 ,sm:1},
-                    ml: { xs:1,sm: 2 },
-                    height: '50px'
+                    maxWidth: { xs: '100%', md: '250px' },
+                    mt: { xs: 2, md: 0 },
+
+                    // mr: { xs: 1, md: 3, sm: 1 },
+                    // ml: { xs: 1, sm: 2 },
+                    height: '48px',
+                    width: '100%'
                   }}
                 >
                   <FormControl fullWidth size='small'>
@@ -829,18 +833,19 @@ const RequestList = () => {
                     xs={12}
                     md='auto'
                     sx={{
-                      height: '50px',
+                      height: '48px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: { xs: 'flex-start', md: 'flex-end' },
                       width: { xs: '100%', md: 'auto' },
-                      ml:{xs:2 , sm:3}
+                      ml: { xs: 2, sm: 3 }
                     }}
                   >
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
+                      sx={{ mr: '0px' }}
                     />
                   </Grid>
                 )}
@@ -849,7 +854,7 @@ const RequestList = () => {
 
             <Grid
               sx={{
-                mx: { xs: 2, sm: 3, md: 5.5 }
+                margin: '0px 1.375rem 0px 1.375rem'
               }}
             >
               <CommonTable
