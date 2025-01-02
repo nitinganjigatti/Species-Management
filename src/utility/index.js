@@ -128,6 +128,18 @@ function formatNumberToDisplay(number) {
   }
 }
 
+function formatAmountToReadableDigit(value) {
+  if (value) {
+    if (value > 10000) {
+      return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
+    }
+
+    return `₹ ${value}.00`
+  }
+
+  return '0'
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -141,7 +153,8 @@ const Utility = {
   renderUserAvatar,
   convertUTCToLocal,
   extractHoursAndMinutes,
-  formatNumberToDisplay
+  formatNumberToDisplay,
+  formatAmountToReadableDigit
 }
 
 export default Utility

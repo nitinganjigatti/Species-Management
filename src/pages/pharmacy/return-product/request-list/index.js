@@ -16,7 +16,16 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import {
+  Switch,
+  FormControlLabel,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment
+} from '@mui/material'
 import { useTheme } from '@emotion/react'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
@@ -334,7 +343,7 @@ const ReturnRequestList = () => {
   }
 
   const headerAction = (
-    <Box sx={{ marginLeft: '4px' }}>
+    <div>
       {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
           <AddButtonContained
@@ -346,7 +355,7 @@ const ReturnRequestList = () => {
             }
           />
         )}
-    </Box>
+    </div>
   )
 
   const handleSearch = value => {
@@ -609,10 +618,11 @@ const ReturnRequestList = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 }
+                justifyContent: 'space-between',
+                alignItems: { xs: 'start', sm: 'center', md: 'center' },
+                flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                mx: { xs: 2, sm: 0, md: 0 },
+                gap: { xs: 2, sm: 0, md: 0 }
               }}
               title={RenderUtility.pageTitle('Product Return Requests')}
               action={headerAction}
@@ -623,43 +633,32 @@ const ReturnRequestList = () => {
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: { xs: 'center', md: 'space-between' },
                 alignItems: 'center',
-                width: '100%',
-                padding: '8px',
+
+                margin:
+                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* Search Field */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  marginLeft: { xs: 2.5, sm: 1, md: 3.5 },
-                  padding: '0 8px',
-                  height: '40px',
-                  width: { xs: '97%', md: '292px' },
-                  marginBottom: { xs: 2, md: 0 }
+              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
                 }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
+                sx={{
+                  borderRadius: '8px',
+                  width: { xs: '100%', md: '290px' }
+                }}
+              />
 
               {/* Filters */}
               <Grid
@@ -670,8 +669,6 @@ const ReturnRequestList = () => {
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
                   alignItems: 'center'
-
-                  // width: '100%'
                 }}
               >
                 {/* Filter by Stores */}
@@ -679,10 +676,11 @@ const ReturnRequestList = () => {
                   <Grid
                     item
                     xs={12}
-                    md='auto'
                     sx={{
-                      width: { xs: '100%', md: '240px' },
-                      height: '50px'
+                      maxWidth: { xs: '100%', md: '250px' },
+                      width: '100%',
+                      height: '48px',
+                      mt: { xs: 2, md: 0 }
                     }}
                   >
                     <FormControl fullWidth size='small'>
@@ -714,10 +712,10 @@ const ReturnRequestList = () => {
                   xs={12}
                   md='auto'
                   sx={{
-                    width: { xs: '100%', md: '250px' },
-                    mr: { md: 3 },
-                    ml: { xs: 2.5 },
-                    height: '50px'
+                    maxWidth: { xs: '100%', md: '250px' },
+                    mt: { xs: 2, md: 0 },
+                    height: '48px',
+                    width: '100%'
                   }}
                 >
                   <FormControl fullWidth size='small'>
@@ -746,17 +744,19 @@ const ReturnRequestList = () => {
                     xs={12}
                     md='auto'
                     sx={{
-                      height: '50px',
+                      height: '48px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                      width: { xs: '100%', md: 'auto' }
+                      width: { xs: '100%', md: 'auto' },
+                      ml: { xs: 2, sm: 3 }
                     }}
                   >
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
+                      sx={{ mr: '0px' }}
                     />
                   </Grid>
                 )}
@@ -765,7 +765,7 @@ const ReturnRequestList = () => {
 
             <Grid
               sx={{
-                mx: { xs: 3.5, sm: 3, md: 5 }
+                margin: '0px 1.375rem 0px 1.375rem'
               }}
             >
               <CommonTable

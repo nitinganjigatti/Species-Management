@@ -297,10 +297,11 @@ const RequestList = () => {
                   pathname: '/pharmacy/request/add-request/'
                 })
               }
-              sx={{
-                mt: { xs: 2, sm: 0 }, // Add top margin on small screens
-                alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
-              }}
+
+              // sx={{
+              //   mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+              //   alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+              // }}
             />
           </>
         )}
@@ -800,9 +801,6 @@ const RequestList = () => {
                   sx={{
                     maxWidth: { xs: '100%', md: '250px' },
                     mt: { xs: 2, md: 0 },
-
-                    // mr: { xs: 1, md: 3, sm: 1 },
-                    // ml: { xs: 1, sm: 2 },
                     height: '48px',
                     width: '100%'
                   }}
