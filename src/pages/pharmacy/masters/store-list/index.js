@@ -85,8 +85,7 @@ const ListOfStores = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      minWidth: 100,
       field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
@@ -96,8 +95,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'type',
       headerName: 'TYPE',
       renderCell: params => (
@@ -115,8 +113,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (
@@ -134,8 +131,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'latitude',
       headerName: 'LATITUDE',
       renderCell: params => (
@@ -153,8 +149,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'logitude',
       headerName: 'LONGITUDE',
       renderCell: params => (
@@ -173,8 +168,7 @@ const ListOfStores = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
@@ -193,8 +187,7 @@ const ListOfStores = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -212,8 +205,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -311,14 +303,8 @@ const ListOfStores = () => {
   const headerAction = (
     <div>
       {pharmacyRole && (
-        <Grid
-          item
-          sx={{
-            mb: 2,
-            ml: 1
-          }}
-        >
-          <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} />
+        <Grid item>
+          <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
         </Grid>
       )}
     </div>
@@ -397,7 +383,10 @@ const ListOfStores = () => {
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: 'flex-start', // Align content to the left
                     alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 2, sm: 0 }
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
                   }}
                   title={RenderUtility.pageTitle('Pharmacy List')}
                   action={headerAction}
@@ -405,8 +394,8 @@ const ListOfStores = () => {
                 <Grid
                   item
                   sx={{
-                    mx: { xs: 5 },
-                    ml: { md: 5.5 }
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
                   }}
                 >
                   <Box

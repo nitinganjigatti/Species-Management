@@ -90,8 +90,7 @@ const ListOfDosageForms = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      minWidth: 60,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -101,8 +100,7 @@ const ListOfDosageForms = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 350,
       field: 'label',
       headerName: 'Product Form',
       renderCell: params => (
@@ -121,8 +119,7 @@ const ListOfDosageForms = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -141,8 +138,7 @@ const ListOfDosageForms = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -241,14 +237,8 @@ const ListOfDosageForms = () => {
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
 
       {pharmacyRole && (
-        <Grid
-          item
-          sx={{
-            mb: 2,
-            ml: 1
-          }}
-        >
-          <AddButtonContained title='Add Product Form' action={() => addEventSidebarOpen()} />
+        <Grid item>
+          <AddButtonContained title='Add Product Form' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
         </Grid>
       )}
     </div>
@@ -314,7 +304,10 @@ const ListOfDosageForms = () => {
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: 'flex-start', // Align content to the left
                     alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 2, sm: 0 }
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
                   }}
                   title={RenderUtility.pageTitle('Product Form List')}
                   action={headerAction}
@@ -324,8 +317,8 @@ const ListOfDosageForms = () => {
                 <Grid
                   item
                   sx={{
-                    mx: { xs: 5 },
-                    ml: { md: 5.5 }
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
                   }}
                 >
                   <Box

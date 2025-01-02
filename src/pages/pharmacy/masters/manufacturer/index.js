@@ -236,16 +236,9 @@ const ManufacturerList = () => {
 
   const headerAction = (
     <div>
-      
       {pharmacyRole && (
-        <Grid
-          item
-          sx={{
-            mb: 2,
-            ml:1
-          }}
-        >
-          <AddButtonContained title='Add Manufacturer' action={() => addEventSidebarOpen()} />
+        <Grid item>
+          <AddButtonContained title='Add Manufacturer' action={() => addEventSidebarOpen()} fullWidth={'fullWidth'} />
         </Grid>
       )}
     </div>
@@ -312,7 +305,10 @@ const ManufacturerList = () => {
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: 'flex-start', // Align content to the left
                     alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 2, sm: 0 }
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
                   }}
                   title={RenderUtility.pageTitle('Manufacturers')}
                   action={headerAction}
@@ -320,7 +316,8 @@ const ManufacturerList = () => {
                 <Grid
                   item
                   sx={{
-                    mx: { xs: 5 }
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
                   }}
                 >
                   <Box

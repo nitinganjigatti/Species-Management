@@ -120,8 +120,7 @@ const Supplier = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      minWidth: 100,
       alignItems: 'right',
       field: 'uid',
       headerName: 'SL ',
@@ -132,8 +131,7 @@ const Supplier = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'company_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
@@ -152,8 +150,7 @@ const Supplier = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'mobile',
       headerName: 'MOBILE NUMBER',
       renderCell: params => (
@@ -171,8 +168,7 @@ const Supplier = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'name',
       headerName: 'CONTACT PERSON',
       renderCell: params => (
@@ -190,8 +186,7 @@ const Supplier = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'state_name',
       headerName: 'STATE',
       renderCell: params => (
@@ -221,8 +216,7 @@ const Supplier = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -253,15 +247,9 @@ const Supplier = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
           (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-       {pharmacyRole && (
-        <Grid
-          item
-          sx={{
-            mb: 2,
-            ml: 1
-          }}
-        >
-          <AddButtonContained title='Add Supplier' action={() => addEventSidebarOpen()} />
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Supplier' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
         </Grid>
       )}
     </div>
@@ -281,7 +269,10 @@ const Supplier = () => {
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'flex-start', // Align content to the left
                   alignItems: 'flex-start', // Align items to the top left
-                  gap: { xs: 2, sm: 0 }
+                  gap: { xs: 3, sm: 0 },
+                  '& .MuiCardHeader-action': {
+                    width: { xs: '100% ', sm: 'auto' }
+                  }
                 }}
                 title={RenderUtility.pageTitle('Supplier List')}
                 action={headerAction}
@@ -289,8 +280,8 @@ const Supplier = () => {
               <Grid
                 item
                 sx={{
-                  mx: { xs: 5 },
-                  ml: { md: 5.5 }
+                  mx: { xs: 4 },
+                  ml: { md: 4 }
                 }}
               >
                 <Box

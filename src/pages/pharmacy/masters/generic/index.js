@@ -94,8 +94,7 @@ const GenericNamesList = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      Width: 100,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -105,8 +104,7 @@ const GenericNamesList = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
+      minWidth: 350,
       field: 'name',
       headerName: 'NAME',
       renderCell: params => (
@@ -125,8 +123,7 @@ const GenericNamesList = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -145,8 +142,7 @@ const GenericNamesList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -243,14 +239,8 @@ const GenericNamesList = () => {
           (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
 
       {pharmacyRole && (
-        <Grid
-          item
-          sx={{
-            mb: 2,
-            ml: 1
-          }}
-        >
-          <AddButtonContained title='Add Generic Name' action={() => addEventSidebarOpen()} />
+        <Grid item>
+          <AddButtonContained title='Add Generic Name' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
         </Grid>
       )}
     </div>
@@ -317,8 +307,11 @@ const GenericNamesList = () => {
                     display: 'flex',
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: 'flex-start', // Align content to the left
-                    alignItems: 'flex-start', // Align items to the top left
-                    gap: { xs: 2, sm: 0 }
+                    alignItems: 'flex-start', // Align items to the top
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
                   }}
                   title={RenderUtility.pageTitle('Generic Names')}
                   action={headerAction}
@@ -327,8 +320,8 @@ const GenericNamesList = () => {
                 <Grid
                   item
                   sx={{
-                    mx: { xs: 5 },
-                    ml: { md: 5.5 }
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
                   }}
                 >
                   <Box
@@ -366,8 +359,7 @@ const GenericNamesList = () => {
                 </Grid>
                 <Grid
                   sx={{
-                    mx: 4,
-                    ml: { md: 5 }
+                    mx: { xs: 4 }
                   }}
                 >
                   <CommonTable
