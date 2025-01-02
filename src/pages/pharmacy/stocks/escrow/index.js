@@ -72,7 +72,8 @@ function Escrow({ value }) {
 
   const columns = [
     {
-      minWidth: 20,
+      width: 150,
+      minWidth: 100,
       field: 'request_id',
       headerName: 'Request Id',
       renderCell: params => (
@@ -90,7 +91,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 160,
+      width: 150,
+      minWidth: 100,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -108,7 +110,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 160,
+      width: 150,
+      minWidth: 100,
       field: 'from_store',
       headerName: 'From Store',
       renderCell: params => (
@@ -126,7 +129,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 100,
+      width: 150,
+      minWidth: 100,
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
@@ -144,7 +148,8 @@ function Escrow({ value }) {
       )
     },
     {
-      minWidth: 160,
+      width: 150,
+      minWidth: 100,
       field: 'to_store',
       headerName: 'To Store',
       renderCell: params => (
@@ -162,7 +167,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 200,
+      width: 350,
+      minWidth: 150,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -180,7 +186,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 160,
+      width: 250,
+      minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
@@ -198,7 +205,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 100,
+      width: 150,
+      minWidth: 100,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
@@ -216,7 +224,8 @@ function Escrow({ value }) {
       )
     },
     {
-      width: 100,
+      width: 150,
+      minWidth: 100,
       field: 'no_of_days_exist',
       headerName: 'Exist from',
       renderCell: params => (

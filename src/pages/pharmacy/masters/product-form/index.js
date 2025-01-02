@@ -244,7 +244,8 @@ const ListOfDosageForms = () => {
         <Grid
           item
           sx={{
-            mb: 2
+            mb: 2,
+            ml: 1
           }}
         >
           <AddButtonContained title='Add Product Form' action={() => addEventSidebarOpen()} />
@@ -307,13 +308,24 @@ const ListOfDosageForms = () => {
           ) : (
             <>
               <Card>
-                <CardHeader sx={{ mt: 1 }} title={RenderUtility.pageTitle('Product Form List')} action={headerAction} />
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 2, sm: 0 }
+                  }}
+                  title={RenderUtility.pageTitle('Product Form List')}
+                  action={headerAction}
+                />
 
                 {/* Left Box (Search Field) */}
                 <Grid
                   item
                   sx={{
-                    mx: { xs: 5 }
+                    mx: { xs: 5 },
+                    ml: { md: 5.5 }
                   }}
                 >
                   <Box
@@ -349,7 +361,6 @@ const ListOfDosageForms = () => {
                     />
                   </Box>
                 </Grid>
-
                 <Grid
                   sx={{
                     mx: { xs: 4 }

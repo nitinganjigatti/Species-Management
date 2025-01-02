@@ -134,8 +134,8 @@ const ExpiredMedicine = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 350,
+      minWidth: 100,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -155,8 +155,8 @@ const ExpiredMedicine = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -186,8 +186,8 @@ const ExpiredMedicine = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -206,8 +206,8 @@ const ExpiredMedicine = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -292,8 +292,9 @@ const ExpiredMedicine = () => {
                 },
                 '& .MuiCardHeader-action': {
                   mt: 3,
-                  ml: 1
-                }
+                  width: { xs: '100% ', sm: 'auto' }
+                },
+                mx: { xs: -2, sm: 1 }
               }}
               title={RenderUtility.pageTitle('Expired Products')}
               action={
@@ -304,6 +305,7 @@ const ExpiredMedicine = () => {
                   }}
                   loader={excelLoader}
                   title='Download'
+                  fullWidth='fullWidth'
                 />
               }
             />
@@ -314,7 +316,15 @@ const ExpiredMedicine = () => {
               gap={2} // Gap between items on smaller screens
             >
               {/* Left Box (Search Field) */}
-              <Grid item xs={12} sm={8} md={6} sx={{ margin: '11px' }}>
+              <Grid
+                item
+                xs={12}
+                sm={8}
+                md={6}
+                sx={{
+                  mx: { xs: 2, sm: 5 }
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
@@ -322,7 +332,6 @@ const ExpiredMedicine = () => {
                     // border: '1px solid #C3CEC7',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
-                    ml: { xs: 2.5, sm: 3, xs: 0 },
                     padding: '0 8px',
                     height: '40px',
                     width: { xs: '100%', sm: '240px' }
