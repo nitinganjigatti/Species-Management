@@ -258,6 +258,7 @@ const DirectDispatchList = () => {
               mt: { xs: 2, sm: 0 }, // Add top margin on small screens
               alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
             }}
+            fullWidth='fullWidth'
           />
         )}
     </div>
@@ -472,36 +473,34 @@ const DirectDispatchList = () => {
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'flex-start',
                   alignItems: 'flex-start',
-                  gap: { xs: 2, sm: 0 }
+                  gap: { xs: 2, sm: 0 },
+                  '& .MuiCardHeader-action': {
+                    width: { xs: '100% ', sm: 'auto' }
+                  },
+                  mx: { xs: -2, sm: 1 }
                 }}
                 title={RenderUtility.pageTitle('Direct Dispatch List')}
                 action={headerAction}
               />
+
+              {/* Search Field and Filters */}
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  width: '96%',
-                  m: 2,
-                  gap: 2
+                  mx: { xs: 2, sm: 4, md: 5 }
                 }}
               >
-                {/* Search Field and Filters */}
-                <Grid container spacing={2} alignItems='center' justifyContent='space-between' sx={{ width: '100%' }}>
+                <Grid container spacing={3}>
                   {/* Search Field */}
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={12} sm={6} spacing={3} gap={3}>
                     <Box
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
                         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '8px',
-                        marginLeft: { xs: 0, sm: 1, md: 4 },
                         padding: '0 8px',
                         height: '40px',
-
-                        // ml: { xs: 2, sm: 2, md: 2 },
-                        width: { xs: '100%', sm: '70%', md: '40%' }
+                        width: { xs: '100%', sm: '270px' }
                       }}
                     >
                       <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -526,11 +525,17 @@ const DirectDispatchList = () => {
 
                   {/* Switch Button */}
                   {(status === 'all' || status === 'completed') && (
-                    <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                    <Grid
+                      item
+                      xs={12}
+                      sm={6}
+                      sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+                    >
                       <FormControlLabel
                         control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                         label='Completed'
                         labelPlacement='end'
+                        sx={{ marginRight: 1 }}
                       />
                     </Grid>
                   )}
@@ -540,7 +545,7 @@ const DirectDispatchList = () => {
               {/* Common Table */}
               <Grid
                 sx={{
-                  mx: { xs: 2, sm: 3, md: 5 }
+                  mx: { xs: 2, sm: 4, md: 5 }
                 }}
               >
                 <CommonTable

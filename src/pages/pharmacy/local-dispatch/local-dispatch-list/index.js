@@ -209,6 +209,7 @@ const DirectDispatchList = () => {
                 pathname: '/pharmacy/local-dispatch/add-local-dispatch/'
               })
             }
+            fullWidth='fullWidth'
           />
         )}
     </div>
@@ -453,24 +454,24 @@ const DirectDispatchList = () => {
                 flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'flex-start', // Align content to the left
                 alignItems: 'flex-start', // Align items to the top left
-                gap: { xs: 2, sm: 0 }
+                gap: { xs: 2, sm: 0 },
+                '& .MuiCardHeader-action': {
+                  width: { xs: '100% ', sm: 'auto' }
+                },
+                mx: { xs: -2, sm: 0 }
               }}
               title={RenderUtility.pageTitle('Local Dispatch List')}
               action={headerAction}
             />
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                width: '96%',
-                m: 2,
-                gap: 2
+                mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
               {/* Search Field and Filters */}
-              <Grid container spacing={2} alignItems='center' justifyContent='space-between' sx={{ width: '100%' }}>
+              <Grid container spacing={3}>
                 {/* Search Field */}
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={6} spacing={3} gap={3}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -479,8 +480,7 @@ const DirectDispatchList = () => {
                       borderRadius: '8px',
                       padding: '0 8px',
                       height: '40px',
-                      marginLeft: { xs: 0, sm: 1, md: 4 },
-                      width: { xs: '100%', sm: '70%', md: '40%' }
+                      width: { xs: '100%', sm: '270px' }
                     }}
                   >
                     <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -505,11 +505,17 @@ const DirectDispatchList = () => {
 
                 {/* Switch Button */}
                 {(status === 'all' || status === 'completed') && (
-                  <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+                  >
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
+                      sx={{ marginRight: 1 }}
                     />
                   </Grid>
                 )}
