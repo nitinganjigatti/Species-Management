@@ -290,7 +290,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      minWidth: 160,
+      minWidth: 250,
       field: 'updated_by',
       headerName: 'Updated by ',
       renderCell: params => (
@@ -319,10 +319,7 @@ const ListOfPurchase = () => {
       sx={{
         display: 'flex',
         gap: 2,
-
-        // alignItems: 'center',
-        justifyContent: 'flex-start' // Ensure buttons align to the right
-        // flexWrap: 'wrap',
+        justifyContent: 'flex-start'
       }}
     >
       <ExcelExportButton
@@ -333,10 +330,12 @@ const ListOfPurchase = () => {
           })
         }}
         title='Import Inventory'
+        fullWidth='fullWidth'
       />
       <AddButtonContained
         title='Add Inventory'
         action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
+        fullWidth='fullWidth'
       />
     </Box>
   )
@@ -364,7 +363,11 @@ const ListOfPurchase = () => {
                 flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'flex-start', // Align content to the left
                 alignItems: 'flex-start', // Align items to the top left
-                gap: { xs: 2, sm: 0 }
+                gap: { xs: 3, sm: 2 },
+                '& .MuiCardHeader-action': {
+                  width: { xs: '100% ', sm: 'auto' }
+                },
+                mx: { xs: -1, sm: 0 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
@@ -374,20 +377,26 @@ const ListOfPurchase = () => {
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
                 justifyContent: 'space-between',
-                width: '95%',
-                padding: '3px',
                 gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
               }}
             >
               {/* Left Box (Search Field) */}
-              <Grid item xs={12} sm={8} md={6} lg={4} sx={{ width: { xs: '100%', sm: '292px' } }}>
+              <Grid
+                item
+                xs={12}
+                sm={8}
+                md={6}
+                lg={4}
+                sx={{
+                  mx: { xs: 3, sm: 4 }
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
-                    m: { xs: 2 },
-                    ml: { sm: 4 },
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
@@ -418,7 +427,7 @@ const ListOfPurchase = () => {
               sx={{
                 // px: { xs: 2, sm: 4 },
                 // py: { xs: 2, sm: 4 },
-                mx: { xs: 0, sm: 4 }
+                mx: { xs: 3, sm: 4 }
               }}
             >
               <CommonTable
