@@ -195,10 +195,11 @@ const ListOfUOM = () => {
         <Grid
           item
           sx={{
-            mb: 2
+            mb: 2,
+            ml: 1.5
           }}
         >
-          <AddButtonContained title='Add UOM' action={() => addEventSidebarOpen()} />
+          <AddButtonContained title='Add UOM ' action={() => addEventSidebarOpen()} />
         </Grid>
       )}
     </div>
@@ -326,16 +327,24 @@ const ListOfUOM = () => {
             <>
               <Card>
                 <CardHeader
-                  sx={{ mt: 1 }}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 2, sm: 0 },
+                    marginLeft: { xs: '-6px' }
+                  }}
                   title={RenderUtility.pageTitle('UOM (Unit of Measurement) List')}
                   action={headerAction}
                 />
 
-                {/* Left Box (Search Field) */}
                 <Grid
                   item
                   sx={{
-                    mx: { xs: 5 }
+                    mx: { xs: 5 },
+                    ml: { md: 5 }
+                    // ml:{xs:, sm:0 , md:5}
                   }}
                 >
                   <Box
