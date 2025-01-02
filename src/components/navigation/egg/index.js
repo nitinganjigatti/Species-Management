@@ -9,14 +9,14 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     icon: (
       <img
         src='/icons/egg_module_icons/Dashboard_Dark.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='Dashboard Icon'
       />
     ),
     activeIcon: (
       <img
         src='/icons/egg_module_icons/Dashboard_White.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='Dashboard Icon'
       />
     )
@@ -28,14 +28,14 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     icon: (
       <img
         src='/icons/egg_module_icons/Nursery_Dark.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='Nursery Icon'
       />
     ),
     activeIcon: (
       <img
         src='/icons/egg_module_icons/Nursery_White.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='Nursery Icon'
       />
     )
@@ -47,14 +47,14 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     icon: (
       <img
         src='/icons/egg_module_icons/Incubator_Room_Dark.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='IncubatorRoom Icon'
       />
     ),
     activeIcon: (
       <img
         src='/icons/egg_module_icons/Incubator_Room_White.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='IncubatorRoom Icon'
       />
     )
@@ -66,14 +66,14 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     icon: (
       <img
         src='/icons/egg_module_icons/Incubator_Dark.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='Incubator Icon'
       />
     ),
     activeIcon: (
       <img
         src='/icons/egg_module_icons/Incubator_White.svg'
-        style={{ width: '24px', height: '24pxs' }}
+        style={{ width: '24px', height: '24px' }}
         alt='Incubator Icon'
       />
     )
@@ -82,9 +82,9 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
   const eggs = {
     title: 'Eggs',
     path: '/egg/eggs',
-    icon: <img src='/icons/egg_module_icons/Egg_Dark.svg' style={{ width: '24px', height: '24pxs' }} alt='Egg Icon' />,
+    icon: <img src='/icons/egg_module_icons/Egg_Dark.svg' style={{ width: '24px', height: '24px' }} alt='Egg Icon' />,
     activeIcon: (
-      <img src='/icons/egg_module_icons/Egg_White.svg' style={{ width: '24px', height: '24pxs' }} alt='Egg Icon' />
+      <img src='/icons/egg_module_icons/Egg_White.svg' style={{ width: '24px', height: '24px' }} alt='Egg Icon' />
     )
   }
 
