@@ -144,8 +144,8 @@ const StockOut = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 350,
+      minWidth: 150,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -178,8 +178,8 @@ const StockOut = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'min_qty',
       headerName: 'Reorder level',
       renderCell: params => (
@@ -210,8 +210,8 @@ const StockOut = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -235,8 +235,8 @@ const StockOut = () => {
 
   const outOfStocksColumn = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 150,
+      minWidth: 100,
       alignItems: 'right',
       field: 'id',
       headerName: 'SL',
@@ -255,8 +255,8 @@ const StockOut = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 100,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -287,8 +287,9 @@ const StockOut = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.4,
+      width: 200,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -479,7 +480,7 @@ const StockOut = () => {
             title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
           />
           <Box
-            sx={{ 
+            sx={{
               display: 'flex',
               flexDirection: 'column',
               width: '96%',

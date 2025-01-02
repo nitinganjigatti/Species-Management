@@ -10,7 +10,7 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { Box } from '@mui/system'
+import { Box, width } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
 import { TextField, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -247,8 +247,8 @@ const ExpiringMedicine = () => {
     //   )
     // },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 350,
+      minWidth: 200,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -268,8 +268,8 @@ const ExpiringMedicine = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -299,8 +299,8 @@ const ExpiringMedicine = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -319,8 +319,8 @@ const ExpiringMedicine = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -401,6 +401,7 @@ const ExpiringMedicine = () => {
         }}
         loader={excelLoader}
         title='Download'
+        fullWidth='fullWidth'
       />
     </Box>
   )
@@ -425,7 +426,12 @@ const ExpiringMedicine = () => {
                 flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'flex-start',
                 alignItems: 'flex-start',
-                gap: { xs: 2, sm: 0 }
+                gap: { xs: 2, sm: 0 },
+                '& .MuiCardHeader-action': {
+                  mt: 3,
+                  width: { xs: '100% ', sm: 'auto' }
+                },
+                mx: { xs: -1, sm: 0 }
               }}
               title={RenderUtility.pageTitle('About To Expire')}
               action={headerAction}
@@ -435,10 +441,7 @@ const ExpiringMedicine = () => {
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: { xs: 'center', md: 'space-between' },
-                // alignItems: 'center',
-                width: '100%',
-                padding: '8px',
-                gap: { xs: 2, md: 3 }
+                mx: { xs: 3, sm: 5 }
               }}
             >
               {/* Left Box (Search Field) */}
@@ -449,11 +452,10 @@ const ExpiringMedicine = () => {
                     alignItems: 'center',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
-                    ml: { xs: 2, sm: 3.5, md: 4 },
                     padding: '0 8px',
                     height: '40px',
-                    width: { xs: '96%', md: '292px' },
-                    marginBottom: { xs: 2, md: 0 }
+                    width: { xs: '100%', md: '290px' },
+                    marginBottom: { xs: 4, md: 0 }
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -477,17 +479,8 @@ const ExpiringMedicine = () => {
               </Grid>
 
               {/* Group of two boxes on the right */}
-              <Grid
-                container
-                sx={{
-                  display: 'flex',
-                  flexWrap: { xs: 'wrap', md: 'nowrap' },
-                  justifyContent: { xs: 'center', md: 'flex-end' },
-                  alignItems: 'center'
-                  // width: '100%'
-                }}
-              >
-                {/* {selectedPharmacy.type === 'central' && (
+
+              {/* {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
                     sx={{
@@ -523,34 +516,32 @@ const ExpiringMedicine = () => {
                   </Grid>
                 )} */}
 
-                <Grid
-                  item
-                  sx={{
-                    width: { xs: '96%', md: '240px' },
-                    // mr: { sm: 6 },
-                    ml: { xs: 1 },
-                    height: '50px'
-                  }}
-                >
-                  <FormControl fullWidth size='small'>
-                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
-                    <Select
-                      size='small'
-                      value={selectDays}
-                      label='Filter by days'
-                      onChange={e => {
-                        filterByDays(e.target.value)
-                        setSelectDays(e.target.value)
-                      }}
-                    >
-                      <MenuItem value='7'>7 Days</MenuItem>
-                      <MenuItem value='15'>7 to 15 Days </MenuItem>
-                      <MenuItem value='30'>15 to 30 Days</MenuItem>
-                      <MenuItem value='60'>30 to 60 Days</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
+              <Grid
+                item
+                sx={{
+                  width: { xs: '100%', md: '240px' },
+                  height: '50px'
+                }}
+              >
+                <FormControl fullWidth size='small'>
+                  <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                  <Select
+                    size='small'
+                    value={selectDays}
+                    label='Filter by days'
+                    onChange={e => {
+                      filterByDays(e.target.value)
+                      setSelectDays(e.target.value)
+                    }}
+                  >
+                    <MenuItem value='7'>7 Days</MenuItem>
+                    <MenuItem value='15'>7 to 15 Days </MenuItem>
+                    <MenuItem value='30'>15 to 30 Days</MenuItem>
+                    <MenuItem value='60'>30 to 60 Days</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
+
               {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                 {status === 'all' || status === 'completed' ? (
                   <Box sx={{ float: 'right', mt: 1 }}>

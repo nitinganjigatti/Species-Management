@@ -1165,8 +1165,8 @@ const ListOfStocks = () => {
                           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           padding: '0 8px',
-                          ml: { xs: 1, sm: 1.5,md:4.5},
-                        
+                          ml: { xs: 1, sm: 1.5, md: 4.5 },
+
                           height: '40px',
                           width: { xs: '98%', md: '290px' },
                           marginBottom: { xs: 2, md: 0 }
@@ -1200,8 +1200,9 @@ const ListOfStocks = () => {
                       {/* {changeSwitch ? ( */}
                       <Box
                         sx={{
-                          ml: { xs: 1,sm:1.5, md: 'auto' },
-                          float: { sm: 'right', md: 'right', xs: 'left' }
+                          ml: { xs: 1, sm: 1.5, md: 'auto' },
+                          float: { sm: 'right', md: 'right', xs: 'left' },
+                          width: { xs: '98%', sm: 'auto' }
                         }}
                       >
                         <ExcelExportButton
@@ -1211,6 +1212,7 @@ const ListOfStocks = () => {
                           }}
                           loader={excelLoader}
                           title='Download'
+                          fullWidth='fullWidth'
                         />
                       </Box>
                       {/* ) : null} */}
