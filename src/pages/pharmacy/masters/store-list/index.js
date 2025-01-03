@@ -38,6 +38,11 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { DialogTitle } from '@mui/material'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -52,6 +57,7 @@ const ListOfStores = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const authData = useContext(AuthContext)
+  const [validateStore, setValidateStore] = useState(false)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
@@ -79,6 +85,14 @@ const ListOfStores = () => {
   const handleEdit = async (id, name, status) => {
     setEditParams({ id: id, name: name, status: status })
     setOpenDrawer(true)
+  }
+
+  const openStoreValidate = () => {
+    setValidateStore(true)
+  }
+
+  const closeStoreValidate = () => {
+    setValidateStore(false)
   }
 
   /***** Drawer  */
@@ -223,9 +237,9 @@ const ListOfStores = () => {
               >
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
-            <Icon icon='mdi:delete-outline' />
-          </IconButton> */}
+              <IconButton size='small' sx={{ mr: 0.5 }}>
+                <Icon icon='mdi:delete-outline' />
+              </IconButton>
             </Box>
           )}
         </>
@@ -328,6 +342,11 @@ const ListOfStores = () => {
 
       var response
       if (editParams?.id !== null) {
+        if (payload?.status === 'inactive') {
+          openStoreValidate()
+
+          return
+        }
         response = await updateStore(editParams?.id, payload)
       } else {
         var pharmacyCheck = await checkPharmacy()
@@ -345,7 +364,9 @@ const ListOfStores = () => {
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
-        Router.reload()
+        debugger
+
+        // Router.reload()
       } else {
         setSubmitLoader(false)
         if (typeof response?.message === 'object') {
@@ -402,7 +423,6 @@ const ListOfStores = () => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      // border: '1px solid #C3CEC7',
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '8px',
                       padding: '0 8px',
@@ -490,6 +510,59 @@ const ListOfStores = () => {
                 editParams={editParams}
                 pharmacyList={pharmacyList}
                 totalStores={total}
+              />
+              <ConfirmDialogBox
+                open={validateStore}
+                closeDialog={() => {
+                  setValidateStore(false)
+                }}
+                action={() => {
+                  setValidateStore(false)
+                }}
+                content={
+                  <Box>
+                    <DialogContent>
+                      <DialogTitle
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '20px',
+                          margin: '0px',
+                          padding: '0px',
+                          mb: '6px',
+                          color: 'customColors.OnSurfaceVariant',
+                          display: 'flex',
+                          gap: 2,
+
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' />
+                        Store In-Activination Detected
+                      </DialogTitle>
+                      <DialogContentText
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          margin: '0px',
+                          padding: '0px',
+                          color: 'customColors.OnSurfaceVariant'
+                        }}
+                      >
+                        Are you sure you want to deactivate this store? Transfer stock to another store, or all
+                        inventory will become inactive
+                        <br /> Please review before proceeding.
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions className='dialog-actions-dense'>
+                      <Button variant='outlined' size='small' color='error' onClick={() => {}}>
+                        Cancel
+                      </Button>
+                      <Button size='small' variant='contained' color='warning' onClick={() => {}}>
+                        Confirm
+                      </Button>
+                    </DialogActions>
+                  </Box>
+                }
               />
               {/* {openSnackbar.open ? (
                 <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
