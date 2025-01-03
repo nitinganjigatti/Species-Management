@@ -319,7 +319,8 @@ const ListOfPurchase = () => {
       sx={{
         display: 'flex',
         gap: 2,
-        justifyContent: 'flex-start'
+        justifyContent: 'flex-start',
+        whiteSpace: 'nowrap'
       }}
     >
       <ExcelExportButton
