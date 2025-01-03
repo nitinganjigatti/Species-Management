@@ -401,6 +401,7 @@ const ListOfMedicine = () => {
             action={() => {
               router.push('/pharmacy/medicine/add-product')
             }}
+            fullWidth={'fullWidth'}
           />
         )}
     </div>
@@ -566,13 +567,30 @@ const ListOfMedicine = () => {
                 show={showDialog}
               />
               <Card>
-                <CardHeader title={RenderUtility.pageTitle('Product List')} action={headerAction} />
+                <CardHeader
+                  title={RenderUtility.pageTitle('Product List')}
+                  action={headerAction}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    },
+                    mx: { xs: -1, sm: 1 },
+                    mt: 1
+                  }}
+                />
                 <Box
                   display='flex'
                   justifyContent='space-between'
                   // alignItems="center"
                   flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
-                  gap={2} // Gap between items on smaller screens
+                  gap={6} // Gap between items on smaller screens
+                  sx={{ mx: { xs: 3, md: 5 } }}
+                  mt={3}
                 >
                   {/* Left Box (Search Field) */}
                   <Grid item xs={12} sm={8} md={7}>
@@ -584,8 +602,6 @@ const ListOfMedicine = () => {
                         // border: '1px solid #C3CEC7',
                         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '8px',
-                        margin: 2,
-                        marginLeft: { sm: 4 },
                         padding: '0 8px',
                         height: '40px'
                       }}
@@ -615,14 +631,11 @@ const ListOfMedicine = () => {
                     item
                     xs={12}
                     sm={4}
-                    md={3}
+                    md={4}
                     sx={{
                       display: 'flex',
                       justifyContent: 'flex-end',
-                      alignItems: 'center',
-                      marginTop: { xs: 2, sm: 3 },
-                      marginRight: { sm: 5 },
-                      margin: 2
+                      alignItems: 'center'
                     }}
                   >
                     <FormControl fullWidth size='small'>
@@ -642,7 +655,7 @@ const ListOfMedicine = () => {
                 </Box>
 
                 {/* Table Section */}
-                <Grid sx={{ mx: { xs: 2, sm: 4 } }}>
+                <Grid sx={{ mx: { xs: 3, md: 5 } }}>
                   <CommonTable
                     onRowClick={handleRowClick}
                     indexedRows={indexedRows}

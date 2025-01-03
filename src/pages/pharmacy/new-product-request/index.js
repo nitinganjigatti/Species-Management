@@ -335,6 +335,7 @@ export default function NewProductList() {
           <AddButtonContained
             title='Add Product'
             action={() => router.push('/pharmacy/new-product-request/request-product/')}
+            fullWidth='fullWidth'
           />
         )}
     </>
@@ -418,7 +419,13 @@ export default function NewProductList() {
               '& .MuiCardHeader-title': {
                 fontSize: { xs: '18px', sm: '20px', md: '24px' },
                 flexGrow: 1
-              }
+              },
+              gap: { xs: 3, sm: 0 },
+              '& .MuiCardHeader-action': {
+                width: { xs: '100% ', sm: 'auto' }
+              },
+              mx: { xs: -1, sm: 1 },
+              mt: 1
             }}
           />
 
@@ -429,7 +436,15 @@ export default function NewProductList() {
             gap={2} // Gap between items on smaller screens
           >
             {/* Left Box (Search Field) */}
-            <Grid item xs={12} sm={8} md={6} sx={{ margin: '11px' }}>
+            <Grid
+              item
+              xs={12}
+              sm={8}
+              md={6}
+              sx={{
+                mx: { xs: 3, md: 5 }
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
@@ -437,7 +452,7 @@ export default function NewProductList() {
                   // border: '1px solid #C3CEC7',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
-                  marginLeft: { xs: 0, sm: 1, md: 3},
+
                   padding: '0 8px',
                   height: '40px',
                   width: { xs: '100%', sm: '240px' }
@@ -466,7 +481,7 @@ export default function NewProductList() {
 
           <Grid
             sx={{
-              mx: { xs: 2, sm: 3, md: 5 }
+              mx: { xs: 3, md: 5 }
             }}
           >
             <CommonTable

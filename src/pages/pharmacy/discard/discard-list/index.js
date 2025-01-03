@@ -308,6 +308,7 @@ const ListOfDiscardProducts = () => {
       <AddButtonContained
         title='Return to Supplier'
         action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
+        fullWidth='fullWidth'
       />
     </Grid>
   )
@@ -335,7 +336,12 @@ const ListOfDiscardProducts = () => {
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'flex-start', // Align content to the left
                   alignItems: 'flex-start', // Align items to the top left
-                  gap: { xs: 2, sm: 0 }
+                  gap: { xs: 3, sm: 0 },
+                  '& .MuiCardHeader-action': {
+                    width: { xs: '100% ', sm: 'auto' }
+                  },
+                  mx: { xs: -1, sm: 1 },
+                  mt: 1
                 }}
                 title={RenderUtility.pageTitle('Return to Supplier List')}
                 action={headerAction}
@@ -344,10 +350,7 @@ const ListOfDiscardProducts = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
-                  justifyContent: 'space-between',
-                  width: '95%',
-                  padding: '3px',
-                  gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+                  justifyContent: 'space-between'
                 }}
               >
                 {/* Left Box (Search Field) */}
@@ -381,28 +384,27 @@ const ListOfDiscardProducts = () => {
                         }
                       }}
                     />
-                  </Box>
-                </Grid> */}
+                       </Box>
+                       </Grid> */}
 
                 {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
+                   {status === 'all' || status === 'completed' ? (
+                      <Box sx={{ float: 'right', mt: 1 }}>
                   <FormControlLabel
                     control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                     label='Completed'
                     labelPlacement='end'
                   />
-                </Box>
-              ) : null}
-            </Grid> */}
+                    </Box>
+                     ) : null}
+                       </Grid> */}
               </Box>
               <Grid
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start', // Align items to the top left
-                  gap: { xs: 2, sm: 0 }
+                  alignItems: 'flex-start' // Align items to the top left
                 }}
               />
               <Box
@@ -411,8 +413,7 @@ const ListOfDiscardProducts = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap', // Allow wrapping on small screens
-                  gap: 2, // Add spacing between elements
-                  px: 2
+                  mx: { xs: 3, md: 5 }
                 }}
               >
                 {/* Left Box (Search Field) */}
@@ -420,12 +421,9 @@ const ListOfDiscardProducts = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-
                     // border: '1px solid #C3CEC7',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    m: { xs: 2 },
                     borderRadius: '8px',
-                    marginLeft: { sm: 4, md: 5 },
                     padding: '0 8px',
                     width: { xs: '100%', sm: '250px' }, // Full width on small screens
                     height: '40px'
@@ -452,7 +450,7 @@ const ListOfDiscardProducts = () => {
               </Box>
               <Grid
                 sx={{
-                  mx: { xs: 2, sm: 3, md: 5 }
+                  mx: { xs: 3, md: 5 }
                 }}
               >
                 <CommonTable
