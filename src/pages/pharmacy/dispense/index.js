@@ -282,21 +282,12 @@ function Dispense() {
       {(selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
         selectedPharmacy.permission.key === 'ADD' ||
         selectedPharmacy.permission.dispense_medicine) && (
-        <Grid
-          item
-          sx={{
-            mt: { xs: 2, md: 0 }, // Add margin-top on small screens
-            textAlign: { xs: 'center', md: 'right' } // Center-align on smaller screens
-          }}
-        >
-          {' '}
+        <Grid item>
           <AddButtonContained
             title='Add Dispense'
             action={() => router.push('/pharmacy/dispense/add-dispense')}
-            sx={{
-              mr: { xs: 0, md: 6 } // Adjust margin-right for normal screens
-            }}
-          /> 
+            fullWidth={'fullWidth'}
+          />
         </Grid>
       )}
     </div>
@@ -312,10 +303,16 @@ function Dispense() {
           <CardHeader
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              px: { xs: 2, md: 5 },
-              py: 2
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              gap: { xs: 3, sm: 0 },
+              '& .MuiCardHeader-action': {
+                width: { xs: '100% ', sm: 'auto' }
+              },
+              mx: { xs: -1, sm: 0 },
+              mt: 1,
+              mb: 2
             }}
             title={RenderUtility.pageTitle('Dispense')}
             action={headerAction}
@@ -327,13 +324,11 @@ function Dispense() {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              px: { xs: 2, md: 5 },
-              py: 2
+              justifyContent: 'space-between'
             }}
           >
             {/* Search Field */}
-            <Grid item xs={12} sm={8} md={8}>
+            <Grid item xs={12} sm={8} md={8} sx={{ mx: { xs: 3, md: 5 } }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -341,10 +336,8 @@ function Dispense() {
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
-                  marginLeft: { xs: 0, sm: 1, md: 1.5 },
                   height: '40px',
-                  width: { xs: '100%', sm: '240px' },
-                  marginBottom: { xs: 2, sm: 0 } // Add spacing below for small screens
+                  width: { xs: '100%', sm: '240px' }
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -381,9 +374,9 @@ function Dispense() {
 
           {/* Table */}
           <Grid
-              sx={{
-                mx: { xs: 2, sm: 3, md: 5 }
-              }}
+            sx={{
+              mx: { xs: 3, md: 5 }
+            }}
           >
             <CommonTable
               onRowClick={onRowClick}

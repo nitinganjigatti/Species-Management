@@ -385,10 +385,7 @@ const ListOfStockAdjusted = () => {
     <AddButtonContained
       title='Add Stock Adjustment'
       action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
-      sx={{
-        mt: { xs: 2, sm: 0 }, // Add top margin on small screens
-        alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
-      }}
+      fullWidth='fullWidth'
     />
   )
 
@@ -410,7 +407,13 @@ const ListOfStockAdjusted = () => {
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'flex-start', // Align content to the left
             alignItems: 'flex-start', // Align items to the top left
-            gap: { xs: 2, sm: 0 }
+            gap: { xs: 3, sm: 0 },
+            '& .MuiCardHeader-action': {
+              width: { xs: '100% ', sm: 'auto' }
+            },
+            mx: { xs: -1, sm: 1 },
+            mb: { xs: 2 },
+            mt: 1
           }}
           title={RenderUtility.pageTitle('Stock Adjustment List')}
           action={headerAction}
@@ -433,9 +436,7 @@ const ListOfStockAdjusted = () => {
             flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
             justifyContent: 'space-between',
             alignItems: 'center',
-            width: '100%',
-            padding: '8px',
-            gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+            mx: { xs: 3, md: 5 }
           }}
         >
           {/* Search Box */}
@@ -445,9 +446,7 @@ const ListOfStockAdjusted = () => {
               alignItems: 'center',
               // border: '1px solid #C3CEC7',
               border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              m: { xs: 2 },
               borderRadius: '8px',
-              marginLeft: {  sm: 1, md: 4 },
               padding: '0 8px',
               width: { xs: '100%', sm: '250px' }, // Full width on small screens
               height: '40px'
@@ -474,9 +473,9 @@ const ListOfStockAdjusted = () => {
         </Box>
 
         <Grid
-        sx={{
-          mx: { xs: 2, sm: 3, md: 5 }
-        }}
+          sx={{
+            mx: { xs: 3, md: 5 }
+          }}
         >
           <CommonTable
             onRowClick={''}
