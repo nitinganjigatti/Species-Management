@@ -7,17 +7,19 @@ import Switch from '@mui/material/Switch'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import { LoadingButton } from '@mui/lab'
 
-function AddButtonContained({ action, title, disabled, styles }) {
+function AddButtonContained({ action, title, disabled, styles, fullWidth }) {
   return (
     <Button
-      // sx={{(title === "request")? ml:2: ""}}  
-    
+      // sx={{(title === "request")? ml:2: ""}}
+
       disabled={disabled || false}
       onClick={action ? action : null}
       size='large'
       variant='contained'
       startIcon={<Icon icon='material-symbols-light:add' />}
-      sx={{mr:1}}
+      sx={{ mr: 1 }}
+      fullWidth={fullWidth ? fullWidth : null}
+
       // style={{ ...styles }}
     >
       {title ? title : null}

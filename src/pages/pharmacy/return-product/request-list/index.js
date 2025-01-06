@@ -16,8 +16,18 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import {
+  Switch,
+  FormControlLabel,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment
+} from '@mui/material'
 import { useTheme } from '@emotion/react'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -30,9 +40,12 @@ import { useRouter } from 'next/router'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ReturnRequestList = () => {
   const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Detect small screens
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const [loader, setLoader] = useState(false)
@@ -224,8 +237,6 @@ const ReturnRequestList = () => {
         page: paginationModel.page,
         limit: paginationModel.pageSize
       })
-
-      // fetchTableData(sort, searchValue, sortColumn, status, filterDates.endDate, filterByStoreId)
     }
   }
 
@@ -358,9 +369,8 @@ const ReturnRequestList = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'id',
+      width: 80,
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography
@@ -378,8 +388,7 @@ const ReturnRequestList = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       headerClassName: 'custom-header',
@@ -398,8 +407,7 @@ const ReturnRequestList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -437,8 +445,7 @@ const ReturnRequestList = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
@@ -457,8 +464,7 @@ const ReturnRequestList = () => {
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 140,
       field: 'total_qty',
       headerName: 'Total Quantity',
       type: 'number',
@@ -480,8 +486,7 @@ const ReturnRequestList = () => {
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
@@ -524,8 +529,7 @@ const ReturnRequestList = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Returned by ',
       headerAlign: 'left',
@@ -604,206 +608,211 @@ const ReturnRequestList = () => {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Product Return Requests
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <>
-            <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
+          <Card>
+            <CardHeader
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: { xs: 'start', sm: 'center', md: 'center' },
+                flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                mx: { xs: 2, sm: 0, md: 0 },
+                gap: { xs: 2, sm: 0, md: 0 }
+              }}
+              title={RenderUtility.pageTitle('Product Return Requests')}
+              action={headerAction}
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                alignItems: 'center',
 
-                      // border: '1px solid #C3CEC7',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
+                margin:
+                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
+                gap: { xs: 2, md: 3 }
+              }}
+            >
+              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  borderRadius: '8px',
+                  width: { xs: '100%', md: '290px' }
+                }}
+              />
 
-                {/* Group of two boxes on the right */}
-                <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
-                  {selectedPharmacy.type === 'central' && (
-                    <Grid
-                      item
-                      sx={{
-                        width: '245px',
-                        height: '50px', // Increased height
-                        borderRadius: '8px',
-                        paddingLeft: '12px',
-                        paddingRight: '12px'
-                      }}
-                    >
-                      <FormControl fullWidth size='small'>
-                        <InputLabel>Filter by Stores</InputLabel>
-                        <Select
-                          fullWidth
-                          size='small'
-                          value={filterByStoreId}
-                          label='Filter by Stores'
-                          onChange={e => {
-                            setTotal(0)
-                            setPaginationModel({ page: 0, pageSize: 10 })
-                            setFilterByStoreId(e.target.value)
-                            setSearchValue('')
-                          }}
-                        >
-                          <MenuItem value='all'>All</MenuItem>
-                          {stores.length > 0 &&
-                            stores.map(store => (
-                              <MenuItem key={store?.id} value={store?.id}>
-                                {store?.name}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  )}
-
+              {/* Filters */}
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  display: 'flex',
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                  justifyContent: { xs: 'center', md: 'flex-end' },
+                  alignItems: 'center'
+                }}
+              >
+                {/* Filter by Stores */}
+                {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
+                    xs={12}
                     sx={{
-                      width: '245px',
-                      height: '50px', // Increased height
-                      borderRadius: '8px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px',
-                      mr: 1
+                      maxWidth: { xs: '100%', md: '250px' },
+                      width: '100%',
+                      height: '48px',
+                      mt: { xs: 2, md: 0 }
                     }}
                   >
                     <FormControl fullWidth size='small'>
-                      <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                      <InputLabel>Filter by Stores</InputLabel>
                       <Select
-                        size='small'
-                        value={selectDays}
-                        label='Filter by days'
+                        value={filterByStoreId}
+                        label='Filter by Stores'
                         onChange={e => {
-                          filterByDays(e.target.value)
-                          setSelectDays(e.target.value)
+                          setTotal(0)
+                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setFilterByStoreId(e.target.value)
+                          setSearchValue('')
                         }}
                       >
                         <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value='3'>3 Days</MenuItem>
-                        <MenuItem value='7'>3 to 7 Days</MenuItem>
-                        <MenuItem value='15'>7 to 15 Days</MenuItem>
-                        <MenuItem value='16'>15 Days</MenuItem>
+                        {stores.map(store => (
+                          <MenuItem key={store?.id} value={store?.id}>
+                            {store?.name}
+                          </MenuItem>
+                        ))}
                       </Select>
                     </FormControl>
                   </Grid>
-                </Grid>
-                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                  {status === 'all' || status === 'completed' ? (
-                    <Box sx={{ float: 'right', mt: 1 }}>
-                      <FormControlLabel
-                        control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                        label='Completed'
-                        labelPlacement='end'
-                      />
-                    </Box>
-                  ) : null}
-                </Grid>
-              </Box>
+                )}
 
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
+                {/* Filter by Days */}
+                <Grid
+                  item
+                  xs={12}
+                  md='auto'
+                  sx={{
+                    maxWidth: { xs: '100%', md: '250px' },
+                    mt: { xs: 2, md: 0 },
+                    height: '48px',
+                    width: '100%'
+                  }}
+                >
+                  <FormControl fullWidth size='small'>
+                    <InputLabel>Filter by days</InputLabel>
+                    <Select
+                      value={selectDays}
+                      label='Filter by days'
+                      onChange={e => {
+                        filterByDays(e.target.value)
+                        setSelectDays(e.target.value)
+                      }}
+                    >
+                      <MenuItem value='all'>All</MenuItem>
+                      <MenuItem value='3'>3 Days</MenuItem>
+                      <MenuItem value='7'>3 to 7 Days</MenuItem>
+                      <MenuItem value='15'>7 to 15 Days</MenuItem>
+                      <MenuItem value='16'>15 Days</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Completed Switch */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid
+                    item
+                    xs={12}
+                    md='auto'
+                    sx={{
+                      height: '48px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      width: { xs: '100%', md: 'auto' },
+                      ml: { xs: 2, sm: 3 }
+                    }}
+                  >
+                    <FormControlLabel
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                      sx={{ mr: '0px' }}
+                    />
+                  </Grid>
+                )}
               </Grid>
-            </Card>
-          </>
+            </Box>
+
+            <Grid
+              sx={{
+                margin: '0px 1.375rem 0px 1.375rem'
+              }}
+            >
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
         )}
       </>
     )
   }
 
   return (
-    <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'local' ? (
-              <Tab
-                sx={{ ml: 3 }}
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
-            <Tab
-              sx={selectedPharmacy?.type === 'central' && { ml: 3 }}
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
-            />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
-          <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='shipped'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
-          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
-          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
-        </TabContext>
-      </Grid>
-    </>
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange}>
+          <Tab value='pending' label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />} />
+          <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
+          <Tab
+            value={'all' ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
+        <TabPanel value='pending'>{tableData()}</TabPanel>
+        <TabPanel value='shipped'>{tableData()}</TabPanel>
+        <TabPanel value='disputed'>{tableData()}</TabPanel>
+        <TabPanel value='cancel'>{tableData()}</TabPanel>
+        {status === 'all' ? (
+          <TabPanel value='all'>{tableData()}</TabPanel>
+        ) : (
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+        )}
+      </TabContext>
+    </Grid>
   )
 }
 

@@ -13,6 +13,8 @@ import toast from 'react-hot-toast'
 
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import RenderUtility from 'src/utility/render'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const VariantList = () => {
   const theme = useTheme()
@@ -51,8 +53,7 @@ const VariantList = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      minWidth: 50,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -62,8 +63,7 @@ const VariantList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'unit_multiplier',
       headerName: 'Unit Multiplier',
       textAlign: 'center',
@@ -82,29 +82,40 @@ const VariantList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 300,
       field: 'description',
       headerName: 'Description',
       textAlign: 'center',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.description}
-        </Typography>
+        <>
+          {params.row?.description ? (
+            <TextEllipsisWithModal
+              text={params.row.description}
+              style={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            />
+          ) : (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              NA
+            </Typography>
+          )}
+        </>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -122,8 +133,7 @@ const VariantList = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -255,57 +265,72 @@ const VariantList = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButtonContained title='Add Variant' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Variant' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
-  )
-
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Variants</Typography>
-    </>
   )
 
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
         <Card>
-          <CardHeader title={title} action={headerAction} />
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
-            {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
-              <Box
+          <CardHeader
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'flex-start', // Align content to the left
+              alignItems: 'flex-start', // Align items to the top left
+              gap: { xs: 3, sm: 0 },
+              '& .MuiCardHeader-action': {
+                width: { xs: '100% ', sm: 'auto' }
+              }
+            }}
+            title={RenderUtility.pageTitle('Variants')}
+            action={headerAction}
+          />
+          <Grid
+            item
+            sx={{
+              mx: { xs: 4 },
+              ml: { md: 4 }
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                // border: '1px solid #C3CEC7',
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '8px',
+                padding: '0 8px',
+                height: '40px',
+                width: {
+                  xs: '100%',
+                  sm: '250px'
+                }
+              }}
+            >
+              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+              <TextField
+                variant='outlined'
+                placeholder='Search...'
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: '1px solid #C3CEC7',
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px' // Set a fixed width for all status
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
                     }
-                  }}
-                />
-              </Box>
-            </Grid>
-          </Box>
+                  }
+                }}
+              />
+            </Box>
+          </Grid>
           <Grid
             sx={{
               mx: 4

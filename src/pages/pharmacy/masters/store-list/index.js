@@ -37,6 +37,7 @@ import toast from 'react-hot-toast'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -84,8 +85,7 @@ const ListOfStores = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      minWidth: 100,
       field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
@@ -95,8 +95,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'type',
       headerName: 'TYPE',
       renderCell: params => (
@@ -114,8 +113,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (
@@ -133,8 +131,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'latitude',
       headerName: 'LATITUDE',
       renderCell: params => (
@@ -152,8 +149,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'logitude',
       headerName: 'LONGITUDE',
       renderCell: params => (
@@ -172,8 +168,7 @@ const ListOfStores = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
@@ -192,8 +187,7 @@ const ListOfStores = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -211,8 +205,7 @@ const ListOfStores = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -308,7 +301,13 @@ const ListOfStores = () => {
   }
 
   const headerAction = (
-    <div>{pharmacyRole && <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
+    <div>
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
+    </div>
   )
 
   const checkPharmacy = async () => {
@@ -371,12 +370,6 @@ const ListOfStores = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Pharmacy List</Typography>
-    </>
-  )
-
   return (
     <>
       {pharmacyRole ? (
@@ -386,41 +379,60 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title={title} action={headerAction} />
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                  {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
-                    <Box
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('Pharmacy List')}
+                  action={headerAction}
+                />
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      // border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
                           }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                </Box>
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
                 <Grid
                   sx={{
                     mx: 4

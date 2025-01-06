@@ -20,7 +20,8 @@ import {
   FormControlLabel,
   Checkbox,
   Alert,
-  AlertTitle
+  AlertTitle,
+  alpha
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
@@ -177,7 +178,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               </>
             ) : null}
 
-            <Grid container items id={'comments'}>
+            {/* <Grid container items id={'comments'}>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
                   <TextField
@@ -212,7 +213,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   />
                 </FormControl>
               </Grid>
-            </Grid>
+            </Grid> */}
           </Grid>
         </Grid>
       ) : (
@@ -807,12 +808,25 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const columns = [
     {
+      Width: 40,
+      field: 'uid`',
+      headerName: 'S.NO',
+      renderCell: params => {
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.uid + '.'}
+          </Typography>
+        )
+      }
+    },
+    {
       flex: 0.5,
       Width: 100,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
         <div>
+          {console.log(params)}
           <Tooltip title={params.row.stock_name} placement='top'>
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params.row.stock_name}
@@ -845,24 +859,24 @@ function OrderReceiveForm({ orderId, requestId }) {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'from_store_name',
-      headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
-      renderCell: params => (
-        <div>
-          <Tooltip
-            title={selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
-            placement='top'
-          >
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
-            </Typography>
-          </Tooltip>
-        </div>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'from_store_name',
+    //   headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
+    //   renderCell: params => (
+    //     <div>
+    //       <Tooltip
+    //         title={selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+    //         placement='top'
+    //       >
+    //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //           {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
+    //         </Typography>
+    //       </Tooltip>
+    //     </div>
+    //   )
+    // },
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -982,7 +996,8 @@ function OrderReceiveForm({ orderId, requestId }) {
                                     }}
                                     label='Comment'
                                     sx={{
-                                      backgroundColor: 'customColors.Notes'
+                                      // backgroundColor: 'customColors.Notes'
+                                      backgroundColor: theme => alpha(theme.palette.customColors.Notes, 0.2)
                                     }}
                                   />
 

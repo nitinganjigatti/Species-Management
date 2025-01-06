@@ -197,7 +197,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 </Grid>
               </>
             ) : null}
-
+            {/* 
             <Grid container items>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
@@ -232,7 +232,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   />
                 </FormControl>
               </Grid>
-            </Grid>
+            </Grid> */}
           </Grid>
         </Grid>
       ) : (
@@ -702,6 +702,18 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const columns = [
     {
+      Width: 40,
+      field: 'uid`',
+      headerName: 'S.NO',
+      renderCell: params => {
+        return (
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params.row.uid + '.'}
+          </Typography>
+        )
+      }
+    },
+    {
       flex: 0.2,
       Width: 40,
       field: 'stock_name',
@@ -740,26 +752,26 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       )
     },
 
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'from_store_name',
-      headerName: selectedPharmacy?.id === orderData.from_store_id ? 'Shipped To' : 'Shipped From',
-      renderCell: params => (
-        <div>
-          <Tooltip
-            title={
-              selectedPharmacy?.id === orderData.from_store_id ? params.row.to_store_name : params.row.from_store_name
-            }
-            placement='top'
-          >
-            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-              {selectedPharmacy?.id === orderData.from_store_id ? params.row.to_store_name : params.row.from_store_name}
-            </Typography>
-          </Tooltip>
-        </div>
-      )
-    },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'from_store_name',
+    //   headerName: selectedPharmacy?.id === orderData.from_store_id ? 'Shipped To' : 'Shipped From',
+    //   renderCell: params => (
+    //     <div>
+    //       <Tooltip
+    //         title={
+    //           selectedPharmacy?.id === orderData.from_store_id ? params.row.to_store_name : params.row.from_store_name
+    //         }
+    //         placement='top'
+    //       >
+    //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //           {selectedPharmacy?.id === orderData.from_store_id ? params.row.to_store_name : params.row.from_store_name}
+    //         </Typography>
+    //       </Tooltip>
+    //     </div>
+    //   )
+    // },
 
     {
       flex: 0.4,

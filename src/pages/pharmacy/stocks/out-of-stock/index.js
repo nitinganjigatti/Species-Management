@@ -23,6 +23,7 @@ import { Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -143,8 +144,8 @@ const StockOut = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 350,
+      minWidth: 150,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -177,8 +178,8 @@ const StockOut = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'min_qty',
       headerName: 'Reorder level',
       renderCell: params => (
@@ -209,8 +210,8 @@ const StockOut = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -234,8 +235,8 @@ const StockOut = () => {
 
   const outOfStocksColumn = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 150,
+      minWidth: 100,
       alignItems: 'right',
       field: 'id',
       headerName: 'SL',
@@ -254,8 +255,8 @@ const StockOut = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 100,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -286,8 +287,9 @@ const StockOut = () => {
     // },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.4,
+      width: 200,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
@@ -461,36 +463,43 @@ const StockOut = () => {
   //   </>
   // )
 
-  const title = (
-    <>
-      {changeSwitch ? (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Out of Stock</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Low Stock</Typography>
-      )}
-    </>
-  )
-
   return (
     <>
       {loader ? (
         <FallbackSpinner />
       ) : (
         <Card>
-          <CardHeader title={title} />
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
+          <CardHeader
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between', // Space between title and button
+              alignItems: 'center',
+              px: { xs: 2, md: 5 }, // Responsive padding
+              py: 2
+            }}
+            title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
+          />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              width: '96%',
+              m: { xs: 1, sm: 1.5, md: 3.5 },
+              gap: 2
+            }}
+          >
             {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
+            <Grid item xs={12} sm={6}>
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   padding: '0 8px',
-                  ml: 5,
                   height: '40px',
-                  width: '250px' // Set a fixed width for all status
+                  marginLeft: { xs: 1.5, sm: 2.5, md: 3 },
+                  width: { xs: '98%', sm: '30%', md: '20%' }
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -513,22 +522,28 @@ const StockOut = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {/* {status === 'all' || status === 'completed' ? ( */}
-              <Box sx={{ float: 'right', mt: 1 }}>
-                <FormControlLabel
-                  control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
-                  label='Out Of Stock'
-                  labelPlacement='end'
-                />
-              </Box>
-              {/* ) : null} */}
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              sx={{
+                textAlign: { xs: 'left', sm: 'right' },
+                ml: { xs: 3, sm: 6 },
+
+                mt: { sm: '-40px', md: '-40px' }
+              }}
+            >
+              <FormControlLabel
+                control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
+                label='Out Of Stock'
+                labelPlacement='end'
+              />
             </Grid>
           </Box>
 
           <Grid
             sx={{
-              mx: 4
+              mx: { xs: 2, sm: 3, md: 5.5 }
             }}
           >
             <CommonTable

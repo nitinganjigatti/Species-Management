@@ -61,6 +61,7 @@ import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
 import CloseIcon from '@mui/icons-material/Close'
 import RenderUtility from 'src/utility/render'
 import { useTheme } from '@emotion/react'
+import { width } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -958,7 +959,6 @@ const IndividualRequest = () => {
 
   const fulfillColumns = [
     {
-      flex: 0.05,
       Width: 40,
       field: 'sl_no',
       headerName: 'SL',
@@ -970,8 +970,8 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.5,
-      Width: 40,
+      flex: 1,
+      minWidth: 200,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -996,8 +996,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
@@ -1008,8 +1007,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -1021,8 +1019,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'fulfilledDate',
       headerName: 'Packed Date',
       renderCell: params => (
@@ -1033,8 +1030,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'dispatch_qty',
       headerName: 'Packed QTY',
       type: 'number',
@@ -1046,7 +1042,6 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
       minWidth: 20,
       headerName: 'Action',
       renderCell: params => (
@@ -1067,8 +1062,7 @@ const IndividualRequest = () => {
 
   const shippedColumns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
@@ -1078,8 +1072,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 200,
       field: 'shipment_id',
       headerName: 'Shipment Id',
       renderCell: (params, rowId) => (
@@ -1092,8 +1085,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'shipment_date',
       headerName: 'Date',
       renderCell: params => (
@@ -1103,8 +1095,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
       renderCell: params => (
@@ -1114,8 +1105,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'person_shipping',
       headerName: 'Driver Name',
       renderCell: params => (
@@ -1125,8 +1115,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'phone_number',
       headerName: 'Driver Number',
       renderCell: params => (
@@ -1136,8 +1125,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
@@ -1172,8 +1160,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      width: 200,
       field: 'created_by_user_name',
       headerName: 'Shipped by ',
       renderCell: params => (
@@ -1645,7 +1632,7 @@ const IndividualRequest = () => {
                               mx: 2
                             }}
                           >
-                            ₹{requestItems?.requested_amount}
+                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
                           </Box>
                         </Typography>
 
@@ -1738,7 +1725,7 @@ const IndividualRequest = () => {
                               mx: 2
                             }}
                           >
-                            ₹{requestItems?.shipped_amount}
+                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
                           </Box>
                         </Typography>
                       </Grid>
@@ -1784,7 +1771,7 @@ const IndividualRequest = () => {
                                   lineHeight: '16.94px',
                                   color: 'customColors.OnSurfaceVariant',
 
-                                  ...RenderUtility?.getEllipsisStyleForText(100)
+                                  ...RenderUtility?.getEllipsisStyleForText(200)
                                 }}
                               >
                                 {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
@@ -2398,7 +2385,7 @@ const IndividualRequest = () => {
                                   {ship?.quantity}
                                 </Box>
                               </Typography>
-                              <Typography variant='body1'>
+                              {/* <Typography variant='body1'>
                                 <Box
                                   component='span'
                                   sx={{
@@ -2419,7 +2406,7 @@ const IndividualRequest = () => {
                                 >
                                   ₹{requestItems?.shipped_amount || '0'}
                                 </Box>
-                              </Typography>
+                              </Typography> */}
                             </Box>
 
                             <Paper

@@ -517,6 +517,39 @@ const AddRequestForm = () => {
     }, 500),
     []
   )
+
+  const getUpdatedMedicineData = async searchText => {
+    try {
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20,
+        active: true
+      }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items.length === 1) {
+        let updatedData = searchResults?.data?.list_items?.map(item => ({
+          value: item.id,
+          name: item.name,
+          package: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+          label: `${item.name} (${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}) `,
+          manufacture: item.manufacturer_name,
+          control_substance: item.controlled_substance === '1' ? true : false,
+          status: item?.active === '0' ? 0 : 1,
+
+          prescription_required:
+            item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
+          unit_price: item?.unit_price ? item?.unit_price : 0,
+          genericName: item?.generic_name
+        }))
+
+        return updatedData
+      }
+    } catch (e) {
+      console.log('error', e)
+    }
+  }
   useEffect(() => {
     getStoresLists()
     fetchMedicineData('')
@@ -564,12 +597,15 @@ const AddRequestForm = () => {
   }
 
   // ****** edit section //////
-  const editTableData = itemId => {
+  const editTableData = async (itemId, operation) => {
     if (id != undefined && action === 'edit') {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
-
+      let result
+      if (operation === 'update') {
+        result = await getUpdatedMedicineData(getItems[0]?.medicine_name)
+      }
       setNestedRowMedicine({
         ...nestedRowMedicine,
         request_item_medicine_id: getItems[0].request_item_medicine_id,
@@ -584,7 +620,7 @@ const AddRequestForm = () => {
         id: getItems[0].id,
         package: getItems[0].package,
         manufacture: getItems[0].manufacture,
-        unit_price: getItems[0]?.unit_price,
+        unit_price: operation === 'update' ? result[0]?.unit_price : getItems[0]?.unit_price,
         genericName: getItems[0].genericName,
         notes: getItems[0].notes
       })
@@ -1912,9 +1948,9 @@ const AddRequestForm = () => {
                 >
                   Total Value:
                 </Typography>
-                <Typography
-                  sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}
-                >{`₹ ${totalValue.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}`}</Typography>
+                <Typography sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '14px', fontWeight: 400 }}>
+                  {Utility?.formatAmountToReadableDigit(totalValue)}
+                </Typography>
               </Box>
             </Box>
           </Grid>
@@ -2183,9 +2219,13 @@ const AddRequestForm = () => {
                             sx={{ mr: 0.5 }}
                             aria-label='Edit'
                             onClick={() => {
-                              setMedicineItemId(el.request_item_medicine_id)
-
-                              editTableData(el.request_item_medicine_id)
+                              setMedicineItemId(el?.request_item_medicine_id)
+                              if (el.id) {
+                                editTableData(el?.request_item_medicine_id, 'update')
+                              } else {
+                                editTableData(el?.request_item_medicine_id, 'new')
+                              }
+                              // editTableData(el?.request_item_medicine_id)
                               showDialog()
                             }}
                           >

@@ -164,9 +164,9 @@ export const AddItemsForm = ({
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
-        item.request_item_medicine_id === request_item.value &&
-        item.request_item_batch_no === request_item_batch_no.value &&
-        nestedMedicine?.uuid !== item.uuid
+        item?.request_item_medicine_id === request_item?.value &&
+        item?.request_item_batch_no === request_item_batch_no?.value &&
+        nestedMedicine?.uuid !== item?.uuid
     )
 
     if (isMedicineAlreadyExists) {
@@ -757,6 +757,7 @@ export const AddItemsForm = ({
               )}
             </FormControl>
           </Grid>
+          {console.log('stock_type', getValues('stock_type'))}
           {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>

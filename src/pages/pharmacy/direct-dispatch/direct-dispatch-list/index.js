@@ -26,13 +26,16 @@ import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
+import { useMediaQuery } from '@mui/material'
 
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const DirectDispatchList = () => {
   const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Check for small screens
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -251,6 +254,11 @@ const DirectDispatchList = () => {
                 pathname: '/pharmacy/direct-dispatch/add-direct-dispatch/'
               })
             }
+            sx={{
+              mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+              alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+            }}
+            fullWidth='fullWidth'
           />
         )}
     </div>
@@ -267,8 +275,7 @@ const DirectDispatchList = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      width: 80,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -279,8 +286,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.25,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: params => (
@@ -318,8 +324,7 @@ const DirectDispatchList = () => {
     //   )
     // },
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 160,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
@@ -332,13 +337,12 @@ const DirectDispatchList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+          {params?.row?.last_shipping_date ? Utility.formatDisplayDate(params?.row?.last_shipping_date) : 'NA'}
         </Typography>
       )
     },
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 200,
       field: 'to_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -357,8 +361,7 @@ const DirectDispatchList = () => {
     },
 
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 120,
       field: 'total_qty',
       headerName: 'Total Qty',
       type: 'number',
@@ -380,8 +383,7 @@ const DirectDispatchList = () => {
     },
     ,
     {
-      flex: 0.25,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
@@ -424,8 +426,7 @@ const DirectDispatchList = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (
@@ -458,14 +459,6 @@ const DirectDispatchList = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Direct Dispatch List
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
@@ -474,67 +467,85 @@ const DirectDispatchList = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
+              <CardHeader
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'flex-start',
+                  alignItems: 'flex-start',
+                  gap: { xs: 2, sm: 0 },
+                  '& .MuiCardHeader-action': {
+                    width: { xs: '100% ', sm: 'auto' }
+                  },
+                  mx: { xs: -2, sm: 1 }
+                }}
+                title={RenderUtility.pageTitle('Direct Dispatch List')}
+                action={headerAction}
+              />
 
-                <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                  {status === 'all' || status === 'completed' ? (
-                    <Box sx={{ float: 'right', mt: 1 }}>
+              {/* Search Field and Filters */}
+              <Box
+                sx={{
+                  mx: { xs: 2, sm: 4, md: 5 }
+                }}
+              >
+                <Grid container spacing={3}>
+                  {/* Search Field */}
+                  <Grid item xs={12} sm={6} spacing={3} gap={3}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        height: '40px',
+                        width: { xs: '100%', sm: '270px' }
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+
+                  {/* Switch Button */}
+                  {(status === 'all' || status === 'completed') && (
+                    <Grid
+                      item
+                      xs={12}
+                      sm={6}
+                      sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+                    >
                       <FormControlLabel
                         control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                         label='Completed'
                         labelPlacement='end'
+                        sx={{ marginRight: 1 }}
                       />
-                    </Box>
-                  ) : null}
+                    </Grid>
+                  )}
                 </Grid>
               </Box>
 
-              {/* {status === 'all' || status === 'completed' ? (
-                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null} */}
+              {/* Common Table */}
               <Grid
                 sx={{
-                  mx: 4
+                  mx: { xs: 2, sm: 4, md: 5 }
                 }}
               >
                 <CommonTable
@@ -557,46 +568,40 @@ const DirectDispatchList = () => {
   }
 
   return (
-    <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'central' ? (
-              <Tab
-                sx={{ ml: 3 }}
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
-
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange} aria-label='simple tabs example'>
+          {selectedPharmacy?.type === 'central' && (
             <Tab
               sx={{ ml: 3 }}
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
+          )}
+          <Tab
+            sx={{ ml: 3 }}
+            value='shipped'
+            label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+          />
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
+          <Tab
+            value={status === 'all' ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
 
-          <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='shipped'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
-          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
-          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
-        </TabContext>
-      </Grid>
-    </>
+        <TabPanel value='pending'>{tableData()}</TabPanel>
+        <TabPanel value='shipped'>{tableData()}</TabPanel>
+        <TabPanel value='disputed'>{tableData()}</TabPanel>
+        <TabPanel value='cancel'>{tableData()}</TabPanel>
+        {status === 'all' && <TabPanel value='all'>{tableData()}</TabPanel>}
+        {status === 'completed' && <TabPanel value='completed'>{tableData()}</TabPanel>}
+      </TabContext>
+    </Grid>
   )
 }
 

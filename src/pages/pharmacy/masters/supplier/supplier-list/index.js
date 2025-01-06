@@ -24,6 +24,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@emotion/react'
+import RenderUtility from 'src/utility/render'
 
 const Supplier = () => {
   const theme = useTheme()
@@ -119,8 +120,7 @@ const Supplier = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      minWidth: 100,
       alignItems: 'right',
       field: 'uid',
       headerName: 'SL ',
@@ -131,8 +131,7 @@ const Supplier = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'company_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
@@ -151,8 +150,7 @@ const Supplier = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'mobile',
       headerName: 'MOBILE NUMBER',
       renderCell: params => (
@@ -170,8 +168,7 @@ const Supplier = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'name',
       headerName: 'CONTACT PERSON',
       renderCell: params => (
@@ -189,8 +186,7 @@ const Supplier = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'state_name',
       headerName: 'STATE',
       renderCell: params => (
@@ -220,8 +216,7 @@ const Supplier = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -248,16 +243,16 @@ const Supplier = () => {
     console.log('Handle Header Action')
   }
 
-  const title = (
-    <>
-      {supplierList.length > 0 ? (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Supplier List</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-          Supplier list is empty add supplier'
-        </Typography>
+  const headerAction = (
+    <div>
+      {/* {selectedPharmacy.type === 'central' &&
+          (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Supplier' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
       )}
-    </>
+    </div>
   )
 
   return (
@@ -268,34 +263,40 @@ const Supplier = () => {
             <FallbackSpinner />
           ) : (
             <Card>
-              <Box
+              <CardHeader
                 sx={{
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px' // Add padding if needed for spacing
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'flex-start', // Align content to the left
+                  alignItems: 'flex-start', // Align items to the top left
+                  gap: { xs: 3, sm: 0 },
+                  '& .MuiCardHeader-action': {
+                    width: { xs: '100% ', sm: 'auto' }
+                  }
+                }}
+                title={RenderUtility.pageTitle('Supplier List')}
+                action={headerAction}
+              />{' '}
+              <Grid
+                item
+                sx={{
+                  mx: { xs: 4 },
+                  ml: { md: 4 }
                 }}
               >
-                <CardHeader title={title} sx={{ padding: 0 }} /> {/* Remove padding from CardHeader if needed */}
-                <AddButtonContained
-                  title='Add Supplier'
-                  action={() => {
-                    Router.push('/pharmacy/masters/supplier/add-supplier')
-                  }}
-                />
-              </Box>
-
-              <Grid item xs={8}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    ml: 5,
                     height: '40px',
-                    width: '250px' // Set a fixed width for all status
+                    width: {
+                      xs: '100%',
+                      sm: '250px'
+                    }
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -303,7 +304,6 @@ const Supplier = () => {
                     variant='outlined'
                     placeholder='Search...'
                     onChange={e => handleSearch(e.target.value)}
-                    value={searchText}
                     fullWidth
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -317,7 +317,6 @@ const Supplier = () => {
                   />
                 </Box>
               </Grid>
-
               <Grid sx={{ mx: 4 }}>
                 <CommonTable
                   total={total}

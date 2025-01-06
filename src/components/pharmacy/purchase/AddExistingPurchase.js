@@ -489,6 +489,12 @@ const AddExistingPurchase = () => {
           purchase_expiry_date: response.data.expiry_date
         }))
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: ''
+        }))
+        setProductExpiryDate('')
       }
     } catch (error) {
       console.log('supplier error', error)
@@ -740,38 +746,41 @@ const AddExistingPurchase = () => {
 
   return (
     <Card>
-      <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                router.back()
-                // Router.push('/pharmacy/purchase/purchase-list/')
-              }}
-              icon='ep:back'
-            />
-          }
-          title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
-        />
-        {authData?.userData?.roles?.settings?.add_pharmacy && (
-          <AddButton
-            styles={{ marginRight: 20 }}
-            title='Add Supplier'
-            action={() => {
-              setSupplierDialog(true)
-            }}
+      <Grid container spacing={6}>
+        <Grid
+          item
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mr: 5
+          }}
+        >
+          <CardHeader
+            avatar={
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  router.back()
+                  // Router.push('/pharmacy/purchase/purchase-list/')
+                }}
+                icon='ep:back'
+              />
+            }
+            title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
           />
-        )}
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              styles={{ marginRight: 20 }}
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
+        </Grid>
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

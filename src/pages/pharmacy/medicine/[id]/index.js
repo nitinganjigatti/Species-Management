@@ -253,9 +253,13 @@ const ProductDetailsList = () => {
     }
   }
 
+  // const filteredListAllVariant = listAllVariant?.filter(
+  //   variant => !variantProductList.some(item => item.variant_id === variant.id)
+  // )
   const filteredListAllVariant = listAllVariant?.filter(
-    variant => !variantProductList.some(item => item.variant_id === variant.id)
+    variant => variant.active !== '0' && !variantProductList.some(item => item.variant_id === variant.id)
   )
+
   console.log(listAllVariant, 'listAllVariant')
   console.log(variantProductList, 'variantProductList')
   console.log(filteredListAllVariant, 'filteredListAllVariant')
