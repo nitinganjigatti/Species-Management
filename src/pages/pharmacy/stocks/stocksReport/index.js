@@ -68,6 +68,7 @@ import { useRouter } from 'next/router'
 import { minWidth, width } from '@mui/system'
 import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 import { set } from 'nprogress'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -742,7 +743,9 @@ const ListOfStocks = () => {
     return (
       <>
         {/* <Grid> */}
-        <FormControl sx={{ width: 200, ml: 2 }}>
+        <FormControl
+          sx={{ width: { xs: '98%', sm: 200, md: 200 }, ml: { xs: 1, sm: 2, md: 1 }, mt: { xs: 3, sm: 0, md: 0 } }}
+        >
           <InputLabel id='controlled-select-label'>Stores</InputLabel>
           <Select
             onChange={e => {
@@ -943,18 +946,6 @@ const ListOfStocks = () => {
     []
   )
 
-  const title = (
-    <>
-      {stockReport.length > 0 || stockReportBatch.length > 0 ? (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Stock Report</Typography>
-      ) : (
-        <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-          Stock Report is empty
-        </Typography>
-      )}
-    </>
-  )
-
   const handleBatchSortModel = newModel => {
     if (newModel.length) {
       setBatchSort(newModel[0].sort)
@@ -1133,7 +1124,14 @@ const ListOfStocks = () => {
                 /> */}
                 <Card>
                   <CardHeader
-                    title={title}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between', // Space between title and button
+                      alignItems: 'center',
+                      px: { xs: 2, md: 5 }, // Responsive padding
+                      py: 2
+                    }}
+                    title={RenderUtility.pageTitle('Stock Report')}
 
                     // action={headerAction}
                   />
@@ -1149,20 +1147,29 @@ const ListOfStocks = () => {
 
                   {/* </Grid> */}
 
-                  <Box display='flex' justifyContent='space-between' alignItems='center'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: { xs: 'center', md: 'space-between' },
+                      padding: '8px',
+                      gap: { xs: 2, md: 3 }
+                    }}
+                  >
                     {/* Left Box (Search Field) */}
                     <Grid item xs={8}>
                       <Box
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          // border: '1px solid #C3CEC7',
                           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           padding: '0 8px',
-                          ml: 5,
+                          ml: { xs: 1, sm: 1.5, md: 4.5 },
+
                           height: '40px',
-                          width: '250px' // Set a fixed width for all status
+                          width: { xs: '98%', md: '290px' },
+                          marginBottom: { xs: 2, md: 0 }
                         }}
                       >
                         <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -1189,9 +1196,15 @@ const ListOfStocks = () => {
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex' }}>
+                    <Grid sx={{ float: { sm: 'right', md: 'right' }, display: { sm: 'flex', md: 'flex' } }}>
                       {/* {changeSwitch ? ( */}
-                      <Box sx={{ ml: 'auto', float: 'right', mr: 2 }}>
+                      <Box
+                        sx={{
+                          ml: { xs: 1, sm: 1.5, md: 'auto' },
+                          float: { sm: 'right', md: 'right', xs: 'left' },
+                          width: { xs: '98%', sm: 'auto' }
+                        }}
+                      >
                         <ExcelExportButton
                           disabled={changeSwitch ? (batchTotal === 0 ? true : false) : total === 0 ? true : false}
                           action={() => {
@@ -1199,6 +1212,7 @@ const ListOfStocks = () => {
                           }}
                           loader={excelLoader}
                           title='Download'
+                          fullWidth='fullWidth'
                         />
                       </Box>
                       {/* ) : null} */}
@@ -1208,7 +1222,11 @@ const ListOfStocks = () => {
 
                         <FormControlLabel
                           control={
-                            <Switch sx={{ mr: 5, mt: 1 }} checked={changeSwitch} onChange={handleSwitchChange} />
+                            <Switch
+                              sx={{ mr: { sm: 5 }, mt: { xs: 1, sm: 1 } }}
+                              checked={changeSwitch}
+                              onChange={handleSwitchChange}
+                            />
                           }
                           labelPlacement='start'
                           label='Batch Wise '
@@ -1220,7 +1238,7 @@ const ListOfStocks = () => {
                   {changeSwitch ? (
                     <Grid
                       sx={{
-                        mx: 4
+                        mx: { xs: 2, sm: 3.5, md: 5.8 }
                       }}
                     >
                       <CommonTable
@@ -1256,7 +1274,7 @@ const ListOfStocks = () => {
                   ) : (
                     <Grid
                       sx={{
-                        mx: 4
+                        mx: { xs: 2, sm: 3.5, md: 5.5 }
                       }}
                     >
                       <CommonTable

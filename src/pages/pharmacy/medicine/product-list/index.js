@@ -26,6 +26,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -260,7 +261,7 @@ const ListOfMedicine = () => {
 
   const [total, setTotal] = useState(0)
 
-  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'name')
@@ -400,6 +401,7 @@ const ListOfMedicine = () => {
             action={() => {
               router.push('/pharmacy/medicine/add-product')
             }}
+            fullWidth={'fullWidth'}
           />
         )}
     </div>
@@ -412,13 +414,144 @@ const ListOfMedicine = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Product List</Typography>
-    </>
-  )
-
   return (
+    // <>
+    //   {selectedPharmacy?.type === 'central' ? (
+    //     <>
+    //       {loader ? (
+    //         <FallbackSpinner />
+    //       ) : (
+    //         <>
+    //           <CommonDialogBox
+    //             title={'Configure Medicine'}
+    //             dialogBoxStatus={show}
+    //             formComponent={<MedicineConfigure configureMedId={configureMedId} />}
+    //             close={closeDialog}
+    //             show={showDialog}
+    //           />
+    //           <Card>
+    //             <CardHeader title={title} action={headerAction} />
+    //             <Box display='flex' justifyContent='space-between' alignItems='center'>
+    //               {/* Left Box (Search Field) */}
+    //               <Grid item xs={8}>
+    //                 <Box
+    //                   sx={{
+    //                     display: 'flex',
+    //                     alignItems: 'center',
+    //                     border: '1px solid #C3CEC7',
+    //                     borderRadius: '8px',
+    //                     padding: '0 8px',
+    //                     ml: 5,
+    //                     height: '40px',
+    //                     width: '250px' // Set a fixed width for all status
+    //                   }}
+    //                 >
+    //                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+    //                   <TextField
+    //                     variant='outlined'
+    //                     value={searchValue}
+    //                     placeholder='Search...'
+    //                     onChange={e => handleSearch(e.target.value)}
+    //                     fullWidth
+    //                     sx={{
+    //                       '& .MuiOutlinedInput-root': {
+    //                         border: 'none',
+    //                         padding: '0',
+    //                         '& fieldset': {
+    //                           border: 'none'
+    //                         }
+    //                       }
+    //                     }}
+    //                   />
+    //                 </Box>
+    //               </Grid>
+    //               <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex', mr: 5, mt: 3 }}>
+    //                 <FormControl fullWidth size='small'>
+    //                   <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
+    //                   <Select
+    //                     size='small'
+    //                     value={statusFilter}
+    //                     label='Filter by Status'
+    //                     onChange={e => {
+    //                       handleStatusFilterChange(e.target.value)
+    //                     }}
+    //                   >
+    //                     <MenuItem value='all'>All</MenuItem>
+    //                     <MenuItem value={true}>Active</MenuItem>
+    //                     <MenuItem value={false}>In-Active </MenuItem>
+    //                   </Select>
+    //                 </FormControl>
+    //               </Grid>
+    //             </Box>
+
+    //             <Grid
+    //               sx={{
+    //                 mx: 4
+    //               }}
+    //             >
+    //               <CommonTable
+    //                 onRowClick={handleRowClick}
+    //                 // eslint-disable-next-line lines-around-comment
+    //                 // onRowClick={handleEdit}
+    //                 indexedRows={indexedRows}
+    //                 total={total}
+    //                 columns={columns}
+    //                 paginationModel={paginationModel}
+    //                 handleSortModel={handleSortModel}
+    //                 setPaginationModel={setPaginationModel}
+    //                 loading={loading}
+    //                 searchValue={searchValue}
+    //               />
+    //             </Grid>
+
+    //             {/* <DataGrid
+    //               sx={{ cursor: 'pointer' }}
+    //               columnVisibilityModel={{
+    //                 id: false
+    //               }}
+    //               autoHeight
+    //               pagination
+    //               hideFooterSelectedRowCount
+    //               disableColumnSelector={true}
+    //               rows={indexedRows === undefined ? [] : indexedRows}
+    //               rowCount={total}
+    //               columns={columns}
+    //               sortingMode='server'
+    //               paginationMode='server'
+    //               pageSizeOptions={[7, 10, 25, 50]}
+    //               paginationModel={paginationModel}
+    //               onSortModelChange={handleSortModel}
+    //               slots={{ toolbar: ServerSideToolbar }}
+    //               onPaginationModelChange={setPaginationModel}
+    //               loading={loading}
+    //               disableColumnMenu
+    //               slotProps={{
+    //                 baseButton: {
+    //                   variant: 'outlined'
+    //                 },
+    //                 toolbar: {
+    //                   value: searchValue,
+    //                   clearSearch: () => handleSearch(''),
+
+    //                   onChange: event => {
+    //                     setSearchValue(event.target.value)
+
+    //                     return handleSearch(event.target.value)
+    //                   }
+    //                 }
+    //               }}
+    //               onRowClick={handleEdit}
+    //             /> */}
+    //           </Card>
+    //         </>
+    //       )}
+    //     </>
+    //   ) : (
+    //     <>
+    //       <Error404></Error404>
+    //     </>
+    //   )}
+    // </>
     <>
       {selectedPharmacy?.type === 'central' ? (
         <>
@@ -434,21 +567,43 @@ const ListOfMedicine = () => {
                 show={showDialog}
               />
               <Card>
-                <CardHeader title={title} action={headerAction} />
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                <CardHeader
+                  title={RenderUtility.pageTitle('Product List')}
+                  action={headerAction}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    },
+                    mx: { xs: -1, sm: 1 },
+                    mt: 1
+                  }}
+                />
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  // alignItems="center"
+                  flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
+                  gap={6} // Gap between items on smaller screens
+                  sx={{ mx: { xs: 3, md: 5 } }}
+                  mt={3}
+                >
                   {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
+                  <Grid item xs={12} sm={8} md={7}>
                     <Box
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
+
                         // border: '1px solid #C3CEC7',
                         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '8px',
                         padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
+                        height: '40px'
                       }}
                     >
                       <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -470,34 +625,39 @@ const ListOfMedicine = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex', mr: 5, mt: 3 }}>
+
+                  {/* Right Box (Filter by Status) */}
+                  <Grid
+                    item
+                    xs={12}
+                    sm={4}
+                    md={4}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center'
+                    }}
+                  >
                     <FormControl fullWidth size='small'>
-                      <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
+                      <InputLabel id='status-filter-label'>Filter by Status</InputLabel>
                       <Select
                         size='small'
                         value={statusFilter}
                         label='Filter by Status'
-                        onChange={e => {
-                          handleStatusFilterChange(e.target.value)
-                        }}
+                        onChange={e => handleStatusFilterChange(e.target.value)}
                       >
                         <MenuItem value='all'>All</MenuItem>
                         <MenuItem value={true}>Active</MenuItem>
-                        <MenuItem value={false}>In-Active </MenuItem>
+                        <MenuItem value={false}>In-Active</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
                 </Box>
 
-                <Grid
-                  sx={{
-                    mx: 4
-                  }}
-                >
+                {/* Table Section */}
+                <Grid sx={{ mx: { xs: 3, md: 5 } }}>
                   <CommonTable
                     onRowClick={handleRowClick}
-                    // eslint-disable-next-line lines-around-comment
-                    // onRowClick={handleEdit}
                     indexedRows={indexedRows}
                     total={total}
                     columns={columns}
@@ -508,54 +668,11 @@ const ListOfMedicine = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-
-                {/* <DataGrid
-                  sx={{ cursor: 'pointer' }}
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-
-                      onChange: event => {
-                        setSearchValue(event.target.value)
-
-                        return handleSearch(event.target.value)
-                      }
-                    }
-                  }}
-                  onRowClick={handleEdit}
-                /> */}
               </Card>
             </>
           )}
         </>
-      ) : (
-        <>
-          <Error404></Error404>
-        </>
-      )}
+      ) : null}
     </>
   )
 }

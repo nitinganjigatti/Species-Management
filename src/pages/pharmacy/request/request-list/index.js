@@ -26,13 +26,14 @@ import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, InputAdornment } from '@mui/material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import { textAlign } from '@mui/system'
+import { margin, textAlign } from '@mui/system'
+import RenderUtility from 'src/utility/render'
 
 const RequestList = () => {
   const theme = useTheme()
@@ -296,6 +297,11 @@ const RequestList = () => {
                   pathname: '/pharmacy/request/add-request/'
                 })
               }
+
+              // sx={{
+              //   mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+              //   alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+              // }}
             />
           </>
         )}
@@ -387,41 +393,43 @@ const RequestList = () => {
 
   const columns = [
     {
-      flex: 0.19,
-      Width: 40,
+      width: 80,
       field: 'sl_no',
       headerName: 'S.NO',
-
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {/* {params.row.sl_no} */}
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box sx={{ display: 'flex' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
 
     {
-      flex: 0.1,
-      Width: 20,
+      width: 4,
       field: 'priority',
       headerName: '',
-      type: 'number',
       headerAlign: 'left',
-      textAlign: 'left',
+      textAlign: 'center',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', mt: 1.5 }}>
-          {params.row.priority !== null ? (
-            <Box sx={{ color: 'error.main' }}>
-              <Icon icon={'mdi:dot'} style={{ color: 'primary.error', fontSize: '50px' }}></Icon>
-            </Box>
-          ) : null}
-        </Typography>
+        <Box>
+          {params.row.priority !== null && (
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '100%',
+                background: theme.palette.customColors.Error,
+                display: 'inline-block'
+              }}
+            ></span>
+          )}
+        </Box>
       )
     },
 
     {
-      flex: 0.3,
-      minWidth: 30,
+      width: 120,
       field: 'request_number',
       headerName: 'REQUEST ID',
       hide: true,
@@ -442,8 +450,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.35,
-      minWidth: 20,
+      minWidth: 200,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -461,8 +468,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.5 / 2,
-      minWidth: 40,
+      minWidth: 100,
       field: 'request_date',
       headerName: 'Days',
       renderCell: params => (
@@ -475,7 +481,7 @@ const RequestList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.daysFromToday(params.row.request_date)}
+          {Utility.daysFromToday(params.row.created_at)}
         </Typography>
       )
     },
@@ -521,8 +527,7 @@ const RequestList = () => {
     // },
 
     {
-      flex: 0.35,
-      minWidth: 20,
+      minWidth: 120,
       field: 'product_count',
       headerName: 'TOTAL ITEMS',
       type: 'number',
@@ -544,8 +549,7 @@ const RequestList = () => {
     },
 
     {
-      flex: 0.35,
-      minWidth: 20,
+      minWidth: 160,
       field: 'pending_count',
       headerName: 'PENDING ITEMS',
       headerAlign: 'left',
@@ -581,8 +585,7 @@ const RequestList = () => {
     //   )
     // },
     {
-      flex: 0.3,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -603,12 +606,10 @@ const RequestList = () => {
                 params.row.request_status === 'Broken' ||
                 params.row.request_status === 'Wrong Count - Accepted' ? (
                   <Box sx={{ color: 'success.main', mr: 2 }}>
-                    {/* added for partial shipping */}
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.success' }}></Icon>
                   </Box>
                 ) : (
                   <Box sx={{ color: 'warning.main', mr: 2 }}>
-                    {/* added for partial shipping */}
                     <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
                   </Box>
                 )}
@@ -629,7 +630,7 @@ const RequestList = () => {
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
-            {/*  When the items are shipped - For local pharmacy */}
+
             {params?.row?.delivery_status === 'Not Delivered' &&
               (params?.row?.request_status === '' || !params?.row?.request_status) &&
               params?.row?.shipping_status === 'Fully Shipped' && (
@@ -643,8 +644,7 @@ const RequestList = () => {
       )
     },
     {
-      flex: 0.5,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Requested by ',
       renderCell: params => (
@@ -655,8 +655,7 @@ const RequestList = () => {
               {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
             </Typography>
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-              {Utility.formatDisplayDate(params.row.request_date)}
+              {Utility.formatDisplayDate(params.row.created_at)}
             </Typography>
           </Box>
         </Box>
@@ -677,12 +676,6 @@ const RequestList = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Request List</Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
@@ -690,61 +683,96 @@ const RequestList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title={title} action={headerAction} />
+            <CardHeader
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between', // Space between title and button
+                alignItems: 'center'
 
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
-              {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px' // Set a fixed width for all status
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
+                // px: { xs: 2, md: 5 }, // Responsive padding
+                // py: 2
+              }}
+              title={RenderUtility.pageTitle('Request List')}
+              action={headerAction}
+            />
 
-              {/* Group of two boxes on the right */}
-              <Grid container sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 4 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                alignItems: 'center',
+
+                // padding: '2px',
+                margin:
+                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
+                gap: { xs: 2, md: 3 }
+              }}
+            >
+              {/* <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px',
+
+                  // ml: { sm: 4.5},
+                  width: { xs: '100%', md: '290px' },
+                  marginBottom: { xs: 2, md: 0 }
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  borderRadius: '8px',
+                  width: { xs: '100%', md: '290px' }
+                }}
+              />
+              {/* </Box> */}
+
+              {/* Filters */}
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  display: 'flex',
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                  justifyContent: { xs: 'center', md: 'flex-end' },
+                  alignItems: 'center'
+
+                  // width: '100%'
+                }}
+              >
+                {/* Filter by Stores */}
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
+                    xs={12}
                     sx={{
-                      width: '245px',
-                      height: '50px', // Increased height
-                      borderRadius: '8px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px'
+                      maxWidth: { xs: '100%', md: '250px' },
+                      width: '100%',
+                      height: '48px',
+                      mt: { xs: 2, md: 0 }
                     }}
                   >
                     <FormControl fullWidth size='small'>
                       <InputLabel>Filter by Stores</InputLabel>
                       <Select
-                        fullWidth
-                        size='small'
                         value={filterByStoreId}
                         label='Filter by Stores'
                         onChange={e => {
@@ -755,32 +783,31 @@ const RequestList = () => {
                         }}
                       >
                         <MenuItem value='all'>All</MenuItem>
-                        {stores.length > 0 &&
-                          stores.map(store => (
-                            <MenuItem key={store?.id} value={store?.id}>
-                              {store?.name}
-                            </MenuItem>
-                          ))}
+                        {stores.map(store => (
+                          <MenuItem key={store?.id} value={store?.id}>
+                            {store?.name}
+                          </MenuItem>
+                        ))}
                       </Select>
                     </FormControl>
                   </Grid>
                 )}
 
+                {/* Filter by Days */}
                 <Grid
                   item
+                  xs={12}
+                  md='auto'
                   sx={{
-                    width: '245px',
-                    height: '50px', // Increased height
-                    borderRadius: '8px',
-                    paddingLeft: '12px',
-                    paddingRight: '12px',
-                    mr: 1
+                    maxWidth: { xs: '100%', md: '250px' },
+                    mt: { xs: 2, md: 0 },
+                    height: '48px',
+                    width: '100%'
                   }}
                 >
                   <FormControl fullWidth size='small'>
-                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
+                    <InputLabel>Filter by days</InputLabel>
                     <Select
-                      size='small'
                       value={selectDays}
                       label='Filter by days'
                       onChange={e => {
@@ -796,23 +823,36 @@ const RequestList = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-              </Grid>
-              <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                {status === 'all' || status === 'completed' ? (
-                  <Box sx={{ float: 'right', mt: 1 }}>
+
+                {/* Completed Switch */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid
+                    item
+                    xs={12}
+                    md='auto'
+                    sx={{
+                      height: '48px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      width: { xs: '100%', md: 'auto' },
+                      ml: { xs: 2, sm: 3 }
+                    }}
+                  >
                     <FormControlLabel
                       control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                       label='Completed'
                       labelPlacement='end'
+                      sx={{ mr: '0px' }}
                     />
-                  </Box>
-                ) : null}
+                  </Grid>
+                )}
               </Grid>
             </Box>
 
             <Grid
               sx={{
-                mx: 4
+                margin: '0px 1.375rem 0px 1.375rem'
               }}
             >
               <CommonTable

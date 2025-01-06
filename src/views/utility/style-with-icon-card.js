@@ -10,12 +10,12 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          bgcolor: bgColor,
+          bgcolor: bgColor ? bgColor : null,
           borderRadius: '8px',
           p: 4,
           cursor: 'pointer'
         }}
-        onClick={onClick}
+        onClick={onClick ? onClick : null}
       >
         <Box
           sx={{
@@ -29,7 +29,7 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
             justifyContent: 'center'
           }}
         >
-          <Avatar variant='square' alt='' src={icon} sx={{ width: '34px', height: '34px' }} />
+          <Avatar variant='square' alt='' src={icon ? icon : null} sx={{ width: '34px', height: '34px' }} />
         </Box>
         <Box flex='1' ml={2}>
           <Typography
@@ -40,13 +40,13 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
               fontSize: '20px'
             }}
           >
-            {value}
+            {value ? value : null}
           </Typography>
           <Typography
             variant='body2'
             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
           >
-            {description}
+            {description ? description : null}
           </Typography>
         </Box>
         {showIcon && (

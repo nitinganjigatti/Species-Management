@@ -35,6 +35,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfDrugs = () => {
   const theme = useTheme()
@@ -234,9 +235,11 @@ const ListOfDrugs = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButtonContained title='Add Drug class' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Drug class' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
   )
 
@@ -285,12 +288,6 @@ const ListOfDrugs = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Drug Class</Typography>
-    </>
-  )
-
   return (
     <>
       {/* {selectedPharmacy.type === 'central' ? ( */}
@@ -301,44 +298,63 @@ const ListOfDrugs = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title={title} action={headerAction} />
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                  {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
-                    <Box
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('Drug Class')}
+                  action={headerAction}
+                />
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      // border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
                           }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                </Box>
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
                 <Grid
                   sx={{
-                    mx: 4
+                    mx: { xs: 4 }
                   }}
                 >
                   <CommonTable

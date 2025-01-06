@@ -38,6 +38,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -81,8 +82,8 @@ export default function NewProductList() {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      // flex: 0.2,
+      minWidth: 150,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -92,8 +93,8 @@ export default function NewProductList() {
       )
     },
     {
-      flex: 0.3,
-      Width: 10,
+      // flex: 0.3,
+      minWidth: 100,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
@@ -113,8 +114,8 @@ export default function NewProductList() {
       )
     },
     selectedPharmacy?.type === 'central' && {
-      flex: 0.2,
-      Width: 20,
+      // flex: 0.2,
+      minWidth: 40,
       field: 'from_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
@@ -135,7 +136,7 @@ export default function NewProductList() {
     },
     {
       flex: 0.3,
-      Width: 20,
+      minWidth: 40,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -159,7 +160,7 @@ export default function NewProductList() {
 
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 40,
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
@@ -178,7 +179,7 @@ export default function NewProductList() {
     },
     selectedPharmacy?.type === 'central' && {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 40,
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
@@ -197,7 +198,7 @@ export default function NewProductList() {
     },
     {
       flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
-      minWidth: 20,
+      minWidth: 40,
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
@@ -288,7 +289,6 @@ export default function NewProductList() {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column, status }) => {
-     
       try {
         setLoading(true)
 
@@ -335,6 +335,7 @@ export default function NewProductList() {
           <AddButtonContained
             title='Add Product'
             action={() => router.push('/pharmacy/new-product-request/request-product/')}
+            fullWidth='fullWidth'
           />
         )}
     </>
@@ -403,33 +404,58 @@ export default function NewProductList() {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        New Product Request List
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <>
         <Card sx={{ cursor: 'pointer' }}>
-          <CardHeader title={title} action={headerAction} />
+          <CardHeader
+            title={RenderUtility.pageTitle('New Product Request List')}
+            action={headerAction}
+            sx={{
+              display: 'flex',
+              justifyContent: { xs: 'flex-start', sm: 'space-between' },
+              alignItems: { xs: 'flex-start', sm: 'flex-start' },
+              flexDirection: { xs: 'column', sm: 'row' },
+              '& .MuiCardHeader-title': {
+                fontSize: { xs: '18px', sm: '20px', md: '24px' },
+                flexGrow: 1
+              },
+              gap: { xs: 3, sm: 0 },
+              '& .MuiCardHeader-action': {
+                width: { xs: '100% ', sm: 'auto' }
+              },
+              mx: { xs: -1, sm: 1 },
+              mt: 1
+            }}
+          />
 
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
+            gap={2} // Gap between items on smaller screens
+          >
             {/* Left Box (Search Field) */}
-            <Grid item xs={8}>
+            <Grid
+              item
+              xs={12}
+              sm={8}
+              md={6}
+              sx={{
+                mx: { xs: 3, md: 5 }
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  // border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
+
                   padding: '0 8px',
-                  ml: 5,
                   height: '40px',
-                  width: '250px' // Set a fixed width for all status
+                  width: { xs: '100%', sm: '240px' }
                 }}
               >
                 <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -451,22 +477,11 @@ export default function NewProductList() {
                 />
               </Box>
             </Grid>
-
-            {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-            </Grid> */}
           </Box>
+
           <Grid
             sx={{
-              mx: 4
+              mx: { xs: 3, md: 5 }
             }}
           >
             <CommonTable
@@ -489,13 +504,25 @@ export default function NewProductList() {
               <Grid container>
                 <CommonDialogBox
                   title={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
                       <div>Product Details - {productDetails?.request_number}</div>
                       {selectedPharmacy.type === 'local' &&
                         (selectedPharmacy.permission.key === 'allow_full_access' ||
                           selectedPharmacy.permission.key === 'ADD') &&
                         productDetails.status === 'Pending' && (
-                          <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                          <Grid
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'flex-end',
+                              justifyContent: 'flex-end'
+                            }}
+                          >
                             <IconButton
                               size='small'
                               sx={{ mr: 0.5 }}
@@ -548,7 +575,7 @@ export default function NewProductList() {
         <TabContext value={status}>
           <TabList onChange={handleChange}>
             <Tab
-              sx={{ ml: 3 }}
+              sx={{ ml: { xs: 1, sm: 3 } }} // Adjust margin for tabs
               value='Approved'
               label={<TabBadge label='Approved' totalCount={status === 'Approved' ? total : null} />}
             />

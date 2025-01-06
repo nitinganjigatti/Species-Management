@@ -26,6 +26,7 @@ import { uploadPurchaseFile } from 'src/lib/api/pharmacy/getPurchaseList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -44,7 +45,7 @@ const ListOfPurchase = () => {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -60,7 +61,6 @@ const ListOfPurchase = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
-
       try {
         setLoading(true)
 
@@ -119,7 +119,6 @@ const ListOfPurchase = () => {
   }))
 
   const handleSortModel = newModel => {
-   
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -169,8 +168,7 @@ const ListOfPurchase = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 80,
       field: 'sl',
       headerName: 'SL NO',
       renderCell: params => (
@@ -180,8 +178,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 140,
       field: 'po_date',
       headerName: 'Purchase Date',
       renderCell: params => (
@@ -200,8 +197,7 @@ const ListOfPurchase = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'po_no',
       headerName: 'Invoice NO',
       renderCell: params => (
@@ -219,8 +215,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'supplier_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (
@@ -238,8 +233,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'created_at',
       headerName: 'Entry Date',
       renderCell: params => (
@@ -257,8 +251,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 180,
       field: 'net_amount',
       headerName: 'Purchase Amount',
       type: 'number',
@@ -278,8 +271,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 160,
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
@@ -298,8 +290,7 @@ const ListOfPurchase = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 250,
       field: 'updated_by',
       headerName: 'Updated by ',
       renderCell: params => (
@@ -324,23 +315,30 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <Grid sx={{ display: 'flex', gap: 2 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2,
+        justifyContent: 'flex-start',
+        whiteSpace: 'nowrap'
+      }}
+    >
       <ExcelExportButton
-        disabled={total === 0 ? true : false}
+        disabled={total === 0}
         action={() => {
           Router.push({
             pathname: '/pharmacy/purchase/import-purchases/'
-
-            // pathname: '/pharmacy/purchase/import-purchases/v2'
           })
         }}
         title='Import Inventory'
+        fullWidth='fullWidth'
       />
       <AddButtonContained
         title='Add Inventory'
         action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
+        fullWidth='fullWidth'
       />
-    </Grid>
+    </Box>
   )
 
   const onRowClick = params => {
@@ -353,135 +351,115 @@ const ListOfPurchase = () => {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Inventory List</Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
         loader ? (
           <FallbackSpinner />
         ) : (
-          <>
-            <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              </Box>
+          <Card>
+            <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-start', // Align content to the left
+                alignItems: 'flex-start', // Align items to the top left
+                gap: { xs: 3, sm: 2 },
+                '& .MuiCardHeader-action': {
+                  width: { xs: '100% ', sm: 'auto' }
+                },
+                mx: { xs: -1, sm: 0 }
+              }}
+              title={RenderUtility.pageTitle('Inventory List')}
+              action={headerAction}
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+                justifyContent: 'space-between',
+                gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+              }}
+            >
+              {/* Left Box (Search Field) */}
               <Grid
+                item
+                xs={12}
+                sm={8}
+                md={6}
+                lg={4}
                 sx={{
-                  mx: 4
+                  mx: { xs: 3, sm: 4 }
                 }}
               >
-                <CommonTable
-                  onRowClick={onRowClick}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={model => {
-                    setPaginationModel(model) // Update page and pageSize in the state
-                    router.replace({
-                      pathname: router.pathname,
-                      query: {
-                        ...router.query,
-                        page: model.page + 1, // API uses 1-indexed pages
-                        pageSize: model.pageSize,
-                        searchValue,
-                        sort,
-                        sortColumn
-                      }
-                    })
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    height: '40px'
                   }}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
+                >
+                  <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
               </Grid>
-              {/* <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl: false
-                }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
+            </Box>
+            <Grid
+              sx={{
+                // px: { xs: 2, sm: 4 },
+                // py: { xs: 2, sm: 4 },
+                mx: { xs: 3, sm: 4 }
+              }}
+            >
+              <CommonTable
                 onRowClick={onRowClick}
-              /> */}
-            </Card>
-          </>
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                onPaginationModelChange={model => {
+                  setPaginationModel(model) // Update page and pageSize in the state
+                  router.replace({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page: model.page + 1, // API uses 1-indexed pages
+                      pageSize: model.pageSize,
+                      searchValue,
+                      sort,
+                      sortColumn
+                    }
+                  })
+                }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
         )
-      ) : (
-        <Error404 />
-      )}
+      ) : null}
     </>
   )
 }

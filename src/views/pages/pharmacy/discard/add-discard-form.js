@@ -557,15 +557,13 @@ export const AddItemsForm = ({
                         {...props}
                         sx={{
                           border: '1px solid transparent',
-
-                          // border: '1px solid #0000000D',
-                          // borderBottom: '1px solid #e0e0e0',
                           '&:last-child': {
                             borderBottom: 'none'
                           },
                           m: 3,
                           '&:hover': {
-                            border: '1px solid #0000000D'
+                            // border: '1px solid #0000000D'
+                            border: `1px solid ${theme.palette.customColors.neutral05}`
                           },
 
                           borderRadius: '2px'

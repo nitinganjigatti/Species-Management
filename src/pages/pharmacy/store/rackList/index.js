@@ -26,9 +26,12 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfRacks = () => {
   const theme = useTheme()
+
+ 
 
   const [racks, setRacks] = useState([])
   const [loader, setLoader] = useState(false)
@@ -351,12 +354,6 @@ const ListOfRacks = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>Rack List</Typography>
-    </>
-  )
-
   return (
     <>
       {loader ? (
@@ -365,21 +362,22 @@ const ListOfRacks = () => {
         <>
           {/* <TableWithFilter TableTitle={title} headerActions={addRackButton} columns={columns} rows={racks} /> */}
           <Card sx={{ cursor: 'pointer' }}>
-            <CardHeader title={title} action={addRackButton} />
+            <CardHeader title={RenderUtility.pageTitle('Rack List')} action={addRackButton} />
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
+              <Grid item xs={8} sx={{ width: { xs: '100%', sm: '240px' } }}>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
+                    m: { xs: 3 },
+                    marginLeft: { sm: 3,md: 5.5},
                     borderRadius: '8px',
                     padding: '0 8px',
-                    ml: 5,
-                    height: '40px',
-                    width: '250px' // Set a fixed width for all status
+                    // Full width on small screens
+                    height: '40px'
                   }}
                 >
                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -414,8 +412,8 @@ const ListOfRacks = () => {
             </Grid> */}
             </Box>
             <Grid
-              sx={{
-                mx: 4
+               sx={{
+                mx: { xs: 2, sm: 3, md: 5 }
               }}
             >
               <CommonTable

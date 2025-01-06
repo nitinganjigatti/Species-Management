@@ -15,10 +15,6 @@ import { Box } from '@mui/material'
 import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -34,6 +30,8 @@ import { useTheme } from '@emotion/react'
 import Chip from '@mui/material/Chip'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -61,17 +59,6 @@ const ListOfStockAdjusted = () => {
   })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(router.query.reason || 'Missing stock')
-  const [expandedText, setExpandedText] = useState('')
-  const [notesDialog, setNotesDialog] = useState(false)
-
-  const closeNotesDialog = () => {
-    setNotesDialog(false)
-    setExpandedText('')
-  }
-
-  const openNotesDialog = () => {
-    setNotesDialog(true)
-  }
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -209,7 +196,7 @@ const ListOfStockAdjusted = () => {
   const columns = [
     {
       flex: 0.2,
-      Width: 40,
+      minWidth: 40,
       field: 'sl',
       headerName: 'S.NO ',
       renderCell: params => (
@@ -240,7 +227,7 @@ const ListOfStockAdjusted = () => {
     },
     {
       flex: 0.25,
-      Width: 40,
+      minWidth: 40,
       field: 'batch_no',
       headerName: 'Batch number ',
       renderCell: params => (
@@ -303,28 +290,30 @@ const ListOfStockAdjusted = () => {
       field: 'comments',
       headerName: 'Comments',
       renderCell: params => (
-        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.comments}>
-          <Typography
-            sx={{
-              minWidth: 30,
-              maxWidth: 80,
-              cursor: 'pointer',
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              WebkitLineClamp: 6,
-              whiteSpace: 'nowrap'
-            }}
-            onClick={() => {
-              if (params.row?.comments) {
-                setExpandedText(params.row.comments)
-                openNotesDialog()
-              }
-            }}
-          >
-            {params.row?.comments || 'NA'}
-          </Typography>
-        </Tooltip>
+        <>
+          {params.row?.comments ? (
+            <TextEllipsisWithModal
+              text={params?.row?.comments}
+              style={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            />
+          ) : (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              NA
+            </Typography>
+          )}
+        </>
       )
     },
     {
@@ -393,12 +382,11 @@ const ListOfStockAdjusted = () => {
   ]
 
   const headerAction = (
-    <Grid sx={{ display: 'flex', gap: 2 }}>
-      <AddButtonContained
-        title='Add Stock Adjustment'
-        action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
-      />
-    </Grid>
+    <AddButtonContained
+      title='Add Stock Adjustment'
+      action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
+      fullWidth='fullWidth'
+    />
   )
 
   const TabBadge = ({ label, totalCount }) => (
@@ -410,68 +398,83 @@ const ListOfStockAdjusted = () => {
     </div>
   )
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Stock Adjustment List
-      </Typography>
-    </>
-  )
-
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title={title} action={headerAction} />
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          {/* Left Box (Search Field) */}
-          <Grid item xs={8}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                border: '1px solid #C3CEC7',
-                borderRadius: '8px',
-                padding: '0 8px',
-                ml: 5,
-                height: '40px',
-                width: '250px' // Set a fixed width for all status
-              }}
-            >
-              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-              <TextField
-                variant='outlined'
-                value={searchValue}
-                placeholder='Search...'
-                onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    border: 'none',
-                    padding: '0',
-                    '& fieldset': {
-                      border: 'none'
-                    }
-                  }
-                }}
-              />
-            </Box>
-          </Grid>
+        <CardHeader
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-start', // Align content to the left
+            alignItems: 'flex-start', // Align items to the top left
+            gap: { xs: 3, sm: 0 },
+            '& .MuiCardHeader-action': {
+              width: { xs: '100% ', sm: 'auto' }
+            },
+            mx: { xs: -1, sm: 1 },
+            mb: { xs: 2 },
+            mt: 1
+          }}
+          title={RenderUtility.pageTitle('Stock Adjustment List')}
+          action={headerAction}
+        />
 
-          {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-            </Grid> */}
+        {/* <Grid
+          container
+
+        >
+          <Grid item xs={12} sm='auto'>
+            {title}
+          </Grid>
+          <Grid item xs={12} sm='auto'>
+            {headerAction}
+          </Grid>
+        </Grid> */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mx: { xs: 3, md: 5 }
+          }}
+        >
+          {/* Search Box */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              // border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              padding: '0 8px',
+              width: { xs: '100%', sm: '250px' }, // Full width on small screens
+              height: '40px'
+            }}
+          >
+            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+            <TextField
+              variant='outlined'
+              placeholder='Search...'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+                  padding: '0',
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                }
+              }}
+            />
+          </Box>
         </Box>
+
         <Grid
           sx={{
-            mx: 4
+            mx: { xs: 3, md: 5 }
           }}
         >
           <CommonTable
@@ -563,24 +566,6 @@ const ListOfStockAdjusted = () => {
 
               <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
             </TabContext>
-            <ConfirmDialogBox
-              open={notesDialog}
-              closeDialog={() => {
-                closeNotesDialog()
-              }}
-              action={() => {
-                closeNotesDialog()
-              }}
-              content={
-                <Box>
-                  <>
-                    <DialogContent>
-                      <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
-                    </DialogContent>
-                  </>
-                </Box>
-              }
-            />
           </>
         )
       ) : (

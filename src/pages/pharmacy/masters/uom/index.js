@@ -36,6 +36,7 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { textAlign } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfUOM = () => {
   const theme = useTheme()
@@ -108,8 +109,8 @@ const ListOfUOM = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 40,
+      // flex: 0.2,
+      Width: 150,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -119,8 +120,7 @@ const ListOfUOM = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 350,
       field: 'unit_name',
       headerName: 'UOM NAME',
       textAlign: 'center',
@@ -140,8 +140,8 @@ const ListOfUOM = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
@@ -159,8 +159,8 @@ const ListOfUOM = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      // flex: 0.2,
+      minWidth: 250,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -190,7 +190,11 @@ const ListOfUOM = () => {
     <div>
       {/* {selectedPharmacy.type === 'central' &&
         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButtonContained title='Add UOM' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add UOM ' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
   )
 
@@ -305,14 +309,6 @@ const ListOfUOM = () => {
     sl_no: getSlNo(index)
   }))
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        UOM (Unit of Measurement) List
-      </Typography>
-    </>
-  )
-
   return (
     <>
       {/* {selectedPharmacy.type === 'central' ? ( */}
@@ -323,44 +319,66 @@ const ListOfUOM = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title={title} action={headerAction} />
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                  {/* Left Box (Search Field) */}
-                  <Grid item xs={8}>
-                    <Box
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('UOM (Unit of Measurement) List')}
+                  action={headerAction}
+                />
+
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                    // ml:{xs:, sm:0 , md:5}
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      // border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        padding: '0 8px',
-                        ml: 5,
-                        height: '40px',
-                        width: '250px' // Set a fixed width for all status
-                      }}
-                    >
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search...'
-                        onChange={e => handleSearch(e.target.value)}
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
                           }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                </Box>
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
                 <Grid
                   sx={{
-                    mx: 4
+                    mx: { xs: 4 }
                   }}
                 >
                   <CommonTable

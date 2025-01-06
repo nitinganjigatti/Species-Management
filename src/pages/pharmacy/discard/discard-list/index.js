@@ -22,6 +22,7 @@ import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -35,10 +36,10 @@ const ListOfDiscardProducts = () => {
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -269,7 +270,7 @@ const ListOfDiscardProducts = () => {
     {
       flex: 0.2,
       Width: 20,
-      field: 'created_by_user_name',
+      field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -307,6 +308,7 @@ const ListOfDiscardProducts = () => {
       <AddButtonContained
         title='Return to Supplier'
         action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
+        fullWidth='fullWidth'
       />
     </Grid>
   )
@@ -320,14 +322,6 @@ const ListOfDiscardProducts = () => {
     }
   }
 
-  const title = (
-    <>
-      <Typography sx={{ fontSize: '24px', fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
-        Return to Supplier List
-      </Typography>
-    </>
-  )
-
   return (
     <>
       {selectedPharmacy.type === 'central' ? (
@@ -336,10 +330,31 @@ const ListOfDiscardProducts = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title={title} action={headerAction} />
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
+              <CardHeader
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'flex-start', // Align content to the left
+                  alignItems: 'flex-start', // Align items to the top left
+                  gap: { xs: 3, sm: 0 },
+                  '& .MuiCardHeader-action': {
+                    width: { xs: '100% ', sm: 'auto' }
+                  },
+                  mx: { xs: -1, sm: 1 },
+                  mt: 1
+                }}
+                title={RenderUtility.pageTitle('Return to Supplier List')}
+                action={headerAction}
+              />
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+                  justifyContent: 'space-between'
+                }}
+              >
                 {/* Left Box (Search Field) */}
-                <Grid item xs={8}>
+                {/* <Grid item xs={8}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -369,24 +384,73 @@ const ListOfDiscardProducts = () => {
                         }
                       }}
                     />
-                  </Box>
-                </Grid>
+                       </Box>
+                       </Grid> */}
 
                 {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ float: 'right', mt: 1 }}>
+                   {status === 'all' || status === 'completed' ? (
+                      <Box sx={{ float: 'right', mt: 1 }}>
                   <FormControlLabel
                     control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                     label='Completed'
                     labelPlacement='end'
                   />
-                </Box>
-              ) : null}
-            </Grid> */}
+                    </Box>
+                     ) : null}
+                       </Grid> */}
               </Box>
               <Grid
                 sx={{
-                  mx: 4
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'flex-start', // Align content to the left
+                  alignItems: 'flex-start' // Align items to the top left
+                }}
+              />
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap', // Allow wrapping on small screens
+                  mx: { xs: 3, md: 5 }
+                }}
+              >
+                {/* Left Box (Search Field) */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    // border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    height: '40px'
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Grid
+                sx={{
+                  mx: { xs: 3, md: 5 }
                 }}
               >
                 <CommonTable
