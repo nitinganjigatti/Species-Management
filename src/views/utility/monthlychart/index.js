@@ -60,15 +60,15 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
   debugger
   console.log(monthsFromApi)
 
-  const barData = monthsFromApi.map(
-    month => parseFloat(data[barName.toLowerCase().replace(' ', '_')][month]) / 100000 || 0
+  const barData = monthsFromApi?.map(
+    month => parseFloat(data[barName?.toLowerCase()?.replace(' ', '_')][month]) / 100000 || 0
   )
-  const lineData = monthsFromApi.map(month => parseInt(data[lineName.toLowerCase().replace(' ', '_')][month]) || 0)
+  const lineData = monthsFromApi?.map(month => parseInt(data[lineName?.toLowerCase().replace(' ', '_')][month]) || 0)
 
-  const shortMonths = monthsFromApi.map(month => {
-    const [monthName, year] = month.split(' ')
+  const shortMonths = monthsFromApi?.map(month => {
+    const [monthName, year] = month?.split(' ')
 
-    return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
+    return `${monthMapping[monthName] || monthName} ${year?.slice(-2)}`
   })
 
   const series = []
