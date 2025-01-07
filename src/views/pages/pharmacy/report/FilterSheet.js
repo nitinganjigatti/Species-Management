@@ -268,7 +268,7 @@ const FilterSheet = ({
             <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
           </Box>
           <Divider sx={{ m: 3 }} />
-          <Box sx={{ ml: 2, height: '650px', overflowY: 'auto' }}>
+          <Box sx={{ ml: 2, height: '700px', overflowY: 'auto' }}>
             <Box sx={{ ml: 2, overflowX: 'hidden' }}>
               {filteredOptions.map((option, index) => (
                 <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
