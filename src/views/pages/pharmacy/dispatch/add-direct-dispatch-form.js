@@ -381,7 +381,6 @@ export const AddItemsForm = ({
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <Autocomplete
-                    // {...field}
                     id='request_item'
                     options={productList}
                     getOptionLabel={option => option.label || ''}

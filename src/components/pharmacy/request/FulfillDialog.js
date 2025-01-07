@@ -351,7 +351,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   const toggleLocalTable = () => {
     setIsLocalTableVisible(!isLocalTableVisible)
   }
-  // const theme = createTheme()
+
   const theme = useTheme()
 
   const StyledText = styled('span')({
@@ -417,11 +417,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
           color: 'customColors.Secondary',
 
-          // border: '1px solid #00D6C9',
           border: `1px solid ${theme.palette.customColors.Secondary}`,
           '&:hover': {
             backgroundColor: '#FFFFFF !important',
-            // border: '1px solid #00D6C9'
+
             border: `1px solid ${theme.palette.customColors.Secondary}`
           }
         }}

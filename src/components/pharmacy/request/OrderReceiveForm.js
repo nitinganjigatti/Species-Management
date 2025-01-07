@@ -1609,8 +1609,8 @@ function OrderReceiveForm({ orderId, requestId }) {
       </html>
     `)
 
-    printWindow.document.close()
     printWindow.focus()
+    printWindow.document.close()
 
     printWindow.onload = () => {
       printWindow.print()
@@ -1618,6 +1618,15 @@ function OrderReceiveForm({ orderId, requestId }) {
         printWindow.close()
       }
     }
+
+    const interval = setInterval(() => {
+      if (printWindow.closed) {
+        clearInterval(interval)
+      } else {
+        printWindow.close()
+        clearInterval(interval)
+      }
+    }, 500)
   }
 
   console.log(disputeItemDetails?.item_details, 'disputeItemDetails')

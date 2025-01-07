@@ -31,8 +31,6 @@ import RenderUtility from 'src/utility/render'
 const ListOfRacks = () => {
   const theme = useTheme()
 
- 
-
   const [racks, setRacks] = useState([])
   const [loader, setLoader] = useState(false)
   const [deleteRowId, setDeleteRowId] = useState('')
@@ -373,10 +371,10 @@ const ListOfRacks = () => {
                     alignItems: 'center',
                     border: '1px solid #C3CEC7',
                     m: { xs: 3 },
-                    marginLeft: { sm: 3,md: 5.5},
+                    marginLeft: { sm: 3, md: 5.5 },
                     borderRadius: '8px',
                     padding: '0 8px',
-                    // Full width on small screens
+
                     height: '40px'
                   }}
                 >
@@ -412,7 +410,7 @@ const ListOfRacks = () => {
             </Grid> */}
             </Box>
             <Grid
-               sx={{
+              sx={{
                 mx: { xs: 2, sm: 3, md: 5 }
               }}
             >

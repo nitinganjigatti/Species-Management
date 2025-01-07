@@ -298,7 +298,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           mb: 10,
           width: '100%',
           backgroundColor: 'customColors.Surface',
-          // border: '1px solid #00D6C9',
           border: `0.5px solid ${theme.palette.customColors.Secondary}`,
           boxShadow: 'none !important'
         }}
@@ -586,7 +585,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               backgroundColor: 'customColors.Surface', // Light green background
               padding: '16px',
               borderRadius: '8px',
-              // border: '0.5px solid #37BD69',
+
               border: `0.5px solid ${theme.palette.primary.main}`,
               borderRadius: '8px'
             }}
@@ -931,7 +930,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                         icon='material-symbols:description-outline'
                         width='16'
                         style={{ color: 'customColors.neutralSecondary' }}
-                        // color='#7A8684'
                         height='20'
                       />
                       {nestedRowMedicine.prescription_required_file?.name}
@@ -950,7 +948,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     <Icon
                       icon='mdi:close-box'
                       width='24'
-                      // color='#7A8684'
                       height='24'
                       style={{
                         position: 'absolute',
@@ -988,7 +985,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                         <Image
                           width={16}
                           style={{ color: 'customColors.neutralSecondary' }}
-                          // color='#7A8684'
                           height={20}
                           alt={nestedRowMedicine.prescription_required_file?.name}
                           src={
@@ -1013,8 +1009,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Icon
                         icon='mdi:close-box'
                         width='24'
-                        // color='#7A8684'
-
                         height='24'
                         style={{
                           position: 'absolute',
@@ -1051,7 +1045,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     >
                       <img
                         width={16}
-                        // color='#7A8684'
                         style={{ color: 'customColors.neutralSecondary' }}
                         height={20}
                         alt={nestedRowMedicine.prescription_required_file?.name}
@@ -1073,8 +1066,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                     <Icon
                       icon='mdi:close-box'
                       width='24'
-                      // color='#7A8684'
-
                       height='24'
                       style={{
                         position: 'absolute',
