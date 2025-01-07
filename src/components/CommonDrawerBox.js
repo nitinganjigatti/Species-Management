@@ -36,9 +36,9 @@ const CommonDrawerBox = ({
           height: '100%'
         }
       }}
-      //
     >
       {/* Header Section */}
+
       <Box
         sx={{
           p: 4,

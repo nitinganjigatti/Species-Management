@@ -432,7 +432,6 @@ function Escrow({ value }) {
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: { xs: 'center', md: 'space-between' },
-                // alignItems: 'center',
                 width: '100%',
                 padding: '8px',
                 gap: { xs: 2, md: 3 }
