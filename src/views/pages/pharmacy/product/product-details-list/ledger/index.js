@@ -17,7 +17,8 @@ import {
   ListItemText,
   Divider,
   Checkbox,
-  CardContent
+  CardContent,
+  CircularProgress
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
@@ -105,7 +106,7 @@ function Ledger() {
 
   const [selectedTabs, setSelectedTabs] = useState([])
   const [batchDetailsList, setBatchDetailsList] = useState([])
-  const [selectedBatch, setSelectedBatch] = useState(null)
+  const [selectedBatches, setSelectedBatches] = useState([])
   const [open, setOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState('Batch Details')
 
@@ -362,19 +363,24 @@ function Ledger() {
   ]
 
   const getLedger = useCallback(async ({ stock_id, batch_no, q, tab }) => {
-    // console.log('getLedger called with:', { stock_id, batch_no, q, tab })
+    const formattedBatchNo = Array.isArray(batch_no)
+      ? batch_no
+      : typeof batch_no === 'string'
+      ? [batch_no]
+      : batch_no
+      ? [batch_no]
+      : []
     try {
       setLoading(true)
 
       const params = {
         stock_id,
-        batch_no,
+        batch_no: formattedBatchNo,
         q,
         tab
       }
 
       await getLedgerList(params).then(res => {
-        console.log(res)
         if (res?.success) {
           setRows(loadServerRows(paginationModel.page, res?.data))
         } else {
@@ -384,23 +390,29 @@ function Ledger() {
       setLoading(false)
     } catch (e) {
       setLoading(false)
-      console.log(e)
+      console.error(e)
     }
   }, [])
 
   useEffect(() => {
-    console.log('useEffect triggered with:', { id, batch_no, selectedTabs })
+    const routerBatchNo = router.query.batch_no
+    const initialBatchNo = routerBatchNo ? (Array.isArray(routerBatchNo) ? routerBatchNo : [routerBatchNo]) : []
 
-    setSelectedBatch(batch_no || null)
-    if (id && batch_no && selectedTabs) {
+    setSelectedBatches(initialBatchNo)
+
+    if (id || routerBatchNo) {
       getLedger({
         stock_id: id,
-        batch_no: batch_no,
+        batch_no: initialBatchNo,
         q: searchValue,
         tab: selectedTabs
       })
     }
-  }, [id, batch_no, selectedTabs])
+    if (router.query.filters) {
+      const filters = Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]
+      setSelectedTabs(filters)
+    }
+  }, [id, router.query.batch_no, router.query.filters])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -414,12 +426,12 @@ function Ledger() {
   }))
 
   const handleSearch = async value => {
-    if (!selectedBatch || !batch_no) {
-      toast.error('Please select the batch ID before proceeding')
-      return
-    }
+    // if (!selectedBatches || !batch_no) {
+    //   toast.error('Please select the batch ID before proceeding')
+    //   return
+    // }
     setSearchValue(value)
-    if (id && (selectedBatch || batch_no)) {
+    if (id && (selectedBatches || batch_no)) {
       await searchTableData({ q: value })
     }
   }
@@ -445,63 +457,73 @@ function Ledger() {
 
   const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense']
 
-  // const handleTabClick = tab => {
-  //   if (!selectedBatch || !batch_no) {
-  //     toast.error('Please select the batch ID first, then select these parameters.')
-  //     return
-  //   }
-  //   if (selectedTabs.includes(tab)) {
-  //     // Remove tab from selected
-  //     setSelectedTabs(selectedTabs.filter(selectedTab => selectedTab !== tab))
-  //   } else {
-  //     // Add tab to selected
-  //     setSelectedTabs([...selectedTabs, tab])
-  //   }
-  // }
   const handleTabClick = tab => {
-    if (!selectedBatch || !batch_no) {
-      toast.error('Please select the batch ID before proceeding')
-      return
-    }
+    let updatedTabs
 
     if (selectedTabs.includes(tab)) {
-      // Remove tab from selected
-      const updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
-      setSelectedTabs(updatedTabs)
-      // Update router query to remove the tab
-      const newQuery = { ...router.query }
-      if (updatedTabs.length > 0) {
-        newQuery.filters = updatedTabs
-      } else {
-        delete newQuery.filters
-      }
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: newQuery
-        },
-        undefined,
-        { shallow: true }
-      )
+      updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
     } else {
-      // Add tab to selected
-      const updatedTabs = [...selectedTabs, tab]
-      setSelectedTabs(updatedTabs)
-
-      // Update router query to add the tab
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: {
-            ...router.query,
-            filters: updatedTabs
-          }
-        },
-        undefined,
-        { shallow: true }
-      )
+      updatedTabs = [...selectedTabs, tab]
     }
+
+    setSelectedTabs(updatedTabs)
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          filters: updatedTabs.length > 0 ? updatedTabs : undefined
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
   }
+
+  // const handleTabClick = tab => {
+  //   // if (!selectedBatches || !batch_no) {
+  //   //   toast.error('Please select the batch ID before proceeding')
+  //   //   return
+  //   // }
+
+  //   if (selectedTabs.includes(tab)) {
+  //     // Remove tab from selected
+  //     const updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
+  //     setSelectedTabs(updatedTabs)
+  //     // Update router query to remove the tab
+  //     const newQuery = { ...router.query }
+  //     if (updatedTabs.length > 0) {
+  //       newQuery.filters = updatedTabs
+  //     } else {
+  //       delete newQuery.filters
+  //     }
+  //     router.replace(
+  //       {
+  //         pathname: router.pathname,
+  //         query: newQuery
+  //       },
+  //       undefined,
+  //       { shallow: true }
+  //     )
+  //   } else {
+  //     // Add tab to selected
+  //     const updatedTabs = [...selectedTabs, tab]
+  //     setSelectedTabs(updatedTabs)
+
+  //     // Update router query to add the tab
+  //     router.replace(
+  //       {
+  //         pathname: router.pathname,
+  //         query: {
+  //           ...router.query,
+  //           filters: updatedTabs
+  //         }
+  //       },
+  //       undefined,
+  //       { shallow: true }
+  //     )
+  //   }
+  // }
 
   // Toggle Drawer open/close
   const toggleDrawer = () => {
@@ -521,13 +543,24 @@ function Ledger() {
     })
   }
 
+  // const handleBatchCheckbox = event => {
+  //   // If the checkbox is checked, select the batch_no
+  //   if (event.target.checked) {
+  //     setSelectedBatches(event.target.value)
+  //   } else {
+  //     setSelectedBatches(null)
+  //   }
+  // }
+
   const handleBatchCheckbox = event => {
-    // If the checkbox is checked, select the batch_no
-    if (event.target.checked) {
-      setSelectedBatch(event.target.value)
-    } else {
-      setSelectedBatch(null)
-    }
+    const { value, checked } = event.target
+
+    setSelectedBatches(prev => {
+      if (checked) {
+        return [...new Set([...prev, value])]
+      }
+      return prev.filter(batch => batch !== value)
+    })
   }
 
   // Handle change in search input
@@ -589,47 +622,59 @@ function Ledger() {
     }
   }, [id])
 
-  // useEffect(() => {
-  //   setSelectedBatch(batch_no || null)
-  //   if (id && batch_no) {
-  //     getLedger({
-  //       stock_id: id,
-  //       batch_no: batch_no || null,
-  //       q: searchValue,
-  //       tab: selectedTabs
-  //     })
-  //   }
-  // }, [id, batch_no])
+  // const handleApplyFilter = async () => {
+  //   // if (!id || !selectedBatches) {
+  //   //   toast.error('Both product ID and batch must be selected')
+  //   //   return
+  //   // }
+  //   console.log(selectedBatches, 'selectedBatches')
 
-  // useEffect(() => {
-  //   if (id && batch_no && selectedTabs) {
-  //     getLedger({
-  //       stock_id: id,
-  //       batch_no: batch_no,
-  //       q: searchValue,
-  //       tab: selectedTabs
-  //     })
-  //   }
-  // }, [selectedTabs])
+  //   router.replace(
+  //     {
+  //       pathname: router.pathname,
+  //       query: {
+  //         ...router.query,
+  //         batch_no: selectedBatches
+  //       }
+  //     },
+  //     undefined,
+  //     { shallow: true }
+  //   )
+  //   toggleDrawer()
+  // }
 
   const handleApplyFilter = async () => {
-    if (!id || !selectedBatch) {
-      toast.error('Both product ID and batch must be selected')
+    if (!id) {
+      toast.error('Product ID must be selected')
       return
     }
+    const newQuery = { ...router.query }
+    if (!selectedBatches || selectedBatches.length === 0) {
+      delete newQuery.batch_no
+    } else {
+      newQuery.batch_no = selectedBatches
+    }
+
     router.replace(
       {
         pathname: router.pathname,
-        query: {
-          ...router.query,
-          batch_no: selectedBatch
-        }
+        query: newQuery
       },
       undefined,
       { shallow: true }
     )
+
+    // Call API with appropriate batch_no (empty array if none selected)
+    // await getLedger({
+    //   stock_id: id,
+    //   batch_no: selectedBatches || [],
+    //   q: searchValue,
+    //   tab: selectedTabs
+    // })
+
     toggleDrawer()
   }
+
   const handleClearFilter = () => {
     const newQuery = { ...router.query }
     delete newQuery.batch_no // Remove batch parameter
@@ -642,15 +687,13 @@ function Ledger() {
       undefined,
       { shallow: true }
     )
-    setSelectedBatch(null)
-    setRows([])
     toggleDrawer()
-    // getLedger({
-    //   stock_id: id,
-    //   batch_no: null,
-    //   q: searchValue,
-    //   tab: selectedTabs
-    // })
+    getLedger({
+      stock_id: id,
+      batch_no: selectedBatches,
+      q: searchValue,
+      tab: selectedTabs
+    })
   }
 
   return (
@@ -884,7 +927,7 @@ function Ledger() {
         </Box>
       </Box>
       <Grid mt={6}>
-        <TableBasic rows={indexedRows} columns={columns} />
+        <TableBasic rows={indexedRows} columns={columns} loading={loading} />
       </Grid>
 
       <>{/* <Error404></Error404> */}</>
@@ -989,6 +1032,34 @@ function Ledger() {
                           <Checkbox
                             name='batchDetails'
                             value={location.batch_no}
+                            checked={selectedBatches?.includes(location.batch_no)}
+                            onChange={handleBatchCheckbox}
+                            sx={{
+                              color: 'customColors.Outline',
+                              '&.Mui-checked': {
+                                color: 'primary.main'
+                              }
+                            }}
+                          />
+                        }
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          '& .MuiFormControlLabel-label': {
+                            color: 'customColors.Outline'
+                          }
+                        }}
+                        label={`${location.batch_no}`}
+                      />
+                    </Box>
+                  ))}
+                  {/* {filteredBatchDetails.map(location => (
+                    <Box key={location.batch_no}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name='batchDetails'
+                            value={location.batch_no}
                             checked={selectedBatch === location.batch_no}
                             // checked={selectedBatch === location.batch_no || batch_no === location.batch_no}
                             onChange={handleBatchCheckbox}
@@ -1010,7 +1081,7 @@ function Ledger() {
                         label={`${location.batch_no}`}
                       />
                     </Box>
-                  ))}
+                  ))} */}
                 </Box>
               </>
             )}

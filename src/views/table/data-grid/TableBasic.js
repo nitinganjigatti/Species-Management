@@ -17,7 +17,8 @@ const TableBasic = ({
   onRowClick,
   rowHeight,
   rowSpacing,
-  backgroundColor
+  backgroundColor,
+  loading
 }) => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
@@ -58,7 +59,10 @@ const TableBasic = ({
         columns={columns || []}
         rows={rows || []}
         onRowClick={onRowClick}
-        // pageSizeOptions={[7, 10, 25, 50]}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        pageSizeOptions={[10, 25, 50, 100]}
+        loading={loading ? loading : null}
       />
       {/* ) : null} */}
     </Box>
