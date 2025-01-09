@@ -14,7 +14,7 @@ import Organization from 'src/pages/parivesh/home/overview/organization'
 const AnimalList = () => {
   const theme = useTheme()
   const { organizationList } = usePariveshContext()
- 
+
   const authData = useContext(AuthContext)
   const categories = ['Site', 'Organization']
 
@@ -290,16 +290,25 @@ const AnimalList = () => {
             }
             title={
               <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                AAID: {params.row.animal_id}
+                RN: {params.row.taxonomy_id}
               </Typography>
             }
             subheader={
-              <Typography
-                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
-                variant='body2'
-              >
-                RN: {params.row.taxonomy_id}
-              </Typography>
+              <>
+                {' '}
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
+                  variant='body2'
+                >
+                  {params.row.scientific_name}
+                </Typography>
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
+                  variant='body2'
+                >
+                   {params.row.common_name}
+                </Typography>
+              </>
             }
           />
         )
@@ -603,10 +612,15 @@ const AnimalList = () => {
                   <Box sx={{ p: 2, width: 300 }}>
                     {Object.keys(popoverData).map(category => (
                       <Box key={category}>
-                        <Typography sx={{
-                          ml:2,
-                          mt:2
-                        }} variant='h6'>{category}</Typography>
+                        <Typography
+                          sx={{
+                            ml: 2,
+                            mt: 2
+                          }}
+                          variant='h6'
+                        >
+                          {category}
+                        </Typography>
                         {popoverData[category].map((item, index) => (
                           <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
                             <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
@@ -658,6 +672,7 @@ const AnimalList = () => {
               <DataGrid
                 sx={{
                   mt: 3,
+                  mx:2,
                   borderRadius: '8px',
                   '.MuiDataGrid-cell:focus': {
                     outline: 'none'
