@@ -415,7 +415,7 @@ function Ledger() {
 
   const handleSearch = async value => {
     if (!selectedBatch || !batch_no) {
-      toast.error('Please select the batch ID first, then select these parameters.')
+      toast.error('Please select the batch ID before proceeding')
       return
     }
     setSearchValue(value)
@@ -460,7 +460,7 @@ function Ledger() {
   // }
   const handleTabClick = tab => {
     if (!selectedBatch || !batch_no) {
-      toast.error('Please select the batch ID first, then select these parameters.')
+      toast.error('Please select the batch ID before proceeding')
       return
     }
 
