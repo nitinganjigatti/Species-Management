@@ -650,9 +650,9 @@ const RequestList = () => {
       renderCell: params => (
         <>
           {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
+            params?.row?.user_created_profile_pic, 
             params?.row?.created_by_user_name,
-            params?.row?.created_at
+            params?.row?.created_at 
           )}
         </>
       )

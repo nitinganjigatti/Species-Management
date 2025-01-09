@@ -385,25 +385,32 @@ const DirectDispatchList = () => {
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              variant='subtitle2'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
-              }}
-            >
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.request_date
+          )}
+        </>
+        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        //     <Typography
+        //       variant='subtitle2'
+        //       sx={{
+        //         color: theme.palette.customColors.customHeadingTextColor,
+        //         fontSize: '14px',
+        //         fontWeight: 500,
+        //         fontFamily: 'Inter'
+        //       }}
+        //     >
+        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+        //     </Typography>
+        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+        //       {params.row.request_date ? Utility.formatDisplayDate(params.row.request_date) : 'NA'}
+        //     </Typography>
+        //   </Box>
+        // </Box>
       )
     }
 
