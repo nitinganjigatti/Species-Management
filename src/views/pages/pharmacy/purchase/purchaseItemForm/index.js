@@ -1080,84 +1080,78 @@ const PurchaseItemForm = props => {
           action={() => {
             setValidatePurchaseDialog(false)
           }}
-          content={
-            <Box>
-              <DialogContent>
-                <DialogTitle
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: '20px',
-                    margin: '0px',
-                    padding: '0px',
-                    mb: '6px',
-                    color: 'customColors.OnSurfaceVariant',
-                    display: 'flex',
-                    gap: 2,
+          title={
+            <Box
+              sx={{
+                fontWeight: 500,
+                fontSize: '20px',
+                margin: '0px',
+                padding: '0px',
+                mb: '6px',
+                color: 'customColors.OnSurfaceVariant',
+                display: 'flex',
+                gap: 2,
 
-                    // justifyContent: 'center'
+                // justifyContent: 'center'
 
-                    alignItems: 'center'
-                  }}
-                >
-                  <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' /> Price
-                  Variation Detected !
-                </DialogTitle>
-                <DialogContentText
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    margin: '0px',
-                    padding: '0px',
-
-                    // gap: '12px',
-                    color: 'customColors.OnSurfaceVariant'
-                  }}
-                >
-                  {/* clarity:warning-standard-line */}
-                  The current purchase price of this product differs by more than
-                  <Typography
-                    component='span'
-                    sx={{
-                      color: 'customColors.moderateSecondary',
-                      fontWeight: 600,
-                      fontSize: '16px',
-                      px: 2
-
-                      // padding: '4px'
-                    }}
-                  >
-                    30%
-                  </Typography>
-                  compared to the previous purchase price.
-                  <br /> Please review before proceeding.
-                </DialogContentText>
-              </DialogContent>
-
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  variant='outlined'
-                  size='small'
-                  color='error'
-                  onClick={() => {
-                    setValidatePurchaseDialog(false)
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='warning'
-                  onClick={() => {
-                    submitItems(currentPayload)
-                    setValidatePurchaseDialog(false)
-                    setPriceValidationError(false)
-                  }}
-                >
-                  Confirm
-                </Button>
-              </DialogActions>
+                alignItems: 'center'
+              }}
+            >
+              <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' /> Price
+              Variation Detected !
             </Box>
+          }
+          content={
+            <DialogContentText
+              sx={{
+                fontWeight: 400,
+                fontSize: '16px',
+                margin: '0px',
+                padding: '0px',
+                color: 'customColors.OnSurfaceVariant'
+              }}
+            >
+              The current purchase price of this product differs by more than
+              <Typography
+                component='span'
+                sx={{
+                  color: 'customColors.moderateSecondary',
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  px: 2
+                }}
+              >
+                30%
+              </Typography>
+              compared to the previous purchase price.
+              <br /> Please review before proceeding.
+            </DialogContentText>
+          }
+          dialogActions={
+            <>
+              <Button
+                variant='outlined'
+                size='small'
+                color='error'
+                onClick={() => {
+                  setValidatePurchaseDialog(false)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size='small'
+                variant='contained'
+                color='warning'
+                onClick={() => {
+                  submitItems(currentPayload)
+                  setValidatePurchaseDialog(false)
+                  setPriceValidationError(false)
+                }}
+              >
+                Confirm
+              </Button>
+            </>
           }
         />
 

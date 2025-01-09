@@ -1,6 +1,6 @@
-import { Typography } from '@mui/material'
-
-import { textAlign } from '@mui/system'
+import { Typography, Box } from '@mui/material'
+import CustomAvatar from 'src/@core/components/mui/avatar'
+import Utility from 'src/utility'
 
 export const getEllipsisStyleForText = width => {
   return {
@@ -44,10 +44,31 @@ export const pageTitle = title => (
   </Typography>
 )
 
+export function renderUserAvatarDetails(image, userName, date) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      {image ? (
+        <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+      ) : (
+        <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+      )}
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+          {userName ? userName : 'NA'}
+        </Typography>
+        <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+          {date ? Utility?.formatDisplayDate(date) : 'NA'}
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
 const RenderUtility = {
   getEllipsisStyleForText,
   renderControlLabel,
-  pageTitle
+  pageTitle,
+  renderUserAvatarDetails
 }
 
 export default RenderUtility

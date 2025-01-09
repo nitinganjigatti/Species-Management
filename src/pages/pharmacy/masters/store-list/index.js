@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getStoreList, addStore, updateStore, checkCentralPharmacy } from 'src/lib/api/pharmacy/getStoreList'
+import {
+  getStoreList,
+  addStore,
+  updateStore,
+  deleteStoreById,
+  checkCentralPharmacy
+} from 'src/lib/api/pharmacy/getStoreList'
 import TableWithFilter from 'src/components/TableWithFilter'
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -38,11 +44,9 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import { DialogTitle } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -60,6 +64,9 @@ const ListOfStores = () => {
   const [validateStore, setValidateStore] = useState(false)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
+  const [tempPayload, setTempPayload] = useState(null)
+  const [deleteStore, setDeleteStore] = useState(false)
+  console.log('pharmacyRole', pharmacyRole)
 
   const [openSnackbar, setOpenSnackbar] = useState({
     open: false,
@@ -67,10 +74,9 @@ const ListOfStores = () => {
     message: ''
   })
 
-  const { selectedPharmacy } = usePharmacyContext()
+  // const { selectedPharmacy } = usePharmacyContext()
 
   const addEventSidebarOpen = () => {
-    console.log('event clicked')
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
     console.log(editParams)
@@ -78,7 +84,6 @@ const ListOfStores = () => {
   }
 
   const handleSidebarClose = () => {
-    console.log('close event clicked')
     setOpenDrawer(false)
   }
 
@@ -93,6 +98,8 @@ const ListOfStores = () => {
 
   const closeStoreValidate = () => {
     setValidateStore(false)
+    setTempPayload(null)
+    setDeleteStore(false)
   }
 
   /***** Drawer  */
@@ -225,7 +232,7 @@ const ListOfStores = () => {
       renderCell: params => (
         <>
           {/* {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-          {pharmacyRole && (
+          {pharmacyRole && params?.row?.type === 'local' && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
@@ -233,11 +240,20 @@ const ListOfStores = () => {
               <IconButton
                 size='small'
                 sx={{ mr: 0.5 }}
-                onClick={() => handleEdit(params.row.id, params.row.name, params.row.status)}
+                onClick={() => handleEdit(params?.row.id, params?.row.name, params?.row.status)}
               >
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-              <IconButton size='small' sx={{ mr: 0.5 }}>
+              <IconButton
+                size='small'
+                sx={{ mr: 0.5 }}
+                onClick={() => {
+                  console.log('parass', params?.row)
+                  setEditParams({ id: params?.row?.id, name: params?.row?.name, status: params?.row?.status })
+                  setDeleteStore(true)
+                  openStoreValidate()
+                }}
+              >
                 <Icon icon='mdi:delete-outline' />
               </IconButton>
             </Box>
@@ -334,9 +350,39 @@ const ListOfStores = () => {
     }
   }
 
-  const handleSubmitData = async payload => {
-    console.log('payload', payload)
+  const handleResponse = response => {
+    if (response?.success) {
+      toast.success(response?.message)
+      setSubmitLoader(false)
+      setResetForm(true)
+      setOpenDrawer(false)
+      setTempPayload(null)
+      closeStoreValidate()
+      fetchTableData(sort, searchValue, sortColumn)
 
+      // Router.reload()
+    } else {
+      setSubmitLoader(false)
+      if (typeof response?.message === 'object') {
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        setTempPayload(null)
+        closeStoreValidate()
+        Utility.errorMessageExtractorFromObject(response?.message)
+      } else {
+        setSubmitLoader(false)
+        setResetForm(true)
+        setOpenDrawer(false)
+        setTempPayload(null)
+        closeStoreValidate()
+        toast.error(response?.message)
+      }
+    }
+    setSubmitLoader(false)
+  }
+
+  const handleSubmitData = async payload => {
     try {
       setSubmitLoader(true)
 
@@ -344,6 +390,8 @@ const ListOfStores = () => {
       if (editParams?.id !== null) {
         if (payload?.status === 'inactive') {
           openStoreValidate()
+          setTempPayload(payload)
+          setSubmitLoader(false)
 
           return
         }
@@ -358,27 +406,64 @@ const ListOfStores = () => {
           throw "Sorry.. Can't add pharmacy right now"
         }
       }
+      handleResponse(response)
 
-      if (response?.success) {
-        toast.success(response?.message)
-        setSubmitLoader(false)
-        setResetForm(true)
-        setOpenDrawer(false)
-        debugger
+      // if (response?.success) {
+      //   toast.success(response?.message)
+      //   setSubmitLoader(false)
+      //   setResetForm(true)
+      //   setOpenDrawer(false)
+      //   setTempPayload(null)
 
-        // Router.reload()
-      } else {
-        setSubmitLoader(false)
-        if (typeof response?.message === 'object') {
-          Utility.errorMessageExtractorFromObject(response?.message)
-        } else {
-          toast.error(response?.message)
-        }
-      }
+      //   // Router.reload()
+      // } else {
+      //   setSubmitLoader(false)
+      //   if (typeof response?.message === 'object') {
+      //     Utility.errorMessageExtractorFromObject(response?.message)
+      //   } else {
+      //     toast.error(response?.message)
+      //   }
+      // }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
       toast.error(JSON.stringify(e))
+    }
+  }
+
+  const confirmInactiveStatus = async payload => {
+    if (payload !== '') {
+      try {
+        setSubmitLoader(true)
+        const response = await updateStore(editParams?.id, payload)
+        handleResponse(response)
+        closeStoreValidate()
+        setTempPayload(null)
+      } catch (error) {
+        console.error(error)
+        closeStoreValidate()
+
+        setSubmitLoader(false)
+        toast.error(error.message || JSON.stringify(error))
+      }
+    }
+  }
+
+  const deletePharmacy = async () => {
+    if (editParams?.id !== '') {
+      try {
+        setSubmitLoader(true)
+        const response = await deleteStoreById(editParams?.id)
+
+        // console.log('response', response)
+        handleResponse(response)
+
+        // closeStoreValidate()
+        // setTempPayload(null)
+      } catch (error) {
+        console.error(error)
+        handleResponse(response)
+      }
     }
   }
 
@@ -514,54 +599,73 @@ const ListOfStores = () => {
               <ConfirmDialogBox
                 open={validateStore}
                 closeDialog={() => {
-                  setValidateStore(false)
+                  closeStoreValidate()
                 }}
                 action={() => {
-                  setValidateStore(false)
+                  closeStoreValidate()
                 }}
-                content={
-                  <Box>
-                    <DialogContent>
-                      <DialogTitle
-                        sx={{
-                          fontWeight: 500,
-                          fontSize: '20px',
-                          margin: '0px',
-                          padding: '0px',
-                          mb: '6px',
-                          color: 'customColors.OnSurfaceVariant',
-                          display: 'flex',
-                          gap: 2,
-
-                          alignItems: 'center'
-                        }}
-                      >
-                        <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' />
-                        Store In-Activination Detected
-                      </DialogTitle>
-                      <DialogContentText
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: '16px',
-                          margin: '0px',
-                          padding: '0px',
-                          color: 'customColors.OnSurfaceVariant'
-                        }}
-                      >
-                        Are you sure you want to deactivate this store? Transfer stock to another store, or all
-                        inventory will become inactive
-                        <br /> Please review before proceeding.
-                      </DialogContentText>
-                    </DialogContent>
-                    <DialogActions className='dialog-actions-dense'>
-                      <Button variant='outlined' size='small' color='error' onClick={() => {}}>
-                        Cancel
-                      </Button>
-                      <Button size='small' variant='contained' color='warning' onClick={() => {}}>
-                        Confirm
-                      </Button>
-                    </DialogActions>
+                title={
+                  <Box
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '20px',
+                      margin: '0px',
+                      padding: '0px',
+                      mb: '6px',
+                      color: 'customColors.OnSurfaceVariant',
+                      display: 'flex',
+                      gap: 2,
+                      alignItems: 'center'
+                    }}
+                  >
+                    {/* <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' /> */}
+                    {deleteStore ? 'Delete Pharmacy' : 'Inactivating Pharmacy'}
                   </Box>
+                }
+                content={
+                  <DialogContentText
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: '16px',
+                      margin: '0px',
+                      padding: '0px',
+                      color: 'customColors.OnSurfaceVariant'
+                    }}
+                  >
+                    {deleteStore
+                      ? `Are you sure you want to delete ${editParams?.name}?`
+                      : `Are you sure you want to inactivate the pharmacy?
+Ensure that all stock is transferred to other pharmacies before proceeding with inactivation.`}
+                  </DialogContentText>
+                }
+                dialogActions={
+                  <>
+                    <Button
+                      variant='outlined'
+                      size='small'
+                      color='success'
+                      onClick={() => {
+                        closeStoreValidate()
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <LoadingButton
+                      size='small'
+                      variant='contained'
+                      color='error'
+                      loading={submitLoader}
+                      onClick={() => {
+                        if (deleteStore) {
+                          deletePharmacy()
+                        } else {
+                          confirmInactiveStatus(tempPayload)
+                        }
+                      }}
+                    >
+                      {deleteStore ? 'Delete' : 'Confirm'}
+                    </LoadingButton>
+                  </>
                 }
               />
               {/* {openSnackbar.open ? (

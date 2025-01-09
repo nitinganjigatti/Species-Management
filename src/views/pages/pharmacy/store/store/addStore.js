@@ -80,6 +80,7 @@ const AddStore = props => {
     control,
     setValue,
     clearErrors,
+    watch,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -282,7 +283,7 @@ const AddStore = props => {
             />
           </FormControl>
 
-          {editParams?.id !== null ? (
+          {editParams?.id !== null && watch('type') === 'local' ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller

@@ -523,13 +523,14 @@ const AddRequestForm = () => {
     try {
       const params = {
         sort: 'asc',
-        q: searchText,
+        q: '',
         limit: 20,
-        active: true
+        active: true,
+        product_search: searchText
       }
 
       const searchResults = await getMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length === 1) {
+      if (searchResults?.data?.list_items?.length === 1) {
         let updatedData = searchResults?.data?.list_items?.map(item => ({
           value: item.id,
           name: item.name,
@@ -538,7 +539,6 @@ const AddRequestForm = () => {
           manufacture: item.manufacturer_name,
           control_substance: item.controlled_substance === '1' ? true : false,
           status: item?.active === '0' ? 0 : 1,
-
           prescription_required:
             item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
@@ -603,9 +603,10 @@ const AddRequestForm = () => {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
-      let result
+      var result
       if (operation === 'update') {
         result = await getUpdatedMedicineData(getItems[0]?.medicine_name)
+        console.log('result: ', result)
       }
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -733,6 +734,7 @@ const AddRequestForm = () => {
       try {
         const result = await cancelRequestItems(id)
         if (result?.data?.success === true) {
+          closeCancelDialog()
           toast.success(result?.data?.data)
           Router.push(`/pharmacy/request/request-list/`)
         } else {
@@ -2389,6 +2391,7 @@ const AddRequestForm = () => {
           </Box>
         }
       /> */}
+
       <ConfirmDialogBox
         open={cancelRequestDialog}
         closeDialog={() => {
@@ -2397,50 +2400,7 @@ const AddRequestForm = () => {
         action={() => {
           closeCancelDialog()
         }}
-        content={
-          <Box>
-            <>
-              <DialogContent>
-                <DialogContentText sx={{ mb: 1 }}>
-                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
-                  cannot perform any operations for this request */}
-                  Are you sure you want to cancel this request?
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  variant='contained'
-                  size='small'
-                  color='primary'
-                  onClick={() => {
-                    closeCancelDialog()
-                  }}
-                >
-                  No
-                </Button>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='error'
-                  onClick={() => {
-                    cancelRequest(id)
-                  }}
-                >
-                  Yes
-                </Button>
-              </DialogActions>
-            </>
-          </Box>
-        }
-      />
-      <ConfirmDialogBox
-        open={cancelRequestDialog}
-        closeDialog={() => {
-          closeCancelDialog()
-        }}
-        action={() => {
-          closeCancelDialog()
-        }}
+        title={'Cancel the request'}
         content={
           <Box>
             <>
@@ -2450,30 +2410,32 @@ const AddRequestForm = () => {
                   cannot perform any operations for this request
                 </DialogContentText>
               </DialogContent>
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  variant='contained'
-                  size='small'
-                  color='primary'
-                  onClick={() => {
-                    closeCancelDialog()
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='error'
-                  onClick={() => {
-                    cancelRequest(id)
-                  }}
-                >
-                  Confirm
-                </Button>
-              </DialogActions>
             </>
           </Box>
+        }
+        dialogActions={
+          <>
+            <Button
+              variant='contained'
+              size='small'
+              color='primary'
+              onClick={() => {
+                closeCancelDialog()
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size='small'
+              variant='contained'
+              color='error'
+              onClick={() => {
+                cancelRequest(id)
+              }}
+            >
+              Confirm
+            </Button>
+          </>
         }
       />
     </Card>
