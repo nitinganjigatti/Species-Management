@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -19,7 +19,8 @@ import {
   Drawer,
   TextField,
   Autocomplete,
-  alpha
+  alpha,
+  CircularProgress
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InfoIcon from '@mui/icons-material/Info'
@@ -38,6 +39,16 @@ import * as yup from 'yup'
 import ProductsChart from 'src/components/pharmacy/medicine/ProductsChart'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
+import {
+  getProductAboutToExpireList,
+  getProductDashboardList,
+  getProductExpiredBatchesList,
+  getProductMonthWiseDispatchList,
+  getProductMonthWisePurchaseList,
+  getProductQuantityInStoresList
+} from 'src/lib/api/pharmacy/getMedicineList'
+import FallbackSpinner from 'src/@core/components/spinner'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -53,6 +64,15 @@ const validationSchema = yup.object().shape({
 
 const Overview = ({ productDetails }) => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+
+  const [productDashboardData, setProductDashboardData] = useState()
+  const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
+  const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
+  const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
+  const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
+
   const medicines = [
     {
       name: 'Genimol 650 Tablet',
@@ -96,185 +116,6 @@ const Overview = ({ productDetails }) => {
     }
   ]
 
-  const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
-  const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
-
-  const centralPharmacyContent = (
-    <>
-      {/* Central Pharmacy Section */}
-      <Box
-        sx={{
-          padding: '16px',
-          backgroundColor: '#FFFFFF',
-          borderRadius: '8px',
-          marginBottom: 2,
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)'
-        }}
-      >
-        <Typography
-          variant='subtitle1'
-          sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px' }}
-        >
-          Central Pharmacy
-        </Typography>
-        <Typography variant='body1' component='div'>
-          <Typography
-            component='span'
-            sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
-          >
-            Total Quantity:
-          </Typography>
-          <Typography
-            component='span'
-            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px', ml: 1 }}
-          >
-            2300
-          </Typography>
-        </Typography>{' '}
-      </Box>
-
-      {/* Table Section */}
-      <Card sx={{ p: 4 }}>
-        <Typography
-          variant='subtitle1'
-          marginBottom={2}
-          sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-        >
-          Other Pharmacy Quantity Details
-        </Typography>
-        <Card
-          sx={{
-            // m: 6,
-            border: '1px solid',
-            borderColor: 'customColors.customTableBorderBg',
-            boxShadow: 'none'
-          }}
-        >
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-                <TableRow
-                  sx={{
-                    backgroundColor: theme => alpha(theme.palette.customColors.SecondaryContainer, 0.6),
-                    padding: '4px 8px'
-                  }}
-                >
-                  <TableCell sx={{ p: '6px' }}>Store Name</TableCell>
-                  <TableCell sx={{ p: '6px' }}>Quantity in Store</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-                {[
-                  { storeName: 'ABC Medicals', quantity: 123 },
-                  { storeName: 'Lset Pharmacy', quantity: 430 },
-                  { storeName: 'Capital Store', quantity: 78 },
-                  { storeName: '123 Pharmacy', quantity: 231 }
-                ].map(pharmacy => (
-                  <TableRow key={pharmacy.storeName}>
-                    <TableCell>{pharmacy.storeName}</TableCell>
-                    <TableCell>{pharmacy.quantity}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Card>
-      </Card>
-    </>
-  )
-
-  const expireContent = (
-    <>
-      <Card
-        sx={{
-          // m: 6,
-          border: '1px solid',
-          borderColor: 'customColors.customTableBorderBg',
-          boxShadow: 'none'
-        }}
-      >
-        <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
-          <Table>
-            <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-              <TableRow sx={{ backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.6) }}>
-                <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
-                <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
-                <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
-                <TableCell sx={{ p: '6px' }}>UNIT PRICE</TableCell>
-                <TableCell sx={{ p: '6px' }}>VALUE</TableCell>
-                <TableCell sx={{ p: '6px' }}>DAYS LEFT</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-              <TableRow>
-                <TableCell>BAT-0001</TableCell>
-                <TableCell>12 Jan 2024</TableCell>
-                <TableCell>10</TableCell>
-                <TableCell>₹10</TableCell>
-                <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: 'customColors.Tertiary' }}>6 Days</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>BAT-0001</TableCell>
-                <TableCell>12 Jan 2024</TableCell>
-                <TableCell>10</TableCell>
-                <TableCell>₹10</TableCell>
-                <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: 'customColors.Tertiary' }}>8 Days</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
-    </>
-  )
-
-  const expiredBatchesContent = (
-    <>
-      <Card
-        sx={{
-          // m: 6,
-          border: '1px solid',
-          borderColor: 'customColors.customTableBorderBg',
-          boxShadow: 'none'
-        }}
-      >
-        <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
-          <Table>
-            <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-              <TableRow sx={{ backgroundColor: '#FFD3D3CC' }}>
-                <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
-                <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
-                <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
-                <TableCell sx={{ p: '6px' }}>UNIT PRICE</TableCell>
-                <TableCell sx={{ p: '6px' }}>VALUE</TableCell>
-                <TableCell sx={{ p: '6px' }}>OVERDUE</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-              <TableRow>
-                <TableCell>BAT-0001</TableCell>
-                <TableCell>12 Jan 2024</TableCell>
-                <TableCell>10</TableCell>
-                <TableCell>₹10</TableCell>
-                <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: 'customColors.Error' }}>6 Days</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>BAT-0001</TableCell>
-                <TableCell>12 Jan 2024</TableCell>
-                <TableCell>10</TableCell>
-                <TableCell>₹10</TableCell>
-                <TableCell>₹100</TableCell>
-                <TableCell sx={{ color: 'customColors.Error' }}>8 Days</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
-    </>
-  )
-
   const alternativeMedicines = (
     <>
       <Typography
@@ -305,52 +146,382 @@ const Overview = ({ productDetails }) => {
     </>
   )
 
+  const QuantityInStoresContent = ({ data, isLoading }) => {
+    const totalCentralQty = Array.isArray(data?.central)
+      ? data.central.reduce((sum, store) => sum + Number(store.total_qty), 0)
+      : 0
+
+    const totalLocalQty = Array.isArray(data?.local)
+      ? data.local.reduce((sum, store) => sum + Number(store.total_qty), 0)
+      : 0
+    return (
+      <>
+        {isLoading ? (
+          <FallbackSpinner />
+        ) : (
+          <>
+            <Box
+              sx={{
+                padding: '16px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '8px',
+                marginBottom: 2,
+                boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <Typography
+                variant='subtitle1'
+                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px' }}
+              >
+                Central Pharmacy
+              </Typography>
+              <Typography variant='body1' component='div'>
+                <Typography
+                  component='span'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Quantity:
+                </Typography>
+                <Typography
+                  component='span'
+                  sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px', ml: 1 }}
+                >
+                  {totalCentralQty}
+                </Typography>
+              </Typography>{' '}
+            </Box>
+
+            {/* Table Section */}
+            <Card sx={{ p: 4 }}>
+              <Typography
+                variant='subtitle1'
+                marginBottom={2}
+                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+              >
+                Other Pharmacy Quantity Details
+              </Typography>
+              <Card
+                sx={{
+                  // m: 6,
+                  border: '1px solid',
+                  borderColor: 'customColors.customTableBorderBg',
+                  boxShadow: 'none'
+                }}
+              >
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                      <TableRow
+                        sx={{
+                          backgroundColor: theme => alpha(theme.palette.customColors.SecondaryContainer, 0.6),
+                          padding: '4px 8px'
+                        }}
+                      >
+                        <TableCell sx={{ p: '6px' }}>Store Name</TableCell>
+                        <TableCell sx={{ p: '6px' }}>Quantity in Store</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody
+                      sx={{
+                        borderColor: 'customColors.customTableBorderBg'
+                      }}
+                    >
+                      {data?.local?.length === 0 ? (
+                        <TableRow
+                          sx={{
+                            '&:last-child td, &:last-child th': {
+                              border: 0
+                            }
+                          }}
+                        >
+                          <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                            No data found
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        <>
+                          {data?.local.map(store => (
+                            <TableRow
+                              key={store?.store_id}
+                              sx={{
+                                '&:last-child td, &:last-child th': {
+                                  border: 0
+                                }
+                              }}
+                            >
+                              {/* <TableCell>Local</TableCell> */}
+                              <TableCell>{store?.store_name}</TableCell>
+                              <TableCell>{store?.total_qty}</TableCell>
+                            </TableRow>
+                          ))}
+                        </>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+            </Card>
+          </>
+        )}
+      </>
+    )
+  }
+
+  const AboutToExpireContent = ({ data, isLoading }) => (
+    <>
+      {isLoading ? (
+        <FallbackSpinner />
+      ) : (
+        <Card
+          sx={{
+            border: '1px solid',
+            borderColor: 'customColors.customTableBorderBg',
+            boxShadow: 'none'
+          }}
+        >
+          <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
+            <Table>
+              <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                <TableRow sx={{ backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.6) }}>
+                  <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
+                  <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
+                  <TableCell sx={{ p: '6px' }}>UNIT PRICE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>VALUE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>DAYS LEFT</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                {data.length === 0 ? (
+                  <TableRow
+                    sx={{
+                      '&:last-child td, &:last-child th': {
+                        border: 0 // Removes borders for the last row
+                      }
+                    }}
+                  >
+                    <TableCell colSpan={6} align='center'>
+                      No data found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.map((row, index) => (
+                    <TableRow
+                      key={index}
+                      sx={{
+                        '&:last-child td, &:last-child th': {
+                          border: 0 // Removes borders for the last row
+                        }
+                      }}
+                    >
+                      <TableCell>{row.batch_no}</TableCell>
+                      <TableCell>{row.expiry_date}</TableCell>
+                      <TableCell>{row.qty}</TableCell>
+                      <TableCell>₹{row.unit_price}</TableCell>
+                      <TableCell>₹{(parseFloat(row.qty) * parseFloat(row.unit_price)).toFixed(2)}</TableCell>
+                      <TableCell sx={{ color: 'customColors.Tertiary' }}>{row.days_left} Days</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+    </>
+  )
+  const ExpiredBatchesContent = ({ data, isLoading }) => (
+    <>
+      {isLoading ? (
+        <FallbackSpinner />
+      ) : (
+        <Card
+          sx={{
+            border: '1px solid',
+            borderColor: 'customColors.customTableBorderBg',
+            boxShadow: 'none'
+          }}
+        >
+          <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
+            <Table>
+              <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                <TableRow sx={{ backgroundColor: '#FFD3D3CC' }}>
+                  <TableCell sx={{ p: '6px' }}>BATCH ID</TableCell>
+                  <TableCell sx={{ p: '6px' }}>EXPIRY DATE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>QUANTITY</TableCell>
+                  <TableCell sx={{ p: '6px' }}>UNIT PRICE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>VALUE</TableCell>
+                  <TableCell sx={{ p: '6px' }}>OVERDUE</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                {data.length === 0 ? (
+                  <TableRow
+                    sx={{
+                      '&:last-child td, &:last-child th': {
+                        border: 0
+                      }
+                    }}
+                  >
+                    <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                      No data found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data.map((item, index) => {
+                    const value = (parseFloat(item.qty) * parseFloat(item.unit_price)).toFixed(2)
+                    return (
+                      <TableRow
+                        key={index}
+                        sx={{
+                          '&:last-child td, &:last-child th': {
+                            border: 0
+                          }
+                        }}
+                      >
+                        <TableCell>{item.batch_no}</TableCell>
+                        <TableCell>{new Date(item.expiry_date).toLocaleDateString()}</TableCell>
+                        <TableCell>{item.qty}</TableCell>
+                        <TableCell>₹{item.unit_price}</TableCell>
+                        <TableCell>₹{value}</TableCell>
+                        <TableCell sx={{ color: 'customColors.Error' }}>{item.days_overdue} Days</TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+    </>
+  )
+
+  const [activeDrawer, setActiveDrawer] = useState(null)
+  const [drawerDataArray, setDrawerDataArray] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [totalValue, setTotalValue] = useState({
+    totalValue: 0,
+    totalBatches: 0,
+    totalStores: 0,
+    totalQuantity: 0
+  })
+
   const drawerData = [
     {
-      id: 'centralPharmacy',
+      name: 'quantityInStores',
       title: 'Quantity in Stores',
-      totalStores: 23,
-      totalQuantity: 4056,
-      contentComponent: centralPharmacyContent,
       style: 'customColors.Background',
       bgColor: theme => alpha(theme.palette.customColors.SecondaryContainer, 0.3),
       icon: '/images/medicare.svg',
-      value: 2300,
-      description: 'Quantity in Store'
+      value: productDashboardData?.quantity,
+      description: 'Quantity in Store',
+      totalStores: totalValue?.totalStores,
+      totalQuantity: totalValue?.totalQuantity
     },
     {
-      id: 'aboutToExpire',
+      name: 'aboutToExpire',
       title: 'About to Expire',
-      totalStores: 23,
-      totalQuantity: 4056,
-      contentComponent: expireContent,
       style: 'customColors.Background',
       bgColor: theme => alpha(theme.palette.customColors.Tertiary, 0.1),
       icon: '/images/calendar.svg',
-      value: 56,
-      description: 'About to Expire Quantity'
+      value: productDashboardData?.about_to_expire,
+      description: 'About to Expire Quantity',
+      totalBatches: totalValue?.totalBatches,
+      totalValue: totalValue?.totalValue
     },
     {
-      id: 'expiredBatches',
+      name: 'expiredBatches',
       title: 'Expired Batches',
-      totalStores: 23,
-      totalQuantity: 4056,
-      contentComponent: expiredBatchesContent,
       style: 'customColors.Background',
       // bgColor: '#E933531A',
       bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
       icon: '/images/Incubator_ICON.svg',
-      value: 300,
-      description: 'Expired Quantity'
+      value: productDashboardData?.expired,
+      description: 'Expired Quantity',
+      totalBatches: totalValue?.totalBatches,
+      totalValue: totalValue?.totalValue
     }
   ]
 
-  const [activeDrawer, setActiveDrawer] = useState(null)
+  const closeDrawer = () => {
+    setActiveDrawer(null)
+    setDrawerDataArray([])
+    setTotalValue({
+      totalQuantity: 0,
+      totalStores: 0,
+      totalBatches: 0,
+      totalValue: 0
+    })
+  }
 
-  const openDrawer = drawerId => setActiveDrawer(drawerId)
-  const closeDrawer = () => setActiveDrawer(null)
+  const openDrawer = async name => {
+    setActiveDrawer(name)
 
-  const activeDrawerData = drawerData.find(data => data.id === activeDrawer)
+    try {
+      setIsLoading(true)
+      let result
+      // Fetch data based on selected drawer ID
+      if (name === 'aboutToExpire') {
+        result = await getProductAboutToExpireList(id)
+      } else if (name === 'expiredBatches') {
+        result = await getProductExpiredBatchesList(id)
+      } else if (name === 'quantityInStores') {
+        result = await getProductQuantityInStoresList(id)
+      }
+
+      if (result?.success && result?.data) {
+        setIsLoading(false)
+        setDrawerDataArray(result.data)
+        if (name === 'quantityInStores') {
+          const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
+          console.log(allStores, 'allStores')
+
+          const totalQuantity = allStores.reduce((sum, store) => sum + Number(store.total_qty), 0)
+          const totalStores = allStores.length
+
+          // Set only totalValue and totalStores
+          setTotalValue({
+            totalQuantity,
+            totalStores,
+            totalBatches: 0,
+            totalValue: 0
+          })
+          console.log('Calculated Totals:', { totalQuantity, totalStores })
+        } else {
+          const totalValue = result.data.reduce((acc, item) => {
+            return acc + parseFloat(item.qty) * parseFloat(item.unit_price)
+          }, 0)
+          const totalBatches = new Set(result.data.map(item => item.batch_no)).size
+          setTotalValue({
+            totalQuantity: 0,
+            totalStores: 0,
+            totalBatches,
+            totalValue
+          })
+        }
+      }
+    } catch (error) {
+      setIsLoading(false)
+      console.error('Error fetching data:', error)
+    }
+  }
+
+  const activeDrawerData = drawerData.find(data => data.name === activeDrawer)
+
+  const renderDrawerContent = () => {
+    if (activeDrawer === 'quantityInStores') {
+      return <QuantityInStoresContent data={drawerDataArray} isLoading={isLoading} />
+    }
+    if (activeDrawer === 'aboutToExpire') {
+      return <AboutToExpireContent data={drawerDataArray} isLoading={isLoading} />
+    }
+    if (activeDrawer === 'expiredBatches') {
+      return <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+    }
+
+    return null
+  }
 
   const handleAddAlternativeMedicine = () => {
     setAddMedicinesDrawerOpen(true)
@@ -398,52 +569,70 @@ const Overview = ({ productDetails }) => {
 
   console.log(productDetails, 'overview')
 
-  const dummyData = {
-    dispatch_count: [
-      {
-        January: 1200,
-        February: 1300,
-        March: 1100,
-        April: 1400,
-        May: 1600,
-        June: 1700,
-        July: 1800,
-        August: 2000,
-        September: 2100,
-        October: 2200,
-        November: 2300,
-        December: 2400
+  const productDashboardList = async id => {
+    try {
+      const response = await getProductDashboardList(id)
+      if (response.success) {
+        console.log(response?.data, 'productDashboardList')
+        setProductDashboardData(response?.data)
       }
-    ],
-    dispatch_value: [
-      {
-        January: 500000,
-        February: 600000,
-        March: 450000,
-        April: 700000,
-        May: 800000,
-        June: 750000,
-        July: 900000,
-        August: 950000,
-        September: 1000000,
-        October: 1100000,
-        November: 1200000,
-        December: 1300000
-      }
-    ]
+    } catch (e) {
+      console.error(e)
+    }
   }
+
+  const fetchPurchaseData = async id => {
+    try {
+      const result = await getProductMonthWisePurchaseList(id)
+      if (result?.success === true && result?.data) {
+        console.log(result, 'result')
+        const adjustedData = {
+          dispatch_count: result.data.purchase_count,
+          dispatch_value: result.data.purchase_value
+        }
+
+        setPurchaseData(adjustedData)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const fetchDispatchData = async id => {
+    try {
+      const result = await getProductMonthWiseDispatchList(id)
+      if (result?.success === true && result?.data) {
+        console.log(result, 'dispatch_count')
+        const adjustedData = {
+          dispatch_count: result.data.dispatch_count,
+          dispatch_value: result.data.dispatch_value
+        }
+        setDispatchData(adjustedData)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    if (id != undefined) {
+      productDashboardList(id)
+      fetchPurchaseData(id)
+      fetchDispatchData(id)
+    }
+  }, [id])
 
   return (
     <>
-      <Grid container spacing={4} pt={6} sx={{ display: 'none' }}>
+      <Grid container spacing={4} pt={6}>
         {drawerData.map(card => (
           <StyleWithIconCardComponent
-            key={card.id}
+            key={card.name}
             value={card.value}
             description={card.description}
             icon={card.icon}
             bgColor={card.bgColor}
-            onClick={() => openDrawer(card.id)}
+            onClick={() => openDrawer(card.name)}
             showIcon={true}
           />
         ))}
@@ -453,11 +642,11 @@ const Overview = ({ productDetails }) => {
 
       <Box>
         <Grid container spacing={3} marginTop={3} sx={{ display: 'flex', alignItems: 'stretch' }}>
-          <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
+          <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
               <ProductsChart
                 title='Dispatch'
-                data={dummyData}
+                data={dispatchData}
                 locations={['Central Pharmacy', 'East Pharmacy']}
                 frequencies={['Monthly', 'Weekly']}
                 barColor={'#006D35'}
@@ -472,11 +661,11 @@ const Overview = ({ productDetails }) => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
+          <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
             <Card sx={{ height: '100%' }}>
               <ProductsChart
                 title='Purchases'
-                data={dummyData}
+                data={purchaseData}
                 frequencies={['Monthly', 'Weekly']}
                 barColor={'#00AFD699'}
                 lineColor={'#AFEFEB'}
@@ -705,9 +894,11 @@ const Overview = ({ productDetails }) => {
           title={activeDrawerData.title}
           totalStores={activeDrawerData.totalStores}
           totalQuantity={activeDrawerData.totalQuantity}
+          totalBatches={activeDrawerData.totalBatches}
+          totalValue={activeDrawerData.totalValue}
           drawerStatus={Boolean(activeDrawer)}
           close={closeDrawer}
-          contentComponent={activeDrawerData.contentComponent}
+          contentComponent={renderDrawerContent()}
           style={activeDrawerData.style}
           width={700}
         />

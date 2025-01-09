@@ -339,14 +339,12 @@ const ListOfUOM = () => {
                   sx={{
                     mx: { xs: 4 },
                     ml: { md: 4 }
-                    // ml:{xs:, sm:0 , md:5}
                   }}
                 >
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      // border: '1px solid #C3CEC7',
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '8px',
                       padding: '0 8px',

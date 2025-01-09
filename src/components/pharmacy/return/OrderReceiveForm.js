@@ -1444,6 +1444,15 @@ function OrderReceiveForm({ orderId, requestId }) {
         printWindow.close()
       }
     }
+
+    const interval = setInterval(() => {
+      if (printWindow.closed) {
+        clearInterval(interval)
+      } else {
+        printWindow.close()
+        clearInterval(interval)
+      }
+    }, 500)
   }
 
   return (

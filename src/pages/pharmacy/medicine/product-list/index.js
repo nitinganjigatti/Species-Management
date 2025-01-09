@@ -415,143 +415,6 @@ const ListOfMedicine = () => {
   }))
 
   return (
-    // <>
-    //   {selectedPharmacy?.type === 'central' ? (
-    //     <>
-    //       {loader ? (
-    //         <FallbackSpinner />
-    //       ) : (
-    //         <>
-    //           <CommonDialogBox
-    //             title={'Configure Medicine'}
-    //             dialogBoxStatus={show}
-    //             formComponent={<MedicineConfigure configureMedId={configureMedId} />}
-    //             close={closeDialog}
-    //             show={showDialog}
-    //           />
-    //           <Card>
-    //             <CardHeader title={title} action={headerAction} />
-    //             <Box display='flex' justifyContent='space-between' alignItems='center'>
-    //               {/* Left Box (Search Field) */}
-    //               <Grid item xs={8}>
-    //                 <Box
-    //                   sx={{
-    //                     display: 'flex',
-    //                     alignItems: 'center',
-    //                     border: '1px solid #C3CEC7',
-    //                     borderRadius: '8px',
-    //                     padding: '0 8px',
-    //                     ml: 5,
-    //                     height: '40px',
-    //                     width: '250px' // Set a fixed width for all status
-    //                   }}
-    //                 >
-    //                   <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-    //                   <TextField
-    //                     variant='outlined'
-    //                     value={searchValue}
-    //                     placeholder='Search...'
-    //                     onChange={e => handleSearch(e.target.value)}
-    //                     fullWidth
-    //                     sx={{
-    //                       '& .MuiOutlinedInput-root': {
-    //                         border: 'none',
-    //                         padding: '0',
-    //                         '& fieldset': {
-    //                           border: 'none'
-    //                         }
-    //                       }
-    //                     }}
-    //                   />
-    //                 </Box>
-    //               </Grid>
-    //               <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', display: 'flex', mr: 5, mt: 3 }}>
-    //                 <FormControl fullWidth size='small'>
-    //                   <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
-    //                   <Select
-    //                     size='small'
-    //                     value={statusFilter}
-    //                     label='Filter by Status'
-    //                     onChange={e => {
-    //                       handleStatusFilterChange(e.target.value)
-    //                     }}
-    //                   >
-    //                     <MenuItem value='all'>All</MenuItem>
-    //                     <MenuItem value={true}>Active</MenuItem>
-    //                     <MenuItem value={false}>In-Active </MenuItem>
-    //                   </Select>
-    //                 </FormControl>
-    //               </Grid>
-    //             </Box>
-
-    //             <Grid
-    //               sx={{
-    //                 mx: 4
-    //               }}
-    //             >
-    //               <CommonTable
-    //                 onRowClick={handleRowClick}
-    //                 // eslint-disable-next-line lines-around-comment
-    //                 // onRowClick={handleEdit}
-    //                 indexedRows={indexedRows}
-    //                 total={total}
-    //                 columns={columns}
-    //                 paginationModel={paginationModel}
-    //                 handleSortModel={handleSortModel}
-    //                 setPaginationModel={setPaginationModel}
-    //                 loading={loading}
-    //                 searchValue={searchValue}
-    //               />
-    //             </Grid>
-
-    //             {/* <DataGrid
-    //               sx={{ cursor: 'pointer' }}
-    //               columnVisibilityModel={{
-    //                 id: false
-    //               }}
-    //               autoHeight
-    //               pagination
-    //               hideFooterSelectedRowCount
-    //               disableColumnSelector={true}
-    //               rows={indexedRows === undefined ? [] : indexedRows}
-    //               rowCount={total}
-    //               columns={columns}
-    //               sortingMode='server'
-    //               paginationMode='server'
-    //               pageSizeOptions={[7, 10, 25, 50]}
-    //               paginationModel={paginationModel}
-    //               onSortModelChange={handleSortModel}
-    //               slots={{ toolbar: ServerSideToolbar }}
-    //               onPaginationModelChange={setPaginationModel}
-    //               loading={loading}
-    //               disableColumnMenu
-    //               slotProps={{
-    //                 baseButton: {
-    //                   variant: 'outlined'
-    //                 },
-    //                 toolbar: {
-    //                   value: searchValue,
-    //                   clearSearch: () => handleSearch(''),
-
-    //                   onChange: event => {
-    //                     setSearchValue(event.target.value)
-
-    //                     return handleSearch(event.target.value)
-    //                   }
-    //                 }
-    //               }}
-    //               onRowClick={handleEdit}
-    //             /> */}
-    //           </Card>
-    //         </>
-    //       )}
-    //     </>
-    //   ) : (
-    //     <>
-    //       <Error404></Error404>
-    //     </>
-    //   )}
-    // </>
     <>
       {selectedPharmacy?.type === 'central' ? (
         <>
@@ -586,7 +449,6 @@ const ListOfMedicine = () => {
                 <Box
                   display='flex'
                   justifyContent='space-between'
-                  // alignItems="center"
                   flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
                   gap={6} // Gap between items on smaller screens
                   sx={{ mx: { xs: 3, md: 5 } }}
@@ -598,8 +460,6 @@ const ListOfMedicine = () => {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-
-                        // border: '1px solid #C3CEC7',
                         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '8px',
                         padding: '0 8px',

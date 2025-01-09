@@ -20,7 +20,9 @@ const CommonDrawerBox = ({
   close,
   contentComponent,
   style,
-  width
+  width,
+  totalBatches,
+  totalValue
 }) => {
   return (
     <Drawer
@@ -29,16 +31,20 @@ const CommonDrawerBox = ({
       onClose={() => close()}
       PaperProps={{
         sx: {
-          width: width ? width : 560,
+          width: {
+            xs: '100%',
+            sm: '80%',
+            md: width || 560
+          },
           backgroundColor: style ? style : 'customColors.Background',
           display: 'flex',
           flexDirection: 'column',
           height: '100%'
         }
       }}
-      //
     >
       {/* Header Section */}
+
       <Box
         sx={{
           p: 4,
@@ -65,7 +71,14 @@ const CommonDrawerBox = ({
           </IconButton>
         </Box>
 
-        {totalStores || totalQuantity ? (
+        {(totalStores ||
+          totalQuantity ||
+          totalStores === 0 ||
+          totalQuantity === 0 ||
+          totalBatches ||
+          totalValue ||
+          totalBatches === 0 ||
+          totalValue === 0) && (
           <Box
             sx={{
               display: 'flex',
@@ -77,14 +90,28 @@ const CommonDrawerBox = ({
               backgroundColor: 'customColors.neutral05'
             }}
           >
-            <Typography sx={{ fontSize: '14px' }}>
-              Total Stores: <strong>{totalStores}</strong>
-            </Typography>
-            <Typography sx={{ fontSize: '14px' }}>
-              Total Quantity: <strong>{totalQuantity}</strong>
-            </Typography>
+            {totalStores !== undefined && (
+              <Typography sx={{ fontSize: '14px' }}>
+                Total Stores: <strong>{totalStores}</strong>
+              </Typography>
+            )}
+            {totalQuantity !== undefined && (
+              <Typography sx={{ fontSize: '14px' }}>
+                Total Quantity: <strong>{totalQuantity}</strong>
+              </Typography>
+            )}
+            {totalBatches !== undefined && (
+              <Typography sx={{ fontSize: '14px' }}>
+                Total Batches: <strong>{totalBatches}</strong>
+              </Typography>
+            )}
+            {totalValue !== undefined && (
+              <Typography sx={{ fontSize: '14px' }}>
+                Total Value: <strong>₹ {totalValue}</strong>
+              </Typography>
+            )}
           </Box>
-        ) : null}
+        )}
       </Box>
 
       {/* Content Section */}

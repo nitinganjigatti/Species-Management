@@ -213,3 +213,17 @@ export const VARIANTS_MAPPING = 'variantMapping'
 export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
+
+export const LEDGER = 'v1/pharma/stock/ledger'
+
+export const PRODUCT_DASHBOARD = 'v1/pharma/stock/dashboard'
+
+export const PRODUCT_DASHBOARD_MONTHLY_PURCHASE = 'v1/pharma/stock/monthly-purchase'
+
+export const PRODUCT_DASHBOARD_MONTHLY_DISPATCH = 'v1/pharma/stock/monthly-dispatch'
+
+export const PRODUCT_ABOUT_TO_EXPIRE = 'v1/pharma/stock/about-to-expire'
+
+export const PRODUCT_EXPIRED_BATCHES = 'v1/pharma/stock/expired'
+
+export const PRODUCT_QUANTITY_IN_STORE = 'v1/pharma/stock/quantity-details'

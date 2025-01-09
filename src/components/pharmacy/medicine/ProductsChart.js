@@ -45,9 +45,9 @@ const ProductsChart = ({
   }
 
   // Extract months from data
-  const monthsFromApi = data?.dispatch_count[0] ? Object.keys(data.dispatch_count[0]) : []
-  const purchaseCounts = monthsFromApi.map(month => parseInt(data?.dispatch_count[0]?.[month]) || 0)
-  const purchaseValues = monthsFromApi.map(month => parseFloat(data?.dispatch_value[0]?.[month] || 0) / 100000)
+  const monthsFromApi = data?.dispatch_count?.[0] ? Object.keys(data.dispatch_count?.[0]) : []
+  const purchaseCounts = monthsFromApi.map(month => parseInt(data?.dispatch_count?.[0]?.[month]) || 0)
+  const purchaseValues = monthsFromApi.map(month => parseFloat(data?.dispatch_value?.[0]?.[month] || 0) / 100000)
 
   // Convert full month names to short month names for the x-axis labels
   const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
@@ -82,10 +82,10 @@ const ProductsChart = ({
       y: {
         formatter: (value, { seriesIndex }) => {
           if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
-            return `₹${value.toFixed(2)} lac`
+            return `₹${value?.toFixed(2)} lac`
           }
 
-          return value.toFixed(0)
+          return value?.toFixed(0)
         }
       }
     },
@@ -146,11 +146,21 @@ const ProductsChart = ({
   return (
     <Card>
       <CardHeader
-        title={title}
+        title={
+          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}>
+            {title}
+          </Typography>
+        }
         action={
           <Typography
             onClick={handleClick}
-            sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
+            sx={{
+              color: theme.palette.primary.main,
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 500,
+              display: 'none'
+            }}
           >
             View More
           </Typography>
@@ -158,7 +168,7 @@ const ProductsChart = ({
       />
 
       <CardContent>
-        <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid container spacing={2} sx={{ mb: 2, display: 'none' }}>
           {/* Conditionally render Location dropdown */}
           {locations && locations.length > 0 && (
             <Grid item xs={6}>
