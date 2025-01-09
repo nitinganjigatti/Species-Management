@@ -29,7 +29,7 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { getMedicineById } from 'src/lib/api/pharmacy/getMedicineList'
+import { getMedicineById, getProductDashboardList } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Overview from 'src/views/pages/pharmacy/product/product-details-list/over-view'
 import Purchase from 'src/views/pages/pharmacy/product/product-details-list/purchase'
@@ -41,11 +41,48 @@ import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
 
 const TabsSimple = ({ productDetails }) => {
-  const [value, setValue] = useState('overview')
+  // const [value, setValue] = useState('overview')
+
+  // const handleChange = (event, newValue) => {
+  //   setValue(newValue)
+  // }
+  const router = useRouter()
+  const { tab } = router.query
+  const defaultTab = 'overview'
+  const [value, setValue] = React.useState(tab || defaultTab)
+
+  useEffect(() => {
+    if (tab) {
+      setValue(tab)
+    } else {
+      setValue(defaultTab)
+    }
+  }, [tab])
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+    const { batch_no, ...otherQueryParams } = router.query
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...otherQueryParams, tab: newValue }
+      },
+      undefined,
+      { shallow: true }
+    )
   }
+
+  // const handleChange = (event, newValue) => {
+  //   setValue(newValue)
+  //   router.replace(
+  //     {
+  //       pathname: router.pathname,
+  //       query: { ...router.query, tab: newValue }
+  //     },
+  //     undefined,
+  //     { shallow: true }
+  //   )
+  // }
 
   return (
     <TabContext value={value}>
@@ -59,8 +96,8 @@ const TabsSimple = ({ productDetails }) => {
         }}
       >
         <Tab value='overview' label='Overview' />
-        <Tab value='purchase' label='Purchase' />
-        <Tab value='dispatch' label='Dispatch' />
+        {/* <Tab value='purchase' label='Purchase' />
+        <Tab value='dispatch' label='Dispatch' /> */}
         <Tab value='ledger' label='Ledger' />
       </TabList>
       <TabPanel value='overview' sx={{ p: 0 }}>
@@ -69,10 +106,10 @@ const TabsSimple = ({ productDetails }) => {
       <TabPanel value='purchase'>
         <Purchase />
       </TabPanel>
-      <TabPanel value='dispatch'>
+      <TabPanel value='dispatch' sx={{ p: 0 }}>
         <Dispatch />
       </TabPanel>
-      <TabPanel value='ledger'>
+      <TabPanel value='ledger' sx={{ p: 0 }}>
         <Ledger />
       </TabPanel>
     </TabContext>
@@ -147,22 +184,6 @@ const ProductDetailsList = () => {
       getVariantProductList(id)
     }
   }, [id])
-
-  // const getAllVariantList = async id => {
-  //   setLoader(true)
-  //   const params = {}
-  //   try {
-  //     const response = await getVariants({ params: params })
-  //     if (response.success) {
-  //       setListAllVariant(response?.data?.list_items)
-  //       console.log(response?.data?.list_items, 'Variantlist')
-  //     }
-  //     setLoader(false)
-  //   } catch (e) {
-  //     console.log(e)
-  //     setLoader(false)
-  //   }
-  // }
 
   const getAllVariantList = async (query = '') => {
     setMainLoader(true)

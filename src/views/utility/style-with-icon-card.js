@@ -40,7 +40,7 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
               fontSize: '20px'
             }}
           >
-            {value ? value : null}
+            {value ? value : 0}
           </Typography>
           <Typography
             variant='body2'

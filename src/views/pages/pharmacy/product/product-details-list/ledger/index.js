@@ -1,11 +1,3 @@
-// import React from 'react'
-
-// const Ledger = () => {
-//   return <div>Ledger</div>
-// }
-
-// export default Ledger
-
 import {
   Avatar,
   Box,
@@ -32,7 +24,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 
 // ** Icon Imports
-import { getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getBatchList, getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
@@ -40,6 +32,10 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import auth from 'src/configs/auth'
+import { getLedgerList } from 'src/lib/api/pharmacy/getMedicineList'
+import TableBasic from 'src/views/table/data-grid/TableBasic'
+import toast from 'react-hot-toast'
 
 const DoctorCard = ({ name, title, site, isSelected, onSelectDoctor }) => {
   return (
@@ -86,56 +82,42 @@ const DoctorCard = ({ name, title, site, isSelected, onSelectDoctor }) => {
   )
 }
 
-function Ledger() {
-  const router = useRouter()
-  const theme = useTheme()
-  const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'desc')
+const filters = [
+  'Batch Details'
+  // 'Transaction Type'
+  //  'Dispatch By', 'Dispatch To', 'Created By', 'Date'
+]
 
-  const [rows, setRows] = useState([
-    {
-      sl_no: 1,
-      Reference_id: 'REF123456',
-      TRANSACTION_TYPE: 'Purchase',
-      date: '2024-11-01T08:30:00Z',
-      SHIPMENT_ID: 'SHIP123',
-      transaction_date: '2024-11-01T09:00:00Z',
-      DISPATCH_TO: 'Warehouse A',
-      DISPATCHED_BY: 'John Doe',
-      BATCH_ID: 'BATCH001',
-      QUANTITY: 100,
-      BATCH_BAL: 50,
-      total_bal: 150,
-      debit_credit: 'Debit',
-      TRANSACTION_CREATED: 'Alice Smith',
-      profile_pic: 'https://randomuser.me/api/portraits/men/1.jpg'
-    },
-    {
-      sl_no: 2,
-      Reference_id: 'REF123457',
-      TRANSACTION_TYPE: 'Sale',
-      date: '2024-11-03T10:00:00Z',
-      SHIPMENT_ID: 'SHIP124',
-      transaction_date: '2024-11-03T11:00:00Z',
-      DISPATCH_TO: 'Warehouse B',
-      DISPATCHED_BY: 'Jane Smith',
-      BATCH_ID: 'BATCH002',
-      QUANTITY: 150,
-      BATCH_BAL: 70,
-      total_bal: 220,
-      debit_credit: 'Credit',
-      TRANSACTION_CREATED: 'Bob Brown',
-      profile_pic: 'https://randomuser.me/api/portraits/women/2.jpg'
-    }
-  ])
+function Ledger() {
+  const theme = useTheme()
+  const router = useRouter()
+  const { id, tab, batch_no } = router.query
+
+  const [loading, setLoading] = useState(false)
+
+  const [rows, setRows] = useState()
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
-  const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page, 10) - 1 || 0,
     pageSize: parseInt(router.query.pageSize, 10) || 10
   })
+
+  const [selectedTabs, setSelectedTabs] = useState([])
+  const [batchDetailsList, setBatchDetailsList] = useState([])
+  const [selectedBatch, setSelectedBatch] = useState(null)
+  const [open, setOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState('Batch Details')
+
+  const [transactionTypes, setTransactionTypes] = useState({
+    request: false,
+    directDispatch: false,
+    return: false,
+    purchase: false,
+    dispense: false
+  })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedLocations, setSelectedLocations] = useState([])
 
   const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
@@ -145,17 +127,17 @@ function Ledger() {
   const columns = [
     {
       width: 70,
-      field: 'sl',
+      field: 'uid',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no + '.'}
+          {params.row.uid + '.'}
         </Typography>
       )
     },
     {
-      width: 120,
-      field: 'Reference_id',
+      width: 150,
+      field: 'number',
       headerName: 'REFERENCE ID',
       renderCell: params => (
         <Typography
@@ -167,13 +149,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.Reference_id}
+          {params.row.number || 'NA'}
         </Typography>
       )
     },
     {
       width: 160,
-      field: 'TRANSACTION_TYPE',
+      field: 'type',
       headerName: 'TRANSACTION TYPE',
       renderCell: params => (
         <Typography
@@ -185,13 +167,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.TRANSACTION_TYPE}
+          {params.row.type}
         </Typography>
       )
     },
     {
-      width: 120,
-      field: 'date',
+      width: 140,
+      field: 'created_at',
       headerName: 'DATE',
       renderCell: params => (
         <Typography
@@ -203,15 +185,15 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.date))}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
           {/* -{' '}
           {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.date))} */}
         </Typography>
       )
     },
     {
-      width: 120,
-      field: 'SHIPMENT_ID',
+      width: 150,
+      field: 'shipment_reference',
       headerName: 'SHIPMENT ID',
       renderCell: params => (
         <Typography
@@ -223,52 +205,14 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.SHIPMENT_ID}
-        </Typography>
-      )
-    },
-    {
-      width: 160,
-      field: 'transaction_date',
-      headerName: 'TRANSACTION DATE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))}
-          {/* -{' '}
-          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))} */}
-        </Typography>
-      )
-    },
-    {
-      width: 120,
-      field: 'DISPATCH_TO',
-      headerName: 'DISPATCH TO',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.DISPATCH_TO}
+          {params.row.shipment_reference || 'NA'}
         </Typography>
       )
     },
 
     {
-      width: 140,
-      field: 'DISPATCHED_BY',
+      width: 170,
+      field: 'dispatched_pharmacy',
       headerName: 'DISPATCHED BY',
       renderCell: params => (
         <Typography
@@ -280,13 +224,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.DISPATCHED_BY}
+          {params.row.dispatched_pharmacy || 'NA'}
         </Typography>
       )
     },
     {
       width: 120,
-      field: 'BATCH_ID',
+      field: 'batch_no',
       headerName: 'BATCH ID',
       renderCell: params => (
         <Typography
@@ -298,13 +242,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.BATCH_ID}
+          {params.row.batch_no || 'NA'}
         </Typography>
       )
     },
     {
       width: 120,
-      field: 'QUANTITY',
+      field: 'qty',
       headerName: 'QUANTITY',
       renderCell: params => (
         <Typography
@@ -316,13 +260,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.QUANTITY}
+          {params.row.qty || 'NA'}
         </Typography>
       )
     },
     {
       width: 140,
-      field: 'BATCH_BAL',
+      field: 'balance',
       headerName: 'BATCH BALANCE',
       renderCell: params => (
         <Typography
@@ -334,7 +278,7 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.BATCH_BAL}
+          {params.row.balance || 'NA'}
         </Typography>
       )
     },
@@ -352,13 +296,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_bal}
+          {params.row.total_bal || 'NA'}
         </Typography>
       )
     },
     {
       width: 120,
-      field: 'debit_credit',
+      field: 'transaction',
       headerName: 'DEBIT/CREDIT',
       renderCell: params => (
         <Typography
@@ -370,13 +314,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.debit_credit}
+          {params.row.transaction}
         </Typography>
       )
     },
     {
       width: 200,
-      field: 'TRANSACTION_CREATED',
+      field: 'transaction_created_by',
       headerName: 'TRANSACTION CREATED',
       renderCell: params => (
         <>
@@ -402,14 +346,14 @@ function Ledger() {
               fontFamily: 'Inter'
             }}
           >
-            {params.row.TRANSACTION_CREATED}
+            {params.row.transaction_created_by}
             <Typography
               sx={{
                 fontSize: '12px',
                 fontWeight: 400
               }}
             >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))}
+              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
             </Typography>
           </Typography>
         </>
@@ -417,144 +361,147 @@ function Ledger() {
     }
   ]
 
-  const getLedger = useCallback(
-    async ({ sort, q, column }) => {
-      try {
-        setLoading(true)
+  const getLedger = useCallback(async ({ stock_id, batch_no, q, tab }) => {
+    // console.log('getLedger called with:', { stock_id, batch_no, q, tab })
+    try {
+      setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+      const params = {
+        stock_id,
+        batch_no,
+        q,
+        tab
+      }
+
+      await getLedgerList(params).then(res => {
+        console.log(res)
+        if (res?.success) {
+          setRows(loadServerRows(paginationModel.page, res?.data))
+        } else {
+          setRows()
         }
-
-        // Call the API to fetch data with the sorting and other params
-        // await getDispenseList({ params }).then(res => {
-        //   if (res?.success) {
-        //     setTotal(parseInt(res?.count))
-        //     setRows(loadServerRows(paginationModel.page, res?.data))
-        //   } else {
-        //     setRows([])
-        //     setTotal(0)
-        //   }
-        // })
-
-        setLoading(false)
-      } catch (e) {
-        setLoading(false)
-        console.log(e)
-      }
-    },
-    [paginationModel]
-  )
+      })
+      setLoading(false)
+    } catch (e) {
+      setLoading(false)
+      console.log(e)
+    }
+  }, [])
 
   useEffect(() => {
-    router.replace({
-      pathname: router.pathname,
-      query: {
-        ...router.query,
-        searchValue,
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize
-      }
-    })
-  }, [paginationModel.page, paginationModel.pageSize])
+    console.log('useEffect triggered with:', { id, batch_no, selectedTabs })
 
-  useEffect(() => {
-    getLedger({ sort, q: searchValue, column: sortColumn })
-  }, [getLedger, selectedPharmacy.id])
+    setSelectedBatch(batch_no || null)
+    if (id && batch_no && selectedTabs) {
+      getLedger({
+        stock_id: id,
+        batch_no: batch_no,
+        q: searchValue,
+        tab: selectedTabs
+      })
+    }
+  }, [id, batch_no, selectedTabs])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = rows?.ledger_data?.map((row, index) => ({
     ...row,
-    id: `${row.sl_no}`,
-    sl_no: getSlNo(index)
+    stock_item_id: rows.stock_item_id,
+    batch_no: rows.batch_no,
+    id: `${index}`,
+    sl_no: getSlNo(index),
+    uid: getSlNo(index)
   }))
 
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
-      setPaginationModel(prevModel => ({
-        ...prevModel,
-        page: 0
-      }))
+  const handleSearch = async value => {
+    if (!selectedBatch || !batch_no) {
+      toast.error('Please select the batch ID first, then select these parameters.')
+      return
+    }
+    setSearchValue(value)
+    if (id && (selectedBatch || batch_no)) {
+      await searchTableData({ q: value })
+    }
+  }
 
-      router.replace({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          searchValue: value
-        }
-      })
-    }, 500),
-    [router]
+  const searchTableData = useCallback(
+    debounce(async ({ q }) => {
+      const filters = router.query.filters || selectedTabs
+      console.log(filters)
+
+      setSearchValue(q)
+      try {
+        await getLedger({ stock_id: id, batch_no: batch_no, q: q, tab: Array.isArray(filters) ? filters : [filters] })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [getLedger, router.query.filters, selectedTabs, id, batch_no]
   )
 
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      const newSort = newModel[0].sort
-      const newColumn = newModel[0].field
+  const dispatchBy = ['Central Pharmacy', 'Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
+  const dispatchTo = ['Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
+  const dates = ['Last 7 days', 'Current month', 'Last 3 months', 'Current year']
 
-      setSort(newSort)
-      setSortColumn(newColumn)
+  const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense']
+
+  // const handleTabClick = tab => {
+  //   if (!selectedBatch || !batch_no) {
+  //     toast.error('Please select the batch ID first, then select these parameters.')
+  //     return
+  //   }
+  //   if (selectedTabs.includes(tab)) {
+  //     // Remove tab from selected
+  //     setSelectedTabs(selectedTabs.filter(selectedTab => selectedTab !== tab))
+  //   } else {
+  //     // Add tab to selected
+  //     setSelectedTabs([...selectedTabs, tab])
+  //   }
+  // }
+  const handleTabClick = tab => {
+    if (!selectedBatch || !batch_no) {
+      toast.error('Please select the batch ID first, then select these parameters.')
+      return
+    }
+
+    if (selectedTabs.includes(tab)) {
+      // Remove tab from selected
+      const updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
+      setSelectedTabs(updatedTabs)
+      // Update router query to remove the tab
+      const newQuery = { ...router.query }
+      if (updatedTabs.length > 0) {
+        newQuery.filters = updatedTabs
+      } else {
+        delete newQuery.filters
+      }
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: newQuery
+        },
+        undefined,
+        { shallow: true }
+      )
+    } else {
+      // Add tab to selected
+      const updatedTabs = [...selectedTabs, tab]
+      setSelectedTabs(updatedTabs)
+
+      // Update router query to add the tab
       router.replace(
         {
           pathname: router.pathname,
           query: {
             ...router.query,
-            sort: newSort,
-            column: newColumn
+            filters: updatedTabs
           }
         },
         undefined,
         { shallow: true }
       )
-
-      getLedger({ sort: newSort, q: searchValue, column: newColumn })
     }
   }
-
-  const onRowClick = params => {
-    var data = params.row
-
-    // if (searchValue) {
-    //   router.push({
-    //     pathname: `/pharmacy/dispense/${data?.id}`
-    //   })
-    // } else {
-    //   router.push({
-    //     pathname: `/pharmacy/dispense/${data?.id}`
-    //   })
-    // }
-  }
-
-  const [selectedTabs, setSelectedTabs] = useState([])
-
-  const tabs = ['Requests', 'Purchase', 'Direct Dispatch', 'Returns', 'Dispense']
-
-  const handleTabClick = tab => {
-    if (selectedTabs.includes(tab)) {
-      // Remove tab from selected
-      setSelectedTabs(selectedTabs.filter(selectedTab => selectedTab !== tab))
-    } else {
-      // Add tab to selected
-      setSelectedTabs([...selectedTabs, tab])
-    }
-  }
-
-  const [open, setOpen] = useState(false)
-  const [selectedItem, setSelectedItem] = useState('Transaction Type')
-
-  const [transactionTypes, setTransactionTypes] = useState({
-    request: false,
-    directDispatch: false,
-    return: false,
-    purchase: false,
-    dispense: false
-  })
 
   // Toggle Drawer open/close
   const toggleDrawer = () => {
@@ -574,11 +521,14 @@ function Ledger() {
     })
   }
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedLocations, setSelectedLocations] = useState([])
-  const dispatchBy = ['Central Pharmacy', 'Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
-  const dispatchTo = ['Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
-  const dates = ['Last 7 days', 'Current month', 'Last 3 months', 'Current year']
+  const handleBatchCheckbox = event => {
+    // If the checkbox is checked, select the batch_no
+    if (event.target.checked) {
+      setSelectedBatch(event.target.value)
+    } else {
+      setSelectedBatch(null)
+    }
+  }
 
   // Handle change in search input
   const handleSearchChange = event => {
@@ -600,6 +550,10 @@ function Ledger() {
   const filteredDispatchTo = dispatchTo.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
   const filteredDates = dates.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
 
+  const filteredBatchDetails = batchDetailsList.filter(location =>
+    location.batch_no.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   const [selectedDoctors, setSelectedDoctors] = React.useState([])
 
   const handleDoctorSelect = (index, selected) => {
@@ -618,160 +572,319 @@ function Ledger() {
     { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' }
   ]
 
+  const getBatchListDetails = useCallback(async id => {
+    try {
+      await getBatchList({ ProductId: id }).then(res => {
+        setBatchDetailsList(res.data.items)
+        console.log(res.data.items, 'batch')
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (id) {
+      getBatchListDetails(id)
+    }
+  }, [id])
+
+  // useEffect(() => {
+  //   setSelectedBatch(batch_no || null)
+  //   if (id && batch_no) {
+  //     getLedger({
+  //       stock_id: id,
+  //       batch_no: batch_no || null,
+  //       q: searchValue,
+  //       tab: selectedTabs
+  //     })
+  //   }
+  // }, [id, batch_no])
+
+  // useEffect(() => {
+  //   if (id && batch_no && selectedTabs) {
+  //     getLedger({
+  //       stock_id: id,
+  //       batch_no: batch_no,
+  //       q: searchValue,
+  //       tab: selectedTabs
+  //     })
+  //   }
+  // }, [selectedTabs])
+
+  const handleApplyFilter = async () => {
+    if (!id || !selectedBatch) {
+      toast.error('Both product ID and batch must be selected')
+      return
+    }
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          batch_no: selectedBatch
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
+    toggleDrawer()
+  }
+  const handleClearFilter = () => {
+    const newQuery = { ...router.query }
+    delete newQuery.batch_no // Remove batch parameter
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: newQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+    setSelectedBatch(null)
+    setRows([])
+    toggleDrawer()
+    // getLedger({
+    //   stock_id: id,
+    //   batch_no: null,
+    //   q: searchValue,
+    //   tab: selectedTabs
+    // })
+  }
+
   return (
     <>
       <Grid
         container
-        sm={12}
-        xs={12}
+        spacing={2}
+        justifyContent='flex-end'
+        alignItems='center'
         sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          mt: 6
+          mt: 6,
+          flexWrap: 'wrap'
         }}
       >
-        <Grid item>
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Grid item xs={8}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px'
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
-            </Grid>
+        <Grid item xs={12} sm={12} md={3} lg={3}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              padding: '0 8px',
+              height: '40px',
+              width: '100%'
+            }}
+          >
+            <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
+            <TextField
+              variant='outlined'
+              value={searchValue}
+              placeholder='Search...'
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+                  padding: '0',
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                }
+              }}
+            />
           </Box>
         </Grid>
       </Grid>
+
       <Box sx={{ mt: 4 }}>
         {/* Tabs */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            {tabs.map(tab => (
-              <Button
-                key={tab}
-                variant={selectedTabs.includes(tab) ? 'contained' : 'outlined'}
-                onClick={() => handleTabClick(tab)}
-                sx={{
-                  backgroundColor: selectedTabs.includes(tab) ? '#001F3F' : '#f5f5f5',
-                  color: selectedTabs.includes(tab) ? '#FFFFFF' : '#555',
-                  boxShadow: 'none',
-                  border: selectedTabs.includes(tab) ? 'none' : '1px solid #C3CEC7',
-                  '&:hover': {
-                    backgroundColor: selectedTabs.includes(tab) ? '#001A36' : '#e0e0e0'
-                  },
-                  textTransform: 'none',
-                  borderRadius: '16px'
-                }}
-              >
-                {tab} {selectedTabs.includes(tab) && '✖'}
-              </Button>
-            ))}
-          </Box>
-          <Button
-            variant='outlined'
-            startIcon={<FilterListIcon />}
-            sx={{
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              height: '40px',
-              textTransform: 'none'
-            }}
-            onClick={toggleDrawer}
-          >
-            Filter
-          </Button>
-        </Box>
+        <Grid
+          container
+          spacing={4}
+          alignItems='center'
+          justifyContent='space-between'
+          sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+        >
+          {/* Tabs Section */}
+          <Grid item xs={12} md='auto'>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 2
+              }}
+            >
+              {tabs.map(tab => (
+                <Button
+                  key={tab}
+                  variant={selectedTabs.includes(tab) ? 'contained' : 'outlined'}
+                  onClick={() => handleTabClick(tab)}
+                  sx={{
+                    backgroundColor: selectedTabs.includes(tab)
+                      ? 'customColors.OnSecondaryContainer'
+                      : 'customColors.neutral05',
+                    color: selectedTabs.includes(tab) ? 'white' : 'customColors.OnSurfaceVariant',
+                    boxShadow: 'none',
+                    border: selectedTabs.includes(tab)
+                      ? 'none'
+                      : theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    '&:hover': {
+                      backgroundColor: selectedTabs.includes(tab)
+                        ? 'customColors.OnSecondaryContainer'
+                        : 'customColors.neutral05'
+                    },
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    textTransform: 'none',
+                    borderRadius: '24px'
+                  }}
+                >
+                  {/* {tab} {selectedTabs.includes(tab) && '✖'} */}
+                  {tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase()} {selectedTabs.includes(tab) && 'x'}
+                </Button>
+              ))}
+            </Box>
+          </Grid>
+
+          {/* Filter Button */}
+          <Grid item xs={12} md='auto'>
+            <Button
+              variant='outlined'
+              startIcon={<FilterListIcon />}
+              sx={{
+                border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '8px',
+                height: '40px',
+                textTransform: 'none',
+                width: { xs: '100%', md: 'auto' }
+              }}
+              onClick={toggleDrawer}
+            >
+              Filter
+            </Button>
+          </Grid>
+        </Grid>
 
         {/* Stats Card */}
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: '#eaf4f2',
+            backgroundColor: 'customColors.displaybgSecondary',
             borderRadius: 1,
             padding: 2,
             mt: 4
           }}
         >
-          <Box
-            sx={{
-              backgroundColor: 'white',
-              padding: 1,
-              borderRadius: '8px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 10
-            }}
-          >
-            <Avatar variant='square' src='/path-to-image' />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 10 }}>
-            <Box>
-              <Typography variant='subtitle2' color='textSecondary'>
-                Total Purchase
-              </Typography>
-              <Typography variant='h6' color='textPrimary'>
-                15
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant='subtitle2' color='textSecondary'>
-                Total Return
-              </Typography>
-              <Typography variant='h6' color='textPrimary'>
-                10
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant='subtitle2' color='textSecondary'>
-                Total Outgoing
-              </Typography>
-              <Typography variant='h6' color='textPrimary'>
-                200
-              </Typography>
-            </Box>
-          </Box>
+          <Grid container spacing={{ xs: 3, sm: 10 }} alignItems='center' sx={{ flexWrap: 'wrap' }}>
+            {/* Avatar Section */}
+            <Grid
+              item
+              xs={12}
+              sm='auto'
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'center', sm: 'flex-start' }
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: 'white',
+                  padding: 1,
+                  borderRadius: '8px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: { xs: 0, sm: 10 },
+                  mx: { xs: 'auto', sm: 0 },
+                  width: 'fit-content'
+                }}
+              >
+                <Avatar variant='square' src='/path-to-image' />
+              </Box>
+            </Grid>
+
+            {/* Data Section */}
+            <Grid item xs={12} sm>
+              <Grid container spacing={4} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+                {/* Total Purchase */}
+                <Grid item xs={12} sm='auto'>
+                  <Box textAlign={{ xs: 'center', sm: 'left' }}>
+                    <Typography
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontSize: '14px'
+                      }}
+                    >
+                      Total Purchase
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: 'customColors.OnSurfaceVariant',
+                        fontWeight: 600,
+                        fontSize: '16px'
+                      }}
+                    >
+                      {rows?.purchase_qty || '0'}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                {/* Total Return */}
+                <Grid item xs={12} sm='auto'>
+                  <Box textAlign={{ xs: 'center', sm: 'left' }}>
+                    <Typography
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontSize: '14px'
+                      }}
+                    >
+                      Total Return
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: 'customColors.OnSurfaceVariant',
+                        fontWeight: 600,
+                        fontSize: '16px'
+                      }}
+                    >
+                      {rows?.total_return_qty || '0'}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                {/* Total Outgoing */}
+                <Grid item xs={12} sm='auto'>
+                  <Box textAlign={{ xs: 'center', sm: 'left' }}>
+                    <Typography
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        fontWeight: 400,
+                        fontSize: '14px'
+                      }}
+                    >
+                      Total Outgoing
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: 'customColors.OnSurfaceVariant',
+                        fontWeight: 600,
+                        fontSize: '16px'
+                      }}
+                    >
+                      {rows?.total_dispatch_qty || '0'}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Grid>
         </Box>
       </Box>
-      <Grid>
-        <CommonTable
-          onRowClick={onRowClick}
-          indexedRows={indexedRows}
-          total={total}
-          handleSortModel={handleSortModel}
-          columns={columns}
-          paginationModel={paginationModel}
-          setPaginationModel={setPaginationModel}
-          loading={loading}
-          searchValue={searchValue}
-        />
+      <Grid mt={6}>
+        <TableBasic rows={indexedRows} columns={columns} />
       </Grid>
 
       <>{/* <Error404></Error404> */}</>
@@ -781,11 +894,11 @@ function Ledger() {
         onClose={toggleDrawer}
         PaperProps={{
           sx: {
-            width: { xs: '100%', sm: 560 }, // Full width on mobile, fixed width on larger screens
+            width: { xs: '100%', sm: 560 },
             backgroundColor: 'customColors.Background',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column' // Ensures content stacks vertically
+            flexDirection: 'column'
           }
         }}
       >
@@ -800,9 +913,9 @@ function Ledger() {
 
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flexGrow: 1 }}>
           {/* Left side - List of menu items */}
-          <Box sx={{ flex: 8, display: 'flex', flexDirection: 'column', width: { xs: '100%', sm: 'auto' } }}>
-            <List sx={{ p: 0, ml: 2 }}>
-              {['Transaction Type', 'Dispatch By', 'Dispatch To', 'Created By', 'Date'].map(item => (
+          <Box sx={{ flex: 24, display: 'flex', flexDirection: 'column', width: { xs: '100%', sm: 'auto' } }}>
+            <List sx={{ p: 0, ml: 5 }}>
+              {filters.map(item => (
                 <ListItem
                   button
                   key={item}
@@ -817,18 +930,100 @@ function Ledger() {
                     }
                   }}
                 >
-                  <ListItemText primary={item} />
+                  <ListItemText
+                    primary={item}
+                    sx={{
+                      '& .MuiListItemText-primary': {
+                        color: 'customColors.OnPrimaryContainer',
+                        fontSize: '16px',
+                        fontWeight: 400
+                      }
+                    }}
+                  />
                 </ListItem>
               ))}
             </List>
           </Box>
 
           {/* Right side - Display selected item */}
-          <Box sx={{ width: { xs: '100%', sm: 360 }, padding: 4, backgroundColor: '#FFFFFF', flexGrow: 1 }}>
+          <Box
+            sx={{
+              width: { xs: '100%', sm: 360 },
+              backgroundColor: '#FFFFFF',
+              flexGrow: 1,
+              pt: 3
+            }}
+          >
+            {selectedItem === 'Batch Details' && (
+              <>
+                <Box
+                  sx={{
+                    overflowY: 'scroll',
+                    height: '82.5vh',
+                    px: 5
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'sticky',
+                      top: 0,
+                      backgroundColor: 'white',
+                      zIndex: 1,
+                      mb: 2
+                    }}
+                  >
+                    <TextField
+                      label='Search'
+                      variant='outlined'
+                      fullWidth
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      size='small'
+                      sx={{ mt: 2 }}
+                    />
+                  </Box>
+                  {filteredBatchDetails.map(location => (
+                    <Box key={location.batch_no}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name='batchDetails'
+                            value={location.batch_no}
+                            checked={selectedBatch === location.batch_no}
+                            // checked={selectedBatch === location.batch_no || batch_no === location.batch_no}
+                            onChange={handleBatchCheckbox}
+                            sx={{
+                              color: 'customColors.Outline',
+                              '&.Mui-checked': {
+                                color: 'primary.main'
+                              }
+                            }}
+                          />
+                        }
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          '& .MuiFormControlLabel-label': {
+                            color: 'customColors.Outline'
+                          }
+                        }}
+                        label={`${location.batch_no}`}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </>
+            )}
             {selectedItem === 'Transaction Type' && (
               <>
                 {['request', 'directDispatch', 'return', 'purchase', 'dispense'].map(type => (
-                  <Box key={type}>
+                  <Box
+                    key={type}
+                    sx={{
+                      overflowY: 'scroll',
+                      px: 5
+                    }}
+                  >
                     <FormControlLabel
                       control={
                         <Checkbox name={type} checked={transactionTypes[type]} onChange={handleCheckboxChange} />
@@ -839,6 +1034,7 @@ function Ledger() {
                 ))}
               </>
             )}
+
             {selectedItem === 'Dispatch By' && (
               <>
                 <Box mb={2}>
@@ -955,14 +1151,14 @@ function Ledger() {
             bgcolor: '#FFFFFF',
             p: 4,
             boxShadow: 3,
-            flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons on mobile, horizontal on larger screens
+            flexDirection: { xs: 'column', sm: 'row' },
             gap: 2
           }}
         >
-          <Button size='large' variant='outlined' sx={{ width: '100%' }}>
+          <Button size='large' variant='outlined' sx={{ width: '100%' }} onClick={handleClearFilter}>
             Clear All
           </Button>
-          <Button size='large' variant='contained' sx={{ width: '100%' }}>
+          <Button size='large' variant='contained' sx={{ width: '100%' }} onClick={handleApplyFilter}>
             Apply Filter
           </Button>
         </Box>

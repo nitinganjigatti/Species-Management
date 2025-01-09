@@ -23,43 +23,44 @@ const TableBasic = ({
 
   return (
     <Box>
-      {rows.length > 0 ? (
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+      {/* {rows?.length > 0 ? ( */}
+      <DataGrid
+        sx={{
+          '.MuiDataGrid-cell:focus': {
+            outline: 'none'
+          },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer',
-              backgroundColor: 'transparent'
-            },
-            '& .MuiDataGrid-main': {
-              // margin: '16px', // Apply margin to the main container
-              borderRadius: '8px', // Apply border-radius to the main container
-              border: '1px solid rgba(233, 233, 236, 1)' // Apply border to the main container
-            },
-            '& .MuiDataGrid-footerContainer': {
-              borderTop: 'none' // Remove the border-top from footer container
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: backgroundColor
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false,
-            id: false
-          }}
-          getRowHeight={() => (rowHeight ? rowHeight : null)}
-          hideFooterSelectedRowCount
-          disableColumnMenu
-          disableColumnSelector={true}
-          autoHeight
-          columns={columns}
-          rows={rows}
-          onRowClick={onRowClick}
-        />
-      ) : null}
+          '& .MuiDataGrid-row:hover': {
+            cursor: 'pointer',
+            backgroundColor: 'transparent'
+          },
+          '& .MuiDataGrid-main': {
+            // margin: '16px', // Apply margin to the main container
+            borderRadius: '8px', // Apply border-radius to the main container
+            border: '1px solid rgba(233, 233, 236, 1)' // Apply border to the main container
+          },
+          '& .MuiDataGrid-footerContainer': {
+            borderTop: 'none' // Remove the border-top from footer container
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: backgroundColor
+          }
+        }}
+        columnVisibilityModel={{
+          sl_no: false,
+          id: false
+        }}
+        getRowHeight={() => (rowHeight ? rowHeight : null)}
+        hideFooterSelectedRowCount
+        disableColumnMenu
+        disableColumnSelector={true}
+        autoHeight
+        columns={columns || []}
+        rows={rows || []}
+        onRowClick={onRowClick}
+        // pageSizeOptions={[7, 10, 25, 50]}
+      />
+      {/* ) : null} */}
     </Box>
   )
 }
