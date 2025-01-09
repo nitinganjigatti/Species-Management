@@ -17,7 +17,8 @@ import {
   ListItemText,
   Divider,
   Checkbox,
-  CardContent
+  CardContent,
+  CircularProgress
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
@@ -94,8 +95,8 @@ function Ledger() {
   const { id, tab, batch_no } = router.query
 
   const [loading, setLoading] = useState(false)
-
-  const [rows, setRows] = useState()
+  const [total, setTotal] = useState(0)
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
 
   const [paginationModel, setPaginationModel] = useState({
@@ -105,7 +106,7 @@ function Ledger() {
 
   const [selectedTabs, setSelectedTabs] = useState([])
   const [batchDetailsList, setBatchDetailsList] = useState([])
-  const [selectedBatch, setSelectedBatch] = useState(null)
+  const [selectedBatches, setSelectedBatches] = useState([])
   const [open, setOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState('Batch Details')
 
@@ -118,6 +119,7 @@ function Ledger() {
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLocations, setSelectedLocations] = useState([])
+  const [stockDetails, setStockDetails] = useState({})
 
   const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
@@ -127,11 +129,11 @@ function Ledger() {
   const columns = [
     {
       width: 70,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid + '.'}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -266,7 +268,7 @@ function Ledger() {
     },
     {
       width: 140,
-      field: 'balance',
+      field: 'batch_balance',
       headerName: 'BATCH BALANCE',
       renderCell: params => (
         <Typography
@@ -278,13 +280,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.balance || 'NA'}
+          {params.row.batch_balance || 'NA'}
         </Typography>
       )
     },
     {
       width: 140,
-      field: 'total_bal',
+      field: 'balance',
       headerName: 'TOTAL BALANCE',
       renderCell: params => (
         <Typography
@@ -296,7 +298,7 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_bal || 'NA'}
+          {params.row.balance || 'NA'}
         </Typography>
       )
     },
@@ -361,65 +363,108 @@ function Ledger() {
     }
   ]
 
-  const getLedger = useCallback(async ({ stock_id, batch_no, q, tab }) => {
-    // console.log('getLedger called with:', { stock_id, batch_no, q, tab })
-    try {
-      setLoading(true)
+  const getLedger = useCallback(
+    async ({ stock_id, batch_no, q, tab }) => {
+      const formattedBatchNo = Array.isArray(batch_no)
+        ? batch_no
+        : typeof batch_no === 'string'
+        ? [batch_no]
+        : batch_no
+        ? [batch_no]
+        : []
+      try {
+        setLoading(true)
 
-      const params = {
-        stock_id,
-        batch_no,
-        q,
-        tab
-      }
-
-      await getLedgerList(params).then(res => {
-        console.log(res)
-        if (res?.success) {
-          setRows(loadServerRows(paginationModel.page, res?.data))
-        } else {
-          setRows()
+        const params = {
+          stock_id,
+          batch_no: formattedBatchNo,
+          q,
+          tab,
+          page: paginationModel?.page + 1,
+          limit: paginationModel?.pageSize
         }
-      })
-      setLoading(false)
-    } catch (e) {
-      setLoading(false)
-      console.log(e)
-    }
-  }, [])
+
+        await getLedgerList(params).then(res => {
+          if (res?.success) {
+            console.log(res, 'resqwe')
+            setTotal(parseInt(res?.total))
+            setStockDetails(res?.data)
+            setRows(loadServerRows(paginationModel.page, res?.data?.ledger_data))
+            setLoading(false)
+          } else {
+            setRows([])
+            setTotal(parseInt(res?.total))
+            setLoading(false)
+          }
+        })
+      } catch (e) {
+        setLoading(false)
+        setRows([])
+        setTotal(0)
+        console.error(e)
+      }
+    },
+    [paginationModel]
+  )
+
+  console.log(paginationModel, 'paginationModel')
 
   useEffect(() => {
-    console.log('useEffect triggered with:', { id, batch_no, selectedTabs })
+    const routerBatchNo = router.query.batch_no
+    const initialBatchNo = routerBatchNo ? (Array.isArray(routerBatchNo) ? routerBatchNo : [routerBatchNo]) : []
 
-    setSelectedBatch(batch_no || null)
-    if (id && batch_no && selectedTabs) {
+    setSelectedBatches(initialBatchNo)
+
+    if (id) {
       getLedger({
         stock_id: id,
-        batch_no: batch_no,
+        batch_no: initialBatchNo,
         q: searchValue,
         tab: selectedTabs
       })
     }
-  }, [id, batch_no, selectedTabs])
+  }, [id, router.query.batch_no, paginationModel, selectedTabs])
+
+  useEffect(() => {
+    const { page, pageSize, ...otherQueryParams } = router.query
+
+    if (paginationModel.page + 1 !== parseInt(page, 10) || paginationModel.pageSize !== parseInt(pageSize, 10)) {
+      const queryParams = {
+        ...otherQueryParams,
+        page: paginationModel.page + 1,
+        pageSize: paginationModel.pageSize
+      }
+
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: queryParams
+        },
+        undefined,
+        { shallow: true }
+      )
+    }
+    if (router.query.filters) {
+      const filters = Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]
+      console.log(filters, 'filters')
+
+      setSelectedTabs(filters)
+    }
+  }, [paginationModel, router.query.filters])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.ledger_data?.map((row, index) => ({
+  const indexedRows = rows?.map((row, index) => ({
     ...row,
-    stock_item_id: rows.stock_item_id,
-    batch_no: rows.batch_no,
+    stock_item_id: stockDetails.stock_item_id,
+    batch_no: stockDetails.batch_no,
     id: `${index}`,
-    sl_no: getSlNo(index),
-    uid: getSlNo(index)
+    sl_no: getSlNo(index)
   }))
 
   const handleSearch = async value => {
-    if (!selectedBatch || !batch_no) {
-      toast.error('Please select the batch ID before proceeding')
-      return
-    }
     setSearchValue(value)
-    if (id && (selectedBatch || batch_no)) {
+    if (id && (selectedBatches || batch_no)) {
       await searchTableData({ q: value })
     }
   }
@@ -445,62 +490,25 @@ function Ledger() {
 
   const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense']
 
-  // const handleTabClick = tab => {
-  //   if (!selectedBatch || !batch_no) {
-  //     toast.error('Please select the batch ID first, then select these parameters.')
-  //     return
-  //   }
-  //   if (selectedTabs.includes(tab)) {
-  //     // Remove tab from selected
-  //     setSelectedTabs(selectedTabs.filter(selectedTab => selectedTab !== tab))
-  //   } else {
-  //     // Add tab to selected
-  //     setSelectedTabs([...selectedTabs, tab])
-  //   }
-  // }
   const handleTabClick = tab => {
-    if (!selectedBatch || !batch_no) {
-      toast.error('Please select the batch ID before proceeding')
-      return
-    }
-
+    let updatedTabs
     if (selectedTabs.includes(tab)) {
-      // Remove tab from selected
-      const updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
-      setSelectedTabs(updatedTabs)
-      // Update router query to remove the tab
-      const newQuery = { ...router.query }
-      if (updatedTabs.length > 0) {
-        newQuery.filters = updatedTabs
-      } else {
-        delete newQuery.filters
-      }
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: newQuery
-        },
-        undefined,
-        { shallow: true }
-      )
+      updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
     } else {
-      // Add tab to selected
-      const updatedTabs = [...selectedTabs, tab]
-      setSelectedTabs(updatedTabs)
-
-      // Update router query to add the tab
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: {
-            ...router.query,
-            filters: updatedTabs
-          }
-        },
-        undefined,
-        { shallow: true }
-      )
+      updatedTabs = [...selectedTabs, tab]
     }
+    setSelectedTabs(updatedTabs)
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          filters: updatedTabs.length > 0 ? updatedTabs : undefined
+        }
+      },
+      undefined,
+      { shallow: true }
+    )
   }
 
   // Toggle Drawer open/close
@@ -522,12 +530,14 @@ function Ledger() {
   }
 
   const handleBatchCheckbox = event => {
-    // If the checkbox is checked, select the batch_no
-    if (event.target.checked) {
-      setSelectedBatch(event.target.value)
-    } else {
-      setSelectedBatch(null)
-    }
+    const { value, checked } = event.target
+
+    setSelectedBatches(prev => {
+      if (checked) {
+        return [...new Set([...prev, value])]
+      }
+      return prev.filter(batch => batch !== value)
+    })
   }
 
   // Handle change in search input
@@ -589,47 +599,30 @@ function Ledger() {
     }
   }, [id])
 
-  // useEffect(() => {
-  //   setSelectedBatch(batch_no || null)
-  //   if (id && batch_no) {
-  //     getLedger({
-  //       stock_id: id,
-  //       batch_no: batch_no || null,
-  //       q: searchValue,
-  //       tab: selectedTabs
-  //     })
-  //   }
-  // }, [id, batch_no])
-
-  // useEffect(() => {
-  //   if (id && batch_no && selectedTabs) {
-  //     getLedger({
-  //       stock_id: id,
-  //       batch_no: batch_no,
-  //       q: searchValue,
-  //       tab: selectedTabs
-  //     })
-  //   }
-  // }, [selectedTabs])
-
   const handleApplyFilter = async () => {
-    if (!id || !selectedBatch) {
-      toast.error('Both product ID and batch must be selected')
+    if (!id) {
+      toast.error('Product ID must be selected')
       return
     }
+    const newQuery = { ...router.query }
+    if (!selectedBatches || selectedBatches.length === 0) {
+      delete newQuery.batch_no
+    } else {
+      newQuery.batch_no = selectedBatches
+    }
+
     router.replace(
       {
         pathname: router.pathname,
-        query: {
-          ...router.query,
-          batch_no: selectedBatch
-        }
+        query: newQuery
       },
       undefined,
       { shallow: true }
     )
+
     toggleDrawer()
   }
+
   const handleClearFilter = () => {
     const newQuery = { ...router.query }
     delete newQuery.batch_no // Remove batch parameter
@@ -642,16 +635,16 @@ function Ledger() {
       undefined,
       { shallow: true }
     )
-    setSelectedBatch(null)
-    setRows([])
     toggleDrawer()
     // getLedger({
     //   stock_id: id,
-    //   batch_no: null,
+    //   batch_no: [],
     //   q: searchValue,
     //   tab: selectedTabs
     // })
   }
+
+  const onRowClick = params => {}
 
   return (
     <>
@@ -826,7 +819,7 @@ function Ledger() {
                         fontSize: '16px'
                       }}
                     >
-                      {rows?.purchase_qty || '0'}
+                      {stockDetails?.purchase_qty || '0'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -850,7 +843,7 @@ function Ledger() {
                         fontSize: '16px'
                       }}
                     >
-                      {rows?.total_return_qty || '0'}
+                      {stockDetails?.total_return_qty || '0'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -874,7 +867,7 @@ function Ledger() {
                         fontSize: '16px'
                       }}
                     >
-                      {rows?.total_dispatch_qty || '0'}
+                      {stockDetails?.total_dispatch_qty || '0'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -884,7 +877,19 @@ function Ledger() {
         </Box>
       </Box>
       <Grid mt={6}>
-        <TableBasic rows={indexedRows} columns={columns} />
+        {/* <TableBasic rows={indexedRows} columns={columns} loading={loading} /> */}
+
+        <CommonTable
+          onRowClick={onRowClick}
+          indexedRows={indexedRows}
+          total={total}
+          columns={columns}
+          paginationModel={paginationModel}
+          // handleSortModel={handleSortModel}
+          setPaginationModel={setPaginationModel}
+          loading={loading}
+          searchValue={searchValue}
+        />
       </Grid>
 
       <>{/* <Error404></Error404> */}</>
@@ -989,6 +994,34 @@ function Ledger() {
                           <Checkbox
                             name='batchDetails'
                             value={location.batch_no}
+                            checked={selectedBatches?.includes(location.batch_no)}
+                            onChange={handleBatchCheckbox}
+                            sx={{
+                              color: 'customColors.Outline',
+                              '&.Mui-checked': {
+                                color: 'primary.main'
+                              }
+                            }}
+                          />
+                        }
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          '& .MuiFormControlLabel-label': {
+                            color: 'customColors.Outline'
+                          }
+                        }}
+                        label={`${location.batch_no}`}
+                      />
+                    </Box>
+                  ))}
+                  {/* {filteredBatchDetails.map(location => (
+                    <Box key={location.batch_no}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            name='batchDetails'
+                            value={location.batch_no}
                             checked={selectedBatch === location.batch_no}
                             // checked={selectedBatch === location.batch_no || batch_no === location.batch_no}
                             onChange={handleBatchCheckbox}
@@ -1010,7 +1043,7 @@ function Ledger() {
                         label={`${location.batch_no}`}
                       />
                     </Box>
-                  ))}
+                  ))} */}
                 </Box>
               </>
             )}
