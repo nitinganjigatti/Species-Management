@@ -31,7 +31,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { color, getValue } from '@mui/system'
+import { borderColor, color, getValue, height, width } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 import DialogActions from '@mui/material/DialogActions'
@@ -39,6 +39,8 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { debounce } from 'lodash'
+import { useTheme } from '@emotion/react'
+import { he } from 'date-fns/locale'
 
 const defaultValues = {
   product: {
@@ -88,7 +90,7 @@ const PurchaseItemForm = props => {
     currentPayload,
     setCurrentPayload
   } = props
-
+  const theme = useTheme()
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
 
   const schema = yup.object().shape({
@@ -1087,22 +1089,28 @@ const PurchaseItemForm = props => {
                 fontSize: '20px',
                 margin: '0px',
                 padding: '0px',
-                mb: '6px',
+
+                // mb: '6px',
                 color: 'customColors.OnSurfaceVariant',
                 display: 'flex',
                 gap: 2,
-
-                // justifyContent: 'center'
-
                 alignItems: 'center'
               }}
             >
-              <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' /> Price
-              Variation Detected !
+              <Icon
+                style={{
+                  cursor: 'pointer',
+                  color: theme.palette.customColors.moderateSecondary,
+                  height: '30px',
+                  width: '26px'
+                }}
+                icon='mdi:warning-outline'
+              />{' '}
+              Price Variation Detected !
             </Box>
           }
           content={
-            <DialogContentText
+            <Typography
               sx={{
                 fontWeight: 400,
                 fontSize: '16px',
@@ -1125,14 +1133,22 @@ const PurchaseItemForm = props => {
               </Typography>
               compared to the previous purchase price.
               <br /> Please review before proceeding.
-            </DialogContentText>
+            </Typography>
           }
           dialogActions={
             <>
               <Button
                 variant='outlined'
-                size='small'
-                color='error'
+                size='large'
+                sx={{
+                  color: 'customColors.neutralSecondary',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  ':hover': {
+                    color: theme.palette.customColors.neutralSecondary,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    backgroundColor: 'transparent !important'
+                  }
+                }}
                 onClick={() => {
                   setValidatePurchaseDialog(false)
                 }}
@@ -1140,8 +1156,8 @@ const PurchaseItemForm = props => {
                 Cancel
               </Button>
               <Button
-                size='small'
                 variant='contained'
+                size='large'
                 color='warning'
                 onClick={() => {
                   submitItems(currentPayload)
