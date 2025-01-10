@@ -185,6 +185,7 @@ const SpeciesReport = () => {
   }
 
   const handleSelectedSite = async selectedSiteIDs => {
+ 
     let params = {}
 
     if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
