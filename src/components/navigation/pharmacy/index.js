@@ -334,7 +334,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       //dashboardnew,
       stockReport,
       requestListing,
-      requestByStoreListing,
+
+      // requestByStoreListing,
 
       returnListing,
       directDispatchList
@@ -361,7 +362,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
-    requestByStoresParent.children.push(requestByStoreListing)
+
+    // requestByStoresParent.children.push(requestByStoreListing)
     returnParent.children.push(returnListing)
 
     // stockParent.children.push(stockReport, escrow)
@@ -372,7 +374,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
       //dashboardnew,
       requestListing,
-      requestByStoreListing,
+
+      // requestByStoreListing,
       returnListing,
 
       // directDispatchList,
