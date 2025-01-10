@@ -523,9 +523,10 @@ const AddRequestForm = () => {
     try {
       const params = {
         sort: 'asc',
-        q: searchText,
+        q: '',
         limit: 20,
-        active: true
+        active: true,
+        product_search: searchText
       }
 
       const searchResults = await getMedicineList({ params: params })
