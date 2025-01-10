@@ -95,8 +95,8 @@ function Ledger() {
   const { id, tab, batch_no } = router.query
 
   const [loading, setLoading] = useState(false)
-
-  const [rows, setRows] = useState()
+  const [total, setTotal] = useState(0)
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
 
   const [paginationModel, setPaginationModel] = useState({
@@ -119,6 +119,7 @@ function Ledger() {
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLocations, setSelectedLocations] = useState([])
+  const [stockDetails, setStockDetails] = useState({})
 
   const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
@@ -128,11 +129,11 @@ function Ledger() {
   const columns = [
     {
       width: 70,
-      field: 'uid',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid + '.'}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -267,7 +268,7 @@ function Ledger() {
     },
     {
       width: 140,
-      field: 'balance',
+      field: 'batch_balance',
       headerName: 'BATCH BALANCE',
       renderCell: params => (
         <Typography
@@ -279,13 +280,13 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.balance || 'NA'}
+          {params.row.batch_balance || 'NA'}
         </Typography>
       )
     },
     {
       width: 140,
-      field: 'total_bal',
+      field: 'balance',
       headerName: 'TOTAL BALANCE',
       renderCell: params => (
         <Typography
@@ -297,7 +298,7 @@ function Ledger() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_bal || 'NA'}
+          {params.row.balance || 'NA'}
         </Typography>
       )
     },
@@ -362,37 +363,51 @@ function Ledger() {
     }
   ]
 
-  const getLedger = useCallback(async ({ stock_id, batch_no, q, tab }) => {
-    const formattedBatchNo = Array.isArray(batch_no)
-      ? batch_no
-      : typeof batch_no === 'string'
-      ? [batch_no]
-      : batch_no
-      ? [batch_no]
-      : []
-    try {
-      setLoading(true)
+  const getLedger = useCallback(
+    async ({ stock_id, batch_no, q, tab }) => {
+      const formattedBatchNo = Array.isArray(batch_no)
+        ? batch_no
+        : typeof batch_no === 'string'
+        ? [batch_no]
+        : batch_no
+        ? [batch_no]
+        : []
+      try {
+        setLoading(true)
 
-      const params = {
-        stock_id,
-        batch_no: formattedBatchNo,
-        q,
-        tab
-      }
-
-      await getLedgerList(params).then(res => {
-        if (res?.success) {
-          setRows(loadServerRows(paginationModel.page, res?.data))
-        } else {
-          setRows()
+        const params = {
+          stock_id,
+          batch_no: formattedBatchNo,
+          q,
+          tab,
+          page: paginationModel?.page + 1,
+          limit: paginationModel?.pageSize
         }
-      })
-      setLoading(false)
-    } catch (e) {
-      setLoading(false)
-      console.error(e)
-    }
-  }, [])
+
+        await getLedgerList(params).then(res => {
+          if (res?.success) {
+            console.log(res, 'resqwe')
+            setTotal(parseInt(res?.total))
+            setStockDetails(res?.data)
+            setRows(loadServerRows(paginationModel.page, res?.data?.ledger_data))
+            setLoading(false)
+          } else {
+            setRows([])
+            setTotal(parseInt(res?.total))
+            setLoading(false)
+          }
+        })
+      } catch (e) {
+        setLoading(false)
+        setRows([])
+        setTotal(0)
+        console.error(e)
+      }
+    },
+    [paginationModel]
+  )
+
+  console.log(paginationModel, 'paginationModel')
 
   useEffect(() => {
     const routerBatchNo = router.query.batch_no
@@ -400,7 +415,7 @@ function Ledger() {
 
     setSelectedBatches(initialBatchNo)
 
-    if (id || routerBatchNo) {
+    if (id) {
       getLedger({
         stock_id: id,
         batch_no: initialBatchNo,
@@ -408,28 +423,46 @@ function Ledger() {
         tab: selectedTabs
       })
     }
+  }, [id, router.query.batch_no, paginationModel, selectedTabs])
+
+  useEffect(() => {
+    const { page, pageSize, ...otherQueryParams } = router.query
+
+    if (paginationModel.page + 1 !== parseInt(page, 10) || paginationModel.pageSize !== parseInt(pageSize, 10)) {
+      const queryParams = {
+        ...otherQueryParams,
+        page: paginationModel.page + 1,
+        pageSize: paginationModel.pageSize
+      }
+
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: queryParams
+        },
+        undefined,
+        { shallow: true }
+      )
+    }
     if (router.query.filters) {
       const filters = Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]
+      console.log(filters, 'filters')
+
       setSelectedTabs(filters)
     }
-  }, [id, router.query.batch_no, router.query.filters])
+  }, [paginationModel, router.query.filters])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.ledger_data?.map((row, index) => ({
+  const indexedRows = rows?.map((row, index) => ({
     ...row,
-    stock_item_id: rows.stock_item_id,
-    batch_no: rows.batch_no,
+    stock_item_id: stockDetails.stock_item_id,
+    batch_no: stockDetails.batch_no,
     id: `${index}`,
-    sl_no: getSlNo(index),
-    uid: getSlNo(index)
+    sl_no: getSlNo(index)
   }))
 
   const handleSearch = async value => {
-    // if (!selectedBatches || !batch_no) {
-    //   toast.error('Please select the batch ID before proceeding')
-    //   return
-    // }
     setSearchValue(value)
     if (id && (selectedBatches || batch_no)) {
       await searchTableData({ q: value })
@@ -459,13 +492,11 @@ function Ledger() {
 
   const handleTabClick = tab => {
     let updatedTabs
-
     if (selectedTabs.includes(tab)) {
       updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
     } else {
       updatedTabs = [...selectedTabs, tab]
     }
-
     setSelectedTabs(updatedTabs)
     router.replace(
       {
@@ -479,51 +510,6 @@ function Ledger() {
       { shallow: true }
     )
   }
-
-  // const handleTabClick = tab => {
-  //   // if (!selectedBatches || !batch_no) {
-  //   //   toast.error('Please select the batch ID before proceeding')
-  //   //   return
-  //   // }
-
-  //   if (selectedTabs.includes(tab)) {
-  //     // Remove tab from selected
-  //     const updatedTabs = selectedTabs.filter(selectedTab => selectedTab !== tab)
-  //     setSelectedTabs(updatedTabs)
-  //     // Update router query to remove the tab
-  //     const newQuery = { ...router.query }
-  //     if (updatedTabs.length > 0) {
-  //       newQuery.filters = updatedTabs
-  //     } else {
-  //       delete newQuery.filters
-  //     }
-  //     router.replace(
-  //       {
-  //         pathname: router.pathname,
-  //         query: newQuery
-  //       },
-  //       undefined,
-  //       { shallow: true }
-  //     )
-  //   } else {
-  //     // Add tab to selected
-  //     const updatedTabs = [...selectedTabs, tab]
-  //     setSelectedTabs(updatedTabs)
-
-  //     // Update router query to add the tab
-  //     router.replace(
-  //       {
-  //         pathname: router.pathname,
-  //         query: {
-  //           ...router.query,
-  //           filters: updatedTabs
-  //         }
-  //       },
-  //       undefined,
-  //       { shallow: true }
-  //     )
-  //   }
-  // }
 
   // Toggle Drawer open/close
   const toggleDrawer = () => {
@@ -542,15 +528,6 @@ function Ledger() {
       [name]: checked
     })
   }
-
-  // const handleBatchCheckbox = event => {
-  //   // If the checkbox is checked, select the batch_no
-  //   if (event.target.checked) {
-  //     setSelectedBatches(event.target.value)
-  //   } else {
-  //     setSelectedBatches(null)
-  //   }
-  // }
 
   const handleBatchCheckbox = event => {
     const { value, checked } = event.target
@@ -622,27 +599,6 @@ function Ledger() {
     }
   }, [id])
 
-  // const handleApplyFilter = async () => {
-  //   // if (!id || !selectedBatches) {
-  //   //   toast.error('Both product ID and batch must be selected')
-  //   //   return
-  //   // }
-  //   console.log(selectedBatches, 'selectedBatches')
-
-  //   router.replace(
-  //     {
-  //       pathname: router.pathname,
-  //       query: {
-  //         ...router.query,
-  //         batch_no: selectedBatches
-  //       }
-  //     },
-  //     undefined,
-  //     { shallow: true }
-  //   )
-  //   toggleDrawer()
-  // }
-
   const handleApplyFilter = async () => {
     if (!id) {
       toast.error('Product ID must be selected')
@@ -664,14 +620,6 @@ function Ledger() {
       { shallow: true }
     )
 
-    // Call API with appropriate batch_no (empty array if none selected)
-    // await getLedger({
-    //   stock_id: id,
-    //   batch_no: selectedBatches || [],
-    //   q: searchValue,
-    //   tab: selectedTabs
-    // })
-
     toggleDrawer()
   }
 
@@ -688,13 +636,15 @@ function Ledger() {
       { shallow: true }
     )
     toggleDrawer()
-    getLedger({
-      stock_id: id,
-      batch_no: selectedBatches,
-      q: searchValue,
-      tab: selectedTabs
-    })
+    // getLedger({
+    //   stock_id: id,
+    //   batch_no: [],
+    //   q: searchValue,
+    //   tab: selectedTabs
+    // })
   }
+
+  const onRowClick = params => {}
 
   return (
     <>
@@ -869,7 +819,7 @@ function Ledger() {
                         fontSize: '16px'
                       }}
                     >
-                      {rows?.purchase_qty || '0'}
+                      {stockDetails?.purchase_qty || '0'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -893,7 +843,7 @@ function Ledger() {
                         fontSize: '16px'
                       }}
                     >
-                      {rows?.total_return_qty || '0'}
+                      {stockDetails?.total_return_qty || '0'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -917,7 +867,7 @@ function Ledger() {
                         fontSize: '16px'
                       }}
                     >
-                      {rows?.total_dispatch_qty || '0'}
+                      {stockDetails?.total_dispatch_qty || '0'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -927,7 +877,19 @@ function Ledger() {
         </Box>
       </Box>
       <Grid mt={6}>
-        <TableBasic rows={indexedRows} columns={columns} loading={loading} />
+        {/* <TableBasic rows={indexedRows} columns={columns} loading={loading} /> */}
+
+        <CommonTable
+          onRowClick={onRowClick}
+          indexedRows={indexedRows}
+          total={total}
+          columns={columns}
+          paginationModel={paginationModel}
+          // handleSortModel={handleSortModel}
+          setPaginationModel={setPaginationModel}
+          loading={loading}
+          searchValue={searchValue}
+        />
       </Grid>
 
       <>{/* <Error404></Error404> */}</>
