@@ -372,6 +372,9 @@ function Ledger() {
         : batch_no
         ? [batch_no]
         : []
+
+      console.log(formattedBatchNo, 'formattedBatchNo')
+
       try {
         setLoading(true)
 
@@ -426,31 +429,13 @@ function Ledger() {
   }, [id, router.query.batch_no, paginationModel, selectedTabs])
 
   useEffect(() => {
-    const { page, pageSize, ...otherQueryParams } = router.query
-
-    if (paginationModel.page + 1 !== parseInt(page, 10) || paginationModel.pageSize !== parseInt(pageSize, 10)) {
-      const queryParams = {
-        ...otherQueryParams,
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize
-      }
-
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: queryParams
-        },
-        undefined,
-        { shallow: true }
-      )
-    }
     if (router.query.filters) {
       const filters = Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]
       console.log(filters, 'filters')
 
       setSelectedTabs(filters)
     }
-  }, [paginationModel, router.query.filters])
+  }, [router.query.filters])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -636,15 +621,47 @@ function Ledger() {
       { shallow: true }
     )
     toggleDrawer()
-    // getLedger({
-    //   stock_id: id,
-    //   batch_no: [],
-    //   q: searchValue,
-    //   tab: selectedTabs
-    // })
   }
 
   const onRowClick = params => {}
+
+  const handlePaginationModelChange = newPaginationModel => {
+    // Update local state
+    setPaginationModel(newPaginationModel)
+
+    // Update URL with new pagination values while preserving other query parameters
+    const updatedQuery = {
+      ...router.query,
+      page: newPaginationModel.page + 1, // Add 1 since DataGrid uses 0-based indexing
+      pageSize: newPaginationModel.pageSize
+    }
+
+    // Remove undefined or null values from query
+    Object.keys(updatedQuery).forEach(key => updatedQuery[key] === undefined && delete updatedQuery[key])
+
+    // Update the URL using shallow routing
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: updatedQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
+  // Initialize paginationModel from URL on component mount
+  useEffect(() => {
+    const page = parseInt(router.query.page, 10)
+    const pageSize = parseInt(router.query.pageSize, 10)
+
+    if (!isNaN(page) || !isNaN(pageSize)) {
+      setPaginationModel({
+        page: !isNaN(page) ? page - 1 : 0, // Subtract 1 for 0-based indexing
+        pageSize: !isNaN(pageSize) ? pageSize : 10
+      })
+    }
+  }, [])
 
   return (
     <>
@@ -886,7 +903,7 @@ function Ledger() {
           columns={columns}
           paginationModel={paginationModel}
           // handleSortModel={handleSortModel}
-          setPaginationModel={setPaginationModel}
+          setPaginationModel={handlePaginationModelChange}
           loading={loading}
           searchValue={searchValue}
         />
@@ -1015,35 +1032,6 @@ function Ledger() {
                       />
                     </Box>
                   ))}
-                  {/* {filteredBatchDetails.map(location => (
-                    <Box key={location.batch_no}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            name='batchDetails'
-                            value={location.batch_no}
-                            checked={selectedBatch === location.batch_no}
-                            // checked={selectedBatch === location.batch_no || batch_no === location.batch_no}
-                            onChange={handleBatchCheckbox}
-                            sx={{
-                              color: 'customColors.Outline',
-                              '&.Mui-checked': {
-                                color: 'primary.main'
-                              }
-                            }}
-                          />
-                        }
-                        sx={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          '& .MuiFormControlLabel-label': {
-                            color: 'customColors.Outline'
-                          }
-                        }}
-                        label={`${location.batch_no}`}
-                      />
-                    </Box>
-                  ))} */}
                 </Box>
               </>
             )}
