@@ -10,12 +10,13 @@ import { getAllAnimalReport, getReportFilterList } from 'src/lib/api/report'
 import toast from 'react-hot-toast'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import Organization from 'src/pages/parivesh/home/overview/organization'
+import Error404 from 'src/pages/404'
 
 const AnimalList = () => {
   const theme = useTheme()
   const { organizationList } = usePariveshContext()
-
   const authData = useContext(AuthContext)
+  const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const categories = ['Site', 'Organization']
 
   const options = {
@@ -431,35 +432,37 @@ const AnimalList = () => {
 
   return (
     <>
-      <Card>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-          <CardHeader title='Species Animal List' />
-          <Button
-            variant='contained'
-            onClick={() => getAnimalDataToExport()}
-            sx={{
-              width: '250px',
-              height: '38px',
-              fontSize: '14px',
-              fontFamily: 'Inter',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mr: 2,
-              mt: 2
-            }}
-          >
-            Download Report
-            <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
-          </Button>
-        </Box>
+      {reports_module ? (
+        <>
+          <Card>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
+              <CardHeader title='Species Animal List' />
+              <Button
+                variant='contained'
+                onClick={() => getAnimalDataToExport()}
+                sx={{
+                  width: '250px',
+                  height: '38px',
+                  fontSize: '14px',
+                  fontFamily: 'Inter',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mr: 2,
+                  mt: 2
+                }}
+              >
+                Download Report
+                <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+              </Button>
+            </Box>
 
-        <TabContext value={status}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-            {/* Search box and Tabs */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {/* Search Box */}
-              {/* <TextField
+            <TabContext value={status}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+                {/* Search box and Tabs */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {/* Search Box */}
+                  {/* <TextField
                 variant='outlined'
                 size='small'
                 placeholder='Search'
@@ -469,22 +472,22 @@ const AnimalList = () => {
                 }}
                 onChange={''} // Define this handler to update the search state
               /> */}
-              {/* Tabs */}
-              <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
-            </Box>
+                  {/* Tabs */}
+                  <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
+                </Box>
 
-            {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: 'center',
-                  borderRadius: '8px',
-                  gap: 4,
-                  mr: 2
-                }}
-              >
-                {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      borderRadius: '8px',
+                      gap: 4,
+                      mr: 2
+                    }}
+                  >
+                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
                   <Button
                     variant='outlined'
                     onClick={() => setOpenSiteDrawer(true)}
@@ -542,206 +545,212 @@ const AnimalList = () => {
                   handleSelectedSite={handleSelectedSite}
                 /> */}
 
-                <Button
-                  onClick={() => handleFilterSection()}
-                  variant='outlined'
-                  sx={{
-                    width: '120px',
-                    height: '40px',
-                    mt: 2,
-                    display: 'flex',
-                    color: '#44544A',
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    fontFamily: 'Inter',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 4,
-                    minWidth: '100px'
-                  }}
-                >
-                  <img
-                    src='/images/filterIcon.png'
-                    style={{ width: '24px', height: '24px', marginBottom: '2px' }}
-                    alt='Filter Icon'
-                  />
+                    <Button
+                      onClick={() => handleFilterSection()}
+                      variant='outlined'
+                      sx={{
+                        width: '120px',
+                        height: '40px',
+                        mt: 2,
+                        display: 'flex',
+                        color: '#44544A',
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img
+                        src='/images/filterIcon.png'
+                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        alt='Filter Icon'
+                      />
 
-                  <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Filter</Typography>
-                </Button>
-                {
-                  <FilterSheet
-                    open={openFilterDrawer}
-                    setOpenFilterDrawer={setOpenFilterDrawer}
-                    categories={categories}
-                    sites={sites}
-                    setSites={setSites}
-                    selectedSites={selectedSites}
-                    setSelectedSites={setSelectedSites}
-                    options={options}
-                    selectedOptions={selectedOptions}
-                    setSelectedOptions={setSelectedOptions}
-                    handleSelectedSite={handleSelectedSite}
-                    handleSelectedOrganization={handleSelectedOrganization}
-                  />
-                }
+                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Filter</Typography>
+                    </Button>
+                    {
+                      <FilterSheet
+                        open={openFilterDrawer}
+                        setOpenFilterDrawer={setOpenFilterDrawer}
+                        categories={categories}
+                        sites={sites}
+                        setSites={setSites}
+                        selectedSites={selectedSites}
+                        setSelectedSites={setSelectedSites}
+                        options={options}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
+                        handleSelectedSite={handleSelectedSite}
+                        handleSelectedOrganization={handleSelectedOrganization}
+                      />
+                    }
 
-                <Button
-                  onClick={handleClick}
-                  variant='outlined'
-                  sx={{
-                    width: '180px',
-                    height: '40px',
-                    mt: 2,
-                    display: 'flex',
-                    color: '#44544A',
-                    fontWeight: 400,
-                    fontSize: '16px',
-                    fontFamily: 'Inter',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 2,
-                    minWidth: '100px'
-                  }}
-                >
-                  <img
-                    src='/images/show_popup.png'
-                    style={{ width: '24px', height: '24px', marginBottom: '2px' }}
-                    alt='Filter Icon'
-                  />
-                  <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
-                </Button>
-                <Popover
-                  id={id}
-                  open={open}
-                  anchorEl={anchorEl}
-                  onClose={handleClose}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left'
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left'
-                  }}
-                >
-                  <Box sx={{ p: 2, width: 300 }}>
-                    {Object.keys(popoverData).map(category => (
-                      <Box key={category}>
-                        <Typography
-                          sx={{
-                            ml: 2,
-                            mt: 2
-                          }}
-                          variant='h6'
-                        >
-                          {category}
-                        </Typography>
-                        {popoverData[category].map((item, index) => (
-                          <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
-                            <Typography>{item.label}</Typography>
+                    <Button
+                      onClick={handleClick}
+                      variant='outlined'
+                      sx={{
+                        width: '180px',
+                        height: '40px',
+                        mt: 2,
+                        display: 'flex',
+                        color: '#44544A',
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img
+                        src='/images/show_popup.png'
+                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        alt='Filter Icon'
+                      />
+                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                    </Button>
+                    <Popover
+                      id={id}
+                      open={open}
+                      anchorEl={anchorEl}
+                      onClose={handleClose}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left'
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left'
+                      }}
+                    >
+                      <Box sx={{ p: 2, width: 300 }}>
+                        {Object.keys(popoverData).map(category => (
+                          <Box key={category}>
+                            <Typography
+                              sx={{
+                                ml: 2,
+                                mt: 2
+                              }}
+                              variant='h6'
+                            >
+                              {category}
+                            </Typography>
+                            {popoverData[category].map((item, index) => (
+                              <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
+                                <Typography>{item.label}</Typography>
+                              </Box>
+                            ))}
                           </Box>
                         ))}
                       </Box>
-                    ))}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          alignItems: 'center',
+                          gap: 3,
+                          mb: 5,
+                          mr: 10
+                        }}
+                      >
+                        <Button
+                          variant='outlined'
+                          onClick={() => {
+                            setAnchorEl(null)
+                          }}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant='contained'
+                          onClick={handleConfirm}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Confirm
+                        </Button>
+                      </Box>
+                    </Popover>
                   </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center',
-                      gap: 3,
-                      mb: 5,
-                      mr: 10
-                    }}
-                  >
-                    <Button
-                      variant='outlined'
-                      onClick={() => {
-                        setAnchorEl(null)
-                      }}
-                      sx={{
-                        minWidth: '100px',
-                        padding: '6px 16px'
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant='contained'
-                      onClick={handleConfirm}
-                      sx={{
-                        minWidth: '100px',
-                        padding: '6px 16px'
-                      }}
-                    >
-                      Confirm
-                    </Button>
-                  </Box>
-                </Popover>
+                )}
               </Box>
-            )}
-          </Box>
-          <Box sx={{ width: '98%', margin: 4 }}>
-            <Box sx={{ borderRadius: '8px' }}>
-              <DataGrid
-                sx={{
-                  mt: 3,
-                  mx: 2,
-                  borderRadius: '8px',
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-columnHeader': {
-                    backgroundColor: '#DDEBE9',
-                    color: '#1F415B',
-                    fontWeight: 600,
-                    fontSize: '12px',
-                    fontFamily: 'Inter',
-                    textTransform: 'capitalize',
-                    borderBottom: '2px solid #C3CEC7'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: '1px solid #C3CEC7',
-                    borderRight: '1px solid #C3CEC7',
-                    borderTop: '1px solid #C3CEC7',
-                    borderBottom: '1px solid #C3CEC7',
-                    borderRadius: '8px',
-                    overflow: 'hidden'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
+              <Box sx={{ width: '98%', margin: 4 }}>
+                <Box sx={{ borderRadius: '8px' }}>
+                  <DataGrid
+                    sx={{
+                      mt: 3,
+                      mx: 2,
+                      borderRadius: '8px',
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
+                      '& .MuiDataGrid-columnHeader': {
+                        backgroundColor: '#DDEBE9',
+                        color: '#1F415B',
+                        fontWeight: 600,
+                        fontSize: '12px',
+                        fontFamily: 'Inter',
+                        textTransform: 'capitalize',
+                        borderBottom: '2px solid #C3CEC7'
+                      },
+                      '.MuiDataGrid-main': {
+                        borderLeft: '1px solid #C3CEC7',
+                        borderRight: '1px solid #C3CEC7',
+                        borderTop: '1px solid #C3CEC7',
+                        borderBottom: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      },
+                      '& .MuiDataGrid-footerContainer': {
+                        borderTop: 'none'
+                      },
 
-                  '& .MuiDataGrid-cell': {
-                    fontFamily: 'Inter',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    lineHeight: '16.94px',
-                    textAlign: 'left',
-                    color: '#44544A'
-                  }
-                }}
-                rows={reportRows}
-                disableColumnSorting={true}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onPaginationModelChange={setPaginationModel}
-                loading={isLoading}
-                autoHeight
-                disableColumnFilter={false}
-                hideFooterSelectedRowCount
-                rowHeight={70}
-                scrollbarSize={10}
-              />
-            </Box>
-          </Box>
-        </TabContext>
-      </Card>
+                      '& .MuiDataGrid-cell': {
+                        fontFamily: 'Inter',
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        lineHeight: '16.94px',
+                        textAlign: 'left',
+                        color: '#44544A'
+                      }
+                    }}
+                    rows={reportRows}
+                    disableColumnSorting={true}
+                    rowCount={total}
+                    columns={columns}
+                    sortingMode='server'
+                    paginationMode='server'
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={isLoading}
+                    autoHeight
+                    disableColumnFilter={false}
+                    hideFooterSelectedRowCount
+                    rowHeight={70}
+                    scrollbarSize={10}
+                  />
+                </Box>
+              </Box>
+            </TabContext>
+          </Card>
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
     </>
   )
 }
