@@ -185,7 +185,6 @@ const SpeciesReport = () => {
   }
 
   const handleSelectedSite = async selectedSiteIDs => {
- 
     let params = {}
 
     if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
@@ -292,7 +291,9 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    fetchData(apiFilterParams, paginationModel)
+    if (reports_module) {
+      fetchData(apiFilterParams, paginationModel)
+    }
   }, [fetchData])
 
   const columns = headerList.map(header => {
@@ -408,8 +409,6 @@ const SpeciesReport = () => {
     ...item,
     sl_no: getSlNo(index)
   }))
-
-  console.log('selectedSites>', selectedSites)
 
   const handleConfirm = async () => {
     let updatedApiParams = { ...apiFilterParams }
