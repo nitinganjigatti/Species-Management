@@ -431,11 +431,9 @@ function Ledger() {
   useEffect(() => {
     if (router.query.filters) {
       const filters = Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]
-      console.log(filters, 'filters')
-
       setSelectedTabs(filters)
     }
-  }, [router.query.filters])
+  }, [])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
