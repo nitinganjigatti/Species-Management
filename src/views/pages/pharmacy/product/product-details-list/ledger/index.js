@@ -469,14 +469,14 @@ function Ledger() {
       }
 
       // Update URL
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: updatedQuery
-        },
-        undefined,
-        { shallow: true }
-      )
+      // router.replace(
+      //   {
+      //     pathname: router.pathname,
+      //     query: updatedQuery
+      //   },
+      //   undefined,
+      //   { shallow: true }
+      // )
 
       // Reset pagination
       setPaginationModel(prev => ({
@@ -649,20 +649,13 @@ function Ledger() {
   const onRowClick = params => {}
 
   const handlePaginationModelChange = newPaginationModel => {
-    // Update local state
     setPaginationModel(newPaginationModel)
-
-    // Update URL with new pagination values while preserving other query parameters
     const updatedQuery = {
       ...router.query,
-      page: newPaginationModel.page + 1, // Add 1 since DataGrid uses 0-based indexing
+      page: newPaginationModel.page + 1,
       pageSize: newPaginationModel.pageSize
     }
-
-    // Remove undefined or null values from query
     Object.keys(updatedQuery).forEach(key => updatedQuery[key] === undefined && delete updatedQuery[key])
-
-    // Update the URL using shallow routing
     router.replace(
       {
         pathname: router.pathname,
@@ -672,8 +665,6 @@ function Ledger() {
       { shallow: true }
     )
   }
-
-  // Initialize paginationModel from URL on component mount
   useEffect(() => {
     const page = parseInt(router.query.page, 10)
     const pageSize = parseInt(router.query.pageSize, 10)
@@ -681,11 +672,10 @@ function Ledger() {
 
     if (!isNaN(page) || !isNaN(pageSize)) {
       setPaginationModel({
-        page: !isNaN(page) ? page - 1 : 0, // Subtract 1 for 0-based indexing
+        page: !isNaN(page) ? page - 1 : 0,
         pageSize: !isNaN(pageSize) ? pageSize : 10
       })
     }
-    // Set initial search value
     if (urlSearchValue) {
       setSearchValue(urlSearchValue)
     }
