@@ -1,32 +1,36 @@
-import {
-  Card,
-  CardHeader,
-  Typography,
-  Button,
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Checkbox
-} from '@mui/material'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
 import { TabContext, TabList } from '@mui/lab'
+import { Box, Button, Card, CardHeader, Checkbox, FormControl, Popover, TextField, Typography } from '@mui/material'
+import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
-import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
-import CheckIcon from '@mui/icons-material/Check'
-import toast from 'react-hot-toast'
-import { getReportFilterList } from 'src/lib/api/report'
-import Error404 from 'src/pages/404'
+import { usePariveshContext } from 'src/context/PariveshContext'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
+import { getAllAnimalReport, getReportFilterList } from 'src/lib/api/report'
+import toast from 'react-hot-toast'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
+import Organization from 'src/pages/parivesh/home/overview/organization'
+import Error404 from 'src/pages/404'
 
-const SpeciesReport = () => {
+const AnimalList = () => {
   const theme = useTheme()
+  const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const categories = ['Site', 'Organization']
+
+  const options = {
+    Site:
+      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
+      [] ||
+      [],
+    Organization: organizationList?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
+
+    // Section: ['North', 'South', 'East', 'West'],
+    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
+    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
+    // Breed: ['Breed A', 'Breed B']
+  }
 
   const [status, setStatus] = useState('statistics')
   const [selectedSites, setSelectedSites] = useState([])
@@ -41,6 +45,8 @@ const SpeciesReport = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState([])
+  const [headerList, setHeaderList] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
@@ -57,23 +63,6 @@ const SpeciesReport = () => {
       { label: 'Organisation', key: 'include_organization', checked: false }
     ]
   })
-
-  const categories = ['Site']
-
-  const options = {
-    // Gender: ['Male', 'Female'],
-    // Weight: ['Light', 'Medium', 'Heavy'],
-    // Age: ['Young', 'Adult', 'Old'],
-    Site:
-      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
-      [] ||
-      []
-
-    // Section: ['North', 'South', 'East', 'West'],
-    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
-    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
-    // Breed: ['Breed A', 'Breed B']
-  }
 
   const [apiFilterParams, setApiFilterParams] = useState({
     include_housing: 0,
@@ -97,92 +86,10 @@ const SpeciesReport = () => {
     setAnchorEl(null)
   }
 
+  const initialLoad = useRef(true)
+
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
-
-  const getStatisticsDataToExport = async () => {
-    // const params = {
-    //   response_type: 'csv',
-    //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
-    //     if (apiFilterParams[key] === 1) {
-    //       acc[key] = 1
-    //     }
-
-    //     return acc
-    //   }, {})
-    // }
-
-    // debugger
-
-    await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
-  }
-
-  console.log('Selected Sites >>', selectedSites)
-
-  const title = (
-    <>
-      <Typography
-        sx={{
-          fontSize: '24px',
-          fontWeight: 500,
-          fontFamily: 'Inter',
-          color: theme.palette.customColors.OnSurfaceVariant
-        }}
-      >
-        Species General Report
-      </Typography>
-    </>
-  )
-
-  const fetchAndSetDataList = async (params, options = {}) => {
-    const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
-    try {
-      setIsLoading(true)
-      const response = await getReportFilterList(params)
-
-      if (responseType === 'csv' && response && response.data) {
-        const csvUrl = response.data
-        const link = document.createElement('a')
-        link.href = csvUrl
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(csvUrl)
-      } else if (response.success) {
-        const { header, datalist, total_count } = response.data || {}
-
-        // setDataList(datalist || [])
-        // if (setHeaders) setHeaderList(header)
-        setTotal(total_count)
-
-        setIsLoading(false)
-
-        setHeaderList(header)
-        setAnchorEl(null)
-
-        // setDataList(datalist)
-
-        setDataList(loadServerRows(paginationModel.page, datalist))
-      } else {
-        toast.error('Something went wrong')
-      }
-    } catch (error) {
-      toast.error('Error connecting to the server')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleOptionChange = (category, itemIndex) => {
-    setPopoverData(prevData => {
-      const updatedData = {
-        ...prevData,
-        [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
-      }
-
-      return updatedData
-    })
-  }
 
   const handleSelectedSite = async selectedSiteIDs => {
     let params = {}
@@ -218,45 +125,22 @@ const SpeciesReport = () => {
           return acc
         }, {})
       }
-      setSelectedSites(['All Sites'])
+
+      // setSelectedSites(['All Sites'])
     } else {
       // Specific site IDs selected
       params = {
-        site_ids: selectedSiteIDs.toString(),
+        sids: selectedSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
 
           return acc
         }, {})
       }
-      setSelectedSites(selectedSiteIDs)
+
+      // setSelectedSites(selectedSiteIDs)
     }
 
-    // if (value.length > 1 && !value.includes('All Sites')) {
-    //   setPopoverData(prevData => {
-    //     const updatedData = {
-    //       ...prevData,
-    //       ['Housing']: prevData['Housing'].map((el, index) =>
-    //         el?.key === 'include_site' ? { ...el, checked: true } : el
-    //       )
-    //     }
-
-    //     return updatedData
-    //   })
-    //   params = { ...params, include_site: 1 }
-    // } else {
-    //   setPopoverData(prevData => {
-    //     const updatedData = {
-    //       ...prevData,
-    //       ['Housing']: prevData['Housing'].map((el, index) =>
-    //         el?.key === 'include_site' ? { ...el, checked: false } : el
-    //       )
-    //     }
-
-    //     return updatedData
-    //   })
-    //   params = { ...params, include_site: 0 }
-    // }
     setPaginationModel({ ...paginationModel, page: 0 })
     setApiFilterParams(params)
 
@@ -264,14 +148,106 @@ const SpeciesReport = () => {
     // await fetchData({ ...params }, { ...paginationModel, page: 0 });
   }
 
-  function loadServerRows(currentPage, data) {
-    return data
+  const handleSelectedOrganization = async selectedOrganizationIDs => {
+    let params = {}
+
+    if (
+      selectedOrganizationIDs.includes('All Organizations') &&
+      !selectedOptions.Organization.includes('All Organizations')
+    ) {
+      // "All Organizations" selected and was not already selected
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedOptions(prev => ({ ...prev, Organization: ['All Organizations'] }))
+    } else if (selectedOrganizationIDs.includes('All Organizations')) {
+      // Remove "All Organizations" and use specific organization IDs
+      const filteredOrganizationIDs = selectedOrganizationIDs.filter(id => id !== 'All Organizations')
+      params = {
+        organization_ids: filteredOrganizationIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedOptions(prev => ({ ...prev, Organization: filteredOrganizationIDs }))
+    } else if (selectedOrganizationIDs.length === 0) {
+      // No organizations selected, fallback to "All Organizations"
+      params = {
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+
+      // Optionally set default to "All Organizations"
+      // setSelectedOptions((prev) => ({ ...prev, Organization: ['All Organizations'] }));
+    } else {
+      // Specific organization IDs selected
+      params = {
+        oids: selectedOrganizationIDs.toString(),
+        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+          if (apiFilterParams[key] === 1) acc[key] = 1
+
+          return acc
+        }, {})
+      }
+      setSelectedOptions(prev => ({ ...prev, Organization: selectedOrganizationIDs }))
+    }
+
+    setPaginationModel({ ...paginationModel, page: 0 })
+    setApiFilterParams(params)
+
+    // Optionally fetch the data
+    // await fetchData({ ...params }, { ...paginationModel, page: 0 });
   }
 
-  const [headerList, setHeaderList] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+  const fetchAndSetDataList = async (params, options = {}) => {
+    const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
+    try {
+      setIsLoading(true)
+      const response = await getAllAnimalReport(params)
+      debugger
+      if (responseType === 'csv' && response && response.data) {
+        const csvUrl = response.data
+        const link = document.createElement('a')
+        link.href = csvUrl
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(csvUrl)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } = response.data || {}
 
-  const initialLoad = useRef(true)
+        // setDataList(datalist || [])
+        // if (setHeaders) setHeaderList(header)
+        setTotal(total_animal)
+
+        setIsLoading(false)
+
+        setHeaderList(header)
+        setAnchorEl(null)
+
+        // setDataList(datalist)
+
+        setDataList(loadServerRows(paginationModel.page, animal_list))
+      } else {
+        setDataList([])
+        setTotal(0)
+        toast.error('Something went wrong')
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const fetchData = useCallback(
     async (param, paginationModel) => {
@@ -291,15 +267,28 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    if (reports_module) {
-      fetchData(apiFilterParams, paginationModel)
-    }
+    fetchData(apiFilterParams, paginationModel)
   }, [fetchData])
+
+  const getAnimalDataToExport = async () => {
+    await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+  }
+
+  const handleOptionChange = (category, itemIndex) => {
+    setPopoverData(prevData => {
+      const updatedData = {
+        ...prevData,
+        [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
+      }
+
+      return updatedData
+    })
+  }
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
       return {
-        field: 'speciesAndCommonName',
+        field: 'Animals',
         headerName: header.label,
         isAvatar: true,
         sortable: false,
@@ -316,16 +305,25 @@ const SpeciesReport = () => {
             }
             title={
               <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                {params.row.common_name}
+                RN: {params.row.taxonomy_id}
               </Typography>
             }
             subheader={
-              <Typography
-                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
-                variant='body2'
-              >
-                {params.row.scientific_name}
-              </Typography>
+              <>
+                {' '}
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
+                  variant='body2'
+                >
+                  {params.row.scientific_name}
+                </Typography>
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
+                  variant='body2'
+                >
+                  {params.row.common_name}
+                </Typography>
+              </>
             }
           />
         )
@@ -401,7 +399,6 @@ const SpeciesReport = () => {
         return '#44544A'
     }
   }
-
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const reportRows = dataList?.map((item, index) => ({
@@ -425,16 +422,24 @@ const SpeciesReport = () => {
     setPaginationModel({ ...paginationModel, page: 0 })
   }
 
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const handleFilterSection = () => {
+    setOpenFilterDrawer(true)
+  }
+
   return (
     <>
       {reports_module ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-              <CardHeader title={title} />
+              <CardHeader title='Species Animal List' />
               <Button
-                onClick={() => getStatisticsDataToExport()}
                 variant='contained'
+                onClick={() => getAnimalDataToExport()}
                 sx={{
                   width: '250px',
                   height: '38px',
@@ -454,8 +459,22 @@ const SpeciesReport = () => {
 
             <TabContext value={status}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
-                {/* Tabs on the left */}
-                <TabList onChange={''}></TabList>
+                {/* Search box and Tabs */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {/* Search Box */}
+                  {/* <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search'
+                sx={{
+                  width: '300px',
+                  backgroundColor: '#fff'
+                }}
+                onChange={''} // Define this handler to update the search state
+              /> */}
+                  {/* Tabs */}
+                  <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
+                </Box>
 
                 {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
                   <Box
@@ -468,117 +487,66 @@ const SpeciesReport = () => {
                       mr: 2
                     }}
                   >
-                    {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
-                      <InputLabel
-                        sx={{
-                          fontSize: '14px',
-                          fontFamily: 'Inter',
-                          fontWeight: 400,
-                          color: '#44544A',
-                          width: '152px',
-                          height: '17px',
-                          mt: 0.5
-                        }}
-                      >
-                        All Sites
-                      </InputLabel>
-                      <Select
-                        multiple
-                        value={selectedSite}
-                        onChange={handleSelectedSite}
-                        label='Site'
-                        sx={{
-                          height: '40px',
-                          mt: 2,
-                          width: '200px',
-                          borderRadius: '4px',
-                          mr: { sm: 1, xs: 0 }
-                        }}
-                      >
-                        <MenuItem value='All Sites'>All Sites</MenuItem>
-                        {authData?.userData?.user?.zoos[0].sites?.map((item, index) => (
-                          <MenuItem key={index} value={item?.site_id}>
-                            {item?.site_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl> */}
+                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                  <Button
+                    variant='outlined'
+                    onClick={() => setOpenSiteDrawer(true)}
+                    sx={{
+                      height: '40px',
+                      width: '200px',
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0 12px' // Ensure space for text and icon
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                        flex: 1, // Ensures it uses remaining space
+                        textAlign: 'left', // Align text to the left
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      {selectedSites.length > 0 && selectedSites[0] !== 'All Sites' ? (
+                        <>
+                          {
+                            authData?.userData?.user?.zoos[0].sites?.find(site => site.site_id === selectedSites[0])
+                              ?.site_name
+                          }
+                          {selectedSites.length > 1 && ` ...+${selectedSites.length - 1}`}
+                        </>
+                      ) : (
+                        `Select Site (${sites.length})`
+                      )}
+                    </Box>
+                    <Box component='span' sx={{ ml: 1, color: 'black' }}>
+                      <img
+                        src='/images/All.png'
+                        style={{ width: '20px', height: '20px', marginTop: 7 }}
+                        alt='Filter Icon'
+                      />
+                    </Box>
+                  </Button>
+                </FormControl>
 
-                    <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
-                      <Button
-                        variant='outlined'
-                        onClick={() => setOpenSiteDrawer(true)}
-                        sx={{
-                          height: '40px',
-                          width: '200px',
-                          borderRadius: '8px',
-                          borderRadius: '4px',
-                          textTransform: 'none',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          padding: '0 12px' // Ensure space for text and icon
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            overflow: 'hidden',
-                            borderRadius: '8px',
-                            whiteSpace: 'nowrap',
-                            textOverflow: 'ellipsis',
-                            flex: 1, // Ensures it uses remaining space
-                            textAlign: 'left', // Align text to the left
-                            color: theme.palette.customColors.OnSurfaceVariant
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              overflow: 'hidden',
-                              borderRadius: '8px',
-                              whiteSpace: 'nowrap',
-                              textOverflow: 'ellipsis',
-                              flex: 1, // Ensures it uses remaining space
-                              textAlign: 'left', // Align text to the left
-                              color: theme.palette.customColors.OnSurfaceVariant
-                            }}
-                          >
-                            {selectedSites.length > 0 && selectedSites[0] !== 'All Sites' ? (
-                              <>
-                                {
-                                  authData?.userData?.user?.zoos[0].sites?.find(
-                                    site => site.site_id === selectedSites[0]
-                                  )?.site_name
-                                }
-                                {selectedSites.length > 1 && ` ...+${selectedSites.length - 1}`}
-                              </>
-                            ) : (
-                              `Select Site (${sites.length})`
-                            )}
-                          </Box>
-                        </Box>
-                        <Box component='span' sx={{ ml: 1, color: 'black' }}>
-                          <img
-                            src='/images/All.png'
-                            style={{ width: '20px', height: '20px', marginTop: 7 }}
-                            alt='Filter Icon'
-                          />
-                        </Box>
-                      </Button>
-                    </FormControl>
+                <SiteSheet
+                  openSiteDrawer={openSiteDrawer}
+                  setOpenSiteDrawer={setOpenSiteDrawer}
+                  sites={sites}
+                  setSites={setSites}
+                  selectedSites={selectedSites}
+                  setSelectedSites={setSelectedSites}
+                  handleSelectedSite={handleSelectedSite}
+                /> */}
 
-                    <SiteSheet
-                      openSiteDrawer={openSiteDrawer}
-                      setOpenSiteDrawer={setOpenSiteDrawer}
-                      sites={sites}
-                      setSites={setSites}
-                      selectedSites={selectedSites}
-                      setSelectedSites={setSelectedSites}
-                      handleSelectedSite={handleSelectedSite}
-                    />
-
-                    {/* <Button
-                      onClick={() => setOpenFilterDrawer(true)}
+                    <Button
+                      onClick={() => handleFilterSection()}
                       variant='outlined'
                       sx={{
                         width: '120px',
@@ -602,15 +570,23 @@ const SpeciesReport = () => {
                       />
 
                       <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Filter</Typography>
-                    </Button> */}
-                    {/* <FilterSheet
-                      open={openFilterDrawer}
-                      setOpenFilterDrawer={setOpenFilterDrawer}
-                      categories={categories}
-                      options={options}
-                      selectedOptions={selectedOptions}
-                      setSelectedOptions={setSelectedOptions}
-                    /> */}
+                    </Button>
+                    {
+                      <FilterSheet
+                        open={openFilterDrawer}
+                        setOpenFilterDrawer={setOpenFilterDrawer}
+                        categories={categories}
+                        sites={sites}
+                        setSites={setSites}
+                        selectedSites={selectedSites}
+                        setSelectedSites={setSelectedSites}
+                        options={options}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
+                        handleSelectedSite={handleSelectedSite}
+                        handleSelectedOrganization={handleSelectedOrganization}
+                      />
+                    }
 
                     <Button
                       onClick={handleClick}
@@ -635,7 +611,6 @@ const SpeciesReport = () => {
                         style={{ width: '24px', height: '24px', marginBottom: '2px' }}
                         alt='Filter Icon'
                       />
-
                       <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                     </Button>
                     <Popover
@@ -655,7 +630,15 @@ const SpeciesReport = () => {
                       <Box sx={{ p: 2, width: 300 }}>
                         {Object.keys(popoverData).map(category => (
                           <Box key={category}>
-                            <Typography variant='h6'>{category}</Typography>
+                            <Typography
+                              sx={{
+                                ml: 2,
+                                mt: 2
+                              }}
+                              variant='h6'
+                            >
+                              {category}
+                            </Typography>
                             {popoverData[category].map((item, index) => (
                               <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
@@ -670,9 +653,9 @@ const SpeciesReport = () => {
                           display: 'flex',
                           justifyContent: 'flex-end',
                           alignItems: 'center',
-                          gap: 2,
+                          gap: 3,
                           mb: 5,
-                          mr: 14
+                          mr: 10
                         }}
                       >
                         <Button
@@ -702,12 +685,12 @@ const SpeciesReport = () => {
                   </Box>
                 )}
               </Box>
-
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
                   <DataGrid
                     sx={{
                       mt: 3,
+                      mx: 2,
                       borderRadius: '8px',
                       '.MuiDataGrid-cell:focus': {
                         outline: 'none'
@@ -772,4 +755,4 @@ const SpeciesReport = () => {
   )
 }
 
-export default SpeciesReport
+export default AnimalList

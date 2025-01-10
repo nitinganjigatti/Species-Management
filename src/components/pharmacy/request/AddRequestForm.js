@@ -522,9 +522,10 @@ const AddRequestForm = () => {
     try {
       const params = {
         sort: 'asc',
-        q: searchText,
+        q: '',
         limit: 20,
-        active: true
+        active: true,
+        product_search: searchText
       }
 
       const searchResults = await getMedicineList({ params: params })
@@ -1214,11 +1215,11 @@ const AddRequestForm = () => {
                       color: 'primary.main'
                     }
                   }}
-                  checked={nestedRowMedicine.priority_item === 'high'}
+                  checked={nestedRowMedicine?.priority_item === 'high'}
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
-                      priority_item: event.target.checked ? 'high' : ''
+                      priority_item: event?.target.checked ? 'high' : 'low'
                     })
                   }}
                 />

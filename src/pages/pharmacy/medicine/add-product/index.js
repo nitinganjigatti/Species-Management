@@ -1064,6 +1064,7 @@ const AddMedicine = () => {
                                     <MenuItem value='allopathy'>Allopathy</MenuItem>
                                     <MenuItem value='ayurveda'>Ayurveda</MenuItem>
                                     <MenuItem value='unani'>Unani</MenuItem>
+                                    <MenuItem value='homeopathy'>Homeopathy</MenuItem>
                                     <MenuItem value='non_medical'>Non Medical</MenuItem>
                                   </Select>
                                 )}

@@ -116,7 +116,7 @@ export default function NewProductList() {
     selectedPharmacy?.type === 'central' && {
       // flex: 0.2,
       minWidth: 40,
-      field: 'from_store_name',
+      field: 'to_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
         <div>
@@ -129,7 +129,7 @@ export default function NewProductList() {
               fontFamily: 'Inter'
             }}
           >
-            {params?.row?.from_store_name}
+            {params?.row?.to_store_name}
           </Typography>
         </div>
       )
@@ -449,7 +449,6 @@ export default function NewProductList() {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  // border: '1px solid #C3CEC7',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
 

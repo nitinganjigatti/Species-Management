@@ -197,7 +197,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 </Grid>
               </>
             ) : null}
-            {/* 
+            {/*
             <Grid container items>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
@@ -1384,6 +1384,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         printWindow.close()
       }
     }
+
+    const interval = setInterval(() => {
+      if (printWindow.closed) {
+        clearInterval(interval)
+      } else {
+        printWindow.close()
+        clearInterval(interval)
+      }
+    }, 500)
   }
 
   console.log(disputeItemDetails?.item_details, 'disputeItemDetails')
