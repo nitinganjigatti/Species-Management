@@ -61,7 +61,7 @@ const TabsSimple = ({ productDetails }) => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-    const { batch_no, ...otherQueryParams } = router.query
+    const { batch_no, searchValue, ...otherQueryParams } = router.query
     // const { page, pageSize, batch_no, ...otherQueryParams } = router.query
     router.replace(
       {

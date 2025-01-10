@@ -460,13 +460,38 @@ function Ledger() {
       console.log(filters)
 
       setSearchValue(q)
-      try {
-        await getLedger({ stock_id: id, batch_no: batch_no, q: q, tab: Array.isArray(filters) ? filters : [filters] })
-      } catch (error) {
-        console.error(error)
+      const updatedQuery = {
+        ...router.query,
+        searchValue: q || undefined,
+        page: 1
       }
+      // Remove empty search param
+      if (!q) {
+        delete updatedQuery.searchValue
+      }
+
+      // Update URL
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: updatedQuery
+        },
+        undefined,
+        { shallow: true }
+      )
+
+      // Reset pagination
+      setPaginationModel(prev => ({
+        ...prev,
+        page: 0
+      }))
+      // try {
+      //   await getLedger({ stock_id: id, batch_no: batch_no, q: q, tab: Array.isArray(filters) ? filters : [filters] })
+      // } catch (error) {
+      //   console.error(error)
+      // }
     }, 1000),
-    [getLedger, router.query.filters, selectedTabs, id, batch_no]
+    [router.query.filters, selectedTabs, id, batch_no]
   )
 
   const dispatchBy = ['Central Pharmacy', 'Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
@@ -654,12 +679,17 @@ function Ledger() {
   useEffect(() => {
     const page = parseInt(router.query.page, 10)
     const pageSize = parseInt(router.query.pageSize, 10)
+    const urlSearchValue = router.query.searchValue
 
     if (!isNaN(page) || !isNaN(pageSize)) {
       setPaginationModel({
         page: !isNaN(page) ? page - 1 : 0, // Subtract 1 for 0-based indexing
         pageSize: !isNaN(pageSize) ? pageSize : 10
       })
+    }
+    // Set initial search value
+    if (urlSearchValue) {
+      setSearchValue(urlSearchValue)
     }
   }, [])
 
