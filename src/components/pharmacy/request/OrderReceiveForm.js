@@ -1580,6 +1580,10 @@ function OrderReceiveForm({ orderId, requestId }) {
               margin-top: 16px;
 
             }
+              .MuiDataGrid-footerContainer{
+              display:none!important;
+              opacity: 0;
+            }
                .print-title {
               position: absolute;
               top: 20px;
