@@ -1216,11 +1216,11 @@ const AddRequestForm = () => {
                       color: 'primary.main'
                     }
                   }}
-                  checked={nestedRowMedicine.priority_item === 'high'}
+                  checked={nestedRowMedicine?.priority_item === 'high'}
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
-                      priority_item: event.target.checked ? 'high' : ''
+                      priority_item: event?.target.checked ? 'high' : 'low'
                     })
                   }}
                 />
