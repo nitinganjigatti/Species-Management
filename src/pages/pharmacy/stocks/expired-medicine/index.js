@@ -12,9 +12,14 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import { Box } from '@mui/system'
 import { ExcelExportButton } from 'src/components/Buttons'
-import { Tooltip } from '@mui/material'
+import { Grid, TextField, Tooltip } from '@mui/material'
+import { useTheme } from '@emotion/react'
+import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import RenderUtility from 'src/utility/render'
 
 const ExpiredMedicine = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -116,38 +121,54 @@ const ExpiredMedicine = () => {
   }
 
   const columns = [
+    // {
+    //   flex: 0.1,
+    //   Width: 40,
+    //   alignItems: 'right',
+    //   field: 'id',
+    //   headerName: 'SL',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.id + "."}
+    //     </Typography>
+    //   )
+    // },
     {
-      flex: 0.05,
-      Width: 40,
-      alignItems: 'right',
-      field: 'id',
-      headerName: 'SL',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
+      width: 350,
+      minWidth: 100,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
             {params.row.stock_item_name}
           </Typography>
         </Tooltip>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
@@ -165,26 +186,43 @@ const ExpiredMedicine = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 250,
+      minWidth: 100,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_qty}
         </Typography>
       )
@@ -243,22 +281,101 @@ const ExpiredMedicine = () => {
         <>
           <Card>
             <CardHeader
-              title='Expired Products'
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'flex-start', sm: 'space-between' },
+                alignItems: { xs: 'flex-start', sm: 'flex-start' },
+                flexDirection: { xs: 'column', sm: 'row' },
+                '& .MuiCardHeader-title': {
+                  fontSize: { xs: '18px', sm: '20px', md: '24px' },
+                  flexGrow: 1
+                },
+                '& .MuiCardHeader-action': {
+                  mt: 3,
+                  width: { xs: '100% ', sm: 'auto' }
+                },
+                mx: { xs: -2, sm: 1 }
+              }}
+              title={RenderUtility.pageTitle('Expired Products')}
               action={
-                <Box sx={{ mx: 2 }}>
-                  <ExcelExportButton
-                    disabled={total === 0 ? true : false}
-                    action={() => {
-                      getDataToExport()
-                    }}
-                    loader={excelLoader}
-                    title='Download'
-                  />
-                </Box>
+                <ExcelExportButton
+                  disabled={total === 0 ? true : false}
+                  action={() => {
+                    getDataToExport()
+                  }}
+                  loader={excelLoader}
+                  title='Download'
+                  fullWidth='fullWidth'
+                />
               }
             />
+            <Grid
+              display='flex'
+              justifyContent='space-between'
+              flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
+              gap={2} // Gap between items on smaller screens
+            >
+              {/* Left Box (Search Field) */}
+              <Grid
+                item
+                xs={12}
+                sm={8}
+                md={6}
+                sx={{
+                  mx: { xs: 2, sm: 5 }
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '8px',
+                    padding: '0 8px',
+                    height: '40px',
+                    width: { xs: '100%', sm: '240px' }
+                  }}
+                >
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search...'
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    fullWidth
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
 
-            <DataGrid
+            <Grid
+              sx={{
+                mx: { xs: 2, sm: 5 }
+              }}
+            >
+              <CommonTable
+                onRowClick={''}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+
+            {/* <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
@@ -268,9 +385,9 @@ const ExpiredMedicine = () => {
                   cursor: 'pointer'
                 }
               }}
-              columnVisibilityModel={{
-                id: false
-              }}
+              // columnVisibilityModel={{
+              //   id: false
+              // }}
               hideFooterSelectedRowCount
               disableColumnSelector={true}
               autoHeight
@@ -300,7 +417,7 @@ const ExpiredMedicine = () => {
               }}
 
               // onRowClick={onRowClick}
-            />
+            /> */}
           </Card>
         </>
       )}

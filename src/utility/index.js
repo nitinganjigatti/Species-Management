@@ -127,6 +127,26 @@ function extractHoursAndMinutes(date) {
   return moment(date).format('hh:mm A')
 }
 
+function formatNumberToDisplay(number) {
+  if (number !== null && !isNaN(number)) {
+    return Number.isInteger(number) ? number.toString() : number.toFixed(2)
+  } else {
+    return '0'
+  }
+}
+
+function formatAmountToReadableDigit(value) {
+  if (value) {
+    if (value > 10000) {
+      return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
+    }
+
+    return `₹ ${value}.00`
+  }
+
+  return '0'
+}
+
 function toPascalSentenceCase(str) {
   return str
     .replace(/[-_]+/g, ' ')
@@ -150,6 +170,8 @@ const Utility = {
   convertUTCToLocal,
   convertUTCToLocaltime,
   extractHoursAndMinutes,
+  formatNumberToDisplay,
+  formatAmountToReadableDigit,
   toPascalSentenceCase,
   renderUserAvatar
 }

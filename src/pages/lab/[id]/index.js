@@ -23,6 +23,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -65,6 +66,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import AnimalCard from 'src/views/pages/lab/AnimalCard'
 import { borderColor, width } from '@mui/system'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -79,6 +81,8 @@ const statusData = [
 ]
 
 const RequestDetails = () => {
+  const theme = useTheme()
+
   const router = useRouter()
   const authData = useContext(AuthContext)
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
@@ -891,8 +895,9 @@ const RequestDetails = () => {
                     </Typography>
                   </Box>
 
-                  <Box>
-                    <AnimalCard animalDetails={item?.animal_details} />
+                  <Box sx={{ minWidth: '345px' }}>
+                    <AnimalParentCard data={item?.animal_details} backgroundColor={'#f2f2f2'} />
+                    {/* <AnimalCard animalDetails={item?.animal_details} /> */}
                   </Box>
                 </Box>
               </>

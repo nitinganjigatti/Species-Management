@@ -1,0 +1,322 @@
+import React, { useState } from 'react'
+import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider } from '@mui/material'
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+import { LoadingButton } from '@mui/lab'
+
+const FilterSheet = ({
+  open,
+  setOpenFilterDrawer,
+  categories,
+  sites,
+  setSites,
+  selectedSites,
+  setSelectedSites,
+  options,
+  selectedOptions,
+  setSelectedOptions,
+  handleSelectedSite,
+  handleSelectedOrganization
+}) => {
+  const theme = useTheme()
+  const [activeCategory, setActiveCategory] = useState(categories[0])
+  const [searchValue, setSearchValue] = useState('')
+
+  const handleSelectAll = event => {
+    if (event.target.checked) {
+      const currentOptions = options[activeCategory]?.map(option =>
+        activeCategory === 'Site' ? option.site_id : option.id
+      )
+      setSelectedOptions(prev => ({
+        ...prev,
+        [activeCategory]: currentOptions
+      }))
+    } else {
+      setSelectedOptions(prev => ({
+        ...prev,
+        [activeCategory]: []
+      }))
+    }
+  }
+
+  const handleToggleOption = (optionId, category) => {
+    setSelectedOptions(prevSelectedOptions => {
+      const updatedOptions = { ...prevSelectedOptions }
+
+      if (!updatedOptions[category]) {
+        updatedOptions[category] = []
+      }
+
+      if (updatedOptions[category].includes(optionId)) {
+        updatedOptions[category] = updatedOptions[category].filter(id => id !== optionId)
+      } else {
+        updatedOptions[category] = [...updatedOptions[category], optionId]
+      }
+
+      return updatedOptions
+    })
+  }
+
+  const handleConfirmSelection = () => {
+    const totalData = activeCategory === 'Site' ? [...sites] : [...options.Organization]
+    const selectedData = selectedOptions[activeCategory] || []
+
+    const sortedSelectedData = selectedData.sort((a, b) => a - b)
+
+    const sortedUnselectedData = totalData
+      .filter(item =>
+        activeCategory === 'Site'
+          ? !sortedSelectedData.includes(item.site_id)
+          : !sortedSelectedData.includes(item.organization_id)
+      )
+      .sort((a, b) =>
+        activeCategory === 'Site'
+          ? a.site_name.localeCompare(b.site_name)
+          : a.organization_name.localeCompare(b.organization_name)
+      )
+
+    if (activeCategory === 'Site') {
+      setSelectedSites([...sortedUnselectedData.map(item => item.site_id), ...sortedSelectedData])
+
+      const mergedSites = [
+        ...totalData.filter(item => sortedSelectedData.includes(item.site_id)),
+        ...sortedUnselectedData
+      ]
+      setSites(mergedSites)
+      console.log('Merged and Sorted Sites:', mergedSites)
+    } else if (activeCategory === 'Organization') {
+      setSelectedOptions(prevSelectedOptions => ({
+        ...prevSelectedOptions,
+        Organization: [...sortedUnselectedData.map(item => item.organization_id), ...sortedSelectedData]
+      }))
+
+      const mergedOrganizations = [
+        ...totalData.filter(item => sortedSelectedData.includes(item.organization_id)),
+        ...sortedUnselectedData
+      ]
+      console.log('Merged and Sorted Organizations:', mergedOrganizations)
+    }
+
+    if (activeCategory === 'Site') {
+      handleSelectedSite(sortedSelectedData)
+    } else if (activeCategory === 'Organization') {
+      handleSelectedOrganization(sortedSelectedData)
+    }
+
+    // Close the drawer
+    setOpenFilterDrawer(false)
+  }
+
+  const handleClearFilter = () => {
+    setSelectedOptions([])
+  }
+
+  const filteredOptions =
+    options[activeCategory]?.filter(option => {
+      if (activeCategory === 'Site') {
+        return option?.site_name?.toLowerCase().includes(searchValue.toLowerCase())
+      }
+
+      if (activeCategory === 'Organization') {
+        return option?.organization_name?.toLowerCase().includes(searchValue.toLowerCase())
+      }
+    }) || []
+
+  const handleCategoryClick = category => {
+    setActiveCategory(category)
+    setSearchValue('')
+  }
+
+  return (
+    <Drawer
+      anchor='right'
+      open={open}
+      sx={{
+        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        backgroundColor: 'background.default'
+      }}
+    >
+      <Box
+        className='sidebar-header'
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: 'background.default',
+          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+        }}
+      >
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+          <Icon icon='mage:filter' fontSize={30} />
+          <Typography sx={{ fontSize: '24px', fontWeight: 500, fontFamily: 'Inter' }}>
+            Filter - {selectedOptions[activeCategory]?.length > 0 ? selectedOptions[activeCategory]?.length : 0}
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <IconButton
+            size='small'
+            sx={{ color: 'text.primary' }}
+            onClick={() => {
+              setOpenFilterDrawer(false)
+            }}
+          >
+            <Icon icon='mdi:close' fontSize={24} />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {/* Drawer Content */}
+
+      <Box sx={{ width: '562px', height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
+        <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
+          <Grid container>
+            <Grid item md={4} sm={4} xs={4}>
+              <Box
+                sx={{
+                  ml: 3,
+                  cursor: 'pointer',
+                  width: '300%',
+                  padding: 2,
+                  borderRadius: 1
+                }}
+              >
+                {categories?.map((item, index) => (
+                  <Box
+                    onClick={() => handleCategoryClick(item)}
+                    sx={{
+                      mb: 4,
+                      mt: -2,
+                      height: '50px',
+                      textAlign: 'center',
+                      borderTopLeftRadius: '8px',
+                      borderBottomLeftRadius: '8px',
+                      cursor: 'pointer',
+                      backgroundColor: activeCategory === item ? 'white' : 'transparent',
+                      borderRadius: '4px',
+                      padding: '8px',
+                      '&:hover': {
+                        backgroundColor: activeCategory === item ? 'white' : '#f5f5f5'
+                      }
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        mt: 2,
+                        color: theme.palette.primary.dark,
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        fontWeight: 400
+                      }}
+                      key={index}
+                      variant='body2'
+                      onClick={() => handleCategoryClick(item)}
+                    >
+                      {item}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+        <Box sx={{ width: '360px', height: '753px', backgroundColor: '#FFF', borderRadius: '4px' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              width: '330px',
+              alignItems: 'center',
+              border: '1px solid #C3CEC7',
+              borderRadius: '4px',
+              padding: '0 8px',
+              height: '40px',
+              mt: 3,
+              ml: 3
+            }}
+          >
+            <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+            <TextField
+              variant='outlined'
+              placeholder='Search'
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              InputProps={{
+                disableUnderline: false
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+                  padding: '0',
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                }
+              }}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 3, ml: 3.5 }}>
+            <Checkbox
+              checked={selectedOptions[activeCategory]?.length === options[activeCategory]?.length}
+              onChange={handleSelectAll}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+          </Box>
+          <Divider sx={{ m: 3 }} />
+          <Box sx={{ ml: 2, height: '750px', overflowY: 'auto' }}>
+            <Box sx={{ ml: 2, overflowX: 'hidden' }}>
+              {filteredOptions.map((option, index) => (
+                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Checkbox
+                    checked={(selectedOptions[activeCategory] || []).includes(
+                      activeCategory === 'Site' ? option.site_id : option.id
+                    )}
+                    onChange={() =>
+                      handleToggleOption(activeCategory === 'Site' ? option.site_id : option.id, activeCategory)
+                    }
+                  />
+                  <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                    {activeCategory === 'Site' ? option.site_name : option.organization_name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* bottom buttons */}
+      <Box
+        sx={{
+          height: '122px',
+          width: '100%',
+          maxWidth: '562px',
+          position: 'fixed',
+          bottom: 0,
+          px: 4,
+          bgcolor: 'white',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 5,
+          display: 'flex',
+          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 123
+        }}
+      >
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearFilter}>
+          CLEAR ALL
+        </LoadingButton>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={handleConfirmSelection}>
+          APPLY FILTER
+        </LoadingButton>
+      </Box>
+    </Drawer>
+  )
+}
+
+export default FilterSheet

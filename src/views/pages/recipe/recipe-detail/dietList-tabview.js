@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-import { getRecipeListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
+import { getDietListonRecipeDtl } from 'src/lib/api/diet/getIngredients'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
@@ -19,17 +19,17 @@ import Button from '@mui/material/Button'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-const DietListTabview = ({ IngredientName }) => {
+const DietListTabview = ({ IngredientName, onTotalChange }) => {
   const [loader, setLoader] = useState(false)
   const router = useRouter()
   const { id } = router.query
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
+  const [sort, setSort] = useState('desc')
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('recipe_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
@@ -44,23 +44,27 @@ const DietListTabview = ({ IngredientName }) => {
     setTotal(0)
     setStatus(newValue)
   }
-
   const fetchTableData = useCallback(
-    async (q, searchColumns, status) => {
+    async (sortBy, q, status) => {
       try {
         setLoading(true)
 
         const params = {
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
+          sortBy,
           q,
-          searchColumns,
           status
         }
-        await getRecipeListonIngredientDtl(id, params).then(res => {
+        await getDietListonRecipeDtl(id, params).then(res => {
           console.log('response', res)
-          setTotal(parseInt(res?.data?.data?.count))
-          setRows(loadServerRows(paginationModel.page, res.data.data.result))
+          // Generate uid field based on the index
+          const startingIndex = paginationModel.page * paginationModel.pageSize
+          let listWithId = res.data.data.result.map((el, i) => {
+            return { ...el, uid: startingIndex + i + 1 }
+          })
+          setTotal(parseInt(res?.data?.data?.total_count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
         })
         setLoading(false)
       } catch (e) {
@@ -71,8 +75,13 @@ const DietListTabview = ({ IngredientName }) => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(searchValue, sortColumning, status)
+    fetchTableData(sort, searchValue, status)
   }, [fetchTableData, status])
+
+  useEffect(() => {
+    onTotalChange(total)
+  }, [total, onTotalChange])
+
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
@@ -80,11 +89,20 @@ const DietListTabview = ({ IngredientName }) => {
     sl_no: getSlNo(index)
   }))
 
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+
+      fetchTableData(newModel[0].sort, searchValue, status)
+    } else {
+    }
+  }
+
   const searchTableData = useCallback(
-    debounce(async (q, searchColumns, status) => {
+    debounce(async (sortBy, q, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q, searchColumns, status)
+        await fetchTableData(sortBy, q, status)
       } catch (error) {
         console.error(error)
       }
@@ -107,91 +125,67 @@ const DietListTabview = ({ IngredientName }) => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(value, sortColumning, status)
+    searchTableData(sort, value, status)
+  }
+
+  const handlechangecheck = (data, val) => {
+    Router.push({
+      pathname: `/diet/diet/${data?.id}`,
+      query: { source: val, recipeId: id }
+    })
   }
 
   const columns = [
     {
-      flex: 0.3,
-      minWidth: 40,
-      field: 'recipe_name',
-      headerName: 'DIET',
+      flex: 0.05,
+      Width: 40,
+      field: 'uid',
+      headerName: 'SL ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          <Avatar
-            variant='square'
-            alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : '/icons/icon_recipe_fill.png'}
-          >
-            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.recipe_name ? params.row.recipe_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 40,
-      field: 'recipe_nameb',
-      headerName: 'Ingredients',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          <Avatar
-            variant='square'
-            alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : null}
-          >
-            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.recipe_name ? params.row.recipe_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 40,
-      field: 'recipe_namea',
-      headerName: 'Recipes',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          <Avatar
-            variant='square'
-            alt='Recipe Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
-            src={params.row.recipe_image ? params.row.recipe_image : null}
-          >
-            {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
-          </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-              {params.row.recipe_name ? params.row.recipe_name : '-'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'kcal',
-      headerName: 'MEALS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.kcal ? params.row.kcal + ' ' + 'Kcal' : '-'}
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+          {params.row.uid}
         </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 40,
+      field: 'diet_name',
+      headerName: 'DIET NAME',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* {renderClient(params)} */}
+          <Avatar
+            variant='square'
+            alt='Recipe Image'
+            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            src={params.row.image ? params.row.image : '/icons/icon_diet_fill.png'}
+          ></Avatar>
+
+          <Box
+            sx={{ display: 'flex', flexDirection: 'column' }}
+            onClick={() => handlechangecheck(params.row, 'recipedetail')}
+          >
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.diet_name ? params.row.diet_name : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 40,
+      field: 'diet_no',
+      headerName: 'DIET NO',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+              {params.row.diet_no ? params.row.diet_no : '-'}
+            </Typography>
+          </Box>
+        </Box>
       )
     }
   ]
@@ -213,18 +207,18 @@ const DietListTabview = ({ IngredientName }) => {
         ) : (
           <>
             <div>
-              {showSwapBtn.length > 0 ? (
+              {/* {showSwapBtn.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                   <Button size='small' variant='contained' sx={{ px: 4, py: 2, cursor: 'pointer' }}>
                     <Icon icon='mdi:add' fontSize={20} />
                     &nbsp; SWAP {IngredientName}
                   </Button>
                 </div>
-              ) : (
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '38px' }}
-                ></div>
-              )}
+              )  */}
+              <div
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '38px' }}
+              ></div>
+
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -240,7 +234,7 @@ const DietListTabview = ({ IngredientName }) => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
-                checkboxSelection={true}
+                //checkboxSelection={true}
                 disableColumnMenu={true}
                 onRowSelectionModelChange={handleSelectionChange}
                 selectionModel={selectedRows}
@@ -249,6 +243,8 @@ const DietListTabview = ({ IngredientName }) => {
                 rows={indexedRows === undefined ? [] : indexedRows}
                 rowCount={total}
                 columns={columns}
+                sortingMode='server'
+                onSortModelChange={handleSortModel}
                 paginationMode='server'
                 pageSizeOptions={[7, 10, 25, 50]}
                 paginationModel={paginationModel}

@@ -112,6 +112,8 @@ export const STORAGE = 'storage'
 
 export const DRIVER = 'driver'
 
+export const VARIANTS = 'variants'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
@@ -207,6 +209,12 @@ export const STOCK = 'pharmacy/stock'
 export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
 
 export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
+
+export const VARIANTS_MAPPING = 'variantMapping'
+
+export const VALIDATE_PURCHASE = 'validate'
+
+export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
 
 export const FEED_DETAILS = 'details'
 
@@ -346,6 +354,16 @@ export const DELETE_ATTACHMENT_BATCH = 'v1/parivesh/species/site/deleteattachmen
 
 export const SEARCH_MASTER_LIST_SPECIES = 'v1/parivesh/species/masterlist'
 
+export const CUT_SIZE = 'diet/recipes/master/cutsizeList'
+
+export const ADD_CUT_SIZE = 'diet/recipes/master/cutsizeadd'
+
+export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
+
+export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
+
+export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
+
 export const USERS_REPORT = '/user/report'
 
 export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
@@ -353,6 +371,8 @@ export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
 export const SPECIES_REPORT = 'v1/species/reportv1'
 
 export const ANIMAL_REPORT = 'v1/animal/report'
+
+export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 

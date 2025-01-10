@@ -22,6 +22,7 @@ import { Grid } from '@mui/material'
 const ExpiredProducts = () => {
   const [productsList, setProductsList] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
+
   const getProductsList = async () => {
     try {
       const result = await getExpiredStocks()

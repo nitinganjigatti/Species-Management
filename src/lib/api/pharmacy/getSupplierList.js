@@ -5,6 +5,10 @@ export async function getSuppliers() {
   return await axiosGet({ url: SUPPLIER, pharmacy: true })
 }
 
+export async function getSuppliersByParams({params}) {
+  return await axiosGet({ url: SUPPLIER,params, pharmacy: true })
+}
+
 export async function getSupplierById(id) {
   const response = await axiosGet({ url: `${SUPPLIER}/${id}/show`, pharmacy: true })
 

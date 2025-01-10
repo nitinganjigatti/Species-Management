@@ -28,7 +28,7 @@ import Icon from 'src/@core/components/icon'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import { deleteRecipe } from 'src/lib/api/diet/recipe'
 import toast from 'react-hot-toast'
-import RecipeListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
+import DietListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
 import IngredientsListforRecipeDetail from '../ingredient-list'
 import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
@@ -64,13 +64,14 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 
 const RecipeDetail = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, source } = router.query
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
   const [statusDialog, setstatusDialog] = useState(false)
+  const [dietListTotal, setDietListTotal] = useState(0)
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -118,6 +119,14 @@ const RecipeDetail = () => {
       getRecipeDetailval(id)
     }
   }, [id, value])
+
+  useEffect(() => {
+    if (source !== undefined && source === 'fromdiet') {
+      setValue('2')
+    } else {
+      setValue('1')
+    }
+  }, [source])
 
   const confirmStatusUpdateAction = async () => {
     try {
@@ -171,9 +180,12 @@ const RecipeDetail = () => {
           <Grid item xs={12}>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
-              <Link underline='hover' color='inherit' href='/diet/recipe/'>
+              {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
+                Recipe 
+              </Link> */}
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
                 Recipe
-              </Link>
+              </Typography>
               <Typography color='text.primary'>Recipe Details</Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
@@ -259,14 +271,17 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
-                              label='USED IN DIET'
+                              label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                             />
                           </TabList>
                           <TabPanel value='1'>
                             <RecipeOverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
                           </TabPanel>
                           <TabPanel value='2'>
-                            <RecipeListTabview IngredientName={IngredientsDetailsval.ingredient_name} />
+                            <DietListTabview
+                              IngredientName={IngredientsDetailsval.ingredient_name}
+                              onTotalChange={setDietListTotal}
+                            />
                           </TabPanel>
                         </TabContext>
                       </Grid>

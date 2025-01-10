@@ -8,7 +8,8 @@ import {
   REQUEST_ITEMS_NOT_AVAILABLE_REVERT,
   AlTERNATIVE_MEDICINE,
   REJECT_MEDICINE,
-  NOT_AVAILABLE_PRODUCT
+  NOT_AVAILABLE_PRODUCT,
+  REQUEST_PENDING_PRODUCTS
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost, fetchFormPost } from '../utility'
 
@@ -353,4 +354,10 @@ export async function makeProductNotAvailable(payload, parentId) {
 
     return error
   }
+}
+
+export async function getRequestPendingProductsList(id) {
+  const response = await axiosGet({ url: `${REQUEST_PENDING_PRODUCTS}/${id}`, pharmacy })
+
+  return response.data
 }

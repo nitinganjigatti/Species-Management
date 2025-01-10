@@ -20,7 +20,7 @@ import Drawer from '@mui/material/Drawer'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import SwapIngredient from './swapIngredient'
 
@@ -31,7 +31,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('recipe_name')
+  const [sort, setSort] = useState('desc')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [selectedRows, setSelectedRows] = useState([])
@@ -54,15 +54,15 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   }
 
   const fetchTableData = useCallback(
-    async (q, searchColumns, status) => {
+    async (sortBy, q, status) => {
       try {
         setLoading(true)
 
         const params = {
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
+          sortBy,
           q,
-          searchColumns,
           status
         }
         await getRecipeListonIngredientDtl(id, params).then(res => {
@@ -73,7 +73,11 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
 
           if (Array.isArray(result)) {
             // If result is an array, update rows directly
-            setRows(loadServerRows(paginationModel.page, result))
+            const startingIndex = paginationModel.page * paginationModel.pageSize
+            let listWithId = res.data.data.result.map((el, i) => {
+              return { ...el, uid: startingIndex + i + 1 }
+            })
+            setRows(loadServerRows(paginationModel.page, listWithId))
           } else if (typeof result === 'object') {
             // If result is an object, convert it to an array of one object
             setRows([result])
@@ -91,7 +95,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(searchValue, sortColumning, status)
+    fetchTableData(sort, searchValue, status)
   }, [fetchTableData, status])
   useEffect(() => {
     onTotalChange(total)
@@ -104,11 +108,20 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     sl_no: getSlNo(index)
   }))
 
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      setSort(newModel[0].sort)
+
+      fetchTableData(newModel[0].sort, searchValue, status)
+    } else {
+    }
+  }
+
   const searchTableData = useCallback(
-    debounce(async (q, searchColumns, status) => {
+    debounce(async (sortBy, q, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q, searchColumns, status)
+        await fetchTableData(sortBy, q, status)
       } catch (error) {
         console.error(error)
       }
@@ -131,10 +144,28 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(value, sortColumning, status)
+    searchTableData(sort, value, status)
+  }
+
+  const handleclickChange = (data, val) => {
+    Router.push({
+      pathname: `/diet/recipe/${data?.id}`
+      //query: { source: val, ingId: id }
+    })
   }
 
   const columns = [
+    {
+      flex: 0.1,
+      Width: 40,
+      field: 'uid',
+      headerName: 'SL ',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+          {params.row.uid}
+        </Typography>
+      )
+    },
     {
       flex: 0.5,
       minWidth: 40,
@@ -152,7 +183,13 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: 'text.primary' }}
+              className='text_overflow_moduled'
+              onClick={() => handleclickChange(params.row, 'ingdetail')}
+            >
               {params.row.recipe_name ? params.row.recipe_name : '-'}
             </Typography>
           </Box>
@@ -162,11 +199,11 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'kcal',
+      field: 'total_kcal',
       headerName: 'KCAL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.kcal ? params.row.kcal + ' ' + 'Kcal' : '-'}
+          {params.row.total_kcal ? params.row.total_kcal + ' ' + 'Kcal' : '-'}
         </Typography>
       )
     },
@@ -176,7 +213,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       field: 'ingredient_count',
       headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 10 }}>
           {params.row.ingredient_count ? params.row.ingredient_count : '-'}
         </Typography>
       )
@@ -259,6 +296,8 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                 rowCount={total}
                 columns={columns}
                 paginationMode='server'
+                sortingMode='server'
+                onSortModelChange={handleSortModel}
                 pageSizeOptions={[7, 10, 25, 50]}
                 paginationModel={paginationModel}
                 slots={{ toolbar: ServerSideToolbar }}

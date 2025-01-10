@@ -53,9 +53,11 @@ const StockReportDetails = props => {
         sx={{
           position: 'fixed',
           top: 0,
-          width: 'auto',
+
+          // width: 'auto',
           width: '-webkit-fill-available',
-          backgroundColor: 'white'
+          backgroundColor: 'white',
+          maxWidth: 400
         }}
       >
         <Box

@@ -67,7 +67,15 @@ const DashboardFilter = ({
   const handleCloseDrawer = () => {
     setIsFilterOpen(false)
     setFilterList([])
-    setSelectedOptions({ Species: [], Nursery: [], Batch: [], 'Security status': [], Condition: [], Reason: [] })
+    setSelectedOptions({
+      Species: [],
+      Nursery: [],
+      Batch: [],
+      'Security status': [],
+      Condition: [],
+      Reason: [],
+      Site: []
+    })
   }
 
   const handleMenuClick = menu => {
@@ -263,15 +271,15 @@ const DashboardFilter = ({
     setDiscardList([])
 
     const combinedSelectedOptions = [
-      ...selectedOptions.Species,
-      ...selectedOptions.Nursery,
-      ...selectedOptions.Batch,
+      ...selectedOptions?.Species,
+      ...selectedOptions?.Nursery,
+      ...selectedOptions?.Batch,
 
       ...selectedOptions['Security status'],
 
-      ...selectedOptions.Condition,
-      ...selectedOptions.Reason,
-      ...selectedOptions.Site
+      ...selectedOptions?.Condition,
+      ...selectedOptions?.Reason,
+      ...selectedOptions?.Site
     ]
     setSelectedDropDown('all')
 

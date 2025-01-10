@@ -135,12 +135,19 @@ const schema = yup.object().shape({
   //   is: value => Boolean(value),
   //   then: yup.boolean().oneOf([true], 'Prescription is required if controlled substance is provided')
   // }),
-  prescription_required: yup.boolean().when('controlled_substance', (controlled_substance, schema) => {
-    return controlled_substance == '1'
-      ? schema.oneOf([true], 'Prescription is required if product is controlled substance')
-      : schema
-  }),
-
+  // prescription_required: yup.boolean().when('controlled_substance', (controlled_substance, schema) => {
+  //   return controlled_substance[0] == '1'
+  //     ? schema.oneOf([true], 'Prescription is required if product is controlled substance')
+  //     : schema
+  // }),
+  prescription_required: yup
+    .string()
+    .transform(value => (value === true || value === '1' || value === 1 ? '1' : '0'))
+    .when('controlled_substance', (controlled_substance, schema) => {
+      return controlled_substance[0] === '1'
+        ? schema.oneOf(['1'], 'Prescription is required if product is a controlled substance')
+        : schema
+    }),
   part_out_of_stock: yup.string().required('part of out of stock is required'),
 
   side_effects: yup.string().nullable(),
@@ -449,7 +456,7 @@ const AddMedicine = () => {
           ...response.data,
           medicine_type: response.data.stock_type,
           medicine_name: response.data.name,
-          prescription_required: response?.data?.controlled_substance === '1' ? '1' : '0',
+          prescription_required: response?.data?.prescription_required,
           generic_name_id: response?.data?.generic_id,
           salts:
             salts !== null && salts.length > 0
@@ -995,7 +1002,8 @@ const AddMedicine = () => {
                         <Icon
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            Router.push('/pharmacy/medicine/product-list')
+                            //
+                            Router.back()
                           }}
                           icon='ep:back'
                         />
@@ -1056,6 +1064,7 @@ const AddMedicine = () => {
                                     <MenuItem value='allopathy'>Allopathy</MenuItem>
                                     <MenuItem value='ayurveda'>Ayurveda</MenuItem>
                                     <MenuItem value='unani'>Unani</MenuItem>
+                                    <MenuItem value='homeopathy'>Homeopathy</MenuItem>
                                     <MenuItem value='non_medical'>Non Medical</MenuItem>
                                   </Select>
                                 )}

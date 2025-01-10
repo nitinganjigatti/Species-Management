@@ -13,6 +13,7 @@ import {
   getPreparationTypeList
 } from 'src/lib/api/diet/settings/preparationTypes'
 import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
+import Toaster from 'src/components/Toaster'
 
 const PreparationTypes = () => {
   const editParamsInitialState = { id: null, label: null, status: null }
@@ -44,12 +45,6 @@ const PreparationTypes = () => {
     setOpenSnackbar(false)
   }
 
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
-
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, status: null })
     setResetForm(true)
@@ -69,11 +64,11 @@ const PreparationTypes = () => {
     {
       flex: 0.05,
       Width: 40,
-      field: 'id',
+      field: 'uid',
       headerName: 'SL No',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.id)}
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 4 }}>
+          {parseInt(params.row.uid)}
         </Typography>
       )
     },
@@ -142,8 +137,13 @@ const PreparationTypes = () => {
         }
 
         await getPreparationTypeList(params).then(res => {
+          const startingIndex = paginationModel.page * paginationModel.pageSize
+
+          let listWithId = res.data.result.map((el, i) => {
+            return { ...el, uid: startingIndex + i + 1 }
+          })
           setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
+          setRows(loadServerRows(paginationModel.page, listWithId))
         })
         setLoading(false)
       } catch (e) {
@@ -194,8 +194,7 @@ const PreparationTypes = () => {
         response = await addPreparationType(payload)
       }
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
+        Toaster({ type: 'success', message: 'Preparation type' + ' ' + response?.message })
         setSubmitLoader(false)
         setResetForm(true)
         setOpenDrawer(false)
@@ -203,12 +202,12 @@ const PreparationTypes = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        setAlertDefaults({ status: true, message: JSON.stringify(response?.message), severity: 'error' })
+        Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: JSON.stringify(e), severity: 'error' })
+      Toaster({ type: 'error', message: JSON.stringify(e) })
     }
   }
 

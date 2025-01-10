@@ -27,6 +27,7 @@ const DoctorsWiseMedicineList = ({
 
   const capitalizeFirstLetter = string => {
     if (!string) return ''
+
     return string.charAt(0).toUpperCase() + string.slice(1)
   }
 
@@ -187,6 +188,7 @@ const DoctorsWiseMedicineList = ({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   backgroundColor: 'background.default'
+
                   // p: theme => theme.spacing(3, 3.255, 3, 5.255)
                 }}
               >
@@ -203,9 +205,10 @@ const DoctorsWiseMedicineList = ({
 
               {!loading ? (
                 doctorsList &&
-                doctorsList.map(all => {
+                doctorsList.map((all, index) => {
                   return (
                     <Card
+                      key={index}
                       sx={{
                         mt: 2,
                         boxShadow: 'none',

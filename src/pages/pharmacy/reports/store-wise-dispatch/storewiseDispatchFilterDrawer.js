@@ -48,6 +48,7 @@ const StoreWisedispatchFilter = ({
     if (filtersApplied === true) {
       setFiltersApplied(false)
     }
+
     // Ensure that we are attaching the scroll event to the correct element
     if (ref) {
       ref.addEventListener('scroll', handleScroll)

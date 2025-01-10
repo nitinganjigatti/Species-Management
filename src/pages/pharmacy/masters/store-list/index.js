@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
@@ -28,14 +28,20 @@ import { column } from 'stylis'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
+import { useTheme } from '@emotion/react'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStores = () => {
+  const theme = useTheme()
+
   const [stores, setStores] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -79,87 +85,127 @@ const ListOfStores = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 100,
       field: 'sl_no',
-      headerName: 'SL ',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'type',
       headerName: 'TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.type}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.name}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'latitude',
       headerName: 'LATITUDE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.latitude}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'logitude',
       headerName: 'LONGITUDE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.logitude}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.site_name}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.status}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -255,7 +301,13 @@ const ListOfStores = () => {
   }
 
   const headerAction = (
-    <div>{pharmacyRole && <AddButton title='Add Pharmacy' action={() => addEventSidebarOpen()} />}</div>
+    <div>
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Pharmacy' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
+    </div>
   )
 
   const checkPharmacy = async () => {
@@ -327,8 +379,77 @@ const ListOfStores = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Pharmacy List' action={headerAction} />
-                <DataGrid
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('Pharmacy List')}
+                  action={headerAction}
+                />
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid
+                  sx={{
+                    mx: 4
+                  }}
+                >
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+                {/* <DataGrid
                   columnVisibilityModel={{
                     sl_no: false
                   }}
@@ -358,7 +479,7 @@ const ListOfStores = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                /> */}
               </Card>
               <AddStore
                 drawerWidth={400}

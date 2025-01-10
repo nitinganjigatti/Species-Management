@@ -11,13 +11,15 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Drawer, Grid, TextField } from '@mui/material'
 import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 
 import { debounce } from 'lodash'
+
+import { useTheme } from '@emotion/react'
 
 import toast from 'react-hot-toast'
 import AddDriver from 'src/views/pages/pharmacy/medicine/driver/addDriverForm'
@@ -30,8 +32,13 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const Salts = () => {
+  const theme = useTheme()
+
   const [driversList, setDriversList] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -84,45 +91,68 @@ const Salts = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'driver_name',
       headerName: 'Driver Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.driver_name}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'phone_number',
       headerName: 'Phone Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.phone_number}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 250,
       field: 'vehicle_number',
       headerName: 'Vehicle Number',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.vehicle_number}
         </Typography>
       )
@@ -140,8 +170,7 @@ const Salts = () => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -235,9 +264,11 @@ const Salts = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add Driver' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Driver' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
   )
 
@@ -294,8 +325,78 @@ const Salts = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Drivers' action={headerAction} />
-                <DataGrid
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('Drivers')}
+                  action={headerAction}
+                />
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid
+                  sx={{
+                    mx: 4
+                  }}
+                >
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+                {/* <DataGrid
                   columnVisibilityModel={{
                     id: false
                   }}
@@ -325,7 +426,7 @@ const Salts = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                /> */}
               </Card>
               <AddDriver
                 drawerWidth={400}

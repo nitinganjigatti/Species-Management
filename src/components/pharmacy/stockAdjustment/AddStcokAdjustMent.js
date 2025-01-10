@@ -291,8 +291,11 @@ const AddStockAdjustment = () => {
   // data posting section
   const createForm = () => {
     return (
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <Controller
@@ -561,60 +564,69 @@ const AddStockAdjustment = () => {
         </form>
       </CardContent>
       {optionsBatchList?.length > 0 ? (
-        <TableContainer>
-          <Table>
-            <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-              <TableRow>
-                <TableCell>Sl.NO</TableCell>
-                <TableCell>Product Name</TableCell>
-                <TableCell>Batch Number</TableCell>
-                <TableCell>Expiry Date</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Adjust</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {optionsBatchList
-                ? optionsBatchList?.map((el, index) => {
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
+        <Card sx={{ m: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                <TableRow>
+                  <TableCell>Sl.NO</TableCell>
+                  <TableCell>Product Name</TableCell>
+                  <TableCell>Batch Number</TableCell>
+                  <TableCell>Expiry Date</TableCell>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Adjust</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {optionsBatchList
+                  ? optionsBatchList?.map((el, index) => {
+                      return (
+                        <TableRow
+                          key={index}
+                          sx={{
+                            '&:last-child td, &:last-child th': {
+                              border: 0
+                            }
+                          }}
+                        >
+                          <TableCell>{index + 1}</TableCell>
 
-                        <TableCell>
-                          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                            {el.productName}
-                          </Typography>
-                          <Typography variant='body2'>{el.packageDetails}</Typography>
-                        </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.productName}
+                            </Typography>
+                            <Typography variant='body2'>{el.packageDetails}</Typography>
+                          </TableCell>
 
-                        <TableCell>{el.batchNumber}</TableCell>
+                          <TableCell>{el.batchNumber}</TableCell>
 
-                        <TableCell>{Utility.formatDisplayDate(el.expiryDate)} </TableCell>
-                        <TableCell>{el.availableQty}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant='contained'
-                            onClick={() => {
-                              reset({
-                                batch_no: el?.batchNumber,
-                                stock_id: el?.stockItemId,
-                                availableQty: el?.availableQty,
-                                expiry_date: el?.expiryDate,
-                                adjustment_quantity: el?.availableQty
-                              })
-                              openStockDialog()
-                            }}
-                          >
-                            Adjust
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                : null}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                          <TableCell>{Utility.formatDisplayDate(el.expiryDate)} </TableCell>
+                          <TableCell>{el.availableQty}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant='contained'
+                              onClick={() => {
+                                reset({
+                                  batch_no: el?.batchNumber,
+                                  stock_id: el?.stockItemId,
+                                  availableQty: el?.availableQty,
+                                  expiry_date: el?.expiryDate,
+                                  adjustment_quantity: el?.availableQty
+                                })
+                                openStockDialog()
+                              }}
+                            >
+                              Adjust
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  : null}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
       ) : null}
 
       <Grid container>

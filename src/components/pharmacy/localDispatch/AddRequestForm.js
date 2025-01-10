@@ -499,9 +499,9 @@ const AddRequestForm = () => {
           request_item_qty: el?.qty,
           request_item_leaf_id: el?.stock_item_id,
           priority_item: el?.priority,
-          control_substance: el?.control_substance === '0' ? false : true,
+          control_substance: el?.control_substance === '1' ? true : false,
           control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
-          prescription_required: el?.prescription_required === '0' ? false : true,
+          prescription_required: el?.prescription_required === '1' ? true : false,
           prescription_required_file: el?.prescription_required_file !== '' ? el?.prescription_required_file : '',
           id: el?.id,
           request_item_detail_id: el?.id,
@@ -1313,7 +1313,7 @@ const AddRequestForm = () => {
 
       <TableContainer>
         <Table>
-          <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+          <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
             <TableRow>
               <TableCell>Product Name</TableCell>
               <TableCell>Priority</TableCell>

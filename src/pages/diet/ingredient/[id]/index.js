@@ -34,6 +34,7 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import IngredientDetialDietListTabview from 'src/views/pages/ingredient/dietList-tabview'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -62,11 +63,12 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 
 const IngredientDetail = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, source } = router.query
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const [dietListTotal, setDietListTotal] = useState(0)
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
   const [recipeListTotal, setRecipeListTotal] = useState(0)
   const [statusDialog, setstatusDialog] = useState(false)
@@ -116,6 +118,14 @@ const IngredientDetail = () => {
       getIngredientsDetailval(id)
     }
   }, [id, value])
+
+  useEffect(() => {
+    if (source !== undefined && source === 'fromdiet') {
+      setValue('3')
+    } else {
+      setValue('1')
+    }
+  }, [source])
 
   const confirmStatusUpdateAction = async () => {
     try {
@@ -239,7 +249,7 @@ const IngredientDetail = () => {
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='3'
-                                label='USED IN DIET'
+                                label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                               />
                             </TabList>
                             <TabPanel value='1'>
@@ -252,7 +262,7 @@ const IngredientDetail = () => {
                               />
                             </TabPanel>
                             <TabPanel value='3'>
-                              <Typography>No Data to show</Typography>
+                              <IngredientDetialDietListTabview onTotalChange={setDietListTotal} />
                             </TabPanel>
                           </TabContext>
                         </Grid>

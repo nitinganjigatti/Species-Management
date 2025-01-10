@@ -13,6 +13,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+import { useTheme } from '@emotion/react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -34,6 +35,7 @@ import moment from 'moment'
 // import { callRefreshToken } from 'src/lib/api/auth'
 
 const ListOfRequest = () => {
+  const theme = useTheme()
   const router = useRouter()
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
@@ -49,19 +51,10 @@ const ListOfRequest = () => {
 
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
-
-    // write('selectedLAB', labSelected)
-    if (labSelected) {
-      router.push({
-        pathname: `/lab/${id}`,
-        query: { lab_id: labSelected }
-      })
-    } else {
-      router.push({
-        pathname: `/lab/${id}`,
-        query: { lab_id: authData?.userData?.modules?.lab_data?.lab[0]?.lab_id }
-      })
-    }
+    router.push({
+      pathname: `/lab/${id}`,
+      query: { lab_id: params.row.lab_id }
+    })
   }
 
   const columns = [
@@ -94,7 +87,15 @@ const ListOfRequest = () => {
       field: 'site_name',
       headerName: 'Site',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <span alt={params.row.site_name}>{params.row.site_name}</span>
         </Typography>
       )
@@ -118,7 +119,15 @@ const ListOfRequest = () => {
       sortable: false,
       align: 'center',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           <span alt={params.row.total_test}>{params.row.total_lab_tests}</span>
         </Typography>
       )
@@ -445,7 +454,7 @@ const ListOfRequest = () => {
             </Typography>
           </Breadcrumbs>
           <Card key={selectedLab}>
-            <CardHeader title='Lab Requests' />
+            <CardHeader title={'Requests lists'} />
 
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}

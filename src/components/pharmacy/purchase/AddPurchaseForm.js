@@ -45,7 +45,8 @@ import {
   getPurchaseListById,
   updatePurchase,
   updatePurchasePrice,
-  getBatchExpiry
+  getBatchExpiry,
+  validatePurchaseProducts
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -134,6 +135,9 @@ const AddPurchaseForm = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [supplierDialog, setSupplierDialog] = useState(false)
+  const [validatePurchaseDialog, setValidatePurchaseDialog] = useState(false)
+  const [priceValidationError, setPriceValidationError] = useState(false)
+  const [currentPayload, setCurrentPayload] = useState(null)
 
   const router = useRouter()
   const { id, action, navigatedFrom } = router.query
@@ -175,6 +179,10 @@ const AddPurchaseForm = () => {
     setItemErrors({})
     setDuplicateMedError('')
     setOptionsMedicineList([])
+
+    setValidatePurchaseDialog(false)
+    setPriceValidationError(false)
+    setCurrentPayload(null)
   }
 
   const showDialog = () => {
@@ -605,7 +613,7 @@ const AddPurchaseForm = () => {
 
   const getSuppliersLists = async () => {
     try {
-      const response = await getSuppliers()
+      const response = await getSuppliers({})
 
       if (response.data.data.list_items?.length > 0) {
         setSuppliers(response.data.data.list_items)
@@ -942,6 +950,43 @@ const AddPurchaseForm = () => {
     }
   }
 
+  // validatePurchaseProducts
+
+  // const getRecentPurchasePriceOfProduct = async productDetails => {
+  //   if (productDetails) {
+  //     try {
+  //       const response = await validatePurchaseProducts(productDetails)
+  //       console.log('response,', response)
+  //       if (response?.success === false) {
+  //         setPriceValidationError(true)
+  //       } else {
+  //         setPriceValidationError(false)
+  //       }
+  //     } catch (error) {
+  //       console.log('supplier error', error)
+  //     }
+  //   }
+  // }
+  const getRecentPurchasePriceOfProduct = useCallback(
+    debounce(async productDetails => {
+      if (productDetails) {
+        try {
+          const response = await validatePurchaseProducts(productDetails)
+          console.log('response,', response)
+
+          if (response?.success === false) {
+            setPriceValidationError(true)
+          } else {
+            setPriceValidationError(false)
+          }
+        } catch (error) {
+          console.log('supplier error', error)
+        }
+      }
+    }, 500), // 500ms debounce delay
+    []
+  )
+
   // data posting section
   const createForm = () => {
     return (
@@ -957,6 +1002,13 @@ const AddPurchaseForm = () => {
           checkMedicineExpiryDate={checkMedicineExpiryDate}
           productExpiryDate={productExpiryDate}
           expiryDateLoader={expiryDateLoader}
+          getRecentPurchasePriceOfProduct={getRecentPurchasePriceOfProduct}
+          validatePurchaseDialog={validatePurchaseDialog}
+          setValidatePurchaseDialog={setValidatePurchaseDialog}
+          priceValidationError={priceValidationError}
+          setPriceValidationError={setPriceValidationError}
+          currentPayload={currentPayload}
+          setCurrentPayload={setCurrentPayload}
         ></PurchaseItemForm>
       </CardContent>
     )
@@ -969,42 +1021,44 @@ const AddPurchaseForm = () => {
 
   return (
     <Card>
-      <Grid
-        item
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                if (navigatedFrom === 'stockReport') {
-                  Router.push('/pharmacy/stocks/stocksReport/')
-                } else {
-                  Router.push('/pharmacy/purchase/purchase-list/')
-                }
-              }}
-              icon='ep:back'
-            />
-          }
-          title={id ? 'Edit Inventory List' : 'Add Inventory'}
-        />
-        {authData?.userData?.roles?.settings?.add_pharmacy && (
-          <AddButton
-            styles={{ marginRight: 20 }}
-            title='Add Supplier'
-            action={() => {
-              setSupplierDialog(true)
-            }}
+      <Grid container spacing={6}>
+        <Grid
+          item
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mr: 5
+          }}
+        >
+          <CardHeader
+            avatar={
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  if (navigatedFrom === 'stockReport') {
+                    Router.push('/pharmacy/stocks/stocksReport/')
+                  } else {
+                    Router.back()
+                  }
+                }}
+                icon='ep:back'
+              />
+            }
+            title={id ? 'Edit Inventory List' : 'Add Inventory'}
           />
-        )}
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              // sx={{ mx: 24 }}
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
+        </Grid>
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

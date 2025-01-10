@@ -1,4 +1,5 @@
 import { Typography } from '@mui/material'
+
 import { textAlign } from '@mui/system'
 
 export const getEllipsisStyleForText = width => {
@@ -37,9 +38,16 @@ export const renderControlLabel = (condition, label) =>
     </Typography>
   ) : null
 
+export const pageTitle = title => (
+  <Typography sx={{ fontSize: { xs: '20px', md: '24px' }, fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+    {title}
+  </Typography>
+)
+
 const RenderUtility = {
   getEllipsisStyleForText,
-  renderControlLabel
+  renderControlLabel,
+  pageTitle
 }
 
 export default RenderUtility
