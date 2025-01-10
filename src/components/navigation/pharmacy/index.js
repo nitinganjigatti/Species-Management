@@ -74,10 +74,23 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     children: []
   }
 
+  const requestByStoresParent = {
+    title: 'Request',
+    icon: 'material-symbols:request-quote-outline',
+    path: '/pharmacy/requests-by-store/all-stores-request-list',
+    children: []
+  }
+
   const requestListing = {
     title: 'Request',
     icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/request/request-list'
+  }
+
+  const requestByStoreListing = {
+    title: 'Requests By Store',
+    icon: 'material-symbols:request-quote-outline',
+    path: '/pharmacy/requests-by-store/all-stores-request-list'
   }
 
   const returnParent = {
@@ -321,6 +334,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       //dashboardnew,
       stockReport,
       requestListing,
+      requestByStoreListing,
+
       returnListing,
       directDispatchList
     )
@@ -346,6 +361,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
+    requestByStoresParent.children.push(requestByStoreListing)
     returnParent.children.push(returnListing)
 
     // stockParent.children.push(stockReport, escrow)
@@ -356,6 +372,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
       //dashboardnew,
       requestListing,
+      requestByStoreListing,
       returnListing,
 
       // directDispatchList,

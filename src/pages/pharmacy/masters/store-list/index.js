@@ -29,7 +29,7 @@ import AddStore from 'src/views/pages/pharmacy/store/store/addStore'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { column } from 'stylis'
+import { column, position } from 'stylis'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
@@ -47,6 +47,7 @@ import RenderUtility from 'src/utility/render'
 import DialogContentText from '@mui/material/DialogContentText'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { LoadingButton } from '@mui/lab'
+import { left } from '@popperjs/core'
 
 const ListOfStores = () => {
   const theme = useTheme()
@@ -611,60 +612,182 @@ const ListOfStores = () => {
                       fontSize: '20px',
                       margin: '0px',
                       padding: '0px',
-                      mb: '6px',
                       color: 'customColors.OnSurfaceVariant',
                       display: 'flex',
-                      gap: 2,
+                      gap: deleteStore ? 2 : 4,
                       alignItems: 'center'
                     }}
                   >
-                    {/* <Icon style={{ cursor: 'pointer', color: '#E4B819' }} icon='clarity:warning-standard-line' /> */}
-                    {deleteStore ? 'Delete Pharmacy' : 'Inactivating Pharmacy'}
+                    {deleteStore ? (
+                      <Icon
+                        style={{
+                          cursor: 'pointer',
+                          cursor: 'pointer',
+                          color: theme.palette.customColors.Error,
+                          height: '30px',
+                          width: '26px'
+                        }}
+                        icon='material-symbols:delete-outline-rounded'
+                      />
+                    ) : (
+                      <>
+                        <Icon
+                          style={{
+                            cursor: 'pointer',
+                            cursor: 'pointer',
+                            position: 'relative',
+                            height: '16px',
+                            width: '17px'
+                          }}
+                          icon='fa6-solid:power-off'
+                        />
+                        <Icon
+                          style={{
+                            position: 'absolute',
+                            cursor: 'pointer',
+                            cursor: 'pointer',
+                            left: '18.5px',
+                            color: theme.palette.customColors.Tertiary,
+                            height: '28px',
+                            width: '28px'
+                          }}
+                          icon='heroicons:no-symbol-16-solid'
+                        />
+                      </>
+
+                      // <Icon
+                      //   style={{
+                      //     cursor: 'pointer',
+                      //     cursor: 'pointer',
+                      //     color: theme.palette.customColors.Tertiary,
+                      //     height: '30px',
+                      //     width: '26px'
+                      //   }}
+                      //   icon='pepicons-pop:power-circle-off'
+                      // />
+                    )}
+                    {deleteStore ? 'Delete Pharmacy !' : 'Inactivate Pharmacy!'}
                   </Box>
                 }
                 content={
-                  <DialogContentText
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      margin: '0px',
-                      padding: '0px',
-                      color: 'customColors.OnSurfaceVariant'
-                    }}
-                  >
-                    {deleteStore
-                      ? `Are you sure you want to delete ${editParams?.name}?`
-                      : `Are you sure you want to inactivate the pharmacy?
-Ensure that all stock is transferred to other pharmacies before proceeding with inactivation.`}
-                  </DialogContentText>
+                  <>
+                    {deleteStore ? (
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          margin: '0px',
+                          padding: '0px',
+                          color: 'customColors.OnSurfaceVariant'
+                        }}
+                      >
+                        Are you sure you want to delete
+                        <Typography
+                          component='span'
+                          sx={{
+                            color: 'customColors.Error',
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            px: 2
+                          }}
+                        >
+                          {editParams?.name ? editParams?.name : ''}
+                        </Typography>
+                        <spn>?</spn>
+                        <br />
+                        If needed, you can create a new pharmacy after completing this deletion.
+                      </Typography>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          margin: '0px',
+                          padding: '0px',
+                          color: 'customColors.OnSurfaceVariant'
+                        }}
+                      >
+                        Are you sure you want to inactivate the
+                        <Typography
+                          component='span'
+                          sx={{
+                            color: 'customColors.Tertiary',
+                            fontWeight: 600,
+                            fontSize: '16px',
+                            px: 2
+                          }}
+                        >
+                          {editParams?.name ? editParams?.name : ''}
+                        </Typography>
+                        <spn>?</spn>
+                        <br />
+                        Ensure that all stock is transferred to other pharmacies before proceeding with inactivation.
+                      </Typography>
+                    )}
+                  </>
                 }
                 dialogActions={
                   <>
                     <Button
                       variant='outlined'
-                      size='small'
-                      color='success'
+                      size='large'
+                      sx={{
+                        color: 'customColors.neutralSecondary',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        ':hover': {
+                          color: theme.palette.customColors.neutralSecondary,
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          backgroundColor: 'transparent !important'
+                        }
+                      }}
                       onClick={() => {
                         closeStoreValidate()
                       }}
                     >
                       Cancel
                     </Button>
-                    <LoadingButton
-                      size='small'
-                      variant='contained'
-                      color='error'
-                      loading={submitLoader}
-                      onClick={() => {
-                        if (deleteStore) {
-                          deletePharmacy()
-                        } else {
-                          confirmInactiveStatus(tempPayload)
-                        }
-                      }}
-                    >
-                      {deleteStore ? 'Delete' : 'Confirm'}
-                    </LoadingButton>
+                    {deleteStore ? (
+                      <LoadingButton
+                        variant='contained'
+                        color='error'
+                        size='large'
+                        loading={submitLoader}
+                        onClick={() => {
+                          if (deleteStore) {
+                            deletePharmacy()
+                          } else {
+                            confirmInactiveStatus(tempPayload)
+                          }
+                        }}
+                      >
+                        Delete
+                      </LoadingButton>
+                    ) : (
+                      <LoadingButton
+                        variant='contained'
+                        size='large'
+                        style={{
+                          color: 'customColors.neutralSecondary',
+                          border: `1px solid ${theme.palette.customColors.Tertiary}`,
+                          backgroundColor: theme.palette.customColors.Tertiary,
+                          ':hover': {
+                            color: theme.palette.customColors.neutralSecondary,
+                            border: `1px solid ${theme.palette.customColors.Tertiary}`,
+                            backgroundColor: theme.palette.customColors.Tertiary
+                          }
+                        }}
+                        loading={submitLoader}
+                        onClick={() => {
+                          if (deleteStore) {
+                            deletePharmacy()
+                          } else {
+                            confirmInactiveStatus(tempPayload)
+                          }
+                        }}
+                      >
+                        Confirm
+                      </LoadingButton>
+                    )}
                   </>
                 }
               />

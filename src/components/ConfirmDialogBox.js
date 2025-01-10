@@ -15,7 +15,7 @@ const ConfirmDialogBox = ({ closeDialog, open, action, content, title, dialogAct
           }
         }}
       >
-        <DialogTitle sx={{ p: 4, mb: 2 }}>
+        <DialogTitle sx={{ px: '24px', py: '16px', m: 0 }}>
           {/* Dialog Title */}
           <Typography variant='h6' component='div'>
             {title ? title : null}
@@ -31,7 +31,7 @@ const ConfirmDialogBox = ({ closeDialog, open, action, content, title, dialogAct
           </IconButton>
         </DialogTitle>
 
-        <DialogContent>
+        <DialogContent sx={{ px: '24px' }}>
           {/* The content is passed here */}
           {content ? content : null}
         </DialogContent>
