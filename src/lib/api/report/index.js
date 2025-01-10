@@ -22,25 +22,30 @@ import { axiosGet, axiosPost } from '../utility'
 
 export async function getReportList() {
   const response = await axiosGet({ url: `${SPECIES_REPORT}` })
+
   return response.data
 }
 
 export async function getReportFilterList(params) {
   const response = await axiosGet({ url: `${SPECIES_REPORT}`, params })
+
   return response.data
 }
 
 export async function getAllAnimalReport(params) {
   const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
+
   return response.data
 }
-export async function getAllAnimalReport(params) {
-  const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
-  return response.data
-}
+
+// export async function getAllAnimalReport(params) {
+//   const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
+//   return response.data
+// }
 
 export async function getAnimalReport(params) {
   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
+
   return response.data
 }
 
