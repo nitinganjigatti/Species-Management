@@ -37,6 +37,7 @@ const AnimalList = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
@@ -97,6 +98,7 @@ const AnimalList = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -108,6 +110,7 @@ const AnimalList = () => {
         site_ids: filteredSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -117,9 +120,11 @@ const AnimalList = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
+
       // setSelectedSites(['All Sites'])
     } else {
       // Specific site IDs selected
@@ -127,9 +132,11 @@ const AnimalList = () => {
         sids: selectedSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
+
       // setSelectedSites(selectedSiteIDs)
     }
 
@@ -151,6 +158,7 @@ const AnimalList = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -162,6 +170,7 @@ const AnimalList = () => {
         organization_ids: filteredOrganizationIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -171,9 +180,11 @@ const AnimalList = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
+
       // Optionally set default to "All Organizations"
       // setSelectedOptions((prev) => ({ ...prev, Organization: ['All Organizations'] }));
     } else {
@@ -182,6 +193,7 @@ const AnimalList = () => {
         oids: selectedOrganizationIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -200,7 +212,7 @@ const AnimalList = () => {
     try {
       setIsLoading(true)
       const response = await getAllAnimalReport(params)
-
+      debugger
       if (responseType === 'csv' && response && response.data) {
         const csvUrl = response.data
         const link = document.createElement('a')
@@ -225,6 +237,8 @@ const AnimalList = () => {
 
         setDataList(loadServerRows(paginationModel.page, animal_list))
       } else {
+        setDataList([])
+        setTotal(0)
         toast.error('Something went wrong')
       }
     } catch (error) {
@@ -306,7 +320,7 @@ const AnimalList = () => {
                   sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
                   variant='body2'
                 >
-                   {params.row.common_name}
+                  {params.row.common_name}
                 </Typography>
               </>
             }
@@ -414,6 +428,7 @@ const AnimalList = () => {
   const handleFilterSection = () => {
     setOpenFilterDrawer(true)
   }
+
   return (
     <>
       <Card>
@@ -672,7 +687,7 @@ const AnimalList = () => {
               <DataGrid
                 sx={{
                   mt: 3,
-                  mx:2,
+                  mx: 2,
                   borderRadius: '8px',
                   '.MuiDataGrid-cell:focus': {
                     outline: 'none'
@@ -730,4 +745,5 @@ const AnimalList = () => {
     </>
   )
 }
+
 export default AnimalList
