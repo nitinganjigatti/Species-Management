@@ -35,7 +35,8 @@ const Animal = () => {
   useEffect(() => {
     // Calculate yesterday's date
     const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
+
+    // yesterday.setDate(yesterday.getDate() - 1)
 
     // Format the date as YYYY-MM-DD
     const year = yesterday.getFullYear()
