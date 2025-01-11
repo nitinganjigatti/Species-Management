@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -31,6 +31,24 @@ const Animal = () => {
 
   const startDateRef = useRef()
   const endDateRef = useRef()
+
+  useEffect(() => {
+    // Calculate yesterday's date
+    const yesterday = new Date()
+
+    // yesterday.setDate(yesterday.getDate() - 1)
+
+    // Format the date as YYYY-MM-DD
+    const year = yesterday.getFullYear()
+    const month = String(yesterday.getMonth() + 1).padStart(2, '0') // Months are zero-based
+    const day = String(yesterday.getDate()).padStart(2, '0')
+
+    const formattedDate = `${year}-${month}-${day}`
+
+    // Set the formatted date
+    setStartDate(formattedDate)
+    setEndDate(formattedDate)
+  }, [])
 
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -172,8 +190,9 @@ const Animal = () => {
 
   const reportRows = [
     { id: 1, title: 'Natality', action: 'Download Natality' },
-    { id: 2, title: 'Mortality', action: 'Download Mortality' },
-    { id: 3, title: 'External Transfer', action: 'Download Transfer' }
+    { id: 2, title: 'Accession', action: 'Download Accession' },
+    { id: 3, title: 'Mortality', action: 'Download Mortality' },
+    { id: 4, title: 'External Transfer', action: 'Download Transfer' }
   ]
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
@@ -203,6 +222,8 @@ const Animal = () => {
             getDataToExport('death')
           } else if (params.row.title === 'External Transfer') {
             getDataToExport('transfer')
+          } else if (params.row.title === 'Accession') {
+            getDataToExport('accession')
           }
         }
 
