@@ -221,7 +221,7 @@ const RequestDetails = () => {
 
       const response = await GetRequestDetails(id, { params }).then(res => {
         setLab_id(res?.data.result[0]?.lab_id)
-        setAnimalId(res?.data?.result[0]?.animal_id)
+        setAnimalId(res?.data?.result[0]?.animal_details?.animal_id)
         setLabRequestId(res?.data?.result[0]?.request_id)
         setMedicineId(res?.data?.result[0]?.medical_record_id)
         setRequest(res?.data?.result)
