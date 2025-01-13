@@ -587,8 +587,8 @@ const Overview = ({ productDetails }) => {
       if (result?.success === true && result?.data) {
         console.log(result, 'result')
         const adjustedData = {
-          dispatch_count: result.data.purchase_count,
-          dispatch_value: result.data.purchase_value
+          purchase_count: result.data.purchase_count,
+          purchase_value: result.data.purchase_value
         }
 
         setPurchaseData(adjustedData)
@@ -622,6 +622,8 @@ const Overview = ({ productDetails }) => {
     }
   }, [id])
 
+  console.log(purchaseData, 'purchaseData')
+
   return (
     <>
       <Grid container spacing={4} pt={6}>
@@ -651,8 +653,6 @@ const Overview = ({ productDetails }) => {
                 frequencies={['Monthly', 'Weekly']}
                 barColor={'#006D35'}
                 lineColor={'#37BD69'}
-                yAxisTitle='Dispatch Count'
-                yAxisOppositeTitle='Dispatch Value (₹)'
                 seriesBarName='Dispatch Count'
                 seriesLineName='Dispatch Value'
                 countLabel='Show Dispatch Count'
@@ -669,8 +669,6 @@ const Overview = ({ productDetails }) => {
                 frequencies={['Monthly', 'Weekly']}
                 barColor={'#00AFD699'}
                 lineColor={'#AFEFEB'}
-                yAxisTitle='Purchase count'
-                yAxisOppositeTitle='Purchase Value (₹)'
                 seriesBarName='Purchase Count'
                 seriesLineName='Purchase Value'
                 countLabel='Show Purchase Count'
