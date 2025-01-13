@@ -528,6 +528,7 @@ export default function AddProduct() {
                               <MenuItem value='allopathy'>Allopathy</MenuItem>
                               <MenuItem value='ayurveda'>Ayurveda</MenuItem>
                               <MenuItem value='unani'>Unani</MenuItem>
+                              <MenuItem value='homeopathy'>Homeopathy</MenuItem>
                               <MenuItem value='non_medical'>Non Medical</MenuItem>
                             </Select>
                           )}
@@ -713,8 +714,9 @@ export default function AddProduct() {
                           sx={{
                             position: 'relative',
                             width: { xs: '100%', sm: '300px' }, // Full width on small screens, fixed on larger ones
-                            height: '50px',
-                            marginLeft: { xs: '0', sm: '150px' } // Remove margin on smaller screens
+                            height: '50px'
+
+                            // marginLeft: { xs: '0', sm: '150px' } // Remove margin on smaller screens
                           }}
                         >
                           <input
@@ -779,7 +781,7 @@ export default function AddProduct() {
                             position: 'relative',
                             width: '300px', // Adjust container width as needed
                             height: '50px', // Adjust height to match the button
-                            marginLeft: '180px',
+                            // marginLeft: '180px',
                             marginTop: '20px'
                           }}
                         >
