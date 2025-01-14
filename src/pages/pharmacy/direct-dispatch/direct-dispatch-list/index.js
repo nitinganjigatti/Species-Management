@@ -220,11 +220,11 @@ const DirectDispatchList = () => {
     })
   }
   useEffect(() => {
-    // const currentStatus = filterSwitch === true ? 'completed' : status
+    const currentStatus = filterSwitch === true ? 'completed' : status
 
     // const tabStatus = status === 'all' ? currentStatus : status
 
-    fetchTableData(sort, searchValue, sortColumn, status)
+    fetchTableData(sort, searchValue, sortColumn, currentStatus)
     updateUrlParams({
       sort,
       q: searchValue,
