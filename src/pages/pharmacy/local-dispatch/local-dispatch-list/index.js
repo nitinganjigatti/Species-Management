@@ -176,13 +176,13 @@ const DirectDispatchList = () => {
     const currentStatus = filterSwitch ? 'completed' : status
     const tabStatus = status === 'all' ? currentStatus : status
 
-    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    fetchTableData(sort, searchValue, sortColumn, currentStatus)
 
     updateUrlParams({
       sort,
       q: searchValue,
       column: sortColumn,
-      status: currentStatus,
+      status: status,
       page: paginationModel.page,
       limit: paginationModel.pageSize,
       filterSwitch
