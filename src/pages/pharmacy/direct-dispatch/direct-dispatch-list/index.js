@@ -220,16 +220,16 @@ const DirectDispatchList = () => {
     })
   }
   useEffect(() => {
-    const currentStatus = filterSwitch === true ? 'completed' : status
+    // const currentStatus = filterSwitch === true ? 'completed' : status
 
-    const tabStatus = status === 'all' ? currentStatus : status
+    // const tabStatus = status === 'all' ? currentStatus : status
 
-    fetchTableData(sort, searchValue, sortColumn, tabStatus)
+    fetchTableData(sort, searchValue, sortColumn, status)
     updateUrlParams({
       sort,
       q: searchValue,
       column: sortColumn,
-      status: currentStatus,
+      status: status,
       page: paginationModel.page,
       limit: paginationModel.pageSize,
       filterSwitch
@@ -589,7 +589,8 @@ const DirectDispatchList = () => {
           />
           <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
           <Tab
-            value={status === 'all' ? 'all' : 'completed'}
+            // value={status === 'all' ? 'all' : 'completed'}
+            value='all'
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
