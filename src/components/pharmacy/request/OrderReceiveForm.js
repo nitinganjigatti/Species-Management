@@ -1501,6 +1501,7 @@ function OrderReceiveForm({ orderId, requestId }) {
             toast.success(result?.msg)
 
             setSubmitLoader(false)
+            location.reload()
             // closeOrderFormDialog()
           } else {
             toast.error(result?.msg)
@@ -1529,6 +1530,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       try {
         await bulkStatusUpdate() // Ensure this completes before moving forward
         await getOrderDetails(orderId) // Refresh the data only after updating status
+        // location.reload()
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
