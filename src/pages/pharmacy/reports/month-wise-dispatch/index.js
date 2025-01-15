@@ -631,12 +631,13 @@ const MonthWiseDispatch = () => {
             } else {
               const roundedValue = parseFloat(value)
 
-              const formattedValue = roundedValue.toLocaleString('en-IN', {
-                // style: 'currency',
-                // currency: 'INR',
-                maximumFractionDigits: 0
-              })
-              rowData[`${column.title} (${column.sub_title})`] = formattedValue
+              //const formattedValue = roundedValue.toLocaleString('en-IN', {
+              // style: 'currency',
+              // currency: 'INR',
+              //maximumFractionDigits: 0
+
+              //})
+              rowData[`${column.title} (${column.sub_title})`] = roundedValue
             }
           }
         })
@@ -648,10 +649,10 @@ const MonthWiseDispatch = () => {
         Medicine: 'Total Dispatch Value'
       }
       listItem.columnData.forEach(column => {
-        const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
-          maximumFractionDigits: 0
-        })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
+        // const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
+        //   maximumFractionDigits: 0
+        // })
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${column.total_purchase_value}`
       })
 
       const finalRows = [totalPurchaseRow, ...rows]
