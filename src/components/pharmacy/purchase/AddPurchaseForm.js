@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
+import { Button, CardHeader, InputAdornment } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -178,6 +178,9 @@ const AddPurchaseForm = () => {
   // RoundUp value
   const [roundup_select, setRoundup_Select] = useState('+')
   const [roundUpValue, setRoundUpValue] = useState('')
+
+  const [inputValue, setInputValue] = useState('')
+  const [isError, setIsError] = useState(false)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -854,6 +857,8 @@ const AddPurchaseForm = () => {
         // setValue('supplier_id', result?.data?.supplier_id)
         result?.data?.freight_charges && setShowFreight(true)
         result?.data?.freight_total_charges && setTotalFreightCharges(Number(result?.data?.freight_total_charges))
+        result?.data?.freight_total_charges && setInputValue(Number(result?.data?.freight_total_charges))
+
         result?.data?.additional_charges && setAdditionalCharges(Number(result?.data?.additional_charges))
         result?.data?.round_off && setRoundUpValue(Number(result?.data?.round_off?.replace('-', '')))
         result?.data?.invoice_transcript && setFileArr(result?.data?.invoice_transcript)
@@ -1233,6 +1238,18 @@ const AddPurchaseForm = () => {
   }
 
   // ---------------
+
+  const handleInputChange = e => {
+    const value = e.target.value
+    setInputValue(value)
+
+    // Validate the input value against grandTotalAmount
+    if (parseFloat(value) !== grandTotalAmount) {
+      setIsError(true)
+    } else {
+      setIsError(false)
+    }
+  }
 
   return (
     <Card>
@@ -2390,7 +2407,7 @@ const AddPurchaseForm = () => {
                       >
                         Grand Total :
                       </Typography>
-                      <Typography
+                      {/* <Typography
                         variant='body2'
                         sx={{
                           color: theme?.palette?.customColors?.OnSurfaceVariant,
@@ -2398,14 +2415,51 @@ const AddPurchaseForm = () => {
                           fontWeight: 600
                         }}
                       >
-                        {/* {totalLineItemsPurchase?.toFixed(2)} */}
+                        // {/* {totalLineItemsPurchase?.toFixed(2)}
                         {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
-                      </Typography>
+                      </Typography> */}
+                      {/* Input Box with Icon */}
+
+                      <TextField
+                        variant='outlined'
+                        size='small'
+                        placeholder='Enter value'
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            bgcolor: 'white',
+                            borderRadius: '4px',
+                            '& fieldset': {
+                              borderColor: isError ? 'red' : 'grey.300'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: isError ? 'red' : 'grey.500'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: isError ? 'red' : 'primary.main'
+                            }
+                          }
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <IconButton edge='start'>{/* <SearchIcon /> */}</IconButton>
+                            </InputAdornment>
+                          )
+                        }}
+                        error={isError} // Highlights the field in red if there's an error
+                      />
                     </CalcWrapper>
                   </Box>
                 </Box>
                 <Box sx={{ mt: 2 }}>
-                  <Typography sx={{ fontSize: '12px', fontWeight: 400 }}>
+                  {isError && (
+                    <Typography variant='caption' sx={{ fontSize: '12px', fontWeight: 400, mb: 2 }} color='error'>
+                      Value must match the Grand Total!
+                    </Typography>
+                  )}
+                  <Typography>
                     *Grand Total, inclusive of the total amount for all products, along with applicable GST.
                   </Typography>
                 </Box>
