@@ -59,14 +59,14 @@ const TabsSimple = ({ productDetails }) => {
         }}
       >
         <Tab value='overview' label='Overview' />
-        <Tab value='purchase' label='Purchase' />
+        {/* <Tab value='purchase' label='Purchase' />
         <Tab value='dispatch' label='Dispatch' />
-        <Tab value='ledger' label='Ledger' />
+        <Tab value='ledger' label='Ledger' /> */}
       </TabList>
       <TabPanel value='overview' sx={{ p: 0 }}>
         <Overview productDetails={productDetails} />
       </TabPanel>
-      <TabPanel value='purchase'>
+      {/* <TabPanel value='purchase'>
         <Purchase />
       </TabPanel>
       <TabPanel value='dispatch'>
@@ -74,7 +74,7 @@ const TabsSimple = ({ productDetails }) => {
       </TabPanel>
       <TabPanel value='ledger'>
         <Ledger />
-      </TabPanel>
+      </TabPanel> */}
     </TabContext>
   )
 }
