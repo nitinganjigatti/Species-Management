@@ -487,6 +487,7 @@ function Ledger({ tabValue }) {
           limit: paginationModel?.pageSize
         })
         updateUrlParams({
+          tab: tabValue,
           batch_no: selectedBatches,
           searchValue: q,
           filters: selectedTabs,
@@ -517,6 +518,7 @@ function Ledger({ tabValue }) {
       limit: paginationModel?.pageSize
     })
     updateUrlParams({
+      tab: tabValue,
       batch_no: selectedBatches,
       searchValue: searchValue,
       filters: updatedTabs.length > 0 ? [...updatedTabs] : [],
@@ -608,6 +610,7 @@ function Ledger({ tabValue }) {
         limit: paginationModel.pageSize
       })
       updateUrlParams({
+        tab: tabValue,
         batch_no: selectedBatches,
         searchValue: searchValue,
         filters: selectedTabs,
@@ -627,6 +630,7 @@ function Ledger({ tabValue }) {
     try {
       setSelectedBatches([])
       updateUrlParams({
+        tab: tabValue,
         batch_no: [],
         searchValue: searchValue,
         filters: [],

@@ -46,16 +46,16 @@ const TabsSimple = ({ productDetails }) => {
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
 
-  // const updateUrlParams = newTab => {
-  //   //query object to keep only `tab` and `id`
-  //   const updatedQuery = { tab: newTab }
-  //   if (id) updatedQuery.id = id
-  //   router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
-  // }
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  const updateUrlParams = newTab => {
+    //query object to keep only `tab` and `id`
+    const updatedQuery = { tab: newTab }
+    if (id) updatedQuery.id = id
+    router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
   }
+  // const updateUrlParams = params => {
+  //   const query = { ...router.query, ...params }
+  //   router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  // }
 
   useEffect(() => {
     if (tab) {
@@ -67,8 +67,8 @@ const TabsSimple = ({ productDetails }) => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-    updateUrlParams({ tab: newValue })
-    // updateUrlParams(newValue)
+    // updateUrlParams({ tab: newValue })
+    updateUrlParams(newValue)
   }
 
   return (

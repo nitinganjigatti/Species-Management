@@ -42,8 +42,8 @@ function Dispatch() {
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
   const [selectedType, setSelectedType] = useState('')
   const [dispatchedToOptions, setDispatchedToOptions] = useState([])
