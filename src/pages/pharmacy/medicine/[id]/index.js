@@ -41,15 +41,21 @@ import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
 
 const TabsSimple = ({ productDetails }) => {
-  // const [value, setValue] = useState('overview')
-
-  // const handleChange = (event, newValue) => {
-  //   setValue(newValue)
-  // }
   const router = useRouter()
-  const { tab } = router.query
+  const { id, tab } = router.query
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
+
+  // const updateUrlParams = newTab => {
+  //   //query object to keep only `tab` and `id`
+  //   const updatedQuery = { tab: newTab }
+  //   if (id) updatedQuery.id = id
+  //   router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
+  // }
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   useEffect(() => {
     if (tab) {
@@ -61,34 +67,9 @@ const TabsSimple = ({ productDetails }) => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-    const { batch_no, searchValue, ...otherQueryParams } = router.query
-    // const { page, pageSize, batch_no, ...otherQueryParams } = router.query
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          ...otherQueryParams,
-          tab: newValue,
-          page: 1,
-          pageSize: 10
-        }
-      },
-      undefined,
-      { shallow: true }
-    )
+    updateUrlParams({ tab: newValue })
+    // updateUrlParams(newValue)
   }
-
-  // const handleChange = (event, newValue) => {
-  //   setValue(newValue)
-  //   router.replace(
-  //     {
-  //       pathname: router.pathname,
-  //       query: { ...router.query, tab: newValue }
-  //     },
-  //     undefined,
-  //     { shallow: true }
-  //   )
-  // }
 
   return (
     <TabContext value={value}>
@@ -102,21 +83,21 @@ const TabsSimple = ({ productDetails }) => {
         }}
       >
         <Tab value='overview' label='Overview' />
-        {/* <Tab value='purchase' label='Purchase' />
-        <Tab value='dispatch' label='Dispatch' /> */}
+        {/* <Tab value='purchase' label='Purchase' />*/}
+        <Tab value='dispatch' label='Dispatch' />
         <Tab value='ledger' label='Ledger' />
       </TabList>
       <TabPanel value='overview' sx={{ p: 0 }}>
-        <Overview productDetails={productDetails} />
+        <Overview productDetails={productDetails} tabValue={value} />
       </TabPanel>
       <TabPanel value='purchase'>
         <Purchase />
       </TabPanel>
       <TabPanel value='dispatch' sx={{ p: 0 }}>
-        <Dispatch />
+        <Dispatch tabValue={value} />
       </TabPanel>
       <TabPanel value='ledger' sx={{ p: 0 }}>
-        <Ledger />
+        <Ledger tabValue={value} />
       </TabPanel>
     </TabContext>
   )
@@ -302,7 +283,17 @@ const ProductDetailsList = () => {
               <Grid item xs={12} mb={6}>
                 <CardHeader
                   sx={{ p: 0, m: 0 }}
-                  avatar={<Icon icon='ep:back' style={{ cursor: 'pointer' }} onClick={() => Router.back()} />}
+                  avatar={
+                    <Icon
+                      icon='ep:back'
+                      style={{ cursor: 'pointer' }}
+                      onClick={() =>
+                        Router.push({
+                          pathname: '/pharmacy/medicine/product-list'
+                        })
+                      }
+                    />
+                  }
                   action={
                     <Button
                       variant='contained'

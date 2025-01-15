@@ -8,7 +8,8 @@ import {
   PRODUCT_DASHBOARD_MONTHLY_DISPATCH,
   PRODUCT_ABOUT_TO_EXPIRE,
   PRODUCT_EXPIRED_BATCHES,
-  PRODUCT_QUANTITY_IN_STORE
+  PRODUCT_QUANTITY_IN_STORE,
+  PRODUCT_DISPATCH
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
@@ -264,4 +265,10 @@ export async function getProductQuantityInStoresList(id) {
 
     return error
   }
+}
+
+export async function getDispatchList(params, id) {
+  const response = await axiosGet({ url: `${PRODUCT_DISPATCH}/${id}`, params, pharmacy: true })
+
+  return response.data
 }
