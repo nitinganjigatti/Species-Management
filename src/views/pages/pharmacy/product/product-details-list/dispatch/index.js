@@ -13,7 +13,8 @@ import {
   MenuItem,
   Button,
   FormControl,
-  InputLabel
+  InputLabel,
+  Autocomplete
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
@@ -29,10 +30,15 @@ import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
 
-function Dispatch() {
+function Dispatch({ tabValue, onFetchData }) {
   const theme = useTheme()
   const router = useRouter()
-  const { id, type: queryType, dispatched_to } = router.query
+  const { id } = router.query
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -45,11 +51,11 @@ function Dispatch() {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
-  const [selectedType, setSelectedType] = useState('')
+  const [selectedType, setSelectedType] = useState(router.query.type || '')
   const [dispatchedToOptions, setDispatchedToOptions] = useState([])
-  const [selectedDispatchedTo, setSelectedDispatchedTo] = useState('')
+  const [selectedDispatchedTo, setSelectedDispatchedTo] = useState(router.query.dispatched_to || '')
   const [requestedByOptions, setRequestedByOptions] = useState([])
-  const [selectedRequestedBy, setSelectedRequestedBy] = useState('')
+  const [selectedRequestedBy, setSelectedRequestedBy] = useState(router.query.requested_by || '')
   const [selectDays, setSelectDays] = useState(router.query.days || '')
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || '',
@@ -267,14 +273,27 @@ function Dispatch() {
   )
 
   useEffect(() => {
-    fetchTableData({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      type: selectedType,
-      dispatched_to: selectedDispatchedTo,
-      requested_by: selectedRequestedBy
-    })
+    if (id) {
+      fetchTableData({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy
+      })
+      updateUrlParams({
+        tab: tabValue,
+        sort: sort,
+        searchValue: searchValue,
+        column: sortColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+    }
   }, [fetchTableData, selectedType, selectedDispatchedTo, selectedRequestedBy])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -290,6 +309,17 @@ function Dispatch() {
       setSearchValue(q)
       try {
         await fetchTableData({ sort, q, column, type, dispatched_to, requested_by })
+        updateUrlParams({
+          tab: tabValue,
+          sort: sort,
+          searchValue: q,
+          column: column,
+          type: type,
+          dispatched_to: dispatched_to,
+          requested_by: requested_by,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
       } catch (error) {
         console.error(error)
       }
@@ -316,6 +346,17 @@ function Dispatch() {
       setSort(newSort)
       setSortColumn(newColumn)
       fetchTableData({ sort: newSort, q: searchValue, column: newColumn })
+      updateUrlParams({
+        tab: tabValue,
+        sort: newSort,
+        searchValue: q,
+        column: newColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     }
   }
 
@@ -441,7 +482,7 @@ function Dispatch() {
           {/* Filters Section */}
           <Grid item container spacing={3} xs={12} sm={8.5}>
             {/* Reference Type */}
-            <Grid item xs={12} sm={6} md={3}>
+            {/* <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='reference-type-label'>Reference Type</InputLabel>
                 <Select
@@ -456,10 +497,9 @@ function Dispatch() {
                   <MenuItem value='return'>Return</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
-
+            </Grid> */}
             {/* Dispatch To */}
-            <Grid item xs={12} sm={6} md={3}>
+            {/* <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='dispatch-to-label'>Dispatch To</InputLabel>
                 <Select
@@ -475,10 +515,9 @@ function Dispatch() {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-
+            </Grid> */}
             {/* Requested By */}
-            <Grid item xs={12} sm={6} md={3}>
+            {/* <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='requested-by-label'>Requested By</InputLabel>
                 <Select
@@ -494,6 +533,59 @@ function Dispatch() {
                     </MenuItem>
                   ))}
                 </Select>
+              </FormControl>
+            </Grid> */}
+
+            {/* Reference Type */}
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <Autocomplete
+                  id='reference-type-autocomplete'
+                  options={['Request', 'Dispatch', 'Return']}
+                  value={selectedType || null}
+                  onChange={(event, newValue) => handleTypeChange({ target: { value: newValue } })}
+                  renderInput={params => (
+                    <TextField {...params} label='Reference Type' variant='outlined' size='small' />
+                  )}
+                  clearOnEscape
+                />
+              </FormControl>
+            </Grid>
+
+            {/* Dispatch To */}
+
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <Autocomplete
+                  id='dispatch-to-autocomplete'
+                  options={dispatchedToOptions}
+                  getOptionLabel={option => option.name || ''}
+                  value={dispatchedToOptions.find(option => option.id === selectedDispatchedTo) || null}
+                  onChange={(event, newValue) => {
+                    handleDispatchedToChange({ target: { value: newValue?.id || '' } })
+                  }}
+                  renderInput={params => <TextField {...params} label='Dispatch To' variant='outlined' size='small' />}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  clearOnEscape
+                />
+              </FormControl>
+            </Grid>
+
+            {/* Requested By */}
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <Autocomplete
+                  id='requested-by-autocomplete'
+                  options={requestedByOptions}
+                  getOptionLabel={option => option.name || ''}
+                  value={requestedByOptions.find(option => option.id === selectedRequestedBy) || null}
+                  onChange={(event, newValue) => {
+                    handleRequestedByChange({ target: { value: newValue?.id || '' } })
+                  }}
+                  renderInput={params => <TextField {...params} label='Requested By' variant='outlined' size='small' />}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  clearOnEscape
+                />
               </FormControl>
             </Grid>
 
