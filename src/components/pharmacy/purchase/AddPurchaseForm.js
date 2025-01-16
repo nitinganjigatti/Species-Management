@@ -2491,7 +2491,7 @@ const AddPurchaseForm = () => {
                         fullWidth
                         size='small'
                         placeholder='Enter value'
-                        value={Number(inputValue).toFixed(2)}
+                        value={inputValue}
                         onChange={e => setInputValue(e.target.value)}
                         sx={{
                           '& .MuiOutlinedInput-root': {
