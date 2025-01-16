@@ -180,6 +180,7 @@ const AddPurchaseForm = () => {
   const [roundUpValue, setRoundUpValue] = useState('')
 
   const [inputValue, setInputValue] = useState('')
+  console.log('inputValue', inputValue)
   const [isError, setIsError] = useState(false)
 
   const schema = yup.object().shape({
@@ -262,19 +263,19 @@ const AddPurchaseForm = () => {
   const grandTotalAmount = useMemo(() => {
     let roundUp = 0
     if (roundup_select === '-') {
-      roundUp = -parseFloat(roundUpValue) // Subtract the exact value when '-' is selected
+      roundUp = -parseFloat(roundUpValue) || 0 // Subtract the exact value when '-' is selected
     } else {
-      roundUp = parseFloat(roundUpValue) // Add the exact value when '+' is selected
+      roundUp = parseFloat(roundUpValue) || 0 // Add the exact value when '+' is selected
     }
 
-    console.log('roundUp:', roundUp) // Debugging output
-    console.log('roundUpValue:', roundUpValue)
-    console.log('roundup_select:', roundup_select)
+    // console.log('roundUp:', roundUp) // Debugging output
+    // console.log('roundUpValue:', roundUpValue)
+    // console.log('roundup_select:', roundup_select)
 
     return totalLineItemsPurchase + parseFloat(totalFreightCharges) + parseFloat(additionalCharges) + roundUp
   }, [totalLineItemsPurchase, totalFreightCharges, additionalCharges, roundUpValue, roundup_select])
 
-  // console.log('grandTotalAmount', grandTotalAmount)
+  console.log('grandTotalAmount', grandTotalAmount)
 
   // const totalLineItemsDiscount = editParams.purchase_details?.reduce(
   //   (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
@@ -590,42 +591,47 @@ const AddPurchaseForm = () => {
 
     // debugger
     console.log('postData', postData)
+    try {
+      if (id) {
+        postData.antz_pharmacy_purchase_id = id
+        // const response = await updatePurchase(id, postData)
 
-    if (id) {
-      postData.antz_pharmacy_purchase_id = id
-      // const response = await updatePurchase(id, postData)
+        const response = await updatePurchasePrice(id, postData)
 
-      const response = await updatePurchasePrice(id, postData)
-
-      if (response?.success) {
-        toast.success(response.message)
-        setSubmitLoader(false)
-        getListOfItemsById(id)
-        if (navigatedFrom === 'stockReport') {
-          Router.push('/pharmacy/stocks/stocksReport/')
+        if (response?.success) {
+          toast.success(response.message)
+          setSubmitLoader(false)
+          getListOfItemsById(id)
+          if (navigatedFrom === 'stockReport') {
+            Router.push('/pharmacy/stocks/stocksReport/')
+          } else {
+            Router.push('/pharmacy/purchase/purchase-list/')
+          }
         } else {
-          Router.push('/pharmacy/purchase/purchase-list/')
-        }
-      } else {
-        setSubmitLoader(false)
-        toast.error(response.message)
-      }
-    } else {
-      const response = await addPurchase(postData)
-      if (response?.success) {
-        toast.success(response.message)
-        setEditParams(editParamsInitialState)
-        setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
-      } else {
-        setSubmitLoader(false)
-        if (response.data?.po_no) {
-          toast.error('Purchase number already exist ')
-        }
-        if (response?.message) {
+          setSubmitLoader(false)
           toast.error(response.message)
+          console.log('error', response.message)
+        }
+      } else {
+        const response = await addPurchase(postData)
+        if (response?.success) {
+          toast.success(response.message)
+          setEditParams(editParamsInitialState)
+          setSubmitLoader(false)
+          Router.push('/pharmacy/purchase/purchase-list/')
+        } else {
+          setSubmitLoader(false)
+          if (response.data?.po_no) {
+            toast.error('Purchase number already exist ')
+          }
+          if (response?.message) {
+            toast.error(response.message)
+            console.log('error', response.message)
+          }
         }
       }
+    } catch (error) {
+      console.log('error', error)
     }
   }
 
@@ -689,11 +695,6 @@ const AddPurchaseForm = () => {
       console.log('supplier error', error)
     }
   }
-
-  useEffect(() => {
-    getStoresLists()
-    getSuppliersLists()
-  }, [])
 
   //  ******
   const fetchMedicineData = async searchText => {
@@ -857,7 +858,7 @@ const AddPurchaseForm = () => {
         // setValue('supplier_id', result?.data?.supplier_id)
         result?.data?.freight_charges && setShowFreight(true)
         result?.data?.freight_total_charges && setTotalFreightCharges(Number(result?.data?.freight_total_charges))
-        result?.data?.freight_total_charges && setInputValue(Number(result?.data?.freight_total_charges))
+        // result?.data?.freight_total_charges && setInputValue(Number(result?.data?.freight_total_charges))
 
         result?.data?.additional_charges && setAdditionalCharges(Number(result?.data?.additional_charges))
         result?.data?.round_off && setRoundUpValue(Number(result?.data?.round_off?.replace('-', '')))
@@ -1239,17 +1240,38 @@ const AddPurchaseForm = () => {
 
   // ---------------
 
-  const handleInputChange = e => {
-    const value = e.target.value
-    setInputValue(value)
-
-    // Validate the input value against grandTotalAmount
-    if (parseFloat(value) !== grandTotalAmount) {
-      setIsError(true)
-    } else {
-      setIsError(false)
+  useEffect(() => {
+    if (grandTotalAmount & inputValue) {
+      if (inputValue == grandTotalAmount) {
+        setIsError(false)
+      } else {
+        setIsError(true)
+      }
     }
-  }
+  }, [inputValue, grandTotalAmount])
+
+  // const handleInputChange = e => {
+  //   const value = e.target.value
+  //   setInputValue(value)
+
+  //   // Validate the input value against grandTotalAmount
+  //   if (parseFloat(value) !== grandTotalAmount) {
+  //     setIsError(true)
+  //   } else {
+  //     setIsError(false)
+  //   }
+  // }
+
+  useEffect(() => {
+    getStoresLists()
+    getSuppliersLists()
+  }, [])
+
+  useEffect(() => {
+    if (grandTotalAmount && id) {
+      setInputValue(grandTotalAmount)
+    }
+  }, [grandTotalAmount])
 
   return (
     <Card>
@@ -1536,7 +1558,7 @@ const AddPurchaseForm = () => {
                     ) : (
                       <Box
                         sx={{
-                          px: fileArr?.length > 10 ? 2 : 2.6,
+                          px: fileArr?.length >= 10 ? 2 : 2.6,
                           py: 1,
                           borderRadius: '50%',
                           bgcolor: theme.palette.customColors.OnPrimarycontainer10
@@ -2292,8 +2314,15 @@ const AddPurchaseForm = () => {
                       <Typography variant='body2'>Total Amount :</Typography>
                       <Typography
                         variant='body2'
-                        sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        sx={{
+                          color: 'text.primary',
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          alignItems: 'center',
+                          display: ' flex'
+                        }}
                       >
+                        <Icon icon='mdi:rupee' width='15px' height='15px' />
                         {totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
                       </Typography>
                     </CalcWrapper>
@@ -2303,8 +2332,15 @@ const AddPurchaseForm = () => {
                       <Typography variant='body2'>Total Fright Charges :</Typography>
                       <Typography
                         variant='body2'
-                        sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        sx={{
+                          color: 'text.primary',
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          alignItems: 'center',
+                          display: ' flex'
+                        }}
                       >
+                        <Icon icon='mdi:rupee' width='15px' height='15px' />
                         {totalFreightCharges ? totalFreightCharges?.toFixed(2) : 0.0}
                       </Typography>
                     </CalcWrapper>
@@ -2312,8 +2348,15 @@ const AddPurchaseForm = () => {
                       <Typography variant='body2'>Additional Charges :</Typography>
                       <Typography
                         variant='body2'
-                        sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        sx={{
+                          color: 'text.primary',
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          alignItems: 'center',
+                          display: ' flex'
+                        }}
                       >
+                        <Icon icon='mdi:rupee' width='15px' height='15px' />
                         {additionalCharges ? Number(additionalCharges).toFixed(2) : 0.0}
                       </Typography>
                     </CalcWrapper>
@@ -2322,8 +2365,15 @@ const AddPurchaseForm = () => {
                       <Typography variant='body2'>CGST :</Typography>
                       <Typography
                         variant='body2'
-                        sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        sx={{
+                          color: 'text.primary',
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          alignItems: 'center',
+                          display: ' flex'
+                        }}
                       >
+                        <Icon icon='mdi:rupee' width='15px' height='15px' />
                         {calculate_cgst_tax_amount?.toFixed(2)}
                       </Typography>
                     </CalcWrapper>
@@ -2331,8 +2381,15 @@ const AddPurchaseForm = () => {
                       <Typography variant='body2'>SGST :</Typography>
                       <Typography
                         variant='body2'
-                        sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        sx={{
+                          color: 'text.primary',
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          alignItems: 'center',
+                          display: ' flex'
+                        }}
                       >
+                        <Icon icon='mdi:rupee' width='15px' height='15px' />
                         {calculate_sgst_tax_amount?.toFixed(2)}
                       </Typography>
                     </CalcWrapper>
@@ -2340,8 +2397,15 @@ const AddPurchaseForm = () => {
                       <Typography variant='body2'>IGST :</Typography>
                       <Typography
                         variant='body2'
-                        sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        sx={{
+                          color: 'text.primary',
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          alignItems: 'center',
+                          display: ' flex'
+                        }}
                       >
+                        <Icon icon='mdi:rupee' width='15px' height='15px' />
                         {calculate_igst_tax_amount?.toFixed(2)}
                       </Typography>
                     </CalcWrapper>
@@ -2402,7 +2466,9 @@ const AddPurchaseForm = () => {
                         sx={{
                           color: theme?.palette?.customColors?.OnSurfaceVariant,
                           letterSpacing: '.25px',
-                          fontWeight: 600
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          mr: 2
                         }}
                       >
                         Grand Total :
@@ -2422,10 +2488,11 @@ const AddPurchaseForm = () => {
 
                       <TextField
                         variant='outlined'
+                        fullWidth
                         size='small'
                         placeholder='Enter value'
-                        value={inputValue}
-                        onChange={handleInputChange}
+                        value={Number(inputValue).toFixed(2)}
+                        onChange={e => setInputValue(e.target.value)}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             bgcolor: 'white',
@@ -2441,10 +2508,15 @@ const AddPurchaseForm = () => {
                             }
                           }
                         }}
+                        inputProps={{
+                          style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                        }}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position='start'>
-                              <IconButton edge='start'>{/* <SearchIcon /> */}</IconButton>
+                              <IconButton edge='start'>
+                                <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
+                              </IconButton>
                             </InputAdornment>
                           )
                         }}
@@ -2453,13 +2525,13 @@ const AddPurchaseForm = () => {
                     </CalcWrapper>
                   </Box>
                 </Box>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 1 }}>
                   {isError && (
-                    <Typography variant='caption' sx={{ fontSize: '12px', fontWeight: 400, mb: 2 }} color='error'>
-                      Value must match the Grand Total!
+                    <Typography variant='caption' sx={{ fontSize: '12px', fontWeight: 400 }} color='error'>
+                      Entered value does not match system calculated total !
                     </Typography>
                   )}
-                  <Typography>
+                  <Typography sx={{ mt: 1 }}>
                     *Grand Total, inclusive of the total amount for all products, along with applicable GST.
                   </Typography>
                 </Box>
@@ -2471,7 +2543,8 @@ const AddPurchaseForm = () => {
         <Grid item xs={12}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
-              disabled={editParams.purchase_details.length > 0 ? false : true}
+              // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
+              disabled={!inputValue}
               sx={{ marginRight: '8px' }}
               size='large'
               type='submit'
@@ -2532,6 +2605,7 @@ const AddPurchaseForm = () => {
         <PurchaseDocsDrawer
           openDocsDrawer={openDocsDrawer}
           invoiceFile={fileSrc}
+          fileArr={fileArr}
           removeSelectedImage={removeSelectedImage}
           setOpenDocsDrawer={setOpenDocsDrawer}
         />
