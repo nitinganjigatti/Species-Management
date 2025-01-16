@@ -62,14 +62,17 @@ const validationSchema = yup.object().shape({
   )
 })
 
-const Overview = ({ productDetails }) => {
+const Overview = props => {
+  console.log(props, 'props')
+  const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue } = props
   const theme = useTheme()
+
   const router = useRouter()
   const { id } = router.query
 
-  const [productDashboardData, setProductDashboardData] = useState()
-  const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
-  const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
+  // const [productDashboardData, setProductDashboardData] = useState()
+  // const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
+  // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
 
@@ -569,58 +572,58 @@ const Overview = ({ productDetails }) => {
 
   console.log(productDetails, 'overview')
 
-  const productDashboardList = async id => {
-    try {
-      const response = await getProductDashboardList(id)
-      if (response.success) {
-        console.log(response?.data, 'productDashboardList')
-        setProductDashboardData(response?.data)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  // const productDashboardList = async id => {
+  //   try {
+  //     const response = await getProductDashboardList(id)
+  //     if (response.success) {
+  //       console.log(response?.data, 'productDashboardList')
+  //       setProductDashboardData(response?.data)
+  //     }
+  //   } catch (e) {
+  //     console.error(e)
+  //   }
+  // }
 
-  const fetchPurchaseData = async id => {
-    try {
-      const result = await getProductMonthWisePurchaseList(id)
-      if (result?.success === true && result?.data) {
-        console.log(result, 'result')
-        const adjustedData = {
-          purchase_count: result.data.purchase_count,
-          purchase_value: result.data.purchase_value
-        }
+  // const fetchPurchaseData = async id => {
+  //   try {
+  //     const result = await getProductMonthWisePurchaseList(id)
+  //     if (result?.success === true && result?.data) {
+  //       console.log(result, 'result')
+  //       const adjustedData = {
+  //         purchase_count: result.data.purchase_count,
+  //         purchase_value: result.data.purchase_value
+  //       }
 
-        setPurchaseData(adjustedData)
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
+  //       setPurchaseData(adjustedData)
+  //     }
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }
 
-  const fetchDispatchData = async id => {
-    try {
-      const result = await getProductMonthWiseDispatchList(id)
-      if (result?.success === true && result?.data) {
-        console.log(result, 'dispatch_count')
-        const adjustedData = {
-          dispatch_count: result.data.dispatch_count,
-          dispatch_value: result.data.dispatch_value
-        }
-        setDispatchData(adjustedData)
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
+  // const fetchDispatchData = async id => {
+  //   try {
+  //     const result = await getProductMonthWiseDispatchList(id)
+  //     if (result?.success === true && result?.data) {
+  //       console.log(result, 'dispatch_count')
+  //       const adjustedData = {
+  //         dispatch_count: result.data.dispatch_count,
+  //         dispatch_value: result.data.dispatch_value
+  //       }
+  //       setDispatchData(adjustedData)
+  //     }
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }
 
-  useEffect(() => {
-    if (id != undefined) {
-      productDashboardList(id)
-      fetchPurchaseData(id)
-      fetchDispatchData(id)
-    }
-  }, [id])
+  // useEffect(() => {
+  //   if (id != undefined) {
+  //     productDashboardList(id)
+  //     fetchPurchaseData(id)
+  //     fetchDispatchData(id)
+  //   }
+  // }, [id])
 
   console.log(purchaseData, 'purchaseData')
 
@@ -778,13 +781,13 @@ const Overview = ({ productDetails }) => {
               <Divider sx={{ mb: 3 }} />
 
               <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   {/* <MedicationIcon color='success' sx={{ mr: 1 }} /> */}
                   <Avatar
                     variant='square'
                     alt=''
                     src={'/images/uses.svg'}
-                    sx={{ width: '26px', height: '28px', mr: 1 }}
+                    sx={{ width: '26px', height: '28px', mr: 2 }}
                   />
                   <Typography
                     variant='subtitle1'
@@ -795,7 +798,7 @@ const Overview = ({ productDetails }) => {
                 </Box>
                 <Typography
                   variant='body2'
-                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
+                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 8.6 }}
                 >
                   {productDetails?.uses || 'NA'}
                 </Typography>
@@ -808,7 +811,7 @@ const Overview = ({ productDetails }) => {
                     variant='square'
                     alt=''
                     src={'/images/side_effect.svg'}
-                    sx={{ width: '28px', height: '28px', mr: 1 }}
+                    sx={{ width: '28px', height: '28px', mr: 2 }}
                   />
                   <Typography
                     variant='subtitle1'
@@ -819,7 +822,7 @@ const Overview = ({ productDetails }) => {
                 </Box>
                 <Typography
                   variant='body2'
-                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
+                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 9 }}
                 >
                   {productDetails?.side_effects || 'NA'}
                 </Typography>
@@ -832,7 +835,7 @@ const Overview = ({ productDetails }) => {
                     variant='square'
                     alt=''
                     src={'/images/safety.svg'}
-                    sx={{ width: '24px', height: '28px', mr: 1 }}
+                    sx={{ width: '20px', height: '24px', mr: 2 }}
                   />
                   <Typography
                     variant='subtitle1'
@@ -855,7 +858,7 @@ const Overview = ({ productDetails }) => {
                               color: 'customColors.customHeadingTextColor',
                               fontSize: '15px',
                               fontWeight: 500,
-                              ml: 3
+                              ml: 4
                             }}
                           >
                             {`${index + 1}. ${trimmedAdvice}`}

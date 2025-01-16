@@ -47,16 +47,16 @@ const ProductsChart = ({
   console.log(data, 'data123')
 
   // Extract months from data
-  const monthsFromApi = data[seriesBarName.toLowerCase().replace(' ', '_')]?.[0]
+  const monthsFromApi = data?.[seriesBarName.toLowerCase().replace(' ', '_')]?.[0]
     ? Object.keys(data[seriesBarName.toLowerCase().replace(' ', '_')][0])
     : []
   console.log(monthsFromApi)
 
   const barData = monthsFromApi?.map(
-    month => parseFloat(data[seriesBarName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0
+    month => parseFloat(data?.[seriesBarName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0
   )
   const lineData = monthsFromApi?.map(
-    month => parseInt(data[seriesLineName?.toLowerCase().replace(' ', '_')][0][month]) || 0
+    month => parseInt(data?.[seriesLineName?.toLowerCase().replace(' ', '_')][0][month]) || 0
   )
   // Convert full month names to short month names for the x-axis labels
   const shortMonths = monthsFromApi?.map(month => {

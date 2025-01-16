@@ -5,7 +5,7 @@ import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 
-const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, removeSelectedImage }) => {
+const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fileArr, removeSelectedImage }) => {
   const [openDialog, setOpenDialog] = useState(false)
   const authData = useContext(AuthContext)
   const [defaultIcon, setDefaultIcon] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
@@ -94,13 +94,13 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, re
                 onClick={e => {
                   if (!isPDF(doc.title)) {
                     e.preventDefault() // Prevent default anchor behavior
-                    handleOpenDialog(doc)
+                    handleOpenDialog(doc, index)
                     setSelectedDoc(doc)
                   }
                 }}
               >
                 <a
-                  href={isPDF(doc.title) ? doc.transcript : '#'}
+                  href={isPDF(doc.title) ? (doc.transcript ? doc.transcript : doc[index]) : '#'}
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{ textDecoration: 'none' }}
@@ -167,7 +167,7 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, re
                           maxWidth: '200px'
                         }}
                       >
-                        {doc?.title}
+                        {doc?.title || fileArr[index]?.name}
                       </Typography>
                       <Typography sx={{ fontSize: '12px', fontWeight: 100 }}>
                         {' '}
@@ -219,7 +219,7 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, re
           }}
         >
           <img
-            src={selectedDoc?.transcript}
+            src={selectedDoc?.transcript || selectedDoc}
             alt='Invoice doc'
             style={{
               maxWidth: '100%',
