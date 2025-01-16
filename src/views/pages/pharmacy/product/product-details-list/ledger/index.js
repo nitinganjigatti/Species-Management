@@ -758,8 +758,9 @@ function Ledger({ tabValue }) {
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
-                textTransform: 'none',
-                width: { xs: '100%', md: 'auto' }
+                // textTransform: 'none',
+                width: { xs: '100%', md: 'auto' },
+                color: 'customColors.OnSurfaceVariant'
               }}
               onClick={toggleDrawer}
             >
@@ -774,7 +775,7 @@ function Ledger({ tabValue }) {
             backgroundColor: 'customColors.displaybgSecondary',
             borderRadius: 1,
             padding: 2,
-            mt: 4
+            mt: 5
           }}
         >
           <Grid container spacing={{ xs: 3, sm: 10 }} alignItems='center' sx={{ flexWrap: 'wrap' }}>

@@ -781,13 +781,13 @@ const Overview = props => {
               <Divider sx={{ mb: 3 }} />
 
               <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   {/* <MedicationIcon color='success' sx={{ mr: 1 }} /> */}
                   <Avatar
                     variant='square'
                     alt=''
                     src={'/images/uses.svg'}
-                    sx={{ width: '26px', height: '28px', mr: 1 }}
+                    sx={{ width: '26px', height: '28px', mr: 2 }}
                   />
                   <Typography
                     variant='subtitle1'
@@ -798,7 +798,7 @@ const Overview = props => {
                 </Box>
                 <Typography
                   variant='body2'
-                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
+                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 8.6 }}
                 >
                   {productDetails?.uses || 'NA'}
                 </Typography>
@@ -811,7 +811,7 @@ const Overview = props => {
                     variant='square'
                     alt=''
                     src={'/images/side_effect.svg'}
-                    sx={{ width: '28px', height: '28px', mr: 1 }}
+                    sx={{ width: '28px', height: '28px', mr: 2 }}
                   />
                   <Typography
                     variant='subtitle1'
@@ -822,7 +822,7 @@ const Overview = props => {
                 </Box>
                 <Typography
                   variant='body2'
-                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
+                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 9 }}
                 >
                   {productDetails?.side_effects || 'NA'}
                 </Typography>
@@ -835,7 +835,7 @@ const Overview = props => {
                     variant='square'
                     alt=''
                     src={'/images/safety.svg'}
-                    sx={{ width: '24px', height: '28px', mr: 1 }}
+                    sx={{ width: '20px', height: '24px', mr: 2 }}
                   />
                   <Typography
                     variant='subtitle1'
@@ -858,7 +858,7 @@ const Overview = props => {
                               color: 'customColors.customHeadingTextColor',
                               fontSize: '15px',
                               fontWeight: 500,
-                              ml: 3
+                              ml: 4
                             }}
                           >
                             {`${index + 1}. ${trimmedAdvice}`}

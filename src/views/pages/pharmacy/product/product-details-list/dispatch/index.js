@@ -30,7 +30,7 @@ import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
 
-function Dispatch({ tabValue, onFetchData }) {
+function Dispatch({ tabValue }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
@@ -613,7 +613,7 @@ function Dispatch({ tabValue, onFetchData }) {
           </Grid>
 
           {/* Filter Button */}
-          <Grid item xs={12} sm={1.5}>
+          <Grid item xs={12} md='auto'>
             <Button
               variant='outlined'
               startIcon={<FilterListIcon />}
