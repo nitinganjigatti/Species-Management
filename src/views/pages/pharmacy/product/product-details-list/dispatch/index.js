@@ -1,11 +1,3 @@
-// import React from 'react'
-
-// const Dispatch = () => {
-//   return <div>Dispatch</div>
-// }
-
-// export default Dispatch
-
 import {
   Avatar,
   Box,
@@ -19,14 +11,16 @@ import {
   Switch,
   Select,
   MenuItem,
-  Button
+  Button,
+  FormControl,
+  InputLabel,
+  Autocomplete
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 
 // ** Icon Imports
-import { getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
@@ -34,44 +28,38 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
+import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
 
-function Dispatch() {
-  const router = useRouter()
+function Dispatch({ tabValue }) {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
-
-  const [rows, setRows] = useState([
-    {
-      sl_no: '1',
-      Reference_id: 'REF123456',
-      SHIPMENT_ID: 'SHIP123',
-      DISPATCH_TO: 'Local Pharmacy',
-      QUANTITY: 50,
-      total_val: 5000,
-      REQUESTED_BY: 'John Doe',
-      profile_pic: 'https://randomuser.me/api/portraits/men/1.jpg',
-      purchase_date: '2024-11-18'
-    },
-    {
-      sl_no: '2',
-      Reference_id: 'REF123457',
-      SHIPMENT_ID: 'SHIP124',
-      DISPATCH_TO: 'Local Pharmacy',
-      QUANTITY: 100,
-      total_val: 10000,
-      REQUESTED_BY: 'Jane Smith',
-      profile_pic: 'https://randomuser.me/api/portraits/women/2.jpg',
-      purchase_date: '2024-11-18'
-    }
-  ])
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_id')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
+  const [selectedType, setSelectedType] = useState(router.query.type || '')
+  const [dispatchedToOptions, setDispatchedToOptions] = useState([])
+  const [selectedDispatchedTo, setSelectedDispatchedTo] = useState(router.query.dispatched_to || '')
+  const [requestedByOptions, setRequestedByOptions] = useState([])
+  const [selectedRequestedBy, setSelectedRequestedBy] = useState(router.query.requested_by || '')
+  const [selectDays, setSelectDays] = useState(router.query.days || '')
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
   })
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -83,7 +71,7 @@ function Dispatch() {
     {
       flex: 0.2,
       Width: 20,
-      field: 'sl',
+      field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -94,7 +82,7 @@ function Dispatch() {
     {
       flex: 0.5,
       minWidth: 40,
-      field: 'Reference_id',
+      field: 'ro_no',
       headerName: 'REFERENCE ID',
       renderCell: params => (
         <Typography
@@ -106,14 +94,14 @@ function Dispatch() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.Reference_id}
+          {params.row.ro_no}
         </Typography>
       )
     },
     {
       flex: 0.5,
       minWidth: 40,
-      field: 'SHIPMENT_ID',
+      field: 'shipment_id',
       headerName: 'SHIPMENT ID',
       renderCell: params => (
         <Typography
@@ -125,14 +113,14 @@ function Dispatch() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.SHIPMENT_ID}
+          {params.row.shipment_id}
         </Typography>
       )
     },
     {
       flex: 0.5,
       minWidth: 40,
-      field: 'DISPATCH_TO',
+      field: 'dispatched_to',
       headerName: 'DISPATCH TO',
       renderCell: params => (
         <Typography
@@ -144,7 +132,7 @@ function Dispatch() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.DISPATCH_TO}
+          {params.row.dispatched_to}
         </Typography>
       )
     },
@@ -152,7 +140,7 @@ function Dispatch() {
     {
       flex: 0.4,
       minWidth: 40,
-      field: 'QUANTITY',
+      field: 'quantity',
       headerName: 'QUANTITY',
       renderCell: params => (
         <Typography
@@ -164,14 +152,14 @@ function Dispatch() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.QUANTITY}
+          {params.row.quantity}
         </Typography>
       )
     },
     {
       flex: 0.5,
       minWidth: 40,
-      field: 'total_val',
+      field: 'price',
       headerName: 'TOTAL VALUE (₹)',
       renderCell: params => (
         <Typography
@@ -183,7 +171,7 @@ function Dispatch() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_val}
+          {params.row.price}
         </Typography>
       )
     },
@@ -191,7 +179,7 @@ function Dispatch() {
     {
       flex: 0.6,
       minWidth: 50,
-      field: 'REQUESTED_BY',
+      field: 'requested_by',
       headerName: 'REQUESTED BY',
       renderCell: params => (
         <>
@@ -217,14 +205,14 @@ function Dispatch() {
               fontFamily: 'Inter'
             }}
           >
-            {params.row.REQUESTED_BY}
+            {params.row.requested_by}
             <Typography
               sx={{
                 fontSize: '12px',
                 fontWeight: 400
               }}
             >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.purchase_date))}
+              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.shipment_date))}
             </Typography>
           </Typography>
         </>
@@ -232,8 +220,8 @@ function Dispatch() {
     }
   ]
 
-  const getDispatch = useCallback(
-    async ({ sort, q, column }) => {
+  const fetchTableData = useCallback(
+    async ({ sort, q, column, type, dispatched_to, requested_by }) => {
       try {
         setLoading(true)
 
@@ -241,20 +229,39 @@ function Dispatch() {
           sort,
           q,
           column,
+          type,
+          dispatched_to,
+          requested_by,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
         // Call the API to fetch data with the sorting and other params
-        // await getDispenseList({ params }).then(res => {
-        //   if (res?.success) {
-        //     setTotal(parseInt(res?.count))
-        //     setRows(loadServerRows(paginationModel.page, res?.data))
-        //   } else {
-        //     setRows([])
-        //     setTotal(0)
-        //   }
-        // })
+        await getDispatchList(params, id).then(res => {
+          if (res?.success) {
+            console.log(res, 'res')
+            setTotal(parseInt(res?.count))
+            setRows(loadServerRows(paginationModel.page, res?.data))
+
+            // Extract unique dispatched_to options
+            const uniqueDispatchedTo = Array.from(
+              new Map(
+                res?.data.map(item => [item.dispatched_to_id, { id: item.dispatched_to_id, name: item.dispatched_to }])
+              ).values()
+            )
+            setDispatchedToOptions(uniqueDispatchedTo)
+
+            const uniqueRequestedBy = Array.from(
+              new Map(
+                res?.data.map(item => [item.created_by, { id: item.created_by, name: item.requested_by }])
+              ).values()
+            )
+            setRequestedByOptions(uniqueRequestedBy)
+          } else {
+            setRows([])
+            setTotal(0)
+          }
+        })
 
         setLoading(false)
       } catch (e) {
@@ -266,88 +273,200 @@ function Dispatch() {
   )
 
   useEffect(() => {
-    router.replace({
-      pathname: router.pathname,
-      query: {
-        ...router.query,
-        searchValue,
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize
-      }
-    })
-  }, [paginationModel.page, paginationModel.pageSize])
-
-  useEffect(() => {
-    getDispatch({ sort, q: searchValue, column: sortColumn })
-  }, [getDispatch, selectedPharmacy.id])
+    if (id) {
+      fetchTableData({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy
+      })
+      updateUrlParams({
+        tab: tabValue,
+        sort: sort,
+        searchValue: searchValue,
+        column: sortColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+    }
+  }, [fetchTableData, selectedType, selectedDispatchedTo, selectedRequestedBy])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: `${row.sl_no}`,
+    id: `${index}`,
     sl_no: getSlNo(index)
   }))
 
-  const handleSearch = useCallback(
-    debounce(value => {
-      setSearchValue(value)
-      setPaginationModel(prevModel => ({
-        ...prevModel,
-        page: 0
-      }))
-
-      router.replace({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          searchValue: value
-        }
-      })
-    }, 500),
-    [router]
+  const searchTableData = useCallback(
+    debounce(async ({ sort, q, column, type, dispatched_to, requested_by }) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData({ sort, q, column, type, dispatched_to, requested_by })
+        updateUrlParams({
+          tab: tabValue,
+          sort: sort,
+          searchValue: q,
+          column: column,
+          type: type,
+          dispatched_to: dispatched_to,
+          requested_by: requested_by,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
   )
+
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({
+      sort,
+      q: value,
+      column: sortColumn,
+      type: selectedType,
+      dispatched_to: selectedDispatchedTo,
+      requested_by: selectedRequestedBy
+    })
+  }
 
   const handleSortModel = newModel => {
     if (newModel.length) {
       const newSort = newModel[0].sort
       const newColumn = newModel[0].field
-
       setSort(newSort)
       setSortColumn(newColumn)
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: {
-            ...router.query,
-            sort: newSort,
-            column: newColumn
-          }
-        },
-        undefined,
-        { shallow: true }
-      )
-
-      getDispatch({ sort: newSort, q: searchValue, column: newColumn })
+      fetchTableData({ sort: newSort, q: searchValue, column: newColumn })
+      updateUrlParams({
+        tab: tabValue,
+        sort: newSort,
+        searchValue: q,
+        column: newColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     }
   }
 
   const onRowClick = params => {
     var data = params.row
+  }
 
-    // if (searchValue) {
-    //   router.push({
-    //     pathname: `/pharmacy/dispense/${data?.id}`
-    //   })
-    // } else {
-    //   router.push({
-    //     pathname: `/pharmacy/dispense/${data?.id}`
-    //   })
-    // }
+  const handleTypeChange = event => {
+    setSelectedType(event.target.value)
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }
+
+  const handleDispatchedToChange = event => {
+    setSelectedDispatchedTo(event.target.value)
+  }
+
+  const handleRequestedByChange = event => {
+    setSelectedRequestedBy(event.target.value)
+  }
+
+  const filterByDays = days => {
+    setSearchValue('')
+    if (days !== 'all') {
+      setTotal(0)
+      // setPaginationModel({ page: 0, pageSize: 10 })
+      const currentDate = new Date()
+      const selectedDays = parseInt(days)
+      let startDate
+      let endDate
+
+      switch (selectedDays) {
+        case 3:
+          startDate = Utility.getPreviousDaysDate(currentDate, 3)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+        case 7:
+          startDate = Utility.getPreviousDaysDate(currentDate, 7)
+          endDate = Utility.getPreviousDaysDate(currentDate, 3)
+          setFilterDates({ startDate, endDate })
+
+          break
+        case 15:
+          startDate = Utility.getPreviousDaysDate(currentDate, 15)
+          endDate = Utility.getPreviousDaysDate(currentDate, 7)
+          setFilterDates({ startDate, endDate })
+          break
+        case 16:
+          startDate = ''
+          endDate = Utility.getPreviousDaysDate(currentDate, 15)
+          setFilterDates({ startDate, endDate })
+          break
+        default:
+          startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+      }
+    } else {
+      // setFilterDates({sta})
+
+      setFilterDates({ startDate: '', endDate: '' })
+      // fetchTableData(sort, searchValue, sortColumn, status)
+    }
   }
 
   return (
     <>
+      <Grid
+        container
+        spacing={2}
+        justifyContent='flex-end'
+        alignItems='center'
+        sx={{
+          mt: 3,
+          flexWrap: 'wrap'
+        }}
+      >
+        <Grid item xs={12} sm={12} md={3} lg={3}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              padding: '0 8px',
+              height: '40px',
+              width: '100%'
+            }}
+          >
+            <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
+            <TextField
+              variant='outlined'
+              value={searchValue}
+              placeholder='Search...'
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+                  padding: '0',
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                }
+              }}
+            />
+          </Box>
+        </Grid>
+      </Grid>
       <Grid
         container
         sm={12}
@@ -356,135 +475,145 @@ function Dispatch() {
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          mt: 6
+          mt: 5
         }}
       >
-        <Grid item>
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Grid item xs={8}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  ml: 5,
-                  height: '40px',
-                  width: '250px'
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
-            </Grid>
-          </Box>
-        </Grid>
-        <Grid container spacing={2} justifyContent='space-between' alignItems='center' sx={{ mt: 3 }}>
+        <Grid container spacing={2} justifyContent='space-between' direction={{ xs: 'column', sm: 'row' }}>
           {/* Filters Section */}
-          <Grid item container xs={10} spacing={4}>
+          <Grid item container spacing={3} xs={12} sm={8.5}>
             {/* Reference Type */}
-            <Grid item>
-              <Select
-                defaultValue='Reference Type'
-                variant='outlined'
-                sx={{
-                  borderRadius: '8px',
-                  height: '40px',
+            {/* <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <InputLabel id='reference-type-label'>Reference Type</InputLabel>
+                <Select
+                  label='Reference Type'
+                  value={selectedType || ''}
+                  onChange={handleTypeChange}
+                  id='reference-type'
+                  variant='outlined'
+                >
+                  <MenuItem value='request'>Request</MenuItem>
+                  <MenuItem value='dispatch'>Dispatch</MenuItem>
+                  <MenuItem value='return'>Return</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid> */}
+            {/* Dispatch To */}
+            {/* <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <InputLabel id='dispatch-to-label'>Dispatch To</InputLabel>
+                <Select
+                  value={selectedDispatchedTo}
+                  onChange={handleDispatchedToChange}
+                  label='Dispatch To'
+                  variant='outlined'
+                >
+                  {dispatchedToOptions.map(option => (
+                    <MenuItem key={option.id} value={option.id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid> */}
+            {/* Requested By */}
+            {/* <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <InputLabel id='requested-by-label'>Requested By</InputLabel>
+                <Select
+                  value={selectedRequestedBy}
+                  onChange={handleRequestedByChange}
+                  displayEmpty
+                  label='Requested By'
+                  variant='outlined'
+                >
+                  {requestedByOptions.map(option => (
+                    <MenuItem key={option.id} value={option.id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid> */}
 
-                  //   width: '150px',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                  }
-                }}
-              >
-                <MenuItem value='Reference Type'>Reference Type</MenuItem>
-                <MenuItem value='Type A'>Type A</MenuItem>
-                <MenuItem value='Type B'>Type B</MenuItem>
-              </Select>
+            {/* Reference Type */}
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <Autocomplete
+                  id='reference-type-autocomplete'
+                  options={['Request', 'Dispatch', 'Return']}
+                  value={selectedType || null}
+                  onChange={(event, newValue) => handleTypeChange({ target: { value: newValue } })}
+                  renderInput={params => (
+                    <TextField {...params} label='Reference Type' variant='outlined' size='small' />
+                  )}
+                  clearOnEscape
+                />
+              </FormControl>
             </Grid>
 
             {/* Dispatch To */}
-            <Grid item>
-              <Select
-                defaultValue='Dispatch To'
-                variant='outlined'
-                sx={{
-                  borderRadius: '8px',
-                  height: '40px',
 
-                  //   width: '150px',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                  }
-                }}
-              >
-                <MenuItem value='Dispatch To'>Dispatch To</MenuItem>
-                <MenuItem value='Location A'>Location A</MenuItem>
-                <MenuItem value='Location B'>Location B</MenuItem>
-              </Select>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <Autocomplete
+                  id='dispatch-to-autocomplete'
+                  options={dispatchedToOptions}
+                  getOptionLabel={option => option.name || ''}
+                  value={dispatchedToOptions.find(option => option.id === selectedDispatchedTo) || null}
+                  onChange={(event, newValue) => {
+                    handleDispatchedToChange({ target: { value: newValue?.id || '' } })
+                  }}
+                  renderInput={params => <TextField {...params} label='Dispatch To' variant='outlined' size='small' />}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  clearOnEscape
+                />
+              </FormControl>
             </Grid>
 
             {/* Requested By */}
-            <Grid item>
-              <Select
-                defaultValue='Requested By'
-                variant='outlined'
-                sx={{
-                  borderRadius: '8px',
-                  height: '40px',
-
-                  //   width: '150px',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                  }
-                }}
-              >
-                <MenuItem value='Requested By'>Requested By</MenuItem>
-                <MenuItem value='Person A'>Person A</MenuItem>
-                <MenuItem value='Person B'>Person B</MenuItem>
-              </Select>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <Autocomplete
+                  id='requested-by-autocomplete'
+                  options={requestedByOptions}
+                  getOptionLabel={option => option.name || ''}
+                  value={requestedByOptions.find(option => option.id === selectedRequestedBy) || null}
+                  onChange={(event, newValue) => {
+                    handleRequestedByChange({ target: { value: newValue?.id || '' } })
+                  }}
+                  renderInput={params => <TextField {...params} label='Requested By' variant='outlined' size='small' />}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
+                  clearOnEscape
+                />
+              </FormControl>
             </Grid>
 
             {/* Date Range */}
-            <Grid item>
-              <Select
-                defaultValue='Date Range'
-                variant='outlined'
-                sx={{
-                  borderRadius: '8px',
-                  height: '40px',
-
-                  //   width: '150px',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                  }
-                }}
-              >
-                <MenuItem value='Date Range'>Date Range</MenuItem>
-                <MenuItem value='Last Week'>Last Week</MenuItem>
-                <MenuItem value='Last Month'>Last Month</MenuItem>
-              </Select>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size='small'>
+                <InputLabel id='date-range-label'>Date Range</InputLabel>
+                <Select
+                  value={selectDays}
+                  label='Date Range'
+                  onChange={e => {
+                    filterByDays(e.target.value)
+                    setSelectDays(e.target.value)
+                  }}
+                  variant='outlined'
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='3'>3 Days</MenuItem>
+                  <MenuItem value='7'>3 to 7 Days</MenuItem>
+                  <MenuItem value='15'>7 to 15 Days</MenuItem>
+                  <MenuItem value='16'>15 Days</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
 
           {/* Filter Button */}
-          <Grid item xs={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Grid item xs={12} md='auto'>
             <Button
               variant='outlined'
               startIcon={<FilterListIcon />}
@@ -492,7 +621,9 @@ function Dispatch() {
                 border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
-                textTransform: 'none'
+                // textTransform: 'none',
+                width: '100%', // Ensures full width for smaller screens
+                color: 'customColors.OnSurfaceVariant'
               }}
             >
               Filter

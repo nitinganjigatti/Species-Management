@@ -229,3 +229,5 @@ export const PRODUCT_EXPIRED_BATCHES = 'v1/pharma/stock/expired'
 export const PRODUCT_QUANTITY_IN_STORE = 'v1/pharma/stock/quantity-details'
 
 export const All_STORES_REQUESTS = 'request-item-store'
+
+export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'

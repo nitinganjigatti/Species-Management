@@ -62,14 +62,17 @@ const validationSchema = yup.object().shape({
   )
 })
 
-const Overview = ({ productDetails }) => {
+const Overview = props => {
+  console.log(props, 'props')
+  const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue } = props
   const theme = useTheme()
+
   const router = useRouter()
   const { id } = router.query
 
-  const [productDashboardData, setProductDashboardData] = useState()
-  const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
-  const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
+  // const [productDashboardData, setProductDashboardData] = useState()
+  // const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
+  // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
 
@@ -569,62 +572,64 @@ const Overview = ({ productDetails }) => {
 
   console.log(productDetails, 'overview')
 
-  const productDashboardList = async id => {
-    try {
-      const response = await getProductDashboardList(id)
-      if (response.success) {
-        console.log(response?.data, 'productDashboardList')
-        setProductDashboardData(response?.data)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
+  // const productDashboardList = async id => {
+  //   try {
+  //     const response = await getProductDashboardList(id)
+  //     if (response.success) {
+  //       console.log(response?.data, 'productDashboardList')
+  //       setProductDashboardData(response?.data)
+  //     }
+  //   } catch (e) {
+  //     console.error(e)
+  //   }
+  // }
 
-  const fetchPurchaseData = async id => {
-    try {
-      const result = await getProductMonthWisePurchaseList(id)
-      if (result?.success === true && result?.data) {
-        console.log(result, 'result')
-        const adjustedData = {
-          dispatch_count: result.data.purchase_count,
-          dispatch_value: result.data.purchase_value
-        }
+  // const fetchPurchaseData = async id => {
+  //   try {
+  //     const result = await getProductMonthWisePurchaseList(id)
+  //     if (result?.success === true && result?.data) {
+  //       console.log(result, 'result')
+  //       const adjustedData = {
+  //         purchase_count: result.data.purchase_count,
+  //         purchase_value: result.data.purchase_value
+  //       }
 
-        setPurchaseData(adjustedData)
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
+  //       setPurchaseData(adjustedData)
+  //     }
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }
 
-  const fetchDispatchData = async id => {
-    try {
-      const result = await getProductMonthWiseDispatchList(id)
-      if (result?.success === true && result?.data) {
-        console.log(result, 'dispatch_count')
-        const adjustedData = {
-          dispatch_count: result.data.dispatch_count,
-          dispatch_value: result.data.dispatch_value
-        }
-        setDispatchData(adjustedData)
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
+  // const fetchDispatchData = async id => {
+  //   try {
+  //     const result = await getProductMonthWiseDispatchList(id)
+  //     if (result?.success === true && result?.data) {
+  //       console.log(result, 'dispatch_count')
+  //       const adjustedData = {
+  //         dispatch_count: result.data.dispatch_count,
+  //         dispatch_value: result.data.dispatch_value
+  //       }
+  //       setDispatchData(adjustedData)
+  //     }
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }
 
-  useEffect(() => {
-    if (id != undefined) {
-      productDashboardList(id)
-      fetchPurchaseData(id)
-      fetchDispatchData(id)
-    }
-  }, [id])
+  // useEffect(() => {
+  //   if (id != undefined) {
+  //     productDashboardList(id)
+  //     fetchPurchaseData(id)
+  //     fetchDispatchData(id)
+  //   }
+  // }, [id])
+
+  console.log(purchaseData, 'purchaseData')
 
   return (
     <>
-      <Grid container spacing={4} pt={6}>
+      <Grid container spacing={4} pt={5}>
         {drawerData.map(card => (
           <StyleWithIconCardComponent
             key={card.name}
@@ -638,256 +643,250 @@ const Overview = ({ productDetails }) => {
         ))}
       </Grid>
 
-      <Divider sx={{ pt: 6, display: 'none' }} />
+      <Divider sx={{ my: 5 }} />
 
-      <Box>
-        <Grid container spacing={3} marginTop={3} sx={{ display: 'flex', alignItems: 'stretch' }}>
-          <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
-            <Card sx={{ height: '100%' }}>
-              <ProductsChart
-                title='Dispatch'
-                data={dispatchData}
-                locations={['Central Pharmacy', 'East Pharmacy']}
-                frequencies={['Monthly', 'Weekly']}
-                barColor={'#006D35'}
-                lineColor={'#37BD69'}
-                yAxisTitle='Dispatch Count'
-                yAxisOppositeTitle='Dispatch Value (₹)'
-                seriesBarName='Dispatch Count'
-                seriesLineName='Dispatch Value'
-                countLabel='Show Dispatch Count'
-                valueLabel='Show Dispatch Value'
-              />
-            </Card>
-          </Grid>
+      <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
+        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+          <Card sx={{ height: '100%' }}>
+            <ProductsChart
+              title='Dispatch'
+              data={dispatchData}
+              locations={['Central Pharmacy', 'East Pharmacy']}
+              frequencies={['Monthly', 'Weekly']}
+              barColor={'#006D35'}
+              lineColor={'#37BD69'}
+              seriesBarName='Dispatch Count'
+              seriesLineName='Dispatch Value'
+              countLabel='Show Dispatch Count'
+              valueLabel='Show Dispatch Value'
+            />
+          </Card>
+        </Grid>
 
-          <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
-            <Card sx={{ height: '100%' }}>
-              <ProductsChart
-                title='Purchases'
-                data={purchaseData}
-                frequencies={['Monthly', 'Weekly']}
-                barColor={'#00AFD699'}
-                lineColor={'#AFEFEB'}
-                yAxisTitle='Purchase count'
-                yAxisOppositeTitle='Purchase Value (₹)'
-                seriesBarName='Purchase Count'
-                seriesLineName='Purchase Value'
-                countLabel='Show Purchase Count'
-                valueLabel='Show Purchase Value'
-              />
-            </Card>
-          </Grid>
+        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+          <Card sx={{ height: '100%' }}>
+            <ProductsChart
+              title='Purchases'
+              data={purchaseData}
+              frequencies={['Monthly', 'Weekly']}
+              barColor={'#00AFD699'}
+              lineColor={'#AFEFEB'}
+              seriesBarName='Purchase Count'
+              seriesLineName='Purchase Value'
+              countLabel='Show Purchase Count'
+              valueLabel='Show Purchase Value'
+            />
+          </Card>
+        </Grid>
 
-          {/* Apply similar structure to the rest of the cards */}
-          <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                {/* Header Section */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Apply similar structure to the rest of the cards */}
+        <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {/* Header Section */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography
+                  variant='body1'
+                  sx={{
+                    color: 'customColors.customHeadingTextColor',
+                    fontSize: '16px',
+                    fontWeight: 500
+                  }}
+                >
+                  <Box display='flex' alignItems='center'>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        bgcolor: 'customColors.Tertiary',
+                        borderRadius: '4px',
+                        width: '30px',
+                        height: '24px',
+                        marginRight: '8px'
+                      }}
+                    >
+                      <Icon
+                        icon='clarity:child-arrow-line'
+                        style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
+                      />
+                    </Box>
+                    Alternative Medicines (10)
+                  </Box>
+                </Typography>
+
+                <CardHeader
+                  sx={{ p: 0, m: 0 }}
+                  action={
+                    <Button
+                      variant='text'
+                      startIcon={<Icon icon='material-symbols-light:add' />}
+                      onClick={handleAddAlternativeMedicine}
+                    >
+                      Add Alternative
+                    </Button>
+                  }
+                />
+              </Box>
+
+              {/* Divider */}
+              <Divider sx={{ my: 2 }} />
+
+              {/* Medicine List */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
+                <Typography variant='body2'>
+                  <List>
+                    {medicines.slice(0, 5).map((medicine, index) => (
+                      <ListItem key={index}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
+                            {medicine.name}
+                          </Typography>
+                          <Typography
+                            component='span'
+                            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
+                          >
+                            {medicine.manufacturer}
+                          </Typography>
+                        </Box>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Typography>
+              </Box>
+
+              {/* More Section - Always at the bottom */}
+              <Box>
+                <Button
+                  variant='text'
+                  sx={{ color: 'primary.main', cursor: 'pointer' }}
+                  onClick={() => setAlternativeMedicinesDrawerOpen(true)}
+                >
+                  +5 More
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <InfoIcon sx={{ mr: 2, color: theme.palette.customColors.addPrimary, fontWeight: 'bold' }} />
+                <Typography sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}>
+                  Additional Information
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 3 }} />
+
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  {/* <MedicationIcon color='success' sx={{ mr: 1 }} /> */}
+                  <Avatar
+                    variant='square'
+                    alt=''
+                    src={'/images/uses.svg'}
+                    sx={{ width: '26px', height: '28px', mr: 2 }}
+                  />
                   <Typography
-                    variant='body1'
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontSize: '16px',
-                      fontWeight: 500
-                    }}
+                    variant='subtitle1'
+                    sx={{ color: 'custoColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
                   >
-                    <Box display='flex' alignItems='center'>
-                      <Box
+                    Uses
+                  </Typography>
+                </Box>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 8.6 }}
+                >
+                  {productDetails?.uses || 'NA'}
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  {/* <WarningIcon color='error' sx={{ mr: 1 }} /> */}
+                  <Avatar
+                    variant='square'
+                    alt=''
+                    src={'/images/side_effect.svg'}
+                    sx={{ width: '28px', height: '28px', mr: 2 }}
+                  />
+                  <Typography
+                    variant='subtitle1'
+                    sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
+                  >
+                    Side Effects
+                  </Typography>
+                </Box>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 9 }}
+                >
+                  {productDetails?.side_effects || 'NA'}
+                </Typography>
+              </Box>
+
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  {/* <ShieldIcon color='info' sx={{ mr: 1 }} /> */}
+                  <Avatar
+                    variant='square'
+                    alt=''
+                    src={'/images/safety.svg'}
+                    sx={{ width: '20px', height: '24px', mr: 2 }}
+                  />
+                  <Typography
+                    variant='subtitle1'
+                    sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
+                  >
+                    Safety Advice
+                  </Typography>
+                </Box>
+                <List dense>
+                  {productDetails?.safety_advice ? (
+                    productDetails.safety_advice.split(',').map((advice, index) => {
+                      const trimmedAdvice = advice.trim()
+                      if (!trimmedAdvice) return null
+
+                      return (
+                        <ListItem key={index}>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'customColors.customHeadingTextColor',
+                              fontSize: '15px',
+                              fontWeight: 500,
+                              ml: 4
+                            }}
+                          >
+                            {`${index + 1}. ${trimmedAdvice}`}
+                          </Typography>
+                        </ListItem>
+                      )
+                    })
+                  ) : (
+                    <ListItem>
+                      <Typography
+                        variant='body2'
                         sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          bgcolor: 'customColors.Tertiary',
-                          borderRadius: '4px',
-                          width: '30px',
-                          height: '24px',
-                          marginRight: '8px'
+                          color: 'customColors.customHeadingTextColor',
+                          fontSize: '15px',
+                          fontWeight: 500,
+                          ml: 3
                         }}
                       >
-                        <Icon
-                          icon='clarity:child-arrow-line'
-                          style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
-                        />
-                      </Box>
-                      Alternative Medicines (10)
-                    </Box>
-                  </Typography>
-
-                  <CardHeader
-                    sx={{ p: 0, m: 0 }}
-                    action={
-                      <Button
-                        variant='text'
-                        startIcon={<Icon icon='material-symbols-light:add' />}
-                        onClick={handleAddAlternativeMedicine}
-                      >
-                        Add Alternative
-                      </Button>
-                    }
-                  />
-                </Box>
-
-                {/* Divider */}
-                <Divider sx={{ my: 2 }} />
-
-                {/* Medicine List */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
-                  <Typography variant='body2'>
-                    <List>
-                      {medicines.slice(0, 5).map((medicine, index) => (
-                        <ListItem key={index}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
-                              {medicine.name}
-                            </Typography>
-                            <Typography
-                              component='span'
-                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
-                            >
-                              {medicine.manufacturer}
-                            </Typography>
-                          </Box>
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Typography>
-                </Box>
-
-                {/* More Section - Always at the bottom */}
-                <Box>
-                  <Button
-                    variant='text'
-                    sx={{ color: 'primary.main', cursor: 'pointer' }}
-                    onClick={() => setAlternativeMedicinesDrawerOpen(true)}
-                  >
-                    +5 More
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <InfoIcon sx={{ mr: 2, color: theme.palette.customColors.addPrimary, fontWeight: 'bold' }} />
-                  <Typography sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}>
-                    Additional Information
-                  </Typography>
-                </Box>
-                <Divider sx={{ mb: 3 }} />
-
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, p: 2 }}>
-                    {/* <MedicationIcon color='success' sx={{ mr: 1 }} /> */}
-                    <Avatar
-                      variant='square'
-                      alt=''
-                      src={'/images/uses.svg'}
-                      sx={{ width: '26px', height: '28px', mr: 1 }}
-                    />
-                    <Typography
-                      variant='subtitle1'
-                      sx={{ color: 'custoColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
-                    >
-                      Uses
-                    </Typography>
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
-                  >
-                    {productDetails?.uses || 'NA'}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    {/* <WarningIcon color='error' sx={{ mr: 1 }} /> */}
-                    <Avatar
-                      variant='square'
-                      alt=''
-                      src={'/images/side_effect.svg'}
-                      sx={{ width: '28px', height: '28px', mr: 1 }}
-                    />
-                    <Typography
-                      variant='subtitle1'
-                      sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
-                    >
-                      Side Effects
-                    </Typography>
-                  </Box>
-                  <Typography
-                    variant='body2'
-                    sx={{ color: 'customColors.customHeadingTextColor', fontSize: '15px', fontWeight: 500, ml: 7 }}
-                  >
-                    {productDetails?.side_effects || 'NA'}
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    {/* <ShieldIcon color='info' sx={{ mr: 1 }} /> */}
-                    <Avatar
-                      variant='square'
-                      alt=''
-                      src={'/images/safety.svg'}
-                      sx={{ width: '24px', height: '28px', mr: 1 }}
-                    />
-                    <Typography
-                      variant='subtitle1'
-                      sx={{ color: 'customColors.neutralSecondary', fontSize: '12px', fontWeight: 400 }}
-                    >
-                      Safety Advice
-                    </Typography>
-                  </Box>
-                  <List dense>
-                    {productDetails?.safety_advice ? (
-                      productDetails.safety_advice.split(',').map((advice, index) => {
-                        const trimmedAdvice = advice.trim()
-                        if (!trimmedAdvice) return null
-
-                        return (
-                          <ListItem key={index}>
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                color: 'customColors.customHeadingTextColor',
-                                fontSize: '15px',
-                                fontWeight: 500,
-                                ml: 3
-                              }}
-                            >
-                              {`${index + 1}. ${trimmedAdvice}`}
-                            </Typography>
-                          </ListItem>
-                        )
-                      })
-                    ) : (
-                      <ListItem>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: 'customColors.customHeadingTextColor',
-                            fontSize: '15px',
-                            fontWeight: 500,
-                            ml: 3
-                          }}
-                        >
-                          NA
-                        </Typography>
-                      </ListItem>
-                    )}
-                  </List>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+                        NA
+                      </Typography>
+                    </ListItem>
+                  )}
+                </List>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
-      </Box>
+      </Grid>
 
       {activeDrawerData && (
         <CommonDrawerBox

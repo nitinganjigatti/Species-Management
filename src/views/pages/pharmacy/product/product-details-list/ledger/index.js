@@ -37,6 +37,7 @@ import auth from 'src/configs/auth'
 import { getLedgerList } from 'src/lib/api/pharmacy/getMedicineList'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import toast from 'react-hot-toast'
+import ClearIcon from '@mui/icons-material/Clear'
 
 const DoctorCard = ({ name, title, site, isSelected, onSelectDoctor }) => {
   return (
@@ -83,16 +84,33 @@ const DoctorCard = ({ name, title, site, isSelected, onSelectDoctor }) => {
   )
 }
 
-const filters = [
+const filterLists = [
   'Batch Details'
   // 'Transaction Type'
   //  'Dispatch By', 'Dispatch To', 'Created By', 'Date'
 ]
 
-function Ledger() {
+const dispatchBy = ['Central Pharmacy', 'Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
+const dispatchTo = ['Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
+const dates = ['Last 7 days', 'Current month', 'Last 3 months', 'Current year']
+
+const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense']
+const doctors = [
+  { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
+  { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
+  { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
+  { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' }
+]
+
+function Ledger({ tabValue }) {
   const theme = useTheme()
   const router = useRouter()
-  const { id, tab, batch_no } = router.query
+  const { id, batch_no, filters } = router.query
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -100,13 +118,23 @@ function Ledger() {
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
 
-  const [selectedTabs, setSelectedTabs] = useState([])
+  // const [selectedTabs, setSelectedTabs] = useState([])
+  // const [selectedBatches, setSelectedBatches] = useState([])
+  const [selectedTabs, setSelectedTabs] = useState(
+    router.query.filters ? (Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]) : []
+  )
+  const [selectedBatches, setSelectedBatches] = useState(
+    router.query.batch_no
+      ? Array.isArray(router.query.batch_no)
+        ? router.query.batch_no
+        : [router.query.batch_no]
+      : []
+  )
   const [batchDetailsList, setBatchDetailsList] = useState([])
-  const [selectedBatches, setSelectedBatches] = useState([])
   const [open, setOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState('Batch Details')
 
@@ -120,6 +148,16 @@ function Ledger() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLocations, setSelectedLocations] = useState([])
   const [stockDetails, setStockDetails] = useState({})
+
+  const filteredDispatchBy = dispatchBy.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredDispatchTo = dispatchTo.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredDates = dates.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
+
+  const filteredBatchDetails = batchDetailsList.filter(location =>
+    location.batch_no.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const [selectedDoctors, setSelectedDoctors] = React.useState([])
 
   const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
@@ -364,24 +402,16 @@ function Ledger() {
   ]
 
   const getLedger = useCallback(
-    async ({ stock_id, batch_no, q, tab }) => {
-      const formattedBatchNo = Array.isArray(batch_no)
-        ? batch_no
-        : typeof batch_no === 'string'
-        ? [batch_no]
-        : batch_no
-        ? [batch_no]
-        : []
+    async ({ stock_id, batch_no, q, tab, page, limit }) => {
       try {
         setLoading(true)
-
         const params = {
           stock_id,
-          batch_no: formattedBatchNo,
+          batch_no,
           q,
           tab,
-          page: paginationModel?.page + 1,
-          limit: paginationModel?.pageSize
+          page: page + 1,
+          limit
         }
 
         await getLedgerList(params).then(res => {
@@ -407,50 +437,26 @@ function Ledger() {
     [paginationModel]
   )
 
-  console.log(paginationModel, 'paginationModel')
-
   useEffect(() => {
-    const routerBatchNo = router.query.batch_no
-    const initialBatchNo = routerBatchNo ? (Array.isArray(routerBatchNo) ? routerBatchNo : [routerBatchNo]) : []
-
-    setSelectedBatches(initialBatchNo)
-
     if (id) {
       getLedger({
         stock_id: id,
-        batch_no: initialBatchNo,
+        batch_no: selectedBatches,
         q: searchValue,
-        tab: selectedTabs
+        tab: selectedTabs,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+      updateUrlParams({
+        tab: tabValue,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize,
+        batch_no: selectedBatches,
+        searchValue: searchValue,
+        filters: selectedTabs.length > 0 ? selectedTabs : undefined
       })
     }
-  }, [id, router.query.batch_no, paginationModel, selectedTabs])
-
-  useEffect(() => {
-    const { page, pageSize, ...otherQueryParams } = router.query
-
-    if (paginationModel.page + 1 !== parseInt(page, 10) || paginationModel.pageSize !== parseInt(pageSize, 10)) {
-      const queryParams = {
-        ...otherQueryParams,
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize
-      }
-
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: queryParams
-        },
-        undefined,
-        { shallow: true }
-      )
-    }
-    if (router.query.filters) {
-      const filters = Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]
-      console.log(filters, 'filters')
-
-      setSelectedTabs(filters)
-    }
-  }, [paginationModel, router.query.filters])
+  }, [getLedger])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -471,24 +477,29 @@ function Ledger() {
 
   const searchTableData = useCallback(
     debounce(async ({ q }) => {
-      const filters = router.query.filters || selectedTabs
-      console.log(filters)
-
-      setSearchValue(q)
       try {
-        await getLedger({ stock_id: id, batch_no: batch_no, q: q, tab: Array.isArray(filters) ? filters : [filters] })
+        await getLedger({
+          stock_id: id,
+          batch_no: selectedBatches,
+          q: q,
+          tab: selectedTabs,
+          page: paginationModel?.page,
+          limit: paginationModel?.pageSize
+        })
+        updateUrlParams({
+          tab: tabValue,
+          batch_no: selectedBatches,
+          searchValue: q,
+          filters: selectedTabs,
+          page: paginationModel?.page,
+          limit: paginationModel?.pageSize
+        })
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    [getLedger, router.query.filters, selectedTabs, id, batch_no]
+    []
   )
-
-  const dispatchBy = ['Central Pharmacy', 'Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
-  const dispatchTo = ['Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
-  const dates = ['Last 7 days', 'Current month', 'Last 3 months', 'Current year']
-
-  const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense']
 
   const handleTabClick = tab => {
     let updatedTabs
@@ -498,17 +509,22 @@ function Ledger() {
       updatedTabs = [...selectedTabs, tab]
     }
     setSelectedTabs(updatedTabs)
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          filters: updatedTabs.length > 0 ? updatedTabs : undefined
-        }
-      },
-      undefined,
-      { shallow: true }
-    )
+    getLedger({
+      stock_id: id,
+      batch_no: selectedBatches,
+      q: searchValue,
+      tab: updatedTabs,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
+    updateUrlParams({
+      tab: tabValue,
+      batch_no: selectedBatches,
+      searchValue: searchValue,
+      filters: updatedTabs.length > 0 ? [...updatedTabs] : [],
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
   }
 
   // Toggle Drawer open/close
@@ -556,15 +572,6 @@ function Ledger() {
       setSelectedLocations(prevSelected => prevSelected.filter(location => location !== value))
     }
   }
-  const filteredDispatchBy = dispatchBy.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
-  const filteredDispatchTo = dispatchTo.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
-  const filteredDates = dates.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
-
-  const filteredBatchDetails = batchDetailsList.filter(location =>
-    location.batch_no.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  const [selectedDoctors, setSelectedDoctors] = React.useState([])
 
   const handleDoctorSelect = (index, selected) => {
     setSelectedDoctors(prevState => {
@@ -574,13 +581,6 @@ function Ledger() {
       return newState
     })
   }
-
-  const doctors = [
-    { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
-    { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
-    { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
-    { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' }
-  ]
 
   const getBatchListDetails = useCallback(async id => {
     try {
@@ -597,51 +597,59 @@ function Ledger() {
     if (id) {
       getBatchListDetails(id)
     }
-  }, [id])
+  }, [])
 
   const handleApplyFilter = async () => {
-    if (!id) {
-      toast.error('Product ID must be selected')
-      return
+    try {
+      await getLedger({
+        stock_id: id,
+        batch_no: selectedBatches,
+        q: searchValue,
+        tab: selectedTabs,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+      updateUrlParams({
+        tab: tabValue,
+        batch_no: selectedBatches,
+        searchValue: searchValue,
+        filters: selectedTabs,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
+    } catch (error) {
+      console.error(error)
     }
-    const newQuery = { ...router.query }
-    if (!selectedBatches || selectedBatches.length === 0) {
-      delete newQuery.batch_no
-    } else {
-      newQuery.batch_no = selectedBatches
-    }
-
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: newQuery
-      },
-      undefined,
-      { shallow: true }
-    )
-
     toggleDrawer()
   }
 
-  const handleClearFilter = () => {
-    const newQuery = { ...router.query }
-    delete newQuery.batch_no // Remove batch parameter
-
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: newQuery
-      },
-      undefined,
-      { shallow: true }
-    )
+  // const handleClearFilter = () => {
+  //   toggleDrawer()
+  // }
+  const handleClearFilter = async () => {
+    try {
+      setSelectedBatches([])
+      updateUrlParams({
+        tab: tabValue,
+        batch_no: [],
+        searchValue: searchValue,
+        filters: [],
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
+      await getLedger({
+        stock_id: id,
+        batch_no: [],
+        q: searchValue,
+        tab: [],
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+    } catch (error) {
+      console.error(error)
+    }
+    // Close the filter drawer
     toggleDrawer()
-    // getLedger({
-    //   stock_id: id,
-    //   batch_no: [],
-    //   q: searchValue,
-    //   tab: selectedTabs
-    // })
   }
 
   const onRowClick = params => {}
@@ -654,7 +662,7 @@ function Ledger() {
         justifyContent='flex-end'
         alignItems='center'
         sx={{
-          mt: 6,
+          mt: 3,
           flexWrap: 'wrap'
         }}
       >
@@ -691,7 +699,7 @@ function Ledger() {
         </Grid>
       </Grid>
 
-      <Box sx={{ mt: 4 }}>
+      <Box sx={{ mt: 5 }}>
         {/* Tabs */}
         <Grid
           container
@@ -720,13 +728,12 @@ function Ledger() {
                       : 'customColors.neutral05',
                     color: selectedTabs.includes(tab) ? 'white' : 'customColors.OnSurfaceVariant',
                     boxShadow: 'none',
-                    border: selectedTabs.includes(tab)
-                      ? 'none'
-                      : theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    border: 'none',
                     '&:hover': {
                       backgroundColor: selectedTabs.includes(tab)
                         ? 'customColors.OnSecondaryContainer'
-                        : 'customColors.neutral05'
+                        : 'customColors.neutral05',
+                      border: 'none'
                     },
                     fontWeight: 400,
                     fontSize: '14px',
@@ -735,7 +742,8 @@ function Ledger() {
                   }}
                 >
                   {/* {tab} {selectedTabs.includes(tab) && '✖'} */}
-                  {tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase()} {selectedTabs.includes(tab) && 'x'}
+                  {tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase()}
+                  {selectedTabs.includes(tab) && <ClearIcon sx={{ marginLeft: '8px', fontSize: '16px' }} />}
                 </Button>
               ))}
             </Box>
@@ -750,8 +758,9 @@ function Ledger() {
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
-                textTransform: 'none',
-                width: { xs: '100%', md: 'auto' }
+                // textTransform: 'none',
+                width: { xs: '100%', md: 'auto' },
+                color: 'customColors.OnSurfaceVariant'
               }}
               onClick={toggleDrawer}
             >
@@ -766,7 +775,7 @@ function Ledger() {
             backgroundColor: 'customColors.displaybgSecondary',
             borderRadius: 1,
             padding: 2,
-            mt: 4
+            mt: 5
           }}
         >
           <Grid container spacing={{ xs: 3, sm: 10 }} alignItems='center' sx={{ flexWrap: 'wrap' }}>
@@ -799,7 +808,7 @@ function Ledger() {
 
             {/* Data Section */}
             <Grid item xs={12} sm>
-              <Grid container spacing={4} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+              <Grid container spacing={12} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
                 {/* Total Purchase */}
                 <Grid item xs={12} sm='auto'>
                   <Box textAlign={{ xs: 'center', sm: 'left' }}>
@@ -920,7 +929,7 @@ function Ledger() {
           {/* Left side - List of menu items */}
           <Box sx={{ flex: 24, display: 'flex', flexDirection: 'column', width: { xs: '100%', sm: 'auto' } }}>
             <List sx={{ p: 0, ml: 5 }}>
-              {filters.map(item => (
+              {filterLists.map(item => (
                 <ListItem
                   button
                   key={item}
@@ -1015,35 +1024,6 @@ function Ledger() {
                       />
                     </Box>
                   ))}
-                  {/* {filteredBatchDetails.map(location => (
-                    <Box key={location.batch_no}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            name='batchDetails'
-                            value={location.batch_no}
-                            checked={selectedBatch === location.batch_no}
-                            // checked={selectedBatch === location.batch_no || batch_no === location.batch_no}
-                            onChange={handleBatchCheckbox}
-                            sx={{
-                              color: 'customColors.Outline',
-                              '&.Mui-checked': {
-                                color: 'primary.main'
-                              }
-                            }}
-                          />
-                        }
-                        sx={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          '& .MuiFormControlLabel-label': {
-                            color: 'customColors.Outline'
-                          }
-                        }}
-                        label={`${location.batch_no}`}
-                      />
-                    </Box>
-                  ))} */}
                 </Box>
               </>
             )}

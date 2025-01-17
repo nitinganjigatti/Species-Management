@@ -29,7 +29,12 @@ import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { getMedicineById, getProductDashboardList } from 'src/lib/api/pharmacy/getMedicineList'
+import {
+  getMedicineById,
+  getProductDashboardList,
+  getProductMonthWiseDispatchList,
+  getProductMonthWisePurchaseList
+} from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Overview from 'src/views/pages/pharmacy/product/product-details-list/over-view'
 import Purchase from 'src/views/pages/pharmacy/product/product-details-list/purchase'
@@ -40,16 +45,96 @@ import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
 
-const TabsSimple = ({ productDetails }) => {
-  // const [value, setValue] = useState('overview')
+// const TabsSimple = ({ productDetails }) => {
+//   const router = useRouter()
+//   const { id, tab } = router.query
+//   const defaultTab = 'overview'
+//   const [value, setValue] = React.useState(tab || defaultTab)
 
-  // const handleChange = (event, newValue) => {
-  //   setValue(newValue)
-  // }
+//   const updateUrlParams = newTab => {
+//     //query object to keep only `tab` and `id`
+//     const updatedQuery = { tab: newTab }
+//     if (id) updatedQuery.id = id
+//     router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
+//   }
+//   // const updateUrlParams = params => {
+//   //   const query = { ...router.query, ...params }
+//   //   router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+//   // }
+
+//   useEffect(() => {
+//     if (tab) {
+//       setValue(tab)
+//     } else {
+//       setValue(defaultTab)
+//     }
+//   }, [tab])
+
+//   const handleChange = (event, newValue) => {
+//     setValue(newValue)
+//     // updateUrlParams({ tab: newValue })
+//     updateUrlParams(newValue)
+//   }
+
+//   return (
+//     <TabContext value={value}>
+//       <TabList
+//         onChange={handleChange}
+//         sx={{
+//           '& .MuiTabs-flexContainer': {
+//             borderBottom: '1px solid',
+//             borderColor: 'customColors.neutral05'
+//           }
+//         }}
+//       >
+//         <Tab value='overview' label='Overview' />
+//         {/* <Tab value='purchase' label='Purchase' />*/}
+//         <Tab value='dispatch' label='Dispatch' />
+//         <Tab value='ledger' label='Ledger' />
+//       </TabList>
+//       <TabPanel value='overview' sx={{ p: 0 }}>
+//         <Overview productDetails={productDetails} tabValue={value} />
+//       </TabPanel>
+//       <TabPanel value='purchase'>
+//         <Purchase />
+//       </TabPanel>
+//       <TabPanel value='dispatch' sx={{ p: 0 }}>
+//         <Dispatch tabValue={value} />
+//       </TabPanel>
+//       <TabPanel value='ledger' sx={{ p: 0 }}>
+//         <Ledger tabValue={value} />
+//       </TabPanel>
+//     </TabContext>
+//   )
+// }
+
+const ProductDetailsList = () => {
+  const theme = useTheme()
   const router = useRouter()
-  const { tab } = router.query
+  const { id, action, tab } = router.query
+
+  const { selectedPharmacy } = usePharmacyContext()
+  const [uploadedImage, setUploadedImage] = useState()
+  const [loader, setLoader] = useState(false)
+  const [productDetails, setProductDetails] = useState()
+  const [variantProductList, setVariantProductList] = useState([])
+  const [listAllVariant, setListAllVariant] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [mainLoader, setMainLoader] = useState(false)
+
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
+
+  const updateUrlParams = newTab => {
+    //query object to keep only `tab` and `id`
+    const updatedQuery = { tab: newTab }
+    if (id) updatedQuery.id = id
+    router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
+  }
+  // const updateUrlParams = params => {
+  //   const query = { ...router.query, ...params }
+  //   router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  // }
 
   useEffect(() => {
     if (tab) {
@@ -61,80 +146,9 @@ const TabsSimple = ({ productDetails }) => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-    const { batch_no, ...otherQueryParams } = router.query
-    // const { page, pageSize, batch_no, ...otherQueryParams } = router.query
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          ...otherQueryParams,
-          tab: newValue,
-          page: 1,
-          pageSize: 10
-        }
-      },
-      undefined,
-      { shallow: true }
-    )
+    // updateUrlParams({ tab: newValue })
+    updateUrlParams(newValue)
   }
-
-  // const handleChange = (event, newValue) => {
-  //   setValue(newValue)
-  //   router.replace(
-  //     {
-  //       pathname: router.pathname,
-  //       query: { ...router.query, tab: newValue }
-  //     },
-  //     undefined,
-  //     { shallow: true }
-  //   )
-  // }
-
-  return (
-    <TabContext value={value}>
-      <TabList
-        onChange={handleChange}
-        sx={{
-          '& .MuiTabs-flexContainer': {
-            borderBottom: '1px solid',
-            borderColor: 'customColors.neutral05'
-          }
-        }}
-      >
-        <Tab value='overview' label='Overview' />
-        {/* <Tab value='purchase' label='Purchase' />
-        <Tab value='dispatch' label='Dispatch' /> */}
-        <Tab value='ledger' label='Ledger' />
-      </TabList>
-      <TabPanel value='overview' sx={{ p: 0 }}>
-        <Overview productDetails={productDetails} />
-      </TabPanel>
-      <TabPanel value='purchase'>
-        <Purchase />
-      </TabPanel>
-      <TabPanel value='dispatch' sx={{ p: 0 }}>
-        <Dispatch />
-      </TabPanel>
-      <TabPanel value='ledger' sx={{ p: 0 }}>
-        <Ledger />
-      </TabPanel>
-    </TabContext>
-  )
-}
-
-const ProductDetailsList = () => {
-  const theme = useTheme()
-  const router = useRouter()
-  const { id, action } = router.query
-
-  const { selectedPharmacy } = usePharmacyContext()
-  const [uploadedImage, setUploadedImage] = useState()
-  const [loader, setLoader] = useState(false)
-  const [productDetails, setProductDetails] = useState()
-  const [variantProductList, setVariantProductList] = useState([])
-  const [listAllVariant, setListAllVariant] = useState([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [mainLoader, setMainLoader] = useState(false)
 
   const handleEdit = async row => {
     if (
@@ -291,6 +305,63 @@ const ProductDetailsList = () => {
   console.log(variantProductList, 'variantProductList')
   console.log(filteredListAllVariant, 'filteredListAllVariant')
 
+  const [productDashboardData, setProductDashboardData] = useState()
+  const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
+  const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
+
+  const productDashboardList = async id => {
+    try {
+      const response = await getProductDashboardList(id)
+      if (response.success) {
+        console.log(response?.data, 'productDashboardList')
+        setProductDashboardData(response?.data)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const fetchPurchaseData = async id => {
+    try {
+      const result = await getProductMonthWisePurchaseList(id)
+      if (result?.success === true && result?.data) {
+        console.log(result, 'result')
+        const adjustedData = {
+          purchase_count: result.data.purchase_count,
+          purchase_value: result.data.purchase_value
+        }
+
+        setPurchaseData(adjustedData)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const fetchDispatchData = async id => {
+    try {
+      const result = await getProductMonthWiseDispatchList(id)
+      if (result?.success === true && result?.data) {
+        console.log(result, 'dispatch_count')
+        const adjustedData = {
+          dispatch_count: result.data.dispatch_count,
+          dispatch_value: result.data.dispatch_value
+        }
+        setDispatchData(adjustedData)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
+    if (id != undefined) {
+      productDashboardList(id)
+      fetchPurchaseData(id)
+      fetchDispatchData(id)
+    }
+  }, [id])
+
   return (
     <>
       {loader ? (
@@ -302,7 +373,17 @@ const ProductDetailsList = () => {
               <Grid item xs={12} mb={6}>
                 <CardHeader
                   sx={{ p: 0, m: 0 }}
-                  avatar={<Icon icon='ep:back' style={{ cursor: 'pointer' }} onClick={() => Router.back()} />}
+                  avatar={
+                    <Icon
+                      icon='ep:back'
+                      style={{ cursor: 'pointer' }}
+                      onClick={() =>
+                        Router.push({
+                          pathname: '/pharmacy/medicine/product-list'
+                        })
+                      }
+                    />
+                  }
                   action={
                     <Button
                       variant='contained'
@@ -536,7 +617,41 @@ const ProductDetailsList = () => {
             </Grid>
           </Card>
           <Card sx={{ p: 6 }}>
-            <TabsSimple productDetails={productDetails} />
+            {/* <TabsSimple productDetails={productDetails} /> */}
+            <TabContext value={value}>
+              <TabList
+                onChange={handleChange}
+                sx={{
+                  '& .MuiTabs-flexContainer': {
+                    borderBottom: '1px solid',
+                    borderColor: 'customColors.neutral05'
+                  }
+                }}
+              >
+                <Tab value='overview' label='Overview' />
+                {/* <Tab value='purchase' label='Purchase' />*/}
+                <Tab value='dispatch' label='Dispatch' />
+                <Tab value='ledger' label='Ledger' />
+              </TabList>
+              <TabPanel value='overview' sx={{ p: 0 }}>
+                <Overview
+                  productDetails={productDetails}
+                  tabValue={value}
+                  productDashboardData={productDashboardData}
+                  purchaseData={purchaseData}
+                  dispatchData={dispatchData}
+                />
+              </TabPanel>
+              <TabPanel value='purchase'>
+                <Purchase />
+              </TabPanel>
+              <TabPanel value='dispatch' sx={{ p: 0 }}>
+                <Dispatch tabValue={value} />
+              </TabPanel>
+              <TabPanel value='ledger' sx={{ p: 0 }}>
+                <Ledger tabValue={value} />
+              </TabPanel>
+            </TabContext>
           </Card>
         </>
       )}
