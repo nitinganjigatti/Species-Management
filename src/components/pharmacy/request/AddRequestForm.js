@@ -1268,8 +1268,8 @@ const AddRequestForm = () => {
           <Grid>
             <Typography
               sx={{
-                mb: 2,
-                mt:1,
+                mb: 3,
+                mt: 2,
                 fontSize: '16px',
                 fontWeight: 500,
                 color: 'customColors.customTextColorGray2'
@@ -1282,31 +1282,35 @@ const AddRequestForm = () => {
                 display: 'flex',
                 width: '602px',
                 height: '46px',
-                gap: 2
+                gap: 5
               }}
             >
               <Button
-                variant='contained'
+                // variant='contained'
                 sx={{
                   width: '192px',
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
-                  backgroundColor: nestedRowMedicine.priority_item === 'high' ? '#FFBDA833' : '#F5F5F5',
+                  backgroundColor: nestedRowMedicine.priority_item === 'high' ? '#FFBDA833' : 'white',
                   color:
                     nestedRowMedicine.priority_item === 'high'
-                      ? '#FFBDA833'
+                      ? theme.palette.customColors.TertiaryContainer
                       : theme.palette.customColors.customHeadingTextColor,
                   opacity: nestedRowMedicine.priority_item === 'high' && 2,
-                  border: nestedRowMedicine.priority_item === 'high' ? '1px solid #FF7B54' : '0.25px solid #C3CEC7',
+                  outline:
+                    nestedRowMedicine.priority_item === 'high'
+                      ? `1px solid ${theme.palette.customColors.Tertiary} !important`
+                      : `1px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   '&:hover': {
-                    backgroundColor: nestedRowMedicine.priority_item === 'high' ? '#FFE8E2' : '#E0E0E0'
+                    backgroundColor:
+                      nestedRowMedicine.priority_item === 'high' ? '#FFBDA833 !important' : 'transparent !important'
                   }
                 }}
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'high' ? '' : 'high' 
+                    priority_item: nestedRowMedicine.priority_item === 'high' ? '' : 'high'
                   })
                 }}
               >
@@ -1318,35 +1322,44 @@ const AddRequestForm = () => {
                     color:
                       nestedRowMedicine.priority_item === 'high'
                         ? theme.palette.customColors.customHeadingTextColor
-                        : '#00000066'
+                        : theme.palette.customColors.neutral_50
                   }}
                 >
                   High
                 </Typography>
               </Button>
               <Button
-                variant='contained'
+                // variant='contained'
                 sx={{
                   width: '192px',
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
-                  backgroundColor: nestedRowMedicine.priority_item === 'emergency' ? '#FFD3D333' : '#F5F5F5',
+                  backgroundColor: nestedRowMedicine.priority_item === 'emergency' ? '#FFD3D333' : 'white',
                   color:
                     nestedRowMedicine.priority_item === 'emergency'
-                      ? '#FF7B54'
+                      ? ''
                       : theme.palette.customColors.customHeadingTextColor,
                   opacity: nestedRowMedicine.priority_item === 'emergency' && 2,
-                  border:
-                    nestedRowMedicine.priority_item === 'emergency' ? '1px solid #E93353' : '0.25px solid #C3CEC7',
+                  outline:
+                    nestedRowMedicine.priority_item === 'emergency'
+                      ? `1px solid ${theme.palette.customColors.Error} !important`
+                      : `1px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+                  // '&:hover': {
+                  //   backgroundColor:
+                  //     nestedRowMedicine.priority_item === 'emergency' ? '#FFBDA833 !important' : 'transparent !important'
+                  // }
                   '&:hover': {
-                    backgroundColor: nestedRowMedicine.priority_item === 'emergency' ? '#FFE8E2' : '#E0E0E0'
+                    backgroundColor:
+                      nestedRowMedicine.priority_item === 'emergency'
+                        ? '#FFD3D333 !important'
+                        : 'transparent !important'
                   }
                 }}
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'emergency' ? '' : 'emergency' 
+                    priority_item: nestedRowMedicine.priority_item === 'emergency' ? '' : 'emergency'
                   })
                 }}
               >
@@ -1358,7 +1371,7 @@ const AddRequestForm = () => {
                     color:
                       nestedRowMedicine.priority_item === 'emergency'
                         ? theme.palette.customColors.customHeadingTextColor
-                        : '#00000066'
+                        : theme.palette.customColors.neutral_50
                   }}
                 >
                   Emergency
@@ -1821,7 +1834,9 @@ const AddRequestForm = () => {
             )
           ) : null}
           <Grid item xs={12} sm={12}>
-            <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
+            <Typography
+              sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
+            >
               Add Notes
             </Typography>
             <FormControl fullWidth>

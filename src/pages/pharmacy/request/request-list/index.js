@@ -406,27 +406,36 @@ const RequestList = () => {
     },
 
     {
-      width: 4,
+      width: 5,
       field: 'priority',
       headerName: '',
       headerAlign: 'left',
       textAlign: 'center',
-      renderCell: params => (
-        <Box>
-          {params.row.priority !== null && (
-            <span
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '100%',
-                background: theme.palette.customColors.Error,
-                display: 'inline-block'
-              }}
-            ></span>
-          )}
-        </Box>
-      )
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
     },
+
+    // {
+    //   width: 4,
+    //   field: 'priority',
+    //   headerName: '',
+    //   headerAlign: 'left',
+    //   textAlign: 'center',
+    //   renderCell: params => (
+    //     <Box>
+    //       {params.row.priority !== null && (
+    //         <span
+    //           style={{
+    //             width: '10px',
+    //             height: '10px',
+    //             borderRadius: '100%',
+    //             background: theme.palette.customColors.Error,
+    //             display: 'inline-block'
+    //           }}
+    //         ></span>
+    //       )}
+    //     </Box>
+    //   )
+    // },
 
     {
       width: 120,
@@ -650,9 +659,9 @@ const RequestList = () => {
       renderCell: params => (
         <>
           {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic, 
+            params?.row?.user_created_profile_pic,
             params?.row?.created_by_user_name,
-            params?.row?.created_at 
+            params?.row?.created_at
           )}
         </>
       )
