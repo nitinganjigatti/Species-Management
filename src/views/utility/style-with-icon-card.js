@@ -43,7 +43,11 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
               sx={{
                 color: 'customColors.customHeadingTextColor',
                 fontWeight: 500,
-                fontSize: customCss?.fontSize ? customCss?.fontSize : '20px'
+                fontSize: customCss?.fontSize ? customCss?.fontSize : '20px',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                maxWidth: 250
               }}
             >
               {value ? value : 0}
