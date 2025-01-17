@@ -27,6 +27,7 @@ import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import { width } from '@mui/system'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -52,13 +53,17 @@ const ListOfMedicine = () => {
   }
 
   const handleEdit = async row => {
+    const id = row?.id
+
+    // console.log('id', id)
+
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
     ) {
       router.push({
         pathname: '/pharmacy/medicine/add-product',
-        query: { id: row?.row?.id, action: 'edit' }
+        query: { id: id, action: 'edit' }
       })
     }
   }
@@ -195,66 +200,95 @@ const ListOfMedicine = () => {
     },
 
     {
-      flex: 0.2,
+      // flex: 0.2,
+      width: 150,
       minWidth: 20,
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography
-          variant='body2'
+        <Box
           sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            width: '78px',
+            height: '25px',
+            px: '8px',
+            py: '4px',
+
+            // bgcolor: '#37BD6933',
+            // border: '1px solid #37BD6933',
+
+            bgcolor: parseInt(params.row.active) === 0 ? '#FFEBEF' : '#37BD6933',
+            border: '1px solid',
+            borderColor: parseInt(params.row.active) === 0 ? '#FFD3D3' : '#37BD6933',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: '6px'
           }}
         >
-          {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
-        </Typography>
+          <Typography
+            variant='body2'
+            sx={{
+              // color: theme.palette.customColors.customHeadingTextColor,
+
+              color: parseInt(params.row.active) === 0 ? '#E93353' : theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter'
+            }}
+          >
+            {parseInt(params.row.active) === 0 ? 'In-Active' : 'Active'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box>
+                <IconButton
+                  size='small'
+                  onClick={e => {
+                    e.stopPropagation(), handleEdit(params.row)
+                  }}
+                  aria-label='Edit'
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              </Box>
+            )}
+        </>
+
+        //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
+        //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+        //     //     <Icon icon='mdi:pencil-outline' />
+        //     //   </IconButton>
+        //     //   {/* <IconButton
+        //     //     size='small'
+        //     //     onClick={() => {
+        //     //       setConfigureMedId(params.row.id)
+        //     //       showDialog()
+        //     //     }}
+        //     //   >
+        //     //     <Icon icon='grommet-icons:configure' />
+        //     //   </IconButton> */}
+        //     //   {/* <IconButton size='small'>
+        //     //     <Icon icon='mdi:eye-outline' />
+        //     //   </IconButton>
+
+        //     //   <IconButton size='small'>
+        //     //     <Icon icon='mdi:file' />
+        //     //   </IconButton> */}
+        //     // </Box>)}
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <>
-    //       {selectedPharmacy.type === 'central' &&
-    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-    //           <Box>
-    //             <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-    //               <Icon icon='mdi:pencil-outline' />
-    //             </IconButton>
-    //           </Box>
-    //         )}
-    //     </>
-
-    //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
-    //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-    //     //     <Icon icon='mdi:pencil-outline' />
-    //     //   </IconButton>
-    //     //   {/* <IconButton
-    //     //     size='small'
-    //     //     onClick={() => {
-    //     //       setConfigureMedId(params.row.id)
-    //     //       showDialog()
-    //     //     }}
-    //     //   >
-    //     //     <Icon icon='grommet-icons:configure' />
-    //     //   </IconButton> */}
-    //     //   {/* <IconButton size='small'>
-    //     //     <Icon icon='mdi:eye-outline' />
-    //     //   </IconButton>
-
-    //     //   <IconButton size='small'>
-    //     //     <Icon icon='mdi:file' />
-    //     //   </IconButton> */}
-    //     // </Box>)}
-    //   )
-    // }
   ]
 
   // /***** Serverside pagination */
