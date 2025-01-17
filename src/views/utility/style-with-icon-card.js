@@ -2,7 +2,9 @@ import React from 'react'
 import { Box, Grid, Typography, Avatar } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
-const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick, showIcon }) => {
+const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick, showIcon, customCss }) => {
+  console.log('customCss', customCss)
+
   return (
     <Grid item xs={12} sm={4}>
       <Box
@@ -12,7 +14,8 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
           justifyContent: 'space-between',
           bgcolor: bgColor ? bgColor : null,
           borderRadius: '8px',
-          p: 4,
+
+          p: customCss?.p ? customCss?.p : 4,
           cursor: 'pointer'
         }}
         onClick={onClick ? onClick : null}
@@ -21,33 +24,48 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
           sx={{
             display: 'flex',
             alignItems: 'center',
-            padding: 2,
+
+            padding: customCss?.p ? customCss?.p : 2,
             borderRadius: '8px',
             backgroundColor: '#FFFFFF80',
-            width: '60px',
-            height: '60px',
+
+            width: customCss?.width ? customCss?.width : '60px',
+            height: customCss?.height ? customCss?.height : '60px',
             justifyContent: 'center'
           }}
         >
           <Avatar variant='square' alt='' src={icon ? icon : null} sx={{ width: '34px', height: '34px' }} />
         </Box>
         <Box flex='1' ml={2}>
-          <Typography
-            variant='body1'
-            sx={{
-              color: 'customColors.customHeadingTextColor',
-              fontWeight: 500,
-              fontSize: '20px'
-            }}
-          >
-            {value ? value : 0}
-          </Typography>
-          <Typography
-            variant='body2'
-            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-          >
-            {description ? description : null}
-          </Typography>
+          {value && (
+            <Typography
+              variant='body1'
+              sx={{
+                color: 'customColors.customHeadingTextColor',
+                fontWeight: 500,
+                fontSize: customCss?.fontSize ? customCss?.fontSize : '20px'
+              }}
+            >
+              {value ? value : 0}
+            </Typography>
+          )}
+
+          {description && (
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'customColors.neutralSecondary',
+                fontWeight: 400,
+                fontSize: '14px',
+                overflow: 'hidden', // Hide overflowing text
+                whiteSpace: 'nowrap', // Prevent wrapping to the next line
+                textOverflow: 'ellipsis', // Add ellipsis when text overflows
+                maxWidth: 250
+              }}
+            >
+              {description ? description : null}
+            </Typography>
+          )}
         </Box>
         {showIcon && (
           <Typography variant='body2' color='customColors.customHeadingTextColor'>

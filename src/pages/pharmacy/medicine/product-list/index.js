@@ -27,7 +27,9 @@ import Error404 from 'src/pages/404'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
-import { width } from '@mui/system'
+import { fontSize, height, width } from '@mui/system'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import { right } from '@popperjs/core'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -76,33 +78,51 @@ const ListOfMedicine = () => {
 
   const columns = [
     {
-      flex: 0.15,
-      Width: 30,
+      minWidth: 20,
+
+      // flex: 0.15,
+      width: 80,
       field: 'id',
-      headerName: 'SL NO ',
+      headerName: 'SL NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box sx={{ minWidth: 40 }}>
+          <Typography sx={{ color: 'text.primary' }}>{parseInt(params.row.sl_no) + '.'}</Typography>
+        </Box>
       )
     },
     {
-      flex: 0.3,
+      // flex: 0.3,
+      width: 300,
       minWidth: 20,
       field: 'name',
+      align: 'left',
       headerName: 'PRODUCT NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.name}
-        </Typography>
+        <Box>
+          {/* <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.name}
+          </Typography> */}
+          <StyleWithIconCardComponent
+            value={params.row.name}
+            description={params.row.drug_class_label}
+            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
+            showIcon={false}
+            customCss={{
+              p: '0px',
+              width: '100%',
+              height: '100%',
+              fontSize: '14px'
+            }}
+          />
+        </Box>
       )
     },
 
@@ -118,8 +138,9 @@ const ListOfMedicine = () => {
     //   )
     // },
     {
-      flex: 0.4,
+      // flex: 0.4,
       minWidth: 20,
+      width: 200,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
@@ -138,8 +159,9 @@ const ListOfMedicine = () => {
       )
     },
     {
-      flex: 0.4,
+      // flex: 0.4,
       minWidth: 20,
+      width: 200,
       field: 'manufacturer_name',
       headerName: 'Manufacturer Name',
       renderCell: params => (
@@ -158,7 +180,8 @@ const ListOfMedicine = () => {
     },
 
     {
-      flex: 0.3,
+      // flex: 0.3,
+      width: 200,
       minWidth: 20,
       field: 'created_at',
       headerName: 'Product Type',
@@ -176,28 +199,29 @@ const ListOfMedicine = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'image',
+    //   headerName: 'IMAGE',
+    //   renderCell: params => (
+    //     <Badge
+    //       sx={{ ml: 2, cursor: 'pointer' }}
+    //       anchorOrigin={{
+    //         vertical: 'bottom',
+    //         horizontal: 'right'
+    //       }}
+    //     >
+    //       <Avatar
+    //         variant='square'
+    //         alt='Medicine Image'
+    //         sx={{ width: 40, height: 40 }}
+    //         src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
+    //       />
+    //     </Badge>
+    //   )
+    // },
 
     {
       // flex: 0.2,
@@ -230,7 +254,10 @@ const ListOfMedicine = () => {
             sx={{
               // color: theme.palette.customColors.customHeadingTextColor,
 
-              color: parseInt(params.row.active) === 0 ? '#E93353' : theme.palette.customColors.customHeadingTextColor,
+              color:
+                parseInt(params.row.active) === 0
+                  ? theme.palette.customColors.Error
+                  : theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
               fontFamily: 'Inter'
@@ -243,8 +270,9 @@ const ListOfMedicine = () => {
     },
 
     {
-      flex: 0.2,
+      // flex: 0.2,
       minWidth: 20,
+      width: 100,
       field: 'Action',
       headerName: 'Action',
 
