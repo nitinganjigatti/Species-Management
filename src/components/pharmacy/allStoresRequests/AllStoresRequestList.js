@@ -137,7 +137,7 @@ const AllStoresRequestList = () => {
         }
         await getRequestListsOfAllStores({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_stores?.length > 0) {
-            setTotal(res?.data?.list_stores?.length)
+            setTotal(res?.data?.total_count)
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_stores))
             updateUrlParams({
               sort,
@@ -148,7 +148,7 @@ const AllStoresRequestList = () => {
               limit: paginationModel?.pageSize
             })
           } else {
-            setTotal(parseInt(res?.data?.list_stores?.length))
+            setTotal(parseInt(res?.data?.total_count))
             setRows([])
           }
         })

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   FormControl,
   InputLabel,
@@ -13,10 +13,8 @@ import {
   Box,
   Typography,
   Button,
-  CircularProgress,
-  Alert,
-  AlertTitle,
-  DialogTitle
+  Divider,
+  CircularProgress
 } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -31,16 +29,9 @@ import InputAdornment from '@mui/material/InputAdornment'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { borderColor, color, getValue, height, width } from '@mui/system'
+import { getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import { debounce } from 'lodash'
-import { useTheme } from '@emotion/react'
-import { he } from 'date-fns/locale'
 
 const defaultValues = {
   product: {
@@ -66,7 +57,10 @@ const defaultValues = {
   purchase_taxable_amount: 0,
   purchase_net_amount: 0,
   package_details: '',
-  manufacture: ''
+  manufacture: '',
+  purchase_variant_id: '',
+  purchase_unit_qty: 0,
+  purchase_variant_ratio: ''
 }
 
 const PurchaseItemForm = props => {
@@ -82,15 +76,10 @@ const PurchaseItemForm = props => {
     checkMedicineExpiryDate,
     productExpiryDate,
     expiryDateLoader,
-    getRecentPurchasePriceOfProduct,
-    validatePurchaseDialog,
-    setValidatePurchaseDialog,
-    priceValidationError,
-    setPriceValidationError,
-    currentPayload,
-    setCurrentPayload
+    getProductVariantByproductId,
+    productVariantOptions,
+    setProductVariantOptions
   } = props
-  const theme = useTheme()
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
 
   const schema = yup.object().shape({
@@ -218,6 +207,8 @@ const PurchaseItemForm = props => {
       .typeError('Net amount must be a number')
 
       .required('Net amount is required')
+
+    // purchase_variant_id: yup.string().required('Product variant is required')
   })
 
   const {
@@ -250,14 +241,6 @@ const PurchaseItemForm = props => {
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
   const [userInteracted, setUserInteracted] = useState(false)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // const debouncedGetRecentPrice = useCallback(
-  //   debounce(productData => {
-  //     getRecentPurchasePriceOfProduct(productData)
-  //   }, 1000),
-  //   []
-  // )
-
   const onSubmit = async params => {
     const {
       product,
@@ -279,7 +262,10 @@ const PurchaseItemForm = props => {
       purchase_taxable_amount,
       purchase_net_amount,
       package_details,
-      manufacture
+      manufacture,
+      purchase_variant_id,
+      purchase_unit_qty,
+      purchase_variant_ratio
 
       // purchase_purchase_price,
     } = params
@@ -312,16 +298,14 @@ const PurchaseItemForm = props => {
       stock_type: stock_type,
       purchase_purchase_price: purchase_net_amount,
       package_details,
-      manufacture
+      manufacture,
+      purchase_variant_id,
+      purchase_unit_qty,
+      purchase_variant_ratio
     }
-    if (priceValidationError === true) {
-      setValidatePurchaseDialog(true)
-      setCurrentPayload(payload)
 
-      return
-    } else {
-      submitItems(payload)
-    }
+    submitItems(payload)
+    setProductVariantOptions([])
 
     // await handleSubmitData(payload)
   }
@@ -361,6 +345,16 @@ const PurchaseItemForm = props => {
 
     const purchase_discount = checkNumber(updatedValues.purchase_discount)
 
+    // calculate total unity qty
+    const totalUnitQty = checkNumber(updatedValues?.purchase_variant_ratio * purchase_qty)
+    console.log('totalUnitQty', totalUnitQty)
+    console.log('updatedValues?.purchase_variant_ratio', updatedValues?.purchase_variant_ratio)
+    console.log('updatedValues.purchase_qty', updatedValues.purchase_qty)
+
+    // debugger
+
+    // calculate total unity qty
+
     const purchase_free_quantity = checkNumber(updatedValues.purchase_free_quantity)
 
     const purchase_cgst = checkNumber(updatedValues.purchase_cgst)
@@ -393,6 +387,12 @@ const PurchaseItemForm = props => {
     } else {
       netAmount = taxableAmount + purchase_igst_amount
     }
+
+    // calculate total unity qty
+
+    setValue('purchase_unit_qty', totalUnitQty)
+
+    // calculate total unity qty
 
     // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
@@ -464,6 +464,8 @@ const PurchaseItemForm = props => {
   }
 
   useEffect(() => {
+    // alert('1')
+
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate))
     } else {
@@ -478,13 +480,6 @@ const PurchaseItemForm = props => {
           setValue(key, nestedRowMedicine[key])
         }
       })
-
-      const productData = {
-        purchase_stock_item_id: nestedRowMedicine.purchase_unit_id,
-        purchase_unit_price: nestedRowMedicine.purchase_unit_price
-      }
-      getRecentPurchasePriceOfProduct(productData)
-
       setValue('product', {
         label: nestedRowMedicine.medicine_name,
         value: nestedRowMedicine.purchase_unit_id,
@@ -511,6 +506,8 @@ const PurchaseItemForm = props => {
   const purchaseIgst = useWatch({ control, name: 'purchase_igst' })
 
   useEffect(() => {
+    // alert('3')
+
     if (purchaseCgst > 0 || purchaseSgst > 0) {
       setValue('purchase_igst', 0)
     }
@@ -526,7 +523,20 @@ const PurchaseItemForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={12}>
+          <Typography
+            variant='body1'
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: 'customColors.customTextColorGray2',
+              mb: 0.5
+            }}
+          >
+            Products Details
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={8}>
           <FormControl fullWidth>
             <Controller
               name='product'
@@ -552,16 +562,25 @@ const PurchaseItemForm = props => {
                   getOptionLabel={option => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
-                    if (val === null || val.status === 0) {
+                    if (val === null) {
                       setValue('purchase_batch_no', '')
                       setValue('purchase_expiry_date', null)
                       setValue('package_details', '')
                       setValue('manufacture', '')
+                      setValue('purchase_variant_id', '')
+                      setProductVariantOptions([])
+                      setValue('purchase_unit_qty', '')
+                      setValue('purchase_qty', '')
+                      setValue('purchase_variant_ratio', '')
 
                       return onChange(null)
                     } else {
                       if (val.stock_type === 'non_medical') {
                         setNonMedicalProduct(true)
+                        setProductVariantOptions([])
+                        setValue('purchase_variant_id', '')
+
+                        getProductVariantByproductId(val?.value)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
 
@@ -569,6 +588,10 @@ const PurchaseItemForm = props => {
                         setValue('purchase_expiry_date', null)
                       } else {
                         setNonMedicalProduct(false)
+                        setProductVariantOptions([])
+                        setValue('purchase_variant_id', '')
+
+                        getProductVariantByproductId(val?.value)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
                       }
@@ -598,14 +621,14 @@ const PurchaseItemForm = props => {
                 />
               )}
             />
-            {watch('package_details') && (
-              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
+            {/* {watch('package_details') && (
+              <Box sx={{ mx: 1, display: 'flex', flexDirection: 'column' }}>
                 <Chip
                   label={watch('package_details')}
                   color='primary'
                   variant='outlined'
                   size='sm'
-                  sx={{ mr: 2, fontSize: 11, height: '22px' }}
+                  sx={{ mr: 2, my: 2, fontSize: 11, height: '22px' }}
                 />
                 <Chip
                   label={watch('manufacture')}
@@ -615,10 +638,11 @@ const PurchaseItemForm = props => {
                   sx={{ fontSize: 11, height: '22px' }}
                 />
               </Box>
-            )}
+            )} */}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_batch_no'
@@ -648,7 +672,7 @@ const PurchaseItemForm = props => {
         </Grid>
 
         {!nonMedicalProduct && (
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
               {expiryDateLoader && (
                 <span style={{ position: 'absolute', right: '12px', top: '16px' }}>
@@ -681,7 +705,7 @@ const PurchaseItemForm = props => {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_unit_price'
@@ -691,14 +715,6 @@ const PurchaseItemForm = props => {
                   {...field}
                   onKeyUp={e => {
                     calculateStuff()
-
-                    const productData = {
-                      purchase_stock_item_id: watch('product')?.value,
-                      purchase_unit_price: watch('purchase_unit_price')
-                    }
-                    if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
-                      getRecentPurchasePriceOfProduct(productData)
-                    }
                   }}
                   label='Supplier Rate*'
                   error={Boolean(errors.purchase_unit_price)}
@@ -713,56 +729,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_qty'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  disabled={nestedRowMedicine?.id ? true : false}
-                  {...field}
-                  label='Purchase Quantity*'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_unit_price)}
-
-                  // helperText={errors.purchase_unit_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_qty && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_qty?.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-
-        {/* <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_free_quantity'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Free Quantity'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_free_quantity)}
-
-                  //helperText={errors.purchase_free_quantity?.message}
-                />
-              )}
-            />
-            {errors.purchase_free_quantity && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_free_quantity?.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid> */}
-
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_discount'
@@ -793,7 +760,324 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        {/* <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <Controller
+              name='purchase_free_quantity'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label='Free Quantity'
+                  onKeyUp={e => {
+                    calculateStuff()
+                  }}
+                  error={Boolean(errors.purchase_free_quantity)}
+
+                  //helperText={errors.purchase_free_quantity?.message}
+                />
+              )}
+            />
+            {errors.purchase_free_quantity && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_free_quantity?.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid> */}
+        <Grid item xs={12} sm={12}>
+          <Divider
+            orientation='horizontal'
+            flexItem
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              height: '10px',
+              alignSelf: 'center',
+              width: '100%'
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={12}>
+          <Typography
+            variant='body1'
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: 'customColors.customTextColorGray2',
+              mb: 0.5
+            }}
+          >
+            Purchase Quantity
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant*</InputLabel>
+            <Controller
+              name='purchase_variant_id'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, value, ...rest } }) => (
+                <Select
+                  disabled={nestedRowMedicine?.id ? true : false}
+                  {...rest}
+                  value={value}
+                  onChange={(e, val) => {
+                    console.log(e, 'eeeeeeeee')
+                    setValue('purchase_variant_ratio', Number(val?.props?.children))
+                    setValue('purchase_unit_qty', '')
+                    setValue('purchase_qty', '')
+                    onChange(e)
+                  }}
+                  label='Product Variant*'
+                  error={Boolean(errors.purchase_variant_id)}
+                >
+                  {productVariantOptions?.length > 0 ? (
+                    productVariantOptions?.map((item, index) => (
+                      <MenuItem key={index} value={item.value}>
+                        {item?.label}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem>No Options</MenuItem>
+                  )}
+                </Select>
+              )}
+            />
+            {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <FormControl fullWidth>
+            <Controller
+              name='purchase_qty'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  disabled={nestedRowMedicine?.id ? true : false}
+                  {...field}
+                  label='Purchase Quantity*'
+                  onKeyUp={e => {
+                    calculateStuff()
+                  }}
+                  error={Boolean(errors.purchase_unit_price)}
+
+                  // helperText={errors.purchase_unit_price?.message}
+                />
+              )}
+            />
+            {errors.purchase_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_qty?.message}</FormHelperText>
+            )}
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'customColors.neutral05',
+              display: 'flex',
+              justifyContent: 'start',
+              alignItems: 'center',
+              px: '16px',
+              borderRadius: '8px',
+              height: '56px'
+            }}
+          >
+            {/* <Controller
+              name='purchase_unit_qty'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  disabled={true}
+                  {...field}
+                  value={field.value === 0 ? '' : field.value}
+                  label='Purchase Unit Quantity*'
+                  onKeyUp={e => {
+                    calculateStuff()
+                  }}
+                  error={Boolean(errors.purchase_unit_qty)}
+
+                  // helperText={errors.purchase_unit_price?.message}
+                />
+              )}
+            />
+            {errors.purchase_unit_qty && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_qty?.message}</FormHelperText>
+            )} */}
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: 'customColors.neutralPrimary',
+                mb: 0.5
+              }}
+            >
+              Total Quantity- {watch('purchase_unit_qty')}
+            </Typography>
+          </Box>
+        </Grid>
+        <Grid item xs={12} sm={12}>
+          <Divider
+            orientation='horizontal'
+            flexItem
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              height: '10px',
+              alignSelf: 'center',
+              width: '100%'
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={12}>
+          <Typography
+            variant='body1'
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: 'customColors.customTextColorGray2',
+              mb: 4
+            }}
+          >
+            GST Details
+          </Typography>
+        </Grid>
+        <Grid
+          container
+          spacing={5}
+          sx={{
+            // border: '1px solid red',
+
+            display: 'flex',
+            mx: 'auto'
+
+            // justifyContent: 'flex-start',
+            // alignItems: 'center'
+          }}
+
+          // item
+          // sm={12}
+          // xs={12}
+          // sx={{
+          //   display: 'flex',
+          //   justifyContent: 'flex-start',
+          //   alignItems: 'center'
+
+          //   // border: '1px solid red'
+          // }}
+        >
+          <Grid
+            item
+            lg={3}
+            sm={6}
+            xs={6}
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 4000,
+                color: 'customColors.customTextColorGray2',
+                mb: 0.5
+              }}
+            >
+              GST Amount:{watch('purchase_gst')}
+            </Typography>
+            <Divider
+              orientation='vertical'
+              flexItem
+              sx={{
+                display: { xs: 'none', sm: 'block' },
+                mx: 2,
+                height: '20px',
+
+                // verticalAlign: 'middle'
+
+                alignSelf: 'center'
+              }}
+            />
+          </Grid>
+          <Grid
+            item
+            lg={3}
+            sm={6}
+            xs={6}
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 4000,
+                color: 'customColors.customTextColorGray2',
+                mb: 0.5
+              }}
+            >
+              Central GST Amount:{watch('purchase_cgst_amount')}
+            </Typography>
+            <Divider
+              orientation='vertical'
+              flexItem
+              sx={{
+                display: { xs: 'none', sm: 'none', lg: 'block' },
+                mx: 2,
+                height: '20px',
+                alignSelf: 'center'
+              }}
+            />
+          </Grid>
+          <Grid
+            item
+            lg={3}
+            sm={6}
+            xs={6}
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 4000,
+                color: 'customColors.customTextColorGray2',
+                mb: 0.5
+              }}
+            >
+              State GST Amount:{watch('purchase_sgst_amount')}
+            </Typography>
+            <Divider
+              orientation='vertical'
+              flexItem
+              sx={{
+                display: { xs: 'none', sm: 'block' },
+                mx: 2,
+                height: '20px',
+                alignSelf: 'center'
+              }}
+            />
+          </Grid>
+          <Grid
+            item
+            lg={3}
+            sm={6}
+            xs={6}
+            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 4000,
+                color: 'customColors.customTextColorGray2',
+                mb: 0.5
+              }}
+            >
+              IGST Amount:{watch('purchase_igst_amount')}
+            </Typography>
+          </Grid>
+        </Grid>
+
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_cgst'
@@ -829,7 +1113,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_sgst'
@@ -863,7 +1147,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_igst'
@@ -896,7 +1180,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        {/* <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
               name='purchase_cgst_amount'
@@ -981,9 +1265,57 @@ const PurchaseItemForm = props => {
               )}
             />
           </FormControl>
+        </Grid> */}
+        <Grid item xs={12} sm={12}>
+          <Divider
+            orientation='horizontal'
+            flexItem
+            sx={{
+              display: { xs: 'none', sm: 'block' },
+              height: '10px',
+              alignSelf: 'center',
+              width: '100%'
+            }}
+          />
         </Grid>
+        <Grid item xs={12} sm={12}>
+          <Typography
+            sx={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: 'customColors.customTextColorGray2'
 
-        <Grid item xs={12} sm={6}>
+              // mb: 0.5
+            }}
+          >
+            Amount Summary
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center'
+
+            // border: '1px solid red'
+          }}
+        >
+          <Typography
+            variant='body1'
+            sx={{
+              fontSize: '14px',
+              fontWeight: 4000,
+              color: 'customColors.customTextColorGray2',
+              mb: 0.5
+            }}
+          >
+            Discount Amount:{watch('purchase_discount_amount')}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_gross_amount'
@@ -1006,7 +1338,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        {/* <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
               name='purchase_discount_amount'
@@ -1027,9 +1359,9 @@ const PurchaseItemForm = props => {
               <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_discount_amount?.message}</FormHelperText>
             )}
           </FormControl>
-        </Grid>
+        </Grid> */}
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_taxable_amount'
@@ -1052,7 +1384,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
             <Controller
               name='purchase_net_amount'
@@ -1074,102 +1406,6 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
-        <ConfirmDialogBox
-          open={validatePurchaseDialog}
-          closeDialog={() => {
-            setValidatePurchaseDialog(false)
-          }}
-          action={() => {
-            setValidatePurchaseDialog(false)
-          }}
-          title={
-            <Box
-              sx={{
-                fontWeight: 500,
-                fontSize: '20px',
-                margin: '0px',
-                padding: '0px',
-
-                // mb: '6px',
-                color: 'customColors.OnSurfaceVariant',
-                display: 'flex',
-                gap: 2,
-                alignItems: 'center'
-              }}
-            >
-              <Icon
-                style={{
-                  cursor: 'pointer',
-                  color: theme.palette.customColors.moderateSecondary,
-                  height: '30px',
-                  width: '26px'
-                }}
-                icon='mdi:warning-outline'
-              />{' '}
-              Price Variation Detected !
-            </Box>
-          }
-          content={
-            <Typography
-              sx={{
-                fontWeight: 400,
-                fontSize: '16px',
-                margin: '0px',
-                padding: '0px',
-                color: 'customColors.OnSurfaceVariant'
-              }}
-            >
-              The current purchase price of this product differs by more than
-              <Typography
-                component='span'
-                sx={{
-                  color: 'customColors.moderateSecondary',
-                  fontWeight: 600,
-                  fontSize: '16px',
-                  px: 2
-                }}
-              >
-                30%
-              </Typography>
-              compared to the previous purchase price.
-              <br /> Please review before proceeding.
-            </Typography>
-          }
-          dialogActions={
-            <>
-              <Button
-                variant='outlined'
-                size='large'
-                sx={{
-                  color: 'customColors.neutralSecondary',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  ':hover': {
-                    color: theme.palette.customColors.neutralSecondary,
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    backgroundColor: 'transparent !important'
-                  }
-                }}
-                onClick={() => {
-                  setValidatePurchaseDialog(false)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant='contained'
-                size='large'
-                color='warning'
-                onClick={() => {
-                  submitItems(currentPayload)
-                  setValidatePurchaseDialog(false)
-                  setPriceValidationError(false)
-                }}
-              >
-                Confirm
-              </Button>
-            </>
-          }
-        />
 
         {/* // file uploader */}
         <Grid item xs={12}>
