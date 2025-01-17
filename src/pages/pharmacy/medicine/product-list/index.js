@@ -217,7 +217,8 @@ const ListOfMedicine = () => {
             overflow: 'hidden',
             whiteSpace: 'nowrap',
             textOverflow: 'ellipsis',
-            maxWidth: 200
+            maxWidth: 200,
+            textTransform: 'capitalize'
           }}
         >
           {params.row.stock_type}
