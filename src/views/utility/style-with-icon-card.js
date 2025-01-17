@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Grid, Typography, Avatar } from '@mui/material'
+import { Box, Grid, Typography, Avatar, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
 const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick, showIcon, customCss }) => {
@@ -47,37 +47,41 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
         </Box>
         <Box flex='1' ml={2}>
           {value && (
-            <Typography
-              variant='body1'
-              sx={{
-                color: 'customColors.customHeadingTextColor',
-                fontWeight: 500,
-                fontSize: customCss?.fontSize ? customCss?.fontSize : '20px',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis',
-                maxWidth: 250
-              }}
-            >
-              {value ? value : 0}
-            </Typography>
+            <Tooltip title={value}>
+              <Typography
+                variant='body1'
+                sx={{
+                  color: 'customColors.customHeadingTextColor',
+                  fontWeight: 500,
+                  fontSize: customCss?.fontSize ? customCss?.fontSize : '20px',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 250
+                }}
+              >
+                {value ? value : 0}
+              </Typography>
+            </Tooltip>
           )}
 
           {description && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'customColors.neutralSecondary',
-                fontWeight: 400,
-                fontSize: '14px',
-                overflow: 'hidden', // Hide overflowing text
-                whiteSpace: 'nowrap', // Prevent wrapping to the next line
-                textOverflow: 'ellipsis', // Add ellipsis when text overflows
-                maxWidth: 250
-              }}
-            >
-              {description ? description : null}
-            </Typography>
+            <Tooltip title={description}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'customColors.neutralSecondary',
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  overflow: 'hidden', // Hide overflowing text
+                  whiteSpace: 'nowrap', // Prevent wrapping to the next line
+                  textOverflow: 'ellipsis', // Add ellipsis when text overflows
+                  maxWidth: 250
+                }}
+              >
+                {description ? description : null}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
         {showIcon && (

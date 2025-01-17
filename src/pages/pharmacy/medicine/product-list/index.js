@@ -115,7 +115,7 @@ const ListOfMedicine = () => {
           </Typography> */}
           <StyleWithIconCardComponent
             value={params.row.name}
-            description={params.row.drug_class_label}
+            description={params.row.generic_name}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
             customCss={{
@@ -207,22 +207,24 @@ const ListOfMedicine = () => {
       field: 'created_at',
       headerName: 'Product Type',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 400,
-            fontFamily: 'Inter',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            maxWidth: 200,
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row.stock_type}
-        </Typography>
+        <Tooltip title={params.row.stock_type}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200,
+              textTransform: 'capitalize'
+            }}
+          >
+            {params.row.stock_type}
+          </Typography>
+        </Tooltip>
       )
     },
 
