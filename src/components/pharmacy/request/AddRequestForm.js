@@ -1292,7 +1292,10 @@ const AddRequestForm = () => {
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
-                  backgroundColor: nestedRowMedicine.priority_item === 'high' ? '#FFBDA833' : 'white',
+                  backgroundColor:
+                    nestedRowMedicine.priority_item === 'high'
+                      ? `${theme.palette.customColors.TertiaryContainer}20`
+                      : 'white',
                   color:
                     nestedRowMedicine.priority_item === 'high'
                       ? theme.palette.customColors.TertiaryContainer
@@ -1304,7 +1307,7 @@ const AddRequestForm = () => {
                       : `1px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   '&:hover': {
                     backgroundColor:
-                      nestedRowMedicine.priority_item === 'high' ? '#FFBDA833 !important' : 'transparent !important'
+                      nestedRowMedicine.priority_item === 'high' ?  `${theme.palette.customColors.TertiaryContainer}20 !important` : 'transparent !important'
                   }
                 }}
                 onClick={() => {
@@ -1335,10 +1338,13 @@ const AddRequestForm = () => {
                   height: '46px',
                   borderRadius: '8px',
                   boxShadow: 'none',
-                  backgroundColor: nestedRowMedicine.priority_item === 'emergency' ? '#FFD3D333' : 'white',
+                  backgroundColor:
+                    nestedRowMedicine.priority_item === 'emergency'
+                      ? `${theme.palette.customColors.TertiaryContainer}25`
+                      : 'white',
                   color:
                     nestedRowMedicine.priority_item === 'emergency'
-                      ? ''
+                      ? `${theme.palette.customColors.TertiaryContainer}60`
                       : theme.palette.customColors.customHeadingTextColor,
                   opacity: nestedRowMedicine.priority_item === 'emergency' && 2,
                   outline:
@@ -1352,7 +1358,7 @@ const AddRequestForm = () => {
                   '&:hover': {
                     backgroundColor:
                       nestedRowMedicine.priority_item === 'emergency'
-                        ? '#FFD3D333 !important'
+                        ? `${theme.palette.customColors.TertiaryContainer}20 !important`
                         : 'transparent !important'
                   }
                 }}
