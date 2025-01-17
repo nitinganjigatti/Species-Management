@@ -1304,7 +1304,7 @@ const AddRequestForm = () => {
                   outline:
                     nestedRowMedicine.priority_item === 'high'
                       ? `1px solid ${theme.palette.customColors.Tertiary} !important`
-                      : `1px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   '&:hover': {
                     backgroundColor:
                       nestedRowMedicine.priority_item === 'high' ?  `${theme.palette.customColors.TertiaryContainer}20 !important` : 'transparent !important'
@@ -1350,7 +1350,7 @@ const AddRequestForm = () => {
                   outline:
                     nestedRowMedicine.priority_item === 'emergency'
                       ? `1px solid ${theme.palette.customColors.Error} !important`
-                      : `1px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   // '&:hover': {
                   //   backgroundColor:
                   //     nestedRowMedicine.priority_item === 'emergency' ? '#FFBDA833 !important' : 'transparent !important'
