@@ -1241,12 +1241,10 @@ const AddPurchaseForm = () => {
   // ---------------
 
   useEffect(() => {
-    if (grandTotalAmount & inputValue) {
-      if (inputValue == grandTotalAmount) {
-        setIsError(false)
-      } else {
-        setIsError(true)
-      }
+    if (Number(inputValue) !== Number(grandTotalAmount)) {
+      setIsError(true)
+    } else {
+      setIsError(false)
     }
   }, [inputValue, grandTotalAmount])
 
@@ -2544,7 +2542,7 @@ const AddPurchaseForm = () => {
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
-              disabled={!inputValue}
+              disabled={editParams.purchase_details.length > 0 && inputValue && !isError ? false : true}
               sx={{ marginRight: '8px' }}
               size='large'
               type='submit'
