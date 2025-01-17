@@ -34,7 +34,16 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
             justifyContent: 'center'
           }}
         >
-          <Avatar variant='square' alt='' src={icon ? icon : null} sx={{ width: '34px', height: '34px' }} />
+          <Avatar
+            variant='square'
+            alt=''
+            src={icon ? icon : null}
+            sx={{
+              width: customCss?.iconWidth ? customCss?.iconWidth : '34px',
+              height: customCss?.iconHeight ? customCss?.iconHeight : '34px',
+              borderRadius: customCss?.avtBorderRadius ? customCss?.avtBorderRadius : '0px'
+            }}
+          />
         </Box>
         <Box flex='1' ml={2}>
           {value && (

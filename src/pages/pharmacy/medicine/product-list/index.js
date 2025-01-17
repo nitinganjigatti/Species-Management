@@ -13,7 +13,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, TextField } from '@mui/material'
+import { Box, Avatar, Badge, TextField, Tab, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
@@ -30,6 +30,7 @@ import RenderUtility from 'src/utility/render'
 import { fontSize, height, width } from '@mui/system'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { right } from '@popperjs/core'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -86,7 +87,9 @@ const ListOfMedicine = () => {
       headerName: 'SL NO',
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
-          <Typography sx={{ color: 'text.primary' }}>{parseInt(params.row.sl_no) + '.'}</Typography>
+          <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
         </Box>
       )
     },
@@ -119,7 +122,10 @@ const ListOfMedicine = () => {
               p: '0px',
               width: '100%',
               height: '100%',
-              fontSize: '14px'
+              fontSize: '14px',
+              avtBorderRadius: '10px',
+              iconWidth: '44px',
+              iconHeight: '44px'
             }}
           />
         </Box>
@@ -140,7 +146,7 @@ const ListOfMedicine = () => {
     {
       // flex: 0.4,
       minWidth: 20,
-      width: 200,
+      width: 300,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
@@ -149,8 +155,12 @@ const ListOfMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 400,
+            fontFamily: 'Inter',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            maxWidth: 300
           }}
         >
           {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
@@ -170,8 +180,12 @@ const ListOfMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 400,
+            fontFamily: 'Inter',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            maxWidth: 200
           }}
         >
           <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span>
@@ -191,8 +205,12 @@ const ListOfMedicine = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 400,
+            fontFamily: 'Inter',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            maxWidth: 200
           }}
         >
           {params.row.stock_type}
@@ -266,6 +284,36 @@ const ListOfMedicine = () => {
             {parseInt(params.row.active) === 0 ? 'In-Active' : 'Active'}
           </Typography>
         </Box>
+      )
+    },
+
+    {
+      minWidth: 200,
+      field: 'created_by',
+      headerName: 'Created by ',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
+      )
+    },
+
+    {
+      minWidth: 200,
+      field: 'updated_by',
+      headerName: 'Updated by',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_updated_profile_pic,
+            params?.row?.updated_by_user_name,
+            params?.row?.updated_at
+          )}
+        </>
       )
     },
 
@@ -475,6 +523,34 @@ const ListOfMedicine = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
+  const [tabValue, setTabValue] = useState('all')
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue)
+    setSearchValue('')
+    setStatusFilter(newValue)
+  }
+
+  const RenderTable = () => {
+    return (
+      <>
+        {/* Table Section */}
+        <Grid sx={{ mx: { xs: 3, md: 5 } }}>
+          <CommonTable
+            onRowClick={handleRowClick}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={searchValue}
+          />
+        </Grid>
+      </>
+    )
+  }
 
   return (
     <>
@@ -508,15 +584,85 @@ const ListOfMedicine = () => {
                     mt: 1
                   }}
                 />
-                <Box
+                {/* <Box
                   display='flex'
-                  justifyContent='space-between'
+                  // justifyContent='space-between'
                   flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
                   gap={6} // Gap between items on smaller screens
                   sx={{ mx: { xs: 3, md: 5 } }}
                   mt={3}
-                >
-                  {/* Left Box (Search Field) */}
+                > */}
+                {/* Left Box (Search Field) */}
+                {/* <Grid item xs={12} sm={8} md={7}> */}
+                {/* <Box sx={{ ml: 'auto' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        height: '40px'
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        value={searchValue}
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Box> */}
+
+                {/* </Grid> */}
+
+                {/* Right Box (Filter by Status) */}
+                {/* <Grid
+                    item
+                    xs={12}
+                    sm={4}
+                    md={4}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <FormControl fullWidth size='small'>
+                      <InputLabel id='status-filter-label'>Filter by Status</InputLabel>
+                      <Select
+                        size='small'
+                        value={statusFilter}
+                        label='Filter by Status'
+                        onChange={e => handleStatusFilterChange(e.target.value)}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        <MenuItem value={true}>Active</MenuItem>
+                        <MenuItem value={false}>In-Active</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid> */}
+                {/* </Box> */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mx: 6 }}>
+                  <TabContext value={tabValue}>
+                    <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
+                      <Tab label='All' value='all' />
+                      <Tab label='Active' value='true' />
+                      <Tab label='In-Active' value='false' />
+                    </TabList>
+                  </TabContext>
+                  {/* Search Field */}
                   <Grid item xs={12} sm={8} md={7}>
                     <Box
                       sx={{
@@ -548,48 +694,21 @@ const ListOfMedicine = () => {
                     </Box>
                   </Grid>
 
-                  {/* Right Box (Filter by Status) */}
-                  <Grid
-                    item
-                    xs={12}
-                    sm={4}
-                    md={4}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <FormControl fullWidth size='small'>
-                      <InputLabel id='status-filter-label'>Filter by Status</InputLabel>
-                      <Select
-                        size='small'
-                        value={statusFilter}
-                        label='Filter by Status'
-                        onChange={e => handleStatusFilterChange(e.target.value)}
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        <MenuItem value={true}>Active</MenuItem>
-                        <MenuItem value={false}>In-Active</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                  {/* Tabs */}
                 </Box>
 
-                {/* Table Section */}
-                <Grid sx={{ mx: { xs: 3, md: 5 } }}>
-                  <CommonTable
-                    onRowClick={handleRowClick}
-                    indexedRows={indexedRows}
-                    total={total}
-                    columns={columns}
-                    paginationModel={paginationModel}
-                    handleSortModel={handleSortModel}
-                    setPaginationModel={setPaginationModel}
-                    loading={loading}
-                    searchValue={searchValue}
-                  />
-                </Grid>
+                <TabContext value={tabValue}>
+                  {/* Tab Panels */}
+                  <TabPanel value='all' sx={{ p: 0 }}>
+                    {RenderTable()}
+                  </TabPanel>
+                  <TabPanel value='true' sx={{ p: 0 }}>
+                    {RenderTable()}
+                  </TabPanel>
+                  <TabPanel value='false' sx={{ p: 0 }}>
+                    {RenderTable()}
+                  </TabPanel>
+                </TabContext>
               </Card>
             </>
           )}
