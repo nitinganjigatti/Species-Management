@@ -121,7 +121,11 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
                     {/* Close Button */}
                     <Box
                       size='small'
-                      onClick={e => removeSelectedImage(e, index)}
+                      onClick={e => {
+                        e.preventDefault()
+                        e.stopPropagation() // Stop the event from propagating to the <a> tag
+                        removeSelectedImage(e, index) // Call your remove function
+                      }}
                       sx={{
                         position: 'absolute',
                         top: 0,
