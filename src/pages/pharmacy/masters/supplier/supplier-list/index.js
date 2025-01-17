@@ -249,7 +249,11 @@ const Supplier = () => {
           (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Supplier' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add Supplier'
+            action={() => Router.push('/pharmacy/masters/supplier/add-supplier')}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
