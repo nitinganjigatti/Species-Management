@@ -146,26 +146,31 @@ const ListOfMedicine = () => {
     {
       // flex: 0.4,
       minWidth: 20,
-      width: 300,
+      width: 250,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 400,
-            fontFamily: 'Inter',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            maxWidth: 300
-          }}
-        >
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -175,21 +180,23 @@ const ListOfMedicine = () => {
       field: 'manufacturer_name',
       headerName: 'Manufacturer Name',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 400,
-            fontFamily: 'Inter',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            maxWidth: 200
-          }}
-        >
-          <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span>
-        </Typography>
+        <Tooltip title={params.row.manufacturer_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
 
