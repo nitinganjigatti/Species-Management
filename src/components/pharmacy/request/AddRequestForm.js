@@ -1269,7 +1269,7 @@ const AddRequestForm = () => {
             <Typography
               sx={{
                 mb: 3,
-                mt: 2,
+                mt: 1,
                 fontSize: '16px',
                 fontWeight: 500,
                 color: 'customColors.customTextColorGray2'
@@ -1282,7 +1282,8 @@ const AddRequestForm = () => {
                 display: 'flex',
                 width: '602px',
                 height: '46px',
-                gap: 5
+                gap: 5,
+                mt:2
               }}
             >
               <Button
@@ -1340,7 +1341,7 @@ const AddRequestForm = () => {
                   boxShadow: 'none',
                   backgroundColor:
                     nestedRowMedicine.priority_item === 'emergency'
-                      ? `${theme.palette.customColors.TertiaryContainer}25`
+                      ? `${theme.palette.customColors.TertiaryContainer}28`
                       : 'white',
                   color:
                     nestedRowMedicine.priority_item === 'emergency'
@@ -1348,7 +1349,7 @@ const AddRequestForm = () => {
                       : theme.palette.customColors.customHeadingTextColor,
                   opacity: nestedRowMedicine.priority_item === 'emergency' && 2,
                   outline:
-                    nestedRowMedicine.priority_item === 'emergency'
+                    nestedRowMedicine.priority_item === 'emergency' 
                       ? `1px solid ${theme.palette.customColors.Error} !important`
                       : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   // '&:hover': {
@@ -1555,7 +1556,7 @@ const AddRequestForm = () => {
             nestedRowMedicine.prescription_required_file ? (
               <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
                 <Typography
-                  sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
+                  sx={{ mb: 2,mt:2 , fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
                 >
                   Add prescription*
                 </Typography>
