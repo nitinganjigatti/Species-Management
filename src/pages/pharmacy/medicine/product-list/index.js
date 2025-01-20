@@ -84,7 +84,7 @@ const ListOfMedicine = () => {
       // flex: 0.15,
       width: 80,
       field: 'id',
-      headerName: 'SL NO',
+      headerName: 'S.NO',
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
@@ -178,7 +178,7 @@ const ListOfMedicine = () => {
       minWidth: 20,
       width: 200,
       field: 'manufacturer_name',
-      headerName: 'Manufacturer Name',
+      headerName: 'Manufacturer',
       renderCell: params => (
         <Tooltip title={params.row.manufacturer_name}>
           <Typography
