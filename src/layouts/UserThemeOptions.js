@@ -108,7 +108,8 @@ const UserThemeOptions = () => {
         SecondaryContainer: '#AFEFEB',
         Error: '#E93353',
         addPrimary: '#00AFD6',
-        displaybgSecondary: '#DDEBE9'
+        displaybgSecondary: '#DDEBE9',
+        SurfaceVariant: '#DAE7DF'
       },
       primary: {
         // light: '#20DE67',

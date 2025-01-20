@@ -153,7 +153,7 @@ function Ledger({ tabValue }) {
   const filteredDispatchTo = dispatchTo.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
   const filteredDates = dates.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
 
-  const filteredBatchDetails = batchDetailsList.filter(location =>
+  const filteredBatchDetails = batchDetailsList?.filter(location =>
     location.batch_no.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -996,7 +996,7 @@ function Ledger({ tabValue }) {
                       sx={{ mt: 2 }}
                     />
                   </Box>
-                  {filteredBatchDetails.map(location => (
+                  {filteredBatchDetails?.map(location => (
                     <Box key={location.batch_no}>
                       <FormControlLabel
                         control={
