@@ -14,7 +14,8 @@ import {
   Button,
   FormControl,
   InputLabel,
-  Autocomplete
+  Autocomplete,
+  Paper
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
@@ -29,6 +30,7 @@ import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 function Dispatch({ tabValue }) {
   const theme = useTheme()
@@ -51,6 +53,11 @@ function Dispatch({ tabValue }) {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
+  const [selectedTypeOptions, setSelectedTypeOptions] = useState([
+    { name: 'Request', id: 'request' },
+    { name: 'Dispatch', id: 'direct_dispatch' },
+    { name: 'Return', id: 'return' }
+  ])
   const [selectedType, setSelectedType] = useState(router.query.type || '')
   const [dispatchedToOptions, setDispatchedToOptions] = useState([])
   const [selectedDispatchedTo, setSelectedDispatchedTo] = useState(router.query.dispatched_to || '')
@@ -58,8 +65,8 @@ function Dispatch({ tabValue }) {
   const [selectedRequestedBy, setSelectedRequestedBy] = useState(router.query.requested_by || '')
   const [selectDays, setSelectDays] = useState(router.query.days || '')
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.from_date || '',
+    endDate: router.query.to_date || ''
   })
 
   const { selectedPharmacy } = usePharmacyContext()
@@ -221,7 +228,7 @@ function Dispatch({ tabValue }) {
   ]
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, type, dispatched_to, requested_by }) => {
+    async ({ sort, q, column, type, dispatched_to, requested_by, from_date, to_date }) => {
       try {
         setLoading(true)
 
@@ -232,6 +239,8 @@ function Dispatch({ tabValue }) {
           type,
           dispatched_to,
           requested_by,
+          from_date,
+          to_date,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -280,7 +289,9 @@ function Dispatch({ tabValue }) {
         column: sortColumn,
         type: selectedType,
         dispatched_to: selectedDispatchedTo,
-        requested_by: selectedRequestedBy
+        requested_by: selectedRequestedBy,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate
       })
       updateUrlParams({
         tab: tabValue,
@@ -290,11 +301,13 @@ function Dispatch({ tabValue }) {
         type: selectedType,
         dispatched_to: selectedDispatchedTo,
         requested_by: selectedRequestedBy,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate,
         page: paginationModel.page,
         limit: paginationModel.pageSize
       })
     }
-  }, [fetchTableData, selectedType, selectedDispatchedTo, selectedRequestedBy])
+  }, [fetchTableData, selectedType, selectedDispatchedTo, selectedRequestedBy, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -308,7 +321,7 @@ function Dispatch({ tabValue }) {
     debounce(async ({ sort, q, column, type, dispatched_to, requested_by }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column, type, dispatched_to, requested_by })
+        await fetchTableData({ sort, q, column, type, dispatched_to, requested_by, from_date, to_date })
         updateUrlParams({
           tab: tabValue,
           sort: sort,
@@ -317,6 +330,8 @@ function Dispatch({ tabValue }) {
           type: type,
           dispatched_to: dispatched_to,
           requested_by: requested_by,
+          from_date: from_date,
+          to_date: to_date,
           page: paginationModel.page,
           limit: paginationModel.pageSize
         })
@@ -335,7 +350,9 @@ function Dispatch({ tabValue }) {
       column: sortColumn,
       type: selectedType,
       dispatched_to: selectedDispatchedTo,
-      requested_by: selectedRequestedBy
+      requested_by: selectedRequestedBy,
+      from_date: filterDates.startDate,
+      to_date: filterDates.endDate
     })
   }
 
@@ -349,11 +366,13 @@ function Dispatch({ tabValue }) {
       updateUrlParams({
         tab: tabValue,
         sort: newSort,
-        searchValue: q,
+        searchValue: searchValue,
         column: newColumn,
         type: selectedType,
         dispatched_to: selectedDispatchedTo,
         requested_by: selectedRequestedBy,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate,
         page: paginationModel.page,
         limit: paginationModel.pageSize
       })
@@ -377,49 +396,131 @@ function Dispatch({ tabValue }) {
     setSelectedRequestedBy(event.target.value)
   }
 
-  const filterByDays = days => {
-    setSearchValue('')
-    if (days !== 'all') {
-      setTotal(0)
-      // setPaginationModel({ page: 0, pageSize: 10 })
-      const currentDate = new Date()
-      const selectedDays = parseInt(days)
-      let startDate
-      let endDate
+  // const filterByDays = days => {
+  //   setSearchValue('')
+  //   if (days !== 'all') {
+  //     setTotal(0)
+  //     // setPaginationModel({ page: 0, pageSize: 10 })
+  //     const currentDate = new Date()
+  //     const selectedDays = parseInt(days)
+  //     let startDate
+  //     let endDate
 
-      switch (selectedDays) {
-        case 3:
-          startDate = Utility.getPreviousDaysDate(currentDate, 3)
-          endDate = Utility.formattedPresentDate()
-          setFilterDates({ startDate, endDate })
-          break
-        case 7:
-          startDate = Utility.getPreviousDaysDate(currentDate, 7)
-          endDate = Utility.getPreviousDaysDate(currentDate, 3)
-          setFilterDates({ startDate, endDate })
+  //     switch (selectedDays) {
+  //       case 3:
+  //         startDate = Utility.getPreviousDaysDate(currentDate, 3)
+  //         endDate = Utility.formattedPresentDate()
+  //         setFilterDates({ startDate, endDate })
+  //         break
+  //       case 7:
+  //         startDate = Utility.getPreviousDaysDate(currentDate, 7)
+  //         endDate = Utility.getPreviousDaysDate(currentDate, 3)
+  //         setFilterDates({ startDate, endDate })
 
-          break
-        case 15:
-          startDate = Utility.getPreviousDaysDate(currentDate, 15)
-          endDate = Utility.getPreviousDaysDate(currentDate, 7)
-          setFilterDates({ startDate, endDate })
-          break
-        case 16:
-          startDate = ''
-          endDate = Utility.getPreviousDaysDate(currentDate, 15)
-          setFilterDates({ startDate, endDate })
-          break
-        default:
-          startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
-          endDate = Utility.formattedPresentDate()
-          setFilterDates({ startDate, endDate })
-          break
-      }
+  //         break
+  //       case 15:
+  //         startDate = Utility.getPreviousDaysDate(currentDate, 15)
+  //         endDate = Utility.getPreviousDaysDate(currentDate, 7)
+  //         setFilterDates({ startDate, endDate })
+  //         break
+  //       case 16:
+  //         startDate = ''
+  //         endDate = Utility.getPreviousDaysDate(currentDate, 15)
+  //         setFilterDates({ startDate, endDate })
+  //         break
+  //       default:
+  //         startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
+  //         endDate = Utility.formattedPresentDate()
+  //         setFilterDates({ startDate, endDate })
+  //         break
+  //     }
+  //   } else {
+  //     // setFilterDates({sta})
+
+  //     setFilterDates({ startDate: '', endDate: '' })
+  //     // fetchTableData(sort, searchValue, sortColumn, status)
+  //   }
+  // }
+
+  const formatDate = dateString => {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  // const handleDateRangeChange = (startDate, endDate) => {
+  //   if (startDate && endDate) {
+  //     const formattedStartDate = formatDate(startDate)
+  //     const formattedEndDate = formatDate(endDate)
+  //     setFilterDates({
+  //       startDate: formattedStartDate,
+  //       endDate: formattedEndDate
+  //     })
+
+  //     // fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
+  //     updateUrlParams({
+  //       tab: tabValue,
+  //       sort: sort,
+  //       searchValue: searchValue,
+  //       column: sortColumn,
+  //       type: selectedType,
+  //       dispatched_to: selectedDispatchedTo,
+  //       requested_by: selectedRequestedBy,
+  //       from_date: filterDates.startDate,
+  //       to_date: filterDates.endDate,
+  //       page: paginationModel.page,
+  //       limit: paginationModel.pageSize
+  //     })
+  //     console.log('Date range selected:', { startDate, endDate })
+  //   }
+  // }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      const formattedStartDate = formatDate(startDate)
+      const formattedEndDate = formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+
+      updateUrlParams({
+        tab: tabValue,
+        sort: sort,
+        searchValue: searchValue,
+        column: sortColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy,
+        from_date: formattedStartDate,
+        to_date: formattedEndDate,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+      console.log('Date range selected:', { startDate, endDate })
     } else {
-      // setFilterDates({sta})
+      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
 
-      setFilterDates({ startDate: '', endDate: '' })
-      // fetchTableData(sort, searchValue, sortColumn, status)
+      updateUrlParams({
+        tab: tabValue,
+        sort: sort,
+        searchValue: searchValue,
+        column: sortColumn,
+        type: selectedType,
+        dispatched_to: selectedDispatchedTo,
+        requested_by: selectedRequestedBy,
+        from_date: '',
+        to_date: '',
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+      console.log('Empty date range selected, fetching data without date filters')
     }
   }
 
@@ -478,83 +579,50 @@ function Dispatch({ tabValue }) {
           mt: 5
         }}
       >
-        <Grid container spacing={2} justifyContent='space-between' direction={{ xs: 'column', sm: 'row' }}>
-          {/* Filters Section */}
-          <Grid item container spacing={3} xs={12} sm={8.5}>
-            {/* Reference Type */}
-            {/* <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='reference-type-label'>Reference Type</InputLabel>
-                <Select
-                  label='Reference Type'
-                  value={selectedType || ''}
-                  onChange={handleTypeChange}
-                  id='reference-type'
-                  variant='outlined'
-                >
-                  <MenuItem value='request'>Request</MenuItem>
-                  <MenuItem value='dispatch'>Dispatch</MenuItem>
-                  <MenuItem value='return'>Return</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid> */}
-            {/* Dispatch To */}
-            {/* <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='dispatch-to-label'>Dispatch To</InputLabel>
-                <Select
-                  value={selectedDispatchedTo}
-                  onChange={handleDispatchedToChange}
-                  label='Dispatch To'
-                  variant='outlined'
-                >
-                  {dispatchedToOptions.map(option => (
-                    <MenuItem key={option.id} value={option.id}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid> */}
-            {/* Requested By */}
-            {/* <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='requested-by-label'>Requested By</InputLabel>
-                <Select
-                  value={selectedRequestedBy}
-                  onChange={handleRequestedByChange}
-                  displayEmpty
-                  label='Requested By'
-                  variant='outlined'
-                >
-                  {requestedByOptions.map(option => (
-                    <MenuItem key={option.id} value={option.id}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid> */}
+        <Grid
+          container
+          spacing={2}
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent={{ xs: 'center', sm: 'space-between' }}
+        >
+          {/* Date Picker */}
+          <Grid item xs={12} sm='auto'>
+            <CommonDateRangePickers onChange={handleDateRangeChange} />
+          </Grid>
 
+          {/* Filters Section */}
+          <Grid
+            item
+            container
+            spacing={2}
+            xs={12}
+            sm
+            justifyContent={{ xs: 'center', sm: 'flex-end' }}
+            direction={{ xs: 'column', sm: 'row' }}
+            wrap='nowrap'
+          >
             {/* Reference Type */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={4} md={3}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
                   id='reference-type-autocomplete'
-                  options={['Request', 'Dispatch', 'Return']}
-                  value={selectedType || null}
-                  onChange={(event, newValue) => handleTypeChange({ target: { value: newValue } })}
+                  options={selectedTypeOptions}
+                  getOptionLabel={option => option.name || ''}
+                  value={selectedTypeOptions.find(option => option.id === selectedType) || null}
+                  onChange={(event, newValue) => {
+                    handleTypeChange({ target: { value: newValue?.id || '' } })
+                  }}
                   renderInput={params => (
                     <TextField {...params} label='Reference Type' variant='outlined' size='small' />
                   )}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id}
                   clearOnEscape
                 />
               </FormControl>
             </Grid>
 
             {/* Dispatch To */}
-
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={4} md={3}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
                   id='dispatch-to-autocomplete'
@@ -572,7 +640,7 @@ function Dispatch({ tabValue }) {
             </Grid>
 
             {/* Requested By */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={4} md={3}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
                   id='requested-by-autocomplete'
@@ -589,45 +657,22 @@ function Dispatch({ tabValue }) {
               </FormControl>
             </Grid>
 
-            {/* Date Range */}
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size='small'>
-                <InputLabel id='date-range-label'>Date Range</InputLabel>
-                <Select
-                  value={selectDays}
-                  label='Date Range'
-                  onChange={e => {
-                    filterByDays(e.target.value)
-                    setSelectDays(e.target.value)
-                  }}
-                  variant='outlined'
-                >
-                  <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='3'>3 Days</MenuItem>
-                  <MenuItem value='7'>3 to 7 Days</MenuItem>
-                  <MenuItem value='15'>7 to 15 Days</MenuItem>
-                  <MenuItem value='16'>15 Days</MenuItem>
-                </Select>
-              </FormControl>
+            {/* Filter Button */}
+            <Grid item xs={12} sm='auto'>
+              <Button
+                variant='outlined'
+                startIcon={<FilterListIcon />}
+                sx={{
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  height: '40px',
+                  width: '100%', // Ensures full width on smaller screens
+                  color: 'customColors.OnSurfaceVariant'
+                }}
+              >
+                Filter
+              </Button>
             </Grid>
-          </Grid>
-
-          {/* Filter Button */}
-          <Grid item xs={12} md='auto'>
-            <Button
-              variant='outlined'
-              startIcon={<FilterListIcon />}
-              sx={{
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                borderRadius: '8px',
-                height: '40px',
-                // textTransform: 'none',
-                width: '100%', // Ensures full width for smaller screens
-                color: 'customColors.OnSurfaceVariant'
-              }}
-            >
-              Filter
-            </Button>
           </Grid>
         </Grid>
       </Grid>

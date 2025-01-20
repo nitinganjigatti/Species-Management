@@ -49,6 +49,7 @@ import {
   getProductQuantityInStoresList
 } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
+import Utility from 'src/utility'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -318,7 +319,10 @@ const Overview = props => {
                       }}
                     >
                       <TableCell>{row.batch_no}</TableCell>
-                      <TableCell>{row.expiry_date}</TableCell>
+                      <TableCell>
+                        {/* {row.expiry_date} */}
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(row.expiry_date))}
+                      </TableCell>
                       <TableCell>{row.qty}</TableCell>
                       <TableCell>₹{row.unit_price}</TableCell>
                       <TableCell>₹{(parseFloat(row.qty) * parseFloat(row.unit_price)).toFixed(2)}</TableCell>
@@ -383,7 +387,12 @@ const Overview = props => {
                         }}
                       >
                         <TableCell>{item.batch_no}</TableCell>
-                        <TableCell>{new Date(item.expiry_date).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {
+                            // new Date(item.expiry_date).toLocaleDateString()
+                            Utility.formatDisplayDate(Utility.convertUTCToLocal(item.expiry_date))
+                          }
+                        </TableCell>
                         <TableCell>{item.qty}</TableCell>
                         <TableCell>₹{item.unit_price}</TableCell>
                         <TableCell>₹{value}</TableCell>
