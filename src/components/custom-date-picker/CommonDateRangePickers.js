@@ -319,7 +319,10 @@ const CommonDateRangePickers = ({ onChange }) => {
           </Typography>
           <IconButton
             aria-label='close'
-            onClick={() => setCustomDialogOpen(false)}
+            onClick={() => {
+              setCustomDialogOpen(false)
+              setTempRange({})
+            }}
             sx={{
               color: 'customColors.OnPrimaryContainer'
             }}
@@ -363,6 +366,7 @@ const CommonDateRangePickers = ({ onChange }) => {
               onChange={handleDateChange}
               open={true}
               disableFutureDates={today}
+              allowSingleDate={true}
             />
           </Box>
         </DialogContent>
@@ -376,10 +380,22 @@ const CommonDateRangePickers = ({ onChange }) => {
             mt: 2
           }}
         >
-          <Button onClick={() => setCustomDialogOpen(false)} variant='outlined'>
+          <Button
+            onClick={() => {
+              setCustomDialogOpen(false)
+              setTempRange({})
+            }}
+            variant='outlined'
+          >
             Cancel
           </Button>
-          <Button onClick={handleApply} variant='contained' color='primary' sx={{ ml: 2 }}>
+          <Button
+            onClick={handleApply}
+            variant='contained'
+            color='primary'
+            sx={{ ml: 2 }}
+            disabled={!tempRange.startDate || !tempRange.endDate}
+          >
             Apply
           </Button>
         </DialogActions>

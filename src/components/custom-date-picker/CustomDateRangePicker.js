@@ -14,7 +14,8 @@ const CustomDateRangePicker = ({
   initialEndDate = null,
   onChange = () => {},
   open,
-  disableFutureDates
+  disableFutureDates,
+  allowSingleDate = false
 }) => {
   // ** States
   const [startDate, setStartDate] = useState(initialStartDate)
@@ -44,6 +45,7 @@ const CustomDateRangePicker = ({
       <Box p={2} sx={{ width: '100%' }}>
         <DatePicker
           selectsRange
+          // selectsRange={!allowSingleDate}
           monthsShown={monthsShown}
           endDate={endDate}
           selected={startDate}
