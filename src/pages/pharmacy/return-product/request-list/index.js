@@ -155,9 +155,8 @@ const ReturnRequestList = () => {
         let params = {}
 
         if (
-          startDate &&
-          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
-          (filterDates?.startDate || filterDates?.endDate) // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
+          startDate ||
+          endDate // Checks if startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             sort,
@@ -527,7 +526,7 @@ const ReturnRequestList = () => {
           {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
         </Typography>
       )
-    }, 
+    },
     {
       minWidth: 220,
       field: 'created_by_user_name',

@@ -125,7 +125,6 @@ const RequestList = () => {
         if (
           startDate ||
           endDate // Checks if startDate and endDate are truthy (not empty or undefined)
-          // (filterDates?.startDate || filterDates?.endDate) // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             type: 'request',
