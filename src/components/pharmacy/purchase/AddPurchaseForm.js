@@ -2588,7 +2588,13 @@ const AddPurchaseForm = () => {
                         size='small'
                         placeholder='Enter value'
                         value={inputValue}
-                        onChange={e => setInputValue(e.target.value)}
+                        onChange={e => {
+                          // Restrict non-numeric inputs and update value
+                          const value = e.target.value
+                          if (/^\d*$/.test(value)) {
+                            setInputValue(value)
+                          }
+                        }}
                         sx={{
                           maxWidth: '150px',
                           '& .MuiOutlinedInput-root': {
