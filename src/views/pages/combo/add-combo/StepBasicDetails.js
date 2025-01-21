@@ -33,9 +33,10 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Recipe name is required'),
-  portion_size: yup.string().required('Portion size is required'),
-  portion_uom_id: yup.string().required('Unit of measurement is required')
+  recipe_name: yup.string().required('Combo name is required')
+
+  //portion_size: yup.string().required('Portion size is required')
+  // portion_uom_id: yup.string().required('Unit of measurement is required'),
   // nutrional_value: yup.string().required('Nutritional values are required'),
   // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
   // kcal: yup.string().required('Total calories are required')
@@ -133,7 +134,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   return (
     <>
       <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
-        <Typography variant='h6'>Recipe details</Typography>
+        <Typography variant='h6'>Combo details</Typography>
       </Box>
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -148,7 +149,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 render={({ field: { value, onChange } }) => (
                   <TextField
                     value={value}
-                    label='Recipe name *'
+                    label='Combo name *'
                     name='recipe_name'
                     error={Boolean(errors.recipe_name)}
                     onChange={onChange}
@@ -162,7 +163,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </FormControl>
           </Grid>
 
-          <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
+          {/* <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
             <Grid item xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
@@ -173,7 +174,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     <TextField
                       value={value}
                       type='number'
-                      label='Portion size *'
+                      label='Portion size'
                       name='portion_size'
                       error={Boolean(errors.portion_size)}
                       onChange={onChange}
@@ -193,8 +194,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </Grid>
             <Grid item xs={12} sm={3.17}>
               <FormControl fullWidth>
-                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-                {console.log(uomList, 'uomList')}
+                
                 <Controller
                   name='portion_uom_id'
                   control={control}
@@ -219,7 +219,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       renderInput={params => (
                         <TextField
                           {...params}
-                          label='Select unit of measurement (UOM) *'
+                          label='Select unit of measurement (UOM)'
                           placeholder='Search & Select'
                           error={Boolean(errors.portion_uom_id)}
                         />
@@ -233,11 +233,11 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-          </Grid>
+          </Grid> */}
 
-          {/* <Divider sx={{ mb: 4, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
+          {/* <Divider sx={{ mb: 4, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} /> */}
 
-          <Box sx={{ mb: 1, px: 5, mt: 3, float: 'left' }}>
+          {/* <Box sx={{ mb: 1, px: 5, mt: 3, float: 'left' }}>
             <Typography variant='h6'>Calories</Typography>
           </Box>
           <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
@@ -337,7 +337,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </Grid>
           </Grid> */}
 
-          <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
+          <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 8, width: '98%', ml: 5 }} />
 
           <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
             <Typography variant='h6'>Add image</Typography>

@@ -30,6 +30,13 @@ const composeDietNavigation = () => {
     activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
   }
 
+  const comboList = {
+    title: 'Combo',
+    path: '/diet/combo',
+    icon: <img src='/icons/icon_recipe_black.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
+  }
+
   const settingsParent = {
     title: 'Setting',
     path: '/diet/settings',
@@ -48,7 +55,7 @@ const composeDietNavigation = () => {
   }
 
   settingsParent.children.push(preparationTypes, cutSize)
-  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, dietList, recipeList, settingsParent]
+  const dietNavigation = [pharmacyTitle, feedTypes, ingredientsList, dietList, recipeList, comboList, settingsParent]
 
   return dietNavigation
 }

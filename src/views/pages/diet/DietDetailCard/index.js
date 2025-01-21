@@ -106,11 +106,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
     }
   }
 
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(value, sortColumning)
-  // }
-
   const confirmStatusAction = async () => {
     try {
       setConfirmDialogBox(false)
@@ -237,12 +232,12 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
                   <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
-                    {dietDetails?.diet_name}
+                    {dietDetails?.diet_no}
                   </Typography>
                   <Typography
                     sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A', lineHeight: '19.36px', pt: 2 }}
                   >
-                    {dietDetails?.diet_no}
+                    {dietDetails?.diet_name}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>

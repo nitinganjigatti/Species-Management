@@ -26,6 +26,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
+import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
@@ -39,12 +40,10 @@ const AddIngredients = props => {
     allSelectedValues,
     formData,
     setSelectedIngredient,
-    setUomprev
+    setUomprevnew
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
-  console.log('selectFeed :>> ', selectFeed)
-
   const [searchValue, setSearchValue] = useState('')
 
   const [remarks, setRemarks] = useState('')
@@ -62,6 +61,7 @@ const AddIngredients = props => {
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
   const [uom, setUom] = useState([])
+  const [uomnew, setUomnew] = useState([])
   const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
@@ -195,22 +195,17 @@ const AddIngredients = props => {
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
     const { value } = event.target
-    console.log('event :>> ', event)
 
     // const newUom = event.target.value
-    console.log('Selected value:', value)
-    console.log('UOM array:', uom)
-    console.log('item :>> ', item)
-
     // Find the selected UOM object based on the value
-    const newUom = uom.find(type => Number(type._id) === Number(value))
+    const newUom = uom.find(type => Number(type.id) === Number(value))
     console.log('uomValue :>> ', newUom)
 
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
         id: event.target.value,
-        name: newUom?.name
+        name: newUom?.cut_size
       }
     }))
 
@@ -290,9 +285,7 @@ const AddIngredients = props => {
   }, [checkid])
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays, newRemarks) => {
-    console.log('newUom  handelcard:>> ', newUom)
     event.stopPropagation()
-    console.log('call ')
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
@@ -308,20 +301,17 @@ const AddIngredients = props => {
       return
     }
 
-    if (feed_type === 'Chopped') {
-      console.log('newUom  inside if:>> ', newUom)
+    if (feed_type !== '') {
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom?._id : size[item.id]?.id || ''
-      console.log('sizeValue :>> ', sizeValue)
-      console.log('cutSizeValue :>> ', cutSizeValue)
-      if (!cutSizeValue || !sizeValue) {
+      const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
+
+      if (!sizeValue) {
         // toast.error('Cut size and size are required for chopped feed.')
         console.log('Return ')
 
         return
       }
     }
-    console.log(item, 'item')
 
     const boxValues = {
       ingredient_id: item.id,
@@ -332,9 +322,9 @@ const AddIngredients = props => {
       remarks: newRemarks ? newRemarks : remarksData,
       mealid: checkid,
       ingredient_image: item.image,
-      feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
-      feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
-      feed_uom_name: feed_type === 'Chopped' ? (newUom ? newUom.name : size[item.id]?.name || '') : ''
+      //feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
+      master_cut_size_id: feed_type !== '' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
+      master_cut_size: feed_type !== '' ? (newUom ? newUom.cut_size : size[item.id]?.name || '') : ''
     }
     console.log('boxValues :>> ', boxValues)
 
@@ -365,6 +355,7 @@ const AddIngredients = props => {
 
   useEffect(() => {
     getUnitsList()
+    getUnitsListnew()
     setReachedEnd(true)
 
     try {
@@ -402,13 +393,29 @@ const AddIngredients = props => {
   const getUnitsList = async () => {
     try {
       const params = {
+        //type: ['length', 'weight'],
+        page: 1,
+        limit: 50
+      }
+      await getCutsizeList(params).then(res => {
+        setUom(res?.data?.result)
+        setUomprev(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getUnitsListnew = async () => {
+    try {
+      const params = {
         type: ['length', 'weight'],
         page: 1,
         limit: 50
       }
       await getUnitsForRecipe({ params: params }).then(res => {
-        setUom(res?.data?.result)
-        setUomprev(res?.data?.result)
+        setUomnew(res?.data?.result)
+        setUomprevnew(res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -421,8 +428,6 @@ const AddIngredients = props => {
     // Check if the user has reached the bottom
 
     if (totalCount > ingredientList.length) {
-      console.log('api :>> ')
-
       if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
         // User has reached the bottom, perform your action here
 
@@ -504,7 +509,8 @@ const AddIngredients = props => {
           remarks: item.remarks
         }
         newUom[item.ingredient_id] = {
-          id: item.feed_uom_id
+          id: item.master_cut_size_id,
+          name: item.master_cut_size
         }
         newCutSize[item.ingredient_id] = {
           id: item.feed_cut_size
@@ -522,12 +528,10 @@ const AddIngredients = props => {
   const searchData = useCallback(
     debounce(async search => {
       if (searchValue != ' ') {
-        console.log('search ing :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
           const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
-            console.log(res, 'res')
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
@@ -578,7 +582,6 @@ const AddIngredients = props => {
   }
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
-  console.log(selectedCard, 'selectedCard')
 
   return (
     <>
@@ -815,15 +818,12 @@ const AddIngredients = props => {
                     transitionDuration: '13s'
                   }}
                 >
-                  {selectFeed[item.id]?.name === 'Chopped' ? (
+                  {selectFeed[item.id]?.name !== '' ? (
                     <>
                       <Divider mt={-2} />
-                      <Stack
-                        direction='row'
-                        sx={{ py: 4, px: 2, alignItems: 'center', justifyContent: 'space-between' }}
-                      >
+                      <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                         <Typography>Enter cut size</Typography>
-                        <Box sx={{ width: '160.5px' }}>
+                        {/* <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
                             <TextField
                               size='small'
@@ -837,8 +837,8 @@ const AddIngredients = props => {
                               }
                             />
                           </FormControl>
-                        </Box>
-                        <Box sx={{ width: '160.5px' }}>
+                        </Box> */}
+                        <Box sx={{ pl: 5 }}>
                           <FormControl fullWidth>
                             <Select
                               size='small'
@@ -861,8 +861,8 @@ const AddIngredients = props => {
                                 Select
                               </MenuItem>
                               {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit._id}>
-                                  {unit.name}
+                                <MenuItem key={unit.id} value={unit.id}>
+                                  {unit.cut_size}
                                 </MenuItem>
                               ))}
                             </Select>
