@@ -1184,7 +1184,7 @@ const AddPurchaseForm = () => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
     accept: {
-      '*/*': []
+      '.png,.jpg,.jpeg,.pdf': []
     },
     onDrop: acceptedFiles => {
       const newFileSrc = []
