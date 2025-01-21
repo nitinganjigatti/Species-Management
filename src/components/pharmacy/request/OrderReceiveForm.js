@@ -1501,6 +1501,7 @@ function OrderReceiveForm({ orderId, requestId }) {
             toast.success(result?.msg)
 
             setSubmitLoader(false)
+            location.reload()
             // closeOrderFormDialog()
           } else {
             toast.error(result?.msg)

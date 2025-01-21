@@ -214,7 +214,7 @@ export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
 
-export const LEDGER = 'v1/pharma/stock/ledger'
+export const LEDGER = 'v1/pharma/stock/ledger-log'
 
 export const PRODUCT_DASHBOARD = 'v1/pharma/stock/dashboard'
 

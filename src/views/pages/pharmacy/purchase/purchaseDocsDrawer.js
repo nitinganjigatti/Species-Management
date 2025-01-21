@@ -24,6 +24,7 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
   }
 
   const isPDF = title => title?.toLowerCase().endsWith('.pdf')
+  console.log('isPDF', isPDF)
 
   return (
     <Drawer
@@ -100,11 +101,12 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
                 }}
               >
                 <a
-                  href={isPDF(doc.title) ? (doc.transcript ? doc.transcript : doc[index]) : '#'}
+                  href={isPDF(doc.title || doc) ? (doc.transcript ? doc.transcript : doc) : '#'}
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{ textDecoration: 'none' }}
                 >
+                  {console.log(' doc[index]', doc)}
                   <Box
                     key={index}
                     elevation={3}

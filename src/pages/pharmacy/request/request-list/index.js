@@ -477,7 +477,7 @@ const RequestList = () => {
     },
     {
       minWidth: 100,
-      field: 'request_date',
+      field: 'created_at',
       headerName: 'Days',
       renderCell: params => (
         <Typography
