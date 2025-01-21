@@ -146,7 +146,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                     }}
                   >
                     {' '}
-                    {item?.common_name ? item?.common_name : '-'}
+                    {item?.common_name ? item?.common_name : 'unknown'}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box>

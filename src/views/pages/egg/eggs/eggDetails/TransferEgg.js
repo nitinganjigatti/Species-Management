@@ -7,6 +7,7 @@ import {
   FormHelperText,
   IconButton,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
@@ -322,17 +323,23 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Incubator ID
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        height: '19px'
-                      }}
-                    >
-                      {eggDetails?.incubator_name}
-                    </Typography>
+                    <Tooltip title={eggDetails?.incubator_id ? eggDetails?.incubator_id : 'Incubator Name'}>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          height: '19px'
+                        }}
+                      >
+                        {eggDetails?.incubator_id
+                          ? eggDetails?.incubator_id.length > 16
+                            ? eggDetails?.incubator_id.slice(0, 16) + '...'
+                            : eggDetails?.incubator_id
+                          : ''}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
@@ -346,17 +353,23 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Room
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        height: '19px'
-                      }}
-                    >
-                      {eggDetails?.room_name}
-                    </Typography>
+                    <Tooltip title={eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          height: '19px'
+                        }}
+                      >
+                        {eggDetails?.room_name
+                          ? eggDetails?.room_name.length > 16
+                            ? eggDetails?.room_name.slice(0, 16) + '...'
+                            : eggDetails?.room_name
+                          : ''}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
@@ -370,17 +383,23 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Nursery Name
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        height: '19px'
-                      }}
-                    >
-                      {eggDetails?.nursery_name}
-                    </Typography>
+                    <Tooltip title={eggDetails?.nursery_name ? eggDetails?.nursery_name : 'Nursery Name'}>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          height: '19px'
+                        }}
+                      >
+                        {eggDetails?.nursery_name
+                          ? eggDetails?.nursery_name.length > 16
+                            ? eggDetails?.nursery_name.slice(0, 16) + '...'
+                            : eggDetails?.nursery_name
+                          : ''}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                 </Box>
               </Box>

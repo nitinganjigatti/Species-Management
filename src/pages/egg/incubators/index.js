@@ -346,7 +346,7 @@ const IncubatorsList = () => {
       minWidth: 20,
       sortable: false,
       field: 'room_name',
-      headerName: 'ROOM NO',
+      headerName: 'ROOM',
       renderCell: params => (
         <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
           <Typography
