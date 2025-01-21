@@ -2485,9 +2485,11 @@ const AddPurchaseForm = () => {
                   </Box>
                   <Box
                     sx={{
-                      bgcolor: theme?.palette?.customColors?.OutlineVariant,
+                      bgcolor: theme?.palette?.customColors?.neutral05,
                       borderBottomLeftRadius: '7px',
                       borderBottomRightRadius: '7px',
+                      borderTop: '0.2px solid',
+                      borderColor: theme?.palette?.customColors?.OutlineVariant,
                       p: '12px'
                     }}
                   >
@@ -2504,7 +2506,7 @@ const AddPurchaseForm = () => {
                       >
                         Grand Total :
                       </Typography>
-                      {/* <Typography
+                      <Typography
                         variant='body2'
                         sx={{
                           color: theme?.palette?.customColors?.OnSurfaceVariant,
@@ -2512,12 +2514,12 @@ const AddPurchaseForm = () => {
                           fontWeight: 600
                         }}
                       >
-                        // {/* {totalLineItemsPurchase?.toFixed(2)}
+                        {totalLineItemsPurchase?.toFixed(2)}
                         {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
-                      </Typography> */}
-                      {/* Input Box with Icon */}
+                      </Typography>
+                      {/* {/* Input Box with Icon */}
 
-                      <TextField
+                      {/* <TextField
                         variant='outlined'
                         fullWidth
                         size='small'
@@ -2552,6 +2554,70 @@ const AddPurchaseForm = () => {
                           )
                         }}
                         error={isError} // Highlights the field in red if there's an error
+                      /> */}
+                    </CalcWrapper>
+                    <CalcWrapper>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: theme?.palette?.customColors?.OnSurfaceVariant,
+                          letterSpacing: '.25px',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          mr: 2
+                        }}
+                      >
+                        Invoice Total :
+                      </Typography>
+                      {/* <Typography
+                        variant='body2'
+                        sx={{
+                          color: theme?.palette?.customColors?.OnSurfaceVariant,
+                          letterSpacing: '.25px',
+                          fontWeight: 600
+                        }}
+                      >
+                        // {/* {totalLineItemsPurchase?.toFixed(2)}
+                        {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
+                      </Typography> */}
+                      {/* Input Box with Icon */}
+
+                      <TextField
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        placeholder='Enter value'
+                        value={inputValue}
+                        onChange={e => setInputValue(e.target.value)}
+                        sx={{
+                          maxWidth: '150px',
+                          '& .MuiOutlinedInput-root': {
+                            bgcolor: 'white',
+                            borderRadius: '4px',
+                            '& fieldset': {
+                              borderColor: isError ? 'red' : 'grey.300'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: isError ? 'red' : 'grey.500'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: isError ? 'red' : 'primary.main'
+                            }
+                          }
+                        }}
+                        inputProps={{
+                          style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <IconButton edge='start'>
+                                <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }}
+                        error={isError} // Highlights the field in red if there's an error
                       />
                     </CalcWrapper>
                   </Box>
@@ -2559,7 +2625,7 @@ const AddPurchaseForm = () => {
                 <Box sx={{ mt: 1 }}>
                   {isError && (
                     <Typography variant='caption' sx={{ fontSize: '12px', fontWeight: 400 }} color='error'>
-                      Entered value does not match system calculated total !
+                      Invoice value does not match system calculated total. Kindly check your entries.
                     </Typography>
                   )}
                   <Typography sx={{ mt: 1 }}>
