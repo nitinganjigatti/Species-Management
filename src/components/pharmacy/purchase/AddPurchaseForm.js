@@ -2514,7 +2514,7 @@ const AddPurchaseForm = () => {
                           fontWeight: 600
                         }}
                       >
-                        {totalLineItemsPurchase?.toFixed(2)}
+                        {/* {totalLineItemsPurchase?.toFixed(2)} */}
                         {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
                       </Typography>
                       {/* {/* Input Box with Icon */}
