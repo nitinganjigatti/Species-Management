@@ -785,7 +785,12 @@ const ReturnRequestList = () => {
     <Grid>
       <TabContext value={status}>
         <TabList onChange={handleChange}>
-          <Tab value='pending' label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />} />
+          {selectedPharmacy.type === 'local' && (
+            <Tab
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+            />
+          )}
           <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
           <Tab
             value='disputed'
@@ -797,7 +802,7 @@ const ReturnRequestList = () => {
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
-        <TabPanel value='pending'>{tableData()}</TabPanel>
+        {selectedPharmacy.type === 'local' && <TabPanel value='pending'>{tableData()}</TabPanel>}
         <TabPanel value='shipped'>{tableData()}</TabPanel>
         <TabPanel value='disputed'>{tableData()}</TabPanel>
         <TabPanel value='cancel'>{tableData()}</TabPanel>

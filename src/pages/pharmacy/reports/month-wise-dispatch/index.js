@@ -631,12 +631,13 @@ const MonthWiseDispatch = () => {
             } else {
               const roundedValue = parseFloat(value)
 
-              const formattedValue = roundedValue.toLocaleString('en-IN', {
-                // style: 'currency',
-                // currency: 'INR',
-                maximumFractionDigits: 0
-              })
-              rowData[`${column.title} (${column.sub_title})`] = formattedValue
+              // const formattedValue = roundedValue.toLocaleString('en-IN', {
+              // style: 'currency',
+              // currency: 'INR',
+              // maximumFractionDigits: 0
+
+              // })
+              rowData[`${column.title} (${column.sub_title})`] = roundedValue
             }
           }
         })

@@ -45,7 +45,7 @@ const ListOfPurchase = () => {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -309,6 +309,7 @@ const ListOfPurchase = () => {
             params?.row?.updated_at
           )}
         </>
+
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
         //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>

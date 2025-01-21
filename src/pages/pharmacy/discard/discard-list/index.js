@@ -274,12 +274,13 @@ const ListOfDiscardProducts = () => {
       headerName: 'Discarded by ',
       renderCell: params => (
         <>
-        {RenderUtility?.renderUserAvatarDetails(
-          params?.row?.user_profile_pic, 
-          params?.row?.created_by_user_name,
-          params?.row?.created_at
-        )}
-      </>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
+
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
         //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
