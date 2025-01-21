@@ -8,16 +8,13 @@ const FilterSheet = ({
   open,
   setOpenFilterDrawer,
   categories,
-  sites,
-  setSites,
-  selectedSites,
-  setSelectedSites,
   options,
   selectedOptions,
   setSelectedOptions,
-  handleSelectedSite,
-  handleSelectedOrganization
+  handleSelection,
+  getTotalSelectedFilters
 }) => {
+
   const theme = useTheme()
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
@@ -58,50 +55,13 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
-    const totalData = activeCategory === 'Site' ? [...sites] : [...options.Organization]
-    const selectedData = selectedOptions[activeCategory] || []
+    // Handle Sites
+    const selectedSiteIDs = selectedOptions.Site || []
+    handleSelection(selectedSiteIDs, 'Site')
 
-    const sortedSelectedData = selectedData.sort((a, b) => a - b)
-
-    const sortedUnselectedData = totalData
-      .filter(item =>
-        activeCategory === 'Site'
-          ? !sortedSelectedData.includes(item.site_id)
-          : !sortedSelectedData.includes(item.organization_id)
-      )
-      .sort((a, b) =>
-        activeCategory === 'Site'
-          ? a.site_name.localeCompare(b.site_name)
-          : a.organization_name.localeCompare(b.organization_name)
-      )
-
-    if (activeCategory === 'Site') {
-      setSelectedSites([...sortedUnselectedData.map(item => item.site_id), ...sortedSelectedData])
-
-      const mergedSites = [
-        ...totalData.filter(item => sortedSelectedData.includes(item.site_id)),
-        ...sortedUnselectedData
-      ]
-      setSites(mergedSites)
-      console.log('Merged and Sorted Sites:', mergedSites)
-    } else if (activeCategory === 'Organization') {
-      setSelectedOptions(prevSelectedOptions => ({
-        ...prevSelectedOptions,
-        Organization: [...sortedUnselectedData.map(item => item.organization_id), ...sortedSelectedData]
-      }))
-
-      const mergedOrganizations = [
-        ...totalData.filter(item => sortedSelectedData.includes(item.organization_id)),
-        ...sortedUnselectedData
-      ]
-      console.log('Merged and Sorted Organizations:', mergedOrganizations)
-    }
-
-    if (activeCategory === 'Site') {
-      handleSelectedSite(sortedSelectedData)
-    } else if (activeCategory === 'Organization') {
-      handleSelectedOrganization(sortedSelectedData)
-    }
+    // Handle Organizations
+    const selectedOrganizationIDs = selectedOptions.Organization || []
+    handleSelection(selectedOrganizationIDs, 'Organization')
 
     // Close the drawer
     setOpenFilterDrawer(false)
@@ -153,7 +113,7 @@ const FilterSheet = ({
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, fontFamily: 'Inter' }}>
-            Filter - {selectedOptions[activeCategory]?.length > 0 ? selectedOptions[activeCategory]?.length : 0}
+            Filter - {getTotalSelectedFilters(selectedOptions)}
           </Typography>
         </Box>
 

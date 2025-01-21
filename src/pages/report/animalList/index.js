@@ -1,5 +1,16 @@
 import { TabContext, TabList } from '@mui/lab'
-import { Box, Button, Card, CardHeader, Checkbox, FormControl, Popover, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  CardHeader,
+  Checkbox,
+  CircularProgress,
+  FormControl,
+  Popover,
+  TextField,
+  Typography
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -47,6 +58,7 @@ const AnimalList = () => {
   const [selectedOptions, setSelectedOptions] = useState([])
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
@@ -91,121 +103,52 @@ const AnimalList = () => {
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
-  const handleSelectedSite = async selectedSiteIDs => {
+  const handleSelection = async (selectedIDs, category) => {
     let params = {}
+    const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
+    const key = category === 'Site' ? 'sids' : 'oids'
+    const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
 
-    if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
-      // "All Sites" selected and was not already selected
-      params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
+    if (selectedIDs.includes(isAllSelected)) {
+      // "All Sites/All Organizations" selected
+      if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
+        stateSetter(['All Sites'])
+        params[key] = '' // Reset to empty for all sites
+      } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
+        stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
+        params[key] = '' // Reset to empty for all organizations
+      } else {
+        // If "All Sites/All Organizations" is re-selected, use filtered IDs
+        const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
+        params[key] = filteredIDs.toString()
+        stateSetter(filteredIDs)
       }
-      setSelectedSites(['All Sites'])
-    } else if (selectedSiteIDs.includes('All Sites')) {
-      // Remove "All Sites" and use specific site IDs
-      const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
-      params = {
-        site_ids: filteredSiteIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedSites(filteredSiteIDs)
-    } else if (selectedSiteIDs.length === 0) {
-      // No sites selected, fallback to "All Sites"
-      params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-
-      // setSelectedSites(['All Sites'])
+    } else if (selectedIDs.length === 0) {
+      // No items selected, reset the parameter
+      params[key] = ''
     } else {
-      // Specific site IDs selected
-      params = {
-        sids: selectedSiteIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
+      // Specific IDs selected
+      params[key] = selectedIDs.toString()
+      if (category === 'Site') {
+        stateSetter(selectedIDs)
+      } else {
+        stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
       }
-
-      // setSelectedSites(selectedSiteIDs)
     }
 
-    setPaginationModel({ ...paginationModel, page: 0 })
-    setApiFilterParams(params)
-
-    // Optionally fetch the data
-    // await fetchData({ ...params }, { ...paginationModel, page: 0 });
+    // Reset pagination and update filter parameters
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+    setApiFilterParams(prev => ({
+      ...prev,
+      [key]: params[key] // Update only the relevant key
+    }))
   }
 
-  const handleSelectedOrganization = async selectedOrganizationIDs => {
-    let params = {}
-
-    if (
-      selectedOrganizationIDs.includes('All Organizations') &&
-      !selectedOptions.Organization.includes('All Organizations')
-    ) {
-      // "All Organizations" selected and was not already selected
-      params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedOptions(prev => ({ ...prev, Organization: ['All Organizations'] }))
-    } else if (selectedOrganizationIDs.includes('All Organizations')) {
-      // Remove "All Organizations" and use specific organization IDs
-      const filteredOrganizationIDs = selectedOrganizationIDs.filter(id => id !== 'All Organizations')
-      params = {
-        organization_ids: filteredOrganizationIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedOptions(prev => ({ ...prev, Organization: filteredOrganizationIDs }))
-    } else if (selectedOrganizationIDs.length === 0) {
-      // No organizations selected, fallback to "All Organizations"
-      params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-
-      // Optionally set default to "All Organizations"
-      // setSelectedOptions((prev) => ({ ...prev, Organization: ['All Organizations'] }));
-    } else {
-      // Specific organization IDs selected
-      params = {
-        oids: selectedOrganizationIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
-          if (apiFilterParams[key] === 1) acc[key] = 1
-
-          return acc
-        }, {})
-      }
-      setSelectedOptions(prev => ({ ...prev, Organization: selectedOrganizationIDs }))
-    }
-
-    setPaginationModel({ ...paginationModel, page: 0 })
-    setApiFilterParams(params)
-
-    // Optionally fetch the data
-    // await fetchData({ ...params }, { ...paginationModel, page: 0 });
+  const getTotalSelectedFilters = selectedOptions => {
+    // Use Object.values to extract arrays of selected items
+    return Object.values(selectedOptions)
+      .flat() // Flatten to combine all selected items into a single array
+      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
   }
 
   const fetchAndSetDataList = async (params, options = {}) => {
@@ -213,28 +156,16 @@ const AnimalList = () => {
     try {
       setIsLoading(true)
       const response = await getAllAnimalReport(params)
-      debugger
       if (responseType === 'csv' && response && response.data) {
-        const csvUrl = response.data
-        const link = document.createElement('a')
-        link.href = csvUrl
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(csvUrl)
+        handleCsvResponse(response.data)
       } else if (response.success) {
         const { header, animal_list, total_animal } = response.data || {}
 
-        // setDataList(datalist || [])
-        // if (setHeaders) setHeaderList(header)
         setTotal(total_animal)
-
         setIsLoading(false)
 
-        setHeaderList(header)
+        if (setHeaders) setHeaderList(header)
         setAnchorEl(null)
-
-        // setDataList(datalist)
 
         setDataList(loadServerRows(paginationModel.page, animal_list))
       } else {
@@ -247,6 +178,41 @@ const AnimalList = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const fetchDownList = async (params, options = {}) => {
+    const { responseType = 'json' } = options
+    try {
+      setIsDownloading(true)
+      const response = await getAllAnimalReport(params)
+      if (responseType === 'csv' && response && response.data) {
+        handleCsvResponse(response.data)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } = response.data || {}
+
+        setTotal(total_animal)
+        setIsDownloading(false)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const handleCsvResponse = csvUrl => {
+    const link = document.createElement('a')
+    link.href = csvUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(csvUrl)
+  }
+
+  // Function to trigger the CSV download
+  const getAnimalDataToExport = async () => {
+    await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+    // await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
   const fetchData = useCallback(
@@ -270,9 +236,9 @@ const AnimalList = () => {
     fetchData(apiFilterParams, paginationModel)
   }, [fetchData])
 
-  const getAnimalDataToExport = async () => {
-    await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
-  }
+  // const getAnimalDataToExport = async () => {
+  //   await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+  // }
 
   const handleOptionChange = (category, itemIndex) => {
     setPopoverData(prevData => {
@@ -371,6 +337,8 @@ const AnimalList = () => {
     }
   })
 
+  console.log('Selected options >', selectedOptions)
+
   const getCellBackgroundColor = label => {
     switch (label) {
       case 'Male':
@@ -437,6 +405,7 @@ const AnimalList = () => {
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
               <CardHeader title='Species Animal List' />
+
               <Button
                 variant='contained'
                 onClick={() => getAnimalDataToExport()}
@@ -448,19 +417,25 @@ const AnimalList = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  mr: 2,
+                  mr: 4,
                   mt: 2
                 }}
               >
-                Download Report
-                <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+                {isDownloading ? (
+                  <CircularProgress size={20} sx={{ color: 'white' }} />
+                ) : (
+                  <>
+                    Download Report
+                    <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+                  </>
+                )}
               </Button>
             </Box>
 
             <TabContext value={status}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
                 {/* Search box and Tabs */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                   {/* Search Box */}
                   {/* <TextField
                 variant='outlined'
@@ -483,7 +458,7 @@ const AnimalList = () => {
                       flexDirection: { xs: 'column', sm: 'row' },
                       alignItems: 'center',
                       borderRadius: '8px',
-                      gap: 4,
+
                       mr: 2
                     }}
                   >
@@ -549,27 +524,54 @@ const AnimalList = () => {
                       onClick={() => handleFilterSection()}
                       variant='outlined'
                       sx={{
-                        width: '120px',
+                        width: '129px',
                         height: '40px',
                         mt: 2,
+                        mr: 2,
                         display: 'flex',
                         color: '#44544A',
+                        borderRadius: '4px',
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 4,
+                        gap: 2,
                         minWidth: '100px'
                       }}
                     >
                       <img
                         src='/images/filterIcon.png'
-                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
                         alt='Filter Icon'
                       />
 
-                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Filter</Typography>
+                      <Typography
+                        sx={{ color: '#1F515B', textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
+                      >
+                        Filter
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '9px',
+                          right: '10px',
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '69%',
+                          backgroundColor: '#1F515B',
+                          color: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      >
+                        { getTotalSelectedFilters(selectedOptions)}
+                        {/* Replace this with the actual count from your state */}
+                      </Box>
                     </Button>
                     {
                       <FilterSheet
@@ -583,8 +585,8 @@ const AnimalList = () => {
                         options={options}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
-                        handleSelectedSite={handleSelectedSite}
-                        handleSelectedOrganization={handleSelectedOrganization}
+                        handleSelection={handleSelection}
+                        getTotalSelectedFilters={getTotalSelectedFilters}
                       />
                     }
 
@@ -592,23 +594,31 @@ const AnimalList = () => {
                       onClick={handleClick}
                       variant='outlined'
                       sx={{
-                        width: '180px',
+                        width: '150px',
                         height: '40px',
                         mt: 2,
                         display: 'flex',
+                        borderRadius: '4px',
                         color: '#44544A',
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 2,
+                        mr: 2,
+                        gap: 1,
                         minWidth: '100px'
                       }}
                     >
                       <img
                         src='/images/show_popup.png'
-                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          marginBottom: '2px',
+                          marginRight: '3px',
+                          marginTop: '2px'
+                        }}
                         alt='Filter Icon'
                       />
                       <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>

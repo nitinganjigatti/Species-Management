@@ -1,5 +1,11 @@
 // import { HOUSING_REPORT, SPECIES_REPORT, USERS_REPORT } from 'src/constants/ApiConstant'
-import { All_ANIMAL_LIST, ANIMAL_REPORT, MORTALITY_REPORT, SPECIES_REPORT } from 'src/constants/ApiConstant'
+import {
+  All_ANIMAL_LIST,
+  ANIMAL_REPORT,
+  MORTALITY_REPORT,
+  REPORT_TYPE,
+  SPECIES_REPORT
+} from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 // export async function getUsersReportList() {
@@ -20,9 +26,14 @@ import { axiosGet, axiosPost } from '../utility'
 //   return response.data
 // }
 
+export async function getReportTitle() {
+  const response = await axiosGet({ url: `${REPORT_TYPE}` })
+  return response.data
+}
+
 export async function getReportList() {
   const response = await axiosGet({ url: `${SPECIES_REPORT}` })
-  return response.data
+  return response
 }
 
 export async function getReportFilterList(params) {
@@ -31,7 +42,6 @@ export async function getReportFilterList(params) {
   return reponse.data
 }
 export async function getAllAnimalReport(params) {
-  
   const response = await axiosGet({ url: `${All_ANIMAL_LIST}`, params })
   return response.data
 }
