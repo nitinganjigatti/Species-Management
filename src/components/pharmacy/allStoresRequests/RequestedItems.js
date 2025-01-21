@@ -1,0 +1,486 @@
+import React, { useState, useEffect, useCallback } from 'react'
+
+import {
+  Box,
+  CardContent,
+  CardHeader,
+  Divider,
+  Tooltip,
+  Paper,
+  Drawer,
+  Avatar,
+  Grid,
+  Card,
+  Button,
+  Chip,
+  TextField,
+  Typography,
+  InputAdornment,
+  FormControl,
+  FormControlLabel,
+  MenuItem,
+  Select,
+  InputLabel
+} from '@mui/material'
+
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { useRouter } from 'next/router'
+import { debounce } from 'lodash'
+import Utility from 'src/utility'
+import RenderUtility from 'src/utility/render'
+import { getAllRequestsOfSelectedStore, getAllRequestsOfSelectedProduct } from 'src/lib/api/pharmacy/storeWiseRequest'
+import RequestedProductDetails from 'src/views/pages/pharmacy/requests-by-stores/product-details'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+
+// import Drawer from '@mui/material/Drawer'
+
+export default function RequestedItems({ selectedStoreDetails, setSelectedStoreDetails }) {
+  const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+  const { selectedPharmacy } = usePharmacyContext()
+  const [total, setTotal] = useState(0)
+
+  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState(router.query.column || '')
+  const [controlledDrug, setControlledDrug] = useState(router.query.controlledDrug || 'all')
+  const [priority, setPriority] = useState(router.query.priority || 'emergency')
+  const [loading, setLoading] = useState(false)
+  const [showDrawer, setShowDrawer] = useState(false)
+
+  const [requestedProducts, setRequestedProducts] = useState([])
+
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
+
+  const openDrawer = () => {
+    setShowDrawer(true)
+  }
+
+  const closeDrawer = () => {
+    setShowDrawer(false)
+    setRequestedProducts([])
+  }
+
+  const handleRowClick = params => {
+    fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
+
+    // openDrawer()
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      setFilterDates({
+        startDate: Utility.formatDate(startDate),
+        endDate: Utility.formatDate(endDate)
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
+  }
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const columns = [
+    {
+      width: 80,
+      field: 'id',
+      headerName: 'SL NO ',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {parseInt(params.row.sl_no) + '.'}
+        </Typography>
+      )
+    },
+    {
+      width: 5,
+      field: 'priority',
+      headerName: '',
+      headerAlign: 'left',
+      textAlign: 'center',
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row?.priority)}</Box>
+    },
+    {
+      width: 300,
+      field: 'name',
+      headerName: 'PRODUCT NAME',
+      renderCell: params => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Tooltip title={params.row?.stock_name} placement='top'>
+            <Typography
+              sx={{
+                color: 'customColors.OnSecondaryContainer',
+                display: 'flex',
+                alignItems: 'center',
+                fontWeight: 500,
+                fontSize: '14px',
+                ...RenderUtility?.getEllipsisStyleForText()
+              }}
+            >
+              {RenderUtility?.renderControlLabel(
+                !isNaN(params.row?.control_substance) && parseInt(params.row?.control_substance) === 1,
+                'CS'
+              )}
+              {RenderUtility?.renderControlLabel(
+                !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+                'PR'
+              )}
+              {params.row?.stock_name}
+            </Typography>
+          </Tooltip>
+          <Tooltip
+            title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+            placement='top'
+          >
+            <Typography
+              sx={{
+                color: 'customColors.neutralSecondary',
+                alignItems: 'center',
+                fontSize: '12px',
+                fontWeight: 400,
+                ...RenderUtility?.getEllipsisStyleForText()
+              }}
+            >
+              {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+            </Typography>
+          </Tooltip>
+        </Box>
+      )
+    },
+
+    {
+      width: 150,
+      field: 'total_requests',
+      headerName: 'Total Requests',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.total_requests}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
+
+      field: 'pending_qty',
+      headerName: 'Pending Quantity',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.pending_qty}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
+      field: 'requested_date',
+      headerName: 'Earliest request date',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility?.formatDisplayDate(params.row.requested_date)}
+        </Typography>
+      )
+    }
+  ]
+
+  const labelKeyMapping = [
+    { label: 'Requested', key: 'requested_qty' },
+    { label: 'Fulfilled', key: 'dispatch_qty' },
+    { label: 'Shipped', key: 'shipped_qty' },
+    { label: 'Pending', key: 'rejected_qty' }
+  ]
+
+  const generateQuantityStats = data =>
+    labelKeyMapping.map(({ label, key }) => ({
+      label,
+      value: data[key] || '0'
+    }))
+
+  const fetchRequestedItemsById = async (storeId, itemId) => {
+    try {
+      // setLoading(true)
+      await getAllRequestsOfSelectedProduct(storeId, itemId).then(res => {
+        console.log('getAllRequestsOfSelectedProduct', res)
+
+        // if (res?.success === true && res?.data?.list_items?.length > 0) {
+        //   setRequestedProducts(res?.data)
+        //   setLoading(false)
+        // }
+        if (res?.success === true && res?.data?.list_items?.length > 0) {
+          const updatedListItems = res?.data?.list_items.map(item => {
+            const parentQuantityStatus = generateQuantityStats(item)
+
+            // If `alt_parent` exists, generate stats for each alternate
+            const altParentStats =
+              item?.alt_parent?.map(alt => ({
+                ...alt,
+                alternativeQuantityStatus: generateQuantityStats(alt)
+              })) || []
+
+            return {
+              ...item,
+              parentQuantityStatus,
+              alt_parent: altParentStats
+            }
+          })
+
+          setRequestedProducts({
+            ...res.data,
+            list_items: updatedListItems
+          })
+          openDrawer()
+        } else {
+          setRequestedProducts([])
+
+          // setLoading(false)
+        }
+      })
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }
+
+  const fetchTableData = useCallback(
+    async ({ sort, q, column }) => {
+      try {
+        setLoading(true)
+
+        let params = {
+          limit: paginationModel?.pageSize,
+          page: paginationModel?.page + 1,
+          q,
+          sort,
+          column,
+          ...(filterDates.startDate !== '' && { from_date: filterDates.startDate }),
+          ...(filterDates.endDate !== '' && { to_date: filterDates.endDate }),
+          ...(controlledDrug !== 'all' && { controlled: controlledDrug }),
+          ...(priority !== 'all' && { priority: priority })
+        }
+        console.log('params', params)
+
+        await getAllRequestsOfSelectedStore({ params: params }, id).then(res => {
+          if (res?.success === true) {
+            setSelectedStoreDetails({
+              storeId: res?.data?.id,
+              storeName: res?.data?.store_name
+            })
+          }
+          if (res?.success === true && res?.data?.list_items?.length > 0) {
+            setTotal(parseInt(res?.data?.total_count))
+            console.log('re', res?.data?.list_items)
+            setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
+          } else {
+            setTotal(parseInt(res?.data?.total_count))
+            setRows([])
+          }
+        })
+        setLoading(false)
+      } catch (e) {
+        console.log(e)
+        setLoading(false)
+      }
+    },
+    [paginationModel, controlledDrug, priority, filterDates]
+  )
+
+  const searchTableData = useCallback(
+    debounce(async ({ sort, q, column }) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData({ sort, q, column })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [fetchTableData]
+  )
+
+  const handleSortModel = async newModel => {
+    if (newModel.length > 0) {
+      setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
+      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
+    } else {
+    }
+  }
+
+  const handleSearch = async value => {
+    setSearchValue(value)
+    await searchTableData({ sort, q: value, column: sortColumn })
+  }
+  const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
+
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index),
+    id: getSlNo(index)
+  }))
+
+  useEffect(() => {
+    fetchTableData({ sort, q: searchValue, column: sortColumn })
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
+  }, [paginationModel, controlledDrug, priority, filterDates])
+
+  return (
+    <Box sx={{ my: 5 }}>
+      <Box>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            display: 'flex',
+            flexWrap: { xs: 'wrap', md: 'nowrap' },
+            justifyContent: { xs: 'center', md: 'space-between' },
+            alignItems: 'center',
+            gap: { xs: 2, md: 0 }
+          }}
+        >
+          <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
+            <CommonDateRangePickers onChange={handleDateRangeChange} />
+          </Grid>
+          <Grid item xs={12} md={2.5} lg={2.5}>
+            <FormControl fullWidth size='small'>
+              <InputLabel>Controlled</InputLabel>
+              <Select
+                value={controlledDrug}
+                label='Controlled'
+                onChange={e => {
+                  setControlledDrug(e.target.value)
+                }}
+              >
+                <MenuItem value='all'>All</MenuItem>
+                <MenuItem value='1'>Controlled Drug</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={2.5} lg={2.5}>
+            <FormControl fullWidth size='small'>
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={priority}
+                label='Priority'
+                onChange={e => {
+                  setPriority(e.target.value)
+                }}
+              >
+                <MenuItem value='all'>All</MenuItem>
+                <MenuItem value='high'>High</MenuItem>
+                <MenuItem value='normal'>Normal</MenuItem>
+                <MenuItem value='emergency'>Emergency</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3} lg={3}>
+            <TextField
+              variant='outlined'
+              size='small'
+              placeholder='Search...'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  </InputAdornment>
+                )
+              }}
+              sx={{
+                borderRadius: '8px'
+
+                // width: { xs: '100%', md: '290px' }
+              }}
+            />
+          </Grid>
+        </Grid>
+      </Box>
+
+      <CommonTable
+        // eslint-disable-next-line lines-around-comment
+        onRowClick={handleRowClick}
+        indexedRows={indexedRows}
+        total={total}
+        columns={columns}
+        paginationModel={paginationModel}
+        handleSortModel={handleSortModel}
+        setPaginationModel={setPaginationModel}
+        loading={loading}
+        searchValue={searchValue}
+      />
+
+      <RequestedProductDetails
+        addEventSidebarOpen={showDrawer}
+        handleSidebarClose={closeDrawer}
+        requestedProducts={requestedProducts}
+      />
+    </Box>
+  )
+}

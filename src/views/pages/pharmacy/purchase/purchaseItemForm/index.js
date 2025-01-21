@@ -810,7 +810,7 @@ const PurchaseItemForm = props => {
         </Grid>
         <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
-            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant*</InputLabel>
+            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant</InputLabel>
             <Controller
               name='purchase_variant_id'
               control={control}
@@ -913,7 +913,7 @@ const PurchaseItemForm = props => {
                 mb: 0.5
               }}
             >
-              Total Quantity- {watch('purchase_unit_qty')}
+              Total Quantity-{productVariantOptions?.length > 0 ? watch('purchase_unit_qty') : watch('purchase_qty')}
             </Typography>
           </Box>
         </Grid>

@@ -53,6 +53,7 @@ function Dispatch({ tabValue }) {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
+
   const [selectedTypeOptions, setSelectedTypeOptions] = useState([
     { name: 'Request', id: 'request' },
     { name: 'Dispatch', id: 'direct_dispatch' },
@@ -64,6 +65,7 @@ function Dispatch({ tabValue }) {
   const [requestedByOptions, setRequestedByOptions] = useState([])
   const [selectedRequestedBy, setSelectedRequestedBy] = useState(router.query.requested_by || '')
   const [selectDays, setSelectDays] = useState(router.query.days || '')
+
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.from_date || '',
     endDate: router.query.to_date || ''
@@ -447,6 +449,7 @@ function Dispatch({ tabValue }) {
     const year = date.getFullYear()
     const month = (date.getMonth() + 1).toString().padStart(2, '0')
     const day = date.getDate().toString().padStart(2, '0')
+
     return `${year}-${month}-${day}`
   }
 

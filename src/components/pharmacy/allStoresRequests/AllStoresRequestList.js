@@ -11,7 +11,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getRequestListsOfAllStores } from 'src/lib/api/pharmacy/storeWiseRequest'
-import IndividualStoreRequests from 'src/pages/pharmacy/requests-by-store/[id]'
+import Error404 from 'src/pages/404'
 
 const AllStoresRequestList = () => {
   const theme = useTheme()
@@ -31,7 +31,7 @@ const AllStoresRequestList = () => {
 
   const columns = [
     {
-      Width: 30,
+      width: 100,
       field: 'id',
       headerName: 'SL NO ',
       renderCell: params => (
@@ -48,7 +48,7 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 200,
+      width: 400,
       field: 'store_name',
       headerName: 'Store Name',
       renderCell: params => (
@@ -66,7 +66,7 @@ const AllStoresRequestList = () => {
     },
 
     {
-      width: 200,
+      width: 300,
 
       field: 'pending_items',
       headerName: 'Total Pending Items',
@@ -84,8 +84,7 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 200,
-
+      width: 300,
       field: 'emergency_items',
       headerName: 'Emergency Items',
       renderCell: params => (
@@ -270,7 +269,7 @@ const AllStoresRequestList = () => {
           </Grid>
         </Card>
       ) : (
-        <IndividualStoreRequests />
+        <Error404></Error404>
       )}
     </>
   )

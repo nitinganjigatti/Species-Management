@@ -135,6 +135,8 @@ function formatAmountToReadableDigit(value) {
     }
 
     return `₹ ${value}.00`
+
+    // return value.toLocaleString('de-DE')
   }
 
   return '0'

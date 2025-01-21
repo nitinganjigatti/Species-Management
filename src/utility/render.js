@@ -1,6 +1,7 @@
 import { Typography, Box, Avatar } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
+import Icon from 'src/@core/components/icon'
 
 export const getEllipsisStyleForText = width => {
   return {
@@ -72,14 +73,55 @@ export function getPriorityIcons(priority) {
   } else return null
 }
 
-// src={'/images/Empty-Box.png'}
+export const attachedFiles = args => {
+  const {
+    control_substance = '0',
+    icon = 'material-symbols:attachment',
+    iconStyle = {},
+    fontStyle = {},
+    prescriptionFile = ''
+  } = args
+
+  const hasControlSubstance = control_substance == '1'
+
+  return (
+    <>
+      {hasControlSubstance ? (
+        <Box
+          onClick={() => {
+            window.open(prescriptionFile, '_blank')
+          }}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            cursor: 'pointer',
+            gap: '2px',
+            textAlign: 'center'
+          }}
+        >
+          <Icon style={{ fontSize: '20px', color: 'customColors.neutral_50', ...iconStyle }} icon={icon} />
+          <Typography
+            sx={{
+              color: 'text.primary',
+              ...fontStyle
+            }}
+          >
+            prescription
+          </Typography>
+        </Box>
+      ) : null}
+    </>
+  )
+}
 
 const RenderUtility = {
   getEllipsisStyleForText,
   renderControlLabel,
   pageTitle,
   renderUserAvatarDetails,
-  getPriorityIcons
+  getPriorityIcons,
+  attachedFiles
 }
 
 export default RenderUtility

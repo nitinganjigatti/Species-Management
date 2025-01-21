@@ -29,8 +29,14 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth
       maxWidth='md'
       height='auto'
       scroll='body'
-      onClose={() => close()}
+      // eslint-disable-next-line lines-around-comment
+      // onClose={() => close()}
       TransitionComponent={Transition}
+      onClose={(event, reason) => {
+        if (reason !== 'backdropClick') {
+          close()
+        }
+      }}
     >
       <Card sx={{ bgcolor: style }}>
         {/* <Grid
