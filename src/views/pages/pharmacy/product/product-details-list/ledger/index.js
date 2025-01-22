@@ -207,7 +207,7 @@ function Ledger({ tabValue }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.type}
+          {params.row.type || 'NA'}
         </Typography>
       )
     },
@@ -249,7 +249,45 @@ function Ledger({ tabValue }) {
         </Typography>
       )
     },
+    {
+      width: 160,
+      field: 'shipment_date',
+      headerName: 'TRANSACTION DATE',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.shipment_date))}
+          {/* -{' '}
+          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.date))} */}
+        </Typography>
+      )
+    },
 
+    {
+      width: 170,
+      field: 'receiving_pharmacy',
+      headerName: 'DISPATCH TO',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.receiving_pharmacy || 'NA'}
+        </Typography>
+      )
+    },
     {
       width: 170,
       field: 'dispatched_pharmacy',
@@ -354,7 +392,7 @@ function Ledger({ tabValue }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.transaction}
+          {params.row.transaction || 'NA'}
         </Typography>
       )
     },
@@ -386,14 +424,14 @@ function Ledger({ tabValue }) {
               fontFamily: 'Inter'
             }}
           >
-            {params.row.transaction_created_by}
+            {params.row.transaction_created_by || 'NA'}
             <Typography
               sx={{
                 fontSize: '12px',
                 fontWeight: 400
               }}
             >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
+              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at)) || 'NA'}
             </Typography>
           </Typography>
         </>
@@ -462,8 +500,6 @@ function Ledger({ tabValue }) {
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    stock_item_id: stockDetails.stock_item_id,
-    batch_no: stockDetails.batch_no,
     id: `${index}`,
     sl_no: getSlNo(index)
   }))
@@ -876,7 +912,11 @@ function Ledger({ tabValue }) {
                         fontSize: '16px'
                       }}
                     >
-                      {stockDetails?.total_dispatch_qty || '0'}
+                      {stockDetails
+                        ? Number(stockDetails?.total_request_qty || 0) +
+                          Number(stockDetails?.total_dispatch_qty || 0) +
+                          Number(stockDetails?.total_dispense_qty || 0)
+                        : '0'}
                     </Typography>
                   </Box>
                 </Grid>
