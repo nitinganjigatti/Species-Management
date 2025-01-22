@@ -786,7 +786,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   lg={12 / 5}
                   sx={{
                     textAlign: { xs: 'left', sx: 'right' },
-                    mt: { mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' } },
+                    mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' },
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '4px'
