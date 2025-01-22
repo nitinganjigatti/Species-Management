@@ -141,25 +141,47 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
                     </Box>
 
                     {/* Icon */}
-                    <Box
-                      sx={{
-                        m: 2,
-                        width: '158px',
-                        height: '133px',
-                        backgroundColor: defaultIcon?.document?.bg_color,
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <img
-                        src={defaultIcon?.document?.image_path ? defaultIcon?.document?.image_path : null}
-                        alt={'Docs ICon'}
+                    {isPDF(doc.title || doc) ? (
+                      <Box
+                        sx={{
+                          m: 2,
+                          width: '158px',
+                          height: '133px',
+                          backgroundColor: defaultIcon?.document?.bg_color,
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <img
+                          src={defaultIcon?.document?.image_path ? defaultIcon?.document?.image_path : null}
+                          alt={'Docs ICon'}
 
-                        // style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      />
-                    </Box>
+                          // style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          m: 2,
+                          width: '158px',
+                          height: '133px',
+
+                          // backgroundColor: defaultIcon?.document?.bg_color,
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <img
+                          src={doc.transcript ? doc.transcript : doc}
+                          alt={'Docs ICon'}
+                          style={{ width: '100%', height: '100%', borderRadius: '8px' }}
+                        />
+                      </Box>
+                    )}
 
                     {/* Text */}
                     <Box sx={{ marginTop: -1, px: 2, pb: 1 }}>
