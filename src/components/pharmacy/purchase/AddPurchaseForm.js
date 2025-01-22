@@ -2591,7 +2591,7 @@ const AddPurchaseForm = () => {
                         onChange={e => {
                           // Restrict non-numeric inputs and update value
                           const value = e.target.value
-                          if (/^\d*$/.test(value)) {
+                          if (/^\d*\.?\d*$/.test(value)) {
                             setInputValue(value)
                           }
                         }}
