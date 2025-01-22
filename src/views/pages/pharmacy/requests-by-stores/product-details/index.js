@@ -343,10 +343,10 @@ const RequestedProductDetails = props => {
           }}
         >
           <Grid container>
-            <Grid item xs={11} sm={11} sx={{ px: 2, display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <Box
                 sx={{
-                  backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.2),
+                  backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05),
                   width: '66px',
                   height: '66px',
                   borderRadius: '8px',
@@ -444,6 +444,7 @@ const RequestedProductDetails = props => {
                     fontFamily: 'Inter'
                   }}
                 >
+                  {' '}
                   {pendingItems}
                 </Typography>
               </Typography>
@@ -479,7 +480,7 @@ const RequestedProductDetails = props => {
                 height: 'auto'
               }}
             >
-              Pending Requests -
+              Pending Requests - {''}
               {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : 'NA'}
             </Typography>
           </Grid>
@@ -489,9 +490,10 @@ const RequestedProductDetails = props => {
               <Grid key={index} item xs={12} sm={12} mb={2}>
                 <Card
                   sx={{
-                    padding: '16px'
-
-                    // border: '1px solid blue',
+                    padding: '16px',
+                    boxShadow: 'none',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    boxShadow: `0px 4px 12px ${theme => alpha(theme.palette.customColors.neutral05, 0.05)}`
                   }}
                 >
                   <CardHeader
@@ -584,7 +586,7 @@ const RequestedProductDetails = props => {
                     sx={{
                       my: '8px',
                       width: '100%',
-                      backgroundColor: theme => alpha(theme.palette.customColors.neutral05)
+                      backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
                     }}
                   />
                   <Box>
@@ -596,7 +598,7 @@ const RequestedProductDetails = props => {
                         display: 'flex',
                         gap: 2,
                         justifyContent: 'space-between',
-                        backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.1)
+                        backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
                       }}
                     >
                       {parentItems?.parentQuantityStatus?.map((item, index) => (
@@ -660,8 +662,7 @@ const RequestedProductDetails = props => {
                         xs={3}
                         sx={{
                           display: 'flex',
-                          justifyContent: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'flex-end'
                         }}
                       >
                         <Box
