@@ -28,6 +28,7 @@ import { getDietDetails } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import SpeciesMappedtoDiet from 'src/components/diet/SpeciesMappedtoDiet'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -37,6 +38,7 @@ const DietDetail = () => {
   const [loaderTwo, setLoaderTwo] = useState(false)
   const [dietDetails, setDietDetails] = useState({})
   const [value, setValue] = useState('full')
+  const [isOpen, setIsOpen] = useState(false)
   const schedule = []
 
   let startArry = []
@@ -47,6 +49,10 @@ const DietDetail = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+  }
+
+  const handleSpeciesClick = () => {
+    setIsOpen(true)
   }
 
   useEffect(() => {
@@ -159,33 +165,32 @@ const DietDetail = () => {
                   dietModulePermission={dietModule}
                   dietModuleAccess={dietModuleAccess}
                 />
-                <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px' }}>
-                    Meals Plan - {dietDetails?.diet_type_name}
-                  </Typography>
-                  {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
+                <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: '20px' }}>
+                      Meals Plan - {dietDetails?.diet_type_name}
+                    </Typography>
+
+                    <Button startIcon={<Icon icon='mi:add' />} variant='contained' onClick={handleSpeciesClick}>
+                      ADD SPECIES
+                    </Button>
+                  </Box>
+
+                  <Typography sx={{ fontWeight: 500, fontSize: '14px', color: '#7A8684', mb: 4 }}>
                     You have added{' '}
                     <span
                       style={{
                         fontWeight: 500,
-                        fontSize: '20px',
+                        fontSize: '16px',
                         lineHeight: '24.2px',
                         color: theme.palette.primary.main
                       }}
                     >
-                      {' '}
-                      13 species{' '}
+                      13 species
                     </span>{' '}
                     for this diet plan
                   </Typography>
-                </Box>
 
-                <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
-                  ADD SPECIES
-                </Button>
-              </Box> */}
                   <Box>
                     <TabContext value={value}>
                       <TabList
@@ -3024,6 +3029,12 @@ const DietDetail = () => {
               </Box>
             </Box>
           )}
+          <SpeciesMappedtoDiet
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            dietname={dietDetails?.diet_name}
+            dietid={dietDetails?.id}
+          />
         </>
       ) : (
         <>
