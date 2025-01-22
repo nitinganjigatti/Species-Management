@@ -434,7 +434,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         sx={{
           display: 'flex',
           justifyItems: 'center',
-
           alignItems: 'center'
         }}
       >
@@ -444,6 +443,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             color: '#37BD69',
             height: '42px',
             width: '42px',
+            // height: '56px',
+            // width: '56px',
             border: '1px solid #37BD69',
             borderRadius: '8px',
             cursor: 'pointer',
@@ -479,6 +480,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             color: '#E93353',
             height: '42px',
             width: '42px',
+            // height: '56px',
+            // width: '56px',
             border: '1px solid #E93353',
             borderRadius: '8px',
             cursor: 'pointer'
@@ -557,6 +560,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             color: '#E93353',
             height: '42px',
             width: '42px',
+            // height: '56px',
+            // width: '56px',
             border: '1px solid #E93353',
             borderRadius: '8px',
             cursor: 'pointer'
@@ -933,16 +938,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         borderRadius: 1,
                         display: 'flex',
                         flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        justifyItems: 'center',
-
+                        // justifyContent: 'center',
+                        alignItems: 'flex-start',
                         // gap: 1,
-                        gap: { xs: 2, sm: 0 },
-                        padding: '16px',
-                        justifyContent: 'space-between'
-
-                        // minHeight: '136px'
+                        gap: { xs: 6, sm: 0 },
+                        padding: '20px',
+                        justifyContent: 'space-between',
+                        transition: 'min-height 0.3s ease-in-out'
                       }}
                     >
                       <Grid item xs={12} sm={batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4}>
@@ -955,6 +957,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             render={({ field: { value, onChange } }) => {
                               return (
                                 <Autocomplete
+                                  size='medium'
                                   id={parseInt(`product_batches[${index}].batch_no`)}
                                   options={batchItems}
                                   getOptionLabel={option => option?.batch_no}
@@ -1083,11 +1086,15 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             <FormHelperText
                               sx={{
                                 color: 'error.main',
-                                position: 'absolute',
-
-                                bottom: '-30px',
-                                left: 0,
-                                width: '100%'
+                                // position: 'absolute',
+                                // bottom: '-30px',
+                                // left: 0,
+                                width: '100%',
+                                ml: 0
+                                // bottom: {
+                                //   xs: '-18px',
+                                //   sm: batchItems[index]?.stock_type === 'non_medical' ? '-18px' : '-30px'
+                                // }
                               }}
                             >
                               {errors?.product_batches?.[index]?.batch_no?.message}
@@ -1120,11 +1127,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               <FormHelperText
                                 sx={{
                                   color: 'error.main',
-                                  position: 'absolute',
-
-                                  bottom: '-16px',
+                                  // position: 'absolute',
+                                  // bottom: '-16px',
                                   left: 0,
-                                  width: '100%'
+                                  width: '100%',
+                                  ml: 0
                                 }}
                               >
                                 {errors?.product_batches?.[index]?.expiry_date?.message}
@@ -1183,7 +1190,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               />
                             )}
                           />
-                          <Box
+                          {/* <Box
                             sx={{
                               position: 'absolute',
                               top: '55px',
@@ -1193,19 +1200,20 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               flexDirection: 'column',
                               alignItems: 'flex-start'
                             }}
-                          >
-                            {errors?.product_batches?.[index]?.qty && (
-                              <FormHelperText
-                                sx={{
-                                  color: 'error.main',
-                                  width: '100%'
-                                }}
-                              >
-                                {errors?.product_batches?.[index]?.qty?.message}
-                              </FormHelperText>
-                            )}
+                          > */}
+                          {errors?.product_batches?.[index]?.qty && (
+                            <FormHelperText
+                              sx={{
+                                color: 'error.main',
+                                width: '100%',
+                                ml: 0
+                              }}
+                            >
+                              {errors?.product_batches?.[index]?.qty?.message}
+                            </FormHelperText>
+                          )}
 
-                            {/* {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
+                          {/* {watch(`product_batches[${index}].quantityAvailable`) > 0 ? (
                               <FormHelperText
                                 sx={{
                                   color: 'primary.main',
@@ -1215,7 +1223,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 Available Quantity:{watch(`product_batches[${index}].quantityAvailable`)}
                               </FormHelperText>
                             ) : null} */}
-                          </Box>
+                          {/* </Box> */}
                         </FormControl>
                       </Grid>
 
@@ -1223,11 +1231,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         item
                         xs={12}
                         sm={batchItems[index]?.stock_type === 'non_medical' ? 1.6 : 1.6}
-                        alignSelf='center'
+                        alignSelf={errors?.product_batches?.[index] ? 'flex-start' : 'center'}
                         sx={{
                           display: 'flex',
                           justifyItems: 'center',
-                          alignItems: 'center',
+                          alignItems: errors?.product_batches?.[index] ? 'flex-start' : 'center',
                           justifyContent: 'center'
                         }}
                       >
@@ -1288,7 +1296,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                     title='Add Item'
                   />
                 ) : (
-                  <Box sx={{ float: 'right', my: 2 }}>
+                  <Box sx={{ float: 'right', mb: 6 }}>
                     <LoadingButton
                       size='large'
                       variant='outlined'
