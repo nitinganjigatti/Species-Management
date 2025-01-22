@@ -1300,7 +1300,7 @@ const AddPurchaseForm = () => {
 
   useEffect(() => {
     if (grandTotalAmount && id) {
-      setInputValue(grandTotalAmount)
+      setInputValue(Number(grandTotalAmount).toFixed(2))
     }
   }, [grandTotalAmount])
 
