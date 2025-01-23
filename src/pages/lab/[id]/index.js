@@ -153,6 +153,10 @@ const RequestDetails = () => {
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
+  const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
+  console.log('headerStatus', headerStatus)
+  const [selectedRow, setSelectedRow] = useState([])
+  console.log('selectedRow', selectedRow)
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -367,7 +371,7 @@ const RequestDetails = () => {
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={params.row.status === 'transferred' ? 'awaiting_sample' : params.row.status}
+                  defaultValue={headerStatus === 'transferred' ? 'awaiting_sample' : params.row.status}
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
@@ -816,6 +820,16 @@ const RequestDetails = () => {
     setOpenSnackbar(false)
   }
 
+  const handleSelectionModelChange = value => {
+    setSelectedRow
+    console.log('value', value)
+  }
+
+  const handleHeaderDropdown = e => {
+    const value = e.target.value
+    setHeaderStatus(value)
+  }
+
   return (
     <>
       {loader ? (
@@ -912,9 +926,112 @@ const RequestDetails = () => {
           />
 
           <Card sx={{ mt: 5 }}>
-            <CardHeader title='Lab Tests' />
+            {/* <CardHeader title='Lab Tests' /> */}
+            <Box
+              sx={{
+                px: 5,
+                py: 3,
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
+
+              <Box>
+                <FormControl fullWidth variant='outlined'>
+                  <Select
+                    size='small'
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    // defaultValue={'awaiting_sample'}
+                    value={headerStatus}
+                    onChange={e => handleHeaderDropdown(e)}
+                    sx={{
+                      width: 237,
+                      fontSize: '14px',
+
+                      // border: '1px solid red',
+
+                      backgroundColor:
+                        headerStatus === 'pending' ||
+                        headerStatus === 'transferred' ||
+                        headerStatus === 'awaiting_sample' ||
+                        headerStatus === 'sample_rejected' ||
+                        headerStatus === 'sample_received'
+                          ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                          : headerStatus === 'completed'
+                          ? '#37BD69' // light green background for completed
+                          : headerStatus === 'inprogress'
+                          ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                          : 'rgba(0, 128, 0, 0.1)',
+
+                      color:
+                        headerStatus === 'pending' ||
+                        headerStatus === 'transferred' ||
+                        headerStatus === 'awaiting_sample' ||
+                        headerStatus === 'sample_rejected' ||
+                        headerStatus === 'sample_received'
+                          ? '#FA6140'
+                          : headerStatus === 'completed'
+                          ? '#37BD69'
+                          : headerStatus === 'inprogress'
+                          ? '#E4B819 '
+                          : '#37BD69',
+
+                      borderRadius: '8px',
+
+                      '& .MuiSelect-icon': {
+                        color:
+                          headerStatus === 'pending' ||
+                          headerStatus === 'transferred' ||
+                          headerStatus === 'awaiting_sample' ||
+                          headerStatus === 'sample_rejected' ||
+                          headerStatus === 'sample_received'
+                            ? '#FA6140'
+                            : headerStatus === 'completed'
+                            ? '#37BD69'
+                            : headerStatus === 'inprogress'
+                            ? '#E4B819'
+                            : '#37BD69'
+                      },
+
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        border: '0',
+
+                        borderColor:
+                          headerStatus === 'pending' ||
+                          headerStatus === 'transferred' ||
+                          headerStatus === 'awaiting_sample' ||
+                          headerStatus === 'sample_rejected' ||
+                          headerStatus === 'sample_received'
+                            ? '#FA6140' // Custom red border for these statuses
+                            : headerStatus === 'completed'
+                            ? '#37BD69' // Custom green border for completed
+                            : headerStatus === 'inprogress'
+                            ? '#E4B819' // Custom yellow border for in progress
+                            : '#37BD69' // Default green border
+                      },
+
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '0'
+                      }
+                    }}
+                  >
+                    {statusData?.map((item, index) => (
+                      <MenuItem key={index} value={item?.id}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
 
             <DataGrid
+              checkboxSelection
+              onRowSelectionModelChange={handleSelectionModelChange}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -929,9 +1046,7 @@ const RequestDetails = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              // getRowId={row => row?.test_id}
               onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
                 baseButton: {
