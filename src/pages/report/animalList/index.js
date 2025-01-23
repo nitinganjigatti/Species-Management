@@ -212,6 +212,7 @@ const AnimalList = () => {
   // Function to trigger the CSV download
   const getAnimalDataToExport = async () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+
     // await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
@@ -270,9 +271,11 @@ const AnimalList = () => {
               />
             }
             title={
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                RN: {params.row.taxonomy_id}
-              </Typography>
+              params.row.primary_identifier_value ? (
+                <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+                  {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
+                </Typography>
+              ) : null
             }
             subheader={
               <>
@@ -569,7 +572,7 @@ const AnimalList = () => {
                           fontWeight: 500
                         }}
                       >
-                        { getTotalSelectedFilters(selectedOptions)}
+                        {getTotalSelectedFilters(selectedOptions)}
                         {/* Replace this with the actual count from your state */}
                       </Box>
                     </Button>
