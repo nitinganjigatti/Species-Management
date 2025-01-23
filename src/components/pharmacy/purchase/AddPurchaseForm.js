@@ -46,7 +46,8 @@ import {
   updatePurchase,
   updatePurchasePrice,
   getBatchExpiry,
-  validatePurchaseProducts
+  validatePurchaseProducts,
+  postDeleteInvoiceById
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -174,6 +175,9 @@ const AddPurchaseForm = () => {
   const [fileArr, setFileArr] = useState([])
 
   const [displayFile, setDisplayFile] = useState('')
+  const [deleteId, setDeleteId] = useState('')
+  const [deleteLoader, setDeleteLoader] = useState(false)
+  const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false)
   //----------
 
   const [totalFreightCharges, setTotalFreightCharges] = useState(0)
@@ -279,7 +283,7 @@ const AddPurchaseForm = () => {
     return totalLineItemsPurchase + parseFloat(totalFreightCharges) + parseFloat(additionalCharges) + roundUp
   }, [totalLineItemsPurchase, totalFreightCharges, additionalCharges, roundUpValue, roundup_select])
 
-  console.log('grandTotalAmount', grandTotalAmount)
+  // console.log('grandTotalAmount', grandTotalAmount)
 
   // const totalLineItemsDiscount = editParams.purchase_details?.reduce(
   //   (acc, row) => acc + parseFloat(row.purchase_discount_amount ? row.purchase_discount_amount : 0),
@@ -563,7 +567,7 @@ const AddPurchaseForm = () => {
 
   const onSubmit = async data => {
     setSubmitLoader(true)
-    console.log('data', data)
+    // console.log('data', data)
 
     const postData = editParams
     postData.description = data.description
@@ -594,7 +598,7 @@ const AddPurchaseForm = () => {
     postData.round_off = roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue
 
     // debugger
-    console.log('postData', postData)
+    // console.log('postData', postData)
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -795,7 +799,7 @@ const AddPurchaseForm = () => {
           // variantId: el?.variant_id
         }
       })
-      console.log('data', data)
+      // console.log('data', data)
       setProductVariantOptions(data)
     }
   }
@@ -1246,29 +1250,53 @@ const AddPurchaseForm = () => {
     }
   }
 
-  const removeSelectedImage = (e, index) => {
+  // delete api fun.
+
+  const deleteInvoiceById = async (id, deleteId) => {
+    const params = { transcript_id: deleteId }
+    setDeleteLoader(true)
+    try {
+      const res = await postDeleteInvoiceById(id, params) // Call the actual API function
+      // console.log('res', res)
+      if (res?.success) {
+        if (id != undefined && action === 'edit') {
+          getListOfItemsById(id)
+        }
+        toast.success(res?.data)
+      } else {
+        toast.success(res?.data)
+      }
+    } catch (error) {
+      console.log('purchase error', error)
+    } finally {
+      setDeleteLoader(false)
+      setConfirmDeleteDialog(false)
+    }
+  }
+
+  const removeSelectedImage = (e, deleteId) => {
     e.stopPropagation()
-    setFileSrc(prevFiles => {
-      const updatedFiles = prevFiles.filter((_, i) => i !== index)
-      if (updatedFiles.length === 0) {
-        setValue('invoice_transcript', '')
-      } else {
-        setValue('invoice_transcript', updatedFiles)
-      }
 
-      return updatedFiles
-    })
+    if (deleteId && action === 'edit') {
+      deleteInvoiceById(id, deleteId)
+    } else {
+      setFileSrc(prevFiles => {
+        const updatedFiles = prevFiles.filter((_, i) => i !== deleteId)
+        setValue('invoice_transcript', updatedFiles.length === 0 ? '' : updatedFiles)
 
-    setFileArr(prevFiles => {
-      const updatedFiles = prevFiles.filter((_, i) => i !== index)
-      if (updatedFiles.length === 0) {
-        setValue('invoice_transcript', '')
-      } else {
-        setValue('invoice_transcript', updatedFiles)
-      }
+        return updatedFiles
+      })
 
-      return updatedFiles
-    })
+      setFileArr(prevFiles => {
+        const updatedFiles = prevFiles.filter((_, i) => i !== deleteId)
+        // Only set value once
+        setValue('invoice_transcript', updatedFiles.length === 0 ? '' : updatedFiles)
+
+        return updatedFiles
+      })
+
+      setConfirmDeleteDialog(false)
+    }
   }
 
   // ---------------
@@ -2709,8 +2737,14 @@ const AddPurchaseForm = () => {
           openDocsDrawer={openDocsDrawer}
           invoiceFile={fileSrc}
           fileArr={fileArr}
+          confirmDeleteDialog={confirmDeleteDialog}
+          setConfirmDeleteDialog={setConfirmDeleteDialog}
           removeSelectedImage={removeSelectedImage}
           setOpenDocsDrawer={setOpenDocsDrawer}
+          deleteId={deleteId}
+          setDeleteId={setDeleteId}
+          setDeleteLoader={setDeleteLoader}
+          deleteLoader={deleteLoader}
         />
       )}
     </Card>

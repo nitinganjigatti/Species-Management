@@ -19,6 +19,18 @@ export async function getPurchaseListById(id) {
   return response.data
 }
 
+export async function postDeleteInvoiceById(id, params) {
+  console.log('params', params)
+
+  const response = await axiosFormPost({
+    url: `v1/pharma/${PURCHASE}/${id}/deleteinvoicetranscript`,
+    body: params,
+    pharmacy: true
+  })
+
+  return response.data
+}
+
 export async function addPurchase(payload) {
   try {
     const url = `v2/pharma/${PURCHASE}`

@@ -1,17 +1,34 @@
 import { useTheme } from '@mui/material/styles'
-import { Drawer, Box, Typography, IconButton, Paper, Dialog } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, Paper, Dialog, Button } from '@mui/material'
 import React, { useContext, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import { useRouter } from 'next/router'
+import { LoadingButton } from '@mui/lab'
 
-const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fileArr, removeSelectedImage }) => {
+const PurchaseDocsDrawer = ({
+  openDocsDrawer,
+  setOpenDocsDrawer,
+  invoiceFile,
+  fileArr,
+  deleteId,
+  removeSelectedImage,
+  setDeleteId,
+  setDeleteLoader,
+  deleteLoader,
+  confirmDeleteDialog,
+  setConfirmDeleteDialog
+}) => {
   const [openDialog, setOpenDialog] = useState(false)
   const authData = useContext(AuthContext)
   const [defaultIcon, setDefaultIcon] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
-  console.log('invoiceFile', invoiceFile)
+
+  // console.log('invoiceFile', invoiceFile)
   const [selectedDoc, setSelectedDoc] = useState(null)
   const theme = useTheme()
+  const router = useRouter()
+  const { id, action, navigatedFrom } = router.query
 
   const handleOpenDialog = doc => {
     setSelectedDoc(doc)
@@ -24,7 +41,22 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
   }
 
   const isPDF = title => title?.toLowerCase().endsWith('.pdf')
-  console.log('isPDF', isPDF)
+
+  // console.log('isPDF', isPDF)
+
+  const handleDelete = (e, index, doc) => {
+    e.preventDefault()
+    e.stopPropagation() // Stop the event from propagating to the <a> tag
+    setConfirmDeleteDialog(true)
+
+    if (id) {
+      setDeleteId(doc?.id)
+    } else {
+      setDeleteId(index)
+    }
+
+    // removeSelectedImage(e, index, doc)
+  }
 
   return (
     <Drawer
@@ -106,7 +138,7 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
                   rel='noopener noreferrer'
                   style={{ textDecoration: 'none' }}
                 >
-                  {console.log(' doc[index]', doc)}
+                  {/* {console.log(' doc[index]', doc)} */}
                   <Box
                     key={index}
                     elevation={3}
@@ -124,9 +156,8 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
                     <Box
                       size='small'
                       onClick={e => {
-                        e.preventDefault()
-                        e.stopPropagation() // Stop the event from propagating to the <a> tag
-                        removeSelectedImage(e, index) // Call your remove function
+                        // Call your remove function
+                        handleDelete(e, index, doc)
                       }}
                       sx={{
                         position: 'absolute',
@@ -255,6 +286,58 @@ const PurchaseDocsDrawer = ({ openDocsDrawer, setOpenDocsDrawer, invoiceFile, fi
               objectFit: 'contain' // Prevents cropping and fits the content within the container
             }}
           />
+        </Box>
+      </Dialog>
+      <Dialog open={confirmDeleteDialog} onClose={() => setConfirmDeleteDialog(false)} fullWidth maxWidth='sm'>
+        <Box sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Icon
+              icon='material-symbols:delete-outline-rounded'
+              width='24px'
+              height='24px'
+              color={theme.palette.customColors.Error}
+            />
+
+            <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Delete File!</Typography>
+          </Box>
+          <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
+            Are you sure you want to delete{' '}
+            <span style={{ color: theme.palette.customColors.Error }}>{selectedDoc?.title}1</span> ?
+          </Typography>
+          <Box sx={{ float: 'right', ml: 'auto', display: 'flex', gap: 4 }}>
+            <Button
+              variant='outlined'
+              sx={{
+                borderColor: theme.palette.customColors.OutlineVariant,
+                color: theme.palette.customColors.neutralSecondary,
+                '&:hover': {
+                  borderColor: theme.palette.customColors.OutlineVariant,
+                  color: theme.palette.customColors.neutralSecondary // Color on hover
+                }
+              }}
+              onClick={() => setConfirmDeleteDialog(false)}
+
+              // loading={submitLoader}
+            >
+              CANCEL
+            </Button>
+            {/* {id ? null : ( */}
+            <LoadingButton
+              onClick={e => removeSelectedImage(e, deleteId)}
+              loading={deleteLoader}
+              size='large'
+              variant='contained'
+              sx={{
+                bgcolor: theme.palette.customColors.Error,
+                '&:hover': {
+                  bgcolor: theme.palette.customColors.Error // Color on hover
+                }
+              }}
+            >
+              DELETE
+            </LoadingButton>
+            {/* )} */}
+          </Box>
         </Box>
       </Dialog>
     </Drawer>
