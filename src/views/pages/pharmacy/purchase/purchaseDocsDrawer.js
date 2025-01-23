@@ -46,6 +46,7 @@ const PurchaseDocsDrawer = ({
   // console.log('isPDF', isPDF)
 
   const handleDelete = (e, index, doc) => {
+    setSelectedDoc(doc)
     e.preventDefault()
     e.stopPropagation() // Stop the event from propagating to the <a> tag
 
@@ -248,49 +249,47 @@ const PurchaseDocsDrawer = ({
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth='md'>
         <Box
           sx={{
-            // borderBottom: 1,
-            borderColor: '',
-
-            p: '16px',
-            display: 'flex',
-
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: theme?.palette?.customColors?.lightBg
-
-            // boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)'
-          }}
-        >
-          <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
-            {selectedDoc?.title}
-          </Typography>
-          <IconButton onClick={handleCloseDialog}>
-            <Icon icon='maki:cross' width='15' height='15' color={theme.palette.customColors.OnPrimaryContainer} />
-          </IconButton>
-        </Box>
-
-        <Box
-          sx={{
             width: '100%',
             height: 'auto',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            overflow: 'hidden', // Ensures no content spills out
-            backgroundColor: '#f0f0f0' // Optional background for better visibility
+            overflow: 'hidden',
+            backgroundColor: '#f0f0f0',
+            position: 'relative' // Ensure the IconButton is positioned relative to this container
           }}
         >
+          {/* Close Icon */}
+          <IconButton
+            onClick={handleCloseDialog}
+            sx={{
+              position: 'absolute', // Position it absolutely within the parent container
+              top: '10px', // Adjust top position
+              right: '10px', // Adjust right position
+              // backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: Background for better visibility
+              // '&:hover': {
+              //   backgroundColor: 'rgba(255, 255, 255, 1)'
+              // },
+              zIndex: 2 // Ensure it appears above the image
+            }}
+          >
+            <Icon icon='solar:close-square-bold' width='40px' height='40px' color={'#7A8684'} />
+          </IconButton>
+
+          {/* Image */}
           <img
             src={selectedDoc?.transcript || selectedDoc}
             alt='Invoice doc'
             style={{
               maxWidth: '100%',
+              minHeight: 400,
               maxHeight: '100%',
-              objectFit: 'contain' // Prevents cropping and fits the content within the container
+              objectFit: 'contain' // Prevent cropping and fits the content within the container
             }}
           />
         </Box>
       </Dialog>
+
       <Dialog open={confirmDeleteDialog} onClose={() => setConfirmDeleteDialog(false)} fullWidth maxWidth='sm'>
         <Box sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -304,8 +303,8 @@ const PurchaseDocsDrawer = ({
             <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Delete File!</Typography>
           </Box>
           <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
-            Are you sure you want to delete ?
-            {/* <span style={{ color: theme.palette.customColors.Error }}>{selectedDoc?.title}</span> ? */}
+            Are you sure you want to delete{' '}
+            <span style={{ color: theme.palette.customColors.Error }}>{selectedDoc?.title}</span> ?
           </Typography>
           <Box sx={{ float: 'right', ml: 'auto', display: 'flex', gap: 4 }}>
             <Button
