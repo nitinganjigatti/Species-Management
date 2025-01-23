@@ -304,8 +304,8 @@ const PurchaseDocsDrawer = ({
             <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Delete File!</Typography>
           </Box>
           <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
-            Are you sure you want to delete{' '}
-            <span style={{ color: theme.palette.customColors.Error }}>{selectedDoc?.title}1</span> ?
+            Are you sure you want to delete ?
+            {/* <span style={{ color: theme.palette.customColors.Error }}>{selectedDoc?.title}</span> ? */}
           </Typography>
           <Box sx={{ float: 'right', ml: 'auto', display: 'flex', gap: 4 }}>
             <Button
