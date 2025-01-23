@@ -927,26 +927,29 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   {/* {watch('localIdentifierType')!=''&& */}
-                  <FormControl sx={{ mb: 4 }} fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          error={Boolean(errors?.comment)}
-                          value={value}
-                          label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
-                          name='localIdentifier'
-                          onChange={onChange}
-                          placeholder=''
-                        />
+
+                  {watch('localIdentifierType') === '' ? null : (
+                    <FormControl sx={{ mb: 4 }} fullWidth>
+                      <Controller
+                        name='localIdentifier'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            error={Boolean(errors?.comment)}
+                            value={value}
+                            label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
+                            name='localIdentifier'
+                            onChange={onChange}
+                            placeholder=''
+                          />
+                        )}
+                      />
+                      {errors.localIdentifier && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
                       )}
-                    />
-                    {errors.localIdentifier && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='parentMother'>Parent Mother</InputLabel>
                     <Controller
