@@ -234,7 +234,7 @@ const AnimalList = () => {
     [paginationModel]
   )
 
-  useEffect(() => {
+  useEffect(() => { 
     fetchData(apiFilterParams, paginationModel)
   }, [fetchData])
 

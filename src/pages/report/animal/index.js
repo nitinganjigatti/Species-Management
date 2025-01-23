@@ -225,11 +225,12 @@ const Animal = () => {
       flex: 0.7,
       renderCell: params => {
         const handleExport = params => {
+     
           const { row } = params
           setDownloadingRowId(row.id)
           getDataToExport(row.key)
-            .then(() => setDownloadingRowId(null)) // Clear the loader on success
-            .catch(() => setDownloadingRowId(null)) // Clear the loader on error
+            .then(() => setDownloadingRowId(null)) 
+            .catch(() => setDownloadingRowId(null))
         }
 
         return (
@@ -237,8 +238,8 @@ const Animal = () => {
             variant='contained'
             onClick={() => handleExport(params)}
             sx={{
-              width: '120px', // Set a fixed width
-              height: '40px', // Set a fixed height
+              width: '120px', 
+              height: '40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
