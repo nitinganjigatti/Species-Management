@@ -204,7 +204,7 @@ const ListOfMedicine = () => {
       // flex: 0.3,
       width: 200,
       minWidth: 20,
-      field: 'created_at',
+      field: 'stock_type',
       headerName: 'Product Type',
       renderCell: params => (
         <Tooltip title={params.row.stock_type}>
