@@ -447,8 +447,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             // width: '56px',
             border: '1px solid #37BD69',
             borderRadius: '8px',
-            cursor: 'pointer',
-            marginRight: '10px'
+            cursor: 'pointer'
+            // marginRight: '10px'
           }}
           onClick={() => {
             //setSalts([])
@@ -484,7 +484,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             // width: '56px',
             border: '1px solid #E93353',
             borderRadius: '8px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            marginLeft: '10px'
           }}
           onClick={() => {
             // var tempDefaultSalts = defaultSalts
@@ -550,7 +551,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         sx={{
           display: 'flex',
           justifyItems: 'center',
-
           alignItems: 'center'
         }}
       >
@@ -564,7 +564,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             // width: '56px',
             border: '1px solid #E93353',
             borderRadius: '8px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            marginLeft: '10px'
           }}
           onClick={() => {
             // var tempDefaultSalts = defaultSalts
@@ -941,7 +942,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         // justifyContent: 'center',
                         alignItems: 'flex-start',
                         // gap: 1,
-                        gap: { xs: 6, sm: 0 },
+                        gap: { xs: 5, sm: 0 },
                         padding: '20px',
                         justifyContent: 'space-between',
                         transition: 'min-height 0.3s ease-in-out'
@@ -1236,7 +1237,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           display: 'flex',
                           justifyItems: 'center',
                           alignItems: errors?.product_batches?.[index] ? 'flex-start' : 'center',
-                          justifyContent: 'center'
+                          justifyContent: { xs: 'center', sm: 'flex-end' },
+                          mt: errors?.product_batches?.[index] ? { xs: '0', sm: '7px' } : '0px'
                         }}
                       >
                         {handleAddRemoveSalts(fields, index)}

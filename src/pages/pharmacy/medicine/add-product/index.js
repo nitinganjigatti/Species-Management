@@ -731,7 +731,9 @@ const AddMedicine = () => {
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/product-list')
+
+        // Router.push(`/pharmacy/medicine/${id}}`)
+        Router.back()
       } else {
         setSubmitLoader(false)
 

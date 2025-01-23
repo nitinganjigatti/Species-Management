@@ -661,7 +661,7 @@ function Dispatch({ tabValue }) {
             </Grid>
 
             {/* Filter Button */}
-            <Grid item xs={12} sm='auto'>
+            {/* <Grid item xs={12} sm='auto'>
               <Button
                 variant='outlined'
                 startIcon={<FilterListIcon />}
@@ -675,7 +675,7 @@ function Dispatch({ tabValue }) {
               >
                 Filter
               </Button>
-            </Grid>
+            </Grid> */}
           </Grid>
         </Grid>
       </Grid>
