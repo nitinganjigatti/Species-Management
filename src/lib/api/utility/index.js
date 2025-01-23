@@ -7,6 +7,7 @@ const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const userDetails = await readAsync('userDetails')
   const selectedPharmacy = await readAsync('selectedStore')
+  const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
   // const header = { 'Content-Type': 'multipart/form-data' }
 
@@ -24,6 +25,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   if (pharmacy) {
     header['Selectedstore'] = selectedPharmacy?.id
   }
+
+  header['CurrentTimeZone'] = currentTimeZone
 
   return header
 }
