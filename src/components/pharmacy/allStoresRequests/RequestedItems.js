@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import {
   Box,
@@ -35,8 +35,17 @@ import RenderUtility from 'src/utility/render'
 import { getAllRequestsOfSelectedStore, getAllRequestsOfSelectedProduct } from 'src/lib/api/pharmacy/storeWiseRequest'
 import RequestedProductDetails from 'src/views/pages/pharmacy/requests-by-stores/product-details'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
+import Dialog from '@mui/material/Dialog'
+import Fade from '@mui/material/Fade'
+import IconButton from '@mui/material/IconButton'
+
+// import Icon from 'src/@core/components/icon'
 
 // import Drawer from '@mui/material/Drawer'
+const Transition = forwardRef(function Transition(props, ref) {
+  return <Fade ref={ref} {...props} />
+})
 
 export default function RequestedItems({ selectedStoreDetails, setSelectedStoreDetails }) {
   const theme = useTheme()
@@ -65,6 +74,88 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     startDate: router.query.startDate || '',
     endDate: router.query.endDate || ''
   })
+  const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
+  const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
+  const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
+
+  const [medicineParentId, setMedicineParentId] = useState({
+    parentEndPointId: '',
+    parent_id: '',
+    request_item_id: '',
+    qty_requested: '',
+    product: ''
+  })
+
+  const [requestItems, setRequestItems] = useState([])
+  const [fulfillMedicine, setFulfillMedicine] = useState(false)
+  const [show, setShow] = useState(false)
+
+  const showDialog = () => {
+    setShow(true)
+  }
+
+  const fullFillRequestItem = (selectedLineItem, mainObj) => {
+    setRequestItems({
+      to_store_type: mainObj?.to_store_type,
+      to_store_id: mainObj?.to_store_id,
+      from_store_id: mainObj?.from_store_id,
+      from_store_type: mainObj?.from_store_type,
+      id: selectedLineItem?.request_item_id
+    })
+    setFulfillMedicine({
+      ...selectedLineItem
+    })
+
+    showDialog()
+  }
+
+  const closeAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(true)
+  }
+
+  const closeRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(true)
+  }
+
+  const closeProductNotAvailableDialog = () => {
+    setProductNotAvailableDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openProductNotAvailableDialog = () => {
+    setProductNotAvailableDialog(true)
+  }
 
   const openDrawer = () => {
     setShowDrawer(true)
@@ -162,8 +253,16 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
             </Typography>
           </Tooltip>
           <Tooltip
-            title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+            title={
+              params?.row?.package &&
+              params?.row?.package_qty &&
+              params?.row?.package_uom_label &&
+              params?.row?.product_form_label
+                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                    params?.row?.package_uom_label
+                  } ${params?.row?.product_form_label}`
+                : 'NA'
+            }
             placement='top'
           >
             <Typography
@@ -175,8 +274,14 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 ...RenderUtility?.getEllipsisStyleForText()
               }}
             >
-              {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+              {params?.row?.package &&
+              params?.row?.package_qty &&
+              params?.row?.package_uom_label &&
+              params?.row?.product_form_label
+                ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
+                    params?.row?.package_uom_label
+                  } ${params?.row?.product_form_label}`
+                : 'NA'}
             </Typography>
           </Tooltip>
         </Box>
@@ -241,7 +346,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     { label: 'Requested', key: 'requested_qty' },
     { label: 'Fulfilled', key: 'dispatch_qty' },
     { label: 'Shipped', key: 'shipped_qty' },
-    { label: 'Pending', key: 'rejected_qty' }
+    { label: 'Pending', key: 'pending_qty' }
   ]
 
   const generateQuantityStats = data =>
@@ -378,6 +483,77 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     id: getSlNo(index)
   }))
 
+  const generateOptions = (params, parentId) => {
+    let options = []
+
+    if (selectedPharmacy.type === 'central') {
+      options.push({
+        label: 'Add Alternate',
+        action: () => {
+          openAlternativeMedicineDialog()
+          setMedicineParentId(prevState => ({
+            ...prevState,
+            parentEndPointId: params.request_item_id,
+            parent_id: parentId,
+            request_item_id: params?.id,
+            qty_requested: params?.qty,
+            product: params?.stock_name
+          }))
+        }
+      })
+    }
+
+    if (
+      (selectedPharmacy.type === 'central' &&
+        parseInt(params?.requested_qty) - parseInt(params?.dispatch_qty) > 0 &&
+        params?.request_status !== 'Alternate') ||
+      params?.request_status !== 'Not Available' ||
+      params?.request_status !== 'Rejected'
+    ) {
+      options.push(
+        {
+          label: 'Supply Stopped',
+          action: () => {
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
+              request_item_id: params?.id,
+              qty_requested: params?.qty,
+              product: params?.stock_name
+            }))
+            openProductNotAvailableDialog()
+          }
+        },
+        {
+          label: 'Decline Request',
+          action: () => {
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
+              request_item_id: params?.id,
+              qty_requested: params?.qty,
+              product: params?.stock_name
+            }))
+            openRejectMedicineDialog()
+          }
+        }
+      )
+    }
+
+    return options
+  }
+
+  const closeFulfillDialog = () => {
+    setShow(false)
+    fetchTableData({ sort, q: searchValue, column: sortColumn })
+    closeDrawer()
+
+    // fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
+    setRequestItems([])
+    setFulfillMedicine([])
+  }
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     updateUrlParams({
@@ -480,7 +656,39 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         addEventSidebarOpen={showDrawer}
         handleSidebarClose={closeDrawer}
         requestedProducts={requestedProducts}
+        generateOptions={generateOptions}
+        fullFillRequestItem={fullFillRequestItem}
       />
+      <Dialog
+        fullWidth
+        open={show}
+        maxWidth='md'
+        scroll='body'
+        sx={{
+          '& .MuiDialog-paper': {
+            backgroundColor: 'primary.contrastText'
+          }
+        }}
+        onClose={() => closeFulfillDialog()}
+        TransitionComponent={Transition}
+        onBackdropClick={() => closeFulfillDialog()}
+      >
+        <Grid
+          container
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <CardHeader title={`Fulfillment`} />
+          <IconButton size='small' onClick={() => closeFulfillDialog()} sx={{ mx: 4 }}>
+            <Icon icon='mdi:close' />
+          </IconButton>
+        </Grid>
+
+        <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} close={closeFulfillDialog} />
+      </Dialog>
     </Box>
   )
 }

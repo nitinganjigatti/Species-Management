@@ -40,12 +40,14 @@ import { fontStyle } from '@mui/system'
 import { Opacity } from '@mui/icons-material'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
+import MenuWithDots from 'src/components/MenuWithDots'
+import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 
 // ** Icon Imports
 
 const RequestedProductDetails = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, requestedProducts } = props
+  const { addEventSidebarOpen, handleSidebarClose, requestedProducts, generateOptions, fullFillRequestItem } = props
   const theme = useTheme()
 
   // ** State
@@ -185,6 +187,9 @@ const RequestedProductDetails = props => {
                   titleTypographyProps={{ variant: 'h6' }}
                   action={
                     parentItems?.request_status === 'request' && (
+                      // eslint-disable-next-line lines-around-comment
+                      // <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
+
                       <OptionsMenu
                         options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
                         iconButtonProps={{ size: 'small', className: 'card-more-options' }}
@@ -267,8 +272,7 @@ const RequestedProductDetails = props => {
                       xs={3}
                       sx={{
                         display: 'flex',
-                        justifyContent: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'right'
                       }}
                     >
                       <Box
@@ -276,14 +280,42 @@ const RequestedProductDetails = props => {
                           display: 'flex',
                           justifyContent: 'center',
                           flexDirection: 'column',
-                          alignItems: 'start'
+                          alignItems: 'end'
                         }}
                       >
-                        {parentItems?.request_status === 'request' && (
-                          <Button variant='contained' size='small'>
+                        {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
+                        parentItems?.request_status !== 'Alternate' &&
+                        parentItems?.request_status !== 'Not Available' &&
+                        parentItems?.request_status !== 'Rejected' ? (
+                          <Button
+                            onClick={() => {
+                              fullFillRequestItem(parentItems, requestedProducts)
+                            }}
+                            variant='contained'
+                            size='small'
+                          >
                             Full fill
                           </Button>
-                        )}
+                        ) : null}
+
+                        {parentItems?.alt_parent?.length === 0 &&
+                          parentItems?.dispatch_status === 'Fulfilled' &&
+                          parentItems?.request_status !== 'Not Available' &&
+                          parentItems?.request_status !== 'Rejected' && (
+                            <Grid
+                              sx={{
+                                color: 'success.main',
+
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                textAlign: 'left',
+                                alignItems: 'left'
+                              }}
+                            >
+                              <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                            </Grid>
+                          )}
                         {parentItems?.request_status === 'Alternate' && (
                           <Typography
                             sx={{
@@ -382,7 +414,14 @@ const RequestedProductDetails = props => {
                     fontFamily: 'Inter'
                   }}
                 >
-                  {requestedProducts?.generic_name ? requestedProducts?.generic_name : 'NA'}
+                  {/* {requestedProducts?.generic_name ? requestedProducts?.generic_name : 'NA'} */}
+                  {requestedProducts?.package && requestedProducts?.package_qty && requestedProducts?.package_uom_label
+                    ? // requestedProducts?.product_form_label
+                      `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
+                        requestedProducts?.package_uom_label
+                      } `
+                    : 'NA'}
+                  {/* // ${requestedProducts?.product_form_label}` */}
                 </Typography>
                 <Typography
                   sx={{
@@ -445,7 +484,7 @@ const RequestedProductDetails = props => {
                   }}
                 >
                   {' '}
-                  {pendingItems}
+                  {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : 'NA'}
                 </Typography>
               </Typography>
             </Grid>
@@ -535,7 +574,7 @@ const RequestedProductDetails = props => {
                                 py: '4px'
                               }}
                             >
-                              By Deelipkumar •{' '}
+                              {parentItems?.created_by_user_name ? `By ${parentItems?.created_by_user_name}` : 'NA'} •
                               {parentItems?.created_at && Utility.formatDisplayDate(parentItems?.created_at)}
                             </Typography>
 
@@ -578,6 +617,8 @@ const RequestedProductDetails = props => {
                           options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
                           iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                         />
+
+                        // <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
                       )
                     }
                   />
@@ -673,11 +714,40 @@ const RequestedProductDetails = props => {
                             alignItems: 'start'
                           }}
                         >
-                          {parentItems?.request_status === 'request' && (
-                            <Button variant='contained' size='small'>
+                          {/* {parentItems?.request_status === 'request' && ( */}
+                          {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
+                          parentItems?.request_status !== 'Alternate' &&
+                          parentItems?.request_status !== 'Not Available' &&
+                          parentItems?.request_status !== 'Rejected' ? (
+                            <Button
+                              onClick={() => {
+                                fullFillRequestItem(parentItems, requestedProducts)
+                              }}
+                              variant='contained'
+                              size='small'
+                            >
                               Full fill
                             </Button>
-                          )}
+                          ) : null}
+
+                          {parentItems?.alt_parent.length === 0 &&
+                            parentItems?.dispatch_status === 'Fulfilled' &&
+                            parentItems?.request_status !== 'Not Available' &&
+                            parentItems?.request_status !== 'Rejected' && (
+                              <Grid
+                                sx={{
+                                  color: 'success.main',
+
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'center',
+                                  textAlign: 'left',
+                                  alignItems: 'left'
+                                }}
+                              >
+                                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                              </Grid>
+                            )}
                           {parentItems?.request_status === 'Alternate' && (
                             <Typography
                               sx={{

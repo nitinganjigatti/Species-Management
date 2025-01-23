@@ -32,6 +32,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { useTheme } from '@emotion/react'
 
 const defaultValues = {
   product: {
@@ -76,10 +78,19 @@ const PurchaseItemForm = props => {
     checkMedicineExpiryDate,
     productExpiryDate,
     expiryDateLoader,
+    getRecentPurchasePriceOfProduct,
+    validatePurchaseDialog,
+    setValidatePurchaseDialog,
+    priceValidationError,
+    setPriceValidationError,
+    currentPayload,
+    setCurrentPayload,
     getProductVariantByproductId,
     productVariantOptions,
     setProductVariantOptions
   } = props
+  const theme = useTheme()
+
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
 
   const schema = yup.object().shape({
@@ -303,9 +314,14 @@ const PurchaseItemForm = props => {
       purchase_unit_qty,
       purchase_variant_ratio
     }
+    if (priceValidationError === true) {
+      setValidatePurchaseDialog(true)
+      setCurrentPayload(payload)
 
-    submitItems(payload)
-    setProductVariantOptions([])
+      return
+    } else {
+      submitItems(payload)
+    }
 
     // await handleSubmitData(payload)
   }
@@ -480,6 +496,12 @@ const PurchaseItemForm = props => {
           setValue(key, nestedRowMedicine[key])
         }
       })
+
+      const productData = {
+        purchase_stock_item_id: nestedRowMedicine.purchase_unit_id,
+        purchase_unit_price: nestedRowMedicine.purchase_unit_price
+      }
+      getRecentPurchasePriceOfProduct(productData)
       setValue('product', {
         label: nestedRowMedicine.medicine_name,
         value: nestedRowMedicine.purchase_unit_id,
@@ -715,6 +737,14 @@ const PurchaseItemForm = props => {
                   {...field}
                   onKeyUp={e => {
                     calculateStuff()
+
+                    const productData = {
+                      purchase_stock_item_id: watch('product')?.value,
+                      purchase_unit_price: watch('purchase_unit_price')
+                    }
+                    if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
+                      getRecentPurchasePriceOfProduct(productData)
+                    }
                   }}
                   label='Supplier Rate*'
                   error={Boolean(errors.purchase_unit_price)}
@@ -1406,7 +1436,102 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
+        <ConfirmDialogBox
+          open={validatePurchaseDialog}
+          closeDialog={() => {
+            setValidatePurchaseDialog(false)
+          }}
+          action={() => {
+            setValidatePurchaseDialog(false)
+          }}
+          title={
+            <Box
+              sx={{
+                fontWeight: 500,
+                fontSize: '20px',
+                margin: '0px',
+                padding: '0px',
 
+                // mb: '6px',
+                color: 'customColors.OnSurfaceVariant',
+                display: 'flex',
+                gap: 2,
+                alignItems: 'center'
+              }}
+            >
+              <Icon
+                style={{
+                  cursor: 'pointer',
+                  color: theme.palette.customColors.moderateSecondary,
+                  height: '30px',
+                  width: '26px'
+                }}
+                icon='mdi:warning-outline'
+              />{' '}
+              Price Variation Detected !
+            </Box>
+          }
+          content={
+            <Typography
+              sx={{
+                fontWeight: 400,
+                fontSize: '16px',
+                margin: '0px',
+                padding: '0px',
+                color: 'customColors.OnSurfaceVariant'
+              }}
+            >
+              The current purchase price of this product differs by more than
+              <Typography
+                component='span'
+                sx={{
+                  color: 'customColors.moderateSecondary',
+                  fontWeight: 600,
+                  fontSize: '16px',
+                  px: 2
+                }}
+              >
+                30%
+              </Typography>
+              compared to the previous purchase price.
+              <br /> Please review before proceeding.
+            </Typography>
+          }
+          dialogActions={
+            <>
+              <Button
+                variant='outlined'
+                size='large'
+                sx={{
+                  color: 'customColors.neutralSecondary',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  ':hover': {
+                    color: theme.palette.customColors.neutralSecondary,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    backgroundColor: 'transparent !important'
+                  }
+                }}
+                onClick={() => {
+                  setValidatePurchaseDialog(false)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='contained'
+                size='large'
+                color='warning'
+                onClick={() => {
+                  submitItems(currentPayload)
+                  setValidatePurchaseDialog(false)
+                  setPriceValidationError(false)
+                }}
+              >
+                Confirm
+              </Button>
+            </>
+          }
+        />
         {/* // file uploader */}
         <Grid item xs={12}>
           <Box sx={{ float: 'right' }}>
