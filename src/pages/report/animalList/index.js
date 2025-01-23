@@ -22,6 +22,7 @@ import toast from 'react-hot-toast'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import Organization from 'src/pages/parivesh/home/overview/organization'
 import Error404 from 'src/pages/404'
+import Tooltip from '@mui/material/Tooltip'
 
 const AnimalList = () => {
   const theme = useTheme()
@@ -252,6 +253,14 @@ const AnimalList = () => {
     })
   }
 
+  const truncateText = (text, maxLength) => {
+    if (text.length > maxLength) {
+      return <>{`${text.substring(0, maxLength)}...`}</>
+    }
+    return text
+  }
+
+
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
       return {
@@ -260,7 +269,7 @@ const AnimalList = () => {
         isAvatar: true,
         sortable: false,
         disableColumnMenu: true,
-        width: 400,
+        width: 280,
         renderCell: params => (
           <CardHeader
             avatar={
@@ -279,19 +288,43 @@ const AnimalList = () => {
             }
             subheader={
               <>
-                {' '}
-                <Typography
-                  sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
-                  variant='body2'
+                <Tooltip
+                  title={params.row.scientific_name.length > 40 ? params.row.scientific_name : null}
+                  placement='bottom'
                 >
-                  {params.row.scientific_name}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#7A8684' }}
-                  variant='body2'
-                >
-                  {params.row.common_name}
-                </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      fontFamily: 'Inter',
+                      color: '#7A8684',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '200px'
+                    }}
+                    variant='body2'
+                  >
+                    {truncateText(params.row.scientific_name, 40)}
+                  </Typography>
+                </Tooltip>
+                <Tooltip title={params.row.common_name.length > 53 ? params.row.common_name : null} placement='bottom'>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      fontFamily: 'Inter',
+                      color: '#7A8684',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '200px'
+                    }}
+                    variant='body2'
+                  >
+                    {truncateText(params.row.common_name, 53)}
+                  </Typography>
+                </Tooltip>
               </>
             }
           />
@@ -302,74 +335,36 @@ const AnimalList = () => {
     return {
       field: header.key,
       headerName: header.label,
-      width: 200,
+      width: 310,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
-            height: '25px',
-            backgroundColor: getCellBackgroundColor(header.label),
-            color: getCellTextColor(header.label),
-            fontWeight: 400,
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'flex-end'
-              : 'flex-start',
-            textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'right'
-              : 'left'
-          }}
-        >
-          {params?.value
-            ? params?.value
-            : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-              params?.value === undefined
-            ? 0
-            : '-'}
-        </Box>
-      )
+      renderCell: params => {
+        const truncatedValue = params?.value ? truncateText(params.value, 60) : params?.value
+
+        const showTooltip = params?.value?.length > 20
+
+        return (
+          <Tooltip title={showTooltip ? params.value : null} placement='bottom'>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                fontFamily: 'Inter',
+                color: '#7A8684',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {truncatedValue}
+            </Typography>
+          </Tooltip>
+        )
+      }
     }
   })
 
-  console.log('Selected options >', selectedOptions)
-
-  const getCellBackgroundColor = label => {
-    switch (label) {
-      case 'Male':
-        return '#AFEFEB'
-      case 'Female':
-        return '#FFD3D3'
-      case 'Undetermined':
-        return '#DDEBE9'
-      case 'Indeterminate':
-        return '#DDEBE9'
-      default:
-        return 'transparent'
-    }
-  }
-
-  const getCellTextColor = label => {
-    switch (label) {
-      case 'Male':
-      case 'Female':
-        return '#1F415B'
-      case 'Undetermined':
-        return '#E93353'
-      case 'Indeterminate':
-        return '#44544A'
-      default:
-        return '#44544A'
-    }
-  }
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const reportRows = dataList?.map((item, index) => ({
@@ -558,10 +553,10 @@ const AnimalList = () => {
                       <Box
                         sx={{
                           position: 'absolute',
-                          top: '9px',
-                          right: '10px',
-                          width: '22px',
-                          height: '22px',
+                          top: '5px',
+                          right: '6px',
+                          width: '29px',
+                          height: '27px',
                           borderRadius: '69%',
                           backgroundColor: '#1F515B',
                           color: '#FFFFFF',
