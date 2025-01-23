@@ -176,6 +176,7 @@ const AddPurchaseForm = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [deleteId, setDeleteId] = useState('')
+  console.log('deleteId', deleteId)
   const [deleteLoader, setDeleteLoader] = useState(false)
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false)
   //----------
@@ -1226,7 +1227,6 @@ const AddPurchaseForm = () => {
 
   const handleInputImageChange = event => {
     const { files } = event.target
-
     if (files && files.length !== 0) {
       const newFileSrc = []
       const newFileArr = []
@@ -1274,21 +1274,21 @@ const AddPurchaseForm = () => {
     }
   }
 
-  const removeSelectedImage = (e, deleteId) => {
+  const removeSelectedImage = (e, deleteId, index) => {
     e.stopPropagation()
 
-    if (deleteId && action === 'edit') {
+    if (deleteId && action === 'edit' && !index) {
       deleteInvoiceById(id, deleteId)
     } else {
       setFileSrc(prevFiles => {
-        const updatedFiles = prevFiles.filter((_, i) => i !== deleteId)
+        const updatedFiles = prevFiles.filter((_, i) => i !== index)
         setValue('invoice_transcript', updatedFiles.length === 0 ? '' : updatedFiles)
 
         return updatedFiles
       })
 
       setFileArr(prevFiles => {
-        const updatedFiles = prevFiles.filter((_, i) => i !== deleteId)
+        const updatedFiles = prevFiles.filter((_, i) => i !== index)
         // Only set value once
         setValue('invoice_transcript', updatedFiles.length === 0 ? '' : updatedFiles)
 

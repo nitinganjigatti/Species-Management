@@ -24,7 +24,8 @@ const PurchaseDocsDrawer = ({
   const authData = useContext(AuthContext)
   const [defaultIcon, setDefaultIcon] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
-  // console.log('invoiceFile', invoiceFile)
+  console.log('invoiceFile', invoiceFile)
+  console.log('fileArr', fileArr)
   const [selectedDoc, setSelectedDoc] = useState(null)
   const theme = useTheme()
   const router = useRouter()
@@ -47,15 +48,17 @@ const PurchaseDocsDrawer = ({
   const handleDelete = (e, index, doc) => {
     e.preventDefault()
     e.stopPropagation() // Stop the event from propagating to the <a> tag
-    setConfirmDeleteDialog(true)
 
     if (id) {
-      setDeleteId(doc?.id)
+      if (doc?.id) {
+        setConfirmDeleteDialog(true)
+        setDeleteId(doc?.id)
+      } else if (index) {
+        removeSelectedImage(e, '', index)
+      }
     } else {
-      setDeleteId(index)
+      removeSelectedImage(e, '', index)
     }
-
-    // removeSelectedImage(e, index, doc)
   }
 
   return (
@@ -125,7 +128,7 @@ const PurchaseDocsDrawer = ({
               <Box
                 key={index}
                 onClick={e => {
-                  if (!isPDF(doc.title)) {
+                  if (!isPDF(doc.title || fileArr[index]?.name)) {
                     e.preventDefault() // Prevent default anchor behavior
                     handleOpenDialog(doc, index)
                     setSelectedDoc(doc)
@@ -133,7 +136,7 @@ const PurchaseDocsDrawer = ({
                 }}
               >
                 <a
-                  href={isPDF(doc.title || doc) ? (doc.transcript ? doc.transcript : doc) : '#'}
+                  href={isPDF(doc.title || fileArr[index]?.name) ? (doc.transcript ? doc.transcript : doc) : '#'}
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{ textDecoration: 'none' }}
@@ -172,7 +175,7 @@ const PurchaseDocsDrawer = ({
                     </Box>
 
                     {/* Icon */}
-                    {isPDF(doc.title || doc) ? (
+                    {isPDF(doc.title || fileArr[index]?.name) ? (
                       <Box
                         sx={{
                           m: 2,
