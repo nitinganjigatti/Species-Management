@@ -95,12 +95,14 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }
 
   const fullFillRequestItem = (selectedLineItem, mainObj) => {
+    console.log('main obj', mainObj)
     setRequestItems({
       to_store_type: mainObj?.to_store_type,
       to_store_id: mainObj?.to_store_id,
       from_store_id: mainObj?.from_store_id,
       from_store_type: mainObj?.from_store_type,
-      id: selectedLineItem?.request_item_id
+      id: selectedLineItem?.request_item_id,
+      to_store: selectedStoreDetails?.storeName
     })
     setFulfillMedicine({
       ...selectedLineItem
@@ -404,6 +406,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     async ({ sort, q, column }) => {
       try {
         setLoading(true)
+        const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
 
         let params = {
           limit: paginationModel?.pageSize,
@@ -418,7 +421,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }
         console.log('params', params)
 
-        await getAllRequestsOfSelectedStore({ params: params }, id).then(res => {
+        await getAllRequestsOfSelectedStore({ params: params }, currentStoreId).then(res => {
           if (res?.success === true) {
             setSelectedStoreDetails({
               storeId: res?.data?.id,
@@ -440,7 +443,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         setLoading(false)
       }
     },
-    [paginationModel, controlledDrug, priority, filterDates]
+    [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id]
   )
 
   const searchTableData = useCallback(
@@ -563,7 +566,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
     })
-  }, [paginationModel, controlledDrug, priority, filterDates])
+  }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id])
 
   return (
     <Box sx={{ my: 5 }}>
