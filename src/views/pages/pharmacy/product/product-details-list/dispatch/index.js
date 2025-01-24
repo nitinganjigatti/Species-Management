@@ -46,7 +46,7 @@ function Dispatch({ tabValue }) {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_id')
+  const [sortColumn, setSortColumn] = useState('shipment_id')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({

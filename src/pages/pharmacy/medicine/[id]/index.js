@@ -629,7 +629,7 @@ const ProductDetailsList = () => {
                 }}
               >
                 <Tab value='overview' label='Overview' />
-                {/* <Tab value='purchase' label='Purchase' />*/}
+                <Tab value='purchase' label='Purchase' />
                 <Tab value='dispatch' label='Dispatch' />
                 <Tab value='ledger' label='Ledger' />
               </TabList>
@@ -642,8 +642,8 @@ const ProductDetailsList = () => {
                   dispatchData={dispatchData}
                 />
               </TabPanel>
-              <TabPanel value='purchase'>
-                <Purchase />
+              <TabPanel value='purchase' sx={{ p: 0 }}>
+                <Purchase tabValue={value} />
               </TabPanel>
               <TabPanel value='dispatch' sx={{ p: 0 }}>
                 <Dispatch tabValue={value} />
