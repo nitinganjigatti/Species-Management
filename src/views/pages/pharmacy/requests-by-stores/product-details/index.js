@@ -53,6 +53,46 @@ const RequestedProductDetails = props => {
   // ** State
   const [pendingItems, setPendingItems] = useState(200)
 
+  const getStatusLabel = item => {
+    let backgroundColor, label
+
+    switch (item?.request_status) {
+      case 'Alternate':
+        backgroundColor = theme.palette.customColors.Notes
+        label = 'Added Alternative'
+        break
+      case 'Not Available':
+        backgroundColor = theme.palette.error.main
+        label = 'Stock Stopped'
+        break
+      case 'Rejected':
+        backgroundColor = theme.palette.customColors.Tertiary
+        label = 'Request Declined'
+        break
+      default:
+        return null
+    }
+
+    return (
+      <Typography
+        sx={{
+          color: item?.request_status === 'Alternate' ? theme.palette.customColors.OnSurfaceVariant : 'white',
+          fontSize: '12px',
+          fontWeight: 400,
+          fontFamily: 'Inter',
+          padding: '4px',
+          borderRadius: '8px',
+          backgroundColor: backgroundColor,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        {label}
+      </Typography>
+    )
+  }
+
   const AlterNativeCard = requestedProducts => {
     return (
       <Box>
@@ -65,6 +105,7 @@ const RequestedProductDetails = props => {
                   py: '16px',
                   boxShadow: 'none',
                   mt: '8px',
+                  paddingBottom: 0,
                   backgroundColor: theme => alpha(theme.palette.customColors.Notes, 0.2)
                 }}
               >
@@ -83,6 +124,7 @@ const RequestedProductDetails = props => {
                       <Box
                         sx={{
                           minHeight: '43px',
+                          maxHeight: '43px',
                           width: '30px',
                           border: '1px solid ',
                           color: 'white',
@@ -159,6 +201,9 @@ const RequestedProductDetails = props => {
                               fontSize: '12px',
                               fontWeight: 400
                             },
+                            iconStyle: {
+                              color: theme.palette.primary.main
+                            },
                             prescriptionFile: parentItems?.control_substance_file
                           })}
                         </Box>
@@ -207,6 +252,8 @@ const RequestedProductDetails = props => {
                       display: 'flex',
                       gap: 2,
                       justifyContent: 'space-between'
+
+                      // border: '1px solid red'
 
                       // backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.1)
                     }}
@@ -298,42 +345,23 @@ const RequestedProductDetails = props => {
                           </Button>
                         ) : null}
 
-                        {parentItems?.alt_parent?.length === 0 &&
-                          parentItems?.dispatch_status === 'Fulfilled' &&
-                          parentItems?.request_status !== 'Not Available' &&
-                          parentItems?.request_status !== 'Rejected' && (
-                            <Grid
-                              sx={{
-                                color: 'success.main',
-
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                textAlign: 'left',
-                                alignItems: 'left'
-                              }}
-                            >
-                              <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
-                            </Grid>
-                          )}
-                        {parentItems?.request_status === 'Alternate' && (
-                          <Typography
+                        {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) === 0 && (
+                          <Grid
                             sx={{
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              fontSize: '12px',
-                              fontWeight: 400,
-                              fontFamily: 'Inter',
-                              padding: '4px',
-                              borderRadius: '8px',
-                              backgroundColor: theme.palette.customColors.Notes,
+                              color: 'success.main',
+
                               display: 'flex',
+                              flexDirection: 'column',
                               justifyContent: 'center',
-                              alignItems: 'center'
+                              textAlign: 'left',
+                              alignItems: 'left'
                             }}
                           >
-                            Added Alternative
-                          </Typography>
+                            <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                          </Grid>
                         )}
+
+                        {getStatusLabel(parentItems)}
                       </Box>
                     </Grid>
                   </Grid>
@@ -585,6 +613,9 @@ const RequestedProductDetails = props => {
                                 fontSize: '12px',
                                 fontWeight: 400
                               },
+                              iconStyle: {
+                                color: theme.palette.primary.main
+                              },
                               prescriptionFile: parentItems?.control_substance_file
                             })}
                           </Box>
@@ -748,24 +779,8 @@ const RequestedProductDetails = props => {
                                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
                               </Grid>
                             )}
-                          {parentItems?.request_status === 'Alternate' && (
-                            <Typography
-                              sx={{
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                fontSize: '12px',
-                                fontWeight: 400,
-                                fontFamily: 'Inter',
-                                padding: '4px',
-                                borderRadius: '8px',
-                                backgroundColor: theme.palette.customColors.Notes,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                              }}
-                            >
-                              Added Alternative
-                            </Typography>
-                          )}
+
+                          {getStatusLabel(parentItems)}
                         </Box>
                       </Grid>
                     </Grid>
