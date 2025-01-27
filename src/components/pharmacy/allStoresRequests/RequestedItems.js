@@ -39,6 +39,8 @@ import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 import Dialog from '@mui/material/Dialog'
 import Fade from '@mui/material/Fade'
 import IconButton from '@mui/material/IconButton'
+import CommonDialogBox from 'src/components/CommonDialogBox'
+import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
 
 // import Icon from 'src/@core/components/icon'
 
@@ -487,7 +489,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }))
 
   const generateOptions = (params, parentId) => {
+    console.log('params', params)
+    console.log('parentId', parentId)
     let options = []
+    debugger
 
     if (selectedPharmacy.type === 'central') {
       options.push({
@@ -692,6 +697,26 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
 
         <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} close={closeFulfillDialog} />
       </Dialog>
+      <Grid container sx>
+        <CommonDialogBox
+          noWidth={'noWidth'}
+          title={'Add Alternative Supply'}
+          dialogBoxStatus={showAlternativeMedicineDialog}
+          formComponent={
+            <AlternativeMedicine
+              parentId={medicineParentId}
+              existingListItems={requestedProducts}
+              closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
+              updateRequestItems={() => {
+                getRequestItemLists(id)
+                closeAlternativeMedicineDialog()
+              }}
+            />
+          }
+          close={closeAlternativeMedicineDialog}
+          show={openAlternativeMedicineDialog}
+        />
+      </Grid>
     </Box>
   )
 }

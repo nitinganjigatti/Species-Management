@@ -443,11 +443,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             color: '#37BD69',
             height: '42px',
             width: '42px',
+
             // height: '56px',
             // width: '56px',
             border: '1px solid #37BD69',
             borderRadius: '8px',
             cursor: 'pointer'
+
             // marginRight: '10px'
           }}
           onClick={() => {
@@ -480,6 +482,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             color: '#E93353',
             height: '42px',
             width: '42px',
+
             // height: '56px',
             // width: '56px',
             border: '1px solid #E93353',
@@ -560,6 +563,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             color: '#E93353',
             height: '42px',
             width: '42px',
+            // eslint-disable-next-line lines-around-comment
             // height: '56px',
             // width: '56px',
             border: '1px solid #E93353',
@@ -939,8 +943,10 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         borderRadius: 1,
                         display: 'flex',
                         flexDirection: 'row',
+
                         // justifyContent: 'center',
                         alignItems: 'flex-start',
+
                         // gap: 1,
                         gap: { xs: 5, sm: 0 },
                         padding: '20px',
@@ -1087,11 +1093,13 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             <FormHelperText
                               sx={{
                                 color: 'error.main',
+
                                 // position: 'absolute',
                                 // bottom: '-30px',
                                 // left: 0,
                                 width: '100%',
                                 ml: 0
+
                                 // bottom: {
                                 //   xs: '-18px',
                                 //   sm: batchItems[index]?.stock_type === 'non_medical' ? '-18px' : '-30px'
@@ -1128,6 +1136,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               <FormHelperText
                                 sx={{
                                   color: 'error.main',
+
                                   // position: 'absolute',
                                   // bottom: '-16px',
                                   left: 0,

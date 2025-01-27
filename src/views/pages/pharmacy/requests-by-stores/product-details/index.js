@@ -81,7 +81,7 @@ const RequestedProductDetails = props => {
           fontWeight: 400,
           fontFamily: 'Inter',
           padding: '4px',
-          borderRadius: '8px',
+          borderRadius: '4px',
           backgroundColor: backgroundColor,
           display: 'flex',
           justifyContent: 'center',
@@ -231,14 +231,17 @@ const RequestedProductDetails = props => {
                   }
                   titleTypographyProps={{ variant: 'h6' }}
                   action={
-                    parentItems?.request_status === 'request' && (
+                    parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
+                    parentItems?.request_status !== 'Alternate' &&
+                    parentItems?.request_status !== 'Not Available' &&
+                    parentItems?.request_status !== 'Rejected' && (
                       // eslint-disable-next-line lines-around-comment
-                      // <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
+                      <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
 
-                      <OptionsMenu
-                        options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
-                        iconButtonProps={{ size: 'small', className: 'card-more-options' }}
-                      />
+                      // <OptionsMenu
+                      //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
+                      //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
+                      // />
                     )
                   }
                 />
@@ -357,7 +360,7 @@ const RequestedProductDetails = props => {
                               alignItems: 'left'
                             }}
                           >
-                            <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                            <Icon icon='ion:checkmark-circle' style={{ color: theme.palette.primary.main }} />
                           </Grid>
                         )}
 
@@ -643,13 +646,16 @@ const RequestedProductDetails = props => {
                     }
                     titleTypographyProps={{ variant: 'h6' }}
                     action={
-                      parentItems?.request_status === 'request' && (
-                        <OptionsMenu
-                          options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
-                          iconButtonProps={{ size: 'small', className: 'card-more-options' }}
-                        />
+                      parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
+                      parentItems?.request_status !== 'Alternate' &&
+                      parentItems?.request_status !== 'Not Available' &&
+                      parentItems?.request_status !== 'Rejected' && (
+                        // <OptionsMenu
+                        //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
+                        //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
+                        // />
 
-                        // <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
+                        <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
                       )
                     }
                   />
@@ -776,7 +782,12 @@ const RequestedProductDetails = props => {
                                   alignItems: 'left'
                                 }}
                               >
-                                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                                <Icon
+                                  icon='ion:checkmark-circle'
+                                  style={{
+                                    color: theme.palette.primary.main
+                                  }}
+                                />
                               </Grid>
                             )}
 
