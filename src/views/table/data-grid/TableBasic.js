@@ -54,6 +54,9 @@ const TableBasic = ({
           hideFooterSelectedRowCount
           disableColumnMenu
           disableColumnSelector={true}
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
           autoHeight
           columns={columns}
           rows={rows}
