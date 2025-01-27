@@ -9,9 +9,9 @@ import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
 
 // ** Step Components
-import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
-import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
-import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
+import StepAddIngredients from 'src/views/pages/combo/add-combo/StepAddIngredients'
+import StepBasicDetails from 'src/views/pages/combo/add-combo/StepBasicDetails'
+import StepBillingDetails from 'src/views/pages/combo/add-combo/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 // ** Custom Component Import
@@ -38,7 +38,7 @@ const steps = [
   }
 ]
 
-const AddRecipe = () => {
+const AddCombo = () => {
   const router = useRouter()
   const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
@@ -337,20 +337,20 @@ const AddRecipe = () => {
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
-        //by_percentage: numericFormData.by_percentage,
-        by_percentage: [],
-        by_quantity: numericFormData.by_quantity,
+        by_percentage: numericFormData.by_percentage,
+        // by_quantity: numericFormData.by_quantity,
+        by_quantity: [],
         recipe_image: numericFormData?.recipe_image?.[0] || null,
-        meal_type: 'recipe'
+        meal_type: 'combo'
       }
 
       console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewRecipe(updatedFormData)
 
       if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+        Router.push(`/diet/combo`)
 
-        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+        Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
@@ -389,10 +389,10 @@ const AddRecipe = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        //by_percentage: numericFormData.by_percentage,
-        by_percentage: [],
-        by_quantity: numericFormData.by_quantity,
-        meal_type: 'recipe'
+        by_percentage: numericFormData.by_percentage,
+        // by_quantity: numericFormData.by_quantity,
+        by_quantity: [],
+        meal_type: 'combo'
       }
 
       if (formData.recipe_image === null) {
@@ -406,13 +406,12 @@ const AddRecipe = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewRecipe(updatedFormData)
 
       if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+        Router.push(`/diet/combo`)
 
-        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+        Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
@@ -451,10 +450,10 @@ const AddRecipe = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        //by_percentage: numericFormData.by_percentage,
-        by_percentage: [],
-        by_quantity: numericFormData.by_quantity,
-        meal_type: 'recipe'
+        by_percentage: numericFormData.by_percentage,
+        // by_quantity: numericFormData.by_quantity,
+        by_quantity: [],
+        meal_type: 'combo'
       }
 
       if (formData.recipe_image === null) {
@@ -468,13 +467,12 @@ const AddRecipe = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await updateRecipe(id, updatedFormData)
 
       if (apival.success === true) {
-        Router.push(`/diet/recipe`)
+        Router.push(`/diet/combo`)
 
-        Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
+        Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
@@ -526,11 +524,11 @@ const AddRecipe = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Link underline='hover' color='inherit' href='/diet/recipe/'>
-          Recipe
+        <Link underline='hover' color='inherit' href='/diet/combo/'>
+          Combo
         </Link>
 
-        <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new recipe'}</Typography>
+        <Typography color='text.primary'>{id ? 'Edit combo' : 'Add new combo'}</Typography>
       </Breadcrumbs>
 
       <Card>
@@ -538,12 +536,12 @@ const AddRecipe = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography sx={{ mb: 1 }} variant='h6'>
-                {id ? 'Edit Recipe' : 'Add New Recipe'}
+                {id ? 'Edit Combo' : 'Add New Combo'}
               </Typography>
-              <Typography sx={{ mb: 1, fontSize: 14 }}>
+              {/* <Typography sx={{ mb: 1, fontSize: 14 }}>
                 Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
                 proportions for this <br /> ingredient prior to processing.
-              </Typography>
+              </Typography> */}
             </div>
           </div>
         </CardContent>
@@ -575,4 +573,4 @@ const AddRecipe = () => {
   )
 }
 
-export default AddRecipe
+export default AddCombo

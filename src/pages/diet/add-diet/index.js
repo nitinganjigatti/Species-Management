@@ -41,11 +41,11 @@ const AddDiet = () => {
   const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUomList] = useState([])
-  const [uomprev, setUomprev] = useState([])
+  const [uomprevnew, setUomprevnew] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
   const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
-  console.log('selectedCardRecipe :>> ', selectedCardRecipe)
+  const [selectedCardCombo, setSelectedCardCombo] = useState([])
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [urlType, seturlType] = useState('')
 
@@ -69,6 +69,7 @@ const AddDiet = () => {
         meal_to_time: '',
         notes: '',
         recipe: [],
+        combo: [],
         ingredient: [],
         ingredientwithchoice: []
       }
@@ -77,6 +78,10 @@ const AddDiet = () => {
 
   const handleSelectedCardChange = card => {
     setSelectedCardRecipe(card)
+  }
+
+  const handleSelectedCardChangeCombo = card => {
+    setSelectedCardCombo(card)
   }
 
   const getUnitsList = async () => {
@@ -195,7 +200,7 @@ const AddDiet = () => {
         const newarr = convertedData?.map(item => {
           // Splitting the string into minWeight, maxWeight, and unit name
           const [weight, unitName] = item.split('_')
-          const matchedUom = uomprev.find(item => item.name === unitName)
+          const matchedUom = uomprevnew.find(item => item.name === unitName)
 
           return {
             meal_value_header: parseFloat(weight), // Convert to number
@@ -286,7 +291,7 @@ const AddDiet = () => {
     let genericError = false
 
     formData.meal_data.forEach(item => {
-      const { ingredientwithchoice, recipe, ingredient } = item
+      const { ingredientwithchoice, recipe, combo, ingredient } = item
 
       const checkMealType = data => {
         if (data && data.length > 0) {
@@ -307,6 +312,7 @@ const AddDiet = () => {
 
       checkMealType(ingredientwithchoice)
       checkMealType(recipe)
+      checkMealType(combo)
       checkMealType(ingredient)
     })
 
@@ -525,9 +531,11 @@ const AddDiet = () => {
             updateFormData={updateFormData}
             uomList={uomList}
             setSelectedCardRecipe={handleSelectedCardChange}
+            setSelectedCardCombo={handleSelectedCardChangeCombo}
             selectedCardRecipe={selectedCardRecipe}
+            selectedCardCombo={selectedCardCombo}
             setFormData={setFormData}
-            setUomprev={setUomprev}
+            setUomprevnew={setUomprevnew}
             diettypechildvalues={diettypechildvalues}
             id={id}
           />
@@ -544,7 +552,7 @@ const AddDiet = () => {
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
             finalhandleSubmit={handleStepBillingSubmit}
-            uomprev={uomprev}
+            uomprevnew={uomprevnew}
             setFormData={setFormData}
             id={id}
             remarks={formData.remarks}

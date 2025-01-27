@@ -30,6 +30,7 @@ import Icon from 'src/@core/components/icon'
 import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
 import AddIngredients from 'src/components/diet/AddIngredients'
 import RecipeList from 'src/components/diet/RecipeList'
+import ComboList from 'src/components/diet/ComboList'
 
 const defaultValues = {
   diet_name: '',
@@ -47,6 +48,7 @@ const defaultValues = {
       meal_to_time: '',
       notes: '',
       recipe: [],
+      combo: [],
       ingredient: [],
       ingredientwithchoice: []
     }
@@ -65,6 +67,7 @@ const schema = yup.object().shape({
       meal_to_time: yup.string().required('Meal to time is required'),
       notes: yup.string(),
       recipe: yup.array(),
+      combo: yup.array(),
       ingredient: yup.array()
     })
   )
@@ -77,8 +80,10 @@ const StepBasicDetails = ({
   selectedCard,
   setSelectedCard,
   setSelectedCardRecipe,
+  setSelectedCardCombo,
   selectedCardRecipe,
-  setUomprev,
+  selectedCardCombo,
+  setUomprevnew,
   id,
   diettypechildvalues
 }) => {
@@ -90,15 +95,19 @@ const StepBasicDetails = ({
   const [childStateValue, setChildStateValue] = useState([])
   const [allSelectedValues, setAllSelectedValues] = useState([])
   const [childRecipeStateValue, setRecipeChildStateValue] = useState([])
+  const [childComboStateValue, setComboChildStateValue] = useState([])
   const [allRecipeSelectedValues, setAllRecipeSelectedValues] = useState([])
+  const [allComboSelectedValues, setAllComboSelectedValues] = useState([])
   const [allIngredientchoiceSelectedValues, setAllIngredientchoiceSelectedValues] = useState([])
   const [childIngredeintchoiceStateValue, setIngredientchoiceChildStateValue] = useState([])
   const [finalvalue, setfinalvalue] = useState([])
   const [finalvaluerecipe, setfinalrecipevalue] = useState([])
+  const [finalvaluecombo, setfinalcombovalue] = useState([])
   const [finalvalueingredientchoice, setfinalvalueingredientchoice] = useState([])
   const [checkid, setcheckid] = useState('')
   const [selectedIngredient, setSelectedIngredient] = useState()
   const [openDrawer, setOpenDrawer] = useState(false)
+  const [openDrawercombo, setOpenDrawercombo] = useState(false)
   const [recipeList, setRecipeList] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [ingType, setingType] = useState('')
@@ -108,6 +117,14 @@ const StepBasicDetails = ({
   const recipes = [
     // { label: 'No' },
     { label: 'Recipe' },
+    { label: 'Ingredients' },
+    { label: 'Feeding days' },
+    { label: 'Remarks' }
+  ]
+
+  const combos = [
+    // { label: 'No' },
+    { label: 'Combo' },
     { label: 'Ingredients' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
@@ -176,7 +193,6 @@ const StepBasicDetails = ({
     })
 
     setfinalvalue(fieldsIngredients)
-    console.log(fieldsIngredients, 'fieldsIngredients')
   }
 
   const handleRecipeStateChange = value => {
@@ -199,12 +215,40 @@ const StepBasicDetails = ({
         const field = fieldsIngredients[i]
         field.recipe = updatedValues.filter(up => up?.mealid === field.mealid)
       }
-
+      console.log(updatedValues, 'updatedValues')
       // Return the updated values to setAllSelectedValues
       return updatedValues
     })
 
     setfinalrecipevalue(fieldsIngredients)
+  }
+
+  const handleComboStateChange = value => {
+    setComboChildStateValue(value)
+    const uniqueValues = value.filter(
+      (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
+    )
+
+    setAllComboSelectedValues(prevState => {
+      // Filter out duplicates from the previous state
+      const filteredPrevState = prevState.filter(
+        prevVal =>
+          !uniqueValues.some(
+            uniqueVal => uniqueVal.recipe_id === prevVal?.recipe_id && uniqueVal.mealid === prevVal?.mealid
+          )
+      )
+      const updatedValues = [...filteredPrevState, ...uniqueValues]
+
+      for (let i = 0; i < fieldsIngredients.length; i++) {
+        const field = fieldsIngredients[i]
+        field.combo = updatedValues.filter(up => up?.mealid === field.mealid)
+      }
+      console.log(updatedValues, 'updatedValues')
+      // Return the updated values to setAllSelectedValues
+      return updatedValues
+    })
+
+    setfinalcombovalue(fieldsIngredients)
   }
 
   const handleIngredientchoiceStateChange = value => {
@@ -217,7 +261,6 @@ const StepBasicDetails = ({
       field.ingredientwithchoice = value.filter(up => up?.mealid === field.mealid)
     }
     setfinalvalueingredientchoice(fieldsIngredients)
-    console.log(fieldsIngredients, 'fieldsIngredients')
   }
 
   function deleteCookie(name) {
@@ -245,6 +288,16 @@ const StepBasicDetails = ({
       )
 
       setAllRecipeSelectedValues(flattenedRecipes)
+
+      const flattenedCombos = formData.meal_data?.flatMap(all =>
+        all.combo?.map(ing => ({
+          ...ing,
+          recipe_id: String(ing.recipe_id), // Convert recipe_id to string
+          ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
+        }))
+      )
+
+      setAllComboSelectedValues(flattenedCombos)
 
       const flattenedIngchoice = formData.meal_data
         ?.flatMap(all => {
@@ -346,15 +399,21 @@ const StepBasicDetails = ({
     })
   }
 
-  const addEventSidebarOpen = (val, index) => {
-    console.log(index, 'index')
-    setOpenDrawer(true)
-    setSelectedCardRecipe([])
+  const addEventSidebarOpen = (val, index, type) => {
+    console.log(type, 'type')
+    if (type === 'recipe') {
+      setOpenDrawer(true)
+      setSelectedCardRecipe([])
+    } else if (type === 'combo') {
+      setOpenDrawercombo(true)
+      setSelectedCardCombo([])
+    }
     setcheckid(val.mealid)
   }
 
   const handleSidebarCloseRecipe = () => {
     setOpenDrawer(false)
+    setOpenDrawercombo(false)
   }
 
   const handleAddIngerdient = (val, index) => {
@@ -372,8 +431,9 @@ const StepBasicDetails = ({
     setOpenIngredient(false)
     setOpenIngredientchoice(false)
   }
-
+  console.log(fieldsIngredients, 'fieldsIngredients')
   const onSubmit = async data => {
+    console.log(data, 'data')
     window.scrollTo(0, 0)
     try {
       await schema.validate(data, { abortEarly: false })
@@ -413,7 +473,18 @@ const StepBasicDetails = ({
         return meal
       })
 
-      const mergedAddMeals = updatedAddMealsWithRecipes.map((meal, index) => ({
+      const updatedAddMealsWithCombos = updatedAddMealsWithRecipes.map((meal, index) => {
+        if (finalvaluecombo[index]) {
+          return {
+            ...meal,
+            combo: finalvaluecombo[index].combo
+          }
+        }
+
+        return meal
+      })
+
+      const mergedAddMeals = updatedAddMealsWithCombos.map((meal, index) => ({
         ...meal,
         ingredient: updatedAddMeals[index].ingredient
       }))
@@ -429,6 +500,7 @@ const StepBasicDetails = ({
         if (
           (!meal.ingredient || meal.ingredient.length === 0) &&
           (!meal.recipe || meal.recipe.length === 0) &&
+          (!meal.combo || meal.combo.length === 0) &&
           (!meal.ingredientwithchoice || meal.ingredientwithchoice.length === 0)
         ) {
           invalidIndexes.push(index)
@@ -644,6 +716,31 @@ const StepBasicDetails = ({
 
       // Set the final value using setfinalrecipevalue
       setfinalrecipevalue(updatedFieldsIngredients)
+
+      return filteredChildStateValue
+    })
+  }
+
+  const removeingClickCombo = (recipeIdToRemove, val) => {
+    setComboChildStateValue(prevSelectedCard => {
+      const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
+
+      setAllComboSelectedValues(prevAllSelectedValues => {
+        // Filter out objects based on conditions
+        return prevAllSelectedValues.filter(recipe => {
+          return !(recipe?.mealid === val && recipe?.recipe_id === recipeIdToRemove)
+        })
+      })
+
+      // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
+      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+        field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+
+        return field
+      })
+
+      // Set the final value using setfinalcombovalue
+      setfinalcombovalue(updatedFieldsIngredients)
 
       return filteredChildStateValue
     })
@@ -1010,7 +1107,7 @@ const StepBasicDetails = ({
                                   {'REP' + all?.recipe_id}
                                 </Typography>
                               </Grid>
-
+                              {console.log(all, 'all')}
                               <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
                                 <Typography>{all?.ingredients_count}</Typography>
                                 {/* {all?.ingredients ? (
@@ -1046,6 +1143,138 @@ const StepBasicDetails = ({
                               </Grid>
                               <Icon
                                 onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
+                                style={{ position: 'relative', left: '1%' }}
+                                icon='iconoir:cancel'
+                              />
+                            </Grid>
+                          )
+                        }
+
+                        return null
+                      })
+                    ) : (
+                      <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                        No Records to show
+                      </Typography>
+                    )}
+                  </Grid>
+                </Grid>
+              ) : null}
+
+              {allComboSelectedValues?.length > 0 &&
+              allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
+                <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+                  <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                    <Typography variant='h6'>Combo</Typography>
+                  </Box>
+
+                  <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
+                    <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                      {combos.map((recipe, index) => (
+                        <Grid
+                          item
+                          xs={12}
+                          sm={
+                            recipe.label === 'No'
+                              ? 0.5
+                              : recipe.label === 'Combo'
+                              ? 2.2
+                              : recipe.label === 'Ingredients'
+                              ? 1.9
+                              : 3.7
+                          }
+                          md={
+                            recipe.label === 'No'
+                              ? 0.5
+                              : recipe.label === 'Combo'
+                              ? 2.2
+                              : recipe.label === 'Ingredients'
+                              ? 1.5
+                              : 3.7
+                          }
+                          key={index}
+                          sx={{ py: 4, px: 2, textAlign: 'center' }}
+                        >
+                          <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
+                          </Typography>
+                        </Grid>
+                      ))}
+                    </Grid>
+
+                    {allComboSelectedValues?.length > 0 ? (
+                      allComboSelectedValues.map((all, index) => {
+                        const matchingField = all?.mealid === field.mealid
+
+                        if (matchingField) {
+                          return (
+                            <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
+                              <Grid item xs={12} sm={0.5} md={0.5}>
+                                <Avatar
+                                  variant='square'
+                                  alt='Diet Image'
+                                  sx={{
+                                    width: 40,
+                                    height: 40,
+                                    mr: 4,
+                                    background: '#E8F4F2',
+                                    padding: '8px',
+                                    borderRadius: '50%'
+                                  }}
+                                  src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
+                                ></Avatar>
+                              </Grid>
+                              <Grid item xs={12} sm={2.2} md={2.2}>
+                                <Tooltip title={all.recipe_name}>
+                                  <Typography
+                                    className='recipe_name'
+                                    sx={{
+                                      pl: 3
+                                    }}
+                                  >
+                                    {all?.recipe_name}
+                                  </Typography>
+                                </Tooltip>
+                                <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                  {'REP' + all?.recipe_id}
+                                </Typography>
+                              </Grid>
+                              {console.log(all, 'all')}
+                              <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
+                                <Typography>{all?.ingredients_count}</Typography>
+                                {/* {all?.ingredients ? (
+                                  <Typography>{all?.ingredients?.length}</Typography>
+                                ) : (
+                                  <Typography>{all?.ingredient_name?.length}</Typography>
+                                )} */}
+                              </Grid>
+                              <Grid item xs={12} sm={3.7} md={3.7}>
+                                <Grid container spacing={1} sx={{ pl: 2 }}>
+                                  {days.map((day, index) => (
+                                    <Grid item key={index}>
+                                      <Typography
+                                        sx={{
+                                          color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                          marginRight: 4
+                                        }}
+                                      >
+                                        {day}
+                                      </Typography>
+                                    </Grid>
+                                  ))}
+                                </Grid>
+                              </Grid>
+                              <Grid item xs={12} sm={3.7} md={3.7}>
+                                <Grid sx={{ pl: 7 }}>
+                                  <Typography className='w_280'>
+                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
+                                    </Tooltip>
+                                  </Typography>
+                                </Grid>
+                              </Grid>
+                              <Icon
+                                onClick={() => removeingClickCombo(all.recipe_id, all.mealid)}
                                 style={{ position: 'relative', left: '1%' }}
                                 icon='iconoir:cancel'
                               />
@@ -1400,10 +1629,27 @@ const StepBasicDetails = ({
                     cursor: 'pointer',
                     fontWeight: 600
                   }}
-                  onClick={() => addEventSidebarOpen(field, index)}
+                  onClick={() => addEventSidebarOpen(field, index, 'recipe')}
                 >
                   <Icon icon='material-symbols:add' />
                   ADD RECIPE
+                </Typography>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    mt: 6,
+                    ml: 12,
+                    float: 'left',
+                    color: '#37BD69',
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    fontWeight: 600
+                  }}
+                  onClick={() => addEventSidebarOpen(field, index, 'combo')}
+                >
+                  <Icon icon='material-symbols:add' />
+                  ADD COMBO
                 </Typography>
                 <Typography
                   sx={{
@@ -1516,7 +1762,7 @@ const StepBasicDetails = ({
           setAllSelectedValues={setAllSelectedValues}
           formData={formData}
           setSelectedIngredient={setSelectedIngredient}
-          setUomprev={setUomprev}
+          setUomprevnew={setUomprevnew}
         />
         <RecipeList
           recipeList={recipeList}
@@ -1532,6 +1778,21 @@ const StepBasicDetails = ({
           setAllRecipeSelectedValues={setAllRecipeSelectedValues}
           formData={formData}
           onRemove={removeingClickRecipe}
+        />
+        <ComboList
+          recipeList={recipeList}
+          setSelectedCardCombo={setSelectedCardCombo}
+          selectedCardCombo={selectedCardCombo}
+          drawerWidth={400}
+          addEventSidebarOpen={openDrawercombo}
+          handleSidebarClose={handleSidebarCloseRecipe}
+          submitLoader={submitLoader}
+          checkid={checkid}
+          onChange={handleComboStateChange}
+          allComboSelectedValues={allComboSelectedValues}
+          setAllComboSelectedValues={setAllComboSelectedValues}
+          formData={formData}
+          onRemove={removeingClickCombo}
         />
       </form>
     </>

@@ -74,10 +74,13 @@ const RecipeList = () => {
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           status,
-          meal_type: 'recipe'
+          meal_type: 'combo'
         }
 
         await getRecipeList({ params: params }).then(res => {
+          console.log('response', res)
+
+          // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: startingIndex + i + 1 }
@@ -133,7 +136,7 @@ const RecipeList = () => {
     <>
       {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
         <div>
-          <Button size='small' variant='contained' onClick={() => Router.push('/diet/recipe/add-recipe')}>
+          <Button size='small' variant='contained' onClick={() => Router.push('/diet/combo/add-combo')}>
             <Icon icon='mdi:add' fontSize={20} />
             &nbsp; Add New
           </Button>
@@ -206,10 +209,10 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.4,
       minWidth: 30,
       field: 'recipe_name',
-      headerName: 'RECIPE',
+      headerName: 'COMBO',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -221,22 +224,9 @@ const RecipeList = () => {
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Tooltip title={params.row.recipe_name} placement='right'>
-              <Typography
-                noWrap
-                variant='body2'
-                sx={{
-                  color: 'text.primary',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '140px'
-                }}
-              >
-                {params.row.recipe_name ? params.row.recipe_name : '-'}
-              </Typography>
-            </Tooltip>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.recipe_name ? params.row.recipe_name : '-'}
+            </Typography>
           </Box>
         </Box>
       )
@@ -245,24 +235,24 @@ const RecipeList = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'id',
-      headerName: 'RECIPE ID',
+      headerName: 'COMBO ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.id ? 'REP' + params.row.id : '-'}
+          {params.row.id ? 'COM' + params.row.id : '-'}
         </Typography>
       )
     },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'portion_size',
-      headerName: 'PORTION SIZE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.portion_size ? `${params.row.portion_size} ${params.row.portion_uom_name || ''}`.trim() : '-'}
-        </Typography>
-      )
-    },
+    // {
+    //   flex: 0.3,
+    //   minWidth: 10,
+    //   field: 'total_kcal',
+    //   headerName: 'KCAL',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {params.row.total_kcal ? params.row.total_kcal + ' Kcal' : '-'}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 20,
@@ -371,14 +361,17 @@ const RecipeList = () => {
     // }
   ]
 
+  console.log('total Count ?>>>', total)
+
   const onCellClick = params => {
+    console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {
       const data = params.row
 
       Router.push({
-        pathname: `/diet/recipe/${data?.id}`
+        pathname: `/diet/combo/${data?.id}`
       })
     } else {
       return
@@ -401,7 +394,7 @@ const RecipeList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Recipes' action={headerAction} />
+            <CardHeader title='Combo' action={headerAction} />
 
             <DataGrid
               sx={{

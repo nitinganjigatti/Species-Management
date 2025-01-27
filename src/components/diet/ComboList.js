@@ -9,21 +9,21 @@ import Avatar from 'src/@core/components/mui/avatar'
 import Button from '@mui/material/Button'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
-import RecipeCard from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
+import ComboCard from 'src/views/pages/diet/add_recipe_combo-List/comboCard'
 
-const RecipeList = props => {
+const ComboList = props => {
   const {
     addEventSidebarOpen,
     handleSidebarClose,
     submitLoader,
-    setSelectedCardRecipe,
-    selectedCardRecipe,
+    setSelectedCardCombo,
+    selectedCardCombo,
     checkid,
     onChange,
-    allRecipeSelectedValues,
-    setAllRecipeSelectedValues,
+    allComboSelectedValues,
+    setallComboSelectedValues,
     formData
   } = props
 
@@ -39,7 +39,7 @@ const RecipeList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, status: 1, meal_type: 'recipe' }
+      const params = { page: ingredientPage, q: searchValue, sort, status: 1, meal_type: 'combo' }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -75,7 +75,7 @@ const RecipeList = props => {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, meal_type: 'recipe' }
+          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, meal_type: 'combo' }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
@@ -105,7 +105,7 @@ const RecipeList = props => {
     debounce(async search => {
       if (search.trim()) {
         try {
-          const params = { page: 1, q: search, sort, status: 1, meal_type: 'recipe' }
+          const params = { page: 1, q: search, sort, status: 1, meal_type: 'combo' }
           const res = await getRecipeList({ params })
           if (res?.data?.result.length > 0) {
             // Append new results while ensuring unique IDs
@@ -158,7 +158,7 @@ const RecipeList = props => {
               icon='material-symbols-light:add-notes-outline-rounded'
               fontSize={'32px'}
             />
-            <Typography variant='h6'>Add Recipes</Typography>
+            <Typography variant='h6'>Add Combo</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
@@ -206,15 +206,15 @@ const RecipeList = props => {
         sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }}
         onScroll={handleScroll}
       >
-        <RecipeCard
+        <ComboCard
           rows={ingredientList}
-          setSelectedCardRecipe={setSelectedCardRecipe}
-          selectedCardRecipe={selectedCardRecipe}
+          setSelectedCardCombo={setSelectedCardCombo}
+          selectedCardCombo={selectedCardCombo}
           checkid={checkid}
           onChange={onChange}
           handleSidebarClose={handleSidebarClose}
-          allRecipeSelectedValues={allRecipeSelectedValues}
-          setAllRecipeSelectedValues={setAllRecipeSelectedValues}
+          allComboSelectedValues={allComboSelectedValues}
+          setallComboSelectedValues={setallComboSelectedValues}
           formData={formData}
           addEventSidebarOpen={addEventSidebarOpen}
           searchValue={searchValue}
@@ -243,4 +243,4 @@ const RecipeList = props => {
   )
 }
 
-export default RecipeList
+export default ComboList
