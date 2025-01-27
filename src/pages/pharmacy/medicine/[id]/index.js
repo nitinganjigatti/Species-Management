@@ -137,24 +137,6 @@ const ProductDetailsList = () => {
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  useEffect(() => {
-    if (tab) {
-      setValue(tab)
-      updateUrlParams({
-        tab: tab,
-        sort: undefined,
-        searchValue: undefined,
-        column: undefined,
-        from_date: undefined || '',
-        to_date: undefined || '',
-        page: undefined,
-        limit: undefined
-      })
-    } else {
-      setValue(defaultTab)
-    }
-  }, [tab])
-
   const handleChange = (event, newValue) => {
     setValue(newValue)
 
