@@ -57,7 +57,6 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
       //     return parseMonthYear(a) - parseMonthYear(b)
       //   })
       []
-  console.log(monthsFromApi)
 
   const barData = monthsFromApi?.map(
     month => parseFloat(data[barName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0
