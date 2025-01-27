@@ -374,6 +374,8 @@ export const ANIMAL_REPORT = 'v1/animal/report'
 
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
+export const REPORT_TYPE = 'v1/report/daily/report/type'
+
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
