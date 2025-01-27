@@ -139,8 +139,7 @@ const ProductDetailsList = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-
-    // updateUrlParams({ tab: newValue })
+    updateUrlParams({ tab: newValue })
     // updateUrlParams(newValue)
   }
 
