@@ -36,7 +36,6 @@ import {
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import RenderUtility from 'src/utility/render'
-import { fontStyle } from '@mui/system'
 import { Opacity } from '@mui/icons-material'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
@@ -54,7 +53,7 @@ const RequestedProductDetails = props => {
   const [pendingItems, setPendingItems] = useState(200)
 
   const getStatusLabel = item => {
-    let backgroundColor, label
+    let backgroundColor, label, color
 
     switch (item?.request_status) {
       case 'Alternate':
@@ -62,11 +61,13 @@ const RequestedProductDetails = props => {
         label = 'Added Alternative'
         break
       case 'Not Available':
-        backgroundColor = theme.palette.error.main
+        color = theme.palette.error.main
+        backgroundColor = alpha(theme.palette.customColors.ErrorContainer, 0.5)
         label = 'Stock Stopped'
         break
       case 'Rejected':
-        backgroundColor = theme.palette.customColors.Tertiary
+        color = theme.palette.customColors.Tertiary
+        backgroundColor = alpha(theme.palette.customColors.TertiaryContainer, 0.5)
         label = 'Request Declined'
         break
       default:
@@ -76,7 +77,7 @@ const RequestedProductDetails = props => {
     return (
       <Typography
         sx={{
-          color: item?.request_status === 'Alternate' ? theme.palette.customColors.OnSurfaceVariant : 'white',
+          color: item?.request_status === 'Alternate' ? theme.palette.customColors.OnSurfaceVariant : color,
           fontSize: '12px',
           fontWeight: 400,
           fontFamily: 'Inter',
@@ -204,7 +205,7 @@ const RequestedProductDetails = props => {
                             iconStyle: {
                               color: theme.palette.primary.main
                             },
-                            prescriptionFile: parentItems?.control_substance_file
+                            prescriptionFile: parentItems?.prescription_required_file
                           })}
                         </Box>
                         <Box

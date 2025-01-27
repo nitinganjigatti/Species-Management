@@ -41,6 +41,8 @@ import Fade from '@mui/material/Fade'
 import IconButton from '@mui/material/IconButton'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
+import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
+import ProductNotAvailable from 'src/components/pharmacy/request/ProductNotAvailable'
 
 // import Icon from 'src/@core/components/icon'
 
@@ -79,6 +81,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
   const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
   const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
+  const [productNotAvailableDialog, setProductNotAvailableDialog] = useState(false)
 
   const [medicineParentId, setMedicineParentId] = useState({
     parentEndPointId: '',
@@ -111,34 +114,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     })
 
     showDialog()
-  }
-
-  const closeAlternativeMedicineDialog = () => {
-    setShowAlternativeMedicineDialog(false)
-    setMedicineParentId({
-      parentEndPointId: '',
-
-      parent_id: '',
-      request_item_id: '',
-      qty_requested: '',
-      product: ''
-    })
-  }
-
-  const openAlternativeMedicineDialog = () => {
-    setShowAlternativeMedicineDialog(true)
-  }
-
-  const closeRejectMedicineDialog = () => {
-    setRejectRequestMedicineDialog(false)
-    setMedicineParentId({
-      parentEndPointId: '',
-
-      parent_id: '',
-      request_item_id: '',
-      qty_requested: '',
-      product: ''
-    })
   }
 
   const openRejectMedicineDialog = () => {
@@ -389,6 +364,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
 
           setRequestedProducts({
             ...res.data,
+            request_item_details: res?.data?.list_items || [],
             list_items: updatedListItems
           })
           openDrawer()
@@ -562,6 +538,38 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     setRequestItems([])
     setFulfillMedicine([])
   }
+
+  const closeAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+
+    // fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
+  }
+
+  const openAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(true)
+  }
+
+  const closeRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+
+    // fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
+  }
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     updateUrlParams({
@@ -708,13 +716,51 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               existingListItems={requestedProducts}
               closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
               updateRequestItems={() => {
-                getRequestItemLists(id)
+                fetchTableData({ sort, q: searchValue, column: sortColumn })
                 closeAlternativeMedicineDialog()
               }}
             />
           }
           close={closeAlternativeMedicineDialog}
           show={openAlternativeMedicineDialog}
+        />
+      </Grid>
+      <Grid container>
+        <CommonDialogBox
+          noWidth={'noWidth'}
+          title={'Supply Stopped'}
+          dialogBoxStatus={productNotAvailableDialog}
+          formComponent={
+            <ProductNotAvailable
+              payload={medicineParentId}
+              closeProductNotAvailableDialog={closeProductNotAvailableDialog}
+              updateRequestItems={() => {
+                closeProductNotAvailableDialog()
+                fetchTableData({ sort, q: searchValue, column: sortColumn })
+              }}
+            />
+          }
+          close={closeProductNotAvailableDialog}
+          show={openProductNotAvailableDialog}
+        />
+      </Grid>
+      <Grid container>
+        <CommonDialogBox
+          noWidth={'noWidth'}
+          title={'Decline Request'}
+          dialogBoxStatus={rejectRequestMedicineDialog}
+          formComponent={
+            <RejectRequestItem
+              parentId={medicineParentId}
+              closeRejectMedicineDialog={closeRejectMedicineDialog}
+              updateRequestItems={() => {
+                closeRejectMedicineDialog()
+                fetchTableData({ sort, q: searchValue, column: sortColumn })
+              }}
+            />
+          }
+          close={closeRejectMedicineDialog}
+          show={openRejectMedicineDialog}
         />
       </Grid>
     </Box>

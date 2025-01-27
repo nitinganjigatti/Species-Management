@@ -125,20 +125,31 @@ const ProductDetailsList = () => {
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
 
-  const updateUrlParams = newTab => {
-    //query object to keep only `tab` and `id`
-    const updatedQuery = { tab: newTab }
-    if (id) updatedQuery.id = id
-    router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
-  }
-  // const updateUrlParams = params => {
-  //   const query = { ...router.query, ...params }
-  //   router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  // const updateUrlParams = newTab => {
+  //   //query object to keep only `tab` and `id`
+  //   const updatedQuery = { tab: newTab }
+  //   if (id) updatedQuery.id = id
+  //   router.replace({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
   // }
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   useEffect(() => {
     if (tab) {
       setValue(tab)
+      updateUrlParams({
+        tab: tab,
+        sort: undefined,
+        searchValue: undefined,
+        column: undefined,
+        from_date: undefined || '',
+        to_date: undefined || '',
+        page: undefined,
+        limit: undefined
+      })
     } else {
       setValue(defaultTab)
     }
@@ -146,8 +157,9 @@ const ProductDetailsList = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+
     // updateUrlParams({ tab: newValue })
-    updateUrlParams(newValue)
+    // updateUrlParams(newValue)
   }
 
   const handleEdit = async row => {
@@ -326,6 +338,7 @@ const ProductDetailsList = () => {
       const result = await getProductMonthWisePurchaseList(id)
       if (result?.success === true && result?.data) {
         console.log(result, 'result')
+
         const adjustedData = {
           purchase_count: result.data.purchase_count,
           purchase_value: result.data.purchase_value
@@ -343,6 +356,7 @@ const ProductDetailsList = () => {
       const result = await getProductMonthWiseDispatchList(id)
       if (result?.success === true && result?.data) {
         console.log(result, 'dispatch_count')
+
         const adjustedData = {
           dispatch_count: result.data.dispatch_count,
           dispatch_value: result.data.dispatch_value
