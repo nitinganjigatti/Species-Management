@@ -27,13 +27,25 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
+const formatDate = dateString => {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 function Purchase({ tabValue }) {
   const router = useRouter()
   const theme = useTheme()
+
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
+
+  console.log(router.query, 'router.query')
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -46,6 +58,10 @@ function Purchase({ tabValue }) {
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
+  })
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.from_date || '',
+    endDate: router.query.to_date || ''
   })
 
   const { id, action } = router.query
@@ -284,7 +300,7 @@ function Purchase({ tabValue }) {
   ]
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, column, from_date, to_date }) => {
       try {
         setLoading(true)
 
@@ -292,6 +308,8 @@ function Purchase({ tabValue }) {
           sort,
           q,
           column,
+          from_date,
+          to_date,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -321,18 +339,22 @@ function Purchase({ tabValue }) {
       fetchTableData({
         sort,
         q: searchValue,
-        column: sortColumn
+        column: sortColumn,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate
       })
       updateUrlParams({
         tab: tabValue,
         sort: sort,
         searchValue: searchValue,
         column: sortColumn,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate,
         page: paginationModel.page,
         limit: paginationModel.pageSize
       })
     }
-  }, [fetchTableData])
+  }, [fetchTableData, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -352,6 +374,8 @@ function Purchase({ tabValue }) {
           sort: sort,
           searchValue: q,
           column: column,
+          from_date: filterDates.startDate,
+          to_date: filterDates.endDate,
           page: paginationModel.page,
           limit: paginationModel.pageSize
         })
@@ -383,6 +407,8 @@ function Purchase({ tabValue }) {
         sort: newSort,
         searchValue: searchValue,
         column: newColumn,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate,
         page: paginationModel.page,
         limit: paginationModel.pageSize
       })
@@ -398,7 +424,46 @@ function Purchase({ tabValue }) {
     // })
   }
 
-  const handleDateRangeChange = (startDate, endDate) => {}
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      const formattedStartDate = formatDate(startDate)
+      const formattedEndDate = formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+
+      updateUrlParams({
+        tab: tabValue,
+        sort: sort,
+        searchValue: searchValue,
+        column: sortColumn,
+        from_date: formattedStartDate,
+        to_date: formattedEndDate,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      updateUrlParams({
+        tab: tabValue,
+        sort: sort,
+        searchValue: searchValue,
+        column: sortColumn,
+        from_date: '',
+        to_date: '',
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
+      console.log('Empty date range selected, fetching data without date filters')
+    }
+  }
 
   return (
     <>
@@ -411,16 +476,17 @@ function Purchase({ tabValue }) {
       <Grid
         container
         spacing={2}
-        justifyContent='flex-end'
-        alignItems='center'
         sx={{
           mt: 3,
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}
       >
-        {/* <Grid item xs={12} sm='auto'>
+        <Grid item xs={12} sm='auto'>
           <CommonDateRangePickers onChange={handleDateRangeChange} />
-        </Grid> */}
+        </Grid>
         <Grid item xs={12} sm={12} md={3} lg={3}>
           <Box
             sx={{
