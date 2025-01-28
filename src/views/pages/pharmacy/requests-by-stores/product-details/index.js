@@ -88,7 +88,7 @@ const RequestedProductDetails = props => {
     return (
       <Box>
         {requestedProducts?.alt_parent?.length > 0 &&
-          requestedProducts?.alt_parent?.map((parentItems, index) => (
+          requestedProducts?.alt_parent?.map((nestedChilElm, index) => (
             <Grid key={index} item xs={12} sm={12} mb={2}>
               <Card
                 sx={{
@@ -159,8 +159,8 @@ const RequestedProductDetails = props => {
                             gap: 2
                           }}
                         >
-                          {RenderUtility.getPriorityIcons(parentItems?.priority)}{' '}
-                          {parentItems?.stock_name ? parentItems?.stock_name : 'NA'}
+                          {RenderUtility.getPriorityIcons(nestedChilElm?.priority)}{' '}
+                          {nestedChilElm?.stock_name ? nestedChilElm?.stock_name : 'NA'}
                         </Typography>
 
                         <Box
@@ -181,12 +181,12 @@ const RequestedProductDetails = props => {
                               py: '4px'
                             }}
                           >
-                            {`${parentItems?.package} of ${Utility.formatNumber(parentItems?.package_qty)}
-        ${parentItems?.package_uom_label} ${parentItems?.product_form_label}`}
+                            {`${nestedChilElm?.package} of ${Utility.formatNumber(nestedChilElm?.package_qty)}
+        ${nestedChilElm?.package_uom_label} ${nestedChilElm?.product_form_label}`}
                           </Typography>
 
                           {RenderUtility.attachedFiles({
-                            control_substance: parentItems?.control_substance,
+                            control_substance: nestedChilElm?.control_substance,
                             fontStyle: {
                               color: theme.palette.primary.main,
                               fontSize: '12px',
@@ -195,7 +195,7 @@ const RequestedProductDetails = props => {
                             iconStyle: {
                               color: theme.palette.primary.main
                             },
-                            prescriptionFile: parentItems?.prescription_required_file
+                            prescriptionFile: nestedChilElm?.prescription_required_file
                           })}
                         </Box>
                         <Box
@@ -203,9 +203,9 @@ const RequestedProductDetails = props => {
                             ml: -1
                           }}
                         >
-                          {(parentItems?.alternate_comments?.trim() || parentItems?.description?.trim()) && (
+                          {(nestedChilElm?.alternate_comments?.trim() || nestedChilElm?.description?.trim()) && (
                             <TextEllipsisWithModal
-                              text={parentItems?.alternate_comments || parentItems?.description}
+                              text={nestedChilElm?.alternate_comments || nestedChilElm?.description}
                               icon='material-symbols:description-outline'
                               style={{
                                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -222,12 +222,12 @@ const RequestedProductDetails = props => {
                   }
                   titleTypographyProps={{ variant: 'h6' }}
                   action={
-                    parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
-                    parentItems?.request_status !== 'Alternate' &&
-                    parentItems?.request_status !== 'Not Available' &&
-                    parentItems?.request_status !== 'Rejected' && (
+                    parseInt(nestedChilElm?.requested_qty) - parseInt(nestedChilElm?.dispatch_qty) >= 1 &&
+                    nestedChilElm?.request_status !== 'Alternate' &&
+                    nestedChilElm?.request_status !== 'Not Available' &&
+                    nestedChilElm?.request_status !== 'Rejected' && (
                       // eslint-disable-next-line lines-around-comment
-                      <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
+                      <MenuWithDots options={generateOptions(nestedChilElm, nestedChilElm?.id)} />
 
                       // <OptionsMenu
                       //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
@@ -251,7 +251,7 @@ const RequestedProductDetails = props => {
                       // backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.1)
                     }}
                   >
-                    {parentItems?.alternativeQuantityStatus?.map((item, index) => (
+                    {nestedChilElm?.alternativeQuantityStatus?.map((item, index) => (
                       <Grid
                         key={index}
                         md={2}
@@ -291,7 +291,7 @@ const RequestedProductDetails = props => {
                           </Typography>
                         </Box>
 
-                        {index < parentItems?.alternativeQuantityStatus?.length - 1 && (
+                        {index < nestedChilElm?.alternativeQuantityStatus?.length - 1 && (
                           <Divider
                             orientation='vertical'
                             flexItem
@@ -323,13 +323,13 @@ const RequestedProductDetails = props => {
                           alignItems: 'end'
                         }}
                       >
-                        {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
-                        parentItems?.request_status !== 'Alternate' &&
-                        parentItems?.request_status !== 'Not Available' &&
-                        parentItems?.request_status !== 'Rejected' ? (
+                        {parseInt(nestedChilElm?.requested_qty) - parseInt(nestedChilElm?.dispatch_qty) >= 1 &&
+                        nestedChilElm?.request_status !== 'Alternate' &&
+                        nestedChilElm?.request_status !== 'Not Available' &&
+                        nestedChilElm?.request_status !== 'Rejected' ? (
                           <Button
                             onClick={() => {
-                              fullFillRequestItem(parentItems)
+                              fullFillRequestItem(nestedChilElm)
                             }}
                             variant='contained'
                             size='small'
@@ -338,7 +338,7 @@ const RequestedProductDetails = props => {
                           </Button>
                         ) : null}
 
-                        {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) === 0 && (
+                        {parseInt(nestedChilElm?.requested_qty) - parseInt(nestedChilElm?.dispatch_qty) === 0 && (
                           <Grid
                             sx={{
                               color: 'success.main',
@@ -354,7 +354,7 @@ const RequestedProductDetails = props => {
                           </Grid>
                         )}
 
-                        {getStatusLabel(parentItems)}
+                        {getStatusLabel(nestedChilElm)}
                       </Box>
                     </Grid>
                   </Grid>

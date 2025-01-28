@@ -2,22 +2,13 @@ import React, { useState, useEffect, useCallback, forwardRef } from 'react'
 
 import {
   Box,
-  CardContent,
   CardHeader,
-  Divider,
   Tooltip,
-  Paper,
-  Drawer,
-  Avatar,
   Grid,
-  Card,
-  Button,
-  Chip,
   TextField,
   Typography,
   InputAdornment,
   FormControl,
-  FormControlLabel,
   MenuItem,
   Select,
   InputLabel
@@ -43,8 +34,6 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
 import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
 import ProductNotAvailable from 'src/components/pharmacy/request/ProductNotAvailable'
-
-// import Icon from 'src/@core/components/icon'
 
 // import Drawer from '@mui/material/Drawer'
 const Transition = forwardRef(function Transition(props, ref) {
