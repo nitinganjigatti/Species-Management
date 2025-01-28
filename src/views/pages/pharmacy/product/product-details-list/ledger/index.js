@@ -102,28 +102,23 @@ const doctors = [
   { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' }
 ]
 
-function Ledger({ tabValue }) {
+function Ledger({ tabValue, updateUrlParams }) {
   const theme = useTheme()
   const router = useRouter()
   const { id, batch_no, filters } = router.query
-
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
 
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'number')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
 
-  // const [selectedTabs, setSelectedTabs] = useState([])
-  // const [selectedBatches, setSelectedBatches] = useState([])
   const [selectedTabs, setSelectedTabs] = useState(
     router.query.filters ? (Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]) : []
   )
@@ -156,8 +151,27 @@ function Ledger({ tabValue }) {
   const filteredBatchDetails = batchDetailsList?.filter(location =>
     location.batch_no.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
   const [selectedDoctors, setSelectedDoctors] = React.useState([])
+
+  useEffect(() => {
+    if (router.query.tab !== tabValue) {
+      // debugger
+      setPaginationModel({ page: 0, pageSize: 10 })
+      setSortColumn('number')
+      setSelectedTabs([])
+      setSelectedBatches([])
+      updateUrlParams({
+        tab: tabValue,
+        sort: 'desc',
+        column: 'number',
+        searchValue: '',
+        batch_no: [],
+        filters: [],
+        page: 0,
+        limit: 10
+      })
+    }
+  }, [tabValue, updateUrlParams])
 
   const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
@@ -440,7 +454,7 @@ function Ledger({ tabValue }) {
   ]
 
   const getLedger = useCallback(
-    async ({ stock_id, batch_no, q, tab, page, limit }) => {
+    async ({ stock_id, batch_no, q, tab }) => {
       try {
         setLoading(true)
         const params = {
@@ -448,8 +462,8 @@ function Ledger({ tabValue }) {
           batch_no,
           q,
           tab,
-          page: page + 1,
-          limit
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
         }
 
         await getLedgerList(params).then(res => {
@@ -459,6 +473,14 @@ function Ledger({ tabValue }) {
             setStockDetails(res?.data)
             setRows(loadServerRows(paginationModel.page, res?.data?.ledger_data))
             setLoading(false)
+            updateUrlParams({
+              tab: tabValue,
+              batch_no: batch_no,
+              searchValue: q,
+              filters: tab,
+              page: paginationModel.page,
+              limit: paginationModel.pageSize
+            })
           } else {
             setRows([])
             setTotal(parseInt(res?.total))
@@ -476,25 +498,15 @@ function Ledger({ tabValue }) {
   )
 
   useEffect(() => {
-    if (id) {
+    if (id && router.query.tab === tabValue) {
       getLedger({
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
-        tab: selectedTabs,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
-      updateUrlParams({
-        tab: tabValue,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize,
-        batch_no: selectedBatches,
-        searchValue: searchValue,
-        filters: selectedTabs.length > 0 ? selectedTabs : undefined
+        tab: selectedTabs
       })
     }
-  }, [getLedger])
+  }, [getLedger, router.query.tab])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -518,17 +530,7 @@ function Ledger({ tabValue }) {
           stock_id: id,
           batch_no: selectedBatches,
           q: q,
-          tab: selectedTabs,
-          page: paginationModel?.page,
-          limit: paginationModel?.pageSize
-        })
-        updateUrlParams({
-          tab: tabValue,
-          batch_no: selectedBatches,
-          searchValue: q,
-          filters: selectedTabs,
-          page: paginationModel?.page,
-          limit: paginationModel?.pageSize
+          tab: selectedTabs
         })
       } catch (error) {
         console.error(error)
@@ -549,17 +551,7 @@ function Ledger({ tabValue }) {
       stock_id: id,
       batch_no: selectedBatches,
       q: searchValue,
-      tab: updatedTabs,
-      page: paginationModel?.page,
-      limit: paginationModel?.pageSize
-    })
-    updateUrlParams({
-      tab: tabValue,
-      batch_no: selectedBatches,
-      searchValue: searchValue,
-      filters: updatedTabs.length > 0 ? [...updatedTabs] : [],
-      page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      tab: updatedTabs
     })
   }
 
@@ -641,17 +633,7 @@ function Ledger({ tabValue }) {
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
-        tab: selectedTabs,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
-      updateUrlParams({
-        tab: tabValue,
-        batch_no: selectedBatches,
-        searchValue: searchValue,
-        filters: selectedTabs,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        tab: selectedTabs
       })
     } catch (error) {
       console.error(error)
@@ -662,24 +644,16 @@ function Ledger({ tabValue }) {
   // const handleClearFilter = () => {
   //   toggleDrawer()
   // }
+
   const handleClearFilter = async () => {
     try {
       setSelectedBatches([])
-      updateUrlParams({
-        tab: tabValue,
-        batch_no: [],
-        searchValue: searchValue,
-        filters: [],
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
       await getLedger({
         stock_id: id,
         batch_no: [],
         q: searchValue,
-        tab: [],
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
+        tab: []
       })
     } catch (error) {
       console.error(error)

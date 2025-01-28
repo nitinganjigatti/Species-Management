@@ -32,21 +32,18 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
-function Dispatch({ tabValue }) {
+function Dispatch({ tabValue, updateUrlParams }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
+  console.log(router.query, 'router.queryD')
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState('shipment_id')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_id')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
@@ -64,7 +61,6 @@ function Dispatch({ tabValue }) {
   const [selectedDispatchedTo, setSelectedDispatchedTo] = useState(router.query.dispatched_to || '')
   const [requestedByOptions, setRequestedByOptions] = useState([])
   const [selectedRequestedBy, setSelectedRequestedBy] = useState(router.query.requested_by || '')
-  const [selectDays, setSelectDays] = useState(router.query.days || '')
 
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.from_date || '',
@@ -75,6 +71,28 @@ function Dispatch({ tabValue }) {
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  useEffect(() => {
+    if (router.query.tab !== tabValue) {
+      // debugger
+      setPaginationModel({ page: 0, pageSize: 10 })
+      setSortColumn('shipment_id')
+      setFilterDates({ startDate: '', endDate: '' })
+      setSelectedType('')
+      setSelectedDispatchedTo('')
+      setSelectedRequestedBy('')
+      updateUrlParams({
+        tab: tabValue,
+        sort: 'desc',
+        column: 'shipment_id',
+        searchValue: '',
+        from_date: '',
+        to_date: '',
+        page: 0,
+        limit: 10
+      })
+    }
+  }, [tabValue, updateUrlParams])
 
   const columns = [
     {
@@ -268,6 +286,19 @@ function Dispatch({ tabValue }) {
               ).values()
             )
             setRequestedByOptions(uniqueRequestedBy)
+            updateUrlParams({
+              tab: tabValue,
+              sort: sort,
+              searchValue: q,
+              column: column,
+              type: type,
+              dispatched_to: dispatched_to,
+              requested_by: requested_by,
+              from_date: from_date,
+              to_date: to_date,
+              page: paginationModel.page,
+              limit: paginationModel.pageSize
+            })
           } else {
             setRows([])
             setTotal(0)
@@ -284,7 +315,7 @@ function Dispatch({ tabValue }) {
   )
 
   useEffect(() => {
-    if (id) {
+    if (id && router.query.tab === tabValue) {
       fetchTableData({
         sort,
         q: searchValue,
@@ -295,21 +326,16 @@ function Dispatch({ tabValue }) {
         from_date: filterDates.startDate,
         to_date: filterDates.endDate
       })
-      updateUrlParams({
-        tab: tabValue,
-        sort: sort,
-        searchValue: searchValue,
-        column: sortColumn,
-        type: selectedType,
-        dispatched_to: selectedDispatchedTo,
-        requested_by: selectedRequestedBy,
-        from_date: filterDates.startDate,
-        to_date: filterDates.endDate,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
     }
-  }, [fetchTableData, selectedType, selectedDispatchedTo, selectedRequestedBy, filterDates])
+  }, [
+    fetchTableData,
+    updateUrlParams,
+    selectedType,
+    selectedDispatchedTo,
+    selectedRequestedBy,
+    filterDates,
+    router.query.tab
+  ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -324,19 +350,6 @@ function Dispatch({ tabValue }) {
       setSearchValue(q)
       try {
         await fetchTableData({ sort, q, column, type, dispatched_to, requested_by, from_date, to_date })
-        updateUrlParams({
-          tab: tabValue,
-          sort: sort,
-          searchValue: q,
-          column: column,
-          type: type,
-          dispatched_to: dispatched_to,
-          requested_by: requested_by,
-          from_date: from_date,
-          to_date: to_date,
-          page: paginationModel.page,
-          limit: paginationModel.pageSize
-        })
       } catch (error) {
         console.error(error)
       }
@@ -365,19 +378,6 @@ function Dispatch({ tabValue }) {
       setSort(newSort)
       setSortColumn(newColumn)
       fetchTableData({ sort: newSort, q: searchValue, column: newColumn })
-      updateUrlParams({
-        tab: tabValue,
-        sort: newSort,
-        searchValue: searchValue,
-        column: newColumn,
-        type: selectedType,
-        dispatched_to: selectedDispatchedTo,
-        requested_by: selectedRequestedBy,
-        from_date: filterDates.startDate,
-        to_date: filterDates.endDate,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
     }
   }
 
@@ -398,52 +398,6 @@ function Dispatch({ tabValue }) {
     setSelectedRequestedBy(event.target.value)
   }
 
-  // const filterByDays = days => {
-  //   setSearchValue('')
-  //   if (days !== 'all') {
-  //     setTotal(0)
-  //     // setPaginationModel({ page: 0, pageSize: 10 })
-  //     const currentDate = new Date()
-  //     const selectedDays = parseInt(days)
-  //     let startDate
-  //     let endDate
-
-  //     switch (selectedDays) {
-  //       case 3:
-  //         startDate = Utility.getPreviousDaysDate(currentDate, 3)
-  //         endDate = Utility.formattedPresentDate()
-  //         setFilterDates({ startDate, endDate })
-  //         break
-  //       case 7:
-  //         startDate = Utility.getPreviousDaysDate(currentDate, 7)
-  //         endDate = Utility.getPreviousDaysDate(currentDate, 3)
-  //         setFilterDates({ startDate, endDate })
-
-  //         break
-  //       case 15:
-  //         startDate = Utility.getPreviousDaysDate(currentDate, 15)
-  //         endDate = Utility.getPreviousDaysDate(currentDate, 7)
-  //         setFilterDates({ startDate, endDate })
-  //         break
-  //       case 16:
-  //         startDate = ''
-  //         endDate = Utility.getPreviousDaysDate(currentDate, 15)
-  //         setFilterDates({ startDate, endDate })
-  //         break
-  //       default:
-  //         startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
-  //         endDate = Utility.formattedPresentDate()
-  //         setFilterDates({ startDate, endDate })
-  //         break
-  //     }
-  //   } else {
-  //     // setFilterDates({sta})
-
-  //     setFilterDates({ startDate: '', endDate: '' })
-  //     // fetchTableData(sort, searchValue, sortColumn, status)
-  //   }
-  // }
-
   const formatDate = dateString => {
     const date = new Date(dateString)
     const year = date.getFullYear()
@@ -453,33 +407,6 @@ function Dispatch({ tabValue }) {
     return `${year}-${month}-${day}`
   }
 
-  // const handleDateRangeChange = (startDate, endDate) => {
-  //   if (startDate && endDate) {
-  //     const formattedStartDate = formatDate(startDate)
-  //     const formattedEndDate = formatDate(endDate)
-  //     setFilterDates({
-  //       startDate: formattedStartDate,
-  //       endDate: formattedEndDate
-  //     })
-
-  //     // fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
-  //     updateUrlParams({
-  //       tab: tabValue,
-  //       sort: sort,
-  //       searchValue: searchValue,
-  //       column: sortColumn,
-  //       type: selectedType,
-  //       dispatched_to: selectedDispatchedTo,
-  //       requested_by: selectedRequestedBy,
-  //       from_date: filterDates.startDate,
-  //       to_date: filterDates.endDate,
-  //       page: paginationModel.page,
-  //       limit: paginationModel.pageSize
-  //     })
-  //     console.log('Date range selected:', { startDate, endDate })
-  //   }
-  // }
-
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
       const formattedStartDate = formatDate(startDate)
@@ -487,20 +414,6 @@ function Dispatch({ tabValue }) {
       setFilterDates({
         startDate: formattedStartDate,
         endDate: formattedEndDate
-      })
-
-      updateUrlParams({
-        tab: tabValue,
-        sort: sort,
-        searchValue: searchValue,
-        column: sortColumn,
-        type: selectedType,
-        dispatched_to: selectedDispatchedTo,
-        requested_by: selectedRequestedBy,
-        from_date: formattedStartDate,
-        to_date: formattedEndDate,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
       })
       console.log('Date range selected:', { startDate, endDate })
     } else {
@@ -510,19 +423,6 @@ function Dispatch({ tabValue }) {
         endDate: ''
       })
 
-      updateUrlParams({
-        tab: tabValue,
-        sort: sort,
-        searchValue: searchValue,
-        column: sortColumn,
-        type: selectedType,
-        dispatched_to: selectedDispatchedTo,
-        requested_by: selectedRequestedBy,
-        from_date: '',
-        to_date: '',
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
       console.log('Empty date range selected, fetching data without date filters')
     }
   }
@@ -590,7 +490,7 @@ function Dispatch({ tabValue }) {
         >
           {/* Date Picker */}
           <Grid item xs={12} sm='auto'>
-            <CommonDateRangePickers onChange={handleDateRangeChange} />
+            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
           </Grid>
 
           {/* Filters Section */}
@@ -659,23 +559,6 @@ function Dispatch({ tabValue }) {
                 />
               </FormControl>
             </Grid>
-
-            {/* Filter Button */}
-            {/* <Grid item xs={12} sm='auto'>
-              <Button
-                variant='outlined'
-                startIcon={<FilterListIcon />}
-                sx={{
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  height: '40px',
-                  width: '100%', // Ensures full width on smaller screens
-                  color: 'customColors.OnSurfaceVariant'
-                }}
-              >
-                Filter
-              </Button>
-            </Grid> */}
           </Grid>
         </Grid>
       </Grid>
