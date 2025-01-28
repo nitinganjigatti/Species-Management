@@ -26,7 +26,6 @@ import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -59,8 +58,6 @@ function Purchase({ tabValue, updateUrlParams }) {
     startDate: router.query.from_date || '',
     endDate: router.query.to_date || ''
   })
-  const today = new Date()
-  const [selectedRange, setSelectedRange] = useState(`All time - Upto - ${format(today, 'dd MMM, yyyy')}`)
 
   const { id, action } = router.query
   const isInitialRender = useRef(true)
