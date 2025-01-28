@@ -1,30 +1,19 @@
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState } from 'react'
 
 // ** MUI Imports
 
 import IconButton from '@mui/material/IconButton'
 import { alpha } from '@mui/material'
 import { useTheme } from '@emotion/react'
-import { LoadingButton } from '@mui/lab'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import {
   Drawer,
-  FormControl,
-  InputLabel,
-  Select,
   CardHeader,
-  MenuItem,
-  FormHelperText,
-  CustomInput,
-  TextField,
-  Autocomplete,
-  CardContent,
   Grid,
   Card,
   Avatar,
-  Chip,
   Box,
   Typography,
   Button,
@@ -32,25 +21,26 @@ import {
   CircularProgress
 } from '@mui/material'
 
-// ** Custom Components Imports
-import CustomAvatar from 'src/@core/components/mui/avatar'
-import OptionsMenu from 'src/@core/components/option-menu'
 import RenderUtility from 'src/utility/render'
-import { Opacity } from '@mui/icons-material'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
-import FulfillDialog from 'src/components/pharmacy/request/FulfillDialog'
 
 // ** Icon Imports
 
 const RequestedProductDetails = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, requestedProducts, generateOptions, fullFillRequestItem } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    requestedProducts,
+    generateOptions,
+    fullFillRequestItem,
+    drawerLoader
+  } = props
   const theme = useTheme()
 
   // ** State
-  const [pendingItems, setPendingItems] = useState(200)
 
   const getStatusLabel = item => {
     let backgroundColor, label, color
@@ -258,7 +248,6 @@ const RequestedProductDetails = props => {
                       justifyContent: 'space-between'
 
                       // border: '1px solid red'
-
                       // backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.1)
                     }}
                   >
@@ -340,7 +329,7 @@ const RequestedProductDetails = props => {
                         parentItems?.request_status !== 'Rejected' ? (
                           <Button
                             onClick={() => {
-                              fullFillRequestItem(parentItems, requestedProducts)
+                              fullFillRequestItem(parentItems)
                             }}
                             variant='contained'
                             size='small'
@@ -388,421 +377,442 @@ const RequestedProductDetails = props => {
         '& .MuiDrawer-paper': { maxWidth: '642px' }
       }}
     >
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          width: '-webkit-fill-available',
-          backgroundColor: 'white',
-          p: '24px',
-          zIndex: 100
-        }}
-      >
+      {drawerLoader ? (
         <Box
-          className='sidebar-header'
           sx={{
             display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             width: '100%',
-            justifyContent: 'space-between'
+            minWidth: '642px',
+            height: '100%'
           }}
         >
-          <Grid container>
-            <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <Box
-                sx={{
-                  backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05),
-                  width: '66px',
-                  height: '66px',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <Avatar
-                  variant='square'
-                  src={'images/square'}
-                  alt='Medicine Image'
-                  sx={{ width: '52px', height: '52px', borderRadius: '2px', p: 0 }}
-                />
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '20px',
-                    fontWeight: 500,
-                    fontFamily: 'Inter'
-                  }}
-                >
-                  {requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.neutralSecondary,
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    fontFamily: 'Inter'
-                  }}
-                >
-                  {/* {requestedProducts?.generic_name ? requestedProducts?.generic_name : 'NA'} */}
-                  {requestedProducts?.package && requestedProducts?.package_qty && requestedProducts?.package_uom_label
-                    ? // requestedProducts?.product_form_label
-                      `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
-                        requestedProducts?.package_uom_label
-                      } `
-                    : 'NA'}
-                  {/* // ${requestedProducts?.product_form_label}` */}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '12px',
-                    fontWeight: 400,
-                    fontFamily: 'Inter'
-                  }}
-                >
-                  Available Quantity:
-                  <Typography
-                    component='span'
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              width: '-webkit-fill-available',
+              backgroundColor: 'white',
+              p: '24px',
+              zIndex: 100
+            }}
+          >
+            <Box
+              className='sidebar-header'
+              sx={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Grid container>
+                <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <Box
                     sx={{
-                      color: theme.palette.customColors.neutralPrimary,
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      fontFamily: 'Inter'
+                      backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05),
+                      width: '66px',
+                      height: '66px',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
                     }}
                   >
-                    {requestedProducts?.total_available_quantity ? requestedProducts?.total_available_quantity : 'NA'}
-                  </Typography>
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
-              </IconButton>
-            </Grid>
-            <Grid
-              item
-              sm={12}
-              sx={{
-                backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.2),
-                height: '41px',
-                paddingY: '12px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                mt: '12px'
-              }}
-            >
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  fontFamily: 'Inter',
-                  padding: '8px'
-                }}
-              >
-                Pending Items -
-                <Typography
-                  component='span'
-                  sx={{
-                    color: theme.palette.customColors.Tertiary,
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    fontFamily: 'Inter'
-                  }}
-                >
-                  {' '}
-                  {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : 'NA'}
-                </Typography>
-              </Typography>
-            </Grid>
-          </Grid>
-        </Box>
-      </Box>
-      <Box
-        sx={{
-          backgroundColor: theme.palette.customColors.Background,
-          height: '100%'
-        }}
-      >
-        <Grid
-          container
-          sx={{
-            backgroundColor: theme.palette.customColors.Background,
-
-            // height: '100%',
-            overflowY: 'auto',
-            mt: '167px',
-            padding: '24px'
-          }}
-        >
-          <Grid item xs={12} sm={12} md={12} sx={{ display: 'inline-flex' }}>
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: 500,
-                fontFamily: 'Inter',
-                pb: '8px',
-                height: 'auto'
-              }}
-            >
-              Pending Requests - {''}
-              {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : 'NA'}
-            </Typography>
-          </Grid>
-
-          {requestedProducts?.list_items?.length > 0 &&
-            requestedProducts?.list_items?.map((parentItems, index) => (
-              <Grid key={index} item xs={12} sm={12} mb={2}>
-                <Card
-                  sx={{
-                    padding: '16px',
-                    boxShadow: 'none',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    boxShadow: `0px 4px 12px ${theme => alpha(theme.palette.customColors.neutral05, 0.05)}`
-                  }}
-                >
-                  <CardHeader
-                    sx={{
-                      pl: 3,
-                      py: 0
-                    }}
-                    title={
-                      <>
-                        <Typography
-                          sx={{
-                            color: theme.palette.customColors.OnPrimaryContainer,
-                            fontSize: '16px',
-                            fontWeight: 500,
-                            fontFamily: 'Inter',
-                            display: 'flex',
-                            gap: 2
-                          }}
-                        >
-                          {RenderUtility.getPriorityIcons(parentItems?.priority)}{' '}
-                          {parentItems?.ro_no ? parentItems?.ro_no : 'NA'}
-                        </Typography>
-                        <>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              '& svg': { color: 'success.main' }
-                            }}
-                          >
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                color: theme.palette.customColors.neutralSecondary,
-                                fontSize: '12px',
-                                fontWeight: 400,
-                                fontFamily: 'Inter',
-                                mr: 2,
-                                py: '4px'
-                              }}
-                            >
-                              {parentItems?.created_by_user_name ? `By ${parentItems?.created_by_user_name}` : 'NA'} •
-                              {parentItems?.created_at && Utility.formatDisplayDate(parentItems?.created_at)}
-                            </Typography>
-
-                            {RenderUtility.attachedFiles({
-                              control_substance: parentItems?.control_substance,
-                              fontStyle: {
-                                color: theme.palette.primary.main,
-                                fontSize: '12px',
-                                fontWeight: 400
-                              },
-                              iconStyle: {
-                                color: theme.palette.primary.main
-                              },
-                              prescriptionFile: parentItems?.control_substance_file
-                            })}
-                          </Box>
-                          <Box
-                            sx={{
-                              ml: -1
-                            }}
-                          >
-                            {(parentItems?.alternate_comments?.trim() || parentItems?.description?.trim()) && (
-                              <TextEllipsisWithModal
-                                text={parentItems?.alternate_comments || parentItems?.description}
-                                icon='material-symbols:description-outline'
-                                style={{
-                                  color: theme.palette.customColors.OnSurfaceVariant,
-                                  fontSize: '12px',
-                                  fontWeight: 400,
-                                  maxWidth: '100%'
-                                }}
-                                iconColor={theme.palette.customColors.moderateSecondary}
-                              />
-                            )}
-                          </Box>
-                        </>
-                      </>
-                    }
-                    titleTypographyProps={{ variant: 'h6' }}
-                    action={
-                      parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
-                      parentItems?.request_status !== 'Alternate' &&
-                      parentItems?.request_status !== 'Not Available' &&
-                      parentItems?.request_status !== 'Rejected' && (
-                        // <OptionsMenu
-                        //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
-                        //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
-                        // />
-
-                        <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
-                      )
-                    }
-                  />
-                  <Divider
-                    orientation='horizontal'
-                    sx={{
-                      my: '8px',
-                      width: '100%',
-                      backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
-                    }}
-                  />
+                    <Avatar
+                      variant='square'
+                      src={'images/square'}
+                      alt='Medicine Image'
+                      sx={{ width: '52px', height: '52px', borderRadius: '2px', p: 0 }}
+                    />
+                  </Box>
                   <Box>
-                    <Grid
-                      container
+                    <Typography
                       sx={{
-                        padding: '12px 12px 8px 12px',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        gap: 2,
-                        justifyContent: 'space-between',
-                        backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '20px',
+                        fontWeight: 500,
+                        fontFamily: 'Inter'
                       }}
                     >
-                      {parentItems?.parentQuantityStatus?.map((item, index) => (
-                        <Grid
-                          key={index}
-                          md={2}
-                          xs={2}
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between'
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              flexDirection: 'column',
-                              alignItems: 'start'
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                fontSize: '14px',
-                                fontWeight: 400,
-                                fontFamily: 'Inter'
-                              }}
-                            >
-                              {item?.label}
-                            </Typography>
+                      {requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: theme.palette.customColors.neutralSecondary,
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      {/* {requestedProducts?.generic_name ? requestedProducts?.generic_name : 'NA'} */}
+                      {requestedProducts?.package &&
+                      requestedProducts?.package_qty &&
+                      requestedProducts?.package_uom_label
+                        ? // requestedProducts?.product_form_label
+                          `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
+                            requestedProducts?.package_uom_label
+                          } `
+                        : 'NA'}
+                      {/* // ${requestedProducts?.product_form_label}` */}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      Available Quantity:
+                      <Typography
+                        component='span'
+                        sx={{
+                          color: theme.palette.customColors.neutralPrimary,
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          fontFamily: 'Inter'
+                        }}
+                      >
+                        {requestedProducts?.total_available_quantity
+                          ? requestedProducts?.total_available_quantity
+                          : 'NA'}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
+                  <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
+                    <Icon icon='mdi:close' fontSize={20} />
+                  </IconButton>
+                </Grid>
+                <Grid
+                  item
+                  sm={12}
+                  sx={{
+                    backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.2),
+                    height: '41px',
+                    paddingY: '12px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    mt: '12px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      fontFamily: 'Inter',
+                      padding: '8px'
+                    }}
+                  >
+                    Pending Items -
+                    <Typography
+                      component='span'
+                      sx={{
+                        color: theme.palette.customColors.Tertiary,
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        fontFamily: 'Inter'
+                      }}
+                    >
+                      {' '}
+                      {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : 'NA'}
+                    </Typography>
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              backgroundColor: theme.palette.customColors.Background,
+              height: '100%'
+            }}
+          >
+            <Grid
+              container
+              sx={{
+                backgroundColor: theme.palette.customColors.Background,
+
+                // height: '100%',
+                overflowY: 'auto',
+                mt: '167px',
+                padding: '24px'
+              }}
+            >
+              <Grid item xs={12} sm={12} md={12} sx={{ display: 'inline-flex' }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter',
+                    pb: '8px',
+                    height: 'auto'
+                  }}
+                >
+                  Pending Requests - {''}
+                  {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : 'NA'}
+                </Typography>
+              </Grid>
+
+              {requestedProducts?.list_items?.length > 0 &&
+                requestedProducts?.list_items?.map((parentItems, index) => (
+                  <Grid key={index} item xs={12} sm={12} mb={2}>
+                    <Card
+                      sx={{
+                        padding: '16px',
+                        boxShadow: 'none',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        boxShadow: `0px 4px 12px ${theme => alpha(theme.palette.customColors.neutral05, 0.05)}`
+                      }}
+                    >
+                      <CardHeader
+                        sx={{
+                          pl: 3,
+                          py: 0
+                        }}
+                        title={
+                          <>
                             <Typography
                               sx={{
                                 color: theme.palette.customColors.OnPrimaryContainer,
-                                fontSize: '20px',
+                                fontSize: '16px',
                                 fontWeight: 500,
-                                fontFamily: 'Inter'
+                                fontFamily: 'Inter',
+                                display: 'flex',
+                                gap: 2
                               }}
                             >
-                              {item.value}
+                              {RenderUtility.getPriorityIcons(parentItems?.priority)}{' '}
+                              {parentItems?.ro_no ? parentItems?.ro_no : 'NA'}
                             </Typography>
-                          </Box>
-
-                          {index < parentItems?.parentQuantityStatus?.length - 1 && (
-                            <Divider
-                              orientation='vertical'
-                              flexItem
-                              sx={{
-                                ml: 2,
-                                height: '100%',
-                                alignSelf: 'center',
-                                color: 'red !important',
-                                backgroundColor: theme => alpha(theme.palette.customColors.neutral05)
-                              }}
-                            />
-                          )}
-                        </Grid>
-                      ))}
-
-                      <Grid
-                        md={3}
-                        xs={3}
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'flex-end'
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            flexDirection: 'column',
-                            alignItems: 'start'
-                          }}
-                        >
-                          {/* {parentItems?.request_status === 'request' && ( */}
-                          {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
-                          parentItems?.request_status !== 'Alternate' &&
-                          parentItems?.request_status !== 'Not Available' &&
-                          parentItems?.request_status !== 'Rejected' ? (
-                            <Button
-                              onClick={() => {
-                                fullFillRequestItem(parentItems, requestedProducts)
-                              }}
-                              variant='contained'
-                              size='small'
-                            >
-                              Full fill
-                            </Button>
-                          ) : null}
-
-                          {parentItems?.alt_parent.length === 0 &&
-                            parentItems?.dispatch_status === 'Fulfilled' &&
-                            parentItems?.request_status !== 'Not Available' &&
-                            parentItems?.request_status !== 'Rejected' && (
-                              <Grid
+                            <>
+                              <Box
                                 sx={{
-                                  color: 'success.main',
-
                                   display: 'flex',
-                                  flexDirection: 'column',
-                                  justifyContent: 'center',
-                                  textAlign: 'left',
-                                  alignItems: 'left'
+                                  alignItems: 'center',
+                                  '& svg': { color: 'success.main' }
                                 }}
                               >
-                                <Icon
-                                  icon='ion:checkmark-circle'
-                                  style={{
+                                <Typography
+                                  variant='caption'
+                                  sx={{
+                                    color: theme.palette.customColors.neutralSecondary,
+                                    fontSize: '12px',
+                                    fontWeight: 400,
+                                    fontFamily: 'Inter',
+                                    mr: 2,
+                                    py: '4px'
+                                  }}
+                                >
+                                  {parentItems?.created_by_user_name ? `By ${parentItems?.created_by_user_name}` : 'NA'}{' '}
+                                  •{parentItems?.created_at && Utility.formatDisplayDate(parentItems?.created_at)}
+                                </Typography>
+
+                                {RenderUtility.attachedFiles({
+                                  control_substance: parentItems?.control_substance,
+                                  fontStyle: {
+                                    color: theme.palette.primary.main,
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  },
+                                  iconStyle: {
                                     color: theme.palette.primary.main
+                                  },
+                                  prescriptionFile: parentItems?.control_substance_file
+                                })}
+                              </Box>
+                              <Box
+                                sx={{
+                                  ml: -1
+                                }}
+                              >
+                                {(parentItems?.alternate_comments?.trim() || parentItems?.description?.trim()) && (
+                                  <TextEllipsisWithModal
+                                    text={parentItems?.alternate_comments || parentItems?.description}
+                                    icon='material-symbols:description-outline'
+                                    style={{
+                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                      fontSize: '12px',
+                                      fontWeight: 400,
+                                      maxWidth: '100%'
+                                    }}
+                                    iconColor={theme.palette.customColors.moderateSecondary}
+                                  />
+                                )}
+                              </Box>
+                            </>
+                          </>
+                        }
+                        titleTypographyProps={{ variant: 'h6' }}
+                        action={
+                          parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
+                          parentItems?.request_status !== 'Alternate' &&
+                          parentItems?.request_status !== 'Not Available' &&
+                          parentItems?.request_status !== 'Rejected' && (
+                            // eslint-disable-next-line lines-around-comment
+                            // <OptionsMenu
+                            //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
+                            //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
+                            // />
+                            <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
+                          )
+                        }
+                      />
+                      <Divider
+                        orientation='horizontal'
+                        sx={{
+                          my: '8px',
+                          width: '100%',
+                          backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
+                        }}
+                      />
+                      <Box>
+                        <Grid
+                          container
+                          sx={{
+                            padding: '12px 12px 8px 12px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            gap: 2,
+                            justifyContent: 'space-between',
+                            backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
+                          }}
+                        >
+                          {parentItems?.parentQuantityStatus?.map((item, index) => (
+                            <Grid
+                              key={index}
+                              md={2}
+                              xs={2}
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  flexDirection: 'column',
+                                  alignItems: 'start'
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                    fontSize: '14px',
+                                    fontWeight: 400,
+                                    fontFamily: 'Inter'
+                                  }}
+                                >
+                                  {item?.label}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    color: theme.palette.customColors.OnPrimaryContainer,
+                                    fontSize: '20px',
+                                    fontWeight: 500,
+                                    fontFamily: 'Inter'
+                                  }}
+                                >
+                                  {item.value}
+                                </Typography>
+                              </Box>
+
+                              {index < parentItems?.parentQuantityStatus?.length - 1 && (
+                                <Divider
+                                  orientation='vertical'
+                                  flexItem
+                                  sx={{
+                                    ml: 2,
+                                    height: '100%',
+                                    alignSelf: 'center',
+                                    color: 'red !important',
+                                    backgroundColor: theme => alpha(theme.palette.customColors.neutral05)
                                   }}
                                 />
-                              </Grid>
-                            )}
+                              )}
+                            </Grid>
+                          ))}
 
-                          {getStatusLabel(parentItems)}
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                  {parentItems?.alt_parent.length > 0 && AlterNativeCard(parentItems)}
-                </Card>
-              </Grid>
-            ))}
-        </Grid>
-      </Box>
+                          <Grid
+                            md={3}
+                            xs={3}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'flex-end'
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                alignItems: 'start'
+                              }}
+                            >
+                              {/* {parentItems?.request_status === 'request' && ( */}
+                              {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
+                              parentItems?.request_status !== 'Alternate' &&
+                              parentItems?.request_status !== 'Not Available' &&
+                              parentItems?.request_status !== 'Rejected' ? (
+                                <Button
+                                  onClick={() => {
+                                    fullFillRequestItem(parentItems)
+                                  }}
+                                  variant='contained'
+                                  size='small'
+                                >
+                                  Full fill
+                                </Button>
+                              ) : null}
+
+                              {parentItems?.alt_parent.length === 0 &&
+                                parentItems?.dispatch_status === 'Fulfilled' &&
+                                parentItems?.request_status !== 'Not Available' &&
+                                parentItems?.request_status !== 'Rejected' && (
+                                  <Grid
+                                    sx={{
+                                      color: 'success.main',
+
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      justifyContent: 'center',
+                                      textAlign: 'left',
+                                      alignItems: 'left'
+                                    }}
+                                  >
+                                    <Icon
+                                      icon='ion:checkmark-circle'
+                                      style={{
+                                        color: theme.palette.primary.main
+                                      }}
+                                    />
+                                  </Grid>
+                                )}
+
+                              {getStatusLabel(parentItems)}
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                      {parentItems?.alt_parent.length > 0 && AlterNativeCard(parentItems)}
+                    </Card>
+                  </Grid>
+                ))}
+            </Grid>
+          </Box>
+        </>
+      )}
     </Drawer>
   )
 }

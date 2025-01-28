@@ -672,13 +672,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         setSubmitLoader(true)
 
         const response = await addDispatch(payload)
+
         if (response?.success) {
-          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
+          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.msg, severity: 'success' })
           setSubmitLoader(false)
           close()
         } else {
           setSubmitLoader(false)
-          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message?.name, severity: 'error' })
+          setOpenSnackbar({ ...openSnackbar, open: true, message: response?.msg, severity: 'error' })
         }
       } catch (e) {
         console.log(e)

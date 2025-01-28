@@ -71,6 +71,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [priority, setPriority] = useState(router.query.priority || 'all')
   const [loading, setLoading] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
+  const [drawerLoader, setDrawerLoader] = useState(false)
 
   const [requestedProducts, setRequestedProducts] = useState([])
 
@@ -82,6 +83,11 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
   const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
   const [productNotAvailableDialog, setProductNotAvailableDialog] = useState(false)
+
+  const [sideDrawerItemDetails, setSideDrawerItemDetails] = useState({
+    selectedStoreId: '',
+    selectedItemId: ''
+  })
 
   const [medicineParentId, setMedicineParentId] = useState({
     parentEndPointId: '',
@@ -99,16 +105,16 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     setShow(true)
   }
 
-  const fullFillRequestItem = (selectedLineItem, mainObj) => {
-    console.log('main obj', mainObj)
-    setRequestItems({
-      to_store_type: mainObj?.to_store_type,
-      to_store_id: mainObj?.to_store_id,
-      from_store_id: mainObj?.from_store_id,
-      from_store_type: mainObj?.from_store_type,
+  const fullFillRequestItem = selectedLineItem => {
+    setRequestItems(prevItems => ({
+      ...prevItems,
+      to_store_type: requestedProducts?.to_store_type,
+      to_store_id: requestedProducts?.to_store_id,
+      from_store_id: requestedProducts?.from_store_id,
+      from_store_type: requestedProducts?.from_store_type,
       id: selectedLineItem?.request_item_id,
       to_store: selectedStoreDetails?.storeName
-    })
+    }))
     setFulfillMedicine({
       ...selectedLineItem
     })
@@ -143,9 +149,17 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const closeDrawer = () => {
     setShowDrawer(false)
     setRequestedProducts([])
+    setSideDrawerItemDetails({
+      selectedStoreId: '',
+      selectedItemId: ''
+    })
   }
 
   const handleRowClick = params => {
+    setSideDrawerItemDetails({
+      selectedStoreId: selectedStoreDetails?.storeId,
+      selectedItemId: params?.row?.stock_item_id
+    })
     fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
 
     // openDrawer()
@@ -336,7 +350,8 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
 
   const fetchRequestedItemsById = async (storeId, itemId) => {
     try {
-      // setLoading(true)
+      setDrawerLoader(true)
+      openDrawer()
       await getAllRequestsOfSelectedProduct(storeId, itemId).then(res => {
         console.log('getAllRequestsOfSelectedProduct', res)
 
@@ -344,11 +359,11 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         //   setRequestedProducts(res?.data)
         //   setLoading(false)
         // }
+
         if (res?.success === true && res?.data?.list_items?.length > 0) {
           const updatedListItems = res?.data?.list_items.map(item => {
             const parentQuantityStatus = generateQuantityStats(item)
 
-            // If `alt_parent` exists, generate stats for each alternate
             const altParentStats =
               item?.alt_parent?.map(alt => ({
                 ...alt,
@@ -367,16 +382,15 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
             request_item_details: res?.data?.list_items || [],
             list_items: updatedListItems
           })
-          openDrawer()
+          setDrawerLoader(false)
         } else {
           setRequestedProducts([])
-
-          // setLoading(false)
+          setDrawerLoader(false)
         }
       })
     } catch (e) {
       console.log(e)
-      setLoading(false)
+      setDrawerLoader(false)
     }
   }
 
@@ -397,7 +411,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           ...(controlledDrug !== 'all' && { controlled: controlledDrug }),
           ...(priority !== 'all' && { priority: priority })
         }
-        console.log('params', params)
 
         await getAllRequestsOfSelectedStore({ params: params }, currentStoreId).then(res => {
           if (res?.success === true) {
@@ -408,7 +421,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           }
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
-            console.log('re', res?.data?.list_items)
+            console.log('response', res?.data?.list_items)
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
           } else {
             setTotal(parseInt(res?.data?.total_count))
@@ -465,10 +478,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }))
 
   const generateOptions = (params, parentId) => {
-    console.log('params', params)
-    console.log('parentId', parentId)
     let options = []
-    debugger
 
     if (selectedPharmacy.type === 'central') {
       options.push({
@@ -532,7 +542,8 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const closeFulfillDialog = () => {
     setShow(false)
     fetchTableData({ sort, q: searchValue, column: sortColumn })
-    closeDrawer()
+
+    // closeDrawer()
 
     // fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
     setRequestItems([])
@@ -674,6 +685,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         requestedProducts={requestedProducts}
         generateOptions={generateOptions}
         fullFillRequestItem={fullFillRequestItem}
+        drawerLoader={drawerLoader}
       />
       <Dialog
         fullWidth
@@ -703,7 +715,14 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           </IconButton>
         </Grid>
 
-        <FulfillDialog fulfillMedicine={fulfillMedicine} storeDetails={requestItems} close={closeFulfillDialog} />
+        <FulfillDialog
+          fulfillMedicine={fulfillMedicine}
+          storeDetails={requestItems}
+          close={() => {
+            closeFulfillDialog()
+            fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
+          }}
+        />
       </Dialog>
       <Grid container sx>
         <CommonDialogBox
@@ -718,6 +737,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               updateRequestItems={() => {
                 fetchTableData({ sort, q: searchValue, column: sortColumn })
                 closeAlternativeMedicineDialog()
+                fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
               }}
             />
           }
@@ -737,6 +757,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               updateRequestItems={() => {
                 closeProductNotAvailableDialog()
                 fetchTableData({ sort, q: searchValue, column: sortColumn })
+                fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
               }}
             />
           }
@@ -756,6 +777,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               updateRequestItems={() => {
                 closeRejectMedicineDialog()
                 fetchTableData({ sort, q: searchValue, column: sortColumn })
+                fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
               }}
             />
           }
