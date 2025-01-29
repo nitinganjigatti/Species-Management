@@ -235,3 +235,5 @@ export const SELECTED_STORES_REQUESTS = 'request-store-item'
 export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'
 
 export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
+
+export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'

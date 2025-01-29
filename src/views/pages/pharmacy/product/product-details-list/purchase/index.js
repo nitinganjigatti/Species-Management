@@ -370,7 +370,7 @@ function Purchase({ tabValue, updateUrlParams }) {
         to_date: filterDates.endDate
       })
     }
-  }, [fetchTableData, updateUrlParams, filterDates, router.query.tab])
+  }, [fetchTableData, updateUrlParams, router.query.tab])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -413,11 +413,11 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   const onRowClick = params => {
     var data = params.row
-
-    // Router.push({
-    //   pathname: `/pharmacy/medicine/${id}/purchase-details`,
-    //   query: { id: data?.id }
-    // })
+    console.log(data, 'data123')
+    Router.push({
+      pathname: `/pharmacy/medicine/${id}/purchase-details`,
+      query: { p_id: data?.id, po_no: data?.po_no, action: 'edit' }
+    })
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
@@ -428,11 +428,25 @@ function Purchase({ tabValue, updateUrlParams }) {
         startDate: formattedStartDate,
         endDate: formattedEndDate
       })
+      fetchTableData({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        from_date: formattedStartDate,
+        to_date: formattedEndDate
+      })
     } else {
       // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
       setFilterDates({
         startDate: '',
         endDate: ''
+      })
+      fetchTableData({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        from_date: '',
+        to_date: ''
       })
     }
   }
@@ -451,7 +465,7 @@ function Purchase({ tabValue, updateUrlParams }) {
           alignItems: 'center'
         }}
       >
-        <Grid item xs={12} sm={12} md={4} lg={4} sx={{ width: '100%' }}>
+        <Grid item xs={12} sm={12} md='auto' lg='auto' sx={{ width: '100%' }}>
           <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
         <Grid item xs={12} sm={12} md={3} lg={3}>

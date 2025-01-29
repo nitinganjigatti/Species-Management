@@ -346,10 +346,19 @@ function Dispatch({ tabValue, updateUrlParams }) {
   }))
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, column, type, dispatched_to, requested_by }) => {
+    debounce(async ({ sort, q, column, type, dispatched_to, requested_by, from_date, to_date }) => {
       setSearchValue(q)
       try {
-        await fetchTableData({ sort, q, column, type, dispatched_to, requested_by, from_date, to_date })
+        await fetchTableData({
+          sort,
+          q,
+          column,
+          type: type,
+          dispatched_to: dispatched_to,
+          requested_by: requested_by,
+          from_date: from_date,
+          to_date: to_date
+        })
       } catch (error) {
         console.error(error)
       }
@@ -359,6 +368,8 @@ function Dispatch({ tabValue, updateUrlParams }) {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    console.log(value, 'vaulue')
+
     await searchTableData({
       sort,
       q: value,
