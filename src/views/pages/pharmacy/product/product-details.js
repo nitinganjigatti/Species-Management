@@ -187,7 +187,7 @@ export const ProductDetail = ({
                               handleRequestStatus('Approved', productDetails.id, productDetails)
                             }}
                           >
-                            Approve Request
+                            Order Placed
                           </LoadingButton>
                         )}
                         {productDetails?.status === 'Pending' && (
