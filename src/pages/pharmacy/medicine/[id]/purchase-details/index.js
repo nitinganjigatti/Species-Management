@@ -50,7 +50,6 @@ function PurchaseDetails() {
 
   const columns = [
     {
-      flex: 0.3,
       width: 70,
       field: 'sl',
       headerName: 'S.NO',
@@ -61,8 +60,7 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 170,
       field: 'purchase_batch_no',
       headerName: 'BATCH NO',
       renderCell: params => (
@@ -80,8 +78,7 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 180,
       field: 'purchase_expiry_date',
       headerName: 'EXPIRY DATE',
       renderCell: params => (
@@ -99,8 +96,7 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 160,
       field: 'purchase_qty',
       headerName: 'QUANTITY',
       renderCell: params => (
@@ -118,8 +114,7 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 180,
       field: 'purchase_unit_price',
       headerName: 'UNIT PRICE (₹)',
       renderCell: params => (
@@ -137,8 +132,7 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 180,
       field: 'purchase_purchase_price',
       headerName: 'PRODUCT PRICE (₹)',
       renderCell: params => (
@@ -156,8 +150,7 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 170,
       field: 'action',
       headerName: 'ACTION',
       renderCell: params => (

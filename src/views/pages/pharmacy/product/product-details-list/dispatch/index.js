@@ -96,8 +96,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
 
   const columns = [
     {
-      flex: 0.2,
-      Width: 20,
+      Width: 60,
       field: 'sl_no',
       headerName: 'S.NO',
       renderCell: params => (
@@ -107,8 +106,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 40,
+      minWidth: 150,
       field: 'ro_no',
       headerName: 'REFERENCE ID',
       renderCell: params => (
@@ -126,8 +124,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 40,
+      minWidth: 160,
       field: 'shipment_id',
       headerName: 'SHIPMENT ID',
       renderCell: params => (
@@ -145,8 +142,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 40,
+      minWidth: 150,
       field: 'dispatched_to',
       headerName: 'DISPATCH TO',
       renderCell: params => (
@@ -165,8 +161,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
     },
 
     {
-      flex: 0.4,
-      minWidth: 40,
+      minWidth: 100,
       field: 'quantity',
       headerName: 'QUANTITY',
       renderCell: params => (
@@ -184,8 +179,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 40,
+      minWidth: 190,
       field: 'price',
       headerName: 'TOTAL VALUE (₹)',
       renderCell: params => (
@@ -204,8 +198,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
     },
 
     {
-      flex: 0.6,
-      minWidth: 50,
+      minWidth: 190,
       field: 'requested_by',
       headerName: 'REQUESTED BY',
       renderCell: params => (
