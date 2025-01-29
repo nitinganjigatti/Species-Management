@@ -266,7 +266,7 @@ const Animal = () => {
     <>
       {reports_module ? (
         <Card>
-          <CardHeader title='Animal Report' sx={{ mb: '16px' }} />
+          <CardHeader title='Daily Report' sx={{ mb: '16px' }} />
           <Box
             sx={{
               display: 'flex',

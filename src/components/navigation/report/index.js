@@ -13,8 +13,8 @@ const ComposeReportNavigation = reports_module => {
   }
 
   const animal = {
-    title: 'Reports',
-    path: '/report/animal',
+    title: 'Daily Report',
+    path: '/report/daily',
     icon: 'mdi:paw-outline'
   }
 
