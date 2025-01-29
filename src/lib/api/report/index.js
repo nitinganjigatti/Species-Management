@@ -4,7 +4,9 @@ import {
   ANIMAL_REPORT,
   MORTALITY_REPORT,
   REPORT_TYPE,
-  SPECIES_REPORT
+  SPECIES_REPORT,
+  USER_REPORT,
+  MEDICAL_REPORT
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -48,6 +50,15 @@ export async function getAllAnimalReport(params) {
 
 export async function getAnimalReport(params) {
   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
+  return response.data
+}
+export async function getUserReport(params) {
+  const response = await axiosGet({ url: `${USER_REPORT}`, params })
+  return response.data
+}
+
+export async function getMedicalReport(params) {
+  const response = await axiosGet({ url: `${MEDICAL_REPORT}`, params })
   return response.data
 }
 

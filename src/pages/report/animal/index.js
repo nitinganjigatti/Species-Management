@@ -16,7 +16,7 @@ import {
 import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { getAnimalReport, getReportTitle } from 'src/lib/api/report'
+import { getAnimalReport, getReportTitle, getUserReport, getMedicalReport } from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 
@@ -124,7 +124,14 @@ const Animal = () => {
         params.end_date = endDate
       }
       params.response_type = 'csv'
-      const response = await getAnimalReport(params)
+      let response = []
+      if (type === 'user_report') {
+        response = await getUserReport(params)
+      } else if (type === 'medical_report') {
+        response = await getMedicalReport(params)
+      } else {
+        response = await getAnimalReport(params)
+      }
       if (response?.success) {
         downloadNewCSVFile(response?.data)
       } else {
@@ -225,11 +232,10 @@ const Animal = () => {
       flex: 0.7,
       renderCell: params => {
         const handleExport = params => {
-     
           const { row } = params
           setDownloadingRowId(row.id)
           getDataToExport(row.key)
-            .then(() => setDownloadingRowId(null)) 
+            .then(() => setDownloadingRowId(null))
             .catch(() => setDownloadingRowId(null))
         }
 
@@ -238,7 +244,7 @@ const Animal = () => {
             variant='contained'
             onClick={() => handleExport(params)}
             sx={{
-              width: '120px', 
+              width: '120px',
               height: '40px',
               display: 'flex',
               alignItems: 'center',
