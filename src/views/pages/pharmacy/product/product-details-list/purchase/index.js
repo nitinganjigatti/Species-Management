@@ -441,16 +441,17 @@ function Purchase({ tabValue, updateUrlParams }) {
     <>
       <Grid
         container
-        spacing={2}
+        gap={5}
+        // spacing={5}
         sx={{
-          mt: 3,
+          mt: 5,
           flexWrap: 'wrap',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}
       >
-        <Grid item xs={12} sm='auto'>
+        <Grid item xs={12} sm={12} md={4} lg={4} sx={{ width: '100%' }}>
           <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
         <Grid item xs={12} sm={12} md={3} lg={3}>
