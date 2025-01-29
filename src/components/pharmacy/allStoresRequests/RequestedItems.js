@@ -596,7 +596,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           }}
         >
           <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
-            <CommonDateRangePickers onChange={handleDateRangeChange} />
+            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
           </Grid>
           <Grid item xs={12} md={2.5} lg={2.5}>
             <FormControl fullWidth size='small'>
