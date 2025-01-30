@@ -146,6 +146,7 @@ const RequestDetails = () => {
   const [labId, setLab_id] = useState('')
 
   const [fileId, setFileId] = useState()
+  const [file, setFile] = useState([])
   const [testName, setTestName] = useState()
   const [testSampleName, setTestSampleName] = useState('')
 
@@ -178,7 +179,22 @@ const RequestDetails = () => {
   }, [])
 
   const handleChangeStatus = async (event, params) => {
-    setStatus(event.target.value)
+    const value = event.target.value
+
+    if (
+      (value === 'completed_positive' ||
+        value === 'completed_negative' ||
+        value === 'completed_detected' ||
+        value === 'completed_not_detected' ||
+        value === 'completed_inconclusive') &&
+      !(image || document) // Ensuring at least one attachment is present
+    ) {
+      Toaster({ type: 'error', message: 'Please add attachments before completing' })
+      fetchRequestDetails()
+
+      return
+    }
+    setStatus(value)
 
     const id = params
 
@@ -606,7 +622,9 @@ const RequestDetails = () => {
                                 backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
                               }
                             }}
-                            onClick={e => handleOpenUploader(e, params)}
+                            onClick={e => {
+                              e.stopPropagation(), handleOpenUploader(e, params)
+                            }}
                           >
                             <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
                           </IconButton>
@@ -625,7 +643,9 @@ const RequestDetails = () => {
                                 backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
                               }
                             }}
-                            onClick={() => handleOpenTransfer(params)}
+                            onClick={e => {
+                              e.stopPropagation(), handleOpenTransfer(params)
+                            }}
                           >
                             <Icon
                               icon='mingcute:transfer-3-line'
@@ -856,7 +876,7 @@ const RequestDetails = () => {
 
       const res = await postBulkStatus({ params })
       if (res?.success) {
-        console.log('res', res)
+        // console.log('res', res)
         Toaster({ type: 'success', message: res.message })
         fetchRequestDetails()
       }
@@ -868,8 +888,20 @@ const RequestDetails = () => {
 
   const handleHeaderDropdown = e => {
     const value = e.target.value
-    setHeaderStatus(value)
-    if (value) {
+
+    if (
+      (value === 'completed_positive' ||
+        value === 'completed_negative' ||
+        value === 'completed_detected' ||
+        value === 'completed_not_detected' ||
+        value === 'completed_inconclusive') &&
+      !(image || document)
+    ) {
+      setHeaderStatus('awaiting_sample')
+      Toaster({ type: 'error', message: 'Please add attachments before completing' })
+      fetchRequestDetails()
+    } else {
+      setHeaderStatus(value)
       postMultipleStatus(selectedRow, value)
     }
   }
@@ -982,69 +1014,54 @@ const RequestDetails = () => {
               }}
             >
               <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
-              <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <Box
-                  sx={{
-                    p: 2,
-                    bgcolor: '#0000000D',
-                    width: '35px',
-                    height: '35px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%'
-                  }}
-                >
-                  <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
-                </Box>
+              {selectedRow?.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: '#0000000D',
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
+                  </Box>
 
-                <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => setOpenTransfer(true)}>
-                  <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
-                </Button>
-                <Box>
-                  <FormControl fullWidth variant='outlined'>
-                    <Select
-                      size='small'
-                      labelId='demo-simple-select-label'
-                      id='demo-simple-select'
-                      // defaultValue={'awaiting_sample'}
-                      value={headerStatus}
-                      onChange={e => handleHeaderDropdown(e)}
-                      sx={{
-                        width: 237,
-                        fontSize: '14px',
+                  {/* <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => setOpenTransfer(true)}>
+                    <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                  </Button> */}
+                  <Box>
+                    <FormControl fullWidth variant='outlined'>
+                      <Select
+                        size='small'
+                        labelId='demo-simple-select-label'
+                        id='demo-simple-select'
+                        // defaultValue={'awaiting_sample'}
+                        value={headerStatus}
+                        onChange={e => handleHeaderDropdown(e)}
+                        sx={{
+                          width: 237,
+                          fontSize: '14px',
 
-                        // border: '1px solid red',
+                          // border: '1px solid red',
 
-                        backgroundColor:
-                          headerStatus === 'pending' ||
-                          headerStatus === 'transferred' ||
-                          headerStatus === 'awaiting_sample' ||
-                          headerStatus === 'sample_rejected' ||
-                          headerStatus === 'sample_received'
-                            ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
-                            : headerStatus === 'completed'
-                            ? '#37BD69' // light green background for completed
-                            : headerStatus === 'inprogress'
-                            ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
-                            : 'rgba(0, 128, 0, 0.1)',
+                          backgroundColor:
+                            headerStatus === 'pending' ||
+                            headerStatus === 'transferred' ||
+                            headerStatus === 'awaiting_sample' ||
+                            headerStatus === 'sample_rejected' ||
+                            headerStatus === 'sample_received'
+                              ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                              : headerStatus === 'completed'
+                              ? '#37BD69' // light green background for completed
+                              : headerStatus === 'inprogress'
+                              ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                              : 'rgba(0, 128, 0, 0.1)',
 
-                        color:
-                          headerStatus === 'pending' ||
-                          headerStatus === 'transferred' ||
-                          headerStatus === 'awaiting_sample' ||
-                          headerStatus === 'sample_rejected' ||
-                          headerStatus === 'sample_received'
-                            ? '#FA6140'
-                            : headerStatus === 'completed'
-                            ? '#37BD69'
-                            : headerStatus === 'inprogress'
-                            ? '#E4B819 '
-                            : '#37BD69',
-
-                        borderRadius: '8px',
-
-                        '& .MuiSelect-icon': {
                           color:
                             headerStatus === 'pending' ||
                             headerStatus === 'transferred' ||
@@ -1055,41 +1072,58 @@ const RequestDetails = () => {
                               : headerStatus === 'completed'
                               ? '#37BD69'
                               : headerStatus === 'inprogress'
-                              ? '#E4B819'
-                              : '#37BD69'
-                        },
+                              ? '#E4B819 '
+                              : '#37BD69',
 
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          border: '0',
+                          borderRadius: '8px',
 
-                          borderColor:
-                            headerStatus === 'pending' ||
-                            headerStatus === 'transferred' ||
-                            headerStatus === 'awaiting_sample' ||
-                            headerStatus === 'sample_rejected' ||
-                            headerStatus === 'sample_received'
-                              ? '#FA6140' // Custom red border for these statuses
-                              : headerStatus === 'completed'
-                              ? '#37BD69' // Custom green border for completed
-                              : headerStatus === 'inprogress'
-                              ? '#E4B819' // Custom yellow border for in progress
-                              : '#37BD69' // Default green border
-                        },
+                          '& .MuiSelect-icon': {
+                            color:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected' ||
+                              headerStatus === 'sample_received'
+                                ? '#FA6140'
+                                : headerStatus === 'completed'
+                                ? '#37BD69'
+                                : headerStatus === 'inprogress'
+                                ? '#E4B819'
+                                : '#37BD69'
+                          },
 
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          border: '0'
-                        }
-                      }}
-                    >
-                      {statusData?.map((item, index) => (
-                        <MenuItem key={index} value={item?.id}>
-                          {item?.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            border: '0',
+
+                            borderColor:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected' ||
+                              headerStatus === 'sample_received'
+                                ? '#FA6140' // Custom red border for these statuses
+                                : headerStatus === 'completed'
+                                ? '#37BD69' // Custom green border for completed
+                                : headerStatus === 'inprogress'
+                                ? '#E4B819' // Custom yellow border for in progress
+                                : '#37BD69' // Default green border
+                          },
+
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '0'
+                          }
+                        }}
+                      >
+                        {statusData?.map((item, index) => (
+                          <MenuItem key={index} value={item?.id}>
+                            {item?.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
                 </Box>
-              </Box>
+              )}
             </Box>
 
             <DataGrid
