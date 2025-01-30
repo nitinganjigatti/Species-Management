@@ -26,3 +26,10 @@ export async function getAllRequestsOfSelectedProduct(storeId, itemId) {
 
   return response?.data
 }
+
+export async function getAllUniquePendingList({ params }) {
+  const url = `${PHARMACY_BASE_URL}${SELECTED_STORES_REQUESTS}`
+  const response = await axiosGet({ url, params, pharmacy })
+
+  return response?.data
+}

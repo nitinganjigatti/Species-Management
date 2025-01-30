@@ -110,7 +110,8 @@ const UserThemeOptions = () => {
         ErrorContainer: '#FFD3D3',
         addPrimary: '#00AFD6',
         displaybgSecondary: '#DDEBE9',
-        SurfaceVariant: '#DAE7DF'
+        SurfaceVariant: '#DAE7DF',
+        OnPrimary: '#FFFFFF'
       },
       primary: {
         // light: '#20DE67',
