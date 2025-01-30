@@ -123,7 +123,7 @@ const RequestDetails = () => {
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
-  const [status, setStatus] = React.useState()
+  const [status, setStatus] = React.useState('awaiting_sample')
 
   const localLabData = authData?.userData?.modules?.lab_data?.lab
 
@@ -393,7 +393,7 @@ const RequestDetails = () => {
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={headerStatus === 'transferred' ? 'awaiting_sample' : params.row.status}
+                  defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
